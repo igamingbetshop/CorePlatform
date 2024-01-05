@@ -1,0 +1,1142 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\EntityFramework.6.4.4\build\EntityFramework.props" Condition="Exists('..\packages\EntityFramework.6.4.4\build\EntityFramework.props')" />
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{E33DB226-1845-4621-8CD2-9D5DF921DCBF}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>IqSoft.CP.DAL</RootNamespace>
+    <AssemblyName>IqSoft.CP.DAL</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
+    <TargetFrameworkProfile />
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <NoWarn>
+    </NoWarn>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.6.4.4\lib\net45\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.6.4.4\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+    </Reference>
+    <Reference Include="LinqKit, Version=1.2.2.0, Culture=neutral, PublicKeyToken=bc217f8844052a91, processorArchitecture=MSIL">
+      <HintPath>..\packages\LinqKit.1.2.2\lib\net45\LinqKit.dll</HintPath>
+    </Reference>
+    <Reference Include="LinqKit.Core, Version=1.2.2.0, Culture=neutral, PublicKeyToken=bc217f8844052a91, processorArchitecture=MSIL">
+      <HintPath>..\packages\LinqKit.Core.1.2.2\lib\net45\LinqKit.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AccessObject.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Account.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AccountBalance.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AccountClosedPeriod.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AccountType.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AccountTypeKind.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AccountTypePriority.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Action.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="ActionLog.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AdminMenu.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Affiliate.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AffiliateCommission.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AffiliatePlatform.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AffiliateReferral.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AgentCommission.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AgentProfit.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AmountCurrencySetting.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Announcement.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AnnouncementSetting.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Banner.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="BannerLanguageSetting.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="BannerSegmentSetting.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="BetShop.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="BetShopGroup.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="BetShopReconing.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="BetShopTicket.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Bonu.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="BonusCountrySetting.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="BonusCurrencySetting.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="BonusLanguageSetting.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="BonusPaymentSystemSetting.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="BonusProduct.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="BonusSegmentSetting.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="CashDesk.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="CashDeskShift.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Category.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Character.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Client.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="ClientBankInfo.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="ClientBonu.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="ClientBonusTrigger.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="ClientCategory.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="ClientClassification.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="ClientClosedPeriod.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="ClientFavoriteProduct.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="ClientIdentity.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="ClientInfo.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="ClientLog.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="ClientMessage.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="ClientMessageState.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="ClientPaymentInfo.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="ClientPaymentSetting.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="ClientSecurityAnswer.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="ClientSession.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="ClientSetting.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="CommentTemplate.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="ComplimentaryPointRate.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="CRMSetting.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Currency.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="CurrencyRate.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Document.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Email.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Enumeration.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="ErrorType.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Filters\Affiliate\FilterfnAffiliate.cs" />
+    <Compile Include="Filters\Affiliate\FilterfnAffiliateClientInfo.cs" />
+    <Compile Include="Filters\Affiliate\FilterfnAffiliateTransaction.cs" />
+    <Compile Include="Filters\Agent\AgentReportByProduct.cs" />
+    <Compile Include="Filters\Agent\FilterfnAgent.cs" />
+    <Compile Include="Filters\Agent\FilterfnAgentTransaction.cs" />
+    <Compile Include="Filters\BonusCondition.cs" />
+    <Compile Include="Filters\Clients\FilterClientExclusion.cs" />
+    <Compile Include="Filters\Clients\FilterClientGame.cs" />
+    <Compile Include="Filters\FilterBonusProduct.cs" />
+    <Compile Include="Filters\FilterEmail.cs" />
+    <Compile Include="Filters\FilterClientModel.cs" />
+    <Compile Include="Filters\FilterAccountsBalanceHistory.cs" />
+    <Compile Include="Filters\Clients\FilterfnSegmentClient.cs" />
+    <Compile Include="Filters\Clients\FilterReportByClientIdentity.cs" />
+    <Compile Include="Filters\Clients\FilterReportByClientSession.cs" />
+    <Compile Include="Filters\Clients\FilterfnClientLog.cs" />
+    <Compile Include="Filters\FilterAnnouncement.cs" />
+    <Compile Include="Filters\FilterBase.cs" />
+    <Compile Include="Filters\FilterBetShopGroup.cs" />
+    <Compile Include="Filters\FilterBetShopReconing.cs" />
+    <Compile Include="Filters\FilterCashDeskTransaction.cs" />
+    <Compile Include="Filters\FilterBetShop.cs" />
+    <Compile Include="Filters\FilterCashDesk.cs" />
+    <Compile Include="Filters\FilterClient.cs" />
+    <Compile Include="Filters\FilterClientMessage.cs" />
+    <Compile Include="Filters\FilterClientSession.cs" />
+    <Compile Include="Filters\FilterShopWalletClient.cs" />
+    <Compile Include="Filters\FilterUserCorrection.cs" />
+    <Compile Include="Filters\FilterCorrection.cs" />
+    <Compile Include="Filters\FilterfnBetShop.cs" />
+    <Compile Include="Filters\FilterfnCashDesk.cs" />
+    <Compile Include="Filters\FilterfnClient.cs" />
+    <Compile Include="Filters\FilterfnUser.cs" />
+    <Compile Include="Filters\FilterPartnerProductsMapping.cs" />
+    <Compile Include="Filters\FilterPaymentRequest.cs" />
+    <Compile Include="Filters\FilterRealTime.cs" />
+    <Compile Include="Filters\FilterDashboard.cs" />
+    <Compile Include="Filters\FilterDocument.cs" />
+    <Compile Include="Filters\FilterfnAccount.cs" />
+    <Compile Include="Filters\FilterfnPartnerPaymentSetting.cs" />
+    <Compile Include="Filters\FilterfnPartnerProductSetting.cs" />
+    <Compile Include="Filters\FilterfnProduct.cs" />
+    <Compile Include="Filters\FilterfnRegion.cs" />
+    <Compile Include="Filters\Documents\FilterFnTransaction.cs" />
+    <Compile Include="Filters\FilterfnTranslationEntry.cs" />
+    <Compile Include="Filters\FilterGameProvider.cs" />
+    <Compile Include="Filters\FilterNote.cs" />
+    <Compile Include="Filters\FilterPartner.cs" />
+    <Compile Include="Filters\FilterPartnerKey.cs" />
+    <Compile Include="Filters\FilterPartnerPaymentSetting.cs" />
+    <Compile Include="Filters\FilterPartnerProductSetting.cs" />
+    <Compile Include="Filters\FilterfnObjectTranslationEntry.cs" />
+    <Compile Include="Filters\Messages\FilterTicket.cs" />
+    <Compile Include="Filters\PaymentRequests\FilterfnPaymentRequest.cs" />
+    <Compile Include="Filters\FilterProduct.cs" />
+    <Compile Include="Filters\FilterRegion.cs" />
+    <Compile Include="Filters\FilterRole.cs" />
+    <Compile Include="Filters\Documents\FilterTransaction.cs" />
+    <Compile Include="Filters\FilterTranslation.cs" />
+    <Compile Include="Filters\FilterUser.cs" />
+    <Compile Include="Filters\Reporting\FilterAdminShift.cs" />
+    <Compile Include="Filters\Reporting\FilterPartnerPaymentsSummary.cs" />
+    <Compile Include="Filters\Reporting\FilterReportByAgentTranfer.cs" />
+    <Compile Include="Filters\Reporting\FilterReportByBetShopLimitChanges.cs" />
+    <Compile Include="Filters\Reporting\FilterReportByBetShopPayment.cs" />
+    <Compile Include="Filters\Reporting\FilterReportByActionLog.cs" />
+    <Compile Include="Filters\Reporting\FilterReportByBonus.cs" />
+    <Compile Include="Filters\Reporting\FilterReportByObjectChangeHistory.cs" />
+    <Compile Include="Filters\Reporting\FilterReportByPaymentSystem.cs" />
+    <Compile Include="Filters\Reporting\FilterReportByProduct.cs" />
+    <Compile Include="Filters\Reporting\FilterReportBySegment.cs" />
+    <Compile Include="Filters\Reporting\FilterReportByUserTransaction.cs" />
+    <Compile Include="Filters\User\FilterReportByUserSession.cs" />
+    <Compile Include="Filters\WebSite\FilterMessage.cs" />
+    <Compile Include="fnAccount.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnAccountType.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnActionLog.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnAdminShiftReport.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnAffiliate.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnAffiliateClientInfo.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnAffiliateTransaction.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnAgent.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnAgentProfit.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnAgentProfitReport.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnAgentTransaction.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnAgentTurnoverProfit.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnAnnouncement.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnBanner.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnBetShopReconing.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnBetShops.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnBonus.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnCashDesks.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnCashDesksBalances.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnCashDeskTransaction.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnCharacter.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnClient.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnClientBonus.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnClientIdentity.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnClientInfo.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnClientLog.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnClientMessage.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnClientProductCommission.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnClientSession.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnCommentTemplate.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnCorrection.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnEnumeration.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnErrorType.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnFirstTimePaymentRequest.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnInternetBetByClient.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnJobArea.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnMessageTemplate.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnNote.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnObjectTranslationEntry.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnOnlineClient.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnOnlineUser.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnOperationType.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnPartnerBankInfo.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnPartnerCountrySetting.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnPartnerPaymentSetting.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnPartnerProductSetting.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnPaymentRequest.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnProduct.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnProductCategory.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnProductCommission.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnProductGroup.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnPromotion.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnRealTimeInfo.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnRegion.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnRegionPath.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnReportByAgentTransfer.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnReportByBetShopOperation.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnReportByClientExclusion.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnReportByClientGame.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnReportByPaymentSystem.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnReportByProduct.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnReportByUserTransaction.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnSecurityQuestion.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnSegmentClient.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnShiftReport.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnShopWalletClient.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnTicket.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnTransaction.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnTranslation.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnTranslationEntry.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnUser.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnUserCorrection.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnUserLog.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnUserPermission.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnUserSession.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="GameProvider.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="GameProviderCurrencySetting.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="GameProviderSetting.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Interfaces\IBase.cs" />
+    <Compile Include="IqSoftCP.Context.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>IqSoftCP.Context.tt</DependentUpon>
+    </Compile>
+    <Compile Include="IqSoftCP.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="IqSoftCP.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>IqSoftCP.edmx</DependentUpon>
+    </Compile>
+    <Compile Include="Jackpot.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="JackpotSetting.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Job.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="JobArea.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="JobResult.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="JobTrigger.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Language.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="LimitType.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Merchant.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="MerchantRequest.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="MessageTemplate.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AccountBalance.cs" />
+    <Compile Include="Models\AdminShiftReportOutput.cs" />
+    <Compile Include="Models\Affiliates\AffiliatePlatformModel.cs" />
+    <Compile Include="Models\Affiliates\AffilkaActivityModel.cs" />
+    <Compile Include="Models\Affiliates\ClientActivityModel.cs" />
+    <Compile Include="Models\Affiliates\DIMClientActivityModel.cs" />
+    <Compile Include="Models\Affiliates\IncomeAccessActivityModel.cs" />
+    <Compile Include="Models\Affiliates\MyAffiliateClientActivityModel.cs" />
+    <Compile Include="Models\Affiliates\NetreferActivityModel.cs" />
+    <Compile Include="Models\Affiliates\RegistrationActivityModel.cs" />
+    <Compile Include="Models\BetShopReconingOutput.cs" />
+    <Compile Include="Models\Cache\BllTicker.cs" />
+    <Compile Include="Models\Cache\BllAsianCommissionPlan.cs" />
+    <Compile Include="Models\Cache\BllBetShopGroup.cs" />
+    <Compile Include="Models\Cache\BllBonus.cs" />
+    <Compile Include="Models\Cache\BllClientProductCommission.cs" />
+    <Compile Include="Models\Cache\BllCommentTemplate.cs" />
+    <Compile Include="Models\Cache\BllComplimentaryPointRate.cs" />
+    <Compile Include="Models\Cache\BllCurrencyRate.cs" />
+    <Compile Include="Models\Cache\BllFavoriteProduct.cs" />
+    <Compile Include="Models\Cache\BllGameProviderSetting.cs" />
+    <Compile Include="Models\Bonuses\TriggerGroupItem.cs" />
+    <Compile Include="Models\Bonuses\TriggerSettingItem.cs" />
+    <Compile Include="Models\Cache\BllAccessObject.cs" />
+    <Compile Include="Models\Cache\BllAccountBalance.cs" />
+    <Compile Include="Models\Cache\BllAccountInfo.cs" />
+    <Compile Include="Models\Cache\BllAccountType.cs" />
+    <Compile Include="Models\AddMoneyToPartnerAccountInput.cs" />
+    <Compile Include="Models\Cache\BllBet.cs" />
+    <Compile Include="Models\Cache\BllBetShop.cs" />
+    <Compile Include="Models\Cache\BllCashDesk.cs" />
+    <Compile Include="Models\Cache\BllCategory.cs" />
+    <Compile Include="Models\Cache\BllClient.cs" />
+    <Compile Include="Models\Cache\BllClientBalance.cs" />
+    <Compile Include="Models\Cache\BllClientCategory.cs" />
+    <Compile Include="Models\Cache\BllClientLastIp.cs" />
+    <Compile Include="Models\Cache\BllClientSession.cs" />
+    <Compile Include="Models\Cache\BllClientSetting.cs" />
+    <Compile Include="Models\Cache\BllFnEnumeration.cs" />
+    <Compile Include="Models\Cache\BllFnUserPermission.cs" />
+    <Compile Include="Models\Cache\BllLanguage.cs" />
+    <Compile Include="Models\Cache\BllMenu.cs" />
+    <Compile Include="Models\Cache\BllMenuItem.cs" />
+    <Compile Include="Models\Cache\BllMerchant.cs" />
+    <Compile Include="Models\Cache\BllMessageTemplate.cs" />
+    <Compile Include="Models\Cache\BllObjectType.cs" />
+    <Compile Include="Models\Cache\BllOnlineClient.cs" />
+    <Compile Include="Models\Cache\BllPartner.cs" />
+    <Compile Include="Models\Cache\BllPartnerCountrySetting.cs" />
+    <Compile Include="Models\Cache\BllPartnerCurrencySetting.cs" />
+    <Compile Include="Models\Cache\BllPartnerPaymentSetting.cs" />
+    <Compile Include="Models\Cache\BllPartnerSettings.cs" />
+    <Compile Include="Models\Cache\BllPaymentSystem.cs" />
+    <Compile Include="Models\Cache\BllProductCategory.cs" />
+    <Compile Include="Models\Cache\BllProductCountrySetting.cs" />
+    <Compile Include="Models\Cache\BllRealTimeInfo.cs" />
+    <Compile Include="Models\Cache\BllRegion.cs" />
+    <Compile Include="Models\Cache\BllRegionItem.cs" />
+    <Compile Include="Models\Cache\BllSecurityQuestion.cs" />
+    <Compile Include="Models\Cache\BllSegmentSetting.cs" />
+    <Compile Include="Models\Cache\BllSubMenuItem.cs" />
+    <Compile Include="Models\Cache\BllUnreadTicketsCount.cs" />
+    <Compile Include="Models\Cache\BllUser.cs" />
+    <Compile Include="Models\Cache\BllUserConfiguration.cs" />
+    <Compile Include="Models\Cache\BllUserSetting.cs" />
+    <Compile Include="Models\Cache\BonusInfo.cs" />
+    <Compile Include="Models\Cache\BllClientBonus.cs" />
+    <Compile Include="Models\Cache\ClientBonusInfo.cs" />
+    <Compile Include="Models\Cache\ClientBonusProduct.cs" />
+    <Compile Include="Models\Cache\PartnerKey.cs" />
+    <Compile Include="Models\Cache\TriggerGroupInfo.cs" />
+    <Compile Include="Models\Cache\TriggerGroupSettingInfo.cs" />
+    <Compile Include="Models\Cache\TriggerProductInfo.cs" />
+    <Compile Include="Models\Cache\TriggerSettingInfo.cs" />
+    <Compile Include="Models\Clients\ClientCustomSettings.cs" />
+    <Compile Include="Models\Clients\ClientLoginInput.cs" />
+    <Compile Include="Models\Clients\ClientLoginOut.cs" />
+    <Compile Include="Models\Clients\ClientPaymentSegment.cs" />
+    <Compile Include="Models\Clients\ClientTriggerInput.cs" />
+    <Compile Include="Models\Clients\LimitInfo.cs" />
+    <Compile Include="Models\Dashboard\ApiClientInfo.cs" />
+    <Compile Include="Models\Integration\ProductsIntegration\ApiBonus.cs" />
+    <Compile Include="Models\Integration\ProductsIntegration\ApiLanguage.cs" />
+    <Compile Include="Models\Integration\ProductsIntegration\GetSessionInfoOutput.cs" />
+    <Compile Include="Models\Integration\ProductsIntegration\PartnerLanguagesOutput.cs" />
+    <Compile Include="Models\Log.cs" />
+    <Compile Include="Models\Notification\Composite.cs" />
+    <Compile Include="Models\Notification\NotificationModel.cs" />
+    <Compile Include="Models\Notification\PaymentNotificationInfo.cs" />
+    <Compile Include="Models\Notification\VerifyCodeOutput.cs" />
+    <Compile Include="Models\ObjectTranslations.cs" />
+    <Compile Include="Models\Products\PartnerProduct.cs" />
+    <Compile Include="Models\CashDeskCorrectionInput.cs" />
+    <Compile Include="Models\Clients\AffiliateClientModel.cs" />
+    <Compile Include="Models\AccountsBalanceHistoryElement.cs" />
+    <Compile Include="Models\Clients\ClientInfo.cs" />
+    <Compile Include="Models\Clients\ClientRegistrationInput.cs" />
+    <Compile Include="Models\Clients\QuickRegistrationInput.cs" />
+    <Compile Include="Models\Clients\TerminalClientInput.cs" />
+    <Compile Include="Models\Job\ClientProductBet.cs" />
+    <Compile Include="Models\Job\AffiliateReportInput.cs" />
+    <Compile Include="Models\NewPasswordInput.cs" />
+    <Compile Include="Models\PartnerPaymentLimit.cs" />
+    <Compile Include="Models\Payments\ChangeWithdrawRequestStateOutput.cs" />
+    <Compile Include="Models\Payments\PaymentRequestInfo.cs" />
+    <Compile Include="Models\Payments\PayWithdrawFromBetShopOutput.cs" />
+    <Compile Include="Models\ProductLimit.cs" />
+    <Compile Include="Models\Cache\BllClientClassification.cs" />
+    <Compile Include="Models\Cache\BllCurrency.cs" />
+    <Compile Include="Models\Cache\BllPermission.cs" />
+    <Compile Include="Models\Cache\BllProductLimit.cs" />
+    <Compile Include="Models\Report\BetShopGame.cs" />
+    <Compile Include="Models\Report\BetShopGames.cs" />
+    <Compile Include="Models\Report\BonusReport.cs" />
+    <Compile Include="Models\Report\ClientChangeHistoryModel.cs" />
+    <Compile Include="Models\Report\ClientInternetGameReport.cs" />
+    <Compile Include="Models\Report\CorrectionsReport.cs" />
+    <Compile Include="Models\Report\GetBetByBarcodeOutput.cs" />
+    <Compile Include="Models\Report\InternetBetsByClientReport.cs" />
+    <Compile Include="Models\Report\InternetBetsByPartner.cs" />
+    <Compile Include="Models\Report\InternetGame.cs" />
+    <Compile Include="Models\Report\InternetGames.cs" />
+    <Compile Include="Models\Report\ObjectChangeHistoryItem.cs" />
+    <Compile Include="Models\Report\PartnerReport.cs" />
+    <Compile Include="Models\Report\PaymentRequestsReport.cs" />
+    <Compile Include="Models\Report\PartnerPaymentsSummaryReport.cs" />
+    <Compile Include="Models\Report\PaymentSystemReportItem.cs" />
+    <Compile Include="Models\Report\ReportByProvidersElement.cs" />
+    <Compile Include="Models\CheckPermissionInput.cs" />
+    <Compile Include="Models\ClientCorrectionInput.cs" />
+    <Compile Include="Models\ClientTransaction.cs" />
+    <Compile Include="Models\BetShopFinOperationsOutput.cs" />
+    <Compile Include="Models\BetShopFinOperationDocument.cs" />
+    <Compile Include="Models\ClosePeriodInput.cs" />
+    <Compile Include="Models\CreateWithdrawFromBetShopOutput.cs" />
+    <Compile Include="Models\Dashboard\BetsInfo.cs" />
+    <Compile Include="Models\Dashboard\PaymentRequestsInfo.cs" />
+    <Compile Include="Models\Dashboard\PlayersInfo.cs" />
+    <Compile Include="Models\Dashboard\ProvidersBetsInfo.cs" />
+    <Compile Include="Models\GroupedOperation.cs" />
+    <Compile Include="Models\Integration\ControlSystem\ControlSystemResponseBase.cs" />
+    <Compile Include="Models\Integration\ControlSystem\FinOperationInput.cs" />
+    <Compile Include="Models\Integration\ProductsIntegration\AuthorizationInput.cs" />
+    <Compile Include="Models\Integration\ProductsIntegration\AuthorizationOutput.cs" />
+    <Compile Include="Models\Integration\ProductsIntegration\FinOperationInput.cs" />
+    <Compile Include="Models\Integration\ProductsIntegration\FinOperationInputItem.cs" />
+    <Compile Include="Models\Integration\ProductsIntegration\FinOperationOutput.cs" />
+    <Compile Include="Models\Integration\ProductsIntegration\FinOperationOutputItem.cs" />
+    <Compile Include="Models\Integration\ProductsIntegration\GetBalanceInput.cs" />
+    <Compile Include="Models\Integration\ProductsIntegration\GetBalanceOutput.cs" />
+    <Compile Include="Models\Integration\ProductsIntegration\InputBase.cs" />
+    <Compile Include="Models\Integration\ProductsIntegration\RefreshTokenInput.cs" />
+    <Compile Include="Models\Integration\ProductsIntegration\RefreshTokenOutput.cs" />
+    <Compile Include="Models\ListOfOperationsFromProduct.cs" />
+    <Compile Include="Models\PlayersDashboard\ClientReport.cs" />
+    <Compile Include="Models\PlayersDashboard\ClientReportTotal.cs" />
+    <Compile Include="Models\Report\PaymentRequestHistoryElement.cs" />
+    <Compile Include="Models\Report\SegmentByPaymentSystem.cs" />
+    <Compile Include="Models\ResponseBase.cs" />
+    <Compile Include="Models\Segment\SegementSettingModel.cs" />
+    <Compile Include="Models\Segment\SegmentModel.cs" />
+    <Compile Include="Models\Segment\SegmentOutput.cs" />
+    <Compile Include="Models\SessionIdentity.cs" />
+    <Compile Include="Models\ShiftInfo.cs" />
+    <Compile Include="Models\SiteOptionsModel.cs" />
+    <Compile Include="Models\User\AgentDownlinesStatuses.cs" />
+    <Compile Include="Models\User\AgentStatusItem.cs" />
+    <Compile Include="Models\User\PermissionModel.cs" />
+    <Compile Include="Models\User\RolePermissionModel.cs" />
+    <Compile Include="Models\User\TurnoverPercent.cs" />
+    <Compile Include="Models\User\UserBalance.cs" />
+    <Compile Include="Models\User\UserTransferInput.cs" />
+    <Compile Include="Models\WebSite\WebSiteTranslation.cs" />
+    <Compile Include="Note.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="NotificationService.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="ObjectAction.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="ObjectChangeHistory.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="ObjectCurrencyPriority.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="ObjectDataChangeHistory.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="ObjectType.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="OperationType.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="PartialClasses\BetShopTicket.cs" />
+    <Compile Include="PartialClasses\BonusProduct.cs" />
+    <Compile Include="PartialClasses\Character.cs" />
+    <Compile Include="PartialClasses\Email.cs" />
+    <Compile Include="PartialClasses\fnAffiliateClientInfo.cs" />
+    <Compile Include="PartialClasses\fnAffiliateTransaction.cs" />
+    <Compile Include="PartialClasses\fnAnnouncement.cs" />
+    <Compile Include="PartialClasses\Banner.cs" />
+    <Compile Include="PartialClasses\Bonus.cs" />
+    <Compile Include="PartialClasses\CashDeskShift.cs" />
+    <Compile Include="PartialClasses\fnAffiliate.cs" />
+    <Compile Include="PartialClasses\fnCharacter.cs" />
+    <Compile Include="PartialClasses\fnPartnerBankInfo.cs" />
+    <Compile Include="PartialClasses\fnReportByClientExclusion.cs" />
+    <Compile Include="PartialClasses\fnReportByClientGame.cs" />
+    <Compile Include="PartialClasses\fnReportByUserTransaction.cs" />
+    <Compile Include="PartialClasses\fnShopWalletClient.cs" />
+    <Compile Include="PartialClasses\fnUserSession.cs" />
+    <Compile Include="PartialClasses\Promotion.cs" />
+    <Compile Include="PartialClasses\fnBanner.cs" />
+    <Compile Include="PartialClasses\fnUserCorrection.cs" />
+    <Compile Include="PartialClasses\fnReportByAgentTranfer.cs" />
+    <Compile Include="PartialClasses\fnReportByPaymentSystem.cs" />
+    <Compile Include="PartialClasses\ClientSetting.cs" />
+    <Compile Include="PartialClasses\fnActionLog.cs" />
+    <Compile Include="PartialClasses\fnAdminShiftReport.cs" />
+    <Compile Include="PartialClasses\fnAgent.cs" />
+    <Compile Include="PartialClasses\fnAgentTransaction.cs" />
+    <Compile Include="PartialClasses\fnAgentTurnoverProfit.cs" />
+    <Compile Include="PartialClasses\fnBetShops.cs" />
+    <Compile Include="PartialClasses\fnCashDesks.cs" />
+    <Compile Include="PartialClasses\fnClientBonus.cs" />
+    <Compile Include="PartialClasses\fnClientIdentity.cs" />
+    <Compile Include="PartialClasses\fnClientLog.cs" />
+    <Compile Include="PartialClasses\ClientLog.cs" />
+    <Compile Include="PartialClasses\fnClient.cs" />
+    <Compile Include="PartialClasses\ClientIdentity.cs" />
+    <Compile Include="PartialClasses\ClientSession.cs" />
+    <Compile Include="PartialClasses\fnClientMessage.cs" />
+    <Compile Include="PartialClasses\fnClientSession.cs" />
+    <Compile Include="PartialClasses\fnCorrection.cs" />
+    <Compile Include="PartialClasses\fnRealTimeInfo.cs" />
+    <Compile Include="PartialClasses\fnReportByBetShopOperation.cs" />
+    <Compile Include="PartialClasses\fnReportByProduct.cs" />
+    <Compile Include="PartialClasses\fnBetShopReconing.cs" />
+    <Compile Include="PartialClasses\fnNote.cs" />
+    <Compile Include="PartialClasses\fnOnlineClient.cs" />
+    <Compile Include="PartialClasses\fnPaymentRequest.cs" />
+    <Compile Include="PartialClasses\fnSegmentClient.cs" />
+    <Compile Include="PartialClasses\fnTicket.cs" />
+    <Compile Include="PartialClasses\fnTranslation.cs" />
+    <Compile Include="PartialClasses\fnUser.cs" />
+    <Compile Include="PartialClasses\Jackpot.cs" />
+    <Compile Include="PartialClasses\Note.cs" />
+    <Compile Include="Models\ObjectBalance.cs" />
+    <Compile Include="Models\Operation.cs" />
+    <Compile Include="Models\OperationItem.cs" />
+    <Compile Include="Models\RealTime\RealTimeInfo.cs" />
+    <Compile Include="Models\Report\BetShopReport.cs" />
+    <Compile Include="Models\Report\BetShops.cs" />
+    <Compile Include="Models\Report\BetshopSummaryReport.cs" />
+    <Compile Include="Models\Report\CashdeskTransactionsReport.cs" />
+    <Compile Include="Models\Report\PartnerBetshopsSalesReport.cs" />
+    <Compile Include="Models\ResetBetShopDailyTicketNumberInput.cs" />
+    <Compile Include="Models\ResetBetShopDailyTicketNumberOutput.cs" />
+    <Compile Include="PartialClasses\AccessObject.cs" />
+    <Compile Include="PartialClasses\BetShop.cs" />
+    <Compile Include="PartialClasses\BetShopGroup.cs" />
+    <Compile Include="PartialClasses\BetShopReconing.cs" />
+    <Compile Include="PartialClasses\CashDesk.cs" />
+    <Compile Include="PartialClasses\Currency.cs" />
+    <Compile Include="PartialClasses\Document.cs" />
+    <Compile Include="PartialClasses\fnAccount.cs" />
+    <Compile Include="PartialClasses\fnCashDeskTransaction.cs" />
+    <Compile Include="PartialClasses\fnPartnerPaymentSetting.cs" />
+    <Compile Include="PartialClasses\fnPartnerProductSetting.cs" />
+    <Compile Include="PartialClasses\fnProduct.cs" />
+    <Compile Include="PartialClasses\fnRegion.cs" />
+    <Compile Include="PartialClasses\fnTransaction.cs" />
+    <Compile Include="PartialClasses\fnTranslationEntry.cs" />
+    <Compile Include="PartialClasses\GameProvider.cs" />
+    <Compile Include="PartialClasses\ObjectChangeHistory.cs" />
+    <Compile Include="PartialClasses\ObjectDataChangeHistory.cs" />
+    <Compile Include="PartialClasses\Partner.cs" />
+    <Compile Include="PartialClasses\PartnerCurrencySetting.cs" />
+    <Compile Include="PartialClasses\PartnerKey.cs" />
+    <Compile Include="PartialClasses\PartnerLanguageSetting.cs" />
+    <Compile Include="PartialClasses\PartnerPaymentSetting.cs" />
+    <Compile Include="PartialClasses\PartnerProductSetting.cs" />
+    <Compile Include="PartialClasses\PaymentRequest.cs" />
+    <Compile Include="PartialClasses\Permission.cs" />
+    <Compile Include="PartialClasses\Product.cs" />
+    <Compile Include="PartialClasses\Region.cs" />
+    <Compile Include="PartialClasses\Role.cs" />
+    <Compile Include="PartialClasses\SecurityQuestion.cs" />
+    <Compile Include="PartialClasses\spObjectChangeHistory.cs" />
+    <Compile Include="PartialClasses\fnObjectTranslationEntry.cs" />
+    <Compile Include="PartialClasses\Ticket.cs" />
+    <Compile Include="PartialClasses\Transaction.cs" />
+    <Compile Include="PartialClasses\Translation.cs" />
+    <Compile Include="PartialClasses\TriggerSetting.cs" />
+    <Compile Include="PartialClasses\User.cs" />
+    <Compile Include="PartialClasses\Client.cs" />
+    <Compile Include="PartialClasses\WebSiteMenuItem.cs" />
+    <Compile Include="PartialClasses\WebSiteSubMenuItem.cs" />
+    <Compile Include="Partner.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="PartnerBankInfo.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="PartnerCountrySetting.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="PartnerCurrencySetting.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="PartnerKey.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="PartnerLanguageSetting.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="PartnerPaymentCountrySetting.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="PartnerPaymentCurrencyRate.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="PartnerPaymentSetting.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="PartnerProductSetting.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="PaymentLimit.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="PaymentRequest.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="PaymentRequestHistory.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="PaymentRequestTransfer.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="PaymentSystem.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Permission.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="PermissionGroup.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Product.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="ProductCategory.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="ProductCountrySetting.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="ProductLimit.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="PromoCode.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Promotion.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="PromotionLanguageSetting.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="PromotionSegmentSetting.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Region.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Role.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="RolePermission.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="SecurityQuestion.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Segment.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="SegmentSetting.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="spObjectChangeHistory.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="sysdiagram.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Ticket.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="TicketMessage.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="TicketMessageState.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Transaction.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Translation.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="TranslationEntry.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="TriggerGroup.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="TriggerGroupSetting.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="TriggerProductSetting.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="TriggerSetting.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="User.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="UserConfiguration.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="UserLog.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="UserRole.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="UserSession.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="UserSetting.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="UserState.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="WebSiteMenu.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="WebSiteMenuItem.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="WebSiteSubMenuItem.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.Config">
+      <SubType>Designer</SubType>
+    </None>
+    <EntityDeploy Include="IqSoftCP.edmx">
+      <Generator>EntityModelCodeGenerator</Generator>
+      <LastGenOutput>IqSoftCP.Designer.cs</LastGenOutput>
+    </EntityDeploy>
+    <None Include="IqSoftCP.edmx.diagram">
+      <DependentUpon>IqSoftCP.edmx</DependentUpon>
+    </None>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\IqSoft.CP.Common\IqSoft.CP.Common.csproj">
+      <Project>{ad52222e-e214-42f7-950a-1b9d9fdf70f9}</Project>
+      <Name>IqSoft.CP.Common</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Models\Integration\PaymentSystemIntegration\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="IqSoftCP.Context.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>IqSoftCP.edmx</DependentUpon>
+      <LastGenOutput>IqSoftCP.Context.cs</LastGenOutput>
+    </Content>
+    <Content Include="IqSoftCP.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>IqSoftCP.edmx</DependentUpon>
+      <LastGenOutput>IqSoftCP.cs</LastGenOutput>
+    </Content>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
+    <Error Condition="!Exists('..\packages\EntityFramework.6.4.4\build\EntityFramework.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\EntityFramework.6.4.4\build\EntityFramework.props'))" />
+    <Error Condition="!Exists('..\packages\EntityFramework.6.4.4\build\EntityFramework.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\EntityFramework.6.4.4\build\EntityFramework.targets'))" />
+  </Target>
+  <Import Project="..\packages\EntityFramework.6.4.4\build\EntityFramework.targets" Condition="Exists('..\packages\EntityFramework.6.4.4\build\EntityFramework.targets')" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

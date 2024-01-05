@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+https://go.microsoft.com/fwlink/?LinkID=208121. 
+-->
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <_PublishTargetUrl>D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.BetShopWebApiCore\bin\Release\net6.0\publish\</_PublishTargetUrl>
+    <History>True|2023-05-05T08:18:54.4002269Z;</History>
+  </PropertyGroup>
+</Project>

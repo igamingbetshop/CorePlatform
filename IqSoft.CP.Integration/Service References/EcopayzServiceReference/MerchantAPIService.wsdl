@@ -1,0 +1,979 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:tm="http://microsoft.com/wsdl/mime/textMatching/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:tns="http://www.ecocard.com/merchantAPI/" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:s="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" targetNamespace="http://www.ecocard.com/merchantAPI/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
+    <s:schema elementFormDefault="qualified" targetNamespace="http://www.ecocard.com/merchantAPI/">
+      <s:element name="TestAction">
+        <s:complexType />
+      </s:element>
+      <s:element name="TestActionResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="TestActionResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Payout">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="PayoutRequest" type="tns:PayoutRequestType" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:complexType name="PayoutRequestType">
+        <s:sequence>
+          <s:element minOccurs="1" maxOccurs="1" name="MerchantID" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="MerchantPassword" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="MerchantAccountNumber" type="s:int" />
+          <s:element minOccurs="1" maxOccurs="1" name="ClientAccountNumber" type="s:int" />
+          <s:element minOccurs="1" maxOccurs="1" name="Amount" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="TxID" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="Currency" type="tns:CurrencyType" />
+          <s:element minOccurs="0" maxOccurs="1" name="ClientAccountNumberAtMerchant" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="TxBatchNumber" nillable="true" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="TransactionDescription" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+      <s:simpleType name="CurrencyType">
+        <s:restriction base="s:string">
+          <s:enumeration value="USD" />
+          <s:enumeration value="EUR" />
+          <s:enumeration value="CHF" />
+          <s:enumeration value="GBP" />
+          <s:enumeration value="AUD" />
+          <s:enumeration value="CAD" />
+          <s:enumeration value="LVL" />
+          <s:enumeration value="ILS" />
+          <s:enumeration value="DKK" />
+          <s:enumeration value="SEK" />
+          <s:enumeration value="SGD" />
+          <s:enumeration value="NOK" />
+          <s:enumeration value="PLN" />
+          <s:enumeration value="CZK" />
+          <s:enumeration value="EEK" />
+          <s:enumeration value="HUF" />
+          <s:enumeration value="LTL" />
+          <s:enumeration value="SKK" />
+          <s:enumeration value="ZAR" />
+          <s:enumeration value="TRY" />
+          <s:enumeration value="BGN" />
+          <s:enumeration value="RON" />
+          <s:enumeration value="JPY" />
+          <s:enumeration value="HKD" />
+          <s:enumeration value="RUB" />
+          <s:enumeration value="CNY" />
+          <s:enumeration value="BRL" />
+          <s:enumeration value="MXN" />
+          <s:enumeration value="NZD" />
+          <s:enumeration value="THB" />
+          <s:enumeration value="ARS" />
+          <s:enumeration value="AED" />
+          <s:enumeration value="BAM" />
+          <s:enumeration value="CLP" />
+          <s:enumeration value="COP" />
+          <s:enumeration value="GEL" />
+          <s:enumeration value="IDR" />
+          <s:enumeration value="ISK" />
+          <s:enumeration value="MOP" />
+          <s:enumeration value="MYR" />
+          <s:enumeration value="MDL" />
+          <s:enumeration value="PEN" />
+          <s:enumeration value="RSD" />
+          <s:enumeration value="UAH" />
+          <s:enumeration value="UYU" />
+          <s:enumeration value="UZS" />
+          <s:enumeration value="VEF" />
+          <s:enumeration value="NIO" />
+          <s:enumeration value="CRC" />
+          <s:enumeration value="PAB" />
+          <s:enumeration value="INR" />
+          <s:enumeration value="SAR" />
+          <s:enumeration value="QAR" />
+          <s:enumeration value="EGP" />
+          <s:enumeration value="JOD" />
+          <s:enumeration value="KWD" />
+          <s:enumeration value="XAF" />
+          <s:enumeration value="RWF" />
+          <s:enumeration value="TZS" />
+          <s:enumeration value="NGN" />
+          <s:enumeration value="GHS" />
+          <s:enumeration value="KES" />
+          <s:enumeration value="UGX" />
+          <s:enumeration value="PHP" />
+          <s:enumeration value="HRK" />
+        </s:restriction>
+      </s:simpleType>
+      <s:element name="PayoutResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="TransactionResponse" type="tns:TransactionResponseType" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:complexType name="TransactionResponseType">
+        <s:sequence>
+          <s:element minOccurs="1" maxOccurs="1" name="ErrorCode" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="Message" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="TxID" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="SVSTxID" type="s:long" />
+          <s:element minOccurs="0" maxOccurs="1" name="Amount" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="MerchantAccountNumber" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="ClientAccountNumber" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="Currency" type="tns:CurrencyType" />
+          <s:element minOccurs="0" maxOccurs="1" name="TransactionType">
+            <s:simpleType>
+              <s:restriction base="s:string">
+                <s:enumeration value="Purchase" />
+                <s:enumeration value="Payout" />
+                <s:enumeration value="ecoVoucher" />
+                <s:enumeration value="ecoVoucherPayout" />
+              </s:restriction>
+            </s:simpleType>
+          </s:element>
+          <s:element minOccurs="0" maxOccurs="1" name="ProcessingTime" type="s:dateTime" />
+          <s:element minOccurs="0" maxOccurs="1" name="TransactionDescription" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+      <s:element name="EcoVoucherPayout">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="EcoVoucherPayoutRequest" type="tns:EcoVoucherPayoutRequestType" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:complexType name="EcoVoucherPayoutRequestType">
+        <s:sequence>
+          <s:element minOccurs="1" maxOccurs="1" name="MerchantID" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="MerchantPassword" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="MerchantAccountNumber" type="s:int" />
+          <s:element minOccurs="1" maxOccurs="1" name="Amount" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="TxID" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="Currency" type="tns:CurrencyType" />
+          <s:element minOccurs="0" maxOccurs="1" name="ClientAccountNumberAtMerchant" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="TxBatchNumber" nillable="true" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="TransactionDescription" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+      <s:element name="EcoVoucherPayoutResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="EcoVoucherTransactionResponse" type="tns:EcoVoucherTransactionResponseType" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:complexType name="EcoVoucherTransactionResponseType">
+        <s:sequence>
+          <s:element minOccurs="1" maxOccurs="1" name="ErrorCode" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="Message" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="TxID" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="SVSTxID" type="s:long" />
+          <s:element minOccurs="0" maxOccurs="1" name="ecoVoucherPIN" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="ecoVoucherSerialNumber" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="ecoVoucherExpirationTimeStamp" type="s:dateTime" />
+          <s:element minOccurs="0" maxOccurs="1" name="Amount" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="MerchantAccountNumber" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="Currency" type="tns:CurrencyType" />
+          <s:element minOccurs="0" maxOccurs="1" name="ClientAccountNumberAtMerchant" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="TransactionType">
+            <s:simpleType>
+              <s:restriction base="s:string">
+                <s:enumeration value="ecoVoucherPayout" />
+              </s:restriction>
+            </s:simpleType>
+          </s:element>
+          <s:element minOccurs="0" maxOccurs="1" name="ProcessingTime" type="s:dateTime" />
+          <s:element minOccurs="0" maxOccurs="1" name="TransactionDescription" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+      <s:element name="Purchase">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="PurchaseRequest" type="tns:PurchaseRequestType" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:complexType name="PurchaseRequestType">
+        <s:sequence>
+          <s:element minOccurs="1" maxOccurs="1" name="MerchantID" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="MerchantPassword" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="MerchantAccountNumber" type="s:int" />
+          <s:element minOccurs="1" maxOccurs="1" name="ClientAccountNumber" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="ClientPIN" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="Amount" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="TxID" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="Currency" type="tns:CurrencyType" />
+          <s:element minOccurs="0" maxOccurs="1" name="ClientAccountNumberAtMerchant" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="TxBatchNumber" nillable="true" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="TransactionDescription" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+      <s:element name="PurchaseResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="TransactionResponse" type="tns:TransactionResponseType" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="QueryByCustomerTransactionID">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="QueryByCustomerTransactionIDRequest" type="tns:QueryByCustomerTransactionIDRequestType" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:complexType name="QueryByCustomerTransactionIDRequestType">
+        <s:sequence>
+          <s:element minOccurs="1" maxOccurs="1" name="MerchantID" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="MerchantPassword" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="TxID" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+      <s:element name="QueryByCustomerTransactionIDResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="TransactionResponse" type="tns:TransactionResponseType" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="QueryBySVSTransactionID">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="QueryBySVSTransactionIDRequest" type="tns:QueryBySVSTransactionIDRequestType" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:complexType name="QueryBySVSTransactionIDRequestType">
+        <s:sequence>
+          <s:element minOccurs="1" maxOccurs="1" name="MerchantID" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="MerchantPassword" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="SVSTxID" type="s:long" />
+        </s:sequence>
+      </s:complexType>
+      <s:element name="QueryBySVSTransactionIDResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="TransactionResponse" type="tns:TransactionResponseType" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="QueryEcoVoucherInfoByCustomerTransactionID">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="QueryByCustomerTransactionIDRequest" type="tns:QueryByCustomerTransactionIDRequestType" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="QueryEcoVoucherInfoByCustomerTransactionIDResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="EcoVoucherTransactionResponse" type="tns:EcoVoucherTransactionResponseType" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="QueryEcoVoucherInfoBySVSTransactionID">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="QueryBySVSTransactionIDRequest" type="tns:QueryBySVSTransactionIDRequestType" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="QueryEcoVoucherInfoBySVSTransactionIDResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="EcoVoucherTransactionResponse" type="tns:EcoVoucherTransactionResponseType" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="CreateUser">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="createUserRequest" type="tns:CreateUserRequestType" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:complexType name="CreateUserRequestType">
+        <s:sequence>
+          <s:element minOccurs="1" maxOccurs="1" name="MerchantID" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="MerchantPassword" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="FirstName" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="LastName" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="Email" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="DateOfBirth" type="s:dateTime" />
+          <s:element minOccurs="1" maxOccurs="1" name="AccountCurrency" type="tns:CurrencyType" />
+          <s:element minOccurs="0" maxOccurs="1" name="MobilePhone" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="CountryOfResidence" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="Title" nillable="true" type="tns:TitleType" />
+          <s:element minOccurs="0" maxOccurs="1" name="Gender" nillable="true" type="tns:GenderType" />
+          <s:element minOccurs="1" maxOccurs="1" name="AddressLine_1" nillable="true" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="AddressLine_2" nillable="true" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="AddressLine_3" nillable="true" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="AddressLine_4" nillable="true" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="BuildingNumber" nillable="true" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="PostCode" nillable="true" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="MerchantRefNumber" nillable="true" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="ReferrerID" nillable="true" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="LanguageID" nillable="true" type="tns:LanguageIDType" />
+        </s:sequence>
+      </s:complexType>
+      <s:simpleType name="TitleType">
+        <s:restriction base="s:string">
+          <s:enumeration value="Mr" />
+          <s:enumeration value="Ms" />
+          <s:enumeration value="Mrs" />
+          <s:enumeration value="Miss" />
+        </s:restriction>
+      </s:simpleType>
+      <s:simpleType name="GenderType">
+        <s:restriction base="s:string">
+          <s:enumeration value="Male" />
+          <s:enumeration value="Female" />
+        </s:restriction>
+      </s:simpleType>
+      <s:simpleType name="LanguageIDType">
+        <s:restriction base="s:string">
+          <s:enumeration value="ar-SA" />
+          <s:enumeration value="de-DE" />
+          <s:enumeration value="en-GB" />
+          <s:enumeration value="es-ES" />
+          <s:enumeration value="fr-FR" />
+          <s:enumeration value="it-IT" />
+          <s:enumeration value="ru-RU" />
+          <s:enumeration value="tr-TR" />
+          <s:enumeration value="zh-CN" />
+          <s:enumeration value="ja-JP" />
+          <s:enumeration value="pt-BR" />
+          <s:enumeration value="pl-PL" />
+        </s:restriction>
+      </s:simpleType>
+      <s:element name="CreateUserResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="createUserResponse" type="tns:CreateUserResponseType" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:complexType name="CreateUserResponseType">
+        <s:sequence>
+          <s:element minOccurs="1" maxOccurs="1" name="ErrorCode" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="Message" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="TempUserName" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="ActivationLink" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="Pin" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="ClientAccountNumber" type="s:int" />
+        </s:sequence>
+      </s:complexType>
+      <s:element name="ReceiveAccountBalance">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="BalanceRequest" type="tns:BalanceRequestType" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:complexType name="BalanceRequestType">
+        <s:sequence>
+          <s:element minOccurs="1" maxOccurs="1" name="MerchantID" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="MerchantPassword" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="MerchantAccountNumber" type="s:int" />
+        </s:sequence>
+      </s:complexType>
+      <s:element name="ReceiveAccountBalanceResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="BalanceResponse" type="tns:BalanceResponseType" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:complexType name="BalanceResponseType">
+        <s:sequence>
+          <s:element minOccurs="1" maxOccurs="1" name="ErrorCode" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="Message" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="MerchantAccountNumber" type="s:int" />
+          <s:element minOccurs="1" maxOccurs="1" name="CurrentBalance" type="s:decimal" />
+          <s:element minOccurs="1" maxOccurs="1" name="Currency" type="tns:CurrencyType" />
+          <s:element minOccurs="1" maxOccurs="1" name="LastChangeTime" type="s:dateTime" />
+        </s:sequence>
+      </s:complexType>
+      <s:element name="RequestPrepaidMasterCard">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="requestCardRequest" type="tns:RequestPrepaidMasterCardRequestType" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:complexType name="RequestPrepaidMasterCardRequestType">
+        <s:sequence>
+          <s:element minOccurs="1" maxOccurs="1" name="MerchantID" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="MerchantPassword" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="AccountNumber" type="s:int" />
+          <s:element minOccurs="1" maxOccurs="1" name="CardType" type="tns:PMCType" />
+          <s:element minOccurs="1" maxOccurs="1" name="CardCurrency" type="tns:PMCCurrencyType" />
+          <s:element minOccurs="0" maxOccurs="1" name="NameOnCard" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+      <s:simpleType name="PMCType">
+        <s:restriction base="s:string">
+          <s:enumeration value="AtmMC" />
+          <s:enumeration value="LinkedVMC" />
+        </s:restriction>
+      </s:simpleType>
+      <s:simpleType name="PMCCurrencyType">
+        <s:restriction base="s:string">
+          <s:enumeration value="EUR" />
+          <s:enumeration value="GBP" />
+          <s:enumeration value="USD" />
+        </s:restriction>
+      </s:simpleType>
+      <s:element name="RequestPrepaidMasterCardResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="requestCardResponse" type="tns:RequestPrepaidMasterCardResponseType" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:complexType name="RequestPrepaidMasterCardResponseType">
+        <s:sequence>
+          <s:element minOccurs="1" maxOccurs="1" name="ErrorCode" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="Message" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="Last2Digits" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="CardID" type="s:long" />
+        </s:sequence>
+      </s:complexType>
+      <s:element name="RequestPrepaidMasterCardStatus">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="requestCardStatusRequest" type="tns:RequestPrepaidMasterCardStatusRequestType" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:complexType name="RequestPrepaidMasterCardStatusRequestType">
+        <s:sequence>
+          <s:element minOccurs="1" maxOccurs="1" name="MerchantID" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="MerchantPassword" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="AccountNumber" type="s:int" />
+          <s:element minOccurs="1" maxOccurs="1" name="CardType" type="tns:PMCType" />
+          <s:element minOccurs="1" maxOccurs="1" name="CardID" type="s:long" />
+        </s:sequence>
+      </s:complexType>
+      <s:element name="RequestPrepaidMasterCardStatusResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="requestCardResponseStatus" type="tns:RequestPrepaidMasterCardStatusResponseType" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:complexType name="RequestPrepaidMasterCardStatusResponseType">
+        <s:sequence>
+          <s:element minOccurs="1" maxOccurs="1" name="ErrorCode" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="Message" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="Last2Digits" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="Status" type="tns:PMCStatusType" />
+        </s:sequence>
+      </s:complexType>
+      <s:simpleType name="PMCStatusType">
+        <s:restriction base="s:string">
+          <s:enumeration value="None" />
+          <s:enumeration value="New" />
+          <s:enumeration value="Pending" />
+          <s:enumeration value="Rejected" />
+          <s:enumeration value="NotActivated" />
+          <s:enumeration value="Active" />
+          <s:enumeration value="LockedLost" />
+          <s:enumeration value="LockedStolen" />
+          <s:enumeration value="LockedExpired" />
+          <s:enumeration value="Cancelled" />
+          <s:enumeration value="LockedPINTriesExceeded" />
+          <s:enumeration value="LockedFraudulentUse" />
+          <s:enumeration value="LockedCardDormant" />
+          <s:enumeration value="LockedReferToIssuer" />
+          <s:enumeration value="LockedOther" />
+          <s:enumeration value="Locked" />
+        </s:restriction>
+      </s:simpleType>
+      <s:element name="GetStatementReport">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="statementReportRequest" type="tns:StatementReportRequestType" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:complexType name="StatementReportRequestType">
+        <s:sequence>
+          <s:element minOccurs="1" maxOccurs="1" name="MerchantID" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="MerchantPassword" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="AccountsList" type="tns:ArrayOfInt" />
+          <s:element minOccurs="1" maxOccurs="1" name="DateFrom" type="s:dateTime" />
+          <s:element minOccurs="1" maxOccurs="1" name="DateTill" type="s:dateTime" />
+          <s:element minOccurs="1" maxOccurs="1" name="ReportFormat" type="tns:StatementReportFormat" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="ArrayOfInt">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="int" type="s:int" />
+        </s:sequence>
+      </s:complexType>
+      <s:simpleType name="StatementReportFormat">
+        <s:restriction base="s:string">
+          <s:enumeration value="CSV" />
+        </s:restriction>
+      </s:simpleType>
+      <s:element name="GetStatementReportResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="statementReportResponse" type="tns:StatementReportResponseType" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:complexType name="StatementReportResponseType">
+        <s:sequence>
+          <s:element minOccurs="1" maxOccurs="1" name="ErrorCode" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="Message" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="ReportFormat" type="tns:StatementReportFormat" />
+          <s:element minOccurs="0" maxOccurs="1" name="StatementReportBody" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+      <s:element name="VerifyUserPersonalDetails">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="userPersonalDetailsRequest" type="tns:UserPersonalDetailsRequestType" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:complexType name="UserPersonalDetailsRequestType">
+        <s:sequence>
+          <s:element minOccurs="1" maxOccurs="1" name="MerchantID" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="MerchantPassword" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="ClientAccountNumber" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="FirstName" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="LastName" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="DateOfBirth" type="s:dateTime" />
+          <s:element minOccurs="0" maxOccurs="1" name="Email" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+      <s:element name="VerifyUserPersonalDetailsResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="userPersonalDetailsResponse" type="tns:UserPersonalDetailsResponseType" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:complexType name="UserPersonalDetailsResponseType">
+        <s:sequence>
+          <s:element minOccurs="1" maxOccurs="1" name="ErrorCode" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="Message" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="AccountNumberMatched" type="s:boolean" />
+          <s:element minOccurs="1" maxOccurs="1" name="FirstNameMatched" type="s:boolean" />
+          <s:element minOccurs="1" maxOccurs="1" name="LastNameMatched" type="s:boolean" />
+          <s:element minOccurs="1" maxOccurs="1" name="DateOfBirthMatched" type="s:boolean" />
+          <s:element minOccurs="1" maxOccurs="1" name="EmailMatched" type="s:boolean" />
+        </s:sequence>
+      </s:complexType>
+    </s:schema>
+  </wsdl:types>
+  <wsdl:message name="TestActionSoapIn">
+    <wsdl:part name="parameters" element="tns:TestAction" />
+  </wsdl:message>
+  <wsdl:message name="TestActionSoapOut">
+    <wsdl:part name="parameters" element="tns:TestActionResponse" />
+  </wsdl:message>
+  <wsdl:message name="PayoutSoapIn">
+    <wsdl:part name="parameters" element="tns:Payout" />
+  </wsdl:message>
+  <wsdl:message name="PayoutSoapOut">
+    <wsdl:part name="parameters" element="tns:PayoutResponse" />
+  </wsdl:message>
+  <wsdl:message name="EcoVoucherPayoutSoapIn">
+    <wsdl:part name="parameters" element="tns:EcoVoucherPayout" />
+  </wsdl:message>
+  <wsdl:message name="EcoVoucherPayoutSoapOut">
+    <wsdl:part name="parameters" element="tns:EcoVoucherPayoutResponse" />
+  </wsdl:message>
+  <wsdl:message name="PurchaseSoapIn">
+    <wsdl:part name="parameters" element="tns:Purchase" />
+  </wsdl:message>
+  <wsdl:message name="PurchaseSoapOut">
+    <wsdl:part name="parameters" element="tns:PurchaseResponse" />
+  </wsdl:message>
+  <wsdl:message name="QueryByCustomerTransactionIDSoapIn">
+    <wsdl:part name="parameters" element="tns:QueryByCustomerTransactionID" />
+  </wsdl:message>
+  <wsdl:message name="QueryByCustomerTransactionIDSoapOut">
+    <wsdl:part name="parameters" element="tns:QueryByCustomerTransactionIDResponse" />
+  </wsdl:message>
+  <wsdl:message name="QueryBySVSTransactionIDSoapIn">
+    <wsdl:part name="parameters" element="tns:QueryBySVSTransactionID" />
+  </wsdl:message>
+  <wsdl:message name="QueryBySVSTransactionIDSoapOut">
+    <wsdl:part name="parameters" element="tns:QueryBySVSTransactionIDResponse" />
+  </wsdl:message>
+  <wsdl:message name="QueryEcoVoucherInfoByCustomerTransactionIDSoapIn">
+    <wsdl:part name="parameters" element="tns:QueryEcoVoucherInfoByCustomerTransactionID" />
+  </wsdl:message>
+  <wsdl:message name="QueryEcoVoucherInfoByCustomerTransactionIDSoapOut">
+    <wsdl:part name="parameters" element="tns:QueryEcoVoucherInfoByCustomerTransactionIDResponse" />
+  </wsdl:message>
+  <wsdl:message name="QueryEcoVoucherInfoBySVSTransactionIDSoapIn">
+    <wsdl:part name="parameters" element="tns:QueryEcoVoucherInfoBySVSTransactionID" />
+  </wsdl:message>
+  <wsdl:message name="QueryEcoVoucherInfoBySVSTransactionIDSoapOut">
+    <wsdl:part name="parameters" element="tns:QueryEcoVoucherInfoBySVSTransactionIDResponse" />
+  </wsdl:message>
+  <wsdl:message name="CreateUserSoapIn">
+    <wsdl:part name="parameters" element="tns:CreateUser" />
+  </wsdl:message>
+  <wsdl:message name="CreateUserSoapOut">
+    <wsdl:part name="parameters" element="tns:CreateUserResponse" />
+  </wsdl:message>
+  <wsdl:message name="ReceiveAccountBalanceSoapIn">
+    <wsdl:part name="parameters" element="tns:ReceiveAccountBalance" />
+  </wsdl:message>
+  <wsdl:message name="ReceiveAccountBalanceSoapOut">
+    <wsdl:part name="parameters" element="tns:ReceiveAccountBalanceResponse" />
+  </wsdl:message>
+  <wsdl:message name="RequestPrepaidMasterCardSoapIn">
+    <wsdl:part name="parameters" element="tns:RequestPrepaidMasterCard" />
+  </wsdl:message>
+  <wsdl:message name="RequestPrepaidMasterCardSoapOut">
+    <wsdl:part name="parameters" element="tns:RequestPrepaidMasterCardResponse" />
+  </wsdl:message>
+  <wsdl:message name="RequestPrepaidMasterCardStatusSoapIn">
+    <wsdl:part name="parameters" element="tns:RequestPrepaidMasterCardStatus" />
+  </wsdl:message>
+  <wsdl:message name="RequestPrepaidMasterCardStatusSoapOut">
+    <wsdl:part name="parameters" element="tns:RequestPrepaidMasterCardStatusResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetStatementReportSoapIn">
+    <wsdl:part name="parameters" element="tns:GetStatementReport" />
+  </wsdl:message>
+  <wsdl:message name="GetStatementReportSoapOut">
+    <wsdl:part name="parameters" element="tns:GetStatementReportResponse" />
+  </wsdl:message>
+  <wsdl:message name="VerifyUserPersonalDetailsSoapIn">
+    <wsdl:part name="parameters" element="tns:VerifyUserPersonalDetails" />
+  </wsdl:message>
+  <wsdl:message name="VerifyUserPersonalDetailsSoapOut">
+    <wsdl:part name="parameters" element="tns:VerifyUserPersonalDetailsResponse" />
+  </wsdl:message>
+  <wsdl:portType name="MerchantAPIServiceSoap">
+    <wsdl:operation name="TestAction">
+      <wsdl:input message="tns:TestActionSoapIn" />
+      <wsdl:output message="tns:TestActionSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Payout">
+      <wsdl:input message="tns:PayoutSoapIn" />
+      <wsdl:output message="tns:PayoutSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="EcoVoucherPayout">
+      <wsdl:input message="tns:EcoVoucherPayoutSoapIn" />
+      <wsdl:output message="tns:EcoVoucherPayoutSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Purchase">
+      <wsdl:input message="tns:PurchaseSoapIn" />
+      <wsdl:output message="tns:PurchaseSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="QueryByCustomerTransactionID">
+      <wsdl:input message="tns:QueryByCustomerTransactionIDSoapIn" />
+      <wsdl:output message="tns:QueryByCustomerTransactionIDSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="QueryBySVSTransactionID">
+      <wsdl:input message="tns:QueryBySVSTransactionIDSoapIn" />
+      <wsdl:output message="tns:QueryBySVSTransactionIDSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="QueryEcoVoucherInfoByCustomerTransactionID">
+      <wsdl:input message="tns:QueryEcoVoucherInfoByCustomerTransactionIDSoapIn" />
+      <wsdl:output message="tns:QueryEcoVoucherInfoByCustomerTransactionIDSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="QueryEcoVoucherInfoBySVSTransactionID">
+      <wsdl:input message="tns:QueryEcoVoucherInfoBySVSTransactionIDSoapIn" />
+      <wsdl:output message="tns:QueryEcoVoucherInfoBySVSTransactionIDSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="CreateUser">
+      <wsdl:input message="tns:CreateUserSoapIn" />
+      <wsdl:output message="tns:CreateUserSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="ReceiveAccountBalance">
+      <wsdl:input message="tns:ReceiveAccountBalanceSoapIn" />
+      <wsdl:output message="tns:ReceiveAccountBalanceSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="RequestPrepaidMasterCard">
+      <wsdl:input message="tns:RequestPrepaidMasterCardSoapIn" />
+      <wsdl:output message="tns:RequestPrepaidMasterCardSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="RequestPrepaidMasterCardStatus">
+      <wsdl:input message="tns:RequestPrepaidMasterCardStatusSoapIn" />
+      <wsdl:output message="tns:RequestPrepaidMasterCardStatusSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetStatementReport">
+      <wsdl:input message="tns:GetStatementReportSoapIn" />
+      <wsdl:output message="tns:GetStatementReportSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="VerifyUserPersonalDetails">
+      <wsdl:input message="tns:VerifyUserPersonalDetailsSoapIn" />
+      <wsdl:output message="tns:VerifyUserPersonalDetailsSoapOut" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="MerchantAPIServiceSoap" type="tns:MerchantAPIServiceSoap">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="TestAction">
+      <soap:operation soapAction="http://www.ecocard.com/merchantAPI/TestAction" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Payout">
+      <soap:operation soapAction="http://www.ecocard.com/merchantAPI/Payout" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="EcoVoucherPayout">
+      <soap:operation soapAction="http://www.ecocard.com/merchantAPI/EcoVoucherPayout" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Purchase">
+      <soap:operation soapAction="http://www.ecocard.com/merchantAPI/Purchase" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="QueryByCustomerTransactionID">
+      <soap:operation soapAction="http://www.ecocard.com/merchantAPI/QueryByCustomerTransactionID" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="QueryBySVSTransactionID">
+      <soap:operation soapAction="http://www.ecocard.com/merchantAPI/QueryBySVSTransactionID" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="QueryEcoVoucherInfoByCustomerTransactionID">
+      <soap:operation soapAction="http://www.ecocard.com/merchantAPI/QueryEcoVoucherInfoByCustomerTransactionID" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="QueryEcoVoucherInfoBySVSTransactionID">
+      <soap:operation soapAction="http://www.ecocard.com/merchantAPI/QueryEcoVoucherInfoBySVSTransactionID" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CreateUser">
+      <soap:operation soapAction="http://www.ecocard.com/merchantAPI/CreateUser" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ReceiveAccountBalance">
+      <soap:operation soapAction="http://www.ecocard.com/merchantAPI/ReceiveAccountBalance" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RequestPrepaidMasterCard">
+      <soap:operation soapAction="http://www.ecocard.com/merchantAPI/RequestPrepaidMasterCard" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RequestPrepaidMasterCardStatus">
+      <soap:operation soapAction="http://www.ecocard.com/merchantAPI/RequestPrepaidMasterCardStatus" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetStatementReport">
+      <soap:operation soapAction="http://www.ecocard.com/merchantAPI/GetStatementReport" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="VerifyUserPersonalDetails">
+      <soap:operation soapAction="http://www.ecocard.com/merchantAPI/VerifyUserPersonalDetails" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="MerchantAPIServiceSoap12" type="tns:MerchantAPIServiceSoap">
+    <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="TestAction">
+      <soap12:operation soapAction="http://www.ecocard.com/merchantAPI/TestAction" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Payout">
+      <soap12:operation soapAction="http://www.ecocard.com/merchantAPI/Payout" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="EcoVoucherPayout">
+      <soap12:operation soapAction="http://www.ecocard.com/merchantAPI/EcoVoucherPayout" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Purchase">
+      <soap12:operation soapAction="http://www.ecocard.com/merchantAPI/Purchase" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="QueryByCustomerTransactionID">
+      <soap12:operation soapAction="http://www.ecocard.com/merchantAPI/QueryByCustomerTransactionID" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="QueryBySVSTransactionID">
+      <soap12:operation soapAction="http://www.ecocard.com/merchantAPI/QueryBySVSTransactionID" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="QueryEcoVoucherInfoByCustomerTransactionID">
+      <soap12:operation soapAction="http://www.ecocard.com/merchantAPI/QueryEcoVoucherInfoByCustomerTransactionID" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="QueryEcoVoucherInfoBySVSTransactionID">
+      <soap12:operation soapAction="http://www.ecocard.com/merchantAPI/QueryEcoVoucherInfoBySVSTransactionID" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CreateUser">
+      <soap12:operation soapAction="http://www.ecocard.com/merchantAPI/CreateUser" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ReceiveAccountBalance">
+      <soap12:operation soapAction="http://www.ecocard.com/merchantAPI/ReceiveAccountBalance" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RequestPrepaidMasterCard">
+      <soap12:operation soapAction="http://www.ecocard.com/merchantAPI/RequestPrepaidMasterCard" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RequestPrepaidMasterCardStatus">
+      <soap12:operation soapAction="http://www.ecocard.com/merchantAPI/RequestPrepaidMasterCardStatus" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetStatementReport">
+      <soap12:operation soapAction="http://www.ecocard.com/merchantAPI/GetStatementReport" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="VerifyUserPersonalDetails">
+      <soap12:operation soapAction="http://www.ecocard.com/merchantAPI/VerifyUserPersonalDetails" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="MerchantAPIService">
+    <wsdl:port name="MerchantAPIServiceSoap" binding="tns:MerchantAPIServiceSoap">
+      <soap:address location="https://secure.test.ecopayz.com/services/MerchantAPI/MerchantAPIService.asmx" />
+    </wsdl:port>
+    <wsdl:port name="MerchantAPIServiceSoap12" binding="tns:MerchantAPIServiceSoap12">
+      <soap12:address location="https://secure.test.ecopayz.com/services/MerchantAPI/MerchantAPIService.asmx" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

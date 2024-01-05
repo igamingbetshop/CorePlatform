@@ -1,0 +1,1178 @@
+2020-06-04 10:42:19.013 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 10:43:20.725 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 10:45:01.434 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 10:46:45.455 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 10:47:45.906 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 10:51:19.482 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 10:54:45.866 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 10:55:18.222 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 10:56:27.579 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:00:53.086 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:01:15.901 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:02:22.744 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:02:39.776 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:04:02.912 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:04:22.108 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:05:08.765 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:05:48.244 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:07:34.411 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:07:55.332 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:08:11.772 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:08:34.827 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:14:32.782 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:15:38.190 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:18:48.163 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:19:14.122 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:19:29.870 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:19:43.558 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:20:18.098 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:20:33.353 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:20:50.440 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:21:03.950 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:21:16.016 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:21:31.505 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:22:05.642 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:23:29.161 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:23:46.180 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:23:55.723 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:24:15.372 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:24:40.615 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:25:00.085 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:25:24.172 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:26:05.406 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:26:44.973 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:27:01.428 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:27:23.765 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:27:36.578 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:28:03.506 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:30:33.274 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:33:09.884 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:33:24.933 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:33:39.134 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:33:52.414 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:34:10.082 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:34:25.529 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:34:41.215 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:34:53.647 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:40:08.404 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:40:24.351 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:40:36.906 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 11:40:49.718 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/SendRecoveryToken","PostData":"{\"EmailOrMobile\":\"saskaamnamn\",\"ReCaptcha\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":null}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 13:14:05.151 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/LoginClient","PostData":"{\"ClientIdentifier\":\"s.sargsyan@iqsoft.am\",\"Password\":\"suzanna\",\"Token\":null,\"DeviceType\":1,\"TerminalId\":null,\"BetShopId\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":\"\"}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2020-06-04 13:15:08.941 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/LoginClient","PostData":"{\"ClientIdentifier\":\"s.sargsyan@iqsoft.am\",\"Password\":\"suzanna\",\"Token\":null,\"DeviceType\":1,\"TerminalId\":null,\"BetShopId\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":\"\"}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: No connection could be made because the target machine actively refused it. No connection could be made because the target machine actively refused it.
+ ---> System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it.
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.ConnectAsync(String host, Int32 port, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean allowHttp2, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttpConnectionAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithRetryAsync(HttpRequestMessage request, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.FinishSendAsyncUnbuffered(Task`1 sendTask, HttpRequestMessage request, CancellationTokenSource cts, Boolean disposeCts)
+   at System.Net.HttpWebRequest.SendRequest()
+   at System.Net.HttpWebRequest.GetResponse()
+   --- End of inner exception stack trace ---
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44

@@ -1,0 +1,1 @@
+﻿<%@ ServiceHost Language="C#" Debug="true" Service="IqSoft.CP.ProductGateway.Services.SingularService" CodeBehind="SingularService.svc.cs" %>

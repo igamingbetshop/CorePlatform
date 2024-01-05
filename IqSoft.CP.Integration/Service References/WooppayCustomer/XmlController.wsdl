@@ -1,0 +1,2140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="urn:XmlControllerwsdl" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns="http://schemas.xmlsoap.org/wsdl/" name="XmlController" targetNamespace="urn:XmlControllerwsdl" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
+    <xsd:schema targetNamespace="urn:XmlControllerwsdl">
+      <xsd:complexType name="CoreLoginRequest">
+        <xsd:all>
+          <xsd:element name="username" type="xsd:string" />
+          <xsd:element name="password" type="xsd:string" />
+          <xsd:element name="captcha" type="xsd:string" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CoreLoginResponse">
+        <xsd:all>
+          <xsd:element name="response" type="tns:CoreLoginResponseData" />
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CoreLoginResponseData">
+        <xsd:all>
+          <xsd:element name="session" type="xsd:string" />
+          <xsd:element name="id" type="xsd:int" />
+          <xsd:element name="username" type="xsd:string" />
+          <xsd:element name="login" type="xsd:string" />
+          <xsd:element name="type" type="xsd:int" />
+          <xsd:element name="roles" type="tns:stringArray" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="stringArray">
+        <xsd:complexContent mixed="false">
+          <xsd:restriction base="soap-enc:Array">
+            <xsd:attribute wsdl:arrayType="xsd:string[]" ref="soap-enc:arrayType" />
+          </xsd:restriction>
+        </xsd:complexContent>
+      </xsd:complexType>
+      <xsd:complexType name="CoreLogoutRequest">
+        <xsd:all />
+      </xsd:complexType>
+      <xsd:complexType name="CoreLogoutResponse">
+        <xsd:all>
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CoreSmthRequest">
+        <xsd:all />
+      </xsd:complexType>
+      <xsd:complexType name="CoreSmthResponse">
+        <xsd:all>
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashCreateOperationRequest">
+        <xsd:all>
+          <xsd:element name="type" type="xsd:int" />
+          <xsd:element name="receiver" type="xsd:string" />
+          <xsd:element name="amount" type="xsd:float" />
+          <xsd:element name="description" type="xsd:string" />
+          <xsd:element name="productId" type="xsd:int" />
+          <xsd:element name="service" type="xsd:string" />
+          <xsd:element name="fields" type="xsd:string" />
+          <xsd:element name="userGroup" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashCreateOperationResponse">
+        <xsd:all>
+          <xsd:element name="response" type="tns:CashCreateOperationResponseData" />
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashCreateOperationResponseData">
+        <xsd:all>
+          <xsd:element name="operationId" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashConfirmOperationRequest">
+        <xsd:all>
+          <xsd:element name="operationId" type="xsd:int" />
+          <xsd:element name="type" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashConfirmOperationResponse">
+        <xsd:all>
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashConfirmOperationExtRequest">
+        <xsd:all>
+          <xsd:element name="confirmationCode" type="xsd:int" />
+          <xsd:element name="phone" type="xsd:string" />
+          <xsd:element name="operationId" type="xsd:int" />
+          <xsd:element name="type" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashDischargementRequest">
+        <xsd:all>
+          <xsd:element name="subjectFrom" type="xsd:string" />
+          <xsd:element name="accountFrom" type="xsd:int" />
+          <xsd:element name="amount" type="xsd:float" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashDischargementResponse">
+        <xsd:all>
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashTransferRequest">
+        <xsd:all>
+          <xsd:element name="operationId" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashTransferResponse">
+        <xsd:all>
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashGetTransfersRequest">
+        <xsd:all>
+          <xsd:element name="page" type="xsd:int" />
+          <xsd:element name="perPage" type="xsd:int" />
+          <xsd:element name="statuses" type="tns:intArray" />
+          <xsd:element name="types" type="tns:intArray" />
+          <xsd:element name="direction" type="xsd:int" />
+          <xsd:element name="reverse" type="xsd:boolean" />
+          <xsd:element name="secondSubject" type="xsd:string" />
+          <xsd:element name="dateFrom" type="xsd:string" />
+          <xsd:element name="dateTo" type="xsd:string" />
+          <xsd:element name="lastChanged" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="intArray">
+        <xsd:complexContent mixed="false">
+          <xsd:restriction base="soap-enc:Array">
+            <xsd:attribute wsdl:arrayType="xsd:int[]" ref="soap-enc:arrayType" />
+          </xsd:restriction>
+        </xsd:complexContent>
+      </xsd:complexType>
+      <xsd:complexType name="CashGetTransfersResponse">
+        <xsd:all>
+          <xsd:element name="response" type="tns:CashGetTransfersResponseData" />
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashGetTransfersResponseData">
+        <xsd:all>
+          <xsd:element name="records" type="tns:CashGetTransfersResponseDataRecordArray" />
+          <xsd:element name="lastChanged" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashGetTransfersResponseDataRecordArray">
+        <xsd:complexContent mixed="false">
+          <xsd:restriction base="soap-enc:Array">
+            <xsd:attribute wsdl:arrayType="tns:CashGetTransfersResponseDataRecord[]" ref="soap-enc:arrayType" />
+          </xsd:restriction>
+        </xsd:complexContent>
+      </xsd:complexType>
+      <xsd:complexType name="CashGetTransfersResponseDataRecord">
+        <xsd:all>
+          <xsd:element name="id" type="xsd:int" />
+          <xsd:element name="fromSubject" type="xsd:string" />
+          <xsd:element name="toSubject" type="xsd:string" />
+          <xsd:element name="fromFullName" type="xsd:string" />
+          <xsd:element name="toFullName" type="xsd:string" />
+          <xsd:element name="direction" type="xsd:int" />
+          <xsd:element name="date" type="xsd:string" />
+          <xsd:element name="sum" type="xsd:float" />
+          <xsd:element name="type" type="xsd:int" />
+          <xsd:element name="status" type="xsd:int" />
+          <xsd:element name="comment" type="xsd:string" />
+          <xsd:element name="lotId" type="xsd:int" />
+          <xsd:element name="service" type="tns:CashGetTransfersResponseDataRecordService" />
+          <xsd:element name="avatarName" type="xsd:string" />
+          <xsd:element name="imageLotName" type="xsd:string" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashGetTransfersResponseDataRecordService">
+        <xsd:all>
+          <xsd:element name="service_name" type="xsd:string" />
+          <xsd:element name="name" type="xsd:string" />
+          <xsd:element name="picture" type="xsd:string" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CoreNominateSubjectRequest">
+        <xsd:all>
+          <xsd:element name="phone" type="xsd:string" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CoreNominateSubjectResponse">
+        <xsd:all>
+          <xsd:element name="response" type="tns:CoreNominateSubjectResponseData" />
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CoreNominateSubjectResponseData">
+        <xsd:all>
+          <xsd:element name="url" type="xsd:string" />
+          <xsd:element name="uid" type="xsd:string" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashGetCommissionRequest">
+        <xsd:all>
+          <xsd:element name="serviceId" type="xsd:int" />
+          <xsd:element name="amount" type="xsd:float" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashGetCommissionResponse">
+        <xsd:all>
+          <xsd:element name="response" type="tns:CashGetCommissionResponseData" />
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashGetCommissionResponseData">
+        <xsd:all>
+          <xsd:element name="amount" type="xsd:float" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CoreGetServiceIDByNameRequest">
+        <xsd:all>
+          <xsd:element name="service_name" type="xsd:string" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CoreGetServiceIDByNameResponse">
+        <xsd:all>
+          <xsd:element name="response" type="tns:CoreGetServiceIDByNameResponseData" />
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CoreGetServiceIDByNameResponseData">
+        <xsd:all>
+          <xsd:element name="serviceId" type="xsd:int" />
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashGetBalanceRequest">
+        <xsd:all />
+      </xsd:complexType>
+      <xsd:complexType name="CashGetBalanceResponse">
+        <xsd:all>
+          <xsd:element name="response" type="tns:CashGetBalanceResponseData" />
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashGetBalanceResponseData">
+        <xsd:all>
+          <xsd:element name="amount" type="xsd:float" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="ServiceGetCategoriesRequest">
+        <xsd:all>
+          <xsd:element name="parent" type="xsd:int" />
+          <xsd:element name="modify_date" type="xsd:string" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="ServiceGetCategoriesResponse">
+        <xsd:all>
+          <xsd:element name="response" type="tns:ServiceGetCategoriesResponseData" />
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="ServiceGetCategoriesResponseData">
+        <xsd:all>
+          <xsd:element name="categories" type="tns:ServiceGetCategoriesResponseDataCategoriesArray" />
+          <xsd:element name="modify_date" type="xsd:string" />
+          <xsd:element name="no_update" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="ServiceGetCategoriesResponseDataCategoriesArray">
+        <xsd:complexContent mixed="false">
+          <xsd:restriction base="soap-enc:Array">
+            <xsd:attribute wsdl:arrayType="tns:ServiceGetCategoriesResponseDataCategories[]" ref="soap-enc:arrayType" />
+          </xsd:restriction>
+        </xsd:complexContent>
+      </xsd:complexType>
+      <xsd:complexType name="ServiceGetCategoriesResponseDataCategories">
+        <xsd:all>
+          <xsd:element name="id" type="xsd:int" />
+          <xsd:element name="name" type="xsd:string" />
+          <xsd:element name="parent_id" type="xsd:int" />
+          <xsd:element name="picture" type="xsd:string" />
+          <xsd:element name="synonyms" type="tns:stringArray" />
+          <xsd:element name="services" type="tns:ServiceGetCategoriesResponseDataServicesArray" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="ServiceGetCategoriesResponseDataServicesArray">
+        <xsd:complexContent mixed="false">
+          <xsd:restriction base="soap-enc:Array">
+            <xsd:attribute wsdl:arrayType="tns:ServiceGetCategoriesResponseDataServices[]" ref="soap-enc:arrayType" />
+          </xsd:restriction>
+        </xsd:complexContent>
+      </xsd:complexType>
+      <xsd:complexType name="ServiceGetCategoriesResponseDataServices">
+        <xsd:all>
+          <xsd:element name="id" type="xsd:int" />
+          <xsd:element name="merchant" type="xsd:string" />
+          <xsd:element name="service_name" type="xsd:string" />
+          <xsd:element name="name" type="xsd:string" />
+          <xsd:element name="picture" type="xsd:string" />
+          <xsd:element name="synonyms" type="tns:stringArray" />
+          <xsd:element name="description" type="xsd:string" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashDeclineRequest">
+        <xsd:all>
+          <xsd:element name="operationId" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashDeclineResponse">
+        <xsd:all>
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashSetOperationsStatusRequest">
+        <xsd:all>
+          <xsd:element name="records" type="tns:CashSetOperationsStatusRequestRecordArray" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashSetOperationsStatusRequestRecordArray">
+        <xsd:complexContent mixed="false">
+          <xsd:restriction base="soap-enc:Array">
+            <xsd:attribute wsdl:arrayType="tns:CashSetOperationsStatusRequestRecord[]" ref="soap-enc:arrayType" />
+          </xsd:restriction>
+        </xsd:complexContent>
+      </xsd:complexType>
+      <xsd:complexType name="CashSetOperationsStatusRequestRecord">
+        <xsd:all>
+          <xsd:element name="ext_id" type="xsd:string" />
+          <xsd:element name="description" type="xsd:string" />
+          <xsd:element name="status" type="xsd:int" />
+          <xsd:element name="date" type="xsd:string" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashSetOperationsStatusResponse">
+        <xsd:all>
+          <xsd:element name="response" type="tns:CashSetOperationsStatusResponseRecordArray" />
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashSetOperationsStatusResponseRecordArray">
+        <xsd:complexContent mixed="false">
+          <xsd:restriction base="soap-enc:Array">
+            <xsd:attribute wsdl:arrayType="tns:CashSetOperationsStatusResponseRecord[]" ref="soap-enc:arrayType" />
+          </xsd:restriction>
+        </xsd:complexContent>
+      </xsd:complexType>
+      <xsd:complexType name="CashSetOperationsStatusResponseRecord">
+        <xsd:all>
+          <xsd:element name="ext_id" type="xsd:string" />
+          <xsd:element name="status" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashGetOperationsStatusRequest">
+        <xsd:all>
+          <xsd:element name="ext_id" type="xsd:string" />
+          <xsd:element name="status" type="xsd:int" />
+          <xsd:element name="dateFrom" type="xsd:string" />
+          <xsd:element name="dateTo" type="xsd:string" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashGetOperationsStatusResponse">
+        <xsd:all>
+          <xsd:element name="response" type="tns:CashGetOperationsStatusResponseRecordArray" />
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashGetOperationsStatusResponseRecordArray">
+        <xsd:complexContent mixed="false">
+          <xsd:restriction base="soap-enc:Array">
+            <xsd:attribute wsdl:arrayType="tns:CashGetOperationsStatusResponseRecord[]" ref="soap-enc:arrayType" />
+          </xsd:restriction>
+        </xsd:complexContent>
+      </xsd:complexType>
+      <xsd:complexType name="CashGetOperationsStatusResponseRecord">
+        <xsd:all>
+          <xsd:element name="ext_id" type="xsd:string" />
+          <xsd:element name="description" type="xsd:string" />
+          <xsd:element name="status" type="xsd:int" />
+          <xsd:element name="date" type="xsd:string" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashCashOutRequest">
+        <xsd:all>
+          <xsd:element name="amount" type="xsd:float" />
+          <xsd:element name="returnURL" type="xsd:string" />
+          <xsd:element name="postLink" type="xsd:string" />
+          <xsd:element name="extID" type="xsd:string" />
+          <xsd:element name="phone" type="xsd:string" />
+          <xsd:element name="addParams" type="xsd:string" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashCashOutResponse">
+        <xsd:all>
+          <xsd:element name="response" type="tns:CashCashOutResponseData" />
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashCashOutResponseData">
+        <xsd:all>
+          <xsd:element name="redirectURL" type="xsd:string" />
+          <xsd:element name="operationId" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashCashOutExtendedRequest">
+        <xsd:all>
+          <xsd:element name="amount" type="xsd:float" />
+          <xsd:element name="returnURL" type="xsd:string" />
+          <xsd:element name="extID" type="xsd:string" />
+          <xsd:element name="phone" type="xsd:string" />
+          <xsd:element name="addParams" type="xsd:string" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashCashOutExtendedResponse">
+        <xsd:all>
+          <xsd:element name="response" type="tns:CashCashOutExtendedResponseData" />
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashCashOutExtendedResponseData">
+        <xsd:all>
+          <xsd:element name="inputUrl" type="xsd:string" />
+          <xsd:element name="listUrl" type="xsd:string" />
+          <xsd:element name="deleteUrl" type="xsd:string" />
+          <xsd:element name="Uid" type="xsd:string" />
+          <xsd:element name="operationId" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashCashOutCompleteRequest">
+        <xsd:all>
+          <xsd:element name="operationID" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashCashOutCompleteResponse">
+        <xsd:all>
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashCashOutInputDataRequest">
+        <xsd:all>
+          <xsd:element name="operationID" type="xsd:int" />
+          <xsd:element name="cardHash" type="xsd:string" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashCashOutInputDataResponse">
+        <xsd:all>
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashReturnRequest">
+        <xsd:all>
+          <xsd:element name="operationId" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashReturnResponse">
+        <xsd:all>
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashReturnPartialRequest">
+        <xsd:all>
+          <xsd:element name="operationId" type="xsd:int" />
+          <xsd:element name="amount" type="xsd:float" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashReturnPartialResponse">
+        <xsd:all>
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashMobileRefundRequest">
+        <xsd:all>
+          <xsd:element name="operationId" type="xsd:int" />
+          <xsd:element name="force" type="xsd:boolean" />
+          <xsd:element name="amount" type="xsd:float" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashMobileRefundResponse">
+        <xsd:all>
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CoreUserSearchRequest">
+        <xsd:all>
+          <xsd:element name="login" type="xsd:string" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CoreUserSearchResponse">
+        <xsd:all>
+          <xsd:element name="response" type="tns:CoreUserSearchResponseData" />
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CoreUserSearchResponseData">
+        <xsd:all>
+          <xsd:element name="subject_name" type="xsd:string" />
+          <xsd:element name="avatarName" type="xsd:string" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="SystemGetConfigRequest">
+        <xsd:all />
+      </xsd:complexType>
+      <xsd:complexType name="SystemGetConfigResponse">
+        <xsd:all>
+          <xsd:element name="response" type="tns:SystemGetConfigResponseData" />
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="SystemGetConfigResponseData">
+        <xsd:all>
+          <xsd:element name="avatarsRoot" type="xsd:string" />
+          <xsd:element name="servicePicturesRoot" type="xsd:string" />
+          <xsd:element name="serviceMenuPicturesRoot" type="xsd:string" />
+          <xsd:element name="lotPicturesRoot" type="xsd:string" />
+          <xsd:element name="placePicturesRoot" type="xsd:string" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashRequestTransferRequest">
+        <xsd:all>
+          <xsd:element name="login" type="xsd:string" />
+          <xsd:element name="amount" type="xsd:float" />
+          <xsd:element name="description" type="xsd:string" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashRequestTransferResponse">
+        <xsd:all>
+          <xsd:element name="response" type="tns:CashRequestTransferResponseData" />
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashRequestTransferResponseData">
+        <xsd:all>
+          <xsd:element name="operationId" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashInvoicingRequest">
+        <xsd:all>
+          <xsd:element name="subjectFrom" type="xsd:string" />
+          <xsd:element name="amount" type="xsd:float" />
+          <xsd:element name="lifetime" type="xsd:int" />
+          <xsd:element name="service_type" type="xsd:int" />
+          <xsd:element name="device_type" type="xsd:int" />
+          <xsd:element name="description" type="xsd:string" />
+          <xsd:element name="order_nr" type="xsd:string" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashInvoicingResponse">
+        <xsd:all>
+          <xsd:element name="response" type="tns:CashInvoicingResponseData" />
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashInvoicingResponseData">
+        <xsd:all>
+          <xsd:element name="operationId" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashGetServiceFieldsRequest">
+        <xsd:all>
+          <xsd:element name="service" type="xsd:string" />
+          <xsd:element name="merchant" type="xsd:string" />
+          <xsd:element name="fields" type="xsd:string" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashGetServiceFieldsResponse">
+        <xsd:all>
+          <xsd:element name="response" type="tns:CashGetServiceFieldsResponseData" />
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashGetServiceFieldsResponseData">
+        <xsd:all>
+          <xsd:element name="data" type="xsd:string" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashGetServiceFieldsExtendedRequest">
+        <xsd:all>
+          <xsd:element name="language" type="xsd:string" />
+          <xsd:element name="service" type="xsd:string" />
+          <xsd:element name="merchant" type="xsd:string" />
+          <xsd:element name="fields" type="xsd:string" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashCheckServiceFieldsRequest">
+        <xsd:all>
+          <xsd:element name="service" type="xsd:string" />
+          <xsd:element name="merchant" type="xsd:string" />
+          <xsd:element name="serviceId" type="xsd:int" />
+          <xsd:element name="fields" type="xsd:string" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashCheckServiceFieldsResponse">
+        <xsd:all>
+          <xsd:element name="response" type="tns:CashCheckServiceFieldsResponseData" />
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashCheckServiceFieldsResponseData">
+        <xsd:all>
+          <xsd:element name="data" type="xsd:string" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashGetOperationReceiptRequest">
+        <xsd:all>
+          <xsd:element name="operationId" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashGetOperationReceiptResponse">
+        <xsd:all>
+          <xsd:element name="response" type="tns:CashGetOperationReceiptResponseData" />
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashGetOperationReceiptResponseData">
+        <xsd:all>
+          <xsd:element name="operator" type="xsd:string" />
+          <xsd:element name="op_bin" type="xsd:string" />
+          <xsd:element name="ch_nr" type="xsd:string" />
+          <xsd:element name="tr_nr" type="xsd:string" />
+          <xsd:element name="account_nr" type="xsd:string" />
+          <xsd:element name="date" type="xsd:string" />
+          <xsd:element name="mer_name" type="xsd:string" />
+          <xsd:element name="mer_bin" type="xsd:string" />
+          <xsd:element name="ident" type="tns:stringArray" />
+          <xsd:element name="admit" type="xsd:string" />
+          <xsd:element name="commis" type="xsd:string" />
+          <xsd:element name="sum" type="xsd:string" />
+          <xsd:element name="operation" type="xsd:string" />
+          <xsd:element name="vat" type="xsd:string" />
+          <xsd:element name="sup" type="xsd:string" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashGetOperationDataRequest">
+        <xsd:all>
+          <xsd:element name="operationId" type="tns:intArray" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashGetOperationDataResponse">
+        <xsd:all>
+          <xsd:element name="response" type="tns:CashGetOperationDataResponseData" />
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashGetOperationDataResponseData">
+        <xsd:all>
+          <xsd:element name="records" type="tns:CashGetOperationDataResponseDataRecordArray" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashGetOperationDataResponseDataRecordArray">
+        <xsd:complexContent mixed="false">
+          <xsd:restriction base="soap-enc:Array">
+            <xsd:attribute wsdl:arrayType="tns:CashGetOperationDataResponseDataRecord[]" ref="soap-enc:arrayType" />
+          </xsd:restriction>
+        </xsd:complexContent>
+      </xsd:complexType>
+      <xsd:complexType name="CashGetOperationDataResponseDataRecord">
+        <xsd:all>
+          <xsd:element name="id" type="xsd:int" />
+          <xsd:element name="type" type="xsd:int" />
+          <xsd:element name="lotId" type="xsd:int" />
+          <xsd:element name="sum" type="xsd:float" />
+          <xsd:element name="fee" type="xsd:float" />
+          <xsd:element name="date" type="xsd:string" />
+          <xsd:element name="status" type="xsd:int" />
+          <xsd:element name="comment" type="xsd:string" />
+          <xsd:element name="fromSubject" type="xsd:string" />
+          <xsd:element name="toSubject" type="xsd:string" />
+          <xsd:element name="fromFullName" type="xsd:string" />
+          <xsd:element name="toFullName" type="xsd:string" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CoreUserExistsRequest">
+        <xsd:all>
+          <xsd:element name="login" type="xsd:string" />
+          <xsd:element name="userGroup" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CoreUserExistsResponse">
+        <xsd:all>
+          <xsd:element name="response" type="xsd:boolean" />
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashCreateInvoiceRequest">
+        <xsd:all>
+          <xsd:element name="referenceId" type="xsd:string" />
+          <xsd:element name="backUrl" type="xsd:string" />
+          <xsd:element name="requestUrl" type="xsd:string" />
+          <xsd:element name="addInfo" type="xsd:string" />
+          <xsd:element name="amount" type="xsd:float" />
+          <xsd:element name="deathDate" type="xsd:string" />
+          <xsd:element name="serviceType" type="xsd:int" />
+          <xsd:element name="description" type="xsd:string" />
+          <xsd:element name="orderNumber" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashCreateInvoiceResponse">
+        <xsd:all>
+          <xsd:element name="response" type="tns:CashCreateInvoiceResponseData" />
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashCreateInvoiceResponseData">
+        <xsd:all>
+          <xsd:element name="operationId" type="xsd:int" />
+          <xsd:element name="operationUrl" type="xsd:string" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashCreateInvoiceExtendedRequest">
+        <xsd:all>
+          <xsd:element name="userEmail" type="xsd:string" />
+          <xsd:element name="userPhone" type="xsd:string" />
+          <xsd:element name="referenceId" type="xsd:string" />
+          <xsd:element name="backUrl" type="xsd:string" />
+          <xsd:element name="requestUrl" type="xsd:string" />
+          <xsd:element name="addInfo" type="xsd:string" />
+          <xsd:element name="amount" type="xsd:float" />
+          <xsd:element name="deathDate" type="xsd:string" />
+          <xsd:element name="serviceType" type="xsd:int" />
+          <xsd:element name="description" type="xsd:string" />
+          <xsd:element name="orderNumber" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashCreateInvoiceExtended2Request">
+        <xsd:all>
+          <xsd:element name="cardForbidden" type="xsd:int" />
+          <xsd:element name="userEmail" type="xsd:string" />
+          <xsd:element name="userPhone" type="xsd:string" />
+          <xsd:element name="referenceId" type="xsd:string" />
+          <xsd:element name="backUrl" type="xsd:string" />
+          <xsd:element name="requestUrl" type="xsd:string" />
+          <xsd:element name="addInfo" type="xsd:string" />
+          <xsd:element name="amount" type="xsd:float" />
+          <xsd:element name="deathDate" type="xsd:string" />
+          <xsd:element name="serviceType" type="xsd:int" />
+          <xsd:element name="description" type="xsd:string" />
+          <xsd:element name="orderNumber" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashCreateInvoiceByServiceRequest">
+        <xsd:all>
+          <xsd:element name="serviceName" type="xsd:string" />
+          <xsd:element name="cardForbidden" type="xsd:int" />
+          <xsd:element name="userEmail" type="xsd:string" />
+          <xsd:element name="userPhone" type="xsd:string" />
+          <xsd:element name="referenceId" type="xsd:string" />
+          <xsd:element name="backUrl" type="xsd:string" />
+          <xsd:element name="requestUrl" type="xsd:string" />
+          <xsd:element name="addInfo" type="xsd:string" />
+          <xsd:element name="amount" type="xsd:float" />
+          <xsd:element name="deathDate" type="xsd:string" />
+          <xsd:element name="serviceType" type="xsd:int" />
+          <xsd:element name="description" type="xsd:string" />
+          <xsd:element name="orderNumber" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashCreateInvoiceWithCurrencyRequest">
+        <xsd:all>
+          <xsd:element name="exchangeCurrency" type="xsd:string" />
+          <xsd:element name="baseCurrency" type="xsd:string" />
+          <xsd:element name="serviceName" type="xsd:string" />
+          <xsd:element name="cardForbidden" type="xsd:int" />
+          <xsd:element name="userEmail" type="xsd:string" />
+          <xsd:element name="userPhone" type="xsd:string" />
+          <xsd:element name="referenceId" type="xsd:string" />
+          <xsd:element name="backUrl" type="xsd:string" />
+          <xsd:element name="requestUrl" type="xsd:string" />
+          <xsd:element name="addInfo" type="xsd:string" />
+          <xsd:element name="amount" type="xsd:float" />
+          <xsd:element name="deathDate" type="xsd:string" />
+          <xsd:element name="serviceType" type="xsd:int" />
+          <xsd:element name="description" type="xsd:string" />
+          <xsd:element name="orderNumber" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CreateOperation">
+        <xsd:all>
+          <xsd:element minOccurs="1" maxOccurs="1" name="base64Data" type="xsd:string" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CreateOperationResponse">
+        <xsd:all>
+          <xsd:element name="OperationID" type="xsd:int" />
+          <xsd:element name="OperationURL" type="xsd:string" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CreateOperationRequest">
+        <xsd:all>
+          <xsd:element name="Login" type="xsd:string" />
+          <xsd:element name="Password" type="xsd:string" />
+          <xsd:element name="KNO" type="xsd:string" />
+          <xsd:element name="Beneficiary" type="xsd:string" />
+          <xsd:element name="Beneficiary_Ru" type="xsd:string" />
+          <xsd:element name="BankBeneficiary" type="xsd:string" />
+          <xsd:element name="BankBeneficiary_Ru" type="xsd:string" />
+          <xsd:element name="OrderDate" type="xsd:string" />
+          <xsd:element name="PayCode" type="xsd:string" />
+          <xsd:element name="KBK" type="xsd:string" />
+          <xsd:element name="KBK_Ru" type="xsd:string" />
+          <xsd:element name="KNP" type="xsd:string" />
+          <xsd:element name="KNP_Ru" type="xsd:string" />
+          <xsd:element name="Price" type="xsd:float" />
+          <xsd:element name="LastName" type="xsd:string" />
+          <xsd:element name="FirstName" type="xsd:string" />
+          <xsd:element name="MiddleName" type="xsd:string" />
+          <xsd:element name="IIN" type="xsd:string" />
+          <xsd:element name="Currency" type="xsd:string" />
+          <xsd:element name="MerchantID" type="xsd:string" />
+          <xsd:element name="BackURL" type="xsd:string" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="PayConfirmRequest">
+        <xsd:all>
+          <xsd:element name="PayCode" type="xsd:string" />
+          <xsd:element name="OperatorName" type="xsd:string" />
+          <xsd:element name="OperatorCallCenter" type="xsd:string" />
+          <xsd:element name="OperatorPayDate" type="xsd:string" />
+          <xsd:element name="NumberWallet" type="xsd:string" />
+          <xsd:element name="OperatorNumberTransaction" type="xsd:string" />
+          <xsd:element name="Amount" type="xsd:float" />
+          <xsd:element name="IIN" type="xsd:string" />
+          <xsd:element name="KBK" type="xsd:string" />
+          <xsd:element name="KBK_Ru" type="xsd:string" />
+          <xsd:element name="KNO" type="xsd:string" />
+          <xsd:element name="KNP" type="xsd:string" />
+          <xsd:element name="KNP_Ru" type="xsd:string" />
+          <xsd:element name="Commission" type="xsd:string" />
+          <xsd:element name="MerchantID" type="xsd:string" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="PayTransferConfirmRequest">
+        <xsd:all>
+          <xsd:element name="PayCode" type="xsd:string" />
+          <xsd:element name="BankName" type="xsd:string" />
+          <xsd:element name="BankCallCenter" type="xsd:string" />
+          <xsd:element name="BankPayDate" type="xsd:string" />
+          <xsd:element name="BankNumberTransaction" type="xsd:string" />
+          <xsd:element name="Amount" type="xsd:float" />
+          <xsd:element name="IIN" type="xsd:string" />
+          <xsd:element name="KBK" type="xsd:string" />
+          <xsd:element name="KBK_Ru" type="xsd:string" />
+          <xsd:element name="KNO" type="xsd:string" />
+          <xsd:element name="KNP" type="xsd:string" />
+          <xsd:element name="KNP_Ru" type="xsd:string" />
+          <xsd:element name="Commission" type="xsd:string" />
+          <xsd:element name="MerchantID" type="xsd:string" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CoreRequestConfirmationCodeRequest">
+        <xsd:all>
+          <xsd:element name="phone" type="xsd:string" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CoreRequestConfirmationCodeResponse">
+        <xsd:all>
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CoreBeelineSMSNotificationRequest">
+        <xsd:all>
+          <xsd:element name="phone" type="xsd:string" />
+          <xsd:element name="message" type="xsd:string" />
+          <xsd:element name="sender" type="xsd:string" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CoreBeelineSMSNotificationResponse">
+        <xsd:all>
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CoreKcellSMSNotificationRequest">
+        <xsd:all>
+          <xsd:element name="phone" type="xsd:string" />
+          <xsd:element name="message" type="xsd:string" />
+          <xsd:element name="sender" type="xsd:string" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CoreKcellSMSNotificationResponse">
+        <xsd:all>
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CoreTele2SMSNotificationRequest">
+        <xsd:all>
+          <xsd:element name="phone" type="xsd:string" />
+          <xsd:element name="message" type="xsd:string" />
+          <xsd:element name="sender" type="xsd:string" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CoreTele2SMSNotificationResponse">
+        <xsd:all>
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashGetReceiptForTransactionRequest">
+        <xsd:all>
+          <xsd:element name="transactionId" type="xsd:int" />
+          <xsd:element name="operationId" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashGetReceiptForTransactionResponse">
+        <xsd:all>
+          <xsd:element name="response" type="tns:CashGetReceiptForTransactionResponseData" />
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashGetReceiptForTransactionResponseData">
+        <xsd:all>
+          <xsd:element name="operator" type="xsd:string" />
+          <xsd:element name="op_bin" type="xsd:string" />
+          <xsd:element name="ch_nr" type="xsd:string" />
+          <xsd:element name="tr_nr" type="xsd:string" />
+          <xsd:element name="account_nr" type="xsd:string" />
+          <xsd:element name="date" type="xsd:string" />
+          <xsd:element name="mer_name" type="xsd:string" />
+          <xsd:element name="mer_bin" type="xsd:string" />
+          <xsd:element name="ident" type="tns:stringArray" />
+          <xsd:element name="admit" type="xsd:string" />
+          <xsd:element name="commis" type="xsd:string" />
+          <xsd:element name="sum" type="xsd:string" />
+          <xsd:element name="operation" type="xsd:string" />
+          <xsd:element name="vat" type="xsd:string" />
+          <xsd:element name="sup" type="xsd:string" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CoreGetMobileOperatorRequest">
+        <xsd:all>
+          <xsd:element name="phone" type="xsd:string" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CoreGetMobileOperatorResponse">
+        <xsd:all>
+          <xsd:element name="response" type="tns:CoreGetMobileOperatorResponseData" />
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CoreGetMobileOperatorResponseData">
+        <xsd:all>
+          <xsd:element name="operator" type="xsd:string" />
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashGetOperationDataExtendedRequest">
+        <xsd:all>
+          <xsd:element name="operationId" type="tns:intArray" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashGetOperationDataExtendedResponse">
+        <xsd:all>
+          <xsd:element name="response" type="tns:CashGetOperationDataExtendedResponseData" />
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashGetOperationDataExtendedResponseData">
+        <xsd:all>
+          <xsd:element name="records" type="tns:CashGetOperationDataExtendedResponseDataRecordArray" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashGetOperationDataExtendedResponseDataRecordArray">
+        <xsd:complexContent mixed="false">
+          <xsd:restriction base="soap-enc:Array">
+            <xsd:attribute wsdl:arrayType="tns:CashGetOperationDataExtendedResponseDataRecord[]" ref="soap-enc:arrayType" />
+          </xsd:restriction>
+        </xsd:complexContent>
+      </xsd:complexType>
+      <xsd:complexType name="CashGetOperationDataExtendedResponseDataRecord">
+        <xsd:all>
+          <xsd:element name="id" type="xsd:int" />
+          <xsd:element name="parentId" type="xsd:int" />
+          <xsd:element name="amount" type="xsd:int" />
+          <xsd:element name="currency" type="xsd:int" />
+          <xsd:element name="dateOper" type="xsd:string" />
+          <xsd:element name="dateDone" type="xsd:string" />
+          <xsd:element name="status" type="xsd:int" />
+          <xsd:element name="description" type="xsd:string" />
+          <xsd:element name="serviceId" type="xsd:int" />
+          <xsd:element name="orderId" type="xsd:int" />
+          <xsd:element name="type" type="xsd:int" />
+          <xsd:element name="productId" type="xsd:int" />
+          <xsd:element name="subjectFromId" type="xsd:int" />
+          <xsd:element name="subjectToId" type="xsd:int" />
+          <xsd:element name="specialistId" type="xsd:int" />
+          <xsd:element name="subjectFrom" type="xsd:string" />
+          <xsd:element name="subjectTo" type="xsd:string" />
+          <xsd:element name="specialist" type="xsd:string" />
+          <xsd:element name="commissionLower" type="xsd:int" />
+          <xsd:element name="commissionUpper" type="xsd:int" />
+          <xsd:element name="commissionUpperLower" type="xsd:int" />
+          <xsd:element name="retSum" type="xsd:int" />
+          <xsd:element name="lifeTime" type="xsd:int" />
+          <xsd:element name="externalId" type="xsd:string" />
+          <xsd:element name="cashback" type="xsd:int" />
+          <xsd:element name="paymentAccount" type="xsd:string" />
+          <xsd:element name="secure" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashGetOperationDataByExtIdRequest">
+        <xsd:all>
+          <xsd:element name="externalId" type="xsd:string" />
+          <xsd:element name="type" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashGetOperationDataByExtIdResponse">
+        <xsd:all>
+          <xsd:element name="response" type="tns:CashGetOperationDataByExtIdResponseData" />
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashGetOperationDataByExtIdResponseData">
+        <xsd:all>
+          <xsd:element name="id" type="xsd:int" />
+          <xsd:element name="parentId" type="xsd:int" />
+          <xsd:element name="amount" type="xsd:float" />
+          <xsd:element name="currency" type="xsd:int" />
+          <xsd:element name="dateOper" type="xsd:string" />
+          <xsd:element name="dateDone" type="xsd:string" />
+          <xsd:element name="status" type="xsd:int" />
+          <xsd:element name="description" type="xsd:string" />
+          <xsd:element name="serviceId" type="xsd:int" />
+          <xsd:element name="orderId" type="xsd:int" />
+          <xsd:element name="type" type="xsd:int" />
+          <xsd:element name="productId" type="xsd:int" />
+          <xsd:element name="subjectFromId" type="xsd:int" />
+          <xsd:element name="subjectToId" type="xsd:int" />
+          <xsd:element name="specialistId" type="xsd:int" />
+          <xsd:element name="subjectFrom" type="xsd:string" />
+          <xsd:element name="subjectTo" type="xsd:string" />
+          <xsd:element name="specialist" type="xsd:string" />
+          <xsd:element name="commissionLower" type="xsd:int" />
+          <xsd:element name="commissionUpper" type="xsd:int" />
+          <xsd:element name="commissionUpperLower" type="xsd:int" />
+          <xsd:element name="retSum" type="xsd:int" />
+          <xsd:element name="lifeTime" type="xsd:int" />
+          <xsd:element name="externalId" type="xsd:string" />
+          <xsd:element name="cashback" type="xsd:int" />
+          <xsd:element name="paymentAccount" type="xsd:string" />
+          <xsd:element name="secure" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashThirdPartyApproveOperationRequest">
+        <xsd:all>
+          <xsd:element name="operationId" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashThirdPartyApproveOperationResponse">
+        <xsd:all>
+          <xsd:element name="response" type="tns:CashThirdPartyApproveOperationResponseData" />
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashThirdPartyApproveOperationResponseData">
+        <xsd:all>
+          <xsd:element name="approveStatus" type="xsd:boolean" />
+          <xsd:element name="confirmStatus" type="xsd:boolean" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashGetUserLanguageRequest">
+        <xsd:all>
+          <xsd:element name="phoneNumber" type="xsd:string" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashGetUserLanguageResponse">
+        <xsd:all>
+          <xsd:element name="response" type="tns:CashGetUserLanguageResponseData" />
+          <xsd:element name="error_code" type="xsd:int" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="CashGetUserLanguageResponseData">
+        <xsd:all>
+          <xsd:element name="language" type="xsd:string" />
+        </xsd:all>
+      </xsd:complexType>
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="core_loginIn">
+    <wsdl:part name="coreLoginRequest" type="tns:CoreLoginRequest" />
+  </wsdl:message>
+  <wsdl:message name="core_loginOut">
+    <wsdl:part name="return" type="tns:CoreLoginResponse" />
+  </wsdl:message>
+  <wsdl:message name="core_logoutIn">
+    <wsdl:part name="coreLogoutRequest" type="tns:CoreLogoutRequest" />
+  </wsdl:message>
+  <wsdl:message name="core_logoutOut">
+    <wsdl:part name="return" type="tns:CoreLogoutResponse" />
+  </wsdl:message>
+  <wsdl:message name="core_smthIn">
+    <wsdl:part name="coreSmthRequest" type="tns:CoreSmthRequest" />
+  </wsdl:message>
+  <wsdl:message name="core_smthOut">
+    <wsdl:part name="return" type="tns:CoreSmthResponse" />
+  </wsdl:message>
+  <wsdl:message name="cash_createOperationIn">
+    <wsdl:part name="cashCreateOperationRequest" type="tns:CashCreateOperationRequest" />
+  </wsdl:message>
+  <wsdl:message name="cash_createOperationOut">
+    <wsdl:part name="return" type="tns:CashCreateOperationResponse" />
+  </wsdl:message>
+  <wsdl:message name="cash_confirmOperationIn">
+    <wsdl:part name="cashConfirmOperationRequest" type="tns:CashConfirmOperationRequest" />
+  </wsdl:message>
+  <wsdl:message name="cash_confirmOperationOut">
+    <wsdl:part name="return" type="tns:CashConfirmOperationResponse" />
+  </wsdl:message>
+  <wsdl:message name="cash_confirmOperationExtIn">
+    <wsdl:part name="cashConfirmOperationExtRequest" type="tns:CashConfirmOperationExtRequest" />
+  </wsdl:message>
+  <wsdl:message name="cash_confirmOperationExtOut">
+    <wsdl:part name="return" type="tns:CashConfirmOperationResponse" />
+  </wsdl:message>
+  <wsdl:message name="cash_dischargementIn">
+    <wsdl:part name="cashDischargementRequest" type="tns:CashDischargementRequest" />
+  </wsdl:message>
+  <wsdl:message name="cash_dischargementOut">
+    <wsdl:part name="return" type="tns:CashDischargementResponse" />
+  </wsdl:message>
+  <wsdl:message name="cash_transferIn">
+    <wsdl:part name="cashTransferRequest" type="tns:CashTransferRequest" />
+  </wsdl:message>
+  <wsdl:message name="cash_transferOut">
+    <wsdl:part name="return" type="tns:CashTransferResponse" />
+  </wsdl:message>
+  <wsdl:message name="cash_getTransfersIn">
+    <wsdl:part name="cashGetTransfersRequest" type="tns:CashGetTransfersRequest" />
+  </wsdl:message>
+  <wsdl:message name="cash_getTransfersOut">
+    <wsdl:part name="return" type="tns:CashGetTransfersResponse" />
+  </wsdl:message>
+  <wsdl:message name="core_nominateSubjectIn">
+    <wsdl:part name="coreNominateSubjectRequest" type="tns:CoreNominateSubjectRequest" />
+  </wsdl:message>
+  <wsdl:message name="core_nominateSubjectOut">
+    <wsdl:part name="return" type="tns:CoreNominateSubjectResponse" />
+  </wsdl:message>
+  <wsdl:message name="cash_getCommissionIn">
+    <wsdl:part name="cashGetCommissionRequest" type="tns:CashGetCommissionRequest" />
+  </wsdl:message>
+  <wsdl:message name="cash_getCommissionOut">
+    <wsdl:part name="return" type="tns:CashGetCommissionResponse" />
+  </wsdl:message>
+  <wsdl:message name="core_getServiceIDByNameIn">
+    <wsdl:part name="cashGetServiceIDByNameRequest" type="tns:CoreGetServiceIDByNameRequest" />
+  </wsdl:message>
+  <wsdl:message name="core_getServiceIDByNameOut">
+    <wsdl:part name="return" type="tns:CoreGetServiceIDByNameResponse" />
+  </wsdl:message>
+  <wsdl:message name="cash_getBalanceIn">
+    <wsdl:part name="cashGetBalanceRequest" type="tns:CashGetBalanceRequest" />
+  </wsdl:message>
+  <wsdl:message name="cash_getBalanceOut">
+    <wsdl:part name="return" type="tns:CashGetBalanceResponse" />
+  </wsdl:message>
+  <wsdl:message name="service_getCategoriesIn">
+    <wsdl:part name="serviceGetCategoriesRequest" type="tns:ServiceGetCategoriesRequest" />
+  </wsdl:message>
+  <wsdl:message name="service_getCategoriesOut">
+    <wsdl:part name="return" type="tns:ServiceGetCategoriesResponse" />
+  </wsdl:message>
+  <wsdl:message name="cash_declineIn">
+    <wsdl:part name="cashDeclineRequest" type="tns:CashDeclineRequest" />
+  </wsdl:message>
+  <wsdl:message name="cash_declineOut">
+    <wsdl:part name="return" type="tns:CashDeclineResponse" />
+  </wsdl:message>
+  <wsdl:message name="cash_setOperationsStatusIn">
+    <wsdl:part name="cashSetOperationsStatusRequest" type="tns:CashSetOperationsStatusRequest" />
+  </wsdl:message>
+  <wsdl:message name="cash_setOperationsStatusOut">
+    <wsdl:part name="return" type="tns:CashSetOperationsStatusResponse" />
+  </wsdl:message>
+  <wsdl:message name="cash_getOperationsStatusIn">
+    <wsdl:part name="cashGetOperationsStatusRequest" type="tns:CashGetOperationsStatusRequest" />
+  </wsdl:message>
+  <wsdl:message name="cash_getOperationsStatusOut">
+    <wsdl:part name="return" type="tns:CashGetOperationsStatusResponse" />
+  </wsdl:message>
+  <wsdl:message name="cash_cashOutIn">
+    <wsdl:part name="cashCashOutRequest" type="tns:CashCashOutRequest" />
+  </wsdl:message>
+  <wsdl:message name="cash_cashOutOut">
+    <wsdl:part name="return" type="tns:CashCashOutResponse" />
+  </wsdl:message>
+  <wsdl:message name="cash_cashOutExtendedIn">
+    <wsdl:part name="cashCashOutExtendedRequest" type="tns:CashCashOutExtendedRequest" />
+  </wsdl:message>
+  <wsdl:message name="cash_cashOutExtendedOut">
+    <wsdl:part name="return" type="tns:CashCashOutExtendedResponse" />
+  </wsdl:message>
+  <wsdl:message name="cash_cashOutCompleteIn">
+    <wsdl:part name="cashCashOutCompleteRequest" type="tns:CashCashOutCompleteRequest" />
+  </wsdl:message>
+  <wsdl:message name="cash_cashOutCompleteOut">
+    <wsdl:part name="return" type="tns:CashCashOutCompleteResponse" />
+  </wsdl:message>
+  <wsdl:message name="cash_cashOutInputDataIn">
+    <wsdl:part name="cashCashOutInputDataRequest" type="tns:CashCashOutInputDataRequest" />
+  </wsdl:message>
+  <wsdl:message name="cash_cashOutInputDataOut">
+    <wsdl:part name="return" type="tns:CashCashOutInputDataResponse" />
+  </wsdl:message>
+  <wsdl:message name="cash_paymentReturnIn">
+    <wsdl:part name="cashReturnRequest" type="tns:CashReturnRequest" />
+  </wsdl:message>
+  <wsdl:message name="cash_paymentReturnOut">
+    <wsdl:part name="return" type="tns:CashReturnResponse" />
+  </wsdl:message>
+  <wsdl:message name="cash_paymentReturnPartialIn">
+    <wsdl:part name="cashReturnPartialRequest" type="tns:CashReturnPartialRequest" />
+  </wsdl:message>
+  <wsdl:message name="cash_paymentReturnPartialOut">
+    <wsdl:part name="return" type="tns:CashReturnPartialResponse" />
+  </wsdl:message>
+  <wsdl:message name="cash_mobileRefundIn">
+    <wsdl:part name="cashMobileRefundRequest" type="tns:CashMobileRefundRequest" />
+  </wsdl:message>
+  <wsdl:message name="cash_mobileRefundOut">
+    <wsdl:part name="return" type="tns:CashMobileRefundResponse" />
+  </wsdl:message>
+  <wsdl:message name="core_userSearchIn">
+    <wsdl:part name="coreUserSearchRequest" type="tns:CoreUserSearchRequest" />
+  </wsdl:message>
+  <wsdl:message name="core_userSearchOut">
+    <wsdl:part name="return" type="tns:CoreUserSearchResponse" />
+  </wsdl:message>
+  <wsdl:message name="system_getConfigIn">
+    <wsdl:part name="systemGetConfigRequest" type="tns:SystemGetConfigRequest" />
+  </wsdl:message>
+  <wsdl:message name="system_getConfigOut">
+    <wsdl:part name="return" type="tns:SystemGetConfigResponse" />
+  </wsdl:message>
+  <wsdl:message name="cash_requestTransferIn">
+    <wsdl:part name="cashRequestTransferRequest" type="tns:CashRequestTransferRequest" />
+  </wsdl:message>
+  <wsdl:message name="cash_requestTransferOut">
+    <wsdl:part name="return" type="tns:CashRequestTransferResponse" />
+  </wsdl:message>
+  <wsdl:message name="cash_invoicingIn">
+    <wsdl:part name="cashInvoicingRequest" type="tns:CashInvoicingRequest" />
+  </wsdl:message>
+  <wsdl:message name="cash_invoicingOut">
+    <wsdl:part name="return" type="tns:CashInvoicingResponse" />
+  </wsdl:message>
+  <wsdl:message name="cash_getServiceFieldsIn">
+    <wsdl:part name="cashGetServiceFieldsRequest" type="tns:CashGetServiceFieldsRequest" />
+  </wsdl:message>
+  <wsdl:message name="cash_getServiceFieldsOut">
+    <wsdl:part name="return" type="tns:CashGetServiceFieldsResponse" />
+  </wsdl:message>
+  <wsdl:message name="cash_getServiceFieldsExtendedIn">
+    <wsdl:part name="cashGetServiceFieldsExtended" type="tns:CashGetServiceFieldsExtendedRequest" />
+  </wsdl:message>
+  <wsdl:message name="cash_getServiceFieldsExtendedOut">
+    <wsdl:part name="return" type="tns:CashGetServiceFieldsResponse" />
+  </wsdl:message>
+  <wsdl:message name="cash_checkServiceFieldsIn">
+    <wsdl:part name="cashCheckServiceFieldsRequest" type="tns:CashCheckServiceFieldsRequest" />
+  </wsdl:message>
+  <wsdl:message name="cash_checkServiceFieldsOut">
+    <wsdl:part name="return" type="tns:CashCheckServiceFieldsResponse" />
+  </wsdl:message>
+  <wsdl:message name="cash_getOperationReceiptIn">
+    <wsdl:part name="cashGetOperationReceiptRequest" type="tns:CashGetOperationReceiptRequest" />
+  </wsdl:message>
+  <wsdl:message name="cash_getOperationReceiptOut">
+    <wsdl:part name="return" type="tns:CashGetOperationReceiptResponse" />
+  </wsdl:message>
+  <wsdl:message name="cash_getOperationDataIn">
+    <wsdl:part name="cashGetOperationDataRequest" type="tns:CashGetOperationDataRequest" />
+  </wsdl:message>
+  <wsdl:message name="cash_getOperationDataOut">
+    <wsdl:part name="return" type="tns:CashGetOperationDataResponse" />
+  </wsdl:message>
+  <wsdl:message name="core_userExistsIn">
+    <wsdl:part name="coreUserExistsRequest" type="tns:CoreUserExistsRequest" />
+  </wsdl:message>
+  <wsdl:message name="core_userExistsOut">
+    <wsdl:part name="return" type="tns:CoreUserExistsResponse" />
+  </wsdl:message>
+  <wsdl:message name="cash_createInvoiceIn">
+    <wsdl:part name="cashCreateInvoiceRequest" type="tns:CashCreateInvoiceRequest" />
+  </wsdl:message>
+  <wsdl:message name="cash_createInvoiceOut">
+    <wsdl:part name="return" type="tns:CashCreateInvoiceResponse" />
+  </wsdl:message>
+  <wsdl:message name="cash_createInvoiceExtendedIn">
+    <wsdl:part name="cashCreateInvoiceExtendedRequest" type="tns:CashCreateInvoiceExtendedRequest" />
+  </wsdl:message>
+  <wsdl:message name="cash_createInvoiceExtendedOut">
+    <wsdl:part name="return" type="tns:CashCreateInvoiceResponse" />
+  </wsdl:message>
+  <wsdl:message name="cash_createInvoice2ExtendedIn">
+    <wsdl:part name="cashCreateInvoiceExtended2Request" type="tns:CashCreateInvoiceExtended2Request" />
+  </wsdl:message>
+  <wsdl:message name="cash_createInvoice2ExtendedOut">
+    <wsdl:part name="return" type="tns:CashCreateInvoiceResponse" />
+  </wsdl:message>
+  <wsdl:message name="cash_createInvoiceByServiceIn">
+    <wsdl:part name="cashCreateInvoiceByServiceRequest" type="tns:CashCreateInvoiceByServiceRequest" />
+  </wsdl:message>
+  <wsdl:message name="cash_createInvoiceByServiceOut">
+    <wsdl:part name="return" type="tns:CashCreateInvoiceResponse" />
+  </wsdl:message>
+  <wsdl:message name="cash_createInvoiceWithCurrencyIn">
+    <wsdl:part name="cashCreateInvoiceWithCurrencyRequest" type="tns:CashCreateInvoiceWithCurrencyRequest" />
+  </wsdl:message>
+  <wsdl:message name="cash_createInvoiceWithCurrencyOut">
+    <wsdl:part name="return" type="tns:CashCreateInvoiceResponse" />
+  </wsdl:message>
+  <wsdl:message name="createOperationIn">
+    <wsdl:part name="createOperation" type="tns:CreateOperation" />
+  </wsdl:message>
+  <wsdl:message name="createOperationOut">
+    <wsdl:part name="return" type="tns:CreateOperationResponse" />
+  </wsdl:message>
+  <wsdl:message name="createOperationFakeIn">
+    <wsdl:part name="createOperation" type="tns:CreateOperationRequest" />
+  </wsdl:message>
+  <wsdl:message name="createOperationFakeOut">
+    <wsdl:part name="return" type="tns:CreateOperationResponse" />
+  </wsdl:message>
+  <wsdl:message name="payConfirmIn">
+    <wsdl:part name="PayConfirmRequest" type="tns:PayConfirmRequest" />
+  </wsdl:message>
+  <wsdl:message name="payConfirmOut">
+    <wsdl:part name="return" type="tns:CreateOperationResponse" />
+  </wsdl:message>
+  <wsdl:message name="payTransferConfirmIn">
+    <wsdl:part name="PayTransferConfirmRequest" type="tns:PayTransferConfirmRequest" />
+  </wsdl:message>
+  <wsdl:message name="payTransferConfirmOut">
+    <wsdl:part name="return" type="tns:CreateOperationResponse" />
+  </wsdl:message>
+  <wsdl:message name="core_requestConfirmationCodeIn">
+    <wsdl:part name="coreRequestConfirmationCodeRequest" type="tns:CoreRequestConfirmationCodeRequest" />
+  </wsdl:message>
+  <wsdl:message name="core_requestConfirmationCodeOut">
+    <wsdl:part name="return" type="tns:CoreRequestConfirmationCodeResponse" />
+  </wsdl:message>
+  <wsdl:message name="core_beelineSMSNotificationIn">
+    <wsdl:part name="coreBeelineSMSNotificationRequest" type="tns:CoreBeelineSMSNotificationRequest" />
+  </wsdl:message>
+  <wsdl:message name="core_beelineSMSNotificationOut">
+    <wsdl:part name="return" type="tns:CoreBeelineSMSNotificationResponse" />
+  </wsdl:message>
+  <wsdl:message name="core_kcellSMSNotificationIn">
+    <wsdl:part name="coreKcellSMSNotificationRequest" type="tns:CoreKcellSMSNotificationRequest" />
+  </wsdl:message>
+  <wsdl:message name="core_kcellSMSNotificationOut">
+    <wsdl:part name="return" type="tns:CoreKcellSMSNotificationResponse" />
+  </wsdl:message>
+  <wsdl:message name="core_tele2SMSNotificationIn">
+    <wsdl:part name="coreTele2SMSNotificationRequest" type="tns:CoreTele2SMSNotificationRequest" />
+  </wsdl:message>
+  <wsdl:message name="core_tele2SMSNotificationOut">
+    <wsdl:part name="return" type="tns:CoreTele2SMSNotificationResponse" />
+  </wsdl:message>
+  <wsdl:message name="cash_getReceiptForTransactionIn">
+    <wsdl:part name="cashGetReceiptForTransactionRequest" type="tns:CashGetReceiptForTransactionRequest" />
+  </wsdl:message>
+  <wsdl:message name="cash_getReceiptForTransactionOut">
+    <wsdl:part name="return" type="tns:CashGetReceiptForTransactionResponse" />
+  </wsdl:message>
+  <wsdl:message name="core_getMobileOperatorIn">
+    <wsdl:part name="coreGetMobileOperatorRequest" type="tns:CoreGetMobileOperatorRequest" />
+  </wsdl:message>
+  <wsdl:message name="core_getMobileOperatorOut">
+    <wsdl:part name="return" type="tns:CoreGetMobileOperatorResponse" />
+  </wsdl:message>
+  <wsdl:message name="cash_getOperationDataExtendedIn">
+    <wsdl:part name="cashGetOperationDataExtendedRequest" type="tns:CashGetOperationDataExtendedRequest" />
+  </wsdl:message>
+  <wsdl:message name="cash_getOperationDataExtendedOut">
+    <wsdl:part name="return" type="tns:CashGetOperationDataExtendedResponse" />
+  </wsdl:message>
+  <wsdl:message name="cash_getOperationDataByExtIdIn">
+    <wsdl:part name="cashGetOperationDataByExtIdRequest" type="tns:CashGetOperationDataByExtIdRequest" />
+  </wsdl:message>
+  <wsdl:message name="cash_getOperationDataByExtIdOut">
+    <wsdl:part name="return" type="tns:CashGetOperationDataByExtIdResponse" />
+  </wsdl:message>
+  <wsdl:message name="cash_thirdPartyApproveOperationIn">
+    <wsdl:part name="cashThirdPartyApproveOperationRequest" type="tns:CashThirdPartyApproveOperationRequest" />
+  </wsdl:message>
+  <wsdl:message name="cash_thirdPartyApproveOperationOut">
+    <wsdl:part name="return" type="tns:CashThirdPartyApproveOperationResponse" />
+  </wsdl:message>
+  <wsdl:message name="cash_getUserLanguageIn">
+    <wsdl:part name="cashGetUserLanguageRequest" type="tns:CashGetUserLanguageRequest" />
+  </wsdl:message>
+  <wsdl:message name="cash_getUserLanguageOut">
+    <wsdl:part name="return" type="tns:CashGetUserLanguageResponse" />
+  </wsdl:message>
+  <wsdl:portType name="XmlControllerPortType">
+    <wsdl:operation name="core_login">
+      <wsdl:documentation>Login action</wsdl:documentation>
+      <wsdl:input message="tns:core_loginIn" />
+      <wsdl:output message="tns:core_loginOut" />
+    </wsdl:operation>
+    <wsdl:operation name="core_logout">
+      <wsdl:documentation>Logout action</wsdl:documentation>
+      <wsdl:input message="tns:core_logoutIn" />
+      <wsdl:output message="tns:core_logoutOut" />
+    </wsdl:operation>
+    <wsdl:operation name="core_smth">
+      <wsdl:documentation>Test action</wsdl:documentation>
+      <wsdl:input message="tns:core_smthIn" />
+      <wsdl:output message="tns:core_smthOut" />
+    </wsdl:operation>
+    <wsdl:operation name="cash_createOperation">
+      <wsdl:documentation>Create new money operation</wsdl:documentation>
+      <wsdl:input message="tns:cash_createOperationIn" />
+      <wsdl:output message="tns:cash_createOperationOut" />
+    </wsdl:operation>
+    <wsdl:operation name="cash_confirmOperation">
+      <wsdl:documentation>Confirm money operation</wsdl:documentation>
+      <wsdl:input message="tns:cash_confirmOperationIn" />
+      <wsdl:output message="tns:cash_confirmOperationOut" />
+    </wsdl:operation>
+    <wsdl:operation name="cash_confirmOperationExt">
+      <wsdl:documentation>Confirm money operation with confirmation code</wsdl:documentation>
+      <wsdl:input message="tns:cash_confirmOperationExtIn" />
+      <wsdl:output message="tns:cash_confirmOperationExtOut" />
+    </wsdl:operation>
+    <wsdl:operation name="cash_dischargement">
+      <wsdl:documentation>Dischargement money</wsdl:documentation>
+      <wsdl:input message="tns:cash_dischargementIn" />
+      <wsdl:output message="tns:cash_dischargementOut" />
+    </wsdl:operation>
+    <wsdl:operation name="cash_transfer">
+      <wsdl:documentation>Transfer money</wsdl:documentation>
+      <wsdl:input message="tns:cash_transferIn" />
+      <wsdl:output message="tns:cash_transferOut" />
+    </wsdl:operation>
+    <wsdl:operation name="cash_getTransfers">
+      <wsdl:documentation>Get transfer/payment list</wsdl:documentation>
+      <wsdl:input message="tns:cash_getTransfersIn" />
+      <wsdl:output message="tns:cash_getTransfersOut" />
+    </wsdl:operation>
+    <wsdl:operation name="core_nominateSubject">
+      <wsdl:documentation>Get link of questionnaire for auth purpose</wsdl:documentation>
+      <wsdl:input message="tns:core_nominateSubjectIn" />
+      <wsdl:output message="tns:core_nominateSubjectOut" />
+    </wsdl:operation>
+    <wsdl:operation name="cash_getCommission">
+      <wsdl:documentation>Get commission</wsdl:documentation>
+      <wsdl:input message="tns:cash_getCommissionIn" />
+      <wsdl:output message="tns:cash_getCommissionOut" />
+    </wsdl:operation>
+    <wsdl:operation name="core_getServiceIDByName">
+      <wsdl:documentation>Get service id</wsdl:documentation>
+      <wsdl:input message="tns:core_getServiceIDByNameIn" />
+      <wsdl:output message="tns:core_getServiceIDByNameOut" />
+    </wsdl:operation>
+    <wsdl:operation name="cash_getBalance">
+      <wsdl:documentation />
+      <wsdl:input message="tns:cash_getBalanceIn" />
+      <wsdl:output message="tns:cash_getBalanceOut" />
+    </wsdl:operation>
+    <wsdl:operation name="service_getCategories">
+      <wsdl:documentation>get categories</wsdl:documentation>
+      <wsdl:input message="tns:service_getCategoriesIn" />
+      <wsdl:output message="tns:service_getCategoriesOut" />
+    </wsdl:operation>
+    <wsdl:operation name="cash_decline">
+      <wsdl:documentation>Cancels/declines operation</wsdl:documentation>
+      <wsdl:input message="tns:cash_declineIn" />
+      <wsdl:output message="tns:cash_declineOut" />
+    </wsdl:operation>
+    <wsdl:operation name="cash_setOperationsStatus">
+      <wsdl:documentation>Set operations status</wsdl:documentation>
+      <wsdl:input message="tns:cash_setOperationsStatusIn" />
+      <wsdl:output message="tns:cash_setOperationsStatusOut" />
+    </wsdl:operation>
+    <wsdl:operation name="cash_getOperationsStatus">
+      <wsdl:documentation>Get operations status</wsdl:documentation>
+      <wsdl:input message="tns:cash_getOperationsStatusIn" />
+      <wsdl:output message="tns:cash_getOperationsStatusOut" />
+    </wsdl:operation>
+    <wsdl:operation name="cash_cashOut">
+      <wsdl:documentation>Cash out</wsdl:documentation>
+      <wsdl:input message="tns:cash_cashOutIn" />
+      <wsdl:output message="tns:cash_cashOutOut" />
+    </wsdl:operation>
+    <wsdl:operation name="cash_cashOutExtended">
+      <wsdl:documentation>Cash out extended</wsdl:documentation>
+      <wsdl:input message="tns:cash_cashOutExtendedIn" />
+      <wsdl:output message="tns:cash_cashOutExtendedOut" />
+    </wsdl:operation>
+    <wsdl:operation name="cash_cashOutComplete">
+      <wsdl:documentation>Cash out complete</wsdl:documentation>
+      <wsdl:input message="tns:cash_cashOutCompleteIn" />
+      <wsdl:output message="tns:cash_cashOutCompleteOut" />
+    </wsdl:operation>
+    <wsdl:operation name="cash_cashOutInputData">
+      <wsdl:documentation>Cash out input data</wsdl:documentation>
+      <wsdl:input message="tns:cash_cashOutInputDataIn" />
+      <wsdl:output message="tns:cash_cashOutInputDataOut" />
+    </wsdl:operation>
+    <wsdl:operation name="cash_paymentReturn">
+      <wsdl:documentation>Return payment operation</wsdl:documentation>
+      <wsdl:input message="tns:cash_paymentReturnIn" />
+      <wsdl:output message="tns:cash_paymentReturnOut" />
+    </wsdl:operation>
+    <wsdl:operation name="cash_paymentReturnPartial">
+      <wsdl:documentation>Partial return payment operation</wsdl:documentation>
+      <wsdl:input message="tns:cash_paymentReturnPartialIn" />
+      <wsdl:output message="tns:cash_paymentReturnPartialOut" />
+    </wsdl:operation>
+    <wsdl:operation name="cash_mobileRefund">
+      <wsdl:documentation>Refund mobile payment operation</wsdl:documentation>
+      <wsdl:input message="tns:cash_mobileRefundIn" />
+      <wsdl:output message="tns:cash_mobileRefundOut" />
+    </wsdl:operation>
+    <wsdl:operation name="core_userSearch">
+      <wsdl:documentation>User search</wsdl:documentation>
+      <wsdl:input message="tns:core_userSearchIn" />
+      <wsdl:output message="tns:core_userSearchOut" />
+    </wsdl:operation>
+    <wsdl:operation name="system_getConfig">
+      <wsdl:documentation>Get system config</wsdl:documentation>
+      <wsdl:input message="tns:system_getConfigIn" />
+      <wsdl:output message="tns:system_getConfigOut" />
+    </wsdl:operation>
+    <wsdl:operation name="cash_requestTransfer">
+      <wsdl:documentation>Send transfer request</wsdl:documentation>
+      <wsdl:input message="tns:cash_requestTransferIn" />
+      <wsdl:output message="tns:cash_requestTransferOut" />
+    </wsdl:operation>
+    <wsdl:operation name="cash_invoicing">
+      <wsdl:documentation>Send invoice</wsdl:documentation>
+      <wsdl:input message="tns:cash_invoicingIn" />
+      <wsdl:output message="tns:cash_invoicingOut" />
+    </wsdl:operation>
+    <wsdl:operation name="cash_getServiceFields">
+      <wsdl:documentation>Get service fields</wsdl:documentation>
+      <wsdl:input message="tns:cash_getServiceFieldsIn" />
+      <wsdl:output message="tns:cash_getServiceFieldsOut" />
+    </wsdl:operation>
+    <wsdl:operation name="cash_getServiceFieldsExtended">
+      <wsdl:documentation>Get service fields</wsdl:documentation>
+      <wsdl:input message="tns:cash_getServiceFieldsExtendedIn" />
+      <wsdl:output message="tns:cash_getServiceFieldsExtendedOut" />
+    </wsdl:operation>
+    <wsdl:operation name="cash_checkServiceFields">
+      <wsdl:documentation>Check service fields</wsdl:documentation>
+      <wsdl:input message="tns:cash_checkServiceFieldsIn" />
+      <wsdl:output message="tns:cash_checkServiceFieldsOut" />
+    </wsdl:operation>
+    <wsdl:operation name="cash_getOperationReceipt">
+      <wsdl:documentation>Get operation receipt</wsdl:documentation>
+      <wsdl:input message="tns:cash_getOperationReceiptIn" />
+      <wsdl:output message="tns:cash_getOperationReceiptOut" />
+    </wsdl:operation>
+    <wsdl:operation name="cash_getOperationData">
+      <wsdl:documentation />
+      <wsdl:input message="tns:cash_getOperationDataIn" />
+      <wsdl:output message="tns:cash_getOperationDataOut" />
+    </wsdl:operation>
+    <wsdl:operation name="core_userExists">
+      <wsdl:documentation>User existing checking</wsdl:documentation>
+      <wsdl:input message="tns:core_userExistsIn" />
+      <wsdl:output message="tns:core_userExistsOut" />
+    </wsdl:operation>
+    <wsdl:operation name="cash_createInvoice">
+      <wsdl:documentation>create invoice</wsdl:documentation>
+      <wsdl:input message="tns:cash_createInvoiceIn" />
+      <wsdl:output message="tns:cash_createInvoiceOut" />
+    </wsdl:operation>
+    <wsdl:operation name="cash_createInvoiceExtended">
+      <wsdl:documentation>create invoice</wsdl:documentation>
+      <wsdl:input message="tns:cash_createInvoiceExtendedIn" />
+      <wsdl:output message="tns:cash_createInvoiceExtendedOut" />
+    </wsdl:operation>
+    <wsdl:operation name="cash_createInvoice2Extended">
+      <wsdl:documentation>create invoice</wsdl:documentation>
+      <wsdl:input message="tns:cash_createInvoice2ExtendedIn" />
+      <wsdl:output message="tns:cash_createInvoice2ExtendedOut" />
+    </wsdl:operation>
+    <wsdl:operation name="cash_createInvoiceByService">
+      <wsdl:documentation>create invoice</wsdl:documentation>
+      <wsdl:input message="tns:cash_createInvoiceByServiceIn" />
+      <wsdl:output message="tns:cash_createInvoiceByServiceOut" />
+    </wsdl:operation>
+    <wsdl:operation name="cash_createInvoiceWithCurrency">
+      <wsdl:documentation>create invoice</wsdl:documentation>
+      <wsdl:input message="tns:cash_createInvoiceWithCurrencyIn" />
+      <wsdl:output message="tns:cash_createInvoiceWithCurrencyOut" />
+    </wsdl:operation>
+    <wsdl:operation name="createOperation">
+      <wsdl:documentation />
+      <wsdl:input message="tns:createOperationIn" />
+      <wsdl:output message="tns:createOperationOut" />
+    </wsdl:operation>
+    <wsdl:operation name="createOperationFake">
+      <wsdl:documentation />
+      <wsdl:input message="tns:createOperationFakeIn" />
+      <wsdl:output message="tns:createOperationFakeOut" />
+    </wsdl:operation>
+    <wsdl:operation name="payConfirm">
+      <wsdl:documentation />
+      <wsdl:input message="tns:payConfirmIn" />
+      <wsdl:output message="tns:payConfirmOut" />
+    </wsdl:operation>
+    <wsdl:operation name="payTransferConfirm">
+      <wsdl:documentation />
+      <wsdl:input message="tns:payTransferConfirmIn" />
+      <wsdl:output message="tns:payTransferConfirmOut" />
+    </wsdl:operation>
+    <wsdl:operation name="core_requestConfirmationCode">
+      <wsdl:documentation />
+      <wsdl:input message="tns:core_requestConfirmationCodeIn" />
+      <wsdl:output message="tns:core_requestConfirmationCodeOut" />
+    </wsdl:operation>
+    <wsdl:operation name="core_beelineSMSNotification">
+      <wsdl:documentation />
+      <wsdl:input message="tns:core_beelineSMSNotificationIn" />
+      <wsdl:output message="tns:core_beelineSMSNotificationOut" />
+    </wsdl:operation>
+    <wsdl:operation name="core_kcellSMSNotification">
+      <wsdl:documentation />
+      <wsdl:input message="tns:core_kcellSMSNotificationIn" />
+      <wsdl:output message="tns:core_kcellSMSNotificationOut" />
+    </wsdl:operation>
+    <wsdl:operation name="core_tele2SMSNotification">
+      <wsdl:documentation />
+      <wsdl:input message="tns:core_tele2SMSNotificationIn" />
+      <wsdl:output message="tns:core_tele2SMSNotificationOut" />
+    </wsdl:operation>
+    <wsdl:operation name="cash_getReceiptForTransaction">
+      <wsdl:documentation>Get operation receipt by Oberthur MFS id</wsdl:documentation>
+      <wsdl:input message="tns:cash_getReceiptForTransactionIn" />
+      <wsdl:output message="tns:cash_getReceiptForTransactionOut" />
+    </wsdl:operation>
+    <wsdl:operation name="core_getMobileOperator">
+      <wsdl:documentation />
+      <wsdl:input message="tns:core_getMobileOperatorIn" />
+      <wsdl:output message="tns:core_getMobileOperatorOut" />
+    </wsdl:operation>
+    <wsdl:operation name="cash_getOperationDataExtended">
+      <wsdl:documentation />
+      <wsdl:input message="tns:cash_getOperationDataExtendedIn" />
+      <wsdl:output message="tns:cash_getOperationDataExtendedOut" />
+    </wsdl:operation>
+    <wsdl:operation name="cash_getOperationDataByExtId">
+      <wsdl:documentation />
+      <wsdl:input message="tns:cash_getOperationDataByExtIdIn" />
+      <wsdl:output message="tns:cash_getOperationDataByExtIdOut" />
+    </wsdl:operation>
+    <wsdl:operation name="cash_thirdPartyApproveOperation">
+      <wsdl:documentation />
+      <wsdl:input message="tns:cash_thirdPartyApproveOperationIn" />
+      <wsdl:output message="tns:cash_thirdPartyApproveOperationOut" />
+    </wsdl:operation>
+    <wsdl:operation name="cash_getUserLanguage">
+      <wsdl:documentation />
+      <wsdl:input message="tns:cash_getUserLanguageIn" />
+      <wsdl:output message="tns:cash_getUserLanguageOut" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="XmlControllerBinding" type="tns:XmlControllerPortType">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="rpc" />
+    <wsdl:operation name="core_login">
+      <soap:operation soapAction="urn:XmlControllerwsdl#core_login" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="core_logout">
+      <soap:operation soapAction="urn:XmlControllerwsdl#core_logout" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="core_smth">
+      <soap:operation soapAction="urn:XmlControllerwsdl#core_smth" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="cash_createOperation">
+      <soap:operation soapAction="urn:XmlControllerwsdl#cash_createOperation" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="cash_confirmOperation">
+      <soap:operation soapAction="urn:XmlControllerwsdl#cash_confirmOperation" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="cash_confirmOperationExt">
+      <soap:operation soapAction="urn:XmlControllerwsdl#cash_confirmOperationExt" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="cash_dischargement">
+      <soap:operation soapAction="urn:XmlControllerwsdl#cash_dischargement" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="cash_transfer">
+      <soap:operation soapAction="urn:XmlControllerwsdl#cash_transfer" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="cash_getTransfers">
+      <soap:operation soapAction="urn:XmlControllerwsdl#cash_getTransfers" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="core_nominateSubject">
+      <soap:operation soapAction="urn:XmlControllerwsdl#core_nominateSubject" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="cash_getCommission">
+      <soap:operation soapAction="urn:XmlControllerwsdl#cash_getCommission" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="core_getServiceIDByName">
+      <soap:operation soapAction="urn:XmlControllerwsdl#core_getServiceIDByName" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="cash_getBalance">
+      <soap:operation soapAction="urn:XmlControllerwsdl#cash_getBalance" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="service_getCategories">
+      <soap:operation soapAction="urn:XmlControllerwsdl#service_getCategories" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="cash_decline">
+      <soap:operation soapAction="urn:XmlControllerwsdl#cash_decline" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="cash_setOperationsStatus">
+      <soap:operation soapAction="urn:XmlControllerwsdl#cash_setOperationsStatus" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="cash_getOperationsStatus">
+      <soap:operation soapAction="urn:XmlControllerwsdl#cash_getOperationsStatus" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="cash_cashOut">
+      <soap:operation soapAction="urn:XmlControllerwsdl#cash_cashOut" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="cash_cashOutExtended">
+      <soap:operation soapAction="urn:XmlControllerwsdl#cash_cashOutExtended" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="cash_cashOutComplete">
+      <soap:operation soapAction="urn:XmlControllerwsdl#cash_cashOutComplete" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="cash_cashOutInputData">
+      <soap:operation soapAction="urn:XmlControllerwsdl#cash_cashOutInputData" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="cash_paymentReturn">
+      <soap:operation soapAction="urn:XmlControllerwsdl#cash_paymentReturn" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="cash_paymentReturnPartial">
+      <soap:operation soapAction="urn:XmlControllerwsdl#cash_paymentReturnPartial" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="cash_mobileRefund">
+      <soap:operation soapAction="urn:XmlControllerwsdl#cash_mobileRefund" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="core_userSearch">
+      <soap:operation soapAction="urn:XmlControllerwsdl#core_userSearch" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="system_getConfig">
+      <soap:operation soapAction="urn:XmlControllerwsdl#system_getConfig" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="cash_requestTransfer">
+      <soap:operation soapAction="urn:XmlControllerwsdl#cash_requestTransfer" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="cash_invoicing">
+      <soap:operation soapAction="urn:XmlControllerwsdl#cash_invoicing" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="cash_getServiceFields">
+      <soap:operation soapAction="urn:XmlControllerwsdl#cash_getServiceFields" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="cash_getServiceFieldsExtended">
+      <soap:operation soapAction="urn:XmlControllerwsdl#cash_getServiceFieldsExtended" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="cash_checkServiceFields">
+      <soap:operation soapAction="urn:XmlControllerwsdl#cash_checkServiceFields" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="cash_getOperationReceipt">
+      <soap:operation soapAction="urn:XmlControllerwsdl#cash_getOperationReceipt" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="cash_getOperationData">
+      <soap:operation soapAction="urn:XmlControllerwsdl#cash_getOperationData" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="core_userExists">
+      <soap:operation soapAction="urn:XmlControllerwsdl#core_userExists" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="cash_createInvoice">
+      <soap:operation soapAction="urn:XmlControllerwsdl#cash_createInvoice" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="cash_createInvoiceExtended">
+      <soap:operation soapAction="urn:XmlControllerwsdl#cash_createInvoiceExtended" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="cash_createInvoice2Extended">
+      <soap:operation soapAction="urn:XmlControllerwsdl#cash_createInvoice2Extended" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="cash_createInvoiceByService">
+      <soap:operation soapAction="urn:XmlControllerwsdl#cash_createInvoiceByService" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="cash_createInvoiceWithCurrency">
+      <soap:operation soapAction="urn:XmlControllerwsdl#cash_createInvoiceWithCurrency" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="createOperation">
+      <soap:operation soapAction="urn:XmlControllerwsdl#createOperation" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="createOperationFake">
+      <soap:operation soapAction="urn:XmlControllerwsdl#createOperationFake" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="payConfirm">
+      <soap:operation soapAction="urn:XmlControllerwsdl#payConfirm" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="payTransferConfirm">
+      <soap:operation soapAction="urn:XmlControllerwsdl#payTransferConfirm" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="core_requestConfirmationCode">
+      <soap:operation soapAction="urn:XmlControllerwsdl#core_requestConfirmationCode" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="core_beelineSMSNotification">
+      <soap:operation soapAction="urn:XmlControllerwsdl#core_beelineSMSNotification" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="core_kcellSMSNotification">
+      <soap:operation soapAction="urn:XmlControllerwsdl#core_kcellSMSNotification" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="core_tele2SMSNotification">
+      <soap:operation soapAction="urn:XmlControllerwsdl#core_tele2SMSNotification" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="cash_getReceiptForTransaction">
+      <soap:operation soapAction="urn:XmlControllerwsdl#cash_getReceiptForTransaction" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="core_getMobileOperator">
+      <soap:operation soapAction="urn:XmlControllerwsdl#core_getMobileOperator" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="cash_getOperationDataExtended">
+      <soap:operation soapAction="urn:XmlControllerwsdl#cash_getOperationDataExtended" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="cash_getOperationDataByExtId">
+      <soap:operation soapAction="urn:XmlControllerwsdl#cash_getOperationDataByExtId" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="cash_thirdPartyApproveOperation">
+      <soap:operation soapAction="urn:XmlControllerwsdl#cash_thirdPartyApproveOperation" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="cash_getUserLanguage">
+      <soap:operation soapAction="urn:XmlControllerwsdl#cash_getUserLanguage" style="rpc" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:XmlControllerwsdl" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="XmlControllerService">
+    <wsdl:port name="XmlControllerPort" binding="tns:XmlControllerBinding">
+      <soap:address location="https://www.wooppay.com/api/wsdl?ws=1" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

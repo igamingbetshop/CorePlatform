@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+https://go.microsoft.com/fwlink/?LinkID=208121. 
+-->
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <_PublishTargetUrl>C:\inetpub\wwwroot\NGGP\MasterCacheWebApiCore</_PublishTargetUrl>
+    <History>True|2022-06-17T17:54:58.9951663Z;True|2022-06-17T18:42:36.4270333+04:00;True|2022-06-17T17:59:19.8987721+04:00;True|2022-04-09T19:17:58.3153821+04:00;True|2022-04-09T19:13:44.7336426+04:00;True|2022-04-09T19:05:23.7340253+04:00;True|2022-04-09T19:04:57.4336696+04:00;True|2022-04-09T14:59:34.1100475+04:00;True|2022-04-09T14:38:27.0646740+04:00;True|2022-04-09T14:38:11.0175296+04:00;True|2022-04-09T14:33:48.6591998+04:00;True|2022-04-08T23:07:55.3283780+04:00;True|2022-04-08T23:07:25.3279616+04:00;True|2022-04-08T22:56:16.8630646+04:00;True|2022-01-15T16:56:50.0352390+04:00;</History>
+  </PropertyGroup>
+</Project>

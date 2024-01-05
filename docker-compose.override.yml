@@ -1,0 +1,11 @@
+version: '3.4'
+
+services:
+  iqsoft.cp.adminwebapi:
+    ports:
+      - "80"
+
+  iqsoft.cp.agentwebapi:
+    ports:
+      - "80"
+

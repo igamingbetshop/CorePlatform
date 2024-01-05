@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="6d41aa81ac6b4e7d96e8719bbc119db6" Name="Diagram1" ZoomLevel="49">
+        <EntityTypeShape EntityType="DataWarehouseModel.Bet" Width="1.5" PointX="10.5" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="DataWarehouseModel.Document" Width="1.5" PointX="2.5" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="DataWarehouseModel.Setting" Width="1.5" PointX="4.5" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="DataWarehouseModel.Client" Width="1.5" PointX="0.5" PointY="0.75" />
+        <EntityTypeShape EntityType="DataWarehouseModel.Product" Width="1.5" PointX="6.5" PointY="0.75" />
+        <EntityTypeShape EntityType="DataWarehouseModel.User" Width="1.5" PointX="8.5" PointY="0.75" />
+        <EntityTypeShape EntityType="DataWarehouseModel.GameProvider" Width="1.5" PointX="12.5" PointY="0.75" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

@@ -1,0 +1,8 @@
+2022-01-07 12:29:50.281 +04:00 [ERR] _Input_{"Url":"http://localhost:42969/1/api/main/LoginClient","PostData":"{\"ClientIdentifier\":\"Suzanna\",\"Password\":\"suzanna\",\"Token\":null,\"DeviceType\":1,\"TerminalId\":null,\"BetShopId\":null,\"Source\":\"PostmanRuntime/7.28.4\",\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":\"\",\"Domain\":\"\"}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: The operation has timed out.
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44
+2022-01-07 12:31:02.056 +04:00 [ERR] _Input_{"Url":"http://localhost:42969/1/api/main/LoginClient","PostData":"{\"ClientIdentifier\":\"Suzanna\",\"Password\":\"suzanna\",\"Token\":null,\"DeviceType\":1,\"TerminalId\":null,\"BetShopId\":null,\"Source\":\"PostmanRuntime/7.28.4\",\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"127.0.0.1\",\"CountryCode\":\"\",\"Domain\":\"\"}","RequestMethod":"POST","ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Net.WebException: The operation has timed out.
+   at System.Net.HttpWebRequest.GetResponse()
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in D:\Suzanna Sargsyan\Projects\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 44

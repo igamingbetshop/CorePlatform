@@ -1,0 +1,351 @@
+﻿using IqSoft.CP.BetShopWebApi.Models.Common;
+using IqSoft.CP.Common;
+using IqSoft.CP.Common.Helpers;
+using IqSoft.CP.Common.Models;
+using Newtonsoft.Json;
+using System;
+using System.Configuration;
+using System.Net.Http;
+
+namespace IqSoft.CP.BetShopWebApi.Common
+{
+	public static class PlatformIntegration
+	{
+		private static readonly string PlatformUrl = ConfigurationManager.AppSettings["PlatformBetShopClientGatewayUrl"];
+		private const string PlatformRequestUrlFormat = "{0}/{1}?TimeZone={2}&LanguageId={3}&PartnerId={4}";
+
+		private static T SendRequestToPlatform<T>(PlatformRequestBase input, string method) where T : ClientRequestResponseBase
+		{
+			var url = string.Format(PlatformRequestUrlFormat, PlatformUrl, method, input.TimeZone, input.LanguageId, input.PartnerId);
+			var requestInput = new HttpRequestInput
+			{
+				Url = url,
+				ContentType = Constants.HttpContentTypes.ApplicationJson,
+				RequestMethod = HttpMethod.Post,
+				PostData = JsonConvert.SerializeObject(input)
+			};
+			var responseStr = CommonFunctions.SendHttpRequest(requestInput, out _);
+			var response = JsonConvert.DeserializeObject<T>(responseStr);
+			return response;
+		}
+
+		public static AuthorizationOutput CardReaderAuthorization(AuthorizationInput input)
+		{
+			try
+			{
+				return SendRequestToPlatform<AuthorizationOutput>(input, ClientCallMethods.CardReaderAuthorization);
+			}
+			catch (Exception ex)
+			{
+				return new AuthorizationOutput { ResponseCode = Constants.Errors.GeneralException, Description = ex.Message };
+			}
+		}
+
+		public static AuthorizationOutput Authorization(AuthorizationInput input)
+		{
+			try
+			{
+				return SendRequestToPlatform<AuthorizationOutput>(input, ClientCallMethods.Authorization);
+			}
+			catch (Exception ex)
+			{
+				return new AuthorizationOutput { ResponseCode = Constants.Errors.GeneralException, Description = ex.Message };
+			}
+		}
+
+		public static AuthorizationOutput GetCashierSessionByToken(GetCashierSessionInput input)
+		{
+			try
+			{
+				return SendRequestToPlatform<AuthorizationOutput>(input, ClientCallMethods.GetCashierSessionByToken);
+			}
+			catch (Exception ex)
+			{
+				return new AuthorizationOutput { ResponseCode = Constants.Errors.GeneralException, Description = ex.Message };
+			}
+		}
+
+		public static AuthorizationOutput GetCashierSessionByProductId(GetCashierSessionInput input)
+		{
+			try
+			{
+				return SendRequestToPlatform<AuthorizationOutput>(input, ClientCallMethods.GetCashierSessionByProductId);
+			}
+			catch (Exception ex)
+			{
+				return new AuthorizationOutput { ResponseCode = Constants.Errors.GeneralException, Description = ex.Message };
+			}
+		}
+
+		public static GetClientOutput GetClient(GetClientInput input)
+		{
+			try
+			{
+				return SendRequestToPlatform<GetClientOutput>(input, ClientCallMethods.GetClient);
+			}
+			catch (Exception ex)
+			{
+				return new GetClientOutput { ResponseCode = Constants.Errors.GeneralException, Description = ex.Message };
+			}
+		}
+
+		public static ApiClientOutput RegisterClient(ClientModel input)
+		{
+			try
+			{
+				return SendRequestToPlatform<ApiClientOutput>(input, ClientCallMethods.RegisterClient);
+			}
+			catch (Exception ex)
+			{
+				return new ApiClientOutput { ResponseCode = Constants.Errors.GeneralException, Description = ex.Message };
+			}
+		}
+
+		public static GetProductSessionOutput GetProductSession(GetProductSessionInput input)
+		{
+			try
+			{
+				return SendRequestToPlatform<GetProductSessionOutput>(input, ClientCallMethods.GetProductSession);
+			}
+			catch (Exception ex)
+			{
+				return new GetProductSessionOutput { ResponseCode = Constants.Errors.GeneralException, Description = ex.Message };
+			}
+		}
+
+		public static ClientRequestResponseBase DepositToInternetClient(DepositToInternetClientInput input)
+		{
+			try
+			{
+				return SendRequestToPlatform<DepositToInternetClientOutput>(input, ClientCallMethods.DepositToInternetClient);
+			}
+			catch (Exception ex)
+			{
+				return new DepositToInternetClientOutput { ResponseCode = Constants.Errors.GeneralException, Description = ex.Message };
+			}
+		}
+
+		public static ClientRequestResponseBase RollbackDepositToInternetClient(RollbackDepositToInternetClient input)
+		{
+			try
+			{
+				return SendRequestToPlatform<ClientRequestResponseBase>(input, ClientCallMethods.RollbackDepositToInternetClient);
+			}
+			catch (Exception ex)
+			{
+				return new ClientRequestResponseBase { ResponseCode = Constants.Errors.GeneralException, Description = ex.Message };
+			}
+		}
+
+		public static ClientRequestResponseBase GetPaymentRequests(GetPaymentRequestsInput input)
+		{
+			try
+			{
+				return SendRequestToPlatform<GetPaymentRequestsOutput>(input, ClientCallMethods.GetPaymentRequests);
+			}
+			catch (Exception ex)
+			{
+				return new GetPaymentRequestsOutput { ResponseCode = Constants.Errors.GeneralException, Description = ex.Message };
+			}
+		}
+
+		public static ClientRequestResponseBase PayPaymentRequest(PayPaymentRequestInput input)
+		{
+			try
+			{
+				return SendRequestToPlatform<PayPaymentRequestOutput>(input, ClientCallMethods.PayPaymentRequest);
+			}
+			catch (Exception ex)
+			{
+				return new FinOperationResponse { ResponseCode = Constants.Errors.GeneralException, Description = ex.Message };
+			}
+		}
+
+		public static ClientRequestResponseBase PayWin(PayWinInput input)
+		{
+			try
+			{
+				return SendRequestToPlatform<FinOperationResponse>(input, ClientCallMethods.PayWin);
+			}
+			catch (Exception ex)
+			{
+				return new FinOperationResponse { ResponseCode = Constants.Errors.GeneralException, Description = ex.Message };
+			}
+		}
+
+		public static GetBetShopBetsOutput GetBetByBarcode(GetBetByBarcodeInput input)
+		{
+			try
+			{
+				return SendRequestToPlatform<GetBetShopBetsOutput>(input, ClientCallMethods.GetBetByBarcode);
+			}
+			catch (Exception ex)
+			{
+				return new GetBetShopBetsOutput { ResponseCode = Constants.Errors.GeneralException, Description = ex.Message };
+			}
+		}
+
+		public static ClientRequestResponseBase GetCashDeskInfo(GetCashDeskInfoInput input)
+		{
+			try
+			{
+				return SendRequestToPlatform<GetCashDeskInfoOutput>(input, ClientCallMethods.GetCashDeskInfo);
+			}
+			catch (Exception ex)
+			{
+				return new GetCashDeskInfoOutput { ResponseCode = Constants.Errors.GeneralException, Description = ex.Message };
+			}
+		}
+
+		public static ClientRequestResponseBase GetShiftReport(GetShiftReportInput input)
+		{
+			try
+			{
+				return SendRequestToPlatform<GetShiftReportOutput>(input, ClientCallMethods.GetShiftReport);
+			}
+			catch (Exception ex)
+			{
+				return new GetShiftReportOutput { ResponseCode = Constants.Errors.GeneralException, Description = ex.Message };
+			}
+		}
+
+		public static ClientRequestResponseBase CloseShift(CloseShiftInput input)
+		{
+			try
+			{
+				var resp = SendRequestToPlatform<CloseShiftOutput>(input, ClientCallMethods.CloseShift);
+				return resp;
+			}
+			catch (Exception ex)
+			{
+				return new CloseShiftOutput { ResponseCode = Constants.Errors.GeneralException, Description = ex.Message };
+			}
+		}
+
+		public static ClientRequestResponseBase LogoutUser(CloseSessionInput input)
+		{
+			try
+			{
+				return SendRequestToPlatform<ClientRequestResponseBase>(input, ClientCallMethods.CloseSession);
+			}
+			catch (Exception ex)
+			{
+				return new ClientRequestResponseBase { ResponseCode = Constants.Errors.GeneralException, Description = ex.Message };
+			}
+		}
+		
+		public static ClientRequestResponseBase ChangeCashierPassword(ChangePasswordInput input)
+		{
+			try
+			{
+				return SendRequestToPlatform<ClientRequestResponseBase>(input, ClientCallMethods.ChangeCashierPassword);
+			}
+			catch (Exception ex)
+			{
+				return new ClientRequestResponseBase { ResponseCode = Constants.Errors.GeneralException, Description = ex.Message };
+			}
+		}
+
+
+		public static ClientRequestResponseBase GetBetShopBets(GetBetShopBetsInput input)
+		{
+			try
+			{
+				var resp = SendRequestToPlatform<GetBetShopBetsOutput>(input, ClientCallMethods.GetBetShopBets);
+				foreach (var b in resp.Bets)
+				{
+					b.Barcode = null;
+				}
+				return resp;
+			}
+			catch (Exception ex)
+			{
+				return new GetBetShopBetsOutput { ResponseCode = Constants.Errors.GeneralException, Description = ex.Message };
+			}
+		}
+
+		public static ClientRequestResponseBase CreateDebitCorrectionOnCashDesk(CashDeskCorrectionInput input)
+		{
+			try
+			{
+				return SendRequestToPlatform<ClientRequestResponseBase>(input, ClientCallMethods.CreateDebitCorrectionOnCashDesk);
+			}
+			catch (Exception ex)
+			{
+				return new ClientRequestResponseBase { ResponseCode = Constants.Errors.GeneralException, Description = ex.Message };
+			}
+		}
+
+		public static ClientRequestResponseBase CreateCreditCorrectionOnCashDesk(CashDeskCorrectionInput input)
+		{
+			try
+			{
+				return SendRequestToPlatform<ClientRequestResponseBase>(input, ClientCallMethods.CreateCreditCorrectionOnCashDesk);
+			}
+			catch (Exception ex)
+			{
+				return new ClientRequestResponseBase { ResponseCode = Constants.Errors.GeneralException, Description = ex.Message };
+			}
+		}
+
+		public static ClientRequestResponseBase GetCashDeskOperations(GetCashDeskOperationsInput input)
+		{
+			try
+			{
+				return SendRequestToPlatform<GetCashDeskOperationsOutput>(input, ClientCallMethods.GetCashDeskOperations);
+			}
+			catch (Exception ex)
+			{
+				return new GetCashDeskOperationsOutput { ResponseCode = Constants.Errors.GeneralException, Description = ex.Message };
+			}
+		}
+
+		public static GetCashDesksBalanceOutput GetCashDesksBalance(GetCashDeskBalanceIntput input)
+		{
+			try
+			{
+				return SendRequestToPlatform<GetCashDesksBalanceOutput>(input, ClientCallMethods.GetCashDesksBalancesByDate);
+			}
+			catch (Exception ex)
+			{
+				return new GetCashDesksBalanceOutput { ResponseCode = Constants.Errors.GeneralException, Description = ex.Message };
+			}
+		}
+
+		public static GetCashDeskCurrentBalanceOutput GetCashDeskCurrentBalance(GetCashDeskCurrentBalanceIntput input)
+		{
+			try
+			{
+				return SendRequestToPlatform<GetCashDeskCurrentBalanceOutput>(input, ClientCallMethods.GetCashDeskCurrentBalance);
+			}
+			catch (Exception ex)
+			{
+				return new GetCashDeskCurrentBalanceOutput { ResponseCode = Constants.Errors.GeneralException, Description = ex.Message };
+			}
+		}
+
+		public static GetBetShopOperationsOutput GetBetShopOperations(GetOperationsInput input)
+		{
+			try
+			{
+				return SendRequestToPlatform<GetBetShopOperationsOutput>(input, ClientCallMethods.GetBetShopOperations);
+			}
+			catch (Exception ex)
+			{
+				return new GetBetShopOperationsOutput { ResponseCode = Constants.Errors.GeneralException, Description = ex.Message };
+			}
+		}
+
+		public static GetBetByDocumentIdOutput GetBetByDocumentId(GetBetByDocumentIdInput input)
+		{
+			try
+			{
+				return SendRequestToPlatform<GetBetByDocumentIdOutput>(input, ClientCallMethods.GetBetByDocumentId);
+			}
+			catch (Exception ex)
+			{
+				return new GetBetByDocumentIdOutput { ResponseCode = Constants.Errors.GeneralException, Description = ex.Message };
+			}
+		}
+	}
+}

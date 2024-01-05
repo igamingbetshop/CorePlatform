@@ -1,0 +1,15 @@
+version: '3.4'
+
+services:
+  iqsoft.cp.adminwebapi:
+    image: ${DOCKER_REGISTRY-}iqsoftcpadminwebapi
+    build:
+      context: .\IqSoft.CP.AdminWebApi
+      dockerfile: Dockerfile
+
+  iqsoft.cp.agentwebapi:
+    image: ${DOCKER_REGISTRY-}iqsoftcpagentwebapi
+    build:
+      context: .\IqSoft.CP.AgentWebApi
+      dockerfile: Dockerfile
+

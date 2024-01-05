@@ -1,0 +1,524 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:tm="http://microsoft.com/wsdl/mime/textMatching/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:tns="http://payout.sdapay.net/" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:s="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" targetNamespace="http://payout.sdapay.net/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
+    <s:schema elementFormDefault="qualified" targetNamespace="http://payout.sdapay.net/">
+      <s:element name="int" type="s:int" />
+      <s:element name="string" nillable="true" type="s:string" />
+    </s:schema>
+  </wsdl:types>
+  <wsdl:message name="GetFundSoapIn">
+    <wsdl:part name="LoginAccount" type="s:string" />
+    <wsdl:part name="GetFundInfo" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="GetFundSoapOut">
+    <wsdl:part name="GetFundResult" type="s:int" />
+  </wsdl:message>
+  <wsdl:message name="GetFundMacSoapIn">
+    <wsdl:part name="LoginAccount" type="s:string" />
+    <wsdl:part name="GetFundInfo" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="GetFundMacSoapOut">
+    <wsdl:part name="GetFundMacResult" type="s:int" />
+  </wsdl:message>
+  <wsdl:message name="ExitTransferInfomationModelSoapIn">
+    <wsdl:part name="LoginAccount" type="s:string" />
+    <wsdl:part name="Id" type="s:int" />
+  </wsdl:message>
+  <wsdl:message name="ExitTransferInfomationModelSoapOut">
+    <wsdl:part name="ExitTransferInfomationModelResult" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="ExitTransferInfomationModelSerialNumberSoapIn">
+    <wsdl:part name="LoginAccount" type="s:string" />
+    <wsdl:part name="SerialNumber" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="ExitTransferInfomationModelSerialNumberSoapOut">
+    <wsdl:part name="ExitTransferInfomationModelSerialNumberResult" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="ExitTransferInfomationModelMacSoapIn">
+    <wsdl:part name="LoginAccount" type="s:string" />
+    <wsdl:part name="Id" type="s:int" />
+  </wsdl:message>
+  <wsdl:message name="ExitTransferInfomationModelMacSoapOut">
+    <wsdl:part name="ExitTransferInfomationModelMacResult" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="ExitTransferInfomationModelSerialNumberMacSoapIn">
+    <wsdl:part name="LoginAccount" type="s:string" />
+    <wsdl:part name="SerialNumber" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="ExitTransferInfomationModelSerialNumberMacSoapOut">
+    <wsdl:part name="ExitTransferInfomationModelSerialNumberMacResult" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="GetBalancesSoapIn">
+    <wsdl:part name="CardNum" type="s:string" />
+    <wsdl:part name="LoginName" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="GetBalancesSoapOut">
+    <wsdl:part name="GetBalancesResult" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="GetFundHttpGetIn">
+    <wsdl:part name="LoginAccount" type="s:string" />
+    <wsdl:part name="GetFundInfo" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="GetFundHttpGetOut">
+    <wsdl:part name="Body" element="tns:int" />
+  </wsdl:message>
+  <wsdl:message name="GetFundMacHttpGetIn">
+    <wsdl:part name="LoginAccount" type="s:string" />
+    <wsdl:part name="GetFundInfo" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="GetFundMacHttpGetOut">
+    <wsdl:part name="Body" element="tns:int" />
+  </wsdl:message>
+  <wsdl:message name="ExitTransferInfomationModelHttpGetIn">
+    <wsdl:part name="LoginAccount" type="s:string" />
+    <wsdl:part name="Id" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="ExitTransferInfomationModelHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="ExitTransferInfomationModelSerialNumberHttpGetIn">
+    <wsdl:part name="LoginAccount" type="s:string" />
+    <wsdl:part name="SerialNumber" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="ExitTransferInfomationModelSerialNumberHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="ExitTransferInfomationModelMacHttpGetIn">
+    <wsdl:part name="LoginAccount" type="s:string" />
+    <wsdl:part name="Id" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="ExitTransferInfomationModelMacHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="ExitTransferInfomationModelSerialNumberMacHttpGetIn">
+    <wsdl:part name="LoginAccount" type="s:string" />
+    <wsdl:part name="SerialNumber" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="ExitTransferInfomationModelSerialNumberMacHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="GetBalancesHttpGetIn">
+    <wsdl:part name="CardNum" type="s:string" />
+    <wsdl:part name="LoginName" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="GetBalancesHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="GetFundHttpPostIn">
+    <wsdl:part name="LoginAccount" type="s:string" />
+    <wsdl:part name="GetFundInfo" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="GetFundHttpPostOut">
+    <wsdl:part name="Body" element="tns:int" />
+  </wsdl:message>
+  <wsdl:message name="GetFundMacHttpPostIn">
+    <wsdl:part name="LoginAccount" type="s:string" />
+    <wsdl:part name="GetFundInfo" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="GetFundMacHttpPostOut">
+    <wsdl:part name="Body" element="tns:int" />
+  </wsdl:message>
+  <wsdl:message name="ExitTransferInfomationModelHttpPostIn">
+    <wsdl:part name="LoginAccount" type="s:string" />
+    <wsdl:part name="Id" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="ExitTransferInfomationModelHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="ExitTransferInfomationModelSerialNumberHttpPostIn">
+    <wsdl:part name="LoginAccount" type="s:string" />
+    <wsdl:part name="SerialNumber" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="ExitTransferInfomationModelSerialNumberHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="ExitTransferInfomationModelMacHttpPostIn">
+    <wsdl:part name="LoginAccount" type="s:string" />
+    <wsdl:part name="Id" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="ExitTransferInfomationModelMacHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="ExitTransferInfomationModelSerialNumberMacHttpPostIn">
+    <wsdl:part name="LoginAccount" type="s:string" />
+    <wsdl:part name="SerialNumber" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="ExitTransferInfomationModelSerialNumberMacHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="GetBalancesHttpPostIn">
+    <wsdl:part name="CardNum" type="s:string" />
+    <wsdl:part name="LoginName" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="GetBalancesHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:portType name="CustomerSoap">
+    <wsdl:operation name="GetFund">
+      <wsdl:input message="tns:GetFundSoapIn" />
+      <wsdl:output message="tns:GetFundSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetFundMac">
+      <wsdl:input message="tns:GetFundMacSoapIn" />
+      <wsdl:output message="tns:GetFundMacSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="ExitTransferInfomationModel">
+      <wsdl:input message="tns:ExitTransferInfomationModelSoapIn" />
+      <wsdl:output message="tns:ExitTransferInfomationModelSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="ExitTransferInfomationModelSerialNumber">
+      <wsdl:input message="tns:ExitTransferInfomationModelSerialNumberSoapIn" />
+      <wsdl:output message="tns:ExitTransferInfomationModelSerialNumberSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="ExitTransferInfomationModelMac">
+      <wsdl:input message="tns:ExitTransferInfomationModelMacSoapIn" />
+      <wsdl:output message="tns:ExitTransferInfomationModelMacSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="ExitTransferInfomationModelSerialNumberMac">
+      <wsdl:input message="tns:ExitTransferInfomationModelSerialNumberMacSoapIn" />
+      <wsdl:output message="tns:ExitTransferInfomationModelSerialNumberMacSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetBalances">
+      <wsdl:input message="tns:GetBalancesSoapIn" />
+      <wsdl:output message="tns:GetBalancesSoapOut" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:portType name="CustomerHttpGet">
+    <wsdl:operation name="GetFund">
+      <wsdl:input message="tns:GetFundHttpGetIn" />
+      <wsdl:output message="tns:GetFundHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetFundMac">
+      <wsdl:input message="tns:GetFundMacHttpGetIn" />
+      <wsdl:output message="tns:GetFundMacHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="ExitTransferInfomationModel">
+      <wsdl:input message="tns:ExitTransferInfomationModelHttpGetIn" />
+      <wsdl:output message="tns:ExitTransferInfomationModelHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="ExitTransferInfomationModelSerialNumber">
+      <wsdl:input message="tns:ExitTransferInfomationModelSerialNumberHttpGetIn" />
+      <wsdl:output message="tns:ExitTransferInfomationModelSerialNumberHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="ExitTransferInfomationModelMac">
+      <wsdl:input message="tns:ExitTransferInfomationModelMacHttpGetIn" />
+      <wsdl:output message="tns:ExitTransferInfomationModelMacHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="ExitTransferInfomationModelSerialNumberMac">
+      <wsdl:input message="tns:ExitTransferInfomationModelSerialNumberMacHttpGetIn" />
+      <wsdl:output message="tns:ExitTransferInfomationModelSerialNumberMacHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetBalances">
+      <wsdl:input message="tns:GetBalancesHttpGetIn" />
+      <wsdl:output message="tns:GetBalancesHttpGetOut" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:portType name="CustomerHttpPost">
+    <wsdl:operation name="GetFund">
+      <wsdl:input message="tns:GetFundHttpPostIn" />
+      <wsdl:output message="tns:GetFundHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetFundMac">
+      <wsdl:input message="tns:GetFundMacHttpPostIn" />
+      <wsdl:output message="tns:GetFundMacHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="ExitTransferInfomationModel">
+      <wsdl:input message="tns:ExitTransferInfomationModelHttpPostIn" />
+      <wsdl:output message="tns:ExitTransferInfomationModelHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="ExitTransferInfomationModelSerialNumber">
+      <wsdl:input message="tns:ExitTransferInfomationModelSerialNumberHttpPostIn" />
+      <wsdl:output message="tns:ExitTransferInfomationModelSerialNumberHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="ExitTransferInfomationModelMac">
+      <wsdl:input message="tns:ExitTransferInfomationModelMacHttpPostIn" />
+      <wsdl:output message="tns:ExitTransferInfomationModelMacHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="ExitTransferInfomationModelSerialNumberMac">
+      <wsdl:input message="tns:ExitTransferInfomationModelSerialNumberMacHttpPostIn" />
+      <wsdl:output message="tns:ExitTransferInfomationModelSerialNumberMacHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetBalances">
+      <wsdl:input message="tns:GetBalancesHttpPostIn" />
+      <wsdl:output message="tns:GetBalancesHttpPostOut" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="CustomerSoap" type="tns:CustomerSoap">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="GetFund">
+      <soap:operation soapAction="http://payout.sdapay.net/ApplyForABank.asmx/GetFund" style="rpc" />
+      <wsdl:input>
+        <soap:body use="literal" namespace="http://payout.sdapay.net/ApplyForABank.asmx/T" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" namespace="http://payout.sdapay.net/ApplyForABank.asmx/T" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetFundMac">
+      <soap:operation soapAction="http://payout.sdapay.net/ApplyForABank.asmx/GetFundMac" style="rpc" />
+      <wsdl:input>
+        <soap:body use="literal" namespace="http://payout.sdapay.net/ApplyForABank.asmx/T" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" namespace="http://payout.sdapay.net/ApplyForABank.asmx/T" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ExitTransferInfomationModel">
+      <soap:operation soapAction="http://payout.sdapay.net/ApplyForABank.asmx/ExitTransferInfomationModelSerialNumber" style="rpc" />
+      <wsdl:input>
+        <soap:body use="literal" namespace="http://payout.sdapay.net/ApplyForABank.asmx/T" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" namespace="http://payout.sdapay.net/ApplyForABank.asmx/T" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ExitTransferInfomationModelSerialNumber">
+      <soap:operation soapAction="http://payout.sdapay.net/ApplyForABank.asmx/ExitTransferInfomationModel" style="rpc" />
+      <wsdl:input>
+        <soap:body use="literal" namespace="http://payout.sdapay.net/ApplyForABank.asmx/T" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" namespace="http://payout.sdapay.net/ApplyForABank.asmx/T" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ExitTransferInfomationModelMac">
+      <soap:operation soapAction="http://payout.sdapay.net/ApplyForABank.asmx/ExitTransferInfomationModelMac" style="rpc" />
+      <wsdl:input>
+        <soap:body use="literal" namespace="http://payout.sdapay.net/ApplyForABank.asmx/T" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" namespace="http://payout.sdapay.net/ApplyForABank.asmx/T" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ExitTransferInfomationModelSerialNumberMac">
+      <soap:operation soapAction="http://payout.sdapay.net/ApplyForABank.asmx/ExitTransferInfomationModelSerialNumberMac" style="rpc" />
+      <wsdl:input>
+        <soap:body use="literal" namespace="http://payout.sdapay.net/ApplyForABank.asmx/T" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" namespace="http://payout.sdapay.net/ApplyForABank.asmx/T" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetBalances">
+      <soap:operation soapAction="http://payout.sdapay.net/ApplyForABank.asmx/GetBalances" style="rpc" />
+      <wsdl:input>
+        <soap:body use="literal" namespace="http://payout.sdapay.net/ApplyForABank.asmx/T" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" namespace="http://payout.sdapay.net/ApplyForABank.asmx/T" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="CustomerSoap12" type="tns:CustomerSoap">
+    <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="GetFund">
+      <soap12:operation soapAction="http://payout.sdapay.net/ApplyForABank.asmx/GetFund" style="rpc" />
+      <wsdl:input>
+        <soap12:body use="literal" namespace="http://payout.sdapay.net/ApplyForABank.asmx/T" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" namespace="http://payout.sdapay.net/ApplyForABank.asmx/T" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetFundMac">
+      <soap12:operation soapAction="http://payout.sdapay.net/ApplyForABank.asmx/GetFundMac" style="rpc" />
+      <wsdl:input>
+        <soap12:body use="literal" namespace="http://payout.sdapay.net/ApplyForABank.asmx/T" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" namespace="http://payout.sdapay.net/ApplyForABank.asmx/T" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ExitTransferInfomationModel">
+      <soap12:operation soapAction="http://payout.sdapay.net/ApplyForABank.asmx/ExitTransferInfomationModelSerialNumber" style="rpc" />
+      <wsdl:input>
+        <soap12:body use="literal" namespace="http://payout.sdapay.net/ApplyForABank.asmx/T" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" namespace="http://payout.sdapay.net/ApplyForABank.asmx/T" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ExitTransferInfomationModelSerialNumber">
+      <soap12:operation soapAction="http://payout.sdapay.net/ApplyForABank.asmx/ExitTransferInfomationModel" style="rpc" />
+      <wsdl:input>
+        <soap12:body use="literal" namespace="http://payout.sdapay.net/ApplyForABank.asmx/T" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" namespace="http://payout.sdapay.net/ApplyForABank.asmx/T" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ExitTransferInfomationModelMac">
+      <soap12:operation soapAction="http://payout.sdapay.net/ApplyForABank.asmx/ExitTransferInfomationModelMac" style="rpc" />
+      <wsdl:input>
+        <soap12:body use="literal" namespace="http://payout.sdapay.net/ApplyForABank.asmx/T" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" namespace="http://payout.sdapay.net/ApplyForABank.asmx/T" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ExitTransferInfomationModelSerialNumberMac">
+      <soap12:operation soapAction="http://payout.sdapay.net/ApplyForABank.asmx/ExitTransferInfomationModelSerialNumberMac" style="rpc" />
+      <wsdl:input>
+        <soap12:body use="literal" namespace="http://payout.sdapay.net/ApplyForABank.asmx/T" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" namespace="http://payout.sdapay.net/ApplyForABank.asmx/T" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetBalances">
+      <soap12:operation soapAction="http://payout.sdapay.net/ApplyForABank.asmx/GetBalances" style="rpc" />
+      <wsdl:input>
+        <soap12:body use="literal" namespace="http://payout.sdapay.net/ApplyForABank.asmx/T" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" namespace="http://payout.sdapay.net/ApplyForABank.asmx/T" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="CustomerHttpGet" type="tns:CustomerHttpGet">
+    <http:binding verb="GET" />
+    <wsdl:operation name="GetFund">
+      <http:operation location="/GetFund" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetFundMac">
+      <http:operation location="/GetFundMac" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ExitTransferInfomationModel">
+      <http:operation location="/ExitTransferInfomationModel" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ExitTransferInfomationModelSerialNumber">
+      <http:operation location="/ExitTransferInfomationModelSerialNumber" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ExitTransferInfomationModelMac">
+      <http:operation location="/ExitTransferInfomationModelMac" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ExitTransferInfomationModelSerialNumberMac">
+      <http:operation location="/ExitTransferInfomationModelSerialNumberMac" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetBalances">
+      <http:operation location="/GetBalances" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="CustomerHttpPost" type="tns:CustomerHttpPost">
+    <http:binding verb="POST" />
+    <wsdl:operation name="GetFund">
+      <http:operation location="/GetFund" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetFundMac">
+      <http:operation location="/GetFundMac" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ExitTransferInfomationModel">
+      <http:operation location="/ExitTransferInfomationModel" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ExitTransferInfomationModelSerialNumber">
+      <http:operation location="/ExitTransferInfomationModelSerialNumber" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ExitTransferInfomationModelMac">
+      <http:operation location="/ExitTransferInfomationModelMac" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ExitTransferInfomationModelSerialNumberMac">
+      <http:operation location="/ExitTransferInfomationModelSerialNumberMac" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetBalances">
+      <http:operation location="/GetBalances" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="Customer">
+    <wsdl:port name="CustomerSoap" binding="tns:CustomerSoap">
+      <soap:address location="https://wd.sdsystem.hk/webapi/customer.asmx" />
+    </wsdl:port>
+    <wsdl:port name="CustomerSoap12" binding="tns:CustomerSoap12">
+      <soap12:address location="https://wd.sdsystem.hk/webapi/customer.asmx" />
+    </wsdl:port>
+    <wsdl:port name="CustomerHttpGet" binding="tns:CustomerHttpGet">
+      <http:address location="https://wd.sdsystem.hk/webapi/customer.asmx" />
+    </wsdl:port>
+    <wsdl:port name="CustomerHttpPost" binding="tns:CustomerHttpPost">
+      <http:address location="https://wd.sdsystem.hk/webapi/customer.asmx" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

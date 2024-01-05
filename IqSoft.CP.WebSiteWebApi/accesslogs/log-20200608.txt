@@ -1,0 +1,2 @@
+2020-06-08 13:30:40.966 +04:00 [INF] {"BrowserWidth":0,"BrowserHeight":0,"ScreenWidth":0,"ScreenHeight":0}
+2020-06-08 13:31:42.674 +04:00 [INF] {"BrowserWidth":0,"BrowserHeight":0,"ScreenWidth":0,"ScreenHeight":0}

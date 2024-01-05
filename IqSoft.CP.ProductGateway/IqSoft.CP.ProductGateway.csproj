@@ -1,0 +1,862 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\EntityFramework.6.4.4\build\EntityFramework.props" Condition="Exists('..\packages\EntityFramework.6.4.4\build\EntityFramework.props')" />
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>
+    </ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{78D06299-83C1-4567-BAE2-A0D6EBDB0641}</ProjectGuid>
+    <ProjectTypeGuids>{349c5851-65df-11da-9384-00065b846f21};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>IqSoft.CP.ProductGateway</RootNamespace>
+    <AssemblyName>IqSoft.CP.ProductGateway</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <UseIISExpress>true</UseIISExpress>
+    <IISExpressSSLPort />
+    <IISExpressAnonymousAuthentication />
+    <IISExpressWindowsAuthentication />
+    <IISExpressUseClassicPipelineMode />
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
+    <UseGlobalApplicationHostFile />
+    <WcfConfigValidationEnabled>True</WcfConfigValidationEnabled>
+    <Use64BitIISExpress />
+    <TargetFrameworkProfile />
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.6.4.4\lib\net45\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.6.4.4\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+    </Reference>
+    <Reference Include="Enyim.Caching, Version=2.16.0.0, Culture=neutral, PublicKeyToken=cec98615db04012e, processorArchitecture=MSIL">
+      <HintPath>..\packages\EnyimMemcached.2.16.0\lib\net35\Enyim.Caching.dll</HintPath>
+    </Reference>
+    <Reference Include="log4net, Version=2.0.14.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>..\packages\log4net.2.0.14\lib\net45\log4net.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNet.SignalR.Client, Version=2.4.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.SignalR.Client.2.4.3\lib\net45\Microsoft.AspNet.SignalR.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNet.SignalR.Core, Version=2.4.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.SignalR.Core.2.4.3\lib\net45\Microsoft.AspNet.SignalR.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNetCore.Authentication.Abstractions, Version=2.2.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNetCore.Authentication.Abstractions.2.2.0\lib\netstandard2.0\Microsoft.AspNetCore.Authentication.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNetCore.Authentication.Core, Version=2.2.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNetCore.Authentication.Core.2.2.0\lib\netstandard2.0\Microsoft.AspNetCore.Authentication.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNetCore.Authorization, Version=6.0.4.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNetCore.Authorization.6.0.4\lib\net461\Microsoft.AspNetCore.Authorization.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNetCore.Authorization.Policy, Version=2.2.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNetCore.Authorization.Policy.2.2.0\lib\netstandard2.0\Microsoft.AspNetCore.Authorization.Policy.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNetCore.Connections.Abstractions, Version=6.0.4.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNetCore.Connections.Abstractions.6.0.4\lib\net461\Microsoft.AspNetCore.Connections.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNetCore.Hosting.Abstractions, Version=2.2.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNetCore.Hosting.Abstractions.2.2.0\lib\netstandard2.0\Microsoft.AspNetCore.Hosting.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNetCore.Hosting.Server.Abstractions, Version=2.2.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNetCore.Hosting.Server.Abstractions.2.2.0\lib\netstandard2.0\Microsoft.AspNetCore.Hosting.Server.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNetCore.Http, Version=2.2.2.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNetCore.Http.2.2.2\lib\netstandard2.0\Microsoft.AspNetCore.Http.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNetCore.Http.Abstractions, Version=2.2.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNetCore.Http.Abstractions.2.2.0\lib\netstandard2.0\Microsoft.AspNetCore.Http.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNetCore.Http.Connections, Version=1.1.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNetCore.Http.Connections.1.1.0\lib\netstandard2.0\Microsoft.AspNetCore.Http.Connections.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNetCore.Http.Connections.Common, Version=6.0.4.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNetCore.Http.Connections.Common.6.0.4\lib\net461\Microsoft.AspNetCore.Http.Connections.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNetCore.Http.Extensions, Version=2.2.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNetCore.Http.Extensions.2.2.0\lib\netstandard2.0\Microsoft.AspNetCore.Http.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNetCore.Http.Features, Version=5.0.16.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNetCore.Http.Features.5.0.16\lib\net461\Microsoft.AspNetCore.Http.Features.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNetCore.Metadata, Version=6.0.4.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNetCore.Metadata.6.0.4\lib\net461\Microsoft.AspNetCore.Metadata.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNetCore.Mvc.Abstractions, Version=2.2.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNetCore.Mvc.Abstractions.2.2.0\lib\netstandard2.0\Microsoft.AspNetCore.Mvc.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNetCore.Mvc.Core, Version=2.2.5.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNetCore.Mvc.Core.2.2.5\lib\netstandard2.0\Microsoft.AspNetCore.Mvc.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNetCore.ResponseCaching.Abstractions, Version=2.2.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNetCore.ResponseCaching.Abstractions.2.2.0\lib\netstandard2.0\Microsoft.AspNetCore.ResponseCaching.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNetCore.Routing, Version=2.2.2.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNetCore.Routing.2.2.2\lib\netstandard2.0\Microsoft.AspNetCore.Routing.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNetCore.Routing.Abstractions, Version=2.2.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNetCore.Routing.Abstractions.2.2.0\lib\netstandard2.0\Microsoft.AspNetCore.Routing.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNetCore.SignalR.Common, Version=6.0.4.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNetCore.SignalR.Common.6.0.4\lib\net461\Microsoft.AspNetCore.SignalR.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNetCore.SignalR.Protocols.Json, Version=6.0.4.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNetCore.SignalR.Protocols.Json.6.0.4\lib\net461\Microsoft.AspNetCore.SignalR.Protocols.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNetCore.WebSockets, Version=2.2.1.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNetCore.WebSockets.2.2.1\lib\netstandard2.0\Microsoft.AspNetCore.WebSockets.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNetCore.WebUtilities, Version=2.2.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNetCore.WebUtilities.2.2.0\lib\netstandard2.0\Microsoft.AspNetCore.WebUtilities.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=6.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.6.0.0\lib\net461\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.DotNet.PlatformAbstractions, Version=3.1.6.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.DotNet.PlatformAbstractions.3.1.6\lib\net45\Microsoft.DotNet.PlatformAbstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Configuration.Abstractions, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Configuration.Abstractions.6.0.0\lib\net461\Microsoft.Extensions.Configuration.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.DependencyInjection, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.DependencyInjection.6.0.0\lib\net461\Microsoft.Extensions.DependencyInjection.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.DependencyInjection.Abstractions.6.0.0\lib\net461\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.DependencyModel, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.DependencyModel.6.0.0\lib\net461\Microsoft.Extensions.DependencyModel.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Features, Version=6.0.4.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Features.6.0.4\lib\net461\Microsoft.Extensions.Features.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.FileProviders.Abstractions, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.FileProviders.Abstractions.6.0.0\lib\net461\Microsoft.Extensions.FileProviders.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Hosting.Abstractions, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Hosting.Abstractions.6.0.0\lib\net461\Microsoft.Extensions.Hosting.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Logging.Abstractions, Version=6.0.0.1, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Logging.Abstractions.6.0.1\lib\net461\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.ObjectPool, Version=6.0.4.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.ObjectPool.6.0.4\lib\net461\Microsoft.Extensions.ObjectPool.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Options, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Options.6.0.0\lib\net461\Microsoft.Extensions.Options.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Primitives, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Primitives.6.0.0\lib\net461\Microsoft.Extensions.Primitives.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.IdentityModel.Abstractions, Version=6.18.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.IdentityModel.Abstractions.6.18.0\lib\net472\Microsoft.IdentityModel.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.IdentityModel.JsonWebTokens, Version=6.18.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.IdentityModel.JsonWebTokens.6.18.0\lib\net472\Microsoft.IdentityModel.JsonWebTokens.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.IdentityModel.Logging, Version=6.18.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.IdentityModel.Logging.6.18.0\lib\net472\Microsoft.IdentityModel.Logging.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.IdentityModel.Tokens, Version=6.18.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.IdentityModel.Tokens.6.18.0\lib\net472\Microsoft.IdentityModel.Tokens.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Net.Http.Headers, Version=2.2.8.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Net.Http.Headers.2.2.8\lib\netstandard2.0\Microsoft.Net.Http.Headers.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin, Version=4.2.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Owin.4.2.2\lib\net45\Microsoft.Owin.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Cors, Version=4.2.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Owin.Cors.4.2.2\lib\net45\Microsoft.Owin.Cors.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Host.SystemWeb, Version=4.2.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Owin.Host.SystemWeb.4.2.2\lib\net45\Microsoft.Owin.Host.SystemWeb.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Security, Version=4.2.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Owin.Security.4.2.2\lib\net45\Microsoft.Owin.Security.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Web.Infrastructure, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Web.Infrastructure.2.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Owin, Version=1.0.0.0, Culture=neutral, PublicKeyToken=f0ebd12fd5e55cc5, processorArchitecture=MSIL">
+      <HintPath>..\packages\Owin.1.0\lib\net40\Owin.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ComponentModel.Annotations, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.ComponentModel.Annotations.5.0.0\lib\net461\System.ComponentModel.Annotations.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Diagnostics.DiagnosticSource, Version=6.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Diagnostics.DiagnosticSource.6.0.0\lib\net461\System.Diagnostics.DiagnosticSource.dll</HintPath>
+    </Reference>
+    <Reference Include="System.IdentityModel" />
+    <Reference Include="System.IdentityModel.Tokens.Jwt, Version=6.18.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.IdentityModel.Tokens.Jwt.6.18.0\lib\net472\System.IdentityModel.Tokens.Jwt.dll</HintPath>
+    </Reference>
+    <Reference Include="System.IO, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.IO.4.3.0\lib\net462\System.IO.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.IO.Pipelines, Version=6.0.0.2, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.IO.Pipelines.6.0.2\lib\net461\System.IO.Pipelines.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Memory, Version=4.0.1.2, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Memory.4.5.5\lib\net461\System.Memory.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http, Version=4.1.1.3, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Net.Http.4.3.4\lib\net46\System.Net.Http.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Net.Http.Formatting, Version=5.2.8.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebApi.Client.5.2.8\lib\net45\System.Net.Http.Formatting.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http.WebRequest" />
+    <Reference Include="System.Net.Sockets, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Net.Sockets.4.3.0\lib\net46\System.Net.Sockets.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Net.WebSockets.WebSocketProtocol, Version=5.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Net.WebSockets.WebSocketProtocol.5.0.0\lib\net461\System.Net.WebSockets.WebSocketProtocol.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime, Version=4.1.1.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.4.3.1\lib\net462\System.Runtime.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.6.0.0\lib\net461\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.InteropServices.RuntimeInformation, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.InteropServices.RuntimeInformation.4.3.0\lib\net45\System.Runtime.InteropServices.RuntimeInformation.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.Security.Cryptography.Algorithms, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Cryptography.Algorithms.4.3.1\lib\net463\System.Security.Cryptography.Algorithms.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.Encoding, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Cryptography.Encoding.4.3.0\lib\net46\System.Security.Cryptography.Encoding.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.Primitives, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Cryptography.Primitives.4.3.0\lib\net46\System.Security.Cryptography.Primitives.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.X509Certificates, Version=4.1.1.2, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Cryptography.X509Certificates.4.3.2\lib\net461\System.Security.Cryptography.X509Certificates.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Security.Principal.Windows, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Principal.Windows.5.0.0\lib\net461\System.Security.Principal.Windows.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Text.Encodings.Web, Version=6.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Text.Encodings.Web.6.0.0\lib\net461\System.Text.Encodings.Web.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Text.Json, Version=6.0.0.3, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Text.Json.6.0.3\lib\net461\System.Text.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Threading.Channels, Version=6.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Threading.Channels.6.0.0\lib\net461\System.Threading.Channels.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Threading.Tasks.Extensions.4.5.4\lib\net461\System.Threading.Tasks.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Transactions" />
+    <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.ValueTuple.4.5.0\lib\net47\System.ValueTuple.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Cors, Version=5.2.8.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.Cors.5.2.8\lib\net45\System.Web.Cors.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.DynamicData" />
+    <Reference Include="System.Web.Entity" />
+    <Reference Include="System.Web.ApplicationServices" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Web.Http, Version=5.2.8.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebApi.Core.5.2.8\lib\net45\System.Web.Http.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Http.Cors, Version=5.2.8.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebApi.Cors.5.2.8\lib\net45\System.Web.Http.Cors.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Http.WebHost, Version=5.2.8.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebApi.WebHost.5.2.8\lib\net45\System.Web.Http.WebHost.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Web.Services" />
+    <Reference Include="System.EnterpriseServices" />
+    <Reference Include="System.Xml.Linq" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Global.asax" />
+    <None Include="packages.config" />
+    <None Include="Properties\PublishProfiles\FolderProfile.pubxml" />
+    <None Include="Properties\PublishProfiles\ProductGatewayProfile.pubxml" />
+    <None Include="Scripts\jquery-3.6.0.intellisense.js" />
+    <Content Include="Scripts\jquery-3.6.0.js" />
+    <Content Include="Scripts\jquery-3.6.0.min.js" />
+    <Content Include="Scripts\jquery-3.6.0.slim.js" />
+    <Content Include="Scripts\jquery-3.6.0.slim.min.js" />
+    <Content Include="Services\SingularService.svc" />
+    <Content Include="Web.config">
+      <SubType>Designer</SubType>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="Controllers\AleaPlayController.cs" />
+    <Compile Include="Controllers\AWCController.cs" />
+    <Compile Include="Controllers\BetGamesBetShopGamesController.cs" />
+    <Compile Include="Controllers\BetGamesController.cs" />
+    <Compile Include="Controllers\BetSoftController.cs" />
+    <Compile Include="Controllers\BetSolutionsController.cs" />
+    <Compile Include="Controllers\BetsyController.cs" />
+    <Compile Include="Controllers\BGGamesController.cs" />
+    <Compile Include="Controllers\BlueOceanController.cs" />
+    <Compile Include="Controllers\CModuleController.cs" />
+    <Compile Include="Controllers\DragonGamingController.cs" />
+    <Compile Include="Controllers\EliteController.cs" />
+    <Compile Include="Controllers\EndorphinaController.cs" />
+    <Compile Include="Controllers\ESportController.cs" />
+    <Compile Include="Controllers\EvenBetController.cs" />
+    <Compile Include="Controllers\EveryMatrixController.cs" />
+    <Compile Include="Controllers\EvolutionController.cs" />
+    <Compile Include="Controllers\EvoplayController.cs" />
+    <Compile Include="Controllers\EzugiController.cs" />
+    <Compile Include="Controllers\GanapatiController.cs" />
+    <Compile Include="Controllers\GMWController.cs" />
+    <Compile Include="Controllers\GoldenRaceController.cs" />
+    <Compile Include="Controllers\GrooveController.cs" />
+    <Compile Include="Controllers\HabaneroController.cs" />
+    <Compile Include="Controllers\IgromatController.cs" />
+    <Compile Include="Controllers\IgrosoftController.cs" />
+    <Compile Include="Controllers\InBetController.cs" />
+    <Compile Include="Controllers\InternalBetShopGamesController.cs" />
+    <Compile Include="Controllers\IqSoftBetShopGamesController.cs" />
+    <Compile Include="Controllers\InternalController.cs" />
+    <Compile Include="Controllers\InternalSiteGamesController.cs" />
+    <Compile Include="Controllers\IqSoftSiteGamesController.cs" />
+    <Compile Include="Controllers\ISoftBetController.cs" />
+    <Compile Include="Controllers\JackpotGamingController.cs" />
+    <Compile Include="Controllers\KironController.cs" />
+    <Compile Include="Controllers\LuckyGamingController.cs" />
+    <Compile Include="Controllers\MahjongController.cs" />
+    <Compile Include="Controllers\MancalaController.cs" />
+    <Compile Include="Controllers\InsicController.cs" />
+    <Compile Include="Controllers\MicroGamingController.cs" />
+    <Compile Include="Controllers\DriveMediaController.cs" />
+    <Compile Include="Controllers\OutcomeBetController.cs" />
+    <Compile Include="Controllers\PlaynGoController.cs" />
+    <Compile Include="Controllers\PragmaticPlayController.cs" />
+    <Compile Include="Controllers\PropsBuilderController.cs" />
+    <Compile Include="Controllers\RacebookController.cs" />
+    <Compile Include="Controllers\SingularController.cs" />
+    <Compile Include="Controllers\SkyCityController.cs" />
+    <Compile Include="Controllers\SkyWindController.cs" />
+    <Compile Include="Controllers\SmartSoftController.cs" />
+    <Compile Include="Controllers\SoftGamingController.cs" />
+    <Compile Include="Controllers\SoftLandController.cs" />
+    <Compile Include="Controllers\SoftSwissController.cs" />
+    <Compile Include="Controllers\SolidGamingController.cs" />
+    <Compile Include="Controllers\SunCityController.cs" />
+    <Compile Include="Controllers\TimelessTechController.cs" />
+    <Compile Include="Controllers\TomHornController.cs" />
+    <Compile Include="Controllers\TurboGamesController.cs" />
+    <Compile Include="Controllers\TVBetController.cs" />
+    <Compile Include="Controllers\TwoWinPowerController.cs" />
+    <Compile Include="Controllers\VisionaryiGamingController.cs" />
+    <Compile Include="Controllers\GeneralizedController.cs" />
+    <Compile Include="Controllers\YSBController.cs" />
+    <Compile Include="Controllers\ZeusPlayController.cs" />
+    <Compile Include="Global.asax.cs">
+      <DependentUpon>Global.asax</DependentUpon>
+    </Compile>
+    <Compile Include="Helpers\AleaPlayHelpers.cs" />
+    <Compile Include="Helpers\AWCHelpers.cs" />
+    <Compile Include="Helpers\BaseHelpers.cs" />
+    <Compile Include="Helpers\BetGamesHelpers.cs" />
+    <Compile Include="Helpers\BetSoftHelpers.cs" />
+    <Compile Include="Helpers\BetSolutionsHelpers.cs" />
+    <Compile Include="Helpers\BetsyHelpers.cs" />
+    <Compile Include="Helpers\BGGamesHelpers.cs" />
+    <Compile Include="Helpers\CModuleHelpers.cs" />
+    <Compile Include="Helpers\CustomMapper.cs" />
+    <Compile Include="Helpers\DragonGamingHelpers.cs" />
+    <Compile Include="Helpers\DriveMediaHelpers.cs" />
+    <Compile Include="Helpers\EkkoSpinHelpers.cs" />
+    <Compile Include="Helpers\EliteHelpers.cs" />
+    <Compile Include="Helpers\EndorphinaHelpers.cs" />
+    <Compile Include="Helpers\ESportHelpers.cs" />
+    <Compile Include="Helpers\EvenBetHelpers.cs" />
+    <Compile Include="Helpers\EveryMatrixHelpers.cs" />
+    <Compile Include="Helpers\EvolutionHelpers.cs" />
+    <Compile Include="Helpers\EzugiHelpers.cs" />
+    <Compile Include="Helpers\GanapatiHelpers.cs" />
+    <Compile Include="Helpers\GMWHelpers.cs" />
+    <Compile Include="Helpers\GoldenRaceHelpers.cs" />
+    <Compile Include="Helpers\GrooveHelpers.cs" />
+    <Compile Include="Helpers\HabaneroHelpers.cs" />
+    <Compile Include="Helpers\IgromatHelpers.cs" />
+    <Compile Include="Helpers\IgrosoftHelpers.cs" />
+    <Compile Include="Helpers\IqSoftHelpers.cs" />
+    <Compile Include="Helpers\ISoftBetHelpers.cs" />
+    <Compile Include="Helpers\KironHelpers.cs" />
+    <Compile Include="Helpers\MancalaHelpers.cs" />
+    <Compile Include="Helpers\MicroGamingHelpers.cs" />
+    <Compile Include="Helpers\NucleusHelpers.cs" />
+    <Compile Include="Helpers\OutcomeBetHelpers.cs" />
+    <Compile Include="Helpers\PlaynGoHelpers.cs" />
+    <Compile Include="Helpers\PragmaticPlayHelpers.cs" />
+    <Compile Include="Helpers\RocabeeHelpers.cs" />
+    <Compile Include="Helpers\SingularHelpers.cs" />
+    <Compile Include="Helpers\SkyCityHelpers.cs" />
+    <Compile Include="Helpers\SkyWindHelpers.cs" />
+    <Compile Include="Helpers\SoftGamingHelpers.cs" />
+    <Compile Include="Helpers\SoftLandHelpers.cs" />
+    <Compile Include="Helpers\SoftSwissHelpers.cs" />
+    <Compile Include="Helpers\SolidGamingHelpers.cs" />
+    <Compile Include="Helpers\TimelessTechHelpers.cs" />
+    <Compile Include="Helpers\TomHornHelpers.cs" />
+    <Compile Include="Helpers\TVBetHelpers.cs" />
+    <Compile Include="Helpers\TwoWinPowerHelpers.cs" />
+    <Compile Include="Helpers\VisionaryiGamingHelpers.cs" />
+    <Compile Include="Helpers\XmlDeserializerAttribute.cs" />
+    <Compile Include="Helpers\YSBHelpers.cs" />
+    <Compile Include="Helpers\ZeusPlayHelpers.cs" />
+    <Compile Include="Hubs\BaseHub.cs" />
+    <Compile Include="Controllers\LuckyGamesController.cs" />
+    <Compile Include="Models\AleaPlay\BaseInput.cs" />
+    <Compile Include="Models\AleaPlay\BetInput.cs" />
+    <Compile Include="Models\AWC\BaseInput.cs" />
+    <Compile Include="Models\AWC\BaseOutput.cs" />
+    <Compile Include="Models\BetGames\CombinationBetInput.cs" />
+    <Compile Include="Models\BetGames\MultipleBetInput.cs" />
+    <Compile Include="Models\BetGames\PromoWinInput.cs" />
+    <Compile Include="Models\BetSoft\BonusWinInput.cs" />
+    <Compile Include="Models\BetSolutions\AuthenticationInput.cs" />
+    <Compile Include="Models\BetSolutions\BaseInput.cs" />
+    <Compile Include="Models\BetSolutions\BaseOutput.cs" />
+    <Compile Include="Models\BetSolutions\BetInput.cs" />
+    <Compile Include="Models\Betsy\BalanceInput.cs" />
+    <Compile Include="Models\Betsy\BaseInput.cs" />
+    <Compile Include="Models\Betsy\BetInput.cs" />
+    <Compile Include="Models\Betsy\CheckInput.cs" />
+    <Compile Include="Models\Betsy\ErrorOutput.cs" />
+    <Compile Include="Models\BGGames\BaseInput.cs" />
+    <Compile Include="Models\BGGames\BaseOutput.cs" />
+    <Compile Include="Models\BlueOcean\BaseInput.cs" />
+    <Compile Include="Models\BlueOcean\BaseOutput.cs" />
+    <Compile Include="Models\DragonGaming\BaseInput.cs" />
+    <Compile Include="Models\DragonGaming\BaseOutput.cs" />
+    <Compile Include="Models\DragonGaming\BetInput.cs" />
+    <Compile Include="Models\DragonGaming\StatusOutput.cs" />
+    <Compile Include="Models\Elite\BaseInput.cs" />
+    <Compile Include="Models\Elite\BaseOutput.cs" />
+    <Compile Include="Models\Elite\ErrorOutput.cs" />
+    <Compile Include="Models\Elite\TransactionOutput.cs" />
+    <Compile Include="Models\Endorphina\BetInput.cs" />
+    <Compile Include="Models\Endorphina\BetOutput.cs" />
+    <Compile Include="Models\Endorphina\CheckInput.cs" />
+    <Compile Include="Models\Endorphina\ErrorOutput.cs" />
+    <Compile Include="Models\Endorphina\SessionInput.cs" />
+    <Compile Include="Models\Endorphina\SessionOutput.cs" />
+    <Compile Include="Models\Endorphina\WinInput.cs" />
+    <Compile Include="Models\ESport\BaseInput.cs" />
+    <Compile Include="Models\ESport\BaseOutput.cs" />
+    <Compile Include="Models\ESport\BetInput.cs" />
+    <Compile Include="Models\ESport\BetOutput.cs" />
+    <Compile Include="Models\EveryMatrix\AccountOutput.cs" />
+    <Compile Include="Models\EveryMatrix\BalanceOutput.cs" />
+    <Compile Include="Models\EveryMatrix\BaseInput.cs" />
+    <Compile Include="Models\EveryMatrix\BaseOutput.cs" />
+    <Compile Include="Models\EveryMatrix\BetPayload.cs" />
+    <Compile Include="Models\EveryMatrix\TransactionOutput.cs" />
+    <Compile Include="Models\Evoplay\BaseInput.cs" />
+    <Compile Include="Models\Evoplay\BaseOutput.cs" />
+    <Compile Include="Models\Ganapati\BaseObject.cs" />
+    <Compile Include="Models\Ganapati\BetInput.cs" />
+    <Compile Include="Models\GMW\BaseInput.cs" />
+    <Compile Include="Models\GMW\BaseOutput.cs" />
+    <Compile Include="Models\GMW\TransactionInput.cs" />
+    <Compile Include="Models\GoldenRace\BaseInput.cs" />
+    <Compile Include="Models\GoldenRace\BaseOutput.cs" />
+    <Compile Include="Models\GoldenRace\TransactoinInput.cs" />
+    <Compile Include="Models\GoldenRace\LoginInput.cs" />
+    <Compile Include="Models\Groove\BaseInput.cs" />
+    <Compile Include="Models\Groove\BaseOutput.cs" />
+    <Compile Include="Models\Habanero\AltFundsInput.cs" />
+    <Compile Include="Models\Habanero\Authentication.cs" />
+    <Compile Include="Models\Habanero\BaseInput.cs" />
+    <Compile Include="Models\Habanero\BaseOutput.cs" />
+    <Compile Include="Models\Habanero\CommonInput.cs" />
+    <Compile Include="Models\Habanero\QueryInput.cs" />
+    <Compile Include="Models\Habanero\TransferInput.cs" />
+    <Compile Include="Models\Igrosoft\BaseInput.cs" />
+    <Compile Include="Models\Igrosoft\BaseOutput.cs" />
+    <Compile Include="Models\IqSoft\ApiFreeSpinInput.cs" />
+    <Compile Include="Models\IqSoft\ApiResponseBase.cs" />
+    <Compile Include="Models\JackpotGaming\BalanceInput.cs" />
+    <Compile Include="Models\JackpotGaming\BalanceOutput.cs" />
+    <Compile Include="Models\JackpotGaming\CloseRoundInput.cs" />
+    <Compile Include="Models\JackpotGaming\DebitInput.cs" />
+    <Compile Include="Models\JackpotGaming\DebitOutput.cs" />
+    <Compile Include="Models\JackpotGaming\ErrorOutput.cs" />
+    <Compile Include="Models\Kiron\AuthenticationOutput.cs" />
+    <Compile Include="Models\Kiron\BalanceOutput.cs" />
+    <Compile Include="Models\Kiron\BaseInput.cs" />
+    <Compile Include="Models\Kiron\BaseOutput.cs" />
+    <Compile Include="Models\Kiron\FinalizeRoundInput.cs" />
+    <Compile Include="Models\Kiron\DebitInput.cs" />
+    <Compile Include="Models\Kiron\GetBalanceInput.cs" />
+    <Compile Include="Models\Kiron\TransactionOutput.cs" />
+    <Compile Include="Models\Kiron\CreditInput.cs" />
+    <Compile Include="Models\LuckyGaming\BalanceInput.cs" />
+    <Compile Include="Models\LuckyGaming\BalanceOutput.cs" />
+    <Compile Include="Models\LuckyGaming\BetInput.cs" />
+    <Compile Include="Models\LuckyGaming\BetOutput.cs" />
+    <Compile Include="Models\Mahjong\BalanceInput.cs" />
+    <Compile Include="Models\Mahjong\BalanceOutput.cs" />
+    <Compile Include="Models\Mahjong\LoginInput.cs" />
+    <Compile Include="Models\Mahjong\LoginOutput.cs" />
+    <Compile Include="Models\Mahjong\TransferInput.cs" />
+    <Compile Include="Models\Mahjong\TransferOutput.cs" />
+    <Compile Include="Models\Mancala\BaseInput.cs" />
+    <Compile Include="Models\Mancala\BaseOutput.cs" />
+    <Compile Include="Models\Mancala\BetInput.cs" />
+    <Compile Include="Models\Mancala\RefuntInput.cs" />
+    <Compile Include="Models\Insic\VerificationResult.cs" />
+    <Compile Include="Models\Nucleus\AccountInfoOutput.cs" />
+    <Compile Include="Models\Nucleus\BaseOutput.cs" />
+    <Compile Include="Models\Nucleus\BaseInput.cs" />
+    <Compile Include="Models\Nucleus\BetOutput.cs" />
+    <Compile Include="Models\Nucleus\BonusInput.cs" />
+    <Compile Include="Models\Nucleus\BonusWinOutput.cs" />
+    <Compile Include="Models\Nucleus\GetBalanceOutput.cs" />
+    <Compile Include="Models\Nucleus\RefundOutput.cs" />
+    <Compile Include="Models\OutcomeBet\ActionInput.cs" />
+    <Compile Include="Models\OutcomeBet\BalanceInput.cs" />
+    <Compile Include="Models\OutcomeBet\BaseInput.cs" />
+    <Compile Include="Models\OutcomeBet\BaseResponse.cs" />
+    <Compile Include="Models\OutcomeBet\GetBalanceInput.cs" />
+    <Compile Include="Models\OutcomeBet\RollbackInput.cs" />
+    <Compile Include="Models\OutcomeBet\WithdrawAndDepositInput.cs" />
+    <Compile Include="Models\PlaynGo\AuthenticationInput.cs" />
+    <Compile Include="Models\PlaynGo\AuthenticationOutput.cs" />
+    <Compile Include="Models\PlaynGo\BalanceInput.cs" />
+    <Compile Include="Models\PlaynGo\BalanceOutput.cs" />
+    <Compile Include="Models\PlaynGo\CancelReserveInput.cs" />
+    <Compile Include="Models\PlaynGo\ReleaseInput.cs" />
+    <Compile Include="Models\PlaynGo\ReserveInput.cs" />
+    <Compile Include="Models\PragmaticPlay\BaseInput.cs" />
+    <Compile Include="Models\PragmaticPlay\BetInput.cs" />
+    <Compile Include="Models\PropsBuilder\BaseInput.cs" />
+    <Compile Include="Models\PropsBuilder\BaseOutput.cs" />
+    <Compile Include="Models\PropsBuilder\BetInput.cs" />
+    <Compile Include="Models\Racebook\BaseOutput.cs" />
+    <Compile Include="Models\Racebook\BetInput.cs" />
+    <Compile Include="Models\Racebook\ClientOutput.cs" />
+    <Compile Include="Models\Racebook\BaseInput.cs" />
+    <Compile Include="Models\Racebook\WinInput.cs" />
+    <Compile Include="Models\SmartSoft\ActivateSessionInput.cs" />
+    <Compile Include="Models\SmartSoft\TransactionInput.cs" />
+    <Compile Include="Models\SoftGaming\BaseInput.cs" />
+    <Compile Include="Models\SoftLand\BalanceOutput.cs" />
+    <Compile Include="Models\SoftLand\BaseInput.cs" />
+    <Compile Include="Models\SoftLand\OperationInput.cs" />
+    <Compile Include="Models\SoftLand\OperationResponse.cs" />
+    <Compile Include="Models\SoftSwiss\BaseError.cs" />
+    <Compile Include="Models\SoftSwiss\BaseInput.cs" />
+    <Compile Include="Models\SoftSwiss\BaseOutput.cs" />
+    <Compile Include="Models\SoftSwiss\FreeSpinInput.cs" />
+    <Compile Include="Models\SunCity\AuthInput.cs" />
+    <Compile Include="Models\BetGames\AccountDetailsOutput.cs" />
+    <Compile Include="Models\BetGames\BaseInput.cs" />
+    <Compile Include="Models\BetGames\BaseOutput.cs" />
+    <Compile Include="Models\BetGames\BetInput.cs" />
+    <Compile Include="Models\BetSoft\AuthenticateInput.cs" />
+    <Compile Include="Models\BetSoft\BetResultInput.cs" />
+    <Compile Include="Models\BetSoft\GetAccountInfoInput.cs" />
+    <Compile Include="Models\BetSoft\GetBalanceInput.cs" />
+    <Compile Include="Models\BetSoft\Output.cs" />
+    <Compile Include="Models\BetSoft\RefundBetInput.cs" />
+    <Compile Include="Models\CModule\BaseInput.cs" />
+    <Compile Include="Models\CModule\BaseOutput.cs" />
+    <Compile Include="Models\CModule\CancelInput.cs" />
+    <Compile Include="Models\CModule\ErrorOutput.cs" />
+    <Compile Include="Models\Common\BetShopBet.cs" />
+    <Compile Include="Models\DriveMedia\BaseInput.cs" />
+    <Compile Include="Models\DriveMedia\BaseOutput.cs" />
+    <Compile Include="Models\DriveMedia\WriteBetOutput.cs" />
+    <Compile Include="Models\EkkoSpin\AdditionalInfo.cs" />
+    <Compile Include="Models\EkkoSpin\BasicInput.cs" />
+    <Compile Include="Models\EkkoSpin\LiveRacingInput.cs" />
+    <Compile Include="Models\EkkoSpin\SeamlessInput.cs" />
+    <Compile Include="Models\EkkoSpin\SeamlessOutput.cs" />
+    <Compile Include="Models\EkkoSpin\SlotsInput.cs" />
+    <Compile Include="Models\EkkoSpin\WinnerInfo.cs" />
+    <Compile Include="Models\EvenBet\BaseInput.cs" />
+    <Compile Include="Models\EvenBet\BaseOutput.cs" />
+    <Compile Include="Models\Evolution\BalanceInput.cs" />
+    <Compile Include="Models\Evolution\FinOperationInput.cs" />
+    <Compile Include="Models\Evolution\InputBase.cs" />
+    <Compile Include="Models\Evolution\OutputBase.cs" />
+    <Compile Include="Models\Evolution\StandartOutput.cs" />
+    <Compile Include="Models\Evolution\CheckInput.cs" />
+    <Compile Include="Models\Evolution\CheckOutput.cs" />
+    <Compile Include="Models\Evolution\Game.cs" />
+    <Compile Include="Models\Evolution\Transaction.cs" />
+    <Compile Include="Models\Ezugi\AuthenticationInput.cs" />
+    <Compile Include="Models\Ezugi\BaseOutput.cs" />
+    <Compile Include="Models\Ezugi\GeneralInput.cs" />
+    <Compile Include="Models\Ezugi\CreditInput.cs" />
+    <Compile Include="Models\Ezugi\CreditOutput.cs" />
+    <Compile Include="Models\Ezugi\DebitInput.cs" />
+    <Compile Include="Models\Ezugi\DebitOutput.cs" />
+    <Compile Include="Models\Ezugi\RollbackInput.cs" />
+    <Compile Include="Models\Ezugi\AuthenticationOutput.cs" />
+    <Compile Include="Models\Ezugi\RollbackOutput.cs" />
+    <Compile Include="Models\Igromat\InputBase.cs" />
+    <Compile Include="Models\Igromat\OutputBase.cs" />
+    <Compile Include="Models\InBet\BaseInput.cs" />
+    <Compile Include="Models\InBet\BaseOutput.cs" />
+    <Compile Include="Models\IqSoft\ApiCheckPermissionInput.cs" />
+    <Compile Include="Models\IqSoft\ApiFinOperationInput.cs" />
+    <Compile Include="Models\ISoftBet\ReportInput.cs" />
+    <Compile Include="Models\ISoftBet\ReportOutput.cs" />
+    <Compile Include="Models\ISoftBet\TokenOutput.cs" />
+    <Compile Include="Models\ISoftBet\TransactionOutput.cs" />
+    <Compile Include="Models\ISoftBet\BaseInput.cs" />
+    <Compile Include="Models\ISoftBet\BaseOutput.cs" />
+    <Compile Include="Models\ISoftBet\BetInput.cs" />
+    <Compile Include="Models\ISoftBet\ErrorResponse.cs" />
+    <Compile Include="Models\ISoftBet\InitOutput.cs" />
+    <Compile Include="Models\ISoftBet\InitParameters.cs" />
+    <Compile Include="Models\ISoftBet\WinInput.cs" />
+    <Compile Include="Models\MicroGaming\Input.cs" />
+    <Compile Include="Models\MicroGaming\Output.cs" />
+    <Compile Include="Models\Rocabee\BaseOutput.cs" />
+    <Compile Include="Models\Rocabee\BasicInput.cs" />
+    <Compile Include="Models\Singular\AuthenticationInput.cs" />
+    <Compile Include="Models\Singular\AuthenticationOutput.cs" />
+    <Compile Include="Models\Singular\BalanceInput.cs" />
+    <Compile Include="Models\Singular\BalanceOutput.cs" />
+    <Compile Include="Models\Singular\BaseInput.cs" />
+    <Compile Include="Models\Singular\BaseOutput.cs" />
+    <Compile Include="Models\Singular\DepositInput.cs" />
+    <Compile Include="Models\Singular\ExchangeInput.cs" />
+    <Compile Include="Models\Singular\ExchangeRateOutput.cs" />
+    <Compile Include="Models\Singular\RollbackInput.cs" />
+    <Compile Include="Models\Singular\TransactionStatusInput.cs" />
+    <Compile Include="Models\Singular\WithdrawInput.cs" />
+    <Compile Include="Models\Singular\WithdrawOutput.cs" />
+    <Compile Include="Models\SkyCity\BaseInput.cs" />
+    <Compile Include="Models\SkyCity\BaseOutput.cs" />
+    <Compile Include="Models\SkyCity\BetInput.cs" />
+    <Compile Include="Models\SkyWind\BaseInput.cs" />
+    <Compile Include="Models\SkyWind\BaseOutput.cs" />
+    <Compile Include="Models\SkyWind\CreditInput.cs" />
+    <Compile Include="Models\SkyWind\DebitInput.cs" />
+    <Compile Include="Models\SkyWind\DebitOutput.cs" />
+    <Compile Include="Models\SkyWind\GetBalanceOutput.cs" />
+    <Compile Include="Models\SkyWind\PlayerOutput.cs" />
+    <Compile Include="Models\SkyWind\TransferInput.cs" />
+    <Compile Include="Models\SkyWind\ValidateTicketOutput.cs" />
+    <Compile Include="Models\SolidGaming\AuthenticationInput.cs" />
+    <Compile Include="Models\SolidGaming\AuthenticationOutput.cs" />
+    <Compile Include="Models\SolidGaming\BalanceInput.cs" />
+    <Compile Include="Models\SolidGaming\BaseInput.cs" />
+    <Compile Include="Models\SolidGaming\BaseOutput.cs" />
+    <Compile Include="Models\SolidGaming\BetInput.cs" />
+    <Compile Include="Models\SolidGaming\ErrorOutput.cs" />
+    <Compile Include="Models\SolidGaming\RollbackInput.cs" />
+    <Compile Include="Models\SunCity\AuthOutput.cs" />
+    <Compile Include="Models\SunCity\BaseInput.cs" />
+    <Compile Include="Models\SunCity\BaseOutput.cs" />
+    <Compile Include="Models\SunCity\BetInput.cs" />
+    <Compile Include="Models\SunCity\BetOutput.cs" />
+    <Compile Include="Models\TimelessTech\BaseInput.cs" />
+    <Compile Include="Models\TimelessTech\BaseOutput.cs" />
+    <Compile Include="Models\TomHorn\BalanceInput.cs" />
+    <Compile Include="Models\TomHorn\BalanceOutput.cs" />
+    <Compile Include="Models\TomHorn\BaseOutput.cs" />
+    <Compile Include="Models\TomHorn\BetInput.cs" />
+    <Compile Include="Models\TomHorn\BetOutput.cs" />
+    <Compile Include="Models\TomHorn\RollbackInput.cs" />
+    <Compile Include="Models\TurboGames\BaseInput.cs" />
+    <Compile Include="Models\TurboGames\BalanceInput.cs" />
+    <Compile Include="Models\TurboGames\TransactionInput.cs" />
+    <Compile Include="Models\TVBet\BaseInput.cs" />
+    <Compile Include="Models\TVBet\BaseOutput.cs" />
+    <Compile Include="Models\TVBet\GetPaymentInfo.cs" />
+    <Compile Include="Models\TVBet\TransactionInput.cs" />
+    <Compile Include="Models\TwoWinPower\BaseInput.cs" />
+    <Compile Include="Models\TwoWinPower\BaseOutput.cs" />
+    <Compile Include="Models\TwoWinPower\ErrorOutput.cs" />
+    <Compile Include="Models\TwoWinPower\FinInput.cs" />
+    <Compile Include="Models\TwoWinPower\BetOutput.cs" />
+    <Compile Include="Models\VisionaryiGaming\AuthenticationInput.cs" />
+    <Compile Include="Models\VisionaryiGaming\AuthenticationOutput.cs" />
+    <Compile Include="Models\VisionaryiGaming\BalanceOutput.cs" />
+    <Compile Include="Models\VisionaryiGaming\BaseInput.cs" />
+    <Compile Include="Models\Generalized\AuthorizationOutput.cs" />
+    <Compile Include="Models\Generalized\BaseInput.cs" />
+    <Compile Include="Models\Generalized\ClientInput.cs" />
+    <Compile Include="Models\Generalized\NotificationInput.cs" />
+    <Compile Include="Models\Generalized\PlayerInfoInput.cs" />
+    <Compile Include="Models\Generalized\TransactionInput.cs" />
+    <Compile Include="Models\Generalized\TransactionOutput.cs" />
+    <Compile Include="Models\VisionaryiGaming\GameOutput.cs" />
+    <Compile Include="Models\VisionaryiGaming\GameInput.cs" />
+    <Compile Include="Models\YSB\ValidationInput.cs" />
+    <Compile Include="Models\YSB\ValidationOutput.cs" />
+    <Compile Include="Models\ZeusPlay\BetOrCollectOutput.cs" />
+    <Compile Include="Models\ZeusPlay\GameSessionEndOutput.cs" />
+    <Compile Include="Models\TwoWinPower\SessionOutput.cs" />
+    <Compile Include="Models\ZeusPlay\GameSessionValidateOutput.cs" />
+    <Compile Include="Models\ZeusPlay\PlayerBalanceQueryOutput.cs" />
+    <Compile Include="Models\ZeusPlay\ReportsInput.cs" />
+    <Compile Include="Models\ZeusPlay\InputBase.cs" />
+    <Compile Include="Controllers\NucleusController.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\ISingularService.cs" />
+    <Compile Include="Services\SingularService.svc.cs">
+      <DependentUpon>SingularService.svc</DependentUpon>
+    </Compile>
+    <Compile Include="Startup.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Properties\PublishProfiles\PlatformProductGateway.pubxml" />
+    <Content Include="Scripts\jquery-3.6.0.slim.min.map" />
+    <Content Include="Scripts\jquery-3.6.0.min.map" />
+    <None Include="Web.Debug.config">
+      <DependentUpon>Web.config</DependentUpon>
+    </None>
+    <None Include="Web.Release.config">
+      <DependentUpon>Web.config</DependentUpon>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="App_Data\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\IqSoft.CP.BLL\IqSoft.CP.BLL.csproj">
+      <Project>{9b254c04-813a-49b3-a641-8feb591bd609}</Project>
+      <Name>IqSoft.CP.BLL</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\IqSoft.CP.Common\IqSoft.CP.Common.csproj">
+      <Project>{ad52222e-e214-42f7-950a-1b9d9fdf70f9}</Project>
+      <Name>IqSoft.CP.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\IqSoft.CP.DAL\IqSoft.CP.DAL.csproj">
+      <Project>{E33DB226-1845-4621-8CD2-9D5DF921DCBF}</Project>
+      <Name>IqSoft.CP.DAL</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\IqSoft.CP.Integration\IqSoft.CP.Integration.csproj">
+      <Project>{f9d17a93-66de-4286-a3b0-d562e9b0a753}</Project>
+      <Name>IqSoft.CP.Integration</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+  </PropertyGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />
+  <ProjectExtensions>
+    <VisualStudio>
+      <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
+        <WebProjectProperties>
+          <UseIIS>True</UseIIS>
+          <AutoAssignPort>True</AutoAssignPort>
+          <DevelopmentServerPort>49533</DevelopmentServerPort>
+          <DevelopmentServerVPath>/</DevelopmentServerVPath>
+          <IISUrl>http://localhost:9092</IISUrl>
+          <NTLMAuthentication>False</NTLMAuthentication>
+          <UseCustomServer>False</UseCustomServer>
+          <CustomServerUrl>
+          </CustomServerUrl>
+          <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
+        </WebProjectProperties>
+      </FlavorProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
+    <Error Condition="!Exists('..\packages\EntityFramework.6.4.4\build\EntityFramework.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\EntityFramework.6.4.4\build\EntityFramework.props'))" />
+    <Error Condition="!Exists('..\packages\EntityFramework.6.4.4\build\EntityFramework.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\EntityFramework.6.4.4\build\EntityFramework.targets'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.Extensions.Logging.Abstractions.6.0.1\build\Microsoft.Extensions.Logging.Abstractions.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Extensions.Logging.Abstractions.6.0.1\build\Microsoft.Extensions.Logging.Abstractions.targets'))" />
+    <Error Condition="!Exists('..\packages\System.Text.Json.6.0.3\build\System.Text.Json.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\System.Text.Json.6.0.3\build\System.Text.Json.targets'))" />
+  </Target>
+  <Import Project="..\packages\EntityFramework.6.4.4\build\EntityFramework.targets" Condition="Exists('..\packages\EntityFramework.6.4.4\build\EntityFramework.targets')" />
+  <Import Project="..\packages\Microsoft.Extensions.Logging.Abstractions.6.0.1\build\Microsoft.Extensions.Logging.Abstractions.targets" Condition="Exists('..\packages\Microsoft.Extensions.Logging.Abstractions.6.0.1\build\Microsoft.Extensions.Logging.Abstractions.targets')" />
+  <Import Project="..\packages\System.Text.Json.6.0.3\build\System.Text.Json.targets" Condition="Exists('..\packages\System.Text.Json.6.0.3\build\System.Text.Json.targets')" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

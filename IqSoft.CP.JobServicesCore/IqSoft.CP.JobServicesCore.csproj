@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup Label="Globals">
+    <SccProjectName>SAK</SccProjectName>
+    <SccProvider>SAK</SccProvider>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccLocalPath>SAK</SccLocalPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <UserSecretsId>dotnet-IqSoft.CP.JobServicesCore-4E238ACA-0F46-4123-B421-E4D4D89C6BE7</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MicroKnights.Log4NetAdoNetAppender" Version="2.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="6.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client.Core" Version="6.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Common" Version="6.0.4" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="6.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\IqSoft.CP.BLLCore\IqSoft.CP.BLLCore.csproj" />
+    <ProjectReference Include="..\IqSoft.CP.CommonCore\IqSoft.CP.CommonCore.csproj" />
+    <ProjectReference Include="..\IqSoft.CP.DALCore\IqSoft.CP.DALCore.csproj" />
+    <ProjectReference Include="..\IqSoft.CP.IntegrationCore\IqSoft.CP.IntegrationCore.csproj" />
+  </ItemGroup>
+</Project>

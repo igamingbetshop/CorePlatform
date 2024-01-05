@@ -1,0 +1,875 @@
+﻿{
+   "CodeGenerationMode": 2,
+   "ContextClassName": "IqSoftCorePlatformEntities",
+   "ContextNamespace": "",
+   "DefaultDacpacSchema": null,
+   "FilterSchemas": false,
+   "IncludeConnectionString": false,
+   "ModelNamespace": "",
+   "OutputContextPath": "Context",
+   "OutputPath": "DB",
+   "ProjectRootNamespace": "IqSoft.CP.DAL",
+   "Schemas": null,
+   "SelectedHandlebarsLanguage": 0,
+   "SelectedToBeGenerated": 0,
+   "Tables": [
+      {
+         "Name": "[dbo].[AccessObject]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Account]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AccountBalance]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AccountClosedPeriod]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AccountType]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AccountTypeKind]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AccountTypePriority]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Action]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ActionLog]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AffiliatePlatform]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AffiliateReferral]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AgentCommission]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AgentProfit]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Announcement]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Banner]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BannerSegmentSetting]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Bet]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BetShop]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BetShopGroup]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BetShopReconing]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BetShopTicket]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Bonus]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BonusCountrySettings]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BonusCurrencySettings]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BonusLanguageSettings]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BonusPaymentSystemSetting]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BonusProduct]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BonusSegmentSettings]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CashDesk]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CashDeskShift]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Category]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Client]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ClientBankInfo]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ClientBonus]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ClientBonusTrigger]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ClientCategory]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ClientClassification]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ClientClosedPeriod]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ClientFavoriteProduct]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ClientIdentity]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ClientInfo]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ClientLog]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ClientMessage]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ClientMessageState]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ClientPaymentInfo]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ClientPaymentSetting]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ClientSecurityAnswer]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ClientSession]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ClientSetting]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CommentTemplate]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ComplimentaryPointRate]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CRMSetting]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Currency]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CurrencyRate]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Document]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Email]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Enumeration]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ErrorType]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[GameProvider]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[GameProviderSetting]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Jackpot]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[JackpotSetting]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Job]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[JobArea]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[JobResult]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[JobTrigger]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Language]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[LimitType]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Merchant]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[MerchantRequest]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[MessageTemplate]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Note]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ObjectAction]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ObjectChangeHistory]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ObjectCurrencyPriority]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ObjectDataChangeHistory]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ObjectType]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[OperationType]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Partner]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PartnerBankInfo]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PartnerCountrySetting]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PartnerCurrencySetting]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PartnerKey]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PartnerLanguageSetting]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PartnerPaymentCountrySettings]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PartnerPaymentCurrencyRate]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PartnerPaymentSetting]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PartnerProductSetting]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PaymentLimit]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PaymentRequest]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PaymentRequestHistory]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PaymentRequestTransfer]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PaymentSystem]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Permission]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PermissionGroup]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Product]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ProductCategory]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ProductLimit]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PromoCode]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Promotion]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PromotionSegmentSetting]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Region]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Role]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[RolePermission]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[SecurityQuestion]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Segment]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[SegmentSetting]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Ticket]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[TicketMessage]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[TicketMessageState]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Transaction]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Translation]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[TranslationEntry]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[TriggerGroup]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[TriggerGroupSetting]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[TriggerProductSetting]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[TriggerSetting]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[User]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[UserLog]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[UserRole]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[UserSession]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[UserSetting]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[WebSiteMenu]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[WebSiteMenuItem]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[WebSiteSubMenuItem]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[sp_CreateWebSiteMenuCopy]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[sp_GetAccountLock]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[sp_GetAccountLockById]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[sp_GetBetShopLock]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[sp_GetBonusLock]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[sp_GetClientLock]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[sp_GetPaymentRequestLock]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[sp_ObjectChangeHistory]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[sp_UpdateClientSession]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[fn_Account]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_AccountType]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_ActionLog]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_AdminShiftReport]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_AffiliateClient]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_Agent]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_AgentProfit]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_AgentProfitReport]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_AgentTransaction]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_AgentTurnoverProfit]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_Banner]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_BetShopBet]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_BetShopBetForDashboard]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_BetShopReconing]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_BetShops]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_Bonus]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_CashDesks]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_CashDeskTransaction]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_Client]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_ClientBonus]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_ClientIdentity]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_ClientInfo]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_ClientInfoForDashboard]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_ClientLog]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_ClientMessage]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_ClientReport]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_ClientSession]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_CommentTemplate]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_ConvertCurrency]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_Correction]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_Enumeration]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_ErrorType]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_FirstTimePaymentRequest]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_GetChildProductsByProductId]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_GetOrderedAccountIds]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_InternetBet]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_InternetBetByClient]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_InternetBetForDashboard]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_InternetGame]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_JobArea]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_MessageTemplate]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_Note]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_ObjectTranslationEntry]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_OnlineClient]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_OnlineUser]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_OperationType]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_PartnerBankInfo]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_PartnerPaymentSetting]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_PartnerProductSetting]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_PaymentRequest]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_Product]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_ProductCategory]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_ProductCommission]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_ProductGroup]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_ProfitByAgent]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_Promotion]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_RealTimeInfo]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_Region]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_RegionPath]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_ReportByAgentTransfer]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_ReportByBetShopOperation]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_ReportByPartner]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_ReportByPaymentSystem]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_ReportByProduct]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_ReportByProvider]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_SecurityQuestion]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_SegmentClient]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_ShiftReport]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_Ticket]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_Transaction]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_Translation]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_TranslationEntry]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_User]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_UserCorrection]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_UserLog]",
+         "ObjectType": 2
+      },
+      {
+         "Name": "[dbo].[fn_UserPermission]",
+         "ObjectType": 2
+      }
+   ],
+   "UiHint": "IqSoftCorePlatformEntities (IqSoft.CP.ProductGateway)",
+   "UseBoolPropertiesWithoutDefaultSql": false,
+   "UseDatabaseNames": true,
+   "UseDbContextSplitting": false,
+   "UseFluentApiOnly": true,
+   "UseHandleBars": false,
+   "UseHierarchyId": false,
+   "UseInflector": true,
+   "UseLegacyPluralizer": true,
+   "UseManyToManyEntity": false,
+   "UseNoConstructor": false,
+   "UseNoDefaultConstructor": false,
+   "UseNoNavigations": false,
+   "UseNoObjectFilter": false,
+   "UseNodaTime": false,
+   "UseNullableReferences": false,
+   "UseSchemaFolders": false,
+   "UseSpatial": false
+}
