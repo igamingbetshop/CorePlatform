@@ -18,6 +18,7 @@ namespace IqSoft.CP.DAL
         public int PaymentSystemId { get; set; }
         public decimal Commission { get; set; }
         public decimal FixedFee { get; set; }
+        public Nullable<decimal> ApplyPercentAmount { get; set; }
         public int State { get; set; }
         public string CurrencyId { get; set; }
         public string UserName { get; set; }

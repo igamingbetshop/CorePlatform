@@ -37,19 +37,19 @@ namespace IqSoft.CP.MasterCacheWebApi.Helpers
 			}
 			if (product.ParentId == 51) //virtual games
 			{
-				return string.Format((env == "production" ? "https://virtualgameswebsite.{0}" : "http://10.50.17.10:11006") + 
-					"/{1}/{2}/{7}?gameid={3}&partnerid={4}&languageid={5}&token={6}&viewtype=1&timezone={8}", domain,
-					product.NickName.ToLower(), (input.IsForMobile.HasValue && input.IsForMobile.Value) ? "mobile" : "web", product.ExternalId,
-					partner.Id, input.LanguageId, token, input.Position, input.TimeZone);
-			}
-			if (product.ParentId == 28) //skill games
-			{
-				return string.Format((env == "production" ? "https://skillgameswebsite.{0}" : "http://10.50.17.10:12006") +
-					"/{1}/{2}/{7}?partnerid={3}&gameid={4}&languageid={5}&token={6}&timezone={8}", domain,
-					product.NickName.ToLower(), (input.IsForMobile.HasValue && input.IsForMobile.Value) ? "mobile" : "web", partner.Id, product.ExternalId,
-					input.LanguageId, token, input.Position, input.TimeZone);
-			}
-			if (product.ParentId == 151) //blockchain games
+				return string.Format((env == "production" ? "https://virtualgameswebsite.{0}" : "http://10.50.17.10:11006") +
+                    "/{1}/{2}/{7}?gameid={3}&partnerid={4}&languageid={5}&token={6}&viewtype=1&timezone={8}", domain,
+                    product.NickName.ToLower(), (input.IsForMobile.HasValue && input.IsForMobile.Value) ? "mobile" : "web", product.ExternalId,
+                    partner.Id, input.LanguageId, token, input.Position, input.TimeZone);
+            }
+            if (product.ParentId == 28) //skill games
+            {
+                return string.Format((env == "production" ? "https://skillgameswebsite.{0}" : "http://10.50.17.10:12006") +
+                    "/{1}/{2}/{7}?partnerid={3}&gameid={4}&languageid={5}&token={6}&timezone={8}", domain,
+                    product.NickName.ToLower(), (input.IsForMobile.HasValue && input.IsForMobile.Value) ? "mobile" : "web", partner.Id, product.ExternalId,
+                    input.LanguageId, token, input.Position, input.TimeZone);
+            }
+            if (product.ParentId == 151) //blockchain games
 			{
 				return string.Format((env == "production" ? "https://virtualgameswebsite.{0}" : "http://10.50.17.10:13006") +
 					"/{1}/{2}/{7}?gameid={3}&partnerid={4}&languageid={5}&token={6}&timezone={8}",

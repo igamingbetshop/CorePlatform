@@ -20,6 +20,7 @@ namespace IqSoft.CP.DAL.Models.Cache
         public int PaymentSystemPriority { get; set; }
         public decimal Commission { get; set; }
         public decimal FixedFee { get; set; }
+        public decimal? ApplyPercentAmount { get; set; }
         public int Type { get; set; }
         public string Info{ get; set; }
         public decimal MinAmount { get; set; }

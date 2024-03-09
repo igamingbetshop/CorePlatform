@@ -13,6 +13,9 @@ using GraphQL.Client.Http;
 using GraphQL.Client.Serializer.Newtonsoft;
 using GraphQL;
 using System.Net;
+using log4net;
+using System;
+using IqSoft.CP.Common.Models.Bonus;
 
 namespace IqSoft.CP.Integration.Products.Helpers
 {
@@ -50,10 +53,10 @@ namespace IqSoft.CP.Integration.Products.Helpers
         //    "NI","PK","PA","PG","PH","PT","RO","MF","RS","SG","SS","ES","LK","SD",
         //    "SE","CH","SY","TW","TT","GB","","",
         //};
-        private readonly static List<string> RestrictedCountries = new List<string>
-        {
-            "FR", "IT", "UK", "GB","MT","PT", "SE", "ES"
-        };
+        //private readonly static List<string> RestrictedCountries = new List<string>
+        //{
+        //    "FR", "IT", "UK", "GB","MT","PT", "SE", "ES"
+        //};
 
         public static string GetUrl(string token, int clientId, int partnerId, int productId, bool isForDemo, SessionIdentity session)
         {
@@ -86,19 +89,19 @@ namespace IqSoft.CP.Integration.Products.Helpers
                 if (client == null)
                     throw BaseBll.CreateException(session.LanguageId, Constants.Errors.ClientNotFound);
                 var currency = client.CurrencyId;
-                var countryCode = session.Country;
+                var countryCode = CacheManager.GetRegionById(client.CountryId ?? client.RegionId, Constants.DefaultLanguageId)?.IsoCode;
                 if (NotSupportedCurrencies.ContainsKey(subProviderName) && NotSupportedCurrencies[subProviderName].Contains(currency))
                     currency = Constants.Currencies.USADollar;
                 if (NotSupportedCoutries.ContainsKey(subProviderName) && NotSupportedCoutries[subProviderName].Contains(countryCode))
                     countryCode = SupportedCoutries[subProviderName];
-
+                
                 var input = new
                 {
                     casinoId,
                     casinoPlayerId = clientId,
                     casinoSessionId = token,
                     gameId = product.ExternalId,
-                    country = RestrictedCountries.Contains(countryCode.ToUpper()) ? "FI" : countryCode,
+                    country = "FI",
                     currency,
                     lobbyUrl = casinoPageUrl,
                     depositUrl = cashierPageUrl,
@@ -176,8 +179,102 @@ namespace IqSoft.CP.Integration.Products.Helpers
                 games = graphQLClient.SendQueryAsync<GamesOutput>(input).Result;
                 resultList.AddRange(games.Data.GamesReady.Results);
             }
-
             return resultList;
+        }
+
+        private readonly static Dictionary<string, int> FreeSpinProviders = new Dictionary<string, int>
+        {
+            {"Booongo", 36},
+            {"PlaynGo", 10},
+            {"PragmaticPlay", 6 },
+            {"NoLimitCity", 43},
+            {"PlayTech", 41},
+            {"Amusnet", 30 },
+            {"Evolution", 42 },
+        };
+        public static void AddFreeRound(FreeSpinModel freespinModel, ILog log)
+        {
+            var inputString = string.Empty;
+            try
+            {
+                var client = CacheManager.GetClientById(freespinModel.ClientId);
+                var partner = CacheManager.GetPartnerById(client.PartnerId);
+                var casinoId = CacheManager.GetGameProviderValueByKey(client.PartnerId, Provider.Id, Constants.PartnerKeys.AleaPlayCasinoId);
+                var environmentId = CacheManager.GetGameProviderValueByKey(client.PartnerId, Provider.Id, Constants.PartnerKeys.AleaPlayEnvironment);
+                var secretKey = CacheManager.GetGameProviderValueByKey(client.PartnerId, Provider.Id, Constants.PartnerKeys.AleaPlaySecretKey);
+                var apiUrl = CacheManager.GetGameProviderValueByKey(client.PartnerId, Provider.Id, Constants.PartnerKeys.AleaPlayFSApiUrl);
+                var currency = client != null ? client.CurrencyId : partner.CurrencyId;
+                var product = CacheManager.GetProductByExternalId(Provider.Id, freespinModel.ProductExternalId);
+                var subProvider = CacheManager.GetGameProviderById(product.SubProviderId ?? product.GameProviderId.Value);
+                if (!FreeSpinProviders.ContainsKey(subProvider.Name))
+                    throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.UnavailableFreespin);
+
+                if (NotSupportedCurrencies.ContainsKey(subProvider.Name) &&
+                    NotSupportedCurrencies[subProvider.Name].Contains(client.CurrencyId))
+                    currency = Constants.Currencies.USADollar;
+                int? level = (int?)freespinModel.BetValueLevel;
+                var countryCode = CacheManager.GetRegionById(client.CountryId ?? client.RegionId, Constants.DefaultLanguageId)?.IsoCode;
+                inputString = JsonConvert.SerializeObject(new
+                {
+                    casinoPlayerId = client.Id.ToString(),
+                    casinoBonusId = freespinModel.BonusId.ToString(),
+                    country = "FI",
+                    currency,
+                    softwareId = FreeSpinProviders[subProvider.Name],
+                    level = level ?? 1,
+                    amount = freespinModel.SpinCount,
+                    games = new List<object> { new { id = Convert.ToInt32(product.ExternalId) } },
+                    startAt = DateTime.UtcNow.ToString("yyyy-MM-ddThh:mm:ssZ"),
+                    expireAt = freespinModel.FinishTime.ToString("yyyy-MM-ddThh:mm:ssZ")
+                });
+                var headers = new Dictionary<string, string>
+                {
+                    { "Alea-CasinoId", casinoId },
+                    { "Authorization",  $"Bearer {environmentId}"},
+                    { "Digest", CommonFunctions.ComputeSha512($"{inputString}{secretKey}")}
+                };
+                var httpRequestInput = new HttpRequestInput
+                {
+                    RequestMethod = Constants.HttpRequestMethods.Post,
+                    ContentType = Constants.HttpContentTypes.ApplicationJson,
+                    RequestHeaders = headers,
+                    Url = apiUrl,
+                    PostData = inputString
+                };
+                log.Info("AleaPlay_Freespin_Input:" + JsonConvert.SerializeObject(httpRequestInput));
+                var res = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
+                log.Info("AleaPlay_Freespin_Output:" + res);
+                if (string.IsNullOrEmpty(JsonConvert.DeserializeObject<FreespinOutput>(res).Id))
+                    throw new Exception(res);
+            }
+            catch (Exception ex)
+            {
+                log.Error("AleaPlay_Freespin: " + inputString + " __Error: " + ex);
+                throw;
+            }
+        }
+
+        public static void CancelFreeRound(int clientId, int bonusId)
+        {
+            var client = CacheManager.GetClientById(clientId);
+            var casinoId = CacheManager.GetGameProviderValueByKey(client.PartnerId, Provider.Id, Constants.PartnerKeys.AleaPlayCasinoId);
+            var environmentId = CacheManager.GetGameProviderValueByKey(client.PartnerId, Provider.Id, Constants.PartnerKeys.AleaPlayEnvironment);
+            var secretKey = CacheManager.GetGameProviderValueByKey(client.PartnerId, Provider.Id, Constants.PartnerKeys.AleaPlaySecretKey);
+            var apiUrl = CacheManager.GetGameProviderValueByKey(client.PartnerId, Provider.Id, Constants.PartnerKeys.AleaPlayFSApiUrl);
+            var headers = new Dictionary<string, string>
+            {
+                { "Alea-CasinoId", casinoId },
+                { "Authorization",  $"Bearer {environmentId}"},
+                { "Digest", CommonFunctions.ComputeSha512($"{bonusId}{secretKey}")}
+            };
+            var httpRequestInput = new HttpRequestInput
+            {
+                RequestMethod = Constants.HttpRequestMethods.Delete,
+                ContentType = Constants.HttpContentTypes.ApplicationJson,
+                RequestHeaders = headers,
+                Url = $"{apiUrl}/{bonusId}"
+            };
+            CommonFunctions.SendHttpRequest(httpRequestInput, out _);
         }
     }
 }

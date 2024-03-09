@@ -23,6 +23,7 @@ namespace IqSoft.CP.DAL
         public Nullable<int> BetCount { get; set; }
         public Nullable<decimal> WageringAmount { get; set; }
         public Nullable<long> ReuseNumber { get; set; }
+        public Nullable<System.DateTime> LastActionDate { get; set; }
     
         public virtual Bonu Bonu { get; set; }
         public virtual Client Client { get; set; }

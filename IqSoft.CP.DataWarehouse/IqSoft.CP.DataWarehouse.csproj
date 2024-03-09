@@ -66,10 +66,28 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AffiliatePlatform.cs">
+      <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AffiliateReferral.cs">
+      <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
+    </Compile>
     <Compile Include="Bet.cs">
       <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
     </Compile>
+    <Compile Include="Bonu.cs">
+      <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
+    </Compile>
     <Compile Include="Client.cs">
+      <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
+    </Compile>
+    <Compile Include="ClientBonu.cs">
+      <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
+    </Compile>
+    <Compile Include="ClientSession.cs">
+      <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Currency.cs">
       <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
     </Compile>
     <Compile Include="Document.cs">
@@ -90,9 +108,6 @@
     <Compile Include="fnBetShopBet.cs">
       <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
     </Compile>
-    <Compile Include="fnClientInfoForDashboard.cs">
-      <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
-    </Compile>
     <Compile Include="fnClientReport.cs">
       <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
     </Compile>
@@ -100,9 +115,6 @@
       <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
     </Compile>
     <Compile Include="fnInternetBet.cs">
-      <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
-    </Compile>
-    <Compile Include="fnInternetBetForDashboard.cs">
       <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
     </Compile>
     <Compile Include="fnInternetGame.cs">
@@ -123,6 +135,18 @@
     <Compile Include="GameProvider.cs">
       <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
     </Compile>
+    <Compile Include="Gtd_Dashboard_Info.cs">
+      <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Gtd_Deposit_Info.cs">
+      <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Gtd_Provider_Bets.cs">
+      <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Gtd_Withdraw_Info.cs">
+      <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
+    </Compile>
     <Compile Include="Interfaces\IBase.cs" />
     <Compile Include="IqSoftDataWarehouse.Context.cs">
       <AutoGen>True</AutoGen>
@@ -139,6 +163,9 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>IqSoftDataWarehouse.edmx</DependentUpon>
     </Compile>
+    <Compile Include="JobTrigger.cs">
+      <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\BetShopBets.cs" />
     <Compile Include="Models\InternetBetsReport.cs" />
     <Compile Include="PartialClasses\Bet.cs" />
@@ -149,6 +176,12 @@
     <Compile Include="PartialClasses\fnInternetGame.cs" />
     <Compile Include="PartialClasses\fnReportByPartner.cs" />
     <Compile Include="PartialClasses\fnReportByProvider.cs" />
+    <Compile Include="Partner.cs">
+      <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
+    </Compile>
+    <Compile Include="PaymentRequest.cs">
+      <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
+    </Compile>
     <Compile Include="Product.cs">
       <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
     </Compile>

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Transactions;
 using System.Web.UI.WebControls;
 using IqSoft.CP.BLL.Caching;
 using IqSoft.CP.BLL.Helpers;
@@ -27,6 +28,7 @@ using IqSoft.CP.DataWarehouse.Filters;
 using log4net;
 using Newtonsoft.Json;
 using static IqSoft.CP.Common.Constants;
+using PaymentRequest = IqSoft.CP.DAL.PaymentRequest;
 
 namespace IqSoft.CP.BLL.Services
 {
@@ -39,11 +41,13 @@ namespace IqSoft.CP.BLL.Services
         public ReportBll(SessionIdentity identity, ILog log, int? timeout = null) : base(identity, log, timeout)
         {
             Dwh = new IqSoftDataWarehouseEntities();
+            Dwh.Database.CommandTimeout = 300;
         }
 
         public ReportBll(BaseBll baseBl) : base(baseBl)
         {
             Dwh = new IqSoftDataWarehouseEntities();
+            Dwh.Database.CommandTimeout = 300;
         }
 
         public void Dispose()
@@ -59,301 +63,6 @@ namespace IqSoft.CP.BLL.Services
         #endregion
 
         #region Dashboard And RealTime
-
-        public BetsInfo GetBetsInfoForDashboard(FilterDashboard filter)
-        {
-            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
-            {
-                Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
-            });
-
-            GetPermissionsToObject(new CheckPermissionInput
-            {
-                Permission = Constants.Permissions.ViewDashboard
-            });
-            var partnerIds = filter.PartnerId.HasValue ? new List<long> { filter.PartnerId.Value } : new List<long>();
-
-            if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.Any())
-            {
-                if (filter.PartnerId.HasValue && !partnerAccess.AccessibleObjects.Contains(filter.PartnerId.Value))
-                    throw CreateException(LanguageId, Errors.DontHavePermission);
-                if (!filter.PartnerId.HasValue)
-                    partnerIds = partnerAccess.AccessibleObjects.ToList();
-            }
-            var fDate = (long)filter.FromDate.Year * 1000000 + (long)filter.FromDate.Month * 10000 + (long)filter.FromDate.Day * 100 + (long)filter.FromDate.Hour;
-            var tDate = (long)filter.ToDate.Year * 1000000 + (long)filter.ToDate.Month * 10000 + (long)filter.ToDate.Day * 100 + (long)filter.ToDate.Hour;
-
-            var allBets = Dwh.fn_InternetBetForDashboard(fDate, tDate, !partnerIds.Any() ? null : string.Join(",", partnerIds))
-           .Select(x => new BetsInfo
-           {
-               DeviceTypeId = x.DeviceTypeId,
-               CurrencyId = x.CurrencyId,
-               TotalBetsAmount = (x.TotalBetAmount + x.BetShopTotalBetAmount) ?? 0,
-               TotalBonusBetsAmount = (x.TotalBonusBetAmount + x.BetShopTotalBonusBetAmount) ?? 0,
-               TotalWinsAmount = (x.TotalWinAmount + x.BetShopTotalWinAmount) ?? 0,
-               TotalBonusWinsAmount = (x.TotalBonusWinAmount + x.BetShopTotalBonusWinAmount) ?? 0,
-               TotalBetsCount = x.TotalCount ?? 0,
-               TotalGGR = (x.TotalBetAmount + x.BetShopTotalBetAmount - (x.TotalWinAmount + x.BetShopTotalWinAmount)) ?? 0,
-               TotalNGR = (x.TotalBetAmount + x.BetShopTotalBetAmount - (x.TotalBonusBetAmount + x.BetShopTotalBonusBetAmount) -
-                          (x.TotalWinAmount + x.BetShopTotalWinAmount - x.TotalBonusWinAmount - x.BetShopTotalBonusWinAmount)) ?? 0,
-               TotalPlayersCount = x.TotalPlayersCount ?? 0
-           }).ToList().GroupBy(x => x.DeviceTypeId).Select(x => new BetsInfo
-           {
-               DeviceTypeId = x.Key,
-               TotalBetsAmount = x.Select(s => ConvertCurrency(s.CurrencyId, CurrencyId, s.TotalBetsAmount)).DefaultIfEmpty(0).Sum(),
-               TotalBonusBetsAmount = x.Select(s => ConvertCurrency(s.CurrencyId, CurrencyId, s.TotalBonusBetsAmount)).DefaultIfEmpty(0).Sum(),
-               TotalWinsAmount = x.Select(s => ConvertCurrency(s.CurrencyId, CurrencyId, s.TotalWinsAmount)).DefaultIfEmpty(0).Sum(),
-               TotalBonusWinsAmount = x.Select(s => ConvertCurrency(s.CurrencyId, CurrencyId, s.TotalBonusWinsAmount)).DefaultIfEmpty(0).Sum(),
-               TotalBetsCount = x.Sum(s => s.TotalBetsCount),
-               TotalGGR = x.Select(s => ConvertCurrency(s.CurrencyId, CurrencyId, s.TotalGGR)).DefaultIfEmpty(0).Sum(),
-               TotalNGR = x.Select(s => ConvertCurrency(s.CurrencyId, CurrencyId, s.TotalNGR)).DefaultIfEmpty(0).Sum(),
-               TotalPlayersCount = x.Sum(s => s.TotalPlayersCount)
-           }).ToList();
-
-            return new BetsInfo
-            {
-                TotalBetsCount = allBets.Sum(x => x.TotalBetsCount),
-                TotalBetsCountFromWebSite = allBets.Where(x => x.DeviceTypeId == (int)DeviceTypes.Desktop).Sum(x => x.TotalBetsCount),
-                TotalBetsCountFromMobile = allBets.Where(x => x.DeviceTypeId == (int)DeviceTypes.Mobile).Sum(x => x.TotalBetsCount),
-                TotalBetsCountFromWap = allBets.Where(x => x.DeviceTypeId == (int)DeviceTypes.Terminal).Sum(x => x.TotalBetsCount),
-
-                TotalBetsAmount = allBets.Sum(x => x.TotalBetsAmount),
-                TotalGGR = allBets.Sum(x => x.TotalGGR),
-                TotalNGR = allBets.Sum(x => x.TotalGGR),
-
-                TotalBetsFromWebSite = allBets.Where(x => x.DeviceTypeId == (int)DeviceTypes.Desktop).Sum(x => x.TotalBetsAmount),
-                TotalBetsFromMobile = allBets.Where(x => x.DeviceTypeId == (int)DeviceTypes.Mobile).Sum(x => x.TotalBetsAmount),
-                TotalBetsFromWap = allBets.Where(x => x.DeviceTypeId == (int)DeviceTypes.Terminal).Sum(x => x.TotalBetsAmount),
-
-                TotalGGRFromWebSite = allBets.Where(x => x.DeviceTypeId == (int)DeviceTypes.Desktop).Sum(x => x.TotalGGR),
-                TotalGGRFromMobile = allBets.Where(x => x.DeviceTypeId == (int)DeviceTypes.Mobile).Sum(x => x.TotalGGR),
-                TotalGGRFromWap = allBets.Where(x => x.DeviceTypeId == (int)DeviceTypes.Terminal).Sum(x => x.TotalGGR),
-                TotalNGRFromWebSite = allBets.Where(x => x.DeviceTypeId == (int)DeviceTypes.Desktop).Sum(x => x.TotalNGR),
-                TotalNGRFromMobile = allBets.Where(x => x.DeviceTypeId == (int)DeviceTypes.Mobile).Sum(x => x.TotalNGR),
-                TotalNGRFromWap = allBets.Where(x => x.DeviceTypeId == (int)DeviceTypes.Terminal).Sum(x => x.TotalNGR),
-
-                TotalPlayersCount = allBets.Sum(x => x.TotalPlayersCount),
-                TotalPlayersCountFromWebSite = allBets.Where(x => x.DeviceTypeId == (int)DeviceTypes.Desktop).Sum(x => x.TotalPlayersCount),
-                TotalPlayersCountFromMobile = allBets.Where(x => x.DeviceTypeId == (int)DeviceTypes.Mobile).Sum(x => x.TotalPlayersCount),
-                TotalPlayersCountFromWap = allBets.Where(x => x.DeviceTypeId == (int)DeviceTypes.Terminal).Sum(x => x.TotalPlayersCount)
-            };
-        }
-
-        public List<PaymentRequestsInfo> GetPaymentRequestsForDashboard(FilterDashboard filter, int type)
-        {
-            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
-            {
-                Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
-            });
-            if (type == (int)PaymentRequestTypes.Deposit)
-                GetPermissionsToObject(new CheckPermissionInput
-                {
-                    Permission = Constants.Permissions.ViewDepositsTotals
-                });
-            else
-                GetPermissionsToObject(new CheckPermissionInput
-                {
-                    Permission = Constants.Permissions.ViewWithdrawalsTotals
-                });
-            var fDate = (long)filter.FromDate.Year * 100000000 + (long)filter.FromDate.Month * 1000000 + (long)filter.FromDate.Day * 10000 +
-                        (long)filter.FromDate.Hour * 100 + (long)filter.FromDate.Minute;
-            var tDate = (long)filter.ToDate.Year * 100000000 + (long)filter.ToDate.Month * 1000000 + (long)filter.ToDate.Day * 10000 +
-                        (long)filter.ToDate.Hour * 100 + (long)filter.ToDate.Minute;
-
-            var paymentRequestFilter = new FilterPaymentRequest
-            {
-                FromDate = fDate,
-                ToDate = tDate,
-                PartnerId = filter.PartnerId,
-                Type = type
-            };
-            paymentRequestFilter.CheckPermissionResuts = new List<CheckPermissionOutput<PaymentRequest>>
-            {
-                new CheckPermissionOutput<PaymentRequest>
-                {
-                    AccessibleObjects = partnerAccess.AccessibleObjects,
-                    HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                    Filter = x => partnerAccess.AccessibleObjects.Contains(x.Client.PartnerId)
-                }
-            };
-
-            var paymentRequests = paymentRequestFilter.FilterObjects(Db.PaymentRequests, d => d.OrderByDescending(x => x.Id)).ToList();
-            return paymentRequests.GroupBy(x => x.Status)
-                 .Select(x => new PaymentRequestsInfo
-                 {
-                     Status = x.Key,
-                     TotalPlayersCount = x.Select(y => y.ClientId).Distinct().Count(),
-                     PaymentRequests = x.GroupBy(y => y.PaymentSystemId).Select(y =>
-                      new DAL.Models.Dashboard.PaymentInfo
-                      {
-                          CurrencyId = CurrencyId,
-                          PaymentSystemId = y.Key,
-                          PaymentSystemName = CacheManager.GetPaymentSystemById(y.Key).Name,
-                          TotalAmount = y.Sum(z => ConvertCurrency(z.CurrencyId, CurrencyId, z.Amount)),
-                          TotalRequestsCount = y.Count(),
-                          TotalPlayersCount = y.Select(z => z.ClientId).Distinct().Count()
-                      }
-                     ).ToList()
-                 }).ToList();
-        }
-
-        public object GetAgentMemberPaymentsForDashboard(FilterDashboard filter)
-        {
-            var fDate = (long)filter.FromDate.Year * 1000000 + (long)filter.FromDate.Month * 10000 + (long)filter.FromDate.Day * 100 + (long)filter.FromDate.Hour;
-            var tDate = (long)filter.ToDate.Year * 1000000 + (long)filter.ToDate.Month * 10000 + (long)filter.ToDate.Day * 100 + (long)filter.ToDate.Hour;
-
-            var paymentRequestFilter = new FilterPaymentRequest
-            {
-                FromDate = fDate,
-                ToDate = tDate,
-                AgentId = Identity.Id
-            };
-
-            var user = CacheManager.GetUserById(Identity.Id);
-            if (user.Type == (int)UserTypes.AgentEmployee)
-            {
-                CheckPermission(Constants.Permissions.ViewDashboard);
-                paymentRequestFilter.AgentId = user.ParentId;
-            }
-            var query = paymentRequestFilter.FilterObjects(Db.PaymentRequests).Where(x => x.Status == (int)PaymentRequestStates.Approved ||
-                                                                                          x.Status == (int)PaymentRequestStates.ApprovedManually);
-            var firstTimeDepositors = (from c in Db.Clients
-                                       join pr in Db.PaymentRequests on c.Id equals pr.ClientId
-                                       where c.User.Path.Contains("/" + filter.AgentId + "/") &&
-                                             c.FirstDepositDate >= filter.FromDate && c.FirstDepositDate < filter.ToDate &&
-                                             pr.Type == (int)PaymentRequestTypes.Deposit &&
-                                            (pr.Status == (int)PaymentRequestStates.Approved ||pr.Status == (int)PaymentRequestStates.ApprovedManually)
-                                       group pr by pr.ClientId into grp
-                                       select new
-                                       {
-                                           ClientId = grp.Key,
-                                           FirstDeposit = grp.OrderBy(x => x.Id).FirstOrDefault()
-                                       }).ToList();
-            return new
-            {
-                FirstDepositAmount = firstTimeDepositors.Select(x => x.FirstDeposit.Amount).DefaultIfEmpty(0).Sum(),
-                FirstDepositCount = firstTimeDepositors.Count,
-                TotalDepositAmount = query.Where(x => x.Type == (int)PaymentRequestTypes.Deposit).Select(x => x.Amount).DefaultIfEmpty(0).Sum(),
-                TotalDepositsCount = query.Where(x => x.Type == (int)PaymentRequestTypes.Deposit).Count(),
-                TotalWithdrawAmount = query.Where(x => x.Type == (int)PaymentRequestTypes.Withdraw).Select(x => x.Amount).DefaultIfEmpty(0).Sum(),
-                TotalWithdrawsCount = query.Where(x => x.Type == (int)PaymentRequestTypes.Withdraw).Count()
-            };
-        }
-
-        public object GetAffiliateMemberPaymentsForDashboard(FilterDashboard filter)
-        {
-            var fDate = (long)filter.FromDate.Year * 100000000 + (long)filter.FromDate.Month * 1000000 +
-                (long)filter.FromDate.Day * 10000 + (long)filter.FromDate.Hour * 100 + (long)filter.FromDate.Minute;
-            var tDate = (long)filter.ToDate.Year * 100000000 + (long)filter.ToDate.Month * 1000000 +
-                (long)filter.ToDate.Day * 10000 + (long)filter.ToDate.Hour * 100 + (long)filter.FromDate.Minute;
-
-            var paymentRequestFilter = new FilterPaymentRequest
-            {
-                FromDate = fDate,
-                ToDate = tDate,
-                AffiliateId = Identity.Id,
-                PartnerId = Identity.PartnerId
-            };
-            var partner = CacheManager.GetPartnerById(Identity.PartnerId);
-            var query = paymentRequestFilter.FilterObjects(Db.PaymentRequests).Where(x => x.Status == (int)PaymentRequestStates.Approved ||
-                                                                                          x.Status == (int)PaymentRequestStates.ApprovedManually);
-            var firstTimeDepositors = (from c in Db.Clients
-                                       join pr in Db.PaymentRequests on c.Id equals pr.ClientId
-                                       where c.AffiliateReferral.AffiliateId == Identity.Id.ToString() && c.AffiliateReferral.AffiliatePlatformId == filter.PartnerId * 100 &&
-                                             c.AffiliateReferral.Type == (int)AffiliateReferralTypes.InternalAffiliatePlatform &&
-                                             c.FirstDepositDate >= filter.FromDate && c.FirstDepositDate < filter.ToDate &&
-                                             pr.Type == (int)PaymentRequestTypes.Deposit &&
-                                            (pr.Status == (int)PaymentRequestStates.Approved || pr.Status == (int)PaymentRequestStates.ApprovedManually)
-                                       group pr by new { pr.ClientId, pr.Client.CurrencyId, pr.Client.Currency.CurrentRate } into grp
-                                       select new
-                                       {
-                                           ClientId = grp.Key.ClientId,
-                                           CurrencyId = grp.Key.CurrencyId,
-                                           CurrencyRate = grp.Key.CurrentRate,
-                                           FirstDeposit = grp.OrderBy(x => x.Id).FirstOrDefault()
-                                       }).ToList();
-            return new
-            {
-                FirstDepositAmount = firstTimeDepositors.Select(x => ConvertCurrency(x.CurrencyId, partner.CurrencyId, x.FirstDeposit.Amount)).DefaultIfEmpty(0).Sum(),
-                FirstDepositCount = firstTimeDepositors.Count,
-                TotalDepositAmount = ConvertCurrency(Constants.DefaultCurrencyId, partner.CurrencyId,
-                    query.Where(x => x.Type == (int)PaymentRequestTypes.Deposit).Select(x => x.Amount * x.Currency.CurrentRate).DefaultIfEmpty(0).Sum()),
-                TotalDepositsCount = query.Where(x => x.Type == (int)PaymentRequestTypes.Deposit).Count(),
-                TotalWithdrawAmount = ConvertCurrency(Constants.DefaultCurrencyId, partner.CurrencyId,
-                    query.Where(x => x.Type == (int)PaymentRequestTypes.Withdraw).Select(x => x.Amount * x.Currency.CurrentRate).DefaultIfEmpty(0).Sum()),
-                TotalWithdrawsCount = query.Where(x => x.Type == (int)PaymentRequestTypes.Withdraw).Count()
-            };
-        }
-
-        public ProvidersBetsInfo GetProviderBetsForDashboard(FilterDashboard filter)
-        {
-            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
-            {
-                Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
-            });
-
-            var partnerIds = filter.PartnerId.HasValue ? new List<long> { filter.PartnerId.Value } : new List<long>();
-
-            if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.Any())
-            {
-                if (filter.PartnerId.HasValue && !partnerAccess.AccessibleObjects.Contains(filter.PartnerId.Value))
-                    throw CreateException(LanguageId, Errors.DontHavePermission);
-                if (!filter.PartnerId.HasValue)
-                    partnerIds = partnerAccess.AccessibleObjects.ToList();
-            }
-
-            GetPermissionsToObject(new CheckPermissionInput
-            {
-                Permission = Constants.Permissions.ViewDashboard
-            });
-            var fDate = filter.FromDate.Year * 1000000 + filter.FromDate.Month * 10000 + filter.FromDate.Day * 100 + filter.FromDate.Hour;
-            var tDate = filter.ToDate.Year * 1000000 + filter.ToDate.Month * 10000 + filter.ToDate.Day * 100 + filter.ToDate.Hour;
-            var allBets = Dwh.fn_InternetBetForDashboard(fDate, tDate, !partnerIds.Any() ? null : string.Join(",", partnerIds))
-                .Select(x => new ProviderBetsInfo
-                {
-                    PlayerCount = x.TotalPlayersCount ?? 0,
-                    ProviderId = x.GameProviderId ?? 0,
-                    CurrencyId = x.CurrencyId,
-                    TotalBetsAmount = (x.TotalBetAmount+x.BetShopTotalBetAmount)?? 0,
-                    TotalBonusBetsAmount = (x.TotalBonusBetAmount + x.BetShopTotalBonusBetAmount) ?? 0,
-                    TotalWinsAmount = (x.TotalWinAmount + x.BetShopTotalWinAmount) ?? 0,
-                    TotalBonusWinsAmount = (x.TotalBonusWinAmount +x.BetShopTotalBonusWinAmount) ?? 0,
-                    TotalBetsCount = x.TotalCount ?? 0,
-                    TotalGGR = (x.TotalBetAmount + x.BetShopTotalBetAmount - (x.TotalWinAmount + x.BetShopTotalWinAmount)) ?? 0,
-                    TotalNGR = (x.TotalBetAmount + x.BetShopTotalBetAmount - (x.TotalBonusBetAmount + x.BetShopTotalBonusBetAmount) -
-                               (x.TotalWinAmount + x.BetShopTotalWinAmount - x.TotalBonusWinAmount - x.BetShopTotalBonusWinAmount))?? 0,
-                    TotalBetsAmountFromInternet = x.TotalBetAmount ?? 0,
-                    TotalBetsAmountFromBetShop = x.BetShopTotalBetAmount ?? 0
-                }).ToList().GroupBy(x => x.ProviderId)
-                .Select(x => new ProviderBetsInfo
-                {
-                    PlayerCount = x.Select(s => s.TotalPlayersCount).DefaultIfEmpty(0).Sum(),
-                    ProviderId = x.Key,
-                    TotalBetsAmount = x.Select(s => ConvertCurrency(s.CurrencyId, CurrencyId, s.TotalBetsAmount)).DefaultIfEmpty(0).Sum(),
-                    TotalBonusBetsAmount = x.Select(s => ConvertCurrency(s.CurrencyId, CurrencyId, s.TotalBonusBetsAmount)).DefaultIfEmpty(0).Sum(),
-                    TotalWinsAmount = x.Select(s => ConvertCurrency(s.CurrencyId, CurrencyId, s.TotalWinsAmount)).DefaultIfEmpty(0).Sum(),
-                    TotalBonusWinsAmount =  x.Select(s => ConvertCurrency(s.CurrencyId, CurrencyId, s.TotalBonusWinsAmount)).DefaultIfEmpty(0).Sum(),
-                    TotalBetsCount = x.Select(s => s.TotalBetsCount).DefaultIfEmpty(0).Sum(),
-                    TotalGGR = x.Select(s => ConvertCurrency(s.CurrencyId, CurrencyId, s.TotalGGR)).DefaultIfEmpty(0).Sum(),
-                    TotalNGR = x.Select(s => ConvertCurrency(s.CurrencyId, CurrencyId, s.TotalNGR)).DefaultIfEmpty(0).Sum(),
-                    TotalBetsAmountFromInternet =x.Select(s => ConvertCurrency(s.CurrencyId, CurrencyId, s.TotalBetsAmountFromInternet)).DefaultIfEmpty(0).Sum(),
-                    TotalBetsAmountFromBetShop = x.Select(s => ConvertCurrency(s.CurrencyId, CurrencyId, s.TotalBetsAmountFromBetShop)).DefaultIfEmpty(0).Sum()
-                }).ToList();
-            return new ProvidersBetsInfo
-            {
-                TotalPlayersCount = allBets.Sum(x => x.PlayerCount),
-                TotalBetsAmount = allBets.Sum(x => x.TotalBetsAmount),
-                TotalBonusBetsAmount = allBets.Sum(x => x.TotalBonusBetsAmount),
-                TotalWinsAmount = allBets.Sum(x =>  x.TotalWinsAmount),
-                TotalBonusWinsAmount = allBets.Sum(x =>  x.TotalBonusWinsAmount),
-                TotalGGR = allBets.Sum(x => x.TotalGGR),
-                TotalNGR = allBets.Sum(x =>  x.TotalNGR),
-                Bets = allBets
-            };
-        }
 
         public PlayersInfo GetPlayersInfoForDashboard(FilterDashboard filter)
         {
@@ -374,98 +83,477 @@ namespace IqSoft.CP.BLL.Services
                 ObjectTypeId = ObjectTypes.ClientCategory
             });
 
-            var partnerId = filter.PartnerId;
+            var partnerIds = filter.PartnerId.HasValue ? new List<long> { filter.PartnerId.Value } : new List<long>();
             if (!partnerAccess.HaveAccessForAllObjects)
             {
-                if (partnerAccess.AccessibleObjects.Any())
-                    partnerId = Convert.ToInt32(partnerAccess.AccessibleObjects.First());
-                else
-                    partnerId = -1;
+                if (filter.PartnerId != null && !partnerAccess.AccessibleObjects.Contains(filter.PartnerId.Value))
+                    throw CreateException(LanguageId, Errors.DontHavePermission);
+
+                if (!partnerIds.Any())
+                {
+                    if (partnerAccess.AccessibleObjects.Any())
+                        partnerIds = partnerAccess.AccessibleObjects.ToList();
+                    else
+                        partnerIds = new List<long> { -1 };
+                }
             }
-            var fDate = (long)filter.FromDate.Year * 1000000 + (long)filter.FromDate.Month * 10000 + (long)filter.FromDate.Day * 100 + (long)filter.FromDate.Hour;
-            var tDate = (long)filter.ToDate.Year * 1000000 + (long)filter.ToDate.Month * 10000 + (long)filter.ToDate.Day * 100 + (long)filter.ToDate.Hour;
+            var q = Dwh.Gtd_Dashboard_Info.Where(x => x.Date >= filter.FromDay && x.Date < filter.ToDay);
+            if (partnerIds.Any())
+                q = q.Where(x => partnerIds.Contains(x.PartnerId));
 
-            var signUpsCountQuery = Db.Clients.Where(c => c.CreationTime >= filter.FromDate && c.CreationTime < filter.ToDate);
-            var visitorsCountQuery = Db.ClientSessions.Where(s => s.StartTime >= filter.FromDate && s.StartTime < filter.ToDate && s.ProductId == Constants.PlatformProductId);
-            var returnsCountQuery = Db.ClientSessions.Where(s => s.StartTime >= filter.FromDate && s.StartTime < filter.ToDate &&
-                s.ProductId == Constants.PlatformProductId && s.Client.CreationTime < filter.FromDate);
-            var cilents = Db.Clients.AsQueryable();
-
-            if (partnerId != null)
+            var info = q.GroupBy(x => 1).Select(x => new PlayersInfo
             {
-                signUpsCountQuery = signUpsCountQuery.Where(c => c.PartnerId == partnerId.Value);
-                visitorsCountQuery = visitorsCountQuery.Where(s => s.Client.PartnerId == partnerId.Value);
-                returnsCountQuery = returnsCountQuery.Where(s => s.Client.PartnerId == partnerId.Value);
-                cilents = cilents.Where(x => x.PartnerId == partnerId.Value);
-            }
-            var signUpsCount = signUpsCountQuery.Count();
-            var visitorsCount = visitorsCountQuery.Select(s => s.ClientId).Distinct().Count();
-            var returnsCount = returnsCountQuery.Select(s => s.ClientId).Distinct().Count();
+                VisitorsCount = x.Sum(y => y.VisitorsCount),
+                SignUpsCount = x.Sum(y => y.SignUpsCount),
+                TotalPlayersCount = x.Sum(y => y.TotalPlayersCount),
+                ReturnsCount = x.Sum(y => y.ReturnsCount),
+                DepositsCount = x.Sum(y => y.DepositsCount),
+                TotalBetsCount = x.Sum(y => y.BetsCount),
+                TotalBetAmount = x.Sum(y => y.BetAmount),
+                TotalBonusAmount = x.Sum(y => y.BonusAmount),
+                TotalCashoutAmount = x.Sum(y => y.CashoutAmount),
+                MaxBet = x.Max(y => y.MaxBet),
+                MaxWin = x.Max(y => y.MaxWin)
+            }).FirstOrDefault();
+            if (info == null)
+                return new PlayersInfo();
+
+            info.AverageBet = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, info.TotalBetsCount == 0 ? 0 : info.TotalBetAmount / info.TotalBetsCount);
+            info.MaxBet = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, info.MaxBet);
+            info.MaxWin = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, info.MaxWin);
+            info.TotalBonusAmount = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, info.TotalBonusAmount);
+            info.TotalBetAmount = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, info.TotalBetAmount);
+            info.TotalCashoutAmount = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, info.TotalCashoutAmount);
             
-            var internetBets = Dwh.fn_ClientInfoForDashboard(fDate, tDate, partnerId ?? 0).Select(x => new
+            info.DailyInfo = q.GroupBy(x => x.Date).Select(x => new PlayersDailyInfo
             {
-                x.CurrencyId,
-                x.MaxBet,
-                x.MaxWin,
-                x.TotalBetAmount,
-                x.TotalBetCount,
-                x.CashoutAmount
+                LongDate = x.Key,
+                VisitorsCount = x.Sum(y => y.VisitorsCount),
+                SignUpsCount = x.Sum(y => y.SignUpsCount),
+                TotalPlayersCount = x.Sum(y => y.TotalPlayersCount),
+                ReturnsCount = x.Sum(y => y.ReturnsCount),
+                DepositsCount = x.Sum(y => y.DepositsCount),
+                TotalBetsCount = x.Sum(y => y.BetsCount),
+                TotalBetAmount = x.Sum(y => y.BetAmount),
+                TotalBonusAmount = x.Sum(y => y.BonusAmount),
+                TotalCashoutAmount = x.Sum(y => y.CashoutAmount),
+                MaxBet = x.Max(y => y.MaxBet),
+                MaxWin = x.Max(y => y.MaxWin)
             }).ToList();
-            var maximumWin = internetBets.Any() ? internetBets.Max(x => ConvertCurrency(x.CurrencyId, CurrencyId, x.MaxWin ?? 0)) : 0;
-            var totalBetAmount = internetBets.Sum(x => ConvertCurrency(x.CurrencyId, CurrencyId, x.TotalBetAmount ?? 0));
-            var clientBonusQuery = Db.ClientBonus.Where(x => x.CreationTime > filter.FromDate && x.CreationTime <= filter.ToDate);
-            if (partnerId.HasValue)
-               clientBonusQuery = clientBonusQuery.Where(x => x.Client.PartnerId == partnerId.Value);
-            return new PlayersInfo
+            var totalDays = (filter.ToDate - filter.FromDate).TotalDays;
+            for (int i = 0; i < totalDays; i++)
             {
-                AverageBet = internetBets.Any() ? totalBetAmount / internetBets.Sum(x => x.TotalBetCount ?? 0) : 0,
-                MaxBet = internetBets.Any() ? internetBets.Max(x => ConvertCurrency(x.CurrencyId, CurrencyId, x.MaxBet ?? 0)) : 0,
-                MaxWin = maximumWin,
-                MaxWinBet = 0,
-                TotalBonusAmount = clientBonusQuery.Select(x => x.BonusPrize).DefaultIfEmpty(0).Sum(),
-                TotalBetAmount = totalBetAmount,
-                SignUpsCount = signUpsCount,
-                VisitorsCount = visitorsCount,
-                ReturnsCount = returnsCount,
-                TotalPlayersCount = cilents.Count(),
-                TotalCashoutAmount = internetBets.Any() ? internetBets.Max(x => ConvertCurrency(x.CurrencyId, CurrencyId, x.CashoutAmount ?? 0)) : 0,
-            };
+                var date = filter.FromDate.AddDays(i);
+                var day = (long)date.Year * 10000 + (long)date.Month * 100 + (long)date.Day;
+                if(!info.DailyInfo.Any(x => x.LongDate == day))
+                {
+                    info.DailyInfo.Add(new PlayersDailyInfo { LongDate = day });
+                }
+            }
+            info.DailyInfo = info.DailyInfo.OrderBy(x => x.LongDate).ToList();
+            foreach (var di in info.DailyInfo)
+            {
+                di.Date = new DateTime((int)(di.LongDate / 10000), (int)((di.LongDate % 10000) / 100), (int)(di.LongDate % 100));
+                di.AverageBet = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, di.TotalBetsCount == 0 ? 0 : di.TotalBetAmount / di.TotalBetsCount);
+                di.MaxBet = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, di.MaxBet);
+                di.MaxWin = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, di.MaxWin);
+                di.TotalBonusAmount = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, di.TotalBonusAmount);
+                di.TotalBetAmount = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, di.TotalBetAmount);
+                di.TotalCashoutAmount = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, di.TotalCashoutAmount);
+            }
+            return info;
         }
 
-        public object GetAgentMembersInfoForDashboard(FilterDashboard filter)
+        public BetsInfo GetBetsInfoForDashboard(FilterDashboard filter)
         {
-            filter.AgentId = Identity.Id;
-            var user = CacheManager.GetUserById(Identity.Id);
-            if (user.Type == (int)UserTypes.AgentEmployee)
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
-                CheckPermission(Constants.Permissions.ViewDashboard);
-                filter.AgentId = user.ParentId;
+                Permission = Constants.Permissions.ViewPartner,
+                ObjectTypeId = ObjectTypes.Partner
+            });
+
+            GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewDashboard
+            });
+
+            var partnerIds = filter.PartnerId.HasValue ? new List<long> { filter.PartnerId.Value } : new List<long>();
+            if (!partnerAccess.HaveAccessForAllObjects)
+            {
+                if (filter.PartnerId != null && !partnerAccess.AccessibleObjects.Contains(filter.PartnerId.Value))
+                    throw CreateException(LanguageId, Errors.DontHavePermission);
+
+                if (!partnerIds.Any())
+                {
+                    if (partnerAccess.AccessibleObjects.Any())
+                        partnerIds = partnerAccess.AccessibleObjects.ToList();
+                    else
+                        partnerIds = new List<long> { -1 };
+                }
             }
 
-            var fDate = (long)filter.FromDate.Year * 1000000 + (long)filter.FromDate.Month * 10000 + (long)filter.FromDate.Day * 100 + (long)filter.FromDate.Hour;
-            var tDate = (long)filter.ToDate.Year * 1000000 + (long)filter.ToDate.Month * 10000 + (long)filter.ToDate.Day * 100 + (long)filter.ToDate.Hour;
-
-            var signUpsCount = Db.Clients.Count(c => c.CreationTime >= filter.FromDate && c.CreationTime < filter.ToDate && c.User.Path.Contains("/" + filter.AgentId + "/"));
-
-            return new
+            var q = Dwh.Gtd_Dashboard_Info.Where(x => x.Date >= filter.FromDay && x.Date < filter.ToDay);
+            if (partnerIds.Any())
+                q = q.Where(x => partnerIds.Contains(x.PartnerId));
+            var info = q.GroupBy(x => 1).Select(b => new BetsInfo
             {
-                ClientsCount = signUpsCount
+                TotalBetsCount = b.Sum(x => x.BetsCount),
+                TotalBetsCountFromWebSite = b.Sum(x => x.DesktopBetsCount),
+                TotalBetsCountFromMobile = b.Sum(x => x.MobileBetsCount),
+                TotalBetsCountFromTablet = b.Sum(x => x.TabletBetsCount),
+
+                TotalBetsAmount = b.Sum(x => x.BetAmount),
+                TotalBetsFromWebSite = b.Sum(x => x.DesktopBetAmount),
+                TotalBetsFromMobile = b.Sum(x => x.MobileBetAmount),
+                TotalBetsFromTablet = b.Sum(x => x.TabletBetAmount),
+
+                TotalGGR = b.Sum(x => x.GGR),
+                TotalGGRFromWebSite = b.Sum(x => x.DesktopGGR),
+                TotalGGRFromMobile = b.Sum(x => x.MobileGGR),
+                TotalGGRFromTablet = b.Sum(x => x.TabletGGR),
+
+                TotalNGR = b.Sum(x => x.NGR),
+                TotalNGRFromWebSite = b.Sum(x => x.DesktopNGR),
+                TotalNGRFromMobile = b.Sum(x => x.MobileNGR),
+                TotalNGRFromTablet = b.Sum(x => x.TabletNGR),
+
+                TotalPlayersCount = b.Sum(x => x.PlayersCount),
+                TotalPlayersCountFromWebSite = b.Sum(x => x.DesktopPlayersCount),
+                TotalPlayersCountFromMobile = b.Sum(x => x.MobilePlayersCount),
+                TotalPlayersCountFromTablet = b.Sum(x => x.TabletPlayersCount)
+            }).FirstOrDefault();
+            if (info == null)
+                return new BetsInfo();
+
+            info.TotalBetsAmount = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, info.TotalBetsAmount);
+            info.TotalBetsFromWebSite = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, info.TotalBetsFromWebSite);
+            info.TotalBetsFromMobile = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, info.TotalBetsFromMobile);
+            info.TotalBetsFromTablet = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, info.TotalBetsFromTablet);
+            info.TotalGGR = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, info.TotalGGR);
+            info.TotalGGRFromWebSite = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, info.TotalGGRFromWebSite);
+            info.TotalGGRFromMobile = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, info.TotalGGRFromMobile);
+            info.TotalGGRFromTablet = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, info.TotalGGRFromTablet);
+            info.TotalNGR = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, info.TotalNGR);
+            info.TotalNGRFromWebSite = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, info.TotalNGRFromWebSite);
+            info.TotalNGRFromMobile = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, info.TotalNGRFromMobile);
+            info.TotalNGRFromTablet = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, info.TotalNGRFromTablet);
+
+            info.DailyInfo = q.GroupBy(x => x.Date).Select(b => new BetsDailyInfo
+            {
+                LongDate = b.Key,
+                TotalBetsCount = b.Sum(x => x.BetsCount),
+                TotalBetsCountFromWebSite = b.Sum(x => x.DesktopBetsCount),
+                TotalBetsCountFromMobile = b.Sum(x => x.MobileBetsCount),
+                TotalBetsCountFromTablet = b.Sum(x => x.TabletBetsCount),
+
+                TotalBetsAmount = b.Sum(x => x.BetAmount),
+                TotalBetsFromWebSite = b.Sum(x => x.DesktopBetAmount),
+                TotalBetsFromMobile = b.Sum(x => x.MobileBetAmount),
+                TotalBetsFromTablet = b.Sum(x => x.TabletBetAmount),
+
+                TotalGGR = b.Sum(x => x.GGR),
+                TotalGGRFromWebSite = b.Sum(x => x.DesktopGGR),
+                TotalGGRFromMobile = b.Sum(x => x.MobileGGR),
+                TotalGGRFromTablet = b.Sum(x => x.TabletGGR),
+
+                TotalNGR = b.Sum(x => x.NGR),
+                TotalNGRFromWebSite = b.Sum(x => x.DesktopNGR),
+                TotalNGRFromMobile = b.Sum(x => x.MobileNGR),
+                TotalNGRFromTablet = b.Sum(x => x.TabletNGR),
+
+                TotalPlayersCount = b.Sum(x => x.PlayersCount),
+                TotalPlayersCountFromWebSite = b.Sum(x => x.DesktopPlayersCount),
+                TotalPlayersCountFromMobile = b.Sum(x => x.MobilePlayersCount),
+                TotalPlayersCountFromTablet = b.Sum(x => x.TabletPlayersCount)
+            }).ToList();
+            var totalDays = (filter.ToDate - filter.FromDate).TotalDays;
+            for (int i = 0; i < totalDays; i++)
+            {
+                var date = filter.FromDate.AddDays(i);
+                var day = (long)date.Year * 10000 + (long)date.Month * 100 + (long)date.Day;
+                if (!info.DailyInfo.Any(x => x.LongDate == day))
+                {
+                    info.DailyInfo.Add(new BetsDailyInfo { LongDate = day });
+                }
+            }
+            info.DailyInfo = info.DailyInfo.OrderBy(x => x.LongDate).ToList();
+            foreach (var di in info.DailyInfo)
+            {
+                di.Date = new DateTime((int)(di.LongDate / 10000), (int)((di.LongDate % 10000) / 100), (int)(di.LongDate % 100));
+                di.TotalBetsAmount = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, di.TotalBetsAmount);
+                di.TotalBetsFromWebSite = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, di.TotalBetsFromWebSite);
+                di.TotalBetsFromMobile = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, di.TotalBetsFromMobile);
+                di.TotalBetsFromTablet = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, di.TotalBetsFromTablet);
+                di.TotalGGR = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, di.TotalGGR);
+                di.TotalGGRFromWebSite = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, di.TotalGGRFromWebSite);
+                di.TotalGGRFromMobile = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, di.TotalGGRFromMobile);
+                di.TotalGGRFromTablet = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, di.TotalGGRFromTablet);
+                di.TotalNGR = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, di.TotalNGR);
+                di.TotalNGRFromWebSite = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, di.TotalNGRFromWebSite);
+                di.TotalNGRFromMobile = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, di.TotalNGRFromMobile);
+                di.TotalNGRFromTablet = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, di.TotalNGRFromTablet);
+            }
+
+            return info;
+        }
+
+        public ProvidersBetsInfo GetProviderBetsForDashboard(FilterDashboard filter)
+        {
+            GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewDashboard
+            });
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewPartner,
+                ObjectTypeId = ObjectTypes.Partner
+            });
+
+            var partnerIds = filter.PartnerId.HasValue ? new List<long> { filter.PartnerId.Value } : new List<long>();
+            if (!partnerAccess.HaveAccessForAllObjects)
+            {
+                if (filter.PartnerId != null && !partnerAccess.AccessibleObjects.Contains(filter.PartnerId.Value))
+                    throw CreateException(LanguageId, Errors.DontHavePermission);
+
+                if (!partnerIds.Any())
+                {
+                    if (partnerAccess.AccessibleObjects.Any())
+                        partnerIds = partnerAccess.AccessibleObjects.ToList();
+                    else
+                        partnerIds = new List<long> { -1 };
+                }
+            }
+
+            var q = Dwh.Gtd_Provider_Bets.Where(x => x.Date >= filter.FromDay && x.Date < filter.ToDay);
+            if (partnerIds.Any())
+                q = q.Where(x => partnerIds.Contains(x.PartnerId));
+
+            
+            
+            var dailyInfo = q.GroupBy(x => new { x.GameProviderId, x.SubProviderId, x.Date }).Select(x => new ProviderDailyInfo
+            {
+                LongDate = x.Key.Date,
+                GameProviderId = x.Key.GameProviderId,
+                SubProviderId = x.Key.SubProviderId,
+                TotalBetsAmount = x.Sum(y => y.BetAmount),
+                TotalWinsAmount = x.Sum(y => y.WinAmount),
+                TotalGGR = x.Sum(y => y.GGR),
+                TotalNGR = x.Sum(y => y.NGR),
+                TotalBetsCount = x.Sum(y => y.BetsCount),
+                TotalPlayersCount = x.Sum(y => y.PlayersCount),
+            }).ToList();
+
+            var info = dailyInfo.GroupBy(x => new { x.GameProviderId, x.SubProviderId }).Select(x => new ProviderBetsInfo
+            {
+                GameProviderId = x.Key.GameProviderId,
+                SubProviderId = x.Key.SubProviderId,
+                TotalBetsAmount = x.Sum(y => y.TotalBetsAmount),
+                TotalWinsAmount = x.Sum(y => y.TotalWinsAmount),
+                TotalGGR = x.Sum(y => y.TotalGGR),
+                TotalNGR = x.Sum(y => y.TotalNGR),
+                TotalBetsCount = x.Sum(y => y.TotalBetsCount),
+                TotalPlayersCount = x.Sum(y => y.TotalPlayersCount)
+            }).ToList();
+
+            var totalDays = (filter.ToDate - filter.FromDate).TotalDays;
+            foreach (var inf in info)
+            {
+                for (int i = 0; i < totalDays; i++)
+                {
+                    var date = filter.FromDate.AddDays(i);
+                    var day = (long)date.Year * 10000 + (long)date.Month * 100 + (long)date.Day;
+                    if (!dailyInfo.Any(x => x.GameProviderId == inf.GameProviderId && x.SubProviderId == inf.SubProviderId && x.LongDate == day))
+                    {
+                        dailyInfo.Add(new ProviderDailyInfo { GameProviderId = inf.GameProviderId, SubProviderId = inf.SubProviderId, LongDate = day });
+                    }
+                }
+            }
+
+            foreach (var i in dailyInfo)
+            {
+                i.Date = new DateTime((int)(i.LongDate / 10000), (int)((i.LongDate % 10000) / 100), (int)(i.LongDate % 100));
+                i.GameProviderName = CacheManager.GetGameProviderById(i.GameProviderId).Name;
+                i.SubProviderName = CacheManager.GetGameProviderById(i.SubProviderId).Name;
+                i.TotalBetsAmount = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, i.TotalBetsAmount);
+                i.TotalWinsAmount = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, i.TotalWinsAmount);
+                i.TotalGGR = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, i.TotalGGR);
+                i.TotalNGR = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, i.TotalNGR);
+            }
+
+            foreach (var i in info)
+            {
+                i.GameProviderName = CacheManager.GetGameProviderById(i.GameProviderId).Name;
+                i.SubProviderName = CacheManager.GetGameProviderById(i.SubProviderId).Name;
+                i.TotalBetsAmount = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, i.TotalBetsAmount);
+                i.TotalWinsAmount = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, i.TotalWinsAmount);
+                i.TotalGGR = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, i.TotalGGR);
+                i.TotalNGR = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, i.TotalNGR);
+
+                i.DailyInfo = dailyInfo.Where(x => x.GameProviderId == i.GameProviderId && x.SubProviderId == i.SubProviderId).OrderBy(x => x.LongDate).ToList();
+            }
+
+            return new ProvidersBetsInfo
+            {
+                TotalPlayersCount = info.Sum(x => x.TotalPlayersCount),
+                TotalBetsAmount = info.Sum(x => x.TotalBetsAmount),
+                TotalWinsAmount = info.Sum(x => x.TotalWinsAmount),
+                TotalGGR = info.Sum(x => x.TotalGGR),
+                TotalNGR = info.Sum(x => x.TotalNGR),
+                Bets = info
             };
         }
 
-        public object GetAffiliateMembersInfoForDashboard(FilterDashboard filter)
+        public List<PaymentRequestsInfo> GetPaymentRequestsForDashboard(FilterDashboard filter, int type)
         {
-            var fDate = (long)filter.FromDate.Year * 1000000 + (long)filter.FromDate.Month * 10000 + (long)filter.FromDate.Day * 100 + (long)filter.FromDate.Hour;
-            var tDate = (long)filter.ToDate.Year * 1000000 + (long)filter.ToDate.Month * 10000 + (long)filter.ToDate.Day * 100 + (long)filter.ToDate.Hour;
-
-            var signUpsCount = Db.Clients.Count(c => c.CreationTime >= filter.FromDate && c.CreationTime < filter.ToDate &&
-                c.AffiliateReferral.AffiliateId == Identity.Id.ToString() && c.AffiliateReferral.AffiliatePlatformId == filter.PartnerId * 100 &&
-                c.AffiliateReferral.Type == (int)AffiliateReferralTypes.InternalAffiliatePlatform);
-
-            return new
+            var result = new List<PaymentRequestsInfo>();
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
-                ClientsCount = signUpsCount
-            };
+                Permission = Constants.Permissions.ViewPartner,
+                ObjectTypeId = ObjectTypes.Partner
+            });
+            if (type == (int)PaymentRequestTypes.Deposit)
+                GetPermissionsToObject(new CheckPermissionInput
+                {
+                    Permission = Constants.Permissions.ViewDepositsTotals
+                });
+            else
+                GetPermissionsToObject(new CheckPermissionInput
+                {
+                    Permission = Constants.Permissions.ViewWithdrawalsTotals
+                });
+            var partnerIds = filter.PartnerId.HasValue ? new List<long> { filter.PartnerId.Value } : new List<long>();
+            if (!partnerAccess.HaveAccessForAllObjects)
+            {
+                if (filter.PartnerId != null && !partnerAccess.AccessibleObjects.Contains(filter.PartnerId.Value))
+                    throw CreateException(LanguageId, Errors.DontHavePermission);
+
+                if (!partnerIds.Any())
+                {
+                    if (partnerAccess.AccessibleObjects.Any())
+                        partnerIds = partnerAccess.AccessibleObjects.ToList();
+                    else
+                        partnerIds = new List<long> { -1 };
+                }
+            }
+
+            if (type == (int)PaymentRequestTypes.Deposit)
+            {
+                var q = Dwh.Gtd_Deposit_Info.Where(x => x.Date >= filter.FromDay && x.Date < filter.ToDay);
+                if (partnerIds.Any())
+                    q = q.Where(x => partnerIds.Contains(x.PartnerId));
+
+                result = q.GroupBy(x => x.Status).Select(x => new PaymentRequestsInfo
+                {
+                    Status = x.Key,
+                    TotalPlayersCount = x.Sum(y => y.PlayersCount),
+                    TotalAmount = x.Sum(y => y.TotalAmount),
+                    DailyInfo = x.GroupBy(y => y.Date).Select(y =>
+                        new PaymentDailyInfo
+                        {
+                            LongDate = y.Key,
+                            TotalAmount = y.Sum(z => z.TotalAmount),
+                            TotalRequestsCount = y.Sum(z => z.RequestsCount),
+                            TotalPlayersCount = y.Sum(z => z.PlayersCount)
+                        }).ToList(),
+                    PaymentRequests = x.GroupBy(y => y.PaymentSystemId).Select(y =>
+                        new DAL.Models.Dashboard.PaymentInfo
+                        {
+                            PaymentSystemId = y.Key,
+                            TotalAmount = y.Sum(z => z.TotalAmount),
+                            TotalRequestsCount = y.Sum(z => z.RequestsCount),
+                            TotalPlayersCount = y.Sum(z => z.PlayersCount),
+                            DailyInfo = y.GroupBy(z => z.Date).Select(z =>
+                               new PaymentDailyInfo
+                               {
+                                   LongDate = z.Key,
+                                   TotalAmount = z.Sum(k => k.TotalAmount),
+                                   TotalRequestsCount = z.Sum(k => k.RequestsCount),
+                                   TotalPlayersCount = z.Sum(k => k.PlayersCount)
+                               }).ToList()
+                        }).ToList()
+                }).ToList();
+            }
+            else
+            {
+                var q = Dwh.Gtd_Withdraw_Info.Where(x => x.Date >= filter.FromDay && x.Date < filter.ToDay);
+                if (partnerIds.Any())
+                    q = q.Where(x => partnerIds.Contains(x.PartnerId));
+
+                result = q.GroupBy(x => x.Status).Select(x => new PaymentRequestsInfo
+                {
+                    Status = x.Key,
+                    TotalPlayersCount = x.Sum(y => y.PlayersCount),
+                    TotalAmount = x.Sum(y => y.TotalAmount),
+                    DailyInfo = x.GroupBy(y => y.Date).Select(y =>
+                        new PaymentDailyInfo
+                        {
+                            LongDate = y.Key,
+                            TotalAmount = y.Sum(z => z.TotalAmount),
+                            TotalRequestsCount = y.Sum(z => z.RequestsCount),
+                            TotalPlayersCount = y.Sum(z => z.PlayersCount)
+                        }).ToList(),
+                    PaymentRequests = x.GroupBy(y => y.PaymentSystemId).Select(y =>
+                        new DAL.Models.Dashboard.PaymentInfo
+                        {
+                            PaymentSystemId = y.Key,
+                            TotalAmount = y.Sum(z => z.TotalAmount),
+                            TotalRequestsCount = y.Sum(z => z.RequestsCount),
+                            TotalPlayersCount = y.Sum(z => z.PlayersCount),
+                            DailyInfo = y.GroupBy(z => z.Date).Select(z =>
+                               new PaymentDailyInfo
+                               {
+                                   LongDate = z.Key,
+                                   TotalAmount = z.Sum(k => k.TotalAmount),
+                                   TotalRequestsCount = z.Sum(k => k.RequestsCount),
+                                   TotalPlayersCount = z.Sum(k => k.PlayersCount)
+                               }).ToList()
+                        }).ToList()
+                }).ToList();
+            }
+            var totalDays = (filter.ToDate - filter.FromDate).TotalDays;
+            foreach (var r in result)
+            {
+                for (int i = 0; i < totalDays; i++)
+                {
+                    var date = filter.FromDate.AddDays(i);
+                    var day = (long)date.Year * 10000 + (long)date.Month * 100 + (long)date.Day;
+                    var di = r.DailyInfo.FirstOrDefault(x => x.LongDate == day);
+                    if (di == null)
+                    {
+                        r.DailyInfo.Add(new PaymentDailyInfo { LongDate = day, Date = new DateTime(date.Year, date.Month, date.Day) });
+                    }
+                    else
+                    {
+                        di.Date = new DateTime(date.Year, date.Month, date.Day);
+                        di.TotalAmount = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, di.TotalAmount);
+                    }
+                }
+                r.TotalAmount = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, r.TotalAmount);
+                r.DailyInfo = r.DailyInfo.OrderBy(x => x.LongDate).ToList();
+                foreach (var pr in r.PaymentRequests)
+                {
+                    pr.PaymentSystemName = CacheManager.GetPaymentSystemById(pr.PaymentSystemId).Name;
+                    pr.TotalAmount = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, pr.TotalAmount);
+                    for (int i = 0; i < totalDays; i++)
+                    {
+                        var date = filter.FromDate.AddDays(i);
+                        var day = (long)date.Year * 10000 + (long)date.Month * 100 + (long)date.Day;
+                        var di = pr.DailyInfo.FirstOrDefault(x => x.LongDate == day);
+                        if (di == null)
+                        {
+                            pr.DailyInfo.Add(new PaymentDailyInfo { LongDate = day, Date = new DateTime(date.Year, date.Month, date.Day) });
+                        }
+                        else
+                        {
+                            di.Date = new DateTime(date.Year, date.Month, date.Day);
+                            di.TotalAmount = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, di.TotalAmount);
+                        }
+                    }
+                    pr.DailyInfo = pr.DailyInfo.OrderBy(x => x.LongDate).ToList();
+                }
+            }
+
+            return result;
         }
 
         public RealTimeInfo GetOnlineClients(FilterRealTime input)
@@ -1119,22 +1207,20 @@ namespace IqSoft.CP.BLL.Services
             else
                 orderBy = clients => clients.OrderByDescending(x => x.BetDocumentId);
 
-
-            var totalBets = (from ib in filter.FilterObjects(Dwh.fn_InternetBet())
-                             group ib by ib.CurrencyId into bets
-                             select new
-                             {
-                                 CurrencyId = bets.Key,
-                                 TotalBetsAmount = bets.Sum(b => b.BetAmount),
-                                 TotalBetsCount = bets.Count(),
-                                 TotalWinsAmount = bets.Sum(b => b.WinAmount),
-                                 TotalProfit = bets.Sum(b => b.BetAmount - b.WinAmount),
-                                 TotalPossibleWinsAmount = bets.Sum(b => b.PossibleWin)
-                             }).ToList();
-
-            var entries = filter.FilterObjects(Dwh.fn_InternetBet(), orderBy).ToList();
+            var query = Dwh.fn_InternetBet();
+            filter.CreateQuery(ref query);
+            var totalBets = query.AsNoTracking().GroupBy(x => x.CurrencyId).Select(x => new TotalValues
+            {
+                CurrencyId = x.Key,
+                TotalBetsAmount = x.Sum(b => b.BetAmount),
+                TotalBetsCount = x.Sum(b => 1),
+                TotalWinsAmount = x.Sum(b => b.WinAmount),
+                TotalPossibleWinsAmount = x.Sum(b => b.PossibleWin)
+            }).ToList();
+            query = Dwh.fn_InternetBet();
+            filter.CreateQuery(ref query, orderBy);
+            var entries = query.AsNoTracking().ToList();
             var convertCurrency = !string.IsNullOrEmpty(currencyId) ? currencyId : CurrencyId;
-
             foreach (var entry in entries)
             {
                 entry.OriginalBetAmount = Math.Round(entry.BetAmount, 2);
@@ -1160,6 +1246,7 @@ namespace IqSoft.CP.BLL.Services
                 TotalProductsCount = 0
             };
             response.TotalGGR = response.TotalBetAmount - response.TotalWinAmount;
+
             return response;
         }
 
@@ -1481,7 +1568,6 @@ namespace IqSoft.CP.BLL.Services
                     SupplierFee = (ba - wa) * (pps ?? 0) / 100,
                     OriginalBetAmount = e.BetAmount ?? 0,
                     OriginalWinAmount = e.WinAmount ?? 0
-                   
                 });
             }
             var result = new InternetGames
@@ -2729,7 +2815,11 @@ namespace IqSoft.CP.BLL.Services
 
             filter.TakeCount = 0;
             filter.SkipCount = 0;
-            var result = filter.FilterObjects(Dwh.fn_InternetBet(), d => d.OrderByDescending(x => x.BetDocumentId)).ToList();
+
+            var query = Dwh.fn_InternetBet();
+            filter.CreateQuery(ref query, d => d.OrderByDescending(x => x.BetDocumentId));
+
+            var result = query.ToList();
             foreach (var r in result)
             {
                 r.OriginalBetAmount = Math.Round(r.BetAmount, 2);
@@ -3652,20 +3742,23 @@ namespace IqSoft.CP.BLL.Services
                 orderBy = QueryableUtilsHelper.OrderByFunc<fnClientBonus>(filter.FieldNameToOrderBy, filter.OrderBy.Value);
             else
                 orderBy = clientBonuses => clientBonuses.OrderByDescending(x => x.BonusId);
-            var res = new PagedModel<fnClientBonus>
-            {
-                Entities = filter.FilterObjects(Db.fn_ClientBonus(LanguageId), orderBy).ToList(),
-                Count = filter.SelectedObjectsCount(Db.fn_ClientBonus(LanguageId)),
-            };
-            var totalPrize = res.Entities.Sum(x => x.BonusPrize);
-            var totalFinalAmount = res.Entities.Sum(x => x.FinalAmount ?? 0);
+            
+            var totals = (from b in filter.FilterObjects(Db.fn_ClientBonus(LanguageId))
+                          group b by b.CurrencyId into bonuses
+                          select new
+                          {
+                              CurrencyId = bonuses.Key,
+                              TotalPrize = bonuses.Sum(b => b.BonusPrize),
+                              TotalFinalAmount = bonuses.Sum(b => b.FinalAmount ?? 0),
+                              TotalCount = bonuses.Count()
+                          }).ToList();
 
             return new BonusReport
             {
-                Entities = res.Entities,
-                Count = res.Count,
-                TotalBonusPrize = totalPrize,
-                TotalFinalAmount = totalFinalAmount
+                Entities = filter.FilterObjects(Db.fn_ClientBonus(LanguageId), orderBy).ToList(),
+                Count = totals.Sum(x => x.TotalCount),
+                TotalBonusPrize = totals.Sum(x => ConvertCurrency(x.CurrencyId, CurrencyId, x.TotalPrize)),
+                TotalFinalAmount = totals.Sum(x => ConvertCurrency(x.CurrencyId, CurrencyId, x.TotalFinalAmount))
             };
         }
 
@@ -3776,6 +3869,131 @@ namespace IqSoft.CP.BLL.Services
             filter.SkipCount = 0;
             return GetReportByClientIdentity(filter);
         }
+
+        public object GetAgentMemberPaymentsForDashboard(FilterDashboard filter)
+        {
+            var fDate = (long)filter.FromDate.Year * 1000000 + (long)filter.FromDate.Month * 10000 + (long)filter.FromDate.Day * 100 + (long)filter.FromDate.Hour;
+            var tDate = (long)filter.ToDate.Year * 1000000 + (long)filter.ToDate.Month * 10000 + (long)filter.ToDate.Day * 100 + (long)filter.ToDate.Hour;
+
+            var paymentRequestFilter = new FilterPaymentRequest
+            {
+                FromDate = fDate,
+                ToDate = tDate,
+                AgentId = Identity.Id
+            };
+
+            var user = CacheManager.GetUserById(Identity.Id);
+            if (user.Type == (int)UserTypes.AgentEmployee)
+            {
+                CheckPermission(Constants.Permissions.ViewDashboard);
+                paymentRequestFilter.AgentId = user.ParentId;
+            }
+            var query = paymentRequestFilter.FilterObjects(Db.PaymentRequests).Where(x => x.Status == (int)PaymentRequestStates.Approved ||
+                                                                                          x.Status == (int)PaymentRequestStates.ApprovedManually);
+            var firstTimeDepositors = (from c in Db.Clients
+                                       join pr in Db.PaymentRequests on c.Id equals pr.ClientId
+                                       where c.User.Path.Contains("/" + filter.AgentId + "/") &&
+                                             c.FirstDepositDate >= filter.FromDate && c.FirstDepositDate < filter.ToDate &&
+                                             pr.Type == (int)PaymentRequestTypes.Deposit &&
+                                            (pr.Status == (int)PaymentRequestStates.Approved || pr.Status == (int)PaymentRequestStates.ApprovedManually)
+                                       group pr by pr.ClientId into grp
+                                       select new
+                                       {
+                                           ClientId = grp.Key,
+                                           FirstDeposit = grp.OrderBy(x => x.Id).FirstOrDefault()
+                                       }).ToList();
+            return new
+            {
+                FirstDepositAmount = firstTimeDepositors.Select(x => x.FirstDeposit.Amount).DefaultIfEmpty(0).Sum(),
+                FirstDepositCount = firstTimeDepositors.Count,
+                TotalDepositAmount = query.Where(x => x.Type == (int)PaymentRequestTypes.Deposit).Select(x => x.Amount).DefaultIfEmpty(0).Sum(),
+                TotalDepositsCount = query.Where(x => x.Type == (int)PaymentRequestTypes.Deposit).Count(),
+                TotalWithdrawAmount = query.Where(x => x.Type == (int)PaymentRequestTypes.Withdraw).Select(x => x.Amount).DefaultIfEmpty(0).Sum(),
+                TotalWithdrawsCount = query.Where(x => x.Type == (int)PaymentRequestTypes.Withdraw).Count()
+            };
+        }
+
+        public object GetAffiliateMemberPaymentsForDashboard(FilterDashboard filter)
+        {
+            var fDate = (long)filter.FromDate.Year * 100000000 + (long)filter.FromDate.Month * 1000000 +
+                (long)filter.FromDate.Day * 10000 + (long)filter.FromDate.Hour * 100 + (long)filter.FromDate.Minute;
+            var tDate = (long)filter.ToDate.Year * 100000000 + (long)filter.ToDate.Month * 1000000 +
+                (long)filter.ToDate.Day * 10000 + (long)filter.ToDate.Hour * 100 + (long)filter.FromDate.Minute;
+
+            var paymentRequestFilter = new FilterPaymentRequest
+            {
+                FromDate = fDate,
+                ToDate = tDate,
+                AffiliateId = Identity.Id,
+                PartnerId = Identity.PartnerId
+            };
+            var partner = CacheManager.GetPartnerById(Identity.PartnerId);
+            var query = paymentRequestFilter.FilterObjects(Db.PaymentRequests).Where(x => x.Status == (int)PaymentRequestStates.Approved ||
+                                                                                          x.Status == (int)PaymentRequestStates.ApprovedManually);
+            var firstTimeDepositors = (from c in Db.Clients
+                                       join pr in Db.PaymentRequests on c.Id equals pr.ClientId
+                                       where c.AffiliateReferral.AffiliateId == Identity.Id.ToString() && c.AffiliateReferral.AffiliatePlatformId == filter.PartnerId * 100 &&
+                                             c.AffiliateReferral.Type == (int)AffiliateReferralTypes.InternalAffiliatePlatform &&
+                                             c.FirstDepositDate >= filter.FromDate && c.FirstDepositDate < filter.ToDate &&
+                                             pr.Type == (int)PaymentRequestTypes.Deposit &&
+                                            (pr.Status == (int)PaymentRequestStates.Approved || pr.Status == (int)PaymentRequestStates.ApprovedManually)
+                                       group pr by new { pr.ClientId, pr.Client.CurrencyId, pr.Client.Currency.CurrentRate } into grp
+                                       select new
+                                       {
+                                           ClientId = grp.Key.ClientId,
+                                           CurrencyId = grp.Key.CurrencyId,
+                                           CurrencyRate = grp.Key.CurrentRate,
+                                           FirstDeposit = grp.OrderBy(x => x.Id).FirstOrDefault()
+                                       }).ToList();
+            return new
+            {
+                FirstDepositAmount = firstTimeDepositors.Select(x => ConvertCurrency(x.CurrencyId, partner.CurrencyId, x.FirstDeposit.Amount)).DefaultIfEmpty(0).Sum(),
+                FirstDepositCount = firstTimeDepositors.Count,
+                TotalDepositAmount = ConvertCurrency(Constants.DefaultCurrencyId, partner.CurrencyId,
+                    query.Where(x => x.Type == (int)PaymentRequestTypes.Deposit).Select(x => x.Amount * x.Currency.CurrentRate).DefaultIfEmpty(0).Sum()),
+                TotalDepositsCount = query.Where(x => x.Type == (int)PaymentRequestTypes.Deposit).Count(),
+                TotalWithdrawAmount = ConvertCurrency(Constants.DefaultCurrencyId, partner.CurrencyId,
+                    query.Where(x => x.Type == (int)PaymentRequestTypes.Withdraw).Select(x => x.Amount * x.Currency.CurrentRate).DefaultIfEmpty(0).Sum()),
+                TotalWithdrawsCount = query.Where(x => x.Type == (int)PaymentRequestTypes.Withdraw).Count()
+            };
+        }
+
+        public object GetAgentMembersInfoForDashboard(FilterDashboard filter)
+        {
+            filter.AgentId = Identity.Id;
+            var user = CacheManager.GetUserById(Identity.Id);
+            if (user.Type == (int)UserTypes.AgentEmployee)
+            {
+                CheckPermission(Constants.Permissions.ViewDashboard);
+                filter.AgentId = user.ParentId;
+            }
+
+            var fDate = (long)filter.FromDate.Year * 1000000 + (long)filter.FromDate.Month * 10000 + (long)filter.FromDate.Day * 100 + (long)filter.FromDate.Hour;
+            var tDate = (long)filter.ToDate.Year * 1000000 + (long)filter.ToDate.Month * 10000 + (long)filter.ToDate.Day * 100 + (long)filter.ToDate.Hour;
+
+            var signUpsCount = Db.Clients.Count(c => c.CreationTime >= filter.FromDate && c.CreationTime < filter.ToDate && c.User.Path.Contains("/" + filter.AgentId + "/"));
+
+            return new
+            {
+                ClientsCount = signUpsCount
+            };
+        }
+
+        public object GetAffiliateMembersInfoForDashboard(FilterDashboard filter)
+        {
+            var fDate = (long)filter.FromDate.Year * 1000000 + (long)filter.FromDate.Month * 10000 + (long)filter.FromDate.Day * 100 + (long)filter.FromDate.Hour;
+            var tDate = (long)filter.ToDate.Year * 1000000 + (long)filter.ToDate.Month * 10000 + (long)filter.ToDate.Day * 100 + (long)filter.ToDate.Hour;
+
+            var signUpsCount = Db.Clients.Count(c => c.CreationTime >= filter.FromDate && c.CreationTime < filter.ToDate &&
+                c.AffiliateReferral.AffiliateId == Identity.Id.ToString() && c.AffiliateReferral.AffiliatePlatformId == filter.PartnerId * 100 &&
+                c.AffiliateReferral.Type == (int)AffiliateReferralTypes.InternalAffiliatePlatform);
+
+            return new
+            {
+                ClientsCount = signUpsCount
+            };
+        }
+
         #endregion
     }
 }

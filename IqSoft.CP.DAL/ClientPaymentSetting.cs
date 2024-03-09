@@ -19,7 +19,7 @@ namespace IqSoft.CP.DAL
         public int PartnerPaymentSettingId { get; set; }
         public int State { get; set; }
     
-        public virtual PartnerPaymentSetting PartnerPaymentSetting { get; set; }
         public virtual Client Client { get; set; }
+        public virtual PartnerPaymentSetting PartnerPaymentSetting { get; set; }
     }
 }

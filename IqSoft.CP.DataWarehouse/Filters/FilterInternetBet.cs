@@ -93,12 +93,16 @@ namespace IqSoft.CP.DataWarehouse.Filters
 
         public FiltersOperation TotalWithdrawalsAmounts { get; set; }
 
-        protected override IQueryable<fnInternetBet> CreateQuery(IQueryable<fnInternetBet> objects, Func<IQueryable<fnInternetBet>, IOrderedQueryable<fnInternetBet>> orderBy = null)
+        public override void CreateQuery(ref IQueryable<fnInternetBet> objects, Func<IQueryable<fnInternetBet>, 
+            IOrderedQueryable<fnInternetBet>> orderBy = null)
         {
             if (PartnerId.HasValue)
                 objects = objects.Where(x => x.PartnerId == PartnerId.Value);
             if (AgentId.HasValue)
-                objects = objects.Where(x => x.UserPath.Contains("/" + AgentId.Value + "/"));
+            {
+                var agentValue = "/" + AgentId.Value + "/";
+                objects = objects.Where(x => x.UserPath.Contains(agentValue));
+            }
             var fDate = FromDate.Year * 1000000 + FromDate.Month * 10000 + FromDate.Day * 100 + FromDate.Hour;
             objects = objects.Where(x => x.Date >= fDate);
             if (ToDate != null)
@@ -143,13 +147,14 @@ namespace IqSoft.CP.DataWarehouse.Filters
             {
                 foreach (var item in BetDates.OperationTypeList)
                 {
-                    item.IntValue = item.DateTimeValue.Year * 1000000 + item.DateTimeValue.Month * 10000 + item.DateTimeValue.Day * 100 + item.DateTimeValue.Hour;
+                    item.IntValue = (long)item.DateTimeValue.Year * 1000000 + (long)item.DateTimeValue.Month * 10000 + 
+                        (long)item.DateTimeValue.Day * 100 + (long)item.DateTimeValue.Hour;
                 }
             }
             FilterByValue(ref objects, BetDates, "Date");
             FilterByValue(ref objects, WinDates, "WinDate");
 
-            return base.FilteredObjects(objects, orderBy);
+            base.FilteredObjects(ref objects, orderBy);
         }
 
         private IQueryable<InternetBetByClient> CreateQueryForResultObjects(IQueryable<InternetBetByClient> objects, Func<IQueryable<InternetBetByClient>, IOrderedQueryable<InternetBetByClient>> orderBy = null)
@@ -242,12 +247,6 @@ namespace IqSoft.CP.DataWarehouse.Filters
             return objects;
         }
         
-        public IQueryable<fnInternetBet> FilterObjects(IQueryable<fnInternetBet> internetBets, Func<IQueryable<fnInternetBet>, IOrderedQueryable<fnInternetBet>> orderBy = null)
-        {
-            internetBets = CreateQuery(internetBets, orderBy);
-            return internetBets;
-        }
-
         public IQueryable<InternetBetByClient> FilterResultObjects(IQueryable<InternetBetByClient> objects, Func<IQueryable<InternetBetByClient>, IOrderedQueryable<InternetBetByClient>> orderBy = null)
         {
             objects = CreateQueryForResultObjects(objects, orderBy);
@@ -256,7 +255,7 @@ namespace IqSoft.CP.DataWarehouse.Filters
 
         public long SelectedObjectsCount(IQueryable<fnInternetBet> internetBets)
         {
-            internetBets = CreateQuery(internetBets);
+            CreateQuery(ref internetBets);
             return internetBets.Count();
         }
 

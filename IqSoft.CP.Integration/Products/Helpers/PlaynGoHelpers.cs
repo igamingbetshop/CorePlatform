@@ -63,7 +63,7 @@ namespace IqSoft.CP.Integration.Products.Helpers
             }
         }
 
-        public static void CancelFreeSpinBonus(int clientId, int bonusId, int productId)
+        public static void CancelFreeSpinBonus(int clientId, int bonusId)
         {
             var client = CacheManager.GetClientById(clientId);
             var isStaging = CacheManager.GetGameProviderValueByKey(client.PartnerId, Provider.Id, Constants.PartnerKeys.PlaynGoGMTIsStaging);

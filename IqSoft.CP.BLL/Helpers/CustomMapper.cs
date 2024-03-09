@@ -55,27 +55,6 @@ namespace IqSoft.CP.BLL.Helpers
 			};
 		}
 
-		public static ApiPartnerProduct ToApiPartnerProduct(this PartnerProduct input, string imageUrl, string languageId)
-		{
-			var providerName = (input.ProviderName.ToLower() == GameProviders.Internal.ToLower() ? GameProviders.IqSoft : input.ProviderName);
-
-			return new ApiPartnerProduct
-			{
-				i = string.IsNullOrEmpty(imageUrl) ? string.Empty : imageUrl,
-				n = CacheManager.GetTranslation(input.TranslationId, languageId),
-				nn = input.NickName,
-				s = input.ProviderId,
-				p = input.ProductId,
-				sn = providerName,
-				r = input.Rating,
-				o = input.OpenMode ?? (int)GameOpenModes.Small,
-				ss = (input.SubproviderId == null ? input.ProviderId : input.SubproviderId.Value),
-				sp = (input.SubproviderId == null ? providerName : input.SubproviderName),
-				hd = input.HasDemo,
-				jp = input.Jackpot
-			};
-		}
-
 		public static BllAffiliate ToBllAffiliate(this Affiliate input, List<AffiliateCommission> affiliateCommissions)
 		{
 			return new BllAffiliate
@@ -111,7 +90,8 @@ namespace IqSoft.CP.BLL.Helpers
                                                          {
                                                              Percent = x.Percent ?? 0,
                                                              CurrencyId = x.CurrencyId,
-                                                             UpToAmount = x.UpToAmount
+                                                             UpToAmount = x.UpToAmount,
+															 DepositCount = x.DepositCount
                                                          }).FirstOrDefault(),
                 TurnoverCommission = affiliateCommissions?.Where(x => x.CommissionType == (int)AffiliateCommissionTypes.Turnover)
                                                          .Select(x => new BetCommission
@@ -534,7 +514,7 @@ namespace IqSoft.CP.BLL.Helpers
 			};
 		}
 
-		public static SegmentOutput MapToSegmentModel(this Segment segment)
+		public static SegmentOutput MapToSegmentModel(this Segment segment, double timeZone)
 		{
 			var segmentSettingItems = CacheManager.GetSegmentSetting(segment.Id);
 			var priority = segmentSettingItems.FirstOrDefault(y => y.Name == Constants.SegmentSettings.Priority);
@@ -557,7 +537,8 @@ namespace IqSoft.CP.BLL.Helpers
 				Id = segment.Id,
 				Name = segment.Name,
 				PartnerId = segment.PartnerId,
-				State = segment.State,
+                CurrencyId = segment.Partner?.CurrencyId,
+                State = segment.State,
 				Mode = segment.Mode,
 				Gender = segment.Gender,
 				IsKYCVerified = segment.IsKYCVerified,
@@ -664,18 +645,6 @@ namespace IqSoft.CP.BLL.Helpers
 				{
 					ConditionItems = JsonConvert.DeserializeObject<List<ConditionItem>>(segment.TotalBetsAmount)
 				} : null,
-				Profit = !string.IsNullOrEmpty(segment.Profit) ?
-					String.Join(",", JsonConvert.DeserializeObject<List<ConditionItem>>(segment.Profit).Select(x => x.StringValue)) : null,
-				ProfitObject = !string.IsNullOrEmpty(segment.Profit) ? new Condition
-				{
-					ConditionItems = JsonConvert.DeserializeObject<List<ConditionItem>>(segment.Profit)
-				} : null,
-				Bonus = !string.IsNullOrEmpty(segment.Bonus) ?
-					String.Join(",", JsonConvert.DeserializeObject<List<ConditionItem>>(segment.Bonus).Select(x => x.StringValue)) : null,
-				BonusObject = !string.IsNullOrEmpty(segment.Bonus) ? new Condition
-				{
-					ConditionItems = JsonConvert.DeserializeObject<List<ConditionItem>>(segment.Bonus)
-				} : null,
 				SuccessDepositPaymentSystem = !string.IsNullOrEmpty(segment.SuccessDepositPaymentSystem) ?
 					String.Join(",", JsonConvert.DeserializeObject<List<ConditionItem>>(segment.SuccessDepositPaymentSystem).Select(x => x.StringValue)) : null,
 				SuccessDepositPaymentSystemObject = !string.IsNullOrEmpty(segment.SuccessDepositPaymentSystem) ? new Condition
@@ -707,9 +676,9 @@ namespace IqSoft.CP.BLL.Helpers
 					ConditionItems = JsonConvert.DeserializeObject<List<ConditionItem>>(segment.CasinoBetsCount)
 				} : null,
 				SegementSetting = segmentSetting,
-				CreationTime = segment.CreationTime,
-				LastUpdateTime = segment.LastUpdateTime
-			};
+				CreationTime = segment.CreationTime.GetGMTDateFromUTC(timeZone),
+				LastUpdateTime = segment.LastUpdateTime.GetGMTDateFromUTC(timeZone)
+            };
 		}
 
 		private static string GetOperationByTypeId(int typeId)

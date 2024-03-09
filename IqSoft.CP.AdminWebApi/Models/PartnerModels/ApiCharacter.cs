@@ -12,6 +12,7 @@ namespace IqSoft.CP.AdminWebApi.Models.PartnerModels
 		public string Description { get; set; }
 		public string ImageData { get; set; }
 		public string BackgroundImageData { get; set; }
+		public string MobileBackgroundImageData { get; set; }
 		public string ImageExtension { get; set; }
 		public int Status { get; set; }
 		public int Order { get; set; }

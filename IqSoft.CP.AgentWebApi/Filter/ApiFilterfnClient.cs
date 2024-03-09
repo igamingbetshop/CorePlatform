@@ -56,7 +56,8 @@ namespace IqSoft.CP.AgentWebApi.Filters
 
         public ApiFiltersOperation CreationTimes { get; set; }
 
-        public ApiFiltersOperation Balances { get; set; }
+        public ApiFiltersOperation RealBalances { get; set; }
+        public ApiFiltersOperation BonusBalances { get; set; }
 
         public ApiFiltersOperation GGRs { get; set; }
 

@@ -89,7 +89,8 @@ namespace IqSoft.CP.Integration.Products.Helpers
                 PostData = body
             };
             var r = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
-            var gameUrl = JsonConvert.DeserializeObject<Models.SoftSwiss.OpenGame.OpenGameOutput>(r).LaunchParameters.GameUrl;
+            var resp = JsonConvert.DeserializeObject<Models.SoftSwiss.OpenGame.OpenGameOutput>(r);
+            var gameUrl = resp.LaunchParameters.GameUrl;
             if (string.IsNullOrEmpty(gameUrl))
             {
                 var gameOtherUrl = JsonConvert.DeserializeObject<Models.SoftSwiss.GameLaunchOther.GameLaunchOtherOutput>(r);

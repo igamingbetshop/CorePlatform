@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
+﻿using System.Collections.Generic;
 
 namespace IqSoft.CP.BetShopWebApi.Models.Common
 {
-	public class GetBetShopBetsOutput : ClientRequestResponseBase
+	public class GetBetShopBetsOutput 
 	{
 		public List<BetShopBet> Bets { get; set; }
 	}

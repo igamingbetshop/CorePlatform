@@ -17,12 +17,12 @@ namespace IqSoft.CP.DAL
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public GameProvider()
         {
-            this.GameProviderSettings = new HashSet<GameProviderSetting>();
             this.Documents = new HashSet<Document>();
-            this.Products = new HashSet<Product>();
-            this.Products1 = new HashSet<Product>();
+            this.GameProviderSettings = new HashSet<GameProviderSetting>();
             this.PartnerKeys = new HashSet<PartnerKey>();
             this.GameProviderCurrencySettings = new HashSet<GameProviderCurrencySetting>();
+            this.Products = new HashSet<Product>();
+            this.Products1 = new HashSet<Product>();
         }
     
         public int Id { get; set; }
@@ -30,18 +30,19 @@ namespace IqSoft.CP.DAL
         public int Type { get; set; }
         public Nullable<int> SessionExpireTime { get; set; }
         public string GameLaunchUrl { get; set; }
+        public bool IsActive { get; set; }
     
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<GameProviderSetting> GameProviderSettings { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Document> Documents { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Product> Products { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Product> Products1 { get; set; }
+        public virtual ICollection<GameProviderSetting> GameProviderSettings { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PartnerKey> PartnerKeys { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<GameProviderCurrencySetting> GameProviderCurrencySettings { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Product> Products { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Product> Products1 { get; set; }
     }
 }

@@ -9,6 +9,8 @@ namespace IqSoft.CP.DAL
 
         public string Image { get; set; }
 
+        public string HoverImage { get; set; }
+
         public long ObjectId
         {
             get { return Id; }

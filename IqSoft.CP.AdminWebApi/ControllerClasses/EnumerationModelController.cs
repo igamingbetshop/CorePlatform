@@ -130,6 +130,8 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     return GetTypesEnumByType(nameof(SessionStates), identity);
                 case "GetBonusTypesEnum":
                     return GetTypesEnumByType(nameof(BonusTypes), identity);
+                case "GetPopupTypesEnum":
+                    return GetTypesEnumByType(nameof(PopupTypes), identity);
             }
             throw BaseBll.CreateException(string.Empty, Constants.Errors.MethodNotFound);
         }

@@ -12,7 +12,6 @@ using log4net;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Reflection.Emit;
 
 
 namespace IqSoft.CP.Integration.Payments.Helpers
@@ -199,6 +198,11 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                         };
                         var responseString = CommonFunctions.SendHttpRequest(httpRequestInput, out System.Net.WebHeaderCollection outputHeaders);
                         var response = JsonConvert.DeserializeObject<PayoutOutput>(responseString);
+                        if (response.Status != 0)
+                        {
+                            log.Error($"Input: {JsonConvert.SerializeObject(httpRequestInput)}");
+                            throw new Exception(responseString);
+                        }
                         var inputSign = outputHeaders.GetValues("GT-Authentication")[0];
                         signature = CommonFunctions.ComputeSha384(response.Status.ToString() + response.Timestamp +
                                                      (response.Transaction?.Tid.ToString() ?? string.Empty) + (response.Transaction?.Status ?? string.Empty) +

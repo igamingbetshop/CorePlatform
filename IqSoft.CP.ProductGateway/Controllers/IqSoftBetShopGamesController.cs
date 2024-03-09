@@ -135,7 +135,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
 
         [HttpPost]
         [Route("{partnerId}/api/IqSoftBetShopGames/Credit")]
-        public IHttpActionResult Credit( ApiFinOperationInput input)
+        public IHttpActionResult Credit( ApiFinOperationInput input) //Check repeated documents
         {
             var typeId = (input.TypeId == null
                 ? null
@@ -233,7 +233,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
 
         [HttpPost]
         [Route("{partnerId}/api/IqSoftBetShopGames/Debit")]
-        public IHttpActionResult Debit( ApiFinOperationInput input)
+        public IHttpActionResult Debit( ApiFinOperationInput input)//Check repeated documents
         {
             try
             {
@@ -249,7 +249,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
 						var product = CacheManager.GetProductByExternalId(gameProviderId, input.GameId);
 
 						var creditTransaction = betShopBl.GetDocumentByExternalId(input.CreditTransactionId,
-								product.Id, gameProviderId, null, (int)OperationTypes.Bet);
+								product.Id, gameProviderId, (int)OperationTypes.Bet);
 
 						if (creditTransaction == null)
 							throw BaseBll.CreateException(string.Empty, Constants.Errors.CanNotConnectCreditAndDebit);

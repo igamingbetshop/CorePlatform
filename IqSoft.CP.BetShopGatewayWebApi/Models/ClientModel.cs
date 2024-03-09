@@ -1,8 +1,7 @@
 ﻿namespace IqSoft.CP.BetShopGatewayWebApi.Models
 {
-    public class ClientModel : RequestInfo
+    public class ClientModel : RequestBase
     {
-        public int CashDeskId { get; set; }
         public int Id { get; set; }
         public string Email { get; set; }
         public bool IsEmailVerified { get; set; }

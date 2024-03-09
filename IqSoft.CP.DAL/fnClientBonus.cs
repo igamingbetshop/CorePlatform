@@ -18,6 +18,7 @@ namespace IqSoft.CP.DAL
         public int ClientId { get; set; }
         public int Status { get; set; }
         public decimal BonusPrize { get; set; }
+        public Nullable<decimal> SpinsCount { get; set; }
         public System.DateTime CreationTime { get; set; }
         public Nullable<System.DateTime> AwardingTime { get; set; }
         public Nullable<decimal> TurnoverAmountLeft { get; set; }

@@ -17,6 +17,7 @@ using IqSoft.CP.Common.Models.Products;
 using ProductCategory = IqSoft.CP.DAL.ProductCategory;
 using System.Threading.Tasks;
 using IqSoft.CP.Common.Models;
+using IqSoft.CP.Common.Models.AdminModels;
 
 namespace IqSoft.CP.BLL.Services
 {
@@ -172,7 +173,7 @@ namespace IqSoft.CP.BLL.Services
                     }
                     Db.SaveChanges();
                 }
-                CacheManager.UpdateProductById(dbProduct.Id);
+                CacheManager.DeleteProductFromCache(dbProduct.Id);
                 partners = Db.PartnerProductSettings.Where(x => x.ProductId == dbProduct.Id && x.State == (int)ProductStates.Active)
                                                     .Select(x => x.PartnerId).Distinct().ToList();
 
@@ -198,6 +199,42 @@ namespace IqSoft.CP.BLL.Services
 
             return dbProduct;
         }
+
+        public void SaveProductsCountrySetting(List<int> productIds, List<ProductCountrySetting> productCountrySettings, int? state, out List<int> partners)
+        {
+            CheckPermission(Constants.Permissions.ViewProduct);
+            CheckPermission(Constants.Permissions.CreateProduct);
+            if (state.HasValue && !Enum.IsDefined(typeof(ProductStates), state.Value))
+                throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
+            if (productCountrySettings == null || !productCountrySettings.Any())
+                Db.ProductCountrySettings.Where(x => productIds.Contains(x.ProductId)).DeleteFromQuery();
+
+
+            var dbProducts = Db.Products.Include(x => x.ProductCountrySettings).Where(x => productIds.Contains(x.Id)).ToList();
+            foreach (var product in dbProducts)
+            {
+                var oldValue = product.ToProductInfo(LanguageId);
+                if (state.HasValue)
+                    product.State = state.Value;
+                if (productCountrySettings != null && productCountrySettings.Any())
+                {
+                    var type = productCountrySettings.First().Type;
+                    var countries = productCountrySettings.Select(x => x.CountryId).ToList();
+                    Db.ProductCountrySettings.Where(x => x.ProductId == product.Id && (x.Type != type || !countries.Contains(x.CountryId))).DeleteFromQuery();
+                    var dbCountries = Db.ProductCountrySettings.Where(x => x.ProductId == product.Id).Select(x => x.CountryId).ToList();
+                    countries.RemoveAll(x => dbCountries.Contains(x));
+                    foreach (var c in countries)
+                        Db.ProductCountrySettings.Add(new ProductCountrySetting { ProductId = product.Id, CountryId = c, Type = type });
+                }
+                SaveChangesWithHistory((int)ObjectTypes.Product, product.Id, JsonConvert.SerializeObject(oldValue), "Bulk edit");
+                CacheManager.DeleteProductFromCache(product.Id);
+            }
+
+            partners = Db.PartnerProductSettings.Where(x => productIds.Contains(x.ProductId) && x.State == (int)ProductStates.Active)
+                                                .Select(x => x.PartnerId).Distinct().ToList();
+
+        }
+
         private void UploadProductImage(int productId,  string image, string folder, FtpModel model)
         {
             var path = $"ftp://{model.Url}/resources/products/{folder}/{productId}.png";
@@ -651,7 +688,7 @@ namespace IqSoft.CP.BLL.Services
             return filter.FilterObjects(Db.GameProviders).Distinct().ToList();
         }
 
-        public GameProvider SaveGameProvider(GameProvider gameProvider)
+        public List<GameProvider> SaveGameProvider(ApiGameProvider apiGameProvider)
         {
             GetPermissionsToObject(new CheckPermissionInput
             {
@@ -663,39 +700,83 @@ namespace IqSoft.CP.BLL.Services
                 Permission = Constants.Permissions.EditGameProvider,
                 ObjectTypeId = ObjectTypes.GameProvider
             });
-            if (gameProvider.Id <= 0)
+            if ((apiGameProvider.Ids== null || !apiGameProvider.Ids.Any()) && apiGameProvider.Id.HasValue && apiGameProvider.Id <=0)
                 throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
-            if (Db.GameProviders.Any(x => x.Name.ToLower() == gameProvider.Name.ToLower() && x.Id != gameProvider.Id))
-                throw CreateException(LanguageId, Constants.Errors.NickNameExists);
-
-            var dbGameProvider = Db.GameProviders.FirstOrDefault(x => x.Id == gameProvider.Id);
-            if (dbGameProvider == null)
-                Db.GameProviders.Add(gameProvider);
-            else
+            var dbGameProviders = new List<GameProvider>();
+            if (!string.IsNullOrEmpty(apiGameProvider.Name))
+                apiGameProvider.Name = apiGameProvider.Name.Replace(" ", string.Empty);
+            if (apiGameProvider.Ids == null || !apiGameProvider.Ids.Any())
             {
-                dbGameProvider.Name = gameProvider.Name;
-                dbGameProvider.GameLaunchUrl = gameProvider.GameLaunchUrl;
-                if (gameProvider.GameProviderCurrencySettings == null || !gameProvider.GameProviderCurrencySettings.Any())
-                    Db.GameProviderCurrencySettings.Where(x => x.GameProviderId == dbGameProvider.Id).DeleteFromQuery();
+                if (Db.GameProviders.Any(x => x.Name.ToLower() == apiGameProvider.Name.ToLower() && x.Id != apiGameProvider.Id))
+                    throw CreateException(LanguageId, Constants.Errors.NickNameExists);
+                var dbGameProvider = Db.GameProviders.FirstOrDefault(x => x.Id == apiGameProvider.Id);
+                if (dbGameProvider == null)
+                    dbGameProviders.Add(Db.GameProviders.Add(new GameProvider
+                    {
+                        Id = apiGameProvider.Id.Value,
+                        Name = apiGameProvider.Name,
+                        GameLaunchUrl = apiGameProvider.GameLaunchUrl,
+                        Type = apiGameProvider.Type ?? 0,
+                        IsActive = apiGameProvider.IsActive ?? true,
+                        SessionExpireTime = apiGameProvider.SessionExpireTime ?? 30
+                    }));
                 else
                 {
-                    Log.Debug(JsonConvert.SerializeObject(gameProvider.GameProviderCurrencySettings));
-                    var type = gameProvider.GameProviderCurrencySettings.First().Type;
-                    var currencies = gameProvider.GameProviderCurrencySettings.Select(x => x.CurrencyId).ToList();
-                    Db.GameProviderCurrencySettings.Where(x => x.GameProviderId == dbGameProvider.Id && 
-                                                              (x.Type != type || !currencies.Contains(x.CurrencyId))).DeleteFromQuery();
-                    var dbCurrencies = Db.GameProviderCurrencySettings.Where(x => x.GameProviderId == dbGameProvider.Id).Select(x => x.CurrencyId).ToList();
-                    currencies.RemoveAll(x => dbCurrencies.Contains(x));
-                    foreach (var c in currencies)
-                        Db.GameProviderCurrencySettings.Add(new GameProviderCurrencySetting { GameProviderId = dbGameProvider.Id, CurrencyId = c, Type = type });
+                    dbGameProvider.Name = apiGameProvider.Name;
+                    if (apiGameProvider.IsActive.HasValue)
+                        dbGameProvider.IsActive = apiGameProvider.IsActive.Value;
+                    dbGameProvider.GameLaunchUrl = apiGameProvider.GameLaunchUrl;
+                    if (apiGameProvider.Type.HasValue)
+                        dbGameProvider.Type = apiGameProvider.Type.Value;
+                    if (apiGameProvider.SessionExpireTime.HasValue)
+                        dbGameProvider.SessionExpireTime = apiGameProvider.SessionExpireTime.Value;
+                    if (apiGameProvider.GameProviderCurrencySettings != null)
+                    {
+                        if (!apiGameProvider.GameProviderCurrencySettings.Any())
+                            Db.GameProviderCurrencySettings.Where(x => x.GameProviderId == dbGameProvider.Id).DeleteFromQuery();
+                        else
+                        {
+                            var type = apiGameProvider.GameProviderCurrencySettings.First().Type;
+                            var currencies = apiGameProvider.GameProviderCurrencySettings.Select(x => x.CurrencyId).ToList();
+                            Db.GameProviderCurrencySettings.Where(x => x.GameProviderId == dbGameProvider.Id &&
+                                                                      (x.Type != type || !currencies.Contains(x.CurrencyId))).DeleteFromQuery();
+                            var dbCurrencies = Db.GameProviderCurrencySettings.Where(x => x.GameProviderId == dbGameProvider.Id).Select(x => x.CurrencyId).ToList();
+                            currencies.RemoveAll(x => dbCurrencies.Contains(x));
+                            foreach (var c in currencies)
+                                Db.GameProviderCurrencySettings.Add(new GameProviderCurrencySetting { GameProviderId = dbGameProvider.Id, CurrencyId = c, Type = type });
 
+                        }
+                        dbGameProviders.Add(dbGameProvider);
+                    }
                 }
-            }
 
-            Db.SaveChanges();
-            CacheManager.RemoveGameProviderFromCache(gameProvider.Id, gameProvider.Name);
+                SaveChanges();
+            }
+            else
+            {
+                dbGameProviders = Db.GameProviders.Where(x => apiGameProvider.Ids.Contains(x.Id)).ToList();
+                dbGameProviders.ForEach(x =>
+                {
+                    if (apiGameProvider.Type.HasValue)
+                        x.Type = apiGameProvider.Type.Value;
+                    if (apiGameProvider.SessionExpireTime.HasValue)
+                        x.SessionExpireTime = apiGameProvider.SessionExpireTime.Value;
+                    if (apiGameProvider.IsActive.HasValue)
+                        x.IsActive = apiGameProvider.IsActive.Value;
+                });
+                SaveChanges();
+            }
+            if (apiGameProvider.Id.HasValue && apiGameProvider.Id> 0)
+                CacheManager.RemoveGameProviderFromCache(apiGameProvider.Id.Value, apiGameProvider.Name);
+            else
+                dbGameProviders.ForEach(x =>
+                {
+                    CacheManager.RemoveKeysFromCache(string.Format("{0}_{1}", Constants.CacheItems.GameProviders, x.Id));
+                    CacheManager.RemoveKeysFromCache(string.Format("{0}_{1}", Constants.CacheItems.GameProviders, x.Name));
+                });
+
             CacheManager.RemoveKeysFromCache(string.Format("{0}_", Constants.CacheItems.RestrictedGameProviders));
-            return gameProvider;
+            return dbGameProviders;
         }
 
         public List<int?> ChangePartnerProductState(PartnerProductSetting partnerProductSetting)
@@ -724,7 +805,7 @@ namespace IqSoft.CP.BLL.Services
             {
                 CacheManager.RemovePartnerProductSetting(productsSetting.PartnerId, productsSetting.ProductId);
             }
-            CacheManager.RemovePartnerProductSettings(partnerProductSetting.PartnerId);
+            CacheManager.RemovePartnerProductSettingPages(partnerProductSetting.PartnerId);
             return ids;
         }
 
@@ -839,18 +920,17 @@ namespace IqSoft.CP.BLL.Services
                 !checkClientPermission.AccessibleObjects.Contains(objectId)))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
 
-            var result = Db.ProductLimits.Where(x =>
-                x.ObjectTypeId == objectTypeId && x.ObjectId == objectId &&
-                x.LimitTypeId == limitType && x.ProductId.HasValue).Select(x => new DAL.Models.ProductLimit
-                {
-                    Id = x.Id,
-                    ObjectTypeId = x.ObjectTypeId,
-                    ObjectId = x.ObjectId,
-                    ProductId = x.ProductId,
-                    MaxLimit = x.MaxLimit,
-                    MinLimit = x.MinLimit
-                }).ToList();
-            return result;
+            return Db.ProductLimits.Where(x => x.ObjectTypeId == objectTypeId && x.ObjectId == objectId &&
+                                                     x.LimitTypeId == limitType && x.ProductId.HasValue && x.Product.GameProvider.IsActive)
+                                         .Select(x => new DAL.Models.ProductLimit
+                                         {
+                                             Id = x.Id,
+                                             ObjectTypeId = x.ObjectTypeId,
+                                             ObjectId = x.ObjectId,
+                                             ProductId = x.ProductId,
+                                             MaxLimit = x.MaxLimit,
+                                             MinLimit = x.MinLimit
+                                         }).ToList();
         }
 
         public DAL.Models.ProductLimit SaveProductLimit(DAL.Models.ProductLimit limit, bool checkPermission)
@@ -954,11 +1034,12 @@ namespace IqSoft.CP.BLL.Services
             else if (maxId == 79000) 
                 maxId = 250000;
 
+            Log.Info("Provider Games Count: " + providerGames.Count);
             var existingGames = allProducts.Where(x => providerGames.Any(y => y.ExternalId.ToLower() == x.ExternalId.ToLower())).ToList();
-            Log.Info("existingGames count: " + existingGames.Count);
+            Log.Info("Existing Games Count: " + existingGames.Count);
             var newIds = providerGames.Select(x => x.ExternalId.ToLower()).Except(existingGames.Select(x => x.ExternalId.ToLower())).ToList();
             var newGames = providerGames.Where(x => newIds.Contains(x.ExternalId.ToLower())).ToList();
-            Log.Info("newGames count: " + newGames.Count);
+            Log.Info("New Games Count: " + newGames.Count);
             var productCountrySettings = Db.ProductCountrySettings.Where(x => x.Product.GameProviderId == gameProviderId && x.PartnerId == null).ToList();
             var removableCountrySettingIds = new List<int>();
             var insertableCountrySettings = new List<ProductCountrySetting>();
@@ -975,7 +1056,10 @@ namespace IqSoft.CP.BLL.Services
                     dbProd.HasDemo = product.HasDemo;
                     dbProd.LastUpdateTime = currentDate;
                     dbProd.Lines = product.Lines;
+                    dbProd.Volatility = product.Volatility;
                     dbProd.BetValues = product.BetValues;
+                    if (dbProd.State == (int)ProductStates.DisabledByProvider)
+                        dbProd.State = (int)ProductStates.Active;
                     if (product.RTP.HasValue && product.RTP.Value <= 100 )
                         dbProd.RTP = product.RTP;
                     if (!string.IsNullOrEmpty(product.WebImageUrl) && (string.IsNullOrEmpty(dbProd.WebImageUrl) || dbProd.WebImageUrl.StartsWith("http")))
@@ -1011,7 +1095,6 @@ namespace IqSoft.CP.BLL.Services
                     Log.Error(e);
                 }
             });
-            Log.Info("Log1");
             resp.AddRange(existingGames.Select(x => x.Id));
             try
             {
@@ -1071,7 +1154,8 @@ namespace IqSoft.CP.BLL.Services
                             BetValues = product.BetValues,
                             CreationTime = currentDate,
                             LastUpdateTime = currentDate,
-                            Translation = t
+                            Translation = t, 
+                            Volatility = product.Volatility
                         };
                         Db.Products.Add(prod);
                         Db.SaveChanges();
@@ -1095,7 +1179,7 @@ namespace IqSoft.CP.BLL.Services
             var updatingItems = allProducts.Where(x => !resp.Contains(x.Id) && x.Id != Constants.SportsbookProductId &&
             x.ExternalId != "lobby" && (x.GameProvider.Name != Constants.GameProviders.EveryMatrix || !x.ExternalId.Contains("sport")) 
                                     && x.GameProvider.Name != Constants.GameProviders.VisionaryiGaming).ToList();
-            Parallel.ForEach(updatingItems, i => { i.LastUpdateTime = currentDate; i.State = (int)ProductStates.Inactive; }) ; 
+            Parallel.ForEach(updatingItems, i => { i.LastUpdateTime = currentDate; i.State = (int)ProductStates.DisabledByProvider; }) ; 
             Db.SaveChanges();
             Log.Info("resp count:" + resp.Count().ToString());
             return resp;

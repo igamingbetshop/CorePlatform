@@ -2,10 +2,12 @@
 using IqSoft.CP.Common;
 using IqSoft.CP.Common.Enums;
 using IqSoft.CP.Common.Models.WebSiteModels;
+using IqSoft.CP.DAL.Models;
 using IqSoft.CP.DAL.Models.Clients;
 using IqSoft.CP.ProductGateway.Hubs;
 using Microsoft.AspNet.SignalR;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -61,6 +63,14 @@ namespace IqSoft.CP.ProductGateway.Helpers
                     x.TypeId != (int)AccountTypes.ClientBonusBalance).Sum(x => x.Balance) * 100) / 100;
             else
                 return CacheManager.GetClientCurrentBalance(clientId).AvailableBalance;
+        }
+
+        public static void BroadcastBetShopBet(BetShopFinOperationDocument input)
+        {
+            _connectedClients.BroadcastBet(new { 
+                CashierId = input.UserId,
+                Bets = new List<DAL.Document> { input }
+            });
         }
 
         public static void BroadcastWin(ApiWin input)

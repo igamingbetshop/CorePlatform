@@ -24,6 +24,7 @@ using System.Threading;
 using IqSoft.CP.Integration.Platforms.Helpers;
 using IqSoft.CP.DAL.Models.Payments;
 using IqSoft.CP.Common.Models;
+using System.Data.Entity.Validation;
 
 namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
 {
@@ -31,23 +32,23 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
     public class MainController : ApiController
     {
         [HttpPost]
-        public IHttpActionResult CardReaderAuthorization([FromUri] RequestInfo info, AuthorizationInput input)
+        public IHttpActionResult CardReaderAuthorization(AuthorizationInput input)
         {
             try
             {
-				WebApiApplication.DbLogger.Info(JsonConvert.SerializeObject(input));
-				using (var clientBll = new ClientBll(new SessionIdentity(), WebApiApplication.DbLogger))
+                WebApiApplication.DbLogger.Info(JsonConvert.SerializeObject(input));
+                using (var clientBll = new ClientBll(new SessionIdentity(), WebApiApplication.DbLogger))
                 {
                     using (var betShopBl = new BetShopBll(clientBll))
                     {
                         if (string.IsNullOrEmpty(input.CardNumber))
-                            throw BaseBll.CreateException(info.LanguageId, Constants.Errors.ClientNotFound);
-                        var authBase = Helpers.Helpers.CheckEncodedData(info.PartnerId, input.ExternalId, input.Hash, betShopBl);
+                            throw BaseBll.CreateException(input.LanguageId, Constants.Errors.ClientNotFound);
+                        var authBase = Helpers.Helpers.CheckEncodedData(input.PartnerId, input.ExternalId, input.Hash, betShopBl);
                         var cashDesk = CacheManager.GetCashDeskById(authBase.Id);
                         if (cashDesk == null)
-                            throw BaseBll.CreateException(info.LanguageId, Constants.Errors.CashDeskNotFound);
-                        
-                        var token = ClientBll.LoginClientByCard(info.PartnerId, input.CardNumber, input.Password, input.Ip, info.LanguageId, 
+                            throw BaseBll.CreateException(input.LanguageId, Constants.Errors.CashDeskNotFound);
+
+                        var token = ClientBll.LoginClientByCard(input.PartnerId, input.CardNumber, input.Password, input.Ip, input.LanguageId,
                             cashDesk, out int clientId);
                         Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}", Constants.CacheItems.ClientSessions, clientId));
                         Helpers.Helpers.InvokeMessage("RemoveClient", clientId);
@@ -58,7 +59,7 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                             switch (verificationPatformId)
                             {
                                 case (int)VerificationPlatforms.Insic:
-                                    OASISHelpers.CheckClientStatus(client, null, input.LanguageId, new SessionIdentity(),  WebApiApplication.DbLogger);
+                                    OASISHelpers.CheckClientStatus(client, null, input.LanguageId, new SessionIdentity(), WebApiApplication.DbLogger);
                                     var thread = new Thread(() => InsicHelpers.PlayerLogin(client.PartnerId, client.Id, WebApiApplication.DbLogger));
                                     thread.Start();
                                     break;
@@ -66,20 +67,13 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                                     break;
                             }
                         }
-
-                        var response = new
-                        {
-                            ResponseCode = "0",
-                            Description = string.Empty,
-                            Token =  token
-                        };
-                        return Ok(response);
+                        return Ok(new ApiResponseBase { ResponseObject = new { Token = token } });
                     }
                 }
             }
             catch (FaultException<BllFnErrorType> ex)
             {
-                var response = new 
+                var response = new
                 {
                     ResponseCode = ex.Detail.Id.ToString(),
                     Description = ex.Detail.Message
@@ -90,50 +84,43 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
             catch (Exception ex)
             {
                 WebApiApplication.DbLogger.Error(ex);
-                var response = new 
+                return Ok(new ApiResponseBase
                 {
-                    ResponseCode = Constants.Errors.GeneralException.ToString(),
+                    ResponseCode = Constants.Errors.GeneralException,
                     Description = ex.Message
-                };
-                return Ok(response);
+                });
             }
         }
 
         [HttpPost]
-        public IHttpActionResult Authorization([FromUri] RequestInfo info, AuthorizationInput input)
+        public IHttpActionResult Authorization(AuthorizationInput input)
         {
             try
             {
-				WebApiApplication.DbLogger.Info(JsonConvert.SerializeObject(input));
-				using (var userBl = new UserBll(new SessionIdentity(), WebApiApplication.DbLogger))
+                using (var userBl = new UserBll(new SessionIdentity(), WebApiApplication.DbLogger))
                 {
                     using (var betShopBl = new BetShopBll(userBl))
                     {
-                        var authBase = Helpers.Helpers.CheckCashDeskHash(info.PartnerId, input.Hash, betShopBl);
+                        var authBase = Helpers.Helpers.CheckCashDeskHash(input.PartnerId, input.Hash, betShopBl);
                         var loginInput = new LoginUserInput
                         {
-                            PartnerId = info.PartnerId,
+                            PartnerId = input.PartnerId,
                             UserName = input.UserName,
                             Password = input.Password,
                             Ip = input.Ip,
-                            LanguageId = info.LanguageId,
+                            LanguageId = input.LanguageId,
                             UserType = (int)UserTypes.Cashier,
                             CashDeskId = authBase.CashDeskId
                         };
-                        WebApiApplication.DbLogger.Info("loginInput_" + JsonConvert.SerializeObject(loginInput));
-                        var session = userBl.LoginUser(loginInput, out string imagaeData);
+                        var session = userBl.LoginUser(loginInput, out string imageData);
                         var user = userBl.GetUserById(session.Id);
-                        if (user.Type != (int) UserTypes.Cashier)
-                            throw BaseBll.CreateException(info.LanguageId, Constants.Errors.UserIsNotCashier);
+                        if (user.Type != (int)UserTypes.Cashier)
+                            throw BaseBll.CreateException(input.LanguageId, Constants.Errors.UserIsNotCashier);
 
-                        var cashDesk = CacheManager.GetCashDeskById(authBase.CashDeskId);
-                        if (cashDesk == null)
-                            throw BaseBll.CreateException(info.LanguageId, Constants.Errors.CashDeskNotFound);
-
-                        var betShop = betShopBl.GetBetShopById(cashDesk.BetShopId, true, user.Id);
-                        if (betShop == null)
-                            throw BaseBll.CreateException(info.LanguageId, Constants.Errors.BetShopNotFound);
-
+                        var cashDesk = CacheManager.GetCashDeskById(authBase.CashDeskId) ??
+                            throw BaseBll.CreateException(input.LanguageId, Constants.Errors.CashDeskNotFound);
+                        var betShop = betShopBl.GetBetShopById(cashDesk.BetShopId, true, user.Id) ??
+                            throw BaseBll.CreateException(input.LanguageId, Constants.Errors.BetShopNotFound);
                         var response = new AuthorizationOutput
                         {
                             CashierId = user.Id,
@@ -148,7 +135,7 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                             BetShopName = betShop.Name,
                             Token = session.Token,
                             CurrentLimit = betShop.CurrentLimit,
-							PrintLogo = betShop.PrintLogo,
+                            PrintLogo = betShop.PrintLogo,
                             AnonymousBet = BetShopBll.GetBetShopAllowAnonymousBet(betShop.Id),
                             AllowCashout = BetShopBll.GetBetShopAllowCashout(betShop.Id),
                             AllowLive = BetShopBll.GetBetShopAllowLive(betShop.Id),
@@ -164,11 +151,12 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                         {
                             ps.Name = CacheManager.GetPaymentSystemById(ps.Id).Name;
                         }
-
                         var balance = betShopBl.UpdateShifts(userBl, user.Id, cashDesk.Id);
                         response.Balance = balance.AvailableBalance;
-
-                        return Ok(response);
+                        return Ok(new ApiResponseBase
+                        {
+                            ResponseObject = response
+                        });
                     }
                 }
             }
@@ -179,26 +167,25 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                     ResponseCode = Convert.ToInt32(ex.Detail.Id),
                     Description = ex.Detail.Message
                 };
+                WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(input) + "_" + JsonConvert.SerializeObject(response));
                 return Ok(response);
             }
             catch (Exception ex)
             {
                 WebApiApplication.DbLogger.Error(ex);
-                var response = new ApiResponseBase
+                return Ok(new ApiResponseBase
                 {
                     ResponseCode = Constants.Errors.GeneralException,
                     Description = ex.Message
-                };
-                return Ok(response);
+                });
             }
         }
 
         [HttpPost]
-        public IHttpActionResult Login([FromUri] RequestInfo info, AuthorizationInput input)
+        public IHttpActionResult Login(AuthorizationInput input)
         {
             try
             {
-                WebApiApplication.DbLogger.Info(JsonConvert.SerializeObject(input));
                 using (var userBl = new UserBll(new SessionIdentity(), WebApiApplication.DbLogger))
                 {
                     using (var betShopBl = new BetShopBll(userBl))
@@ -253,7 +240,7 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                                     Id = Convert.ToInt32(x)
                                 }).ToList()
                         };
-                        foreach(var ps in response.PaymentSystems)
+                        foreach (var ps in response.PaymentSystems)
                         {
                             ps.Name = CacheManager.GetPaymentSystemById(ps.Id).Name;
                         }
@@ -265,7 +252,10 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                         else
                             response.Balance = balance.AvailableBalance;
 
-                        return Ok(response);
+                        return Ok(new ApiResponseBase
+                        {
+                            ResponseObject= response
+                        });
                     }
                 }
             }
@@ -281,24 +271,26 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
             catch (Exception ex)
             {
                 WebApiApplication.DbLogger.Error(ex);
-                var response = new ApiResponseBase
+                return Ok(new ApiResponseBase
                 {
                     ResponseCode = Constants.Errors.GeneralException,
                     Description = ex.Message
-                };
-                return Ok(response);
+                });
             }
         }
 
         [HttpPost]
-        public IHttpActionResult GetCashierSessionByToken([FromUri] RequestInfo info, ApiGetCashierSessionInput input)
+        public IHttpActionResult GetCashierSessionByToken(ApiRequestBase input)
         {
             try
             {
-				using (var userBl = new UserBll(new SessionIdentity(), WebApiApplication.DbLogger))
+                using (var userBl = new UserBll(new SessionIdentity(), WebApiApplication.DbLogger))
                 {
-                    var session = userBl.GetUserSession(input.SessionToken, false);
-                    return Ok(session.ToApiCashierSession());
+                    var session = userBl.GetUserSession(input.Token, false);
+                    return Ok(new ApiResponseBase
+                    {
+                        ResponseObject = session.ToApiCashierSession()
+                    });
                 }
             }
             catch (FaultException<BllFnErrorType> ex)
@@ -313,27 +305,29 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
             catch (Exception ex)
             {
                 WebApiApplication.DbLogger.Error(ex);
-                var response = new ApiResponseBase
+                return Ok(new ApiResponseBase
                 {
                     ResponseCode = Constants.Errors.GeneralException,
                     Description = ex.Message
-                };
-                return Ok(response);
+                });
             }
         }
 
         [HttpPost]
-        public IHttpActionResult GetCashierSessionByProductId([FromUri] RequestInfo info, ApiGetCashierSessionInput input)
+        public IHttpActionResult GetCashierSessionByProductId(ApiRequestBase input)
         {
             try
             {
-				var identity = CheckToken(input.SessionToken, input.CashDeskId, true, false);
+                var identity = CheckToken(input.Token, input.CashDeskId, true, false);
                 using (var userBl = new UserBll(identity, WebApiApplication.DbLogger))
                 {
                     if (identity.ParentId == null)
                         throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.PartnerNotFound);
                     var session = userBl.GetUserSessionById(identity.ParentId.Value);
-                    return Ok(session.ToApiCashierSession());
+                    return Ok(new ApiResponseBase
+                    {
+                        ResponseObject = session.ToApiCashierSession()
+                    });
                 }
             }
             catch (FaultException<BllFnErrorType> ex)
@@ -348,40 +342,39 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
             catch (Exception ex)
             {
                 WebApiApplication.DbLogger.Error(ex);
-                var response = new ApiResponseBase
+                return Ok(new ApiResponseBase
                 {
                     ResponseCode = Constants.Errors.GeneralException,
                     Description = ex.Message
-                };
-                return Ok(response);
+                });
             }
         }
 
         [HttpPost]
-        public IHttpActionResult GetCashDeskInfo([FromUri] RequestInfo info, GetCashDeskInfoInput input)
+        public IHttpActionResult GetCashDeskInfo(ApiRequestBase apiRequestBase) // not using
         {
             try
             {
-				var identity = CheckToken(input.Token, input.CashDeskId);
+                var identity = CheckToken(apiRequestBase.Token, apiRequestBase.CashDeskId);
                 using (var betShopBl = new BetShopBll(identity, WebApiApplication.DbLogger))
                 {
-                    var cashDesk = CacheManager.GetCashDeskById(identity.CashDeskId);
-                    if (cashDesk == null)
-                        throw BaseBll.CreateException(info.LanguageId, Constants.Errors.CashDeskNotFound);
-                    var betShop = betShopBl.GetBetShopById(cashDesk.BetShopId, false);
-                    if (betShop == null)
-                        throw BaseBll.CreateException(info.LanguageId, Constants.Errors.BetShopNotFound);
-                    var balance = betShopBl.GetObjectBalanceWithConvertion((int) ObjectTypes.CashDesk,
+                    var cashDesk = CacheManager.GetCashDeskById(identity.CashDeskId) ??
+                        throw BaseBll.CreateException(apiRequestBase.LanguageId, Constants.Errors.CashDeskNotFound);
+                    var betShop = betShopBl.GetBetShopById(cashDesk.BetShopId, false) ??
+                        throw BaseBll.CreateException(apiRequestBase.LanguageId, Constants.Errors.BetShopNotFound);
+                    var balance = betShopBl.GetObjectBalanceWithConvertion((int)ObjectTypes.CashDesk,
                         cashDesk.Id,
                         betShop.CurrencyId);
-                    var response = new GetCashDeskInfoOutput
+                    return Ok(new ApiResponseBase
                     {
-                        CurrencyId = balance.CurrencyId,
-                        Balance = balance.AvailableBalance,
-                        CashDeskId = (int) balance.ObjectId,
-                        CurrentLimit = betShop.CurrentLimit
-                    };
-                    return Ok(response);
+                        ResponseObject = new GetCashDeskInfoOutput
+                        {
+                            CurrencyId = balance.CurrencyId,
+                            Balance = balance.AvailableBalance,
+                            CashDeskId = (int)balance.ObjectId,
+                            CurrentLimit = betShop.CurrentLimit
+                        }
+                    });
                 }
             }
             catch (FaultException<BllFnErrorType> ex)
@@ -396,33 +389,84 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
             catch (Exception ex)
             {
                 WebApiApplication.DbLogger.Error(ex);
-                var response = new ApiResponseBase
+                return Ok(new ApiResponseBase
                 {
                     ResponseCode = Constants.Errors.GeneralException,
                     Description = ex.Message
-                };
-                return Ok(response);
+                });
             }
         }
 
         [HttpPost]
-        public IHttpActionResult GetProductSession([FromUri] RequestInfo info, GetProductSessionInput input)
+        public IHttpActionResult GetBetShopPlayersData(ApiRequestBase apiRequestBase)
         {
             try
             {
-				var identity = CheckToken(input.Token, input.CashDeskId);
+                var identity = CheckToken(apiRequestBase.Token, apiRequestBase.CashDeskId);
+                using (var betShopBl = new BetShopBll(identity, WebApiApplication.DbLogger))
+                using (var clientBll = new ClientBll(betShopBl))
+                {
+                    var cashDesk = CacheManager.GetCashDeskById(identity.CashDeskId) ??
+                        throw BaseBll.CreateException(apiRequestBase.LanguageId, Constants.Errors.CashDeskNotFound);
+                    var betShop = betShopBl.GetBetShopById(cashDesk.BetShopId, false) ??
+                        throw BaseBll.CreateException(apiRequestBase.LanguageId, Constants.Errors.BetShopNotFound);
+
+                    return Ok(new ApiResponseBase
+                    {
+                        ResponseObject = new
+                        {
+                            betShop.CurrencyId,
+                            Balance = clientBll.GetShopWalletClients(new FilterShopWalletClient(), betShop.Id).Entities.Select(x => x.Balance).DefaultIfEmpty(0).Sum() ?? 0,
+                            TotalOpenPayouts = 0, //????
+                            CashDeskId = cashDesk.Id,
+                        }
+                    });
+                }
+            }
+            catch (FaultException<BllFnErrorType> ex)
+            {
+                var response = new ApiResponseBase
+                {
+                    ResponseCode = Convert.ToInt32(ex.Detail.Id),
+                    Description = ex.Detail.Message
+                };
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                WebApiApplication.DbLogger.Error(ex);
+                return Ok(new ApiResponseBase
+                {
+                    ResponseCode = Constants.Errors.GeneralException,
+                    Description = ex.Message
+                });
+            }
+        }
+
+        [HttpPost]
+        public IHttpActionResult GetProductSession(ApiRequestBase apiRequestBase)
+        {
+            try
+            {
+                var identity = CheckToken(apiRequestBase.Token, apiRequestBase.CashDeskId);
+                WebApiApplication.DbLogger.Info(JsonConvert.SerializeObject(apiRequestBase));
+                var input = JsonConvert.DeserializeObject<ApiProductInput>(apiRequestBase.RequestObject);
                 using (var userBl = new UserBll(identity, WebApiApplication.DbLogger))
                 {
-                    var product = CacheManager.GetProductById(input.ProductId);
-                    if (product == null)
-                        throw BaseBll.CreateException(info.LanguageId, Constants.Errors.ProductNotFound);
+                    var product = CacheManager.GetProductById(input.ProductId ?? 0) ??
+                        throw BaseBll.CreateException(apiRequestBase.LanguageId, Constants.Errors.ProductNotFound);
                     var productSession = userBl.CreateProductSession(identity, product.Id);
-                    var response = new GetProductSessionOutput
+                    var r = new ApiResponseBase
                     {
-                        ProductId = input.ProductId,
-                        ProductToken = productSession.Token
+                        ResponseObject = new GetProductSessionOutput
+                        {
+                            ProductId = input.ProductId ?? 0,
+                            ProductToken = productSession.Token,
+                            LaunchUrl = ProductHelpers.GetProductLaunchUrl(product.Id, productSession.Token, identity)
+                        }
                     };
-                    return Ok(response);
+                    WebApiApplication.DbLogger.Info(JsonConvert.SerializeObject(r));
+                    return Ok(r);
                 }
             }
             catch (FaultException<BllFnErrorType> ex)
@@ -437,26 +481,26 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
             catch (Exception ex)
             {
                 WebApiApplication.DbLogger.Error(ex);
-                var response = new ApiResponseBase
+                return Ok(new ApiResponseBase
                 {
                     ResponseCode = Constants.Errors.GeneralException,
                     Description = ex.Message
-                };
-                return Ok(response);
+                });
             }
         }
 
         [HttpPost]
-        public IHttpActionResult CloseSession([FromUri] RequestInfo info, CloseSessionInput input)
+        public IHttpActionResult LogoutUser(ApiRequestBase apiRequestBase)
         {
             try
             {
-				var identity = CheckToken(input.Token, input.CashDeskId);
+                var input = JsonConvert.DeserializeObject<ApiProductInput>(apiRequestBase.RequestObject);
+                var identity = CheckToken(apiRequestBase.Token, apiRequestBase.CashDeskId);
                 using (var userBl = new UserBll(identity, WebApiApplication.DbLogger))
                 {
                     if (input.ProductId.HasValue && identity.ProductId != input.ProductId)
-                        throw BaseBll.CreateException(info.LanguageId, Constants.Errors.WrongProductId);
-                    userBl.LogoutUser(input.Token);
+                        throw BaseBll.CreateException(apiRequestBase.LanguageId, Constants.Errors.WrongProductId);
+                    userBl.LogoutUser(apiRequestBase.Token);
                     return Ok(new ApiResponseBase());
                 }
             }
@@ -472,36 +516,31 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
             catch (Exception ex)
             {
                 WebApiApplication.DbLogger.Error(ex);
-                var response = new ApiResponseBase
+                return Ok(new ApiResponseBase
                 {
                     ResponseCode = Constants.Errors.GeneralException,
                     Description = ex.Message
-                };
-                return Ok(response);
+                });
             }
         }
 
         [HttpPost]
-        public IHttpActionResult RegisterClient([FromUri] RequestInfo info, ClientModel input)
+        public IHttpActionResult RegisterClient(ApiRequestBase apiRequestBase)
         {
             try
             {
-                input.PartnerId = info.PartnerId;
-                input.LanguageId = info.LanguageId;
+                var input = JsonConvert.DeserializeObject<ClientModel>(apiRequestBase.RequestObject);
+                var identity = CheckToken(input.Token, apiRequestBase.CashDeskId);
+
                 bool generatedUsername = false;
                 if (string.IsNullOrWhiteSpace(input.UserName))
                 {
                     input.UserName = CommonFunctions.GetRandomString(10);
                     generatedUsername = true;
                 }
-                var identity = CheckToken(input.Token, input.CashDeskId);
                 using (var clientBl = new ClientBll(identity, WebApiApplication.DbLogger))
                 {
-                    var ip = HttpContext.Current.Request.Headers.Get("CF-Connecting-IP");
-                    if (ip == null)
-                        ip = Constants.DefaultIp;
-
-                    var bd = new DateTime(input.BirthYear ?? DateTime.MinValue.Year, input.BirthMonth ?? DateTime.MinValue.Month, 
+                    var bd = new DateTime(input.BirthYear ?? DateTime.MinValue.Year, input.BirthMonth ?? DateTime.MinValue.Month,
                         input.BirthDay ?? DateTime.MinValue.Day);
                     if (string.IsNullOrEmpty(input.FirstName) || string.IsNullOrEmpty(input.LastName) || bd == null || bd == DateTime.MinValue)
                         throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.WrongInputParameters);
@@ -518,9 +557,9 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                             BetShopId = identity.BetShopId,
                             BetShopPaymentSystems = input.BetShopPaymentSystems
                         };
-                        clientRegistrationInput.ClientData.RegistrationIp = ip;
+                        clientRegistrationInput.ClientData.RegistrationIp = apiRequestBase.Ip ?? Constants.DefaultIp;
                         var client = clientBl.RegisterClient(clientRegistrationInput);
-                        var response = client.MapToApiLoginClientOutput(info.TimeZone);
+                        var response = client.MapToApiLoginClientOutput(apiRequestBase.TimeZone);
                         var verificationPlatform = CacheManager.GetConfigKey(client.PartnerId, Constants.PartnerKeys.VerificationPlatform);
                         if (!string.IsNullOrEmpty(verificationPlatform) && int.TryParse(verificationPlatform, out int verificationPatformId))
                         {
@@ -534,13 +573,13 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                                     break;
                             }
                         }
-                        return Ok(response);
+                        return Ok(new ApiResponseBase { ResponseObject = response });
                     }
                     else
                     {
                         clientBl.RegisterClientAccounts(existingClient, identity.BetShopId, input.BetShopPaymentSystems);
-                        var response = existingClient.MapToApiLoginClientOutput(info.TimeZone);
-                        return Ok(response);
+                        var response = existingClient.MapToApiLoginClientOutput(apiRequestBase.TimeZone);
+                        return Ok(new ApiResponseBase { ResponseObject = response });
                     }
                 }
             }
@@ -556,23 +595,22 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
             catch (Exception ex)
             {
                 WebApiApplication.DbLogger.Error(ex);
-                var response = new ApiResponseBase
+                return Ok(new ApiResponseBase
                 {
                     ResponseCode = Constants.Errors.GeneralException,
                     Description = ex.Message
-                };
-                return Ok(response);
+                });
             }
         }
 
         [HttpPost]
-        public IHttpActionResult GetClients([FromUri] RequestInfo info, ApiClientFilter input)
+        public IHttpActionResult GetClients(ApiRequestBase apiRequestBase)
         {
             try
             {
-                var identity = CheckToken(input.Token, input.CashDeskId);
-                var cashDesk = CacheManager.GetCashDeskById(input.CashDeskId);
-                if (cashDesk == null)
+                var identity = CheckToken(apiRequestBase.Token, apiRequestBase.CashDeskId);
+                var input = JsonConvert.DeserializeObject<ApiClientFilter>(apiRequestBase.RequestObject);
+                var cashDesk = CacheManager.GetCashDeskById(apiRequestBase.CashDeskId) ??
                     throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.CashDeskNotFound);
                 using (var clientBl = new ClientBll(identity, WebApiApplication.DbLogger))
                 {
@@ -586,12 +624,14 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                         LastName = input.LastName,
                         Info = input.Info
                     }, cashDesk.BetShopId);
-                    var response = new ApiGetClientsOutput
+                    return Ok(new ApiResponseBase
                     {
-                        Count = clients.Count,
-                        Entities = clients.Entities.ToList()
-                    };
-                    return Ok(response);
+                        ResponseObject = new PagedModel<object>
+                        {
+                            Count = clients.Count,
+                            Entities = clients.Entities.ToList()
+                        }
+                    });
                 }
             }
             catch (FaultException<BllFnErrorType> ex)
@@ -606,34 +646,32 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
             catch (Exception ex)
             {
                 WebApiApplication.DbLogger.Error(ex);
-                var response = new ApiResponseBase
+                return Ok(new ApiResponseBase
                 {
                     ResponseCode = Constants.Errors.GeneralException,
                     Description = ex.Message
-                };
-                return Ok(response);
+                });
             }
         }
 
-		[HttpPost]
-        public IHttpActionResult GetClient([FromUri] RequestInfo info, ApiClientFilter input)
+        [HttpPost]
+        public IHttpActionResult GetClient(ApiRequestBase apiRequestBase)
         {
             try
             {
-				var identity = CheckToken(input.Token, input.CashDeskId);
-                if(!input.ClientId.HasValue)
-                    throw BaseBll.CreateException(info.LanguageId, Constants.Errors.ClientNotFound);
+                var identity = CheckToken(apiRequestBase.Token, apiRequestBase.CashDeskId);
+                var input = JsonConvert.DeserializeObject<ApiClientFilter>(apiRequestBase.RequestObject);
+                if (!input.ClientId.HasValue)
+                    throw BaseBll.CreateException(apiRequestBase.LanguageId, Constants.Errors.ClientNotFound);
                 using (var clientBl = new ClientBll(identity, WebApiApplication.DbLogger))
                 {
-                    var client = clientBl.GetClientById(input.ClientId.Value);
-                    if (client == null)
-                        throw BaseBll.CreateException(info.LanguageId, Constants.Errors.ClientNotFound);
-
+                    var client = clientBl.GetClientById(input.ClientId.Value) ??
+                        throw BaseBll.CreateException(apiRequestBase.LanguageId, Constants.Errors.ClientNotFound);
                     var accounts = clientBl.GetClientAccounts(client.Id, true);
                     var response = client.ToGetClientOutput();
                     response.Settings = clientBl.GetClientSettings(client.Id, true);
                     response.Accounts = accounts.Select(x => x.MapToApiFnAccount()).ToList();
-                    return Ok(response);
+                    return Ok(new ApiResponseBase { ResponseObject = response });
                 }
             }
             catch (FaultException<BllFnErrorType> ex)
@@ -648,25 +686,24 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
             catch (Exception ex)
             {
                 WebApiApplication.DbLogger.Error(ex);
-                var response = new ApiResponseBase
+                return Ok(new ApiResponseBase
                 {
                     ResponseCode = Constants.Errors.GeneralException,
                     Description = ex.Message
-                };
-                return Ok(response);
+                });
             }
         }
 
-		[HttpPost]
-        public IHttpActionResult EditClient([FromUri] RequestInfo info, ClientModel input)
+        [HttpPost]
+        public IHttpActionResult EditClient(ApiRequestBase apiRequestBase)
         {
             try
             {
-				var identity = CheckToken(input.Token, input.CashDeskId);
+                var identity = CheckToken(apiRequestBase.Token, apiRequestBase.CashDeskId);
+                var input = JsonConvert.DeserializeObject<ClientModel>(apiRequestBase.RequestObject);
                 using (var clientBl = new ClientBll(identity, WebApiApplication.DbLogger))
                 {
-                    clientBl.ChangeClientDataFromBetShop(input.MapToChangeClientFieldsInput()); 
-
+                    clientBl.ChangeClientDataFromBetShop(input.MapToChangeClientFieldsInput());
                     return Ok(new ApiResponseBase());
                 }
             }
@@ -682,37 +719,36 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
             catch (Exception ex)
             {
                 WebApiApplication.DbLogger.Error(ex);
-                var response = new ApiResponseBase
+                return Ok(new ApiResponseBase
                 {
                     ResponseCode = Constants.Errors.GeneralException,
                     Description = ex.Message
-                };
-                return Ok(response);
+                });
             }
         }
 
-		[HttpPost]
-        public IHttpActionResult DepositToInternetClient([FromUri] RequestInfo info, DepositToInternetClientInput input)
+        [HttpPost]
+        public IHttpActionResult DepositToInternetClient(ApiRequestBase apiRequestBase)
         {
             try
             {
-                var identity = CheckToken(input.Token, input.CashDeskId);
-
+                var identity = CheckToken(apiRequestBase.Token, apiRequestBase.CashDeskId);
+                var input = JsonConvert.DeserializeObject<DepositToInternetClientInput>(apiRequestBase.RequestObject);
                 using (var clientBl = new ClientBll(identity, WebApiApplication.DbLogger))
                 {
-                    var cashDesk = CacheManager.GetCashDeskById(input.CashDeskId);
+                    var cashDesk = CacheManager.GetCashDeskById(apiRequestBase.CashDeskId);
                     var betShop = CacheManager.GetBetShopById(cashDesk.BetShopId);
                     var paymentSystem = CacheManager.GetPaymentSystemByName(Constants.PaymentSystems.BetShop);
 
                     var client = CacheManager.GetClientById(input.ClientId);
                     if (client == null || betShop.PartnerId != client.PartnerId)
-                        throw BaseBll.CreateException(info.LanguageId, Constants.Errors.ClientNotFound);
+                        throw BaseBll.CreateException(apiRequestBase.LanguageId, Constants.Errors.ClientNotFound);
                     var paymentRequest = new DAL.PaymentRequest
                     {
                         Amount = input.Amount,
                         ClientId = client.Id,
                         CurrencyId = input.CurrencyId,
-                        CashDeskId = input.CashDeskId,
+                        CashDeskId = apiRequestBase.CashDeskId,
                         CashierId = input.CashierId,
                         ExternalTransactionId = input.TransactionId
                     };
@@ -722,11 +758,11 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                         switch (verificationPatformId)
                         {
                             case (int)VerificationPlatforms.Insic:
-                                OASISHelpers.CheckClientStatus(client, betShop.Id, info.LanguageId, identity, WebApiApplication.DbLogger);
-                                InsicHelpers.PaymentModalityRegistration(client.PartnerId, paymentRequest.ClientId.Value, paymentSystem.Id, 
+                                OASISHelpers.CheckClientStatus(client, betShop.Id, apiRequestBase.LanguageId, identity, WebApiApplication.DbLogger);
+                                InsicHelpers.PaymentModalityRegistration(client.PartnerId, paymentRequest.ClientId.Value, paymentSystem.Id,
                                                                          identity, WebApiApplication.DbLogger);
                                 InsicHelpers.PaymentRequest(client.PartnerId, paymentRequest.ClientId.Value, paymentRequest.Id, paymentRequest.Type,
-                                                            paymentRequest.Amount, WebApiApplication.DbLogger);                               
+                                                            paymentRequest.Amount, WebApiApplication.DbLogger);
                                 break;
                             default:
                                 break;
@@ -737,23 +773,24 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                     {
                         Helpers.Helpers.InvokeMessage("ClientDepositWithBonus", client.Id);
                         Helpers.Helpers.InvokeMessage("PaymentRequst", paymentRequestDocument.Id);
-                    }                   
-
-                    var response = new DepositToInternetClientOutput
+                    }
+                    return Ok(new ApiResponseBase
                     {
-                        TransactionId = paymentRequestDocument.Id,
-                        CurrentLimit = paymentRequestDocument.ObjectLimit,
-                        CashierBalance = paymentRequestDocument.CashierBalance,
-                        ClientBalance = paymentRequestDocument.ClientBalance,
-                        ClientUserName = client.UserName,
-                        ClientId = client.Id,
-                        CurrencyId = client.CurrencyId,
-                        DocumentNumber = client.DocumentNumber,
-                        Amount = input.Amount,
-                        Status = paymentRequestDocument.Status,
-                        DepositDate = paymentRequestDocument.CreationTime
-                    };
-                    return Ok(response);
+                        ResponseObject = new DepositToInternetClientOutput
+                        {
+                            TransactionId = paymentRequestDocument.Id,
+                            CurrentLimit = paymentRequestDocument.ObjectLimit,
+                            CashierBalance = paymentRequestDocument.CashierBalance,
+                            ClientBalance = paymentRequestDocument.ClientBalance,
+                            ClientUserName = client.UserName,
+                            ClientId = client.Id,
+                            CurrencyId = client.CurrencyId,
+                            DocumentNumber = client.DocumentNumber,
+                            Amount = input.Amount,
+                            Status = paymentRequestDocument.Status,
+                            DepositDate = paymentRequestDocument.CreationTime
+                        }
+                    });
                 }
             }
             catch (FaultException<BllFnErrorType> ex)
@@ -781,26 +818,26 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
             catch (Exception ex)
             {
                 WebApiApplication.DbLogger.Error(ex);
-                var response = new ApiResponseBase
+                return Ok(new ApiResponseBase
                 {
                     ResponseCode = Constants.Errors.GeneralException,
                     Description = ex.Message
-                };
-                return Ok(response);
+                });
             }
         }
 
         [HttpPost]
-        public IHttpActionResult GetPaymentRequests([FromUri] RequestInfo info, GetPaymentRequestsInput input)
+        public IHttpActionResult GetPaymentRequests(ApiRequestBase apiRequestBase)
         {
             try
             {
-                var identity = CheckToken(input.Token, input.CashDeskId);
+                var identity = CheckToken(apiRequestBase.Token, apiRequestBase.CashDeskId);
+                var input = JsonConvert.DeserializeObject<ApiClientInput>(apiRequestBase.RequestObject);
                 using (var paymentSystemBll = new PaymentSystemBll(identity, WebApiApplication.DbLogger))
                 {
-                    var cashDesk = CacheManager.GetCashDeskById(input.CashDeskId);
+                    var cashDesk = CacheManager.GetCashDeskById(apiRequestBase.CashDeskId);
                     if (cashDesk == null)
-                        throw BaseBll.CreateException(info.LanguageId, Constants.Errors.CashDeskNotFound);
+                        throw BaseBll.CreateException(apiRequestBase.LanguageId, Constants.Errors.CashDeskNotFound);
 
                     var filter = new FilterfnPaymentRequest
                     {
@@ -830,7 +867,7 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                                 }
                         }
                     };
-                    if (input.ClientId != null)
+                    if (input.ClientId != 0)
                         filter.ClientIds = new FiltersOperation
                         {
                             IsAnd = true,
@@ -839,32 +876,34 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                                     new FiltersOperationType
                                     {
                                         OperationTypeId = (int)FilterOperations.IsEqualTo,
-                                        IntValue = input.ClientId.Value
+                                        IntValue = input.ClientId
                                     }
                                 }
                         };
 
                     var paymentRequests = paymentSystemBll.GetPaymentRequests(filter, false)/*.Where(x => x.ClientDocumentNumber == input.DocumentNumber)*/.ToList();
 
-                    var response = new GetPaymentRequestsOutput
+                    return Ok(new ApiResponseBase
                     {
-                        PaymentRequests = paymentRequests.Select(x=>
-                        new PaymentRequest
+                        ResponseObject =  new GetPaymentRequestsOutput
                         {
-                            Id = x.Id,
-                            Amount = Math.Floor((x.Amount - x.CommissionAmount ?? 0) * 100) / 100,
-                            ClientId = x.ClientId,
-                            ClientFirstName = x.FirstName,
-                            ClientLastName = x.LastName,
-                            ClientEmail = x.Email,
-                            UserName = x.UserName,
-                            DocumentNumber = x.ClientDocumentNumber,
-                            CreationTime = x.CreationTime,
-                            CurrencyId = x.CurrencyId,
-                            Info = x.Info
-                        }).ToList()
-                    };
-                    return Ok(response);
+                            PaymentRequests = paymentRequests.Select(x =>
+                            new PaymentRequest
+                            {
+                                Id = x.Id,
+                                Amount = Math.Floor((x.Amount - x.CommissionAmount ?? 0) * 100) / 100,
+                                ClientId = x.ClientId,
+                                ClientFirstName = x.FirstName,
+                                ClientLastName = x.LastName,
+                                ClientEmail = x.Email,
+                                UserName = x.UserName,
+                                DocumentNumber = x.ClientDocumentNumber,
+                                CreationTime = x.CreationTime,
+                                CurrencyId = x.CurrencyId,
+                                Info = x.Info
+                            }).ToList()
+                        }
+                    });
                 }
             }
             catch (FaultException<BllFnErrorType> ex)
@@ -879,49 +918,51 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
             catch (Exception ex)
             {
                 WebApiApplication.DbLogger.Error(ex);
-                var response = new ApiResponseBase
+                return Ok(new ApiResponseBase
                 {
                     ResponseCode = Constants.Errors.GeneralException,
                     Description = ex.Message
-                };
-                return Ok(response);
+                });
             }
         }
 
         [HttpPost]
-        public IHttpActionResult PayPaymentRequest([FromUri] RequestInfo info, PayPaymentRequestInput input)
+        public IHttpActionResult PayPaymentRequest(ApiRequestBase apiRequestBase)
         {
             try
             {
-				var identity = CheckToken(input.Token, input.CashDeskId);
+                var identity = CheckToken(apiRequestBase.Token, apiRequestBase.CashDeskId);
+                var input = JsonConvert.DeserializeObject<PayPaymentRequestInput>(apiRequestBase.RequestObject);
                 using (var clientBl = new ClientBll(identity, WebApiApplication.DbLogger))
                 {
-					using (var documentBl = new DocumentBll(clientBl))
-					{
+                    using (var documentBl = new DocumentBll(clientBl))
+                    {
                         using (var notificationBl = new NotificationBll(documentBl))
                         {
                             clientBl.ChangeWithdrawRequestState(input.PaymentRequestId, PaymentRequestStates.PayPanding,
-                            input.Comment, input.CashDeskId, input.CashierId, true, string.Empty, documentBl, notificationBl);
+                            input.Comment, apiRequestBase.CashDeskId, input.CashierId, true, string.Empty, documentBl, notificationBl);
                             var resp = clientBl.ChangeWithdrawRequestState(input.PaymentRequestId, PaymentRequestStates.Approved,
-                            input.Comment, input.CashDeskId, input.CashierId, true, string.Empty, documentBl, notificationBl, false, true);
+                            input.Comment, apiRequestBase.CashDeskId, input.CashierId, true, string.Empty, documentBl, notificationBl, false, true);
 
-                            clientBl.PayWithdrawFromBetShop(resp, input.CashDeskId, input.CashierId, documentBl);
+                            clientBl.PayWithdrawFromBetShop(resp, apiRequestBase.CashDeskId, input.CashierId, documentBl);
                             Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}", Constants.CacheItems.ClientBalance, resp.ClientId));
                             Helpers.Helpers.InvokeMessage("PaymentRequst", input.PaymentRequestId);
-                            var response = new PayPaymentRequestOutput
+                            return Ok(new ApiResponseBase
                             {
-                                CurrentLimit = resp.ObjectLimit,
-                                CashierBalance = resp.CashierBalance,
-                                ClientBalance = resp.ClientBalance,
-                                CurrencyId = resp.CurrencyId,
-                                TransactionId = resp.RequestId,
-                                ClientId = resp.ClientId,
-                                UserName = resp.ClientUserName,
-                                DocumentNumber = resp.ClientDocumentNumber,
-                                Amount = resp.RequestAmount,
-                                PayDate = clientBl.GetServerDate()
-                            };
-                            return Ok(response);
+                                ResponseObject = new PayPaymentRequestOutput
+                                {
+                                    CurrentLimit = resp.ObjectLimit,
+                                    CashierBalance = resp.CashierBalance,
+                                    ClientBalance = resp.ClientBalance,
+                                    CurrencyId = resp.CurrencyId,
+                                    TransactionId = resp.RequestId,
+                                    ClientId = resp.ClientId,
+                                    UserName = resp.ClientUserName,
+                                    DocumentNumber = resp.ClientDocumentNumber,
+                                    Amount = resp.RequestAmount,
+                                    PayDate = clientBl.GetServerDate()
+                                }
+                            });
                         }
                     }
                 }
@@ -938,29 +979,31 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
             catch (Exception ex)
             {
                 WebApiApplication.DbLogger.Error(ex);
-                var response = new ApiResponseBase
+                return Ok(new ApiResponseBase
                 {
                     ResponseCode = Constants.Errors.GeneralException,
                     Description = ex.Message
-                };
-                return Ok(response);
+                });
             }
         }
 
         [HttpPost]
-        public IHttpActionResult GetBetByBarcode([FromUri] RequestInfo info, GetBetByBarcodeInput input)
+        public IHttpActionResult GetBetByBarcode(ApiRequestBase apiRequestBase)
         {
             try
             {
-				var identity = CheckToken(input.Token, input.CashDeskId);
+                var identity = CheckToken(apiRequestBase.Token, apiRequestBase.CashDeskId);
+                var input = JsonConvert.DeserializeObject<ReportByBetInput>(apiRequestBase.RequestObject);
                 using (var reportBl = new ReportBll(identity, WebApiApplication.DbLogger))
                 {
-					var bet = reportBl.GetBetByBarcode(input.CashDeskId, input.Barcode);
-                    var response = new GetBetShopBetsOutput
+                    var bet = reportBl.GetBetByBarcode(apiRequestBase.CashDeskId, input.Barcode.Value);
+                    return Ok(new ApiResponseBase
                     {
-                        Bets = bet == null ? new List<BetShopBet>() : new List<BetShopBet> { bet.ToBetShopBet() }
-                    };
-                    return Ok(response);
+                        ResponseObject =  new GetBetShopBetsOutput
+                        {
+                            Bets = bet == null ? new List<BetShopBet>() : new List<BetShopBet> { bet.ToBetShopBet() }
+                        }
+                    });
                 }
             }
             catch (FaultException<BllFnErrorType> ex)
@@ -975,26 +1018,24 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
             catch (Exception ex)
             {
                 WebApiApplication.DbLogger.Error(ex);
-                var response = new ApiResponseBase
+                return Ok(new ApiResponseBase
                 {
                     ResponseCode = Constants.Errors.GeneralException,
                     Description = ex.Message
-                };
-                return Ok(response);
+                });
             }
         }
 
         [HttpPost]
-        public IHttpActionResult GetBetByDocumentId([FromUri] RequestInfo info, GetBetByDocumentIdInput input)
+        public IHttpActionResult GetBetByDocumentId(GetBetByDocumentIdInput input)
         {
             try
             {
-				var identity = CheckToken(input.Token, input.CashDeskId);
+                var identity = CheckToken(input.Token, input.CashDeskId);
                 using (var betShopBl = new BetShopBll(identity, WebApiApplication.DbLogger))
                 {
                     var bet = betShopBl.GetBetShopBetByDocumentId(input.DocumentId, input.IsForPrint);
-                    var response = (bet == null ? new ApiBetShopTicket() : bet.ToApiBetShopTicket());
-					return Ok(response);
+                    return Ok(new ApiResponseBase { ResponseObject = bet?.ToApiBetShopTicket() ?? new ApiBetShopTicket() });
                 }
             }
             catch (FaultException<BllFnErrorType> ex)
@@ -1009,74 +1050,74 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
             catch (Exception ex)
             {
                 WebApiApplication.DbLogger.Error(ex);
-                var response = new ApiResponseBase
+                return Ok(new ApiResponseBase
                 {
                     ResponseCode = Constants.Errors.GeneralException,
                     Description = ex.Message
-                };
-                return Ok(response);
+                });
             }
         }
 
         [HttpPost]
-        public IHttpActionResult PayWin([FromUri] RequestInfo info, PayWinInput input)
+        public IHttpActionResult PayWin(ApiRequestBase apiRequestBase)
         {
-			try
-			{
-                var identity = CheckToken(input.Token, input.CashDeskId);
-				using (var betShopBl = new BetShopBll(identity, WebApiApplication.DbLogger))
-				{
-					using (var documentBl = new DocumentBll(betShopBl))
-					{
-						var clientOperation = new ClientOperation
-						{
-							ClientId = input.CashierId,
-							CashDeskId = input.CashDeskId,
-							ParentDocumentId = input.BetDocumentId,
-							ExternalTransactionId = input.ExternalTransactionId
-						};
-						var document = betShopBl.PayWinFromBetShop(clientOperation, documentBl);
-						var cashDesk = CacheManager.GetCashDeskById(input.CashDeskId);
-						var betShop = betShopBl.GetBetShopById(cashDesk.BetShopId, false);
-						var response = new FinOperationResponse
-						{
-							CurrentLimit = betShop.CurrentLimit,
-							CashierBalance = betShopBl.GetObjectBalanceWithConvertion((int)ObjectTypes.CashDesk,
-									input.CashDeskId, document.CurrencyId).AvailableBalance,
-							CurrencyId = document.CurrencyId
-						};
-                        return Ok(response);
-					}
-				}
-			}
-			catch (FaultException<BllFnErrorType> ex)
-			{
-				var response = new ApiResponseBase
-				{
-					ResponseCode = Convert.ToInt32(ex.Detail.Id),
-					Description = ex.Detail.Message
-				};
-				return Ok(response);
-			}
-			catch (Exception ex)
-			{
-                WebApiApplication.DbLogger.Error(ex);
+            try
+            {
+                var identity = CheckToken(apiRequestBase.Token, apiRequestBase.CashDeskId);
+                var input = JsonConvert.DeserializeObject<PayWinInput>(apiRequestBase.RequestObject);
+                using (var betShopBl = new BetShopBll(identity, WebApiApplication.DbLogger))
+                {
+                    using (var documentBl = new DocumentBll(betShopBl))
+                    {
+                        var clientOperation = new ClientOperation
+                        {
+                            ClientId = input.CashierId,
+                            CashDeskId = apiRequestBase.CashDeskId,
+                            ParentDocumentId = input.BetDocumentId,
+                            ExternalTransactionId = input.ExternalTransactionId
+                        };
+                        var document = betShopBl.PayWinFromBetShop(clientOperation, documentBl);
+                        var cashDesk = CacheManager.GetCashDeskById(apiRequestBase.CashDeskId);
+                        var betShop = betShopBl.GetBetShopById(cashDesk.BetShopId, false);
+                        return Ok(new ApiResponseBase
+                        {
+                            ResponseObject = new FinOperationResponse
+                            {
+                                CurrentLimit = betShop.CurrentLimit,
+                                CashierBalance = betShopBl.GetObjectBalanceWithConvertion((int)ObjectTypes.CashDesk,
+                                    apiRequestBase.CashDeskId, document.CurrencyId).AvailableBalance,
+                                CurrencyId = document.CurrencyId
+                            }
+                        });
+                    }
+                }
+            }
+            catch (FaultException<BllFnErrorType> ex)
+            {
                 var response = new ApiResponseBase
-				{
-					ResponseCode = Constants.Errors.GeneralException,
-					Description = ex.Message
-				};
-				return Ok(response);
-			}
+                {
+                    ResponseCode = Convert.ToInt32(ex.Detail.Id),
+                    Description = ex.Detail.Message
+                };
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                WebApiApplication.DbLogger.Error(ex);
+                return Ok(new ApiResponseBase
+                {
+                    ResponseCode = Constants.Errors.GeneralException,
+                    Description = ex.Message
+                });
+            }
         }
 
         [HttpPost]
-        public IHttpActionResult CreateDebitCorrectionOnCashDesk([FromUri] RequestInfo info, Models.CashDeskCorrectionInput input)
+        public IHttpActionResult CreateDebitCorrectionOnCashDesk(Models.CashDeskCorrectionInput input)
         {
-
             try
             {
-				using (var betShopBl = new BetShopBll(new SessionIdentity(), WebApiApplication.DbLogger))
+                using (var betShopBl = new BetShopBll(new SessionIdentity(), WebApiApplication.DbLogger))
                 {
                     var correction = new DAL.Models.CashDeskCorrectionInput
                     {
@@ -1088,7 +1129,7 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                         CashierId = input.CashierId,
                         ExternalTransactionId = input.ExternalTransactionId
                     };
-					betShopBl.CreateDebitCorrectionOnCashDesk(correction);
+                    betShopBl.CreateDebitCorrectionOnCashDesk(correction);
                     return Ok(new ApiResponseBase());
                 }
             }
@@ -1104,21 +1145,20 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
             catch (Exception ex)
             {
                 WebApiApplication.DbLogger.Error(ex);
-                var response = new ApiResponseBase
+                return Ok(new ApiResponseBase
                 {
                     ResponseCode = Constants.Errors.GeneralException,
                     Description = ex.Message
-                };
-                return Ok(response);
+                });
             }
         }
 
         [HttpPost]
-        public IHttpActionResult CreateCreditCorrectionOnCashDesk([FromUri] RequestInfo info, Models.CashDeskCorrectionInput input)
+        public IHttpActionResult CreateCreditCorrectionOnCashDesk(Models.CashDeskCorrectionInput input)
         {
             try
             {
-				using (var betShopBl = new BetShopBll(new SessionIdentity(), WebApiApplication.DbLogger))
+                using (var betShopBl = new BetShopBll(new SessionIdentity(), WebApiApplication.DbLogger))
                 {
                     var correction = new DAL.Models.CashDeskCorrectionInput
                     {
@@ -1130,7 +1170,7 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                         CashierId = input.CashierId,
                         ExternalTransactionId = input.ExternalTransactionId
                     };
-					betShopBl.CreateCreditCorrectionOnCashDesk(correction);
+                    betShopBl.CreateCreditCorrectionOnCashDesk(correction);
                     return Ok(new ApiResponseBase());
                 }
             }
@@ -1146,21 +1186,20 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
             catch (Exception ex)
             {
                 WebApiApplication.DbLogger.Error(ex);
-                var response = new ApiResponseBase
+                return Ok(new ApiResponseBase
                 {
                     ResponseCode = Constants.Errors.GeneralException,
                     Description = ex.Message
-                };
-                return Ok(response);
+                });
             }
         }
 
         [HttpPost]
-        public IHttpActionResult GetCashDesksBalancesByDate([FromUri] RequestInfo info, GetCashiersBalanceIntput input)
+        public IHttpActionResult GetCashDesksBalancesByDate(GetCashiersBalanceIntput input) // not using
         {
             try
             {
-				using (var partnerBl = new BetShopBll(new SessionIdentity(), WebApiApplication.DbLogger))
+                using (var partnerBl = new BetShopBll(new SessionIdentity(), WebApiApplication.DbLogger))
                 {
                     var response = new GetCashDesksBalanceOutput
                     {
@@ -1168,7 +1207,7 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                     };
                     foreach (var cashier in input.CashDesks)
                     {
-                        var cashierBalance = partnerBl.GetAccountsBalances((int) ObjectTypes.CashDesk,
+                        var cashierBalance = partnerBl.GetAccountsBalances((int)ObjectTypes.CashDesk,
                             cashier.CashDeskId, input.BalanceDate);
                         response.CashDeskBalances.Add(new CashDeskBalanceOutput
                         {
@@ -1176,7 +1215,7 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                             Balance = cashierBalance.Sum(x => x.Balance)
                         });
                     }
-                    return Ok(response);
+                    return Ok(new ApiResponseBase { ResponseObject = response });
                 }
             }
             catch (FaultException<BllFnErrorType> ex)
@@ -1191,122 +1230,117 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
             catch (Exception ex)
             {
                 WebApiApplication.DbLogger.Error(ex);
-                var response = new ApiResponseBase
+                return Ok(new ApiResponseBase
                 {
                     ResponseCode = Constants.Errors.GeneralException,
                     Description = ex.Message
-                };
-                return Ok(response);
+                });
             }
         }
 
-		[HttpPost]
-		public IHttpActionResult GetCashDesks([FromUri] RequestInfo info, ApiFilterCashDesk input)
-		{
-			try
-			{
-				var identity = CheckToken(input.Token, input.CashDeskId);
-
+        [HttpPost]
+        public IHttpActionResult GetCashDesks(ApiRequestBase apiRequestBase)
+        {
+            try
+            {
+                var identity = CheckToken(apiRequestBase.Token, apiRequestBase.CashDeskId);
+                var input = JsonConvert.DeserializeObject<ApiFilterCashDesk>(apiRequestBase.RequestObject);
                 using (var betShopBl = new BetShopBll(identity, WebApiApplication.DbLogger))
-				{
-					var cashDesk = CacheManager.GetCashDeskById(input.CashDeskId);
-					if (cashDesk == null)
-						throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.CashDeskNotFound);
+                {
+                    var cashDesk = CacheManager.GetCashDeskById(apiRequestBase.CashDeskId) ??
+                        throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.CashDeskNotFound);
                     input.BetShopId = identity.BetShopId;
                     var cashDesks = betShopBl.GetCashDesksPagedModel(input.MapToFilterfnCashDesk(), false);
                     var grouped = cashDesks.Entities.GroupBy(x => new { x.Id, x.BetShopId, x.CreationTime, x.LastUpdateTime, x.Name, x.Type, x.State });
-					var response = new CashDesksOutput
-					{
-						Count = grouped.Count(),
-						Entities = grouped.Select(x => new CashDesk
-						{
-							Id = x.Key.Id,
-							BetShopId = x.Key.BetShopId,
-							CreationTime = x.Key.CreationTime,
-							LastUpdateTime = x.Key.LastUpdateTime,
-							Name = x.Key.Name,
-							Balance = x.Where(y => y.AccountTypeId == (int)AccountTypes.CashDeskBalance).Select(y => y.Balance).DefaultIfEmpty(0).Sum(),
-							TerminalBalance = x.Where(y => y.AccountTypeId == (int)AccountTypes.TerminalBalance).Select(y => y.Balance).DefaultIfEmpty(0).Sum(),
-                            Type = x.Key.Type,
-							State = x.Key.State,
-						}).ToList()                   
-                    };
+                    return Ok(new ApiResponseBase
+                    {
+                        ResponseObject = new PagedModel<CashDesk>
+                        {
+                            Count = grouped.Count(),
+                            Entities = grouped.Select(x => new CashDesk
+                            {
+                                Id = x.Key.Id,
+                                BetShopId = x.Key.BetShopId,
+                                CreationTime = x.Key.CreationTime,
+                                LastUpdateTime = x.Key.LastUpdateTime,
+                                Name = x.Key.Name,
+                                Balance = x.Where(y => y.AccountTypeId == (int)AccountTypes.CashDeskBalance).Select(y => y.Balance).DefaultIfEmpty(0).Sum(),
+                                TerminalBalance = x.Where(y => y.AccountTypeId == (int)AccountTypes.TerminalBalance).Select(y => y.Balance).DefaultIfEmpty(0).Sum(),
+                                Type = x.Key.Type,
+                                State = x.Key.State,
+                            }).ToList()
+                        }
+                    });
+                }
+            }
+            catch (FaultException<BllFnErrorType> ex)
+            {
+                var response = new ApiResponseBase
+                {
+                    ResponseCode = Convert.ToInt32(ex.Detail.Id),
+                    Description = ex.Detail.Message
+                };
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                WebApiApplication.DbLogger.Error(ex);
+                return Ok(new ApiResponseBase
+                {
+                    ResponseCode = Constants.Errors.GeneralException,
+                    Description = ex.Message
+                });
+            }
+        }
 
-					return Ok(response);
-				}
-			}
-			catch (FaultException<BllFnErrorType> ex)
-			{
-				var response = new ApiResponseBase
-				{
-					ResponseCode = Convert.ToInt32(ex.Detail.Id),
-					Description = ex.Detail.Message
-				};
-				return Ok(response);
-			}
-			catch (Exception ex)
-			{
-				WebApiApplication.DbLogger.Error(ex);
-				var response = new ApiResponseBase
-				{
-					ResponseCode = Constants.Errors.GeneralException,
-					Description = ex.Message
-				};
-				return Ok(response);
-			}
-		}
+        [HttpPost]
+        public IHttpActionResult GetBalance(ApiRequestBase apiRequestBase)
+        {
+            try
+            {
+                var identity = CheckToken(apiRequestBase.Token, apiRequestBase.CashDeskId);
+                using (var betShopBl = new BetShopBll(identity, WebApiApplication.DbLogger))
+                {
+                    var cashDesk = CacheManager.GetCashDeskById(apiRequestBase.CashDeskId) ??
+                        throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.CashDeskNotFound);
+                    var betShop = betShopBl.GetBetShopById(cashDesk.BetShopId, false) ??
+                        throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.BetShopNotFound);
 
-		[HttpPost]
-		public IHttpActionResult GetCashDeskCurrentBalance([FromUri] RequestInfo info, GetCashDeskCurrentBalanceInput input)
-		{
-			try
-			{
-				var identity = CheckToken(input.Token, input.CashDeskId);
-				using (var betShopBl = new BetShopBll(identity, WebApiApplication.DbLogger))
-				{
-					var cashDesk = CacheManager.GetCashDeskById(input.CashDeskId);
-					if (cashDesk == null)
-						throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.CashDeskNotFound);
-					var betShop = betShopBl.GetBetShopById(cashDesk.BetShopId, false);
-					if (betShop == null)
-						throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.BetShopNotFound);
+                    var cashierBalance = betShopBl.GetObjectBalanceWithConvertion((int)ObjectTypes.CashDesk, apiRequestBase.CashDeskId, betShop.CurrencyId);
+                    return Ok(new ApiResponseBase
+                    {
+                        ResponseObject = new GetCashDeskCurrentBalanceOutput
+                        {
+                            Balance = cashierBalance.AvailableBalance,
+                            TerminalBalance = cashierBalance.Balances.Where(x => x.TypeId == (int)AccountTypes.TerminalBalance).Sum(x => x.Balance),
+                            CashDeskBalance = cashierBalance.Balances.Where(x => x.TypeId == (int)AccountTypes.CashDeskBalance).Sum(x => x.Balance),
+                            CurrentLimit = betShop.CurrentLimit
+                        }
+                    });
+                }
+            }
+            catch (FaultException<BllFnErrorType> ex)
+            {
+                var response = new ApiResponseBase
+                {
+                    ResponseCode = Convert.ToInt32(ex.Detail.Id),
+                    Description = ex.Detail.Message
+                };
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                WebApiApplication.DbLogger.Error(ex);
+                return Ok(new ApiResponseBase
+                {
+                    ResponseCode = Constants.Errors.GeneralException,
+                    Description = ex.Message
+                });
+            }
+        }
 
-					var cashierBalance = betShopBl.GetObjectBalanceWithConvertion((int) ObjectTypes.CashDesk,
-						input.CashDeskId, betShop.CurrencyId);
-					var response = new GetCashDeskCurrentBalanceOutput
-					{
-						Balance = cashierBalance.AvailableBalance,
-						TerminalBalance = cashierBalance.Balances.Where(x => x.TypeId == (int)AccountTypes.TerminalBalance).Sum(x => x.Balance),
-						CashDeskBalance = cashierBalance.Balances.Where(x => x.TypeId == (int)AccountTypes.CashDeskBalance).Sum(x => x.Balance),
-						CurrentLimit = betShop.CurrentLimit
-					};
-
-					return Ok(response);
-				}
-			}
-			catch (FaultException<BllFnErrorType> ex)
-			{
-				var response = new ApiResponseBase
-				{
-					ResponseCode = Convert.ToInt32(ex.Detail.Id),
-					Description = ex.Detail.Message
-				};
-				return Ok(response);
-			}
-			catch (Exception ex)
-			{
-				WebApiApplication.DbLogger.Error(ex);
-				var response = new ApiResponseBase
-				{
-					ResponseCode = Constants.Errors.GeneralException,
-					Description = ex.Message
-				};
-				return Ok(response);
-			}
-		}
-
-		[HttpPost]
-        public IHttpActionResult CloseShift([FromUri] RequestInfo info, ApiCloseShiftInput input)
+        [HttpPost]
+        public IHttpActionResult CloseShift(ApiRequestBase input)
         {
             try
             {
@@ -1323,10 +1357,10 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                                 var session = userBl.GetUserSession(input.Token, false);
                                 session.State = (int)SessionStates.Inactive;
                                 var result = betshopBl.CloseShift(documentBl, reportBl, input.CashDeskId, session.UserId ?? 0,
-                                    session.Id).MapToApiCloseShiftOutput(info.TimeZone);
+                                    session.Id).MapToApiCloseShiftOutput(input.TimeZone);
                                 WebApiApplication.DbLogger.Info(JsonConvert.SerializeObject(result));
 
-                                return Ok(result);
+                                return Ok(new ApiResponseBase { ResponseObject = result });
                             }
                         }
                     }
@@ -1345,21 +1379,21 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
             catch (Exception ex)
             {
                 WebApiApplication.DbLogger.Error(ex);
-                var response = new ApiResponseBase
+                return Ok(new ApiResponseBase
                 {
                     ResponseCode = Constants.Errors.GeneralException,
                     Description = ex.Message
-                };
-                return Ok(response);
+                });
             }
         }
 
         [HttpPost]
-        public IHttpActionResult ChangeCashierPassword(ChangePasswordInput input)
+        public IHttpActionResult ChangeCashierPassword(ApiRequestBase apiRequestBase)
         {
             try
             {
-                var identity = CheckToken(input.Token, input.CashDeskId, false);
+                var identity = CheckToken(apiRequestBase.Token, apiRequestBase.CashDeskId, false);
+                var input = JsonConvert.DeserializeObject<ChangePasswordInput>(apiRequestBase.RequestObject);
                 using (var userBl = new UserBll(identity, WebApiApplication.DbLogger))
                 {
                     userBl.ChangeUserPassword(identity.Id, input.OldPassword, input.NewPassword);
@@ -1379,25 +1413,25 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
             catch (Exception ex)
             {
                 WebApiApplication.DbLogger.Error(ex);
-                var response = new ApiResponseBase
+                return Ok(new ApiResponseBase
                 {
                     ResponseCode = Constants.Errors.GeneralException,
                     Description = ex.Message
-                };
-                return Ok(response);
+                });
             }
         }
 
         [HttpPost]
-        public IHttpActionResult AssignPin(AssignPinInput input)
+        public IHttpActionResult AssignPin(ApiRequestBase apiRequestBase)
         {
             try
             {
-                var identity = CheckToken(input.Token, input.CashDeskId, false);
+                var identity = CheckToken(apiRequestBase.Token, apiRequestBase.CashDeskId, false);
+                var input = JsonConvert.DeserializeObject<ApiClientInput>(apiRequestBase.RequestObject);
                 using (var userBl = new UserBll(identity, WebApiApplication.DbLogger))
                 {
                     var pin = userBl.AssignPin(identity.BetShopId ?? 0, identity.Id, input.ClientId);
-                    return Ok(new { ResponseObject = pin });
+                    return Ok(new ApiResponseBase { ResponseObject = pin });
                 }
             }
             catch (FaultException<BllFnErrorType> ex)
@@ -1413,24 +1447,24 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
             catch (Exception ex)
             {
                 WebApiApplication.DbLogger.Error(ex);
-                var response = new ApiResponseBase
+                return Ok(new ApiResponseBase
                 {
                     ResponseCode = Constants.Errors.GeneralException,
                     Description = ex.Message
-                };
-                return Ok(response);
+                });
             }
         }
 
         [HttpPost]
-        public IHttpActionResult DepositToTerminal(DepositToInternetClientInput input)
+        public IHttpActionResult DepositToTerminal(ApiRequestBase apiRequestBase)
         {
             try
             {
-                var identity = CheckToken(input.Token, input.CashDeskId);
+                var identity = CheckToken(apiRequestBase.Token, apiRequestBase.CashDeskId);
+                var input = JsonConvert.DeserializeObject<DepositToInternetClientInput>(apiRequestBase.RequestObject);
                 using (var betShopBl = new BetShopBll(identity, WebApiApplication.DbLogger))
                 {
-                    var cashDesk = CacheManager.GetCashDeskById(input.CashDeskId);
+                    var cashDesk = CacheManager.GetCashDeskById(apiRequestBase.CashDeskId);
                     if (cashDesk.Type != (int)CashDeskTypes.Terminal)
                         throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.CashDeskNotFound);
                     var betShop = CacheManager.GetBetShopById(cashDesk.BetShopId);
@@ -1443,7 +1477,7 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                     {
                         Amount = input.Amount,
                         CurrencyId = betShop.CurrencyId,
-                        CashDeskId = input.CashDeskId,
+                        CashDeskId = apiRequestBase.CashDeskId,
                         BetShopId = betShop.Id,
                         CashierId = identity.Id,
                         ExternalTransactionId = input.TransactionId,
@@ -1455,18 +1489,20 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                         CreationTime = currentTime,
                         SessionId = identity.SessionId,
                         Date = (long)currentTime.Year * 100000000 + (long)currentTime.Month * 1000000 + (long)currentTime.Day * 10000 + (long)currentTime.Hour * 100 + currentTime.Minute
-                    };                   
+                    };
                     var paymentRequestDocument = betShopBl.CreateDepositToTerminal(paymentRequest);
 
-                    var response = new DepositToInternetClientOutput
+                    return Ok(new ApiResponseBase
                     {
-                        TransactionId = paymentRequestDocument.Id,
-                        CurrencyId = input.CurrencyId,
-                        Amount = input.Amount,
-                        Status = paymentRequestDocument.State,
-                        DepositDate = paymentRequestDocument.CreationTime
-                    };
-                    return Ok(response);
+                        ResponseObject = new DepositToInternetClientOutput
+                        {
+                            TransactionId = paymentRequestDocument.Id,
+                            CurrencyId = input.CurrencyId,
+                            Amount = input.Amount,
+                            Status = paymentRequestDocument.State,
+                            DepositDate = paymentRequestDocument.CreationTime
+                        }
+                    });
                 }
             }
             catch (FaultException<BllFnErrorType> ex)
@@ -1481,38 +1517,38 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
             catch (Exception ex)
             {
                 WebApiApplication.DbLogger.Error(ex);
-                var response = new ApiResponseBase
+                return Ok(new ApiResponseBase
                 {
                     ResponseCode = Constants.Errors.GeneralException,
                     Description = ex.Message
-                };
-                return Ok(response);
+                });
             }
         }
 
         [HttpPost]
-        public IHttpActionResult WithdrawTerminalFunds(PayWinInput input)
+        public IHttpActionResult WithdrawTerminalFunds(ApiRequestBase apiRequestBase)
         {
             try
             {
-                var identity = CheckToken(input.Token, input.CashDeskId);
+                WebApiApplication.DbLogger.Info("WithdrawTerminalFunds_" + JsonConvert.SerializeObject(apiRequestBase));
+                var identity = CheckToken(apiRequestBase.Token, apiRequestBase.CashDeskId);
                 using (var betShopBl = new BetShopBll(identity, WebApiApplication.DbLogger))
                 {
                     using (var documentBl = new DocumentBll(betShopBl))
                     {
-                        var cashDesk = CacheManager.GetCashDeskById(input.CashDeskId);
+                        var cashDesk = CacheManager.GetCashDeskById(apiRequestBase.CashDeskId);
                         if (cashDesk.Type != (int)CashDeskTypes.Terminal)
                             throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.CashDeskNotFound);
                         var betShop = CacheManager.GetBetShopById(cashDesk.BetShopId);
                         var paymentSystem = CacheManager.GetPaymentSystemByName(Constants.PaymentSystems.BetShop);
-                        var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(betShop.PartnerId, paymentSystem.Id, 
+                        var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(betShop.PartnerId, paymentSystem.Id,
                             betShop.CurrencyId, (int)PaymentRequestTypes.Deposit);
                         var currentTime = DateTime.UtcNow;
 
                         var paymentRequest = new DAL.PaymentRequest
                         {
                             CurrencyId = betShop.CurrencyId,
-                            CashDeskId = input.CashDeskId,
+                            CashDeskId = apiRequestBase.CashDeskId,
                             BetShopId = betShop.Id,
                             CashierId = identity.Id,
                             PaymentSystemId = paymentSystem.Id,
@@ -1522,19 +1558,21 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                             LastUpdateTime = currentTime,
                             CreationTime = currentTime,
                             SessionId = identity.SessionId,
-                            Date = (long)currentTime.Year * 100000000 + (long)currentTime.Month * 1000000 + 
+                            Date = (long)currentTime.Year * 100000000 + (long)currentTime.Month * 1000000 +
                                 (long)currentTime.Day * 10000 + (long)currentTime.Hour * 100 + currentTime.Minute
                         };
                         var document = betShopBl.CreateWithdrawFromTerminal(paymentRequest);
 
-                        var response = new DepositToInternetClientOutput
+                        return Ok(new ApiResponseBase
                         {
-                            TransactionId = paymentRequest.Id,
-                            CurrencyId = paymentRequest.CurrencyId,
-                            Amount = paymentRequest.Amount,
-                            Status = paymentRequest.Status
-                        };
-                        return Ok(response);
+                            ResponseObject = new DepositToInternetClientOutput
+                            {
+                                TransactionId = paymentRequest.Id,
+                                CurrencyId = paymentRequest.CurrencyId,
+                                Amount = paymentRequest.Amount,
+                                Status = paymentRequest.Status
+                            }
+                        });
                     }
                 }
             }
@@ -1550,28 +1588,28 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
             catch (Exception ex)
             {
                 WebApiApplication.DbLogger.Error(ex);
-                var response = new ApiResponseBase
+                return Ok(new ApiResponseBase
                 {
                     ResponseCode = Constants.Errors.GeneralException,
                     Description = ex.Message
-                };
-                return Ok(response);
+                });
             }
         }
 
         [HttpPost]
-        public IHttpActionResult CreateWithdrawPaymentRequest(CreatePaymentRequest input)
+        public IHttpActionResult CreateWithdrawPaymentRequest(ApiRequestBase apiRequestBase)
         {
             try
             {
-                var identity = CheckToken(input.Token, input.CashDeskId);
+                var identity = CheckToken(apiRequestBase.Token, apiRequestBase.CashDeskId);
+                var input = JsonConvert.DeserializeObject<CreatePaymentRequest>(apiRequestBase.RequestObject);
                 using (var clientBll = new ClientBll(identity, WebApiApplication.DbLogger))
                 {
                     using (var documentBll = new DocumentBll(clientBll))
                     {
                         using (var notificationBll = new NotificationBll(clientBll))
                         {
-                            var cashDesk = CacheManager.GetCashDeskById(input.CashDeskId);
+                            var cashDesk = CacheManager.GetCashDeskById(apiRequestBase.CashDeskId);
                             var betShop = CacheManager.GetBetShopById(cashDesk.BetShopId);
                             var client = CacheManager.GetClientById(input.ClientId);
                             var paymentSystem = CacheManager.GetPaymentSystemByName(Constants.PaymentSystems.BetShop);
@@ -1579,13 +1617,13 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                             var partner = CacheManager.GetPartnerById(betShop.PartnerId);
                             var currentTime = DateTime.UtcNow;
 
-                            var paymentRequest = new Common.Models.PaymentRequestModel
+                            var paymentRequest = new PaymentRequestModel
                             {
                                 ClientId = input.ClientId,
                                 Amount = input.Amount,
                                 CurrencyId = betShop.CurrencyId,
-                                CashDeskId = input.CashDeskId,
-                                CashierId = input.CashierId, 
+                                CashDeskId = apiRequestBase.CashDeskId,
+                                CashierId = input.CashierId,
                                 BetShopId = betShop.Id,
                                 PaymentSystemId = paymentSystem.Id,
                                 Type = (int)PaymentRequestTypes.Withdraw,
@@ -1605,20 +1643,22 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                             //clientBll.PayWithdrawFromPaymentSystem(resp, documentBll, notificationBll);
                             Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}", Constants.CacheItems.ClientBalance, resp.ClientId));
                             Helpers.Helpers.InvokeMessage("PaymentRequst", document.Id);
-                            var response = new PayPaymentRequestOutput
+                            return Ok(new ApiResponseBase
                             {
-                                CurrentLimit = resp.ObjectLimit,
-                                CashierBalance = resp.CashierBalance,
-                                ClientBalance = resp.ClientBalance,
-                                CurrencyId = resp.CurrencyId,
-                                TransactionId = resp.RequestId,
-                                ClientId = resp.ClientId,
-                                UserName = resp.ClientUserName,
-                                DocumentNumber = resp.ClientDocumentNumber,
-                                Amount = resp.RequestAmount,
-                                PayDate = clientBll.GetServerDate()
-                            };
-                            return Ok(response);
+                                ResponseObject = new PayPaymentRequestOutput
+                                {
+                                    CurrentLimit = resp.ObjectLimit,
+                                    CashierBalance = resp.CashierBalance,
+                                    ClientBalance = resp.ClientBalance,
+                                    CurrencyId = resp.CurrencyId,
+                                    TransactionId = resp.RequestId,
+                                    ClientId = resp.ClientId,
+                                    UserName = resp.ClientUserName,
+                                    DocumentNumber = resp.ClientDocumentNumber,
+                                    Amount = resp.RequestAmount,
+                                    PayDate = clientBll.GetServerDate()
+                                }
+                            });
                         }
                     }
                 }
@@ -1635,21 +1675,20 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
             catch (Exception ex)
             {
                 WebApiApplication.DbLogger.Error(ex);
-                var response = new ApiResponseBase
+                return Ok(new ApiResponseBase
                 {
                     ResponseCode = Constants.Errors.GeneralException,
                     Description = ex.Message
-                };
-                return Ok(response);
+                });
             }
         }
 
         [HttpPost]
-        public IHttpActionResult GetErrorById([FromUri] RequestInfo info, GetErrorInput input)
+        public IHttpActionResult GetErrorById(GetErrorInput input)
         {
             try
             {
-                var message = CacheManager.GetfnErrorTypes(info.LanguageId).Where(x => x.Id == input.ErrorId).FirstOrDefault()?.Message;
+                var message = CacheManager.GetfnErrorTypes(input.LanguageId).Where(x => x.Id == input.ErrorId).FirstOrDefault()?.Message;
                 return Ok(new ApiResponseBase
                 {
                     Description = message
@@ -1667,39 +1706,40 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
             catch (Exception ex)
             {
                 WebApiApplication.DbLogger.Error(ex);
-                var response = new ApiResponseBase
+                return Ok(new ApiResponseBase
                 {
                     ResponseCode = Constants.Errors.GeneralException,
                     Description = ex.Message
-                };
-                return Ok(response);
+                });
             }
         }
 
         #region Reporting
 
         [HttpPost]
-        public IHttpActionResult GetBetShopBets([FromUri] RequestInfo info, GetReportByBetInput input)
+        public IHttpActionResult GetBetShopBets(ApiRequestBase apiRequestBase)
         {
             try
             {
-				var identity = CheckToken(input.Token, input.CashDeskId);
-                var fromDate = input.FromDate.GetGMTDateFromUTC(input.TimeZone);
-                var toDate = input.ToDate.GetGMTDateFromUTC(input.TimeZone);
-
+                var identity = CheckToken(apiRequestBase.Token, apiRequestBase.CashDeskId);
+                var input = JsonConvert.DeserializeObject<ReportByBetInput>(apiRequestBase.RequestObject);
+                var fromDate = input.FromDate.GetGMTDateFromUTC(apiRequestBase.TimeZone);
+                var toDate = input.ToDate.GetGMTDateFromUTC(apiRequestBase.TimeZone);
                 if (fromDate < DateTime.UtcNow.AddDays(-4))
                     throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.WrongParameters);
 
                 using (var reportBl = new ReportBll(identity, WebApiApplication.DbLogger))
                 {
                     var bets =
-                        reportBl.GetBetshopBetsForCashier(fromDate.Value, toDate.Value, input.CashDeskId, identity.Id,
+                        reportBl.GetBetshopBetsForCashier(fromDate.Value, toDate.Value, apiRequestBase.CashDeskId, identity.Id,
                             input.ProductId, input.State);
-                    var response = new GetBetShopBetsOutput
+                    return Ok(new ApiResponseBase
                     {
-                        Bets = bets.Select(x => x.MapToBetShopBet(input.TimeZone)).ToList()
-                    };
-                    return Ok(response);
+                        ResponseObject = new GetBetShopBetsOutput
+                        {
+                            Bets = bets.Select(x => x.MapToBetShopBet(apiRequestBase.TimeZone)).ToList()
+                        }
+                    });
                 }
             }
             catch (FaultException<BllFnErrorType> ex)
@@ -1714,28 +1754,28 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
             catch (Exception ex)
             {
                 WebApiApplication.DbLogger.Error(ex);
-                var response = new ApiResponseBase
+                return Ok(new ApiResponseBase
                 {
                     ResponseCode = Constants.Errors.GeneralException,
                     Description = ex.Message
-                };
-                return Ok(response);
+                });
             }
         }
 
         [HttpPost]
-        public IHttpActionResult GetBetShopOperations([FromUri] RequestInfo info, GetBetShopOperationsInput input)
+        public IHttpActionResult GetBetShopOperations(ApiRequestBase apiRequestBase)
         {
             try
             {
-				var identity = CheckToken(input.Token, input.CashDeskId);
+                var identity = CheckToken(apiRequestBase.Token, apiRequestBase.CashDeskId);
+                var input = JsonConvert.DeserializeObject<ReportByBetInput>(apiRequestBase.RequestObject);
                 using (var repaymentSystemBl = new PaymentSystemBll(identity, WebApiApplication.DbLogger))
                 {
-                    var fromDate = input.FromDate.GetUTCDateFromGmt(info.TimeZone);
-                    var toDate = input.ToDate.GetUTCDateFromGmt(info.TimeZone);
+                    var fromDate = input.FromDate.Value.GetUTCDateFromGmt(apiRequestBase.TimeZone);
+                    var toDate = input.ToDate.Value.GetUTCDateFromGmt(apiRequestBase.TimeZone);
                     if ((toDate - fromDate).TotalDays > 30)
                         throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.WrongParameters);
-                    var cashDesk = CacheManager.GetCashDeskById(input.CashDeskId);
+                    var cashDesk = CacheManager.GetCashDeskById(apiRequestBase.CashDeskId);
                     var filter = new FilterfnPaymentRequest
                     {
                         FromDate = (long)fromDate.Year * 100000000 + (long)fromDate.Month * 1000000 + (long)fromDate.Day * 10000 + (long)fromDate.Hour * 100 + fromDate.Minute,
@@ -1773,7 +1813,7 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                                     }
                             },
                     };
-                    if(input.Barcode != null)
+                    if (input.Barcode != null)
                     {
                         long id = (input.Barcode.Value / 10) % 100000000000;
                         filter.Ids = new FiltersOperation
@@ -1794,8 +1834,7 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                         repaymentSystemBl.GetPaymentRequestsPaging(filter, false, true)
                             .Entities.OrderByDescending(x => x.Id)
                             .ToList();
-                    var response = operations.MapToBetShopOperations(info.TimeZone);
-                    return Ok(response);
+                    return Ok(new ApiResponseBase { ResponseObject = operations.MapToBetShopOperations(apiRequestBase.TimeZone) });
                 }
             }
             catch (FaultException<BllFnErrorType> ex)
@@ -1810,36 +1849,38 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
             catch (Exception ex)
             {
                 WebApiApplication.DbLogger.Error(ex);
-                var response = new ApiResponseBase
+                return Ok(new ApiResponseBase
                 {
                     ResponseCode = Constants.Errors.GeneralException,
                     Description = ex.Message
-                };
-                return Ok(response);
+                });
             }
         }
 
         [HttpPost]
-        public IHttpActionResult GetShiftReport([FromUri] RequestInfo info, GetShiftReportInput input)
+        public IHttpActionResult GetShiftReport(ApiRequestBase apiRequestBase)
         {
             try
             {
-				var identity = CheckToken(input.Token, input.CashDeskId);
+                var identity = CheckToken(apiRequestBase.Token, apiRequestBase.CashDeskId);
+                var input = JsonConvert.DeserializeObject<ApiCashierInput>(apiRequestBase.RequestObject);
                 using (var reportBl = new ReportBll(identity, WebApiApplication.DbLogger))
                 {
-                    var startTime = input.FromDate.GetUTCDateFromGmt(input.TimeZone);
-                    var endTime = input.ToDate.GetUTCDateFromGmt(input.TimeZone);
+                    var startTime = input.FromDate.GetUTCDateFromGmt(apiRequestBase.TimeZone);
+                    var endTime = input.ToDate.GetUTCDateFromGmt(apiRequestBase.TimeZone);
                     if (startTime < DateTime.UtcNow.AddDays(-8))
                         throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.WrongParameters);
 
-                    var response = reportBl.GetShifts(startTime.Value, endTime.Value, input.CashDeskId, input.CashierId);
+                    var response = reportBl.GetShifts(startTime.Value, endTime.Value, apiRequestBase.CashDeskId, input.CashierId);
 
-                    return Ok(new ApiGetShiftReportOutput
+                    return Ok(new ApiResponseBase
                     {
-                        Shifts =
-                            response.Select(x => x.ToApiShift(input.TimeZone))
-                                .OrderByDescending(x => x.Id)
-                                .ToList()
+                        ResponseObject = new ApiGetShiftReportOutput
+                        {
+                            Shifts = response.Select(x => x.ToApiShift(apiRequestBase.TimeZone))
+                                             .OrderByDescending(x => x.Id)
+                                             .ToList()
+                        }
                     });
                 }
             }
@@ -1855,41 +1896,41 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
             catch (Exception ex)
             {
                 WebApiApplication.DbLogger.Error(ex);
-                var response = new ApiResponseBase
+                return Ok(new ApiResponseBase
                 {
                     ResponseCode = Constants.Errors.GeneralException,
                     Description = ex.Message
-                };
-                return Ok(response);
+                });
             }
         }
 
         [HttpPost]
-        public IHttpActionResult GetCashDeskOperations([FromUri] RequestInfo info, GetCashDeskOperationsInput input)
+        public IHttpActionResult GetCashDeskOperations(ApiRequestBase apiRequestBase)
         {
             try
             {
-				var identity = CheckToken(input.Token, input.CashDeskId);
+                var identity = CheckToken(apiRequestBase.Token, apiRequestBase.CashDeskId);
+                var input = JsonConvert.DeserializeObject<CashDeskOperations>(apiRequestBase.RequestObject);
                 using (var reportBl = new ReportBll(identity, WebApiApplication.DbLogger))
                 {
                     using (var betshopBl = new BetShopBll(reportBl))
                     {
                         var currentTime = DateTime.UtcNow;
-                        var fromDate = (input.FromDate == null || input.FromDate == DateTime.MinValue) ? currentTime.AddDays(-1) : 
-                            input.FromDate.GetUTCDateFromGmt(info.TimeZone);
+                        var fromDate = (input.FromDate == null || input.FromDate == DateTime.MinValue) ? currentTime.AddDays(-1) :
+                            input.FromDate.GetUTCDateFromGmt(apiRequestBase.TimeZone);
 
                         var toDate = (input.ToDate == null || input.ToDate == DateTime.MinValue) ? currentTime.AddDays(1) :
-                            input.ToDate.GetUTCDateFromGmt(info.TimeZone);
+                            input.ToDate.GetUTCDateFromGmt(apiRequestBase.TimeZone);
                         if (input.LastShiftsNumber != null)
                         {
-                            if(input.LastShiftsNumber < 1 || input.LastShiftsNumber > 3)
+                            if (input.LastShiftsNumber < 1 || input.LastShiftsNumber > 3)
                                 throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.WrongParameters);
                             var cd = betshopBl.GetCashDeskById(identity.CashDeskId);
-                            if(cd != null)
+                            if (cd != null)
                             {
                                 var shift = betshopBl.GetShift(identity.CashDeskId, input.LastShiftsNumber == 1 ? (int?)null :
                                     Math.Max(0, (cd.CurrentShiftNumber ?? 0) - input.LastShiftsNumber.Value + 2));
-                                
+
                                 if (shift != null)
                                     fromDate = shift.StartTime;
                             }
@@ -1919,7 +1960,7 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                                     new FiltersOperationType
                                     {
                                         OperationTypeId = (int)FilterOperations.IsEqualTo,
-                                        IntValue = input.CashDeskId
+                                        IntValue = apiRequestBase.CashDeskId
                                     }
                                 }
                             },
@@ -1938,24 +1979,29 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                             FromDate = fromDate.Value,
                             ToDate = toDate.Value
                         };
-                        var transactions = reportBl.GetCashDeskTransactions(filter, info.LanguageId);
-                        var response = new CashDeskOperationsOutput
+                        var transactions = reportBl.GetCashDeskTransactions(filter, apiRequestBase.LanguageId);
+                        return Ok(new ApiResponseBase
                         {
-                            Operations = transactions.Select(x => x.MapToCashDeskOperation(info.TimeZone)).ToList(),
-                            StartTime = fromDate.Value.GetGMTDateFromUTC(info.TimeZone),
-                            EndTime = toDate.Value.GetGMTDateFromUTC(info.TimeZone)
-                        };
-                        return Ok(response);
+                            ResponseObject = new CashDeskOperationsOutput
+                            {
+                                Operations = transactions.Select(x => x.MapToCashDeskOperation(apiRequestBase.TimeZone)).ToList(),
+                                StartTime = fromDate.Value.GetGMTDateFromUTC(apiRequestBase.TimeZone),
+                                EndTime = toDate.Value.GetGMTDateFromUTC(apiRequestBase.TimeZone)
+                            }
+                        });
                     }
                 }
             }
             catch (FaultException<BllFnErrorType> ex)
             {
-                var response = new CashDeskOperationsOutput
+                var response = new ApiResponseBase
                 {
                     ResponseCode = ex.Detail.Id,
                     Description = ex.Detail.Message,
-                    Operations = new List<CashDeskOperation>()
+                    ResponseObject = new
+                    {
+                        Operations = new List<CashDeskOperation>()
+                    }
                 };
                 WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(response));
                 return Ok(response);
@@ -1963,64 +2009,60 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
             catch (Exception ex)
             {
                 WebApiApplication.DbLogger.Error(ex);
-                var response = new CashDeskOperationsOutput
+                return Ok(new ApiResponseBase
                 {
                     ResponseCode = Constants.Errors.GeneralException,
-                    Description = ex.Message,
-                    Operations = new List<CashDeskOperation>()
-                };
-                return Ok(response);
+                    Description = ex.Message
+                });
             }
         }
 
-		#endregion
+        #endregion
 
-		[HttpPost]
-		public IHttpActionResult GetUserProductSessions([FromUri] RequestInfo info, GetCashDeskInfoInput input)
-		{
-			try
-			{
-				var identity = CheckToken(input.Token, input.CashDeskId);
-				using (var userBl = new UserBll(identity, WebApiApplication.DbLogger))
-				{
-					var product = CacheManager.GetProductById(input.ProductId);
-					if (product == null)
-						throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.ProductNotFound);
+        [HttpPost]
+        public IHttpActionResult GetUserProductSessions(GetCashDeskInfoInput input) // not using
+        {
+            try
+            {
+                var identity = CheckToken(input.Token, input.CashDeskId);
+                using (var userBl = new UserBll(identity, WebApiApplication.DbLogger))
+                {
+                    var product = CacheManager.GetProductById(input.ProductId);
+                    if (product == null)
+                        throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.ProductNotFound);
                     var session = userBl.GetUserProductSession(identity.SessionId, product.Id);
                     if (session == null)
                         throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.SessionNotFound);
+                    return Ok(new ApiResponseBase { ResponseObject =  session.ToProductSessionOutput() });
+                }
+            }
+            catch (FaultException<BllFnErrorType> ex)
+            {
+                var response = new ApiResponseBase
+                {
+                    ResponseCode = Convert.ToInt32(ex.Detail.Id),
+                    Description = ex.Detail.Message
+                };
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                WebApiApplication.DbLogger.Error(ex);
+                return Ok(new ApiResponseBase
+                {
+                    ResponseCode = Constants.Errors.GeneralException,
+                    Description = ex.Message
+                });
+            }
+        }
 
-                    return Ok(session.ToProductSessionOutput());
-				}
-			}
-			catch (FaultException<BllFnErrorType> ex)
-			{
-				var response = new ApiResponseBase
-				{
-					ResponseCode = Convert.ToInt32(ex.Detail.Id),
-					Description = ex.Detail.Message
-				};
-				return Ok(response);
-			}
-			catch (Exception ex)
-			{
-				WebApiApplication.DbLogger.Error(ex);
-				var response = new ApiResponseBase
-				{
-					ResponseCode = Constants.Errors.GeneralException,
-					Description = ex.Message
-				};
-				return Ok(response);
-			}
-		}
-
-		private SessionIdentity CheckToken(string token, int cashDeskId, bool checkExpiration = true, bool isForCashier = true)
+        private SessionIdentity CheckToken(string token, int cashDeskId, bool checkExpiration = true, bool isForCashier = true)
         {
             using (var userBl = new UserBll(new SessionIdentity(), WebApiApplication.DbLogger))
             {
                 var session = userBl.GetUserSession(token, checkExpiration);
                 var user = userBl.GetUserById(session.UserId.Value);
-                
+
                 var partnerId = user.PartnerId;
                 var currencyId = user.CurrencyId;
                 int? betShopId = null;
@@ -2058,16 +2100,19 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
         }
 
         [HttpPost]
-        public IHttpActionResult GetRegions(Common.Models.WebSiteModels.ApiFilterRegion input)
+        public IHttpActionResult GetRegions(ApiRequestBase apiRequestBase)
         {
             try
             {
+                var input = JsonConvert.DeserializeObject<Common.Models.WebSiteModels.ApiFilterRegion>(apiRequestBase.RequestObject);
                 using (var regionBl = new RegionBll(new SessionIdentity(), WebApiApplication.DbLogger))
                 {
-                    return Ok(new
+                    return Ok(new ApiResponseBase
                     {
-                        Entities = regionBl.GetfnRegions(new FilterRegion { ParentId = input.ParentId, TypeId = input.TypeId },
-                            input.LanguageId, false, input.PartnerId).Where(x => x.State == (int)RegionStates.Active).OrderBy(x => x.Name)
+                        ResponseObject = new
+                        {
+                            Entities = regionBl.GetfnRegions(new FilterRegion { ParentId = input.ParentId, TypeId = input.TypeId },
+                            apiRequestBase.LanguageId, false, apiRequestBase.PartnerId).Where(x => x.State == (int)RegionStates.Active).OrderBy(x => x.Name)
                             .Select(x => new
                             {
                                 x.Id,
@@ -2076,6 +2121,7 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                                 x.IsoCode,
                                 x.IsoCode3,
                             })
+                        }
                     });
                 }
             }
@@ -2091,50 +2137,78 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
             catch (Exception ex)
             {
                 WebApiApplication.DbLogger.Error(ex);
-                var response = new ApiResponseBase
+                return Ok(new ApiResponseBase
                 {
                     ResponseCode = Constants.Errors.GeneralException,
                     Description = ex.Message
-                };
-                return Ok(response);
+                });
             }
         }
 
         [HttpPost]
-        public IHttpActionResult ResetClientPassword([FromUri] RequestInfo info, ApiClientFilter input)
+        public IHttpActionResult ResetClientPassword(ApiRequestBase apiRequestBase)
         {
-			try
-			{
-				var identity = CheckToken(input.Token, input.CashDeskId);
-				var cashDesk = CacheManager.GetCashDeskById(input.CashDeskId);
-				if (!input.ClientId.HasValue)
-					throw BaseBll.CreateException(info.LanguageId, Constants.Errors.ClientNotFound);
-				using (var clientBl = new ClientBll(identity, WebApiApplication.DbLogger))
-				{
-                    var newpassword = clientBl.ResetClientPassword(input.ClientId.Value, cashDesk.BetShopId, info.LanguageId, out string clientUserName);
-                    
-					return Ok(new { UserName = clientUserName, Password = newpassword });
-				}
-			}
-			catch (FaultException<BllFnErrorType> ex)
-			{
-				var response = new ApiResponseBase
-				{
-					ResponseCode = Convert.ToInt32(ex.Detail.Id),
-					Description = ex.Detail.Message
-				};
-				return Ok(response);
-			}
-			catch (Exception ex)
-			{
-				WebApiApplication.DbLogger.Error(ex);
-				var response = new ApiResponseBase
-				{
-					ResponseCode = Constants.Errors.GeneralException,
-					Description = ex.Message
-				};
-				return Ok(response);
-			}
-		}
+            try
+            {
+                var identity = CheckToken(apiRequestBase.Token, apiRequestBase.CashDeskId);
+                var input = JsonConvert.DeserializeObject<ApiClientInput>(apiRequestBase.RequestObject);
+                var cashDesk = CacheManager.GetCashDeskById(apiRequestBase.CashDeskId);
+                using (var clientBl = new ClientBll(identity, WebApiApplication.DbLogger))
+                {
+                    var newpassword = clientBl.ResetClientPassword(input.ClientId, cashDesk.BetShopId, apiRequestBase.LanguageId, out string clientUserName);
+                    return Ok(new ApiResponseBase { ResponseObject =  new { UserName = clientUserName, Password = newpassword } });
+                }
+            }
+            catch (FaultException<BllFnErrorType> ex)
+            {
+                var response = new ApiResponseBase
+                {
+                    ResponseCode = Convert.ToInt32(ex.Detail.Id),
+                    Description = ex.Detail.Message
+                };
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                WebApiApplication.DbLogger.Error(ex);
+                return Ok(new ApiResponseBase
+                {
+                    ResponseCode = Constants.Errors.GeneralException,
+                    Description = ex.Message
+                });
+            }
+        }
+
+        [HttpPost]
+        public IHttpActionResult GetDocuments(ApiRequestBase apiRequestBase)
+        {
+            try
+            {
+                var identity = CheckToken(apiRequestBase.Token, apiRequestBase.CashDeskId);
+                var cashDesk = CacheManager.GetCashDeskById(apiRequestBase.CashDeskId);
+                using (var contentBl = new ContentBll(identity, WebApiApplication.DbLogger))
+                {
+                    return Ok(new ApiResponseBase { ResponseObject =  contentBl.GetDocuments(identity.PartnerId, (int)DeviceTypes.BetShop) });
+                }
+            }
+            catch (FaultException<BllFnErrorType> ex)
+            {
+                var response = new ApiResponseBase
+                {
+                    ResponseCode = Convert.ToInt32(ex.Detail.Id),
+                    Description = ex.Detail.Message
+                };
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                WebApiApplication.DbLogger.Error(ex);
+                return Ok(new ApiResponseBase
+                {
+                    ResponseCode = Constants.Errors.GeneralException,
+                    Description = ex.Message
+                });
+            }
+        }
     }
 }

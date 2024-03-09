@@ -46,6 +46,8 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     return AddProduct(JsonConvert.DeserializeObject<ApiProduct>(request.RequestData), identity, log);
                 case "EditProduct":
                     return EditProduct(JsonConvert.DeserializeObject<ApiProduct>(request.RequestData), identity, log);
+                case "SaveProductsCountrySetting":
+                    return SaveProductsCountrySetting(JsonConvert.DeserializeObject<ApiProduct>(request.RequestData), identity, log);
                 case "GetPartnerProducts":
                     return
                         GetPartnerProducts(
@@ -97,12 +99,13 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     if (user == null)
                         throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.UserNotFound);
                     var filter = apiFilter.MapToFilterfnProduct();
+                    List<int> productIds = null;
+
                     if (apiFilter.BonusId.HasValue)
                     {
                         var bonus = CacheManager.GetBonusById(apiFilter.BonusId.Value);
                         if (bonus != null)
                         {
-                            List<int> productIds = null;
                             switch (bonus.Type)
                             {
                                 case (int)BonusTypes.CampaignFreeSpin:
@@ -121,66 +124,64 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                                 BetValueLevels = apiFilter.BetValueLevels == null ? new FiltersOperation() : apiFilter.BetValueLevels.MapToFiltersOperation()
                             };
 
-                            if (apiFilter.Counts != null || apiFilter.Lineses != null || apiFilter.Coinses != null || 
+                            if (apiFilter.Counts != null || apiFilter.Lineses != null || apiFilter.Coinses != null ||
                                 apiFilter.CoinValues != null || apiFilter.BetValueLevels != null)
                                 productIds = bonusService.GetBonusProducts(bonusProductsFilter).Select(x => x.ProductId).ToList();
+                        }
+                    }
+                    if (!string.IsNullOrEmpty(apiFilter.Pattern) || (productIds != null && productIds.Count > 0))
+                    {
+                        var parentId = filter.ParentId;
+                        var productId = filter.ProductId;
+                        var idsFiltersOperation = filter.Ids;
 
-                            if (!string.IsNullOrEmpty(apiFilter.Pattern) || (productIds != null && productIds.Count > 0))
+                        filter.ParentId = null;
+                        filter.ProductId = null;
+                        if (productIds != null && productIds.Count > 0)
+                            filter.Ids = new FiltersOperation
                             {
-                                var parentId = filter.ParentId;
-                                var productId = filter.ProductId;
-                                var idsFiltersOperation = filter.Ids;
-
-                                filter.ParentId = null;
-                                filter.ProductId = null;
-                                if (productIds != null && productIds.Count > 0)
-                                    filter.Ids = new FiltersOperation
-                                {
-                                    IsAnd = true,
-                                    OperationTypeList = new List<FiltersOperationType> { new FiltersOperationType
+                                IsAnd = true,
+                                OperationTypeList = new List<FiltersOperationType> { new FiltersOperationType
                                     {
                                         OperationTypeId = (int)FilterOperations.InSet,
                                         StringValue = string.Join(",", productIds)
                                     } }
+                            };
+                        var games = productsBl.GetFnProducts(filter, !(user.Type == (int)UserTypes.MasterAgent ||
+                        user.Type == (int)UserTypes.Agent || user.Type == (int)UserTypes.AgentEmployee)).Entities
+                        .Where(x => parentId == null || x.Path.Contains("/" + parentId.Value + "/")).ToList();
+
+                        productIds = games.Select(x => x.Id).ToList();
+                        foreach (var g in games)
+                        {
+                            var items = g.Path.Split('/').ToList();
+                            foreach (var item in items)
+                                if (!string.IsNullOrEmpty(item))
+                                    productIds.Add(Convert.ToInt32(item));
+                        }
+                        productIds = productIds.Distinct().ToList();
+
+                        filter.ParentId = parentId;
+                        filter.ProductId = productId;
+                        filter.Pattern = null;
+                        filter.Ids = idsFiltersOperation;
+                        if (productIds != null)
+                        {
+                            if (productIds.Count == 0)
+                                productIds.Add(Constants.PlatformProductId);
+                            var filtersOperationType = new FiltersOperationType
+                            {
+                                OperationTypeId = (int)FilterOperations.InSet,
+                                StringValue = string.Join(",", productIds)
+                            };
+                            if (filter.Ids?.OperationTypeList != null)
+                                filter.Ids.OperationTypeList.Add(filtersOperationType);
+                            else
+                                filter.Ids = new FiltersOperation
+                                {
+                                    IsAnd = true,
+                                    OperationTypeList = new List<FiltersOperationType> { filtersOperationType }
                                 };
-
-                                var games = productsBl.GetFnProducts(filter, !(user.Type == (int)UserTypes.MasterAgent ||
-                                    user.Type == (int)UserTypes.Agent || user.Type == (int)UserTypes.AgentEmployee)).Entities
-                                    .Where(x => parentId == null || x.Path.Contains("/" + parentId.Value + "/")).ToList();
-
-                                productIds = games.Select(x => x.Id).ToList();
-                                foreach (var g in games)
-                                {
-                                    var items = g.Path.Split('/').ToList();
-                                    foreach (var item in items)
-                                        if (!string.IsNullOrEmpty(item))
-                                            productIds.Add(Convert.ToInt32(item));
-                                }
-                                productIds = productIds.Distinct().ToList();
-
-                                filter.ParentId = parentId;
-                                filter.ProductId = productId;
-                                filter.Pattern = null;
-                                filter.Ids = idsFiltersOperation;
-                                if (productIds != null)
-                                {
-                                    if (productIds.Count == 0)
-                                        productIds.Add(Constants.PlatformProductId);
-                                    var filtersOperationType = new FiltersOperationType
-                                    {
-                                        OperationTypeId = (int)FilterOperations.InSet,
-                                        StringValue = string.Join(",", productIds)
-                                    };
-                                    if (filter.Ids?.OperationTypeList != null)
-                                        filter.Ids.OperationTypeList.Add(filtersOperationType);
-                                    else
-                                        filter.Ids = new FiltersOperation
-                                        {
-                                            IsAnd = true,
-                                            OperationTypeList = new List<FiltersOperationType> { filtersOperationType }
-                                        };
-                                }
-                            }
                         }
                     }
 
@@ -225,6 +226,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                         Id = x.Id,
                         Name = x.Name,
                         Type = x.Type,
+                        IsActive = x.IsActive,
                         SessionExpireTime = x.SessionExpireTime,
                         GameLaunchUrl = x.GameLaunchUrl
                     }).ToList()
@@ -242,49 +244,56 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     provider.Id,
                     provider.Name,
                     provider.Type,
+                    provider.IsActive,
                     provider.SessionExpireTime,
                     provider.GameLaunchUrl,
-                    provider.CurrencySetting 
+                    CurrencySetting = provider.CurrencySetting.Select(x => new { x.Id, x.Type, x.CurrencyIds }).ToList()
                 }
             };
         }
 
         private static ApiResponseBase SaveGameProvider(ApiGameProvider input, SessionIdentity identity, ILog log)
         {
-            using (var productsBl = new ProductBll(identity, log))
+            using (var productBl = new ProductBll(identity, log))
             {
-                var provider = productsBl.SaveGameProvider(new GameProvider
+                var result = productBl.SaveGameProvider(new ApiGameProvider
                 {
                     Id = input.Id,
-                    Type = input.Type ?? 0,
+                    Ids = input.Ids,
+                    Type = input.Type,
+                    IsActive = input.IsActive,
                     SessionExpireTime = input.SessionExpireTime,
                     Name = input.Name,
                     GameLaunchUrl = input.GameLaunchUrl,
-                    GameProviderCurrencySettings = input.CurrencySetting?.Names?.Select(x => new GameProviderCurrencySetting
+                    GameProviderCurrencySettings = input.CurrencySetting?.Names?.Select(x => new ApiGameProviderCurrencySetting
                     {
                         CurrencyId = x,
                         Type = input.CurrencySetting.Type ?? (int)ProductCountrySettingTypes.Restricted
                     }).ToList(),
                 });
-                Helpers.Helpers.InvokeMessage(string.Format("{0}_{1}", Constants.CacheItems.GameProviders, input.Id));
-                Helpers.Helpers.InvokeMessage(string.Format("{0}_{1}", Constants.CacheItems.GameProviders, input.Name));
+                if (input.Id.HasValue && input.Id >= 0)
+                {
+                    Helpers.Helpers.InvokeMessage(string.Format("{0}_{1}", Constants.CacheItems.GameProviders, input.Id));
+                    Helpers.Helpers.InvokeMessage(string.Format("{0}_{1}", Constants.CacheItems.GameProviders, input.Name));
+                }
+                else
+                    result.ForEach(x =>
+                    {
+                        Helpers.Helpers.InvokeMessage(string.Format("{0}_{1}", Constants.CacheItems.GameProviders, x.Id));
+                        Helpers.Helpers.InvokeMessage(string.Format("{0}_{1}", Constants.CacheItems.GameProviders, x.Name));
+                    });
                 Helpers.Helpers.InvokeMessage("RemoveKeysFromCache", string.Format("{0}_", Constants.CacheItems.RestrictedGameProviders));
-
                 return new ApiResponseBase
                 {
-                    ResponseObject = new ApiGameProvider
+                    ResponseObject = result.Select(x => new
                     {
-                        Id = provider.Id,
-                        Name = provider.Name,
-                        Type = provider.Type,
-                        SessionExpireTime = provider.SessionExpireTime,
-                        GameLaunchUrl = provider.GameLaunchUrl,
-                        CurrencySetting = provider.GameProviderCurrencySettings != null && provider.GameProviderCurrencySettings.Any() ? new ApiSetting
-                        {
-                            Type = provider.GameProviderCurrencySettings.First().Type,
-                            Names = provider.GameProviderCurrencySettings.Select(x => x.CurrencyId).ToList()
-                        } : new ApiSetting { Type = (int)ProductCountrySettingTypes.Restricted, Ids = new List<int>() },
-                    }
+                        x.Id,
+                        x.Name,
+                        x.Type,
+                        x.SessionExpireTime,
+                        x.GameLaunchUrl,
+                        x.IsActive
+                    })
                 };
             }
         }
@@ -317,6 +326,28 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     };
                 }
             }
+        }
+
+        private static ApiResponseBase SaveProductsCountrySetting(ApiProduct product, SessionIdentity identity, ILog log)
+        {
+            if (product.Countries != null && product.Countries.Ids!= null && product.Countries.Ids.Any() &&
+               (!product.Countries.Type.HasValue || !Enum.IsDefined(typeof(BonusSettingConditionTypes), product.Countries.Type)))
+                throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.WrongInputParameters);
+            using (var productsBl = new ProductBll(identity, log))
+            {
+                productsBl.SaveProductsCountrySetting(product.Ids, product.Countries?.Ids?.Select(x => new ProductCountrySetting
+                {
+                    CountryId = x,
+                    Type = product.Countries.Type ?? (int)ProductCountrySettingTypes.Restricted
+                }).ToList(), product.State, out List<int> partners);
+                CacheManager.RemoveKeysFromCache(string.Format("{0}_", Constants.CacheItems.ProductCountrySetting));
+                CacheManager.RemoveKeysFromCache(string.Format("{0}_", Constants.CacheItems.PartnerProductSettings));
+                Helpers.Helpers.InvokeMessage("RemoveKeysFromCache", string.Format("{0}_", Constants.CacheItems.ProductCountrySetting));
+                Helpers.Helpers.InvokeMessage("RemoveKeysFromCache", string.Format("{0}_", Constants.CacheItems.PartnerProductSettings));
+                foreach (var id in product.Ids)
+                    Helpers.Helpers.InvokeMessage("UpdateProduct", id);
+            }
+            return new ApiResponseBase();
         }
 
         private static ApiResponseBase EditProduct(ApiProduct product, SessionIdentity identity, ILog log)
@@ -447,6 +478,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     CacheManager.RemovePartnerProductSetting(apiPartnerProductSetting.PartnerId, productId);
                     BaseController.BroadcastCacheChanges(apiPartnerProductSetting.PartnerId, string.Format("{0}_{1}_{2}", Constants.CacheItems.PartnerProductSettings,
                      apiPartnerProductSetting.PartnerId, productId));
+                    
                     Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}_{2}", Constants.CacheItems.PartnerProductSettings, 
                         apiPartnerProductSetting.PartnerId, productId));
                     Helpers.Helpers.InvokeMessage("RemovePartnerProductSettings", apiPartnerProductSetting.PartnerId, productId);
@@ -456,8 +488,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 CacheManager.RemoveFromCache(key);
                 Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", key);
 
-                key = string.Format("{0}_{1}_", Constants.CacheItems.PartnerProductSettings, apiPartnerProductSetting.PartnerId);
-                var resp = CacheManager.RemovePartnerProductSettings(apiPartnerProductSetting.PartnerId);
+                var resp = CacheManager.RemovePartnerProductSettingPages(apiPartnerProductSetting.PartnerId);
 
                 foreach (var r in resp)
                 {
@@ -485,6 +516,18 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             using (var productBl = new ProductBll(identity, log))
             {
                 productBl.RemovePartnerProductSettings(apiPartnerProductSetting);
+                Parallel.ForEach(apiPartnerProductSetting.ProductIds, productId =>
+                {
+                    CacheManager.RemovePartnerProductSetting(apiPartnerProductSetting.PartnerId, productId);
+                    BaseController.BroadcastCacheChanges(apiPartnerProductSetting.PartnerId, string.Format("{0}_{1}_{2}", Constants.CacheItems.PartnerProductSettings,
+                     apiPartnerProductSetting.PartnerId, productId));
+                    
+                    Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}_{2}", Constants.CacheItems.PartnerProductSettings,
+                        apiPartnerProductSetting.PartnerId, productId));
+                    Helpers.Helpers.InvokeMessage("RemovePartnerProductSettings", apiPartnerProductSetting.PartnerId, productId);
+                });
+                var resp = CacheManager.RemovePartnerProductSettingPages(apiPartnerProductSetting.PartnerId);
+                WebApiApplication.DbLogger.Info("RemovePartnerProductSettings_" + JsonConvert.SerializeObject(resp));
                 return new ApiResponseBase();
             }
         }
@@ -516,7 +559,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
 
                 foreach (var p in productIds)
                 {
-                    Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}_{1}", Constants.CacheItems.PartnerProductSettings,
+                    Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}_{2}", Constants.CacheItems.PartnerProductSettings,
                          partnerProductSetting.PartnerId, p));
                 }
                 return new ApiResponseBase();
@@ -923,11 +966,11 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                             var betgamesList = new Dictionary<string, int>
                             {
                                 { "Slots", productCategories.First(x => x.NickName.ToLower() == "slots").Id },
-                                { "Live Casino", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "livegames").Id },
+                                { "Live casino", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "livegames").Id },
 								{ "Virtual", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id }
                             };
                             providerGames = new List<fnProduct>();
-                            providerGames = Integration.Products.Helpers.BGGamesHelpers.GetGames(1).AsParallel()
+                            providerGames = Integration.Products.Helpers.BGGamesHelpers.GetGames(1, log).AsParallel()
                                 .Select(x => x.ToFnProduct(gameProviderId, dbCategories, betgamesList, providers)).ToList();
                             break;
                         case Constants.GameProviders.TimelessTech:
@@ -946,14 +989,13 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     }
                     var ids = productsBl.SynchronizeProducts(gameProviderId, providerGames);
                     CacheManager.RemoveKeysFromCache(string.Format("{0}_", Constants.CacheItems.ProductCountrySetting)); 
+                    CacheManager.RemoveKeysFromCache(string.Format("{0}_", Constants.CacheItems.PartnerProductSettings)); 
                     Helpers.Helpers.InvokeMessage("RemoveKeysFromCache", string.Format("{0}_", Constants.CacheItems.ProductCountrySetting));
+                    Helpers.Helpers.InvokeMessage("RemoveKeysFromCache", string.Format("{0}_", Constants.CacheItems.PartnerProductSettings));
 
-                    var key = string.Format("{0}_", Constants.CacheItems.PartnerProductSettings);
-                    CacheManager.RemoveKeysFromCache(key); ;
-                    Helpers.Helpers.InvokeMessage("RemoveKeysFromCache", key);
                     foreach (var id in ids)
                     {
-                        CacheManager.UpdateProductById(id);
+                        CacheManager.DeleteProductFromCache(id);
                         Helpers.Helpers.InvokeMessage("UpdateProduct", id);
                     }
                     return new ApiResponseBase();

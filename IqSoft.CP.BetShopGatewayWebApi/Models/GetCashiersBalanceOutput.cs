@@ -2,7 +2,7 @@
 
 namespace IqSoft.CP.BetShopGatewayWebApi.Models
 {
-    public class GetCashDesksBalanceOutput : ApiResponseBase
+    public class GetCashDesksBalanceOutput
     {
         public List<CashDeskBalanceOutput> CashDeskBalances { get; set; }
     }

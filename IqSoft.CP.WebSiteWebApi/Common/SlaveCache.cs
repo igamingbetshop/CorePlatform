@@ -20,16 +20,13 @@ namespace IqSoft.CP.WebSiteWebApi.Common
     public static class SlaveCache
     {
         private static readonly MemcachedClient _memcachedClient;
-        private static readonly ILoggerFactory _loggerFacotry = new LoggerFactory();
 
         static SlaveCache()
         {
-            var builder = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
-            var configurationRoot = builder.Build();
-            var options = new MemcachedClientOptions();
-            configurationRoot.GetSection("enyimMemcached").Bind(options);
-            options.Protocol = MemcachedProtocol.Binary;
-            _memcachedClient = new MemcachedClient(_loggerFacotry, new MemcachedClientConfiguration(_loggerFacotry, options));
+            var memcachedClientConfiguration = new MemcachedClientConfiguration();
+            memcachedClientConfiguration.Servers.Add(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 11211));
+            memcachedClientConfiguration.Protocol = MemcachedProtocol.Binary;
+            _memcachedClient = new MemcachedClient(memcachedClientConfiguration);
         }
 
         public static void RemoveFromCache(string key)
@@ -76,6 +73,18 @@ namespace IqSoft.CP.WebSiteWebApi.Common
 
             var resp = MasterCacheIntegration.SendMasterCacheRequest<ApiResponseBase>(partnerId, "GetPromotions", request);
             var newValue = JsonConvert.DeserializeObject<List<BllPromotion>>(JsonConvert.SerializeObject(resp.ResponseObject));
+            _memcachedClient.Store(StoreMode.Set, key, newValue, TimeSpan.FromHours(6));
+            return newValue;
+        }
+
+        public static List<BllNews> GetNewsFromCache(int partnerId, ApiRequestBase request)
+        {
+            var key = $"{CacheItems.News}_{partnerId}_{request.LanguageId}";
+            var oldValue = _memcachedClient.Get<List<BllNews>>(key);
+            if (oldValue != null)
+                return oldValue;
+            var resp = MasterCacheIntegration.SendMasterCacheRequest<ApiResponseBase>(partnerId, "GetNews", request);
+            var newValue = JsonConvert.DeserializeObject<List<BllNews>>(JsonConvert.SerializeObject(resp.ResponseObject));
             _memcachedClient.Store(StoreMode.Set, key, newValue, TimeSpan.FromHours(6));
             return newValue;
         }
@@ -154,7 +163,7 @@ namespace IqSoft.CP.WebSiteWebApi.Common
             var resp = MasterCacheIntegration.SendMasterCacheRequest<ApiResponseBase>(partnerId, "GetProductById", new { ProductId = id });
             var response = JsonConvert.SerializeObject(resp.ResponseObject);
             var newValue = JsonConvert.DeserializeObject<BllProduct>(response);
-            if (newValue.Id != 0)
+            if (newValue != null && newValue.Id != 0)
             {
                 _memcachedClient.Store(StoreMode.Set, key, newValue, TimeSpan.FromHours(6));
                 return newValue;
@@ -244,9 +253,10 @@ namespace IqSoft.CP.WebSiteWebApi.Common
             if (oldValue != null)
                 return oldValue;
 
-            var resp = MasterCacheIntegration.SendMasterCacheRequest<ApiResponseBase>(partnerId, "GetApiRestrictions", partnerId);
+            var resp = MasterCacheIntegration.SendMasterCacheRequest<ApiResponseBase>(partnerId, "GetApiRestrictions", new { PartnerId = partnerId });
+            
             var newValue = JsonConvert.DeserializeObject<ApiRestrictionModel>(JsonConvert.SerializeObject(resp.ResponseObject));
-            _memcachedClient.Store(StoreMode.Set, key, newValue, TimeSpan.FromHours(6));
+            var value = _memcachedClient.Store(StoreMode.Set, key, newValue, TimeSpan.FromHours(6));
             return newValue;
         }
 
@@ -283,6 +293,18 @@ namespace IqSoft.CP.WebSiteWebApi.Common
 
             var resp = MasterCacheIntegration.SendMasterCacheRequest<ApiResponseBase>(partnerId, "GetErrorType", new { Id = id, LanguageId = languageId });
             var newValue = JsonConvert.DeserializeObject<BllFnErrorType>(JsonConvert.SerializeObject(resp.ResponseObject));
+            _memcachedClient.Store(StoreMode.Set, key, newValue, TimeSpan.FromHours(6));
+            return newValue;
+        }
+
+        public static BllPartner GetPartnerByDomain(string domain)
+        {
+            var key = $"{CacheItems.Partners}_{domain}";
+            var oldValue = _memcachedClient.Get(key);
+            if (oldValue != null) return oldValue as BllPartner;
+
+            var resp = MasterCacheIntegration.SendMasterCacheRequest<ApiResponseBase>(0, "GetPartnerByDomain", new { Domain = domain });
+            var newValue = JsonConvert.DeserializeObject<BllPartner>(JsonConvert.SerializeObject(resp.ResponseObject));
             _memcachedClient.Store(StoreMode.Set, key, newValue, TimeSpan.FromHours(6));
             return newValue;
         }

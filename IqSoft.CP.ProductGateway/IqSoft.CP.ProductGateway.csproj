@@ -61,8 +61,8 @@
     <Reference Include="Enyim.Caching, Version=2.16.0.0, Culture=neutral, PublicKeyToken=cec98615db04012e, processorArchitecture=MSIL">
       <HintPath>..\packages\EnyimMemcached.2.16.0\lib\net35\Enyim.Caching.dll</HintPath>
     </Reference>
-    <Reference Include="log4net, Version=2.0.14.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
-      <HintPath>..\packages\log4net.2.0.14\lib\net45\log4net.dll</HintPath>
+    <Reference Include="log4net, Version=2.0.15.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>..\packages\log4net.2.0.15\lib\net45\log4net.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.AspNet.SignalR.Client, Version=2.4.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.SignalR.Client.2.4.3\lib\net45\Microsoft.AspNet.SignalR.Client.dll</HintPath>
@@ -139,8 +139,8 @@
     <Reference Include="Microsoft.AspNetCore.WebUtilities, Version=2.2.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNetCore.WebUtilities.2.2.0\lib\netstandard2.0\Microsoft.AspNetCore.WebUtilities.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=6.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.6.0.0\lib\net461\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
+    <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.8.0.0\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.DotNet.PlatformAbstractions, Version=3.1.6.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
@@ -301,8 +301,8 @@
       <HintPath>..\packages\System.Security.Principal.Windows.5.0.0\lib\net461\System.Security.Principal.Windows.dll</HintPath>
     </Reference>
     <Reference Include="System.ServiceModel" />
-    <Reference Include="System.Text.Encodings.Web, Version=6.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Text.Encodings.Web.6.0.0\lib\net461\System.Text.Encodings.Web.dll</HintPath>
+    <Reference Include="System.Text.Encodings.Web, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Text.Encodings.Web.8.0.0\lib\net462\System.Text.Encodings.Web.dll</HintPath>
     </Reference>
     <Reference Include="System.Text.Json, Version=6.0.0.3, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Text.Json.6.0.3\lib\net461\System.Text.Json.dll</HintPath>
@@ -361,6 +361,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="Controllers\AleaPartnersController.cs" />
     <Compile Include="Controllers\AleaPlayController.cs" />
     <Compile Include="Controllers\AWCController.cs" />
     <Compile Include="Controllers\BetGamesBetShopGamesController.cs" />
@@ -380,6 +381,7 @@
     <Compile Include="Controllers\EvolutionController.cs" />
     <Compile Include="Controllers\EvoplayController.cs" />
     <Compile Include="Controllers\EzugiController.cs" />
+    <Compile Include="Controllers\FiverscoolController.cs" />
     <Compile Include="Controllers\GanapatiController.cs" />
     <Compile Include="Controllers\GMWController.cs" />
     <Compile Include="Controllers\GoldenRaceController.cs" />
@@ -395,6 +397,7 @@
     <Compile Include="Controllers\IqSoftSiteGamesController.cs" />
     <Compile Include="Controllers\ISoftBetController.cs" />
     <Compile Include="Controllers\JackpotGamingController.cs" />
+    <Compile Include="Controllers\KironBetShopGamesController.cs" />
     <Compile Include="Controllers\KironController.cs" />
     <Compile Include="Controllers\LuckyGamingController.cs" />
     <Compile Include="Controllers\MahjongController.cs" />
@@ -428,6 +431,7 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Helpers\AleaPartnersHelpers.cs" />
     <Compile Include="Helpers\AleaPlayHelpers.cs" />
     <Compile Include="Helpers\AWCHelpers.cs" />
     <Compile Include="Helpers\BaseHelpers.cs" />
@@ -448,6 +452,7 @@
     <Compile Include="Helpers\EveryMatrixHelpers.cs" />
     <Compile Include="Helpers\EvolutionHelpers.cs" />
     <Compile Include="Helpers\EzugiHelpers.cs" />
+    <Compile Include="Helpers\FiverscoolHelpers.cs" />
     <Compile Include="Helpers\GanapatiHelpers.cs" />
     <Compile Include="Helpers\GMWHelpers.cs" />
     <Compile Include="Helpers\GoldenRaceHelpers.cs" />
@@ -482,6 +487,11 @@
     <Compile Include="Helpers\ZeusPlayHelpers.cs" />
     <Compile Include="Hubs\BaseHub.cs" />
     <Compile Include="Controllers\LuckyGamesController.cs" />
+    <Compile Include="Models\AleaPartners\AuthenticationOutput.cs" />
+    <Compile Include="Models\AleaPartners\BaseInput.cs" />
+    <Compile Include="Models\AleaPartners\BaseOutput.cs" />
+    <Compile Include="Models\AleaPartners\TransactionInput.cs" />
+    <Compile Include="Models\AleaPartners\TransactionResult.cs" />
     <Compile Include="Models\AleaPlay\BaseInput.cs" />
     <Compile Include="Models\AleaPlay\BetInput.cs" />
     <Compile Include="Models\AWC\BaseInput.cs" />
@@ -530,6 +540,7 @@
     <Compile Include="Models\EveryMatrix\TransactionOutput.cs" />
     <Compile Include="Models\Evoplay\BaseInput.cs" />
     <Compile Include="Models\Evoplay\BaseOutput.cs" />
+    <Compile Include="Models\Fiverscool\BaseInput.cs" />
     <Compile Include="Models\Ganapati\BaseObject.cs" />
     <Compile Include="Models\Ganapati\BetInput.cs" />
     <Compile Include="Models\GMW\BaseInput.cs" />
@@ -794,6 +805,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="Data\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\IqSoft.CP.BLL\IqSoft.CP.BLL.csproj">

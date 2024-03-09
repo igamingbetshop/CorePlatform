@@ -17,7 +17,7 @@ namespace IqSoft.CP.DataWarehouse.Filters
 
         public List<CheckPermissionOutput<T>> CheckPermissionResuts { get; set; }
 
-        protected IQueryable<T> FilteredObjects(IQueryable<T> objects, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null)
+        protected void FilteredObjects(ref IQueryable<T> objects, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null)
         {
             if (CheckPermissionResuts != null)
             {
@@ -38,10 +38,9 @@ namespace IqSoft.CP.DataWarehouse.Filters
                     objects = objects.Skip(SkipCount * TakeCount).Take(TakeCount);
                 }
             }
-            return objects;
         }
 
-        protected abstract IQueryable<T> CreateQuery(IQueryable<T> objects, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null);
+        public abstract void CreateQuery(ref IQueryable<T> objects, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null);
 
         public bool? OrderBy { get; set; }
 

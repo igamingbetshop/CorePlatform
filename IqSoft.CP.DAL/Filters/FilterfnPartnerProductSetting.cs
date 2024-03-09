@@ -9,6 +9,7 @@ namespace IqSoft.CP.DAL.Filters
     {
         public int? PartnerId { get; set; }
         public int? State { get; set; }
+        public bool? HasImages { get; set; }
         public List<int> ProductSettingIds { get; set; }
         public int? ProviderId { get; set; }
         public int? ProductId { get; set; }
@@ -46,6 +47,8 @@ namespace IqSoft.CP.DAL.Filters
                 objects = objects.Where(x => x.State == State);
             if (ProductSettingIds != null && ProductSettingIds.Count > 0)
                 objects = objects.Where(x => ProductSettingIds.Contains(x.Id));
+            if(HasImages.HasValue)
+                objects = objects.Where(x => x.HasImages == HasImages);
             if (!string.IsNullOrEmpty(CategoryIds))
                 objects = objects.Where(x => x.CategoryIds.Contains("[" + CategoryIds + "]") || x.CategoryIds.Contains("," + CategoryIds + ",") ||
                                              x.CategoryIds.Contains("[" + CategoryIds + ",") || x.CategoryIds.Contains("," + CategoryIds + "]"));

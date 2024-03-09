@@ -59,15 +59,15 @@ namespace IqSoft.CP.DAL
         public virtual Currency Currency { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<JobTrigger> JobTriggers { get; set; }
-        public virtual PartnerPaymentSetting PartnerPaymentSetting { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PaymentRequest> PaymentRequest1 { get; set; }
         public virtual PaymentRequest PaymentRequest2 { get; set; }
-        public virtual PaymentSystem PaymentSystem { get; set; }
         public virtual User User { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PaymentRequestHistory> PaymentRequestHistories { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PaymentRequestTransfer> PaymentRequestTransfers { get; set; }
+        public virtual PartnerPaymentSetting PartnerPaymentSetting { get; set; }
+        public virtual PaymentSystem PaymentSystem { get; set; }
     }
 }

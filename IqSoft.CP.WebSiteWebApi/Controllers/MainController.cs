@@ -20,7 +20,6 @@ using System;
 using IqSoft.CP.Common.Models;
 using IqSoft.CP.CommonCore.Models.WebSiteModels.Clients;
 using IqSoft.CP.CommonCore.Models.WebSiteModels;
-
 namespace IqSoft.CP.WebSiteWebApi.Controllers
 {
     [Route("{partnerId}/api/[controller]/[action]")]
@@ -254,6 +253,15 @@ namespace IqSoft.CP.WebSiteWebApi.Controllers
             return MasterCacheIntegration.SendMasterCacheRequest<ApiResponseBase>(partnerId, MethodBase.GetCurrentMethod().Name, input);
         }
 
+        [HttpPost]
+        public ApiResponseBase SearchContentInfo(int partnerId, ApiGetGamesInput input)
+        {
+            var resp = CheckRequestState(partnerId, input, MethodBase.GetCurrentMethod().Name);
+            if (resp.ResponseCode != Constants.SuccessResponseCode)
+                return resp;
+            return MasterCacheIntegration.SendMasterCacheRequest<ApiResponseBase>(partnerId, MethodBase.GetCurrentMethod().Name, input);
+        }
+
         #endregion
 
         #region Partner
@@ -296,7 +304,7 @@ namespace IqSoft.CP.WebSiteWebApi.Controllers
 		}
 
 		[HttpPost]
-		public ApiResponseBase GetCharacterHierarchy(int partnerId, ApiRequestBase input)
+		public ApiResponseBase GetCharacterHierarchy(int partnerId, GetCharactersInput input)
 		{
 			var resp = CheckRequestState(partnerId, input, MethodBase.GetCurrentMethod().Name);
 			if (resp.ResponseCode != Constants.SuccessResponseCode)
@@ -304,11 +312,11 @@ namespace IqSoft.CP.WebSiteWebApi.Controllers
 			return MasterCacheIntegration.SendMasterCacheRequest<ApiResponseBase>(partnerId, MethodBase.GetCurrentMethod().Name, input);
 		}
 
-		#endregion
+        #endregion
 
-		#region Client
+        #region Client
 
-		[HttpPost]
+        [HttpPost]
         public IActionResult LoginClient(int partnerId, EncryptedData input)
         {
             var request = JsonConvert.DeserializeObject<LoginDetails>(CommonFunctions.RSADecrypt(input.Data));
@@ -319,7 +327,6 @@ namespace IqSoft.CP.WebSiteWebApi.Controllers
                 return Ok(resp);
 
             var masterCacheResponse = MasterCacheIntegration.SendMasterCacheRequest<ApiLoginClientOutput>(partnerId, MethodBase.GetCurrentMethod().Name, request);
-
             return Ok(masterCacheResponse);
         }
 
@@ -493,7 +500,7 @@ namespace IqSoft.CP.WebSiteWebApi.Controllers
         }
 
         [HttpGet, HttpPost]
-        public ApiResponseBase GetTicker(int partnerId, ApiRequestBase request)
+        public ApiResponseBase GetTicker(int partnerId, RequestBase request)
         {
             var resp = CheckRequestState(partnerId, request);
             if (resp.ResponseCode != Constants.SuccessResponseCode)
@@ -526,16 +533,22 @@ namespace IqSoft.CP.WebSiteWebApi.Controllers
             Request.Headers.TryGetValue("Origin", out StringValues originValues);
             request.Domain = originValues.ToString().Replace("https://", string.Empty).Replace("http://", string.Empty).Replace("www.", string.Empty);
             Log.ForContext("FileName", request.Domain).Information(JsonConvert.SerializeObject(request));
+            
             var input = new ApiRequestBase();
+            var output = new ApiResponseBase();
 
             input.Domain = request.Domain;
-            var ip = GetRequestIp(partnerId, out string ipCountry);
-            input.CountryCode = ipCountry;
-            var resp = SlaveCache.GetGeolocationDataFromCache(partnerId, input);
-            return new ApiResponseBase
+            var partner = SlaveCache.GetPartnerByDomain(request.Domain);
+            var ip = string.Empty;
+            
+            if (partner != null && partner.Id > 0)
             {
-                ResponseObject = resp.ToApiGeolocationData()
-            };
+                ip = GetRequestIp(partner.Id, out string ipCountry);
+                input.CountryCode = ipCountry;
+                output.ResponseObject = SlaveCache.GetGeolocationDataFromCache(partner.Id, input).ToApiGeolocationData();
+            }
+            output.ResponseCode = string.IsNullOrEmpty(ip) ? Constants.Errors.RestrictedDestination : Constants.SuccessResponseCode;
+            return output;
         }
 
         [HttpGet, HttpPost]
@@ -684,6 +697,85 @@ namespace IqSoft.CP.WebSiteWebApi.Controllers
         }
 
         [HttpPost]
+        public ApiResponseBase GetNews(int partnerId, RequestBase request)
+        {
+            var response = new ApiResponseBase();
+
+            var resp = CheckRequestState(partnerId, request);
+            if (resp.ResponseCode != Constants.SuccessResponseCode)
+                return resp;
+
+            var news = SlaveCache.GetNewsFromCache(partnerId, request)?.Where(x => x.Languages == null ||
+                x.Languages.Names == null || x.Languages.Names.Count == 0 ||
+                (x.Languages.Type == (int)BonusSettingConditionTypes.InSet && x.Languages.Names.Contains(request.LanguageId)) ||
+                (x.Languages.Type == (int)BonusSettingConditionTypes.OutOfSet && !x.Languages.Names.Contains(request.LanguageId))).
+                GroupBy(x => x.ParentId ?? 0).ToList();
+
+            var parents = news?.FirstOrDefault(x => x.Key == 0).ToList();
+            var output = new List<ApiNewsGroup>();
+
+            if (parents != null)
+            {
+                foreach (var n in news)
+                {
+                    if (n.Key != 0)
+                    {
+                        var parent = parents.First(x => x.Id == n.Key);
+                        var item = output.FirstOrDefault(x => x.Id == parent.Id);
+                        if (item == null)
+                        {
+                            item = new ApiNewsGroup
+                            {
+                                Id = parent.Id,
+                                Title = parent.Title,
+                                ImageName = parent.ImageName,
+                                Order = parent.Order,
+                                StyleType = parent.StyleType,
+                                News = new List<ApiNews>()
+                            };
+                            output.Add(item);
+                        }
+                        item.News.AddRange(n.Select(x => new ApiNews
+                        {
+                            Id = x.Id,
+                            Title = x.Title,
+                            Description = x.Description,
+                            Type = x.Type,
+                            ImageName = x.ImageName,
+                            Order = x.Order,
+                            StyleType = x.StyleType,
+                            StartDate = x.StartDate
+                        }).OrderBy(x => x.Order).ToList());
+                    }
+                }
+            }
+
+            var clientSegments = new List<int>();
+
+            if (request.ClientId > 0 && !string.IsNullOrEmpty(request.Token))
+            {
+                var clientResp = MasterCacheIntegration.SendMasterCacheRequest<ApiResponseBase>(partnerId, "GetClientData", request);
+                if (clientResp.ResponseCode == 0)
+                {
+                    var clientData = JsonConvert.DeserializeObject<ApiClientData>(JsonConvert.SerializeObject(clientResp.ResponseObject));
+                    if (clientData.Segments != null && clientData.Segments.Any())
+                    {
+                        clientSegments = clientData.Segments;
+                        foreach (var p in output)
+                        {
+                            p.News = p.News.Where(x => x.Segments?.Ids == null ||
+                                (x.Segments.Type == (int)BonusSettingConditionTypes.InSet && clientSegments.Any(y => x.Segments.Ids.Contains(y))) ||
+                                (x.Segments.Type == (int)BonusSettingConditionTypes.OutOfSet && clientSegments.All(y => !x.Segments.Ids.Contains(y))) ||
+                                (x.Segments.Type != (int)BonusSettingConditionTypes.InSet && x.Segments.Type != (int)BonusSettingConditionTypes.OutOfSet)).ToList();
+                        }
+                    }
+                }
+            }
+            response.ResponseObject = output;
+            return response;
+        }
+
+        [HttpPost]
         public ApiResponseBase GetTicketSubjects(int partnerId, ApiRequestBase input)
         {
             var resp = CheckRequestState(partnerId, input, MethodBase.GetCurrentMethod().Name);
@@ -701,7 +793,17 @@ namespace IqSoft.CP.WebSiteWebApi.Controllers
             return MasterCacheIntegration.SendMasterCacheRequest<ApiResponseBase>(partnerId, MethodBase.GetCurrentMethod().Name, input);
         }
 
-        [HttpPost]
+
+		[HttpPost]
+		public ApiResponseBase GetProviderData(int partnerId, ApiProviderData input)
+		{
+			var resp = CheckRequestState(partnerId, input, MethodBase.GetCurrentMethod().Name);
+			if (resp.ResponseCode != Constants.SuccessResponseCode)
+				return resp;
+			return MasterCacheIntegration.SendMasterCacheRequest<ApiResponseBase>(partnerId, MethodBase.GetCurrentMethod().Name, input);
+		}
+
+		[HttpPost]
         public ApiResponseBase CheckTelegramAuthorization(int partnerId, RequestBase request)
         {
             var resp = CheckRequestState(partnerId, request, MethodBase.GetCurrentMethod().Name);
@@ -780,31 +882,46 @@ namespace IqSoft.CP.WebSiteWebApi.Controllers
 
         private string GetRequestIp(int partnerId, out string ipCountry)
         {
-            var apiRestrictions = SlaveCache.GetApiRestrictions(partnerId);
-
-            var ip = Constants.DefaultIp;
-
-
-            if (Request.Headers.TryGetValue(string.IsNullOrEmpty(apiRestrictions.ConnectingIPHeader) ? "CF-Connecting-IP" : apiRestrictions.ConnectingIPHeader, out StringValues header))
-                ip = header.ToString();
-            if (ip == Constants.DefaultIp && !string.IsNullOrEmpty(Request.HttpContext.Connection.RemoteIpAddress?.ToString()))
-                ip = Request.HttpContext.Connection.RemoteIpAddress?.ToString();
-
             ipCountry = string.Empty;
-            if (Request.Headers.TryGetValue(string.IsNullOrEmpty(apiRestrictions.IPCountryHeader) ? "CF-IPCountry" : apiRestrictions.IPCountryHeader, out header))
-                ipCountry = header.ToString();
+            var apiRestrictions = SlaveCache.GetApiRestrictions(partnerId);
+            
+            try
+            {
+                var ip = Constants.DefaultIp;
+                if (Request.Headers.TryGetValue(string.IsNullOrEmpty(apiRestrictions.ConnectingIPHeader) ? "CF-Connecting-IP" :
+                    apiRestrictions.ConnectingIPHeader, out StringValues header))
+                    ip = header.ToString();
+                if (ip == Constants.DefaultIp && !string.IsNullOrEmpty(Request.HttpContext.Connection.RemoteIpAddress?.ToString()))
+                    ip = Request.HttpContext.Connection.RemoteIpAddress?.ToString();
 
-            if (apiRestrictions.BlockedIps.Contains(ip))
-                return string.Empty;
-            if (apiRestrictions.WhitelistedIps.Any(x => x.IsIpEqual(ip)))
+                if (Request.Headers.TryGetValue(string.IsNullOrEmpty(apiRestrictions.IPCountryHeader) ? "CF-IPCountry" : apiRestrictions.IPCountryHeader, out header))
+                    ipCountry = header.ToString();
+
+                if (apiRestrictions.BlockedIps.Contains(ip))
+                {
+                    Log.ForContext("FileName", "BlockedIps").Information("GetRequestIp_" + partnerId + "_" + ip);
+                    return string.Empty;
+                }
+                if (apiRestrictions.WhitelistedIps.Any(x => x.IsIpEqual(ip)))
+                    return ip;
+
+                if (apiRestrictions.WhitelistedCountries.Any() && !apiRestrictions.WhitelistedCountries.Contains(ipCountry))
+                {
+                    Log.ForContext("FileName", "WhitelistedCountries").Information("GetRequestIp_" + partnerId + "_" + ipCountry);
+                    return string.Empty;
+                }
+                if (!apiRestrictions.WhitelistedCountries.Any() && apiRestrictions.BlockedCountries.Contains(ipCountry))
+                {
+                    Log.ForContext("FileName", "BlockedCountries").Information("GetRequestIp_" + partnerId + "_" + ipCountry);
+                    return string.Empty;
+                }
                 return ip;
-
-            if (apiRestrictions.WhitelistedCountries.Any() && !apiRestrictions.WhitelistedCountries.Contains(ipCountry))
+            }
+            catch(Exception e)
+            {
+                Log.Error(e.Message + "_" + e.StackTrace + "_" + partnerId + "_" + JsonConvert.SerializeObject(apiRestrictions));
                 return string.Empty;
-            if (!apiRestrictions.WhitelistedCountries.Any() && apiRestrictions.BlockedCountries.Contains(ipCountry))
-                return string.Empty;
-
-            return ip;
+            }
         }
 
         private int GetMaxRequestsCount(string methodName)

@@ -21,6 +21,9 @@ using Newtonsoft.Json;
 using static IqSoft.CP.Common.Constants;
 using Client = IqSoft.CP.DAL.Client;
 using Document = IqSoft.CP.DAL.Document;
+using ClientBonu = IqSoft.CP.DAL.ClientBonu;
+using AffiliateReferral = IqSoft.CP.DAL.AffiliateReferral;
+using Bonu = IqSoft.CP.DAL.Bonu;
 
 namespace IqSoft.CP.BLL.Services
 {
@@ -585,7 +588,7 @@ namespace IqSoft.CP.BLL.Services
                     var p = bonusProducts.FirstOrDefault(x => x.Id == bp.Id);                        
                     if (p != null)
                     {
-                        if (!bp.Percent.HasValue || bp.Percent == -1)
+                        if ((!bp.Percent.HasValue || bp.Percent == -1) && dbBonus.Type != (int)BonusTypes.CampaignFreeSpin)
                         {
                             if (bp.ProductId == Constants.PlatformProductId)
                                 p.Percent = 0;
@@ -693,6 +696,10 @@ namespace IqSoft.CP.BLL.Services
                     if (triggerSetting.Percent <= 0)
                         throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
                     break;
+                case (int)TriggerTypes.DailyDeposit:
+                    if (triggerSetting.Percent < 0 || triggerSetting.MinBetCount < 1)
+                        throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
+                    break;
                 case (int)TriggerTypes.SignUp:
                     if (triggerSetting.MinAmount <= 0)
                         throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
@@ -768,6 +775,11 @@ namespace IqSoft.CP.BLL.Services
                 }
                 else
                 {
+                    if(triggerSetting.Status != (int)TriggerStatuses.Active &&
+                        Db.Bonus.Any(x => x.Status == (int)BonusStatuses.Active && x.StartTime <= currentTime && x.FinishTime > currentTime &&
+                                          x.TriggerGroups.Any(t => t.TriggerGroupSettings.Any(g => g.SettingId == dbTriggerSetting.Id))))
+                        throw CreateException(LanguageId, Constants.Errors.NotAllowed);
+
                     if (triggerSetting.Type != dbTriggerSetting.Type)
                         throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
 
@@ -1343,17 +1355,30 @@ namespace IqSoft.CP.BLL.Services
                                                               .GroupBy(x => x.ClientId)
                                                               .Select(x => new { ClientId = x.Key, WinAmount = x.Sum(y => y.Amount) })
                                                               .ToList();
+                                var bonusSegments = bonus.BonusSegmentSettings.Select(x => x.SegmentId).ToList();  
+                                var bonusCurrencies = bonus.BonusCurrencySettings.Select(x => x.CurrencyId).ToList();
 
-                                var bonusAmounts = (from b in bets
-                                                    group b by new { b.ClientId, b.CurrencyId }
-                                                       into y
-                                                    select
-                                                        new
-                                                        {
-                                                            ClientId = y.Key.ClientId,
-                                                            CurrencyId = y.Key.CurrencyId,
-                                                            Amount = y.Sum(x => x.Amount * x.Percent) / 100
-                                                        }).Where(x => x.Amount > 0).GroupBy(x => x.CurrencyId).ToList();
+                                var betQuery = (from b in bets
+                                                group b by new { b.ClientId, b.CurrencyId }
+                                                   into y
+                                                select
+                                                    new
+                                                    {
+                                                        ClientId = y.Key.ClientId,
+                                                        CurrencyId = y.Key.CurrencyId,
+                                                        Amount = y.Sum(x => x.Amount * x.Percent) / 100
+                                                    }).Where(x => x.Amount > 0);
+
+                                if (bonusCurrencies.Any())
+                                    betQuery = betQuery.Where(x => bonusCurrencies.Contains(x.CurrencyId));
+                                if (bonusSegments.Any())
+                                {
+                                    var clients = Db.ClientClassifications.Where(x => x.SegmentId.HasValue && bonusSegments.Contains(x.SegmentId.Value) &&
+                                                                                      x.ProductId == (int)Constants.PlatformProductId)
+                                                                          .Select(x => x.ClientId).Distinct().ToList();
+                                    betQuery = betQuery.Where(x => clients.Contains(x.ClientId));
+                                }
+                                var bonusAmounts = betQuery.GroupBy(x => x.CurrencyId).ToList();
 
                                 foreach (var bonusAmountByCurrency in bonusAmounts)
                                 {
@@ -1662,10 +1687,8 @@ namespace IqSoft.CP.BLL.Services
                         if (wagerBonusTypes.Contains(bi.Type))
                         {
                             if (Db.ClientBonus.Any(x => x.ClientId == client.Id && x.Status != (int)ClientBonusStatuses.NotAwarded &&
-                                ((x.BonusId == bi.Id && x.ReuseNumber == reuseNumber) ||
-                                ((x.Status == (int)ClientBonusStatuses.Active || x.Status == (int)ClientBonusStatuses.Finished) &&
-                                wagerBonusTypes.Contains(x.Bonu.Type)))))
-                                throw CreateException(Identity.LanguageId, Constants.Errors.ClientAlreadyHasActiveBonus);
+                                x.BonusId == bi.Id && x.ReuseNumber == reuseNumber))
+                                throw CreateException(Identity.LanguageId, Constants.Errors.ClientAlreadyHasActiveBonus, info: "GiveWageringBonus_" + bi.Id + "_" + client.Id);
                         }
                         var account = Db.Accounts.FirstOrDefault(x => x.ObjectId == client.Id &&
                             x.ObjectTypeId == (int)ObjectTypes.Client && x.AccountType.Id == (int)AccountTypes.ClientBonusBalance);

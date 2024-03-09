@@ -27,7 +27,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
     {
         private static readonly int ProviderId = CacheManager.GetGameProviderByName(Constants.GameProviders.PragmaticPlay).Id;
 
-        private static readonly List<string> WhitelistedIps = CacheManager.GetProviderWhitelistedIps(Constants.GameProviders.PragmaticPlay);
+        public static readonly List<string> WhitelistedIps = CacheManager.GetProviderWhitelistedIps(Constants.GameProviders.PragmaticPlay);
 
         private static readonly List<string> NotSupportedCurrencies = new List<string>
         {
@@ -110,7 +110,6 @@ namespace IqSoft.CP.ProductGateway.Controllers
                 Content = new StringContent(jsonResponse)
             };
             resp.Content.Headers.ContentType = new MediaTypeHeaderValue(Constants.HttpContentTypes.ApplicationJson);
-
             return resp;
         }
 
@@ -186,6 +185,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
 
             return resp;
         }
+
         [HttpPost]
         [Route("{partnerId}/api/pragmaticplay/bet")]
         public HttpResponseMessage DoBet(BetInput input)

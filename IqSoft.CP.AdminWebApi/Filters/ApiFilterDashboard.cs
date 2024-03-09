@@ -4,6 +4,8 @@ namespace IqSoft.CP.AdminWebApi.Filters
 {
     public class ApiFilterDashboard
     {
+        public double TimeZone { get; set; }
+
         public int? PartnerId { get; set; }
 
         public int? ProductId { get; set; }

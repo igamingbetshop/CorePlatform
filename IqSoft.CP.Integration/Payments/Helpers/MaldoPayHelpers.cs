@@ -241,8 +241,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                     case Constants.PaymentSystems.MaldoPayCryptoETH:
                     case Constants.PaymentSystems.MaldoPayCryptoETHBEP20:
                     case Constants.PaymentSystems.MaldoPayCryptoLTC:
-                    case Constants.PaymentSystems.MaldoPayCryptoXRP:
-                    case Constants.PaymentSystems.MaldoPayCryptoXLM:
+
                     case Constants.PaymentSystems.MaldoPayCryptoBCH:
                     case Constants.PaymentSystems.MaldoPayCryptoLINKERC20:
                     case Constants.PaymentSystems.MaldoPayCryptoUSDCERC20:
@@ -252,6 +251,17 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                     case Constants.PaymentSystems.MaldoPayCryptoUSDTBEP20:
                     case Constants.PaymentSystems.MaldoPayCryptoUSDTTRC20:
                         var channel = CryptoNetworks[paymentSystem.Name];
+                        serviceData = new
+                        {
+                            serviceData1 = "s2s",
+                            serviceData3 = paymentInfo.WalletNumber,
+                            serviceData4 = channel.Value,                           
+                            serviceData6 = channel.Key
+                        };
+                        break;
+                    case Constants.PaymentSystems.MaldoPayCryptoXRP:
+                    case Constants.PaymentSystems.MaldoPayCryptoXLM:
+                        channel = CryptoNetworks[paymentSystem.Name];
                         serviceData = new
                         {
                             serviceData1 = "s2s",

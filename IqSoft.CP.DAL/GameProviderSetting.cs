@@ -23,7 +23,7 @@ namespace IqSoft.CP.DAL
         public System.DateTime LastUpdateTime { get; set; }
         public Nullable<int> Order { get; set; }
     
-        public virtual GameProvider GameProvider { get; set; }
         public virtual ObjectType ObjectType { get; set; }
+        public virtual GameProvider GameProvider { get; set; }
     }
 }

@@ -61,5 +61,6 @@ namespace IqSoft.CP.Common.Models.WebSiteModels
         public int CommunicationType { get; set; }
         public string CommunicationTypeValue { get; set; }
         public int? Title { get; set; }
+        public string PinCode { get; set; }
     }
 }

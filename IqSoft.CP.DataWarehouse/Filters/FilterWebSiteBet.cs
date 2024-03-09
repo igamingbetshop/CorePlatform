@@ -21,7 +21,7 @@ namespace IqSoft.CP.DataWarehouse.Filters
 
         public List<long> AccountIds { get; set; }
 
-        protected override IQueryable<fnInternetBet> CreateQuery(IQueryable<fnInternetBet> objects, Func<IQueryable<fnInternetBet>, IOrderedQueryable<fnInternetBet>> orderBy = null)
+        public override void CreateQuery(ref IQueryable<fnInternetBet> objects, Func<IQueryable<fnInternetBet>, IOrderedQueryable<fnInternetBet>> orderBy = null)
         {
             var fDate = FromDate.Year * 1000000 + FromDate.Month * 10000 + FromDate.Day * 100 + FromDate.Hour;         
             objects = objects.Where(x => x.Date >= fDate);
@@ -51,18 +51,18 @@ namespace IqSoft.CP.DataWarehouse.Filters
                 }
                 objects = objects.Where(predicate);
             }
-            return base.FilteredObjects(objects, orderBy);
+            base.FilteredObjects(ref objects, orderBy);
         }
 
         public IQueryable<fnInternetBet> FilterObjects(IQueryable<fnInternetBet> internetBets, Func<IQueryable<fnInternetBet>, IOrderedQueryable<fnInternetBet>> orderBy = null)
         {
-            internetBets = CreateQuery(internetBets, orderBy);
+            CreateQuery(ref internetBets, orderBy);
             return internetBets;
         }
 
         public long SelectedObjectsCount(IQueryable<fnInternetBet> internetBets)
         {
-            internetBets = CreateQuery(internetBets);
+            CreateQuery(ref internetBets);
             return internetBets.Count();
         }
     }

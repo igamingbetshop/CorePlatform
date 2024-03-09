@@ -13,6 +13,7 @@ using IqSoft.CP.DAL.Models.Clients;
 using System.Collections.Generic;
 using System.Linq;
 using System;
+using log4net.Repository.Hierarchy;
 
 namespace IqSoft.CP.Integration.Platforms.Helpers
 {
@@ -194,10 +195,12 @@ namespace IqSoft.CP.Integration.Platforms.Helpers
                             })
                     };
                     var output = Common.Helpers.CommonFunctions.SendHttpRequest(request, out _);
-                    //log.Info("Credit_Response_" + client.PartnerId + "_" + doc.Id + "_" + output);
                     var iqResp = JsonConvert.DeserializeObject<FinOperationOutput>(output);
                     if (iqResp.ResponseCode != Constants.SuccessResponseCode)
+                    {
+                        log.Info("UnsuccessfullResponse_Credit_" + client.PartnerId + "_" + JsonConvert.SerializeObject(request) + "_" + output);
                         throw BaseBll.CreateException(Constants.DefaultLanguageId, iqResp.ResponseCode);
+                    }
                     balance = iqResp.OperationItems[0].Balance;
                     break;
                 default:
@@ -228,7 +231,7 @@ namespace IqSoft.CP.Integration.Platforms.Helpers
                     var url = string.IsNullOrEmpty(lastSession.CurrentPage) ?
                               CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.ExternalPlatformUrl).StringValue : lastSession.CurrentPage;
 
-                    var output = Common.Helpers.CommonFunctions.SendHttpRequest(new Common.Models.HttpRequestInput
+                    var request = new Common.Models.HttpRequestInput
                     {
                         Url = string.Format(url, "Debit"),
                         ContentType = Constants.HttpContentTypes.ApplicationJson,
@@ -248,11 +251,14 @@ namespace IqSoft.CP.Integration.Platforms.Helpers
                                 BetState = doc.Amount > 0 ? (int)BetStatus.Won : (int)BetStatus.Lost,
                                 CreditTransactionId = betId
                             })
-                    }, out _);
-                    //log.Info("Debit_Response_" + client.PartnerId + "_" + doc.Id + "_" + output);
+                    };
+                    var output = Common.Helpers.CommonFunctions.SendHttpRequest(request, out _);
                     var resp = JsonConvert.DeserializeObject<FinOperationOutput>(output);
                     if (resp.ResponseCode != Constants.SuccessResponseCode)
+                    {
+                        log.Info("UnsuccessfullResponse_Debit_" + client.PartnerId + "_" + JsonConvert.SerializeObject(request) + "_" + output);
                         throw BaseBll.CreateException(Constants.DefaultLanguageId, resp.ResponseCode);
+                    }
                     balance = resp.OperationItems[0].Balance;
                     break;
                 default:

@@ -252,7 +252,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
 						var product = CacheManager.GetProductByExternalId(providerId, input.GameId);
 
 						var creditTransaction = betShopBl.GetDocumentByExternalId(input.CreditTransactionId,
-								product.Id, providerId, null, (int)OperationTypes.Bet);
+								product.Id, providerId, (int)OperationTypes.Bet);
 
 						if (creditTransaction == null)
 							throw BaseBll.CreateException(string.Empty,
@@ -423,7 +423,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
             }
         }
 
-        private SessionIdentity CheckUserSession(string token, int cashierId, bool checkExpiration)
+        private SessionIdentity CheckUserSession(string token, int cashierId, bool checkExpiration) //To be removed. UserBll->CheckCashierSession should be used
         {
             using (var userBl = new UserBll(new SessionIdentity(), WebApiApplication.DbLogger))
             {

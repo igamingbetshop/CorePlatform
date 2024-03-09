@@ -26,7 +26,6 @@ namespace IqSoft.CP.DAL
             this.ClientInfoes = new HashSet<ClientInfo>();
             this.ClientLogs = new HashSet<ClientLog>();
             this.ClientMessages = new HashSet<ClientMessage>();
-            this.ClientMessageStates = new HashSet<ClientMessageState>();
             this.ClientPaymentInfoes = new HashSet<ClientPaymentInfo>();
             this.ClientPaymentSettings = new HashSet<ClientPaymentSetting>();
             this.ClientSecurityAnswers = new HashSet<ClientSecurityAnswer>();
@@ -40,6 +39,7 @@ namespace IqSoft.CP.DAL
             this.ClientBonus = new HashSet<ClientBonu>();
             this.ClientBonusTriggers = new HashSet<ClientBonusTrigger>();
             this.PaymentRequests = new HashSet<PaymentRequest>();
+            this.ClientMessageStates = new HashSet<ClientMessageState>();
         }
     
         public int Id { get; set; }
@@ -127,8 +127,6 @@ namespace IqSoft.CP.DAL
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ClientMessage> ClientMessages { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<ClientMessageState> ClientMessageStates { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ClientPaymentInfo> ClientPaymentInfoes { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ClientPaymentSetting> ClientPaymentSettings { get; set; }
@@ -155,5 +153,7 @@ namespace IqSoft.CP.DAL
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PaymentRequest> PaymentRequests { get; set; }
         public virtual Character Character { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<ClientMessageState> ClientMessageStates { get; set; }
     }
 }

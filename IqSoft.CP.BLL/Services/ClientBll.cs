@@ -46,6 +46,13 @@ using IqSoft.CP.Common.Models.Document;
 using IqSoft.CP.DataWarehouse;
 using Document = IqSoft.CP.DAL.Document;
 using Client = IqSoft.CP.DAL.Client;
+using ClientSession = IqSoft.CP.DAL.ClientSession;
+using ClientBonu = IqSoft.CP.DAL.ClientBonu;
+using PaymentRequest = IqSoft.CP.DAL.PaymentRequest;
+using JobTrigger = IqSoft.CP.DAL.JobTrigger;
+using AffiliatePlatform = IqSoft.CP.DAL.AffiliatePlatform;
+using AffiliateReferral = IqSoft.CP.DAL.AffiliateReferral;
+using Bonu = IqSoft.CP.DAL.Bonu;
 
 namespace IqSoft.CP.BLL.Services
 {
@@ -122,7 +129,7 @@ namespace IqSoft.CP.BLL.Services
                                     dbClient.AffiliateReferralId = affReferral.Id;
                             }
 
-                            VerifyClientFields(clientRegistrationInput.ClientData, partner, clientRegistrationInput.ReCaptcha, clientRegistrationInput.IsFromAdmin);
+                            VerifyClientFields(clientRegistrationInput.ClientData, partner, clientRegistrationInput.ReCaptcha, clientRegistrationInput.IsFromAdmin, clientRegistrationInput.IsQuickRegistration);
                             var isWelcomeBonusOn = !clientRegistrationInput.IsQuickRegistration && IsBonusTypeAvailableForPartner(partner.Id, (int)BonusTypes.SignupRealBonus);
 
                             if (clientRegistrationInput.ClientData.RegionId == 0)
@@ -217,6 +224,9 @@ namespace IqSoft.CP.BLL.Services
                                 };
                                 SaveClientSetting(affComSettings);
                             }
+                            if (!string.IsNullOrEmpty(clientRegistrationInput.ClientData.PinCode)) // check RegEx
+                                SaveClientSetting(dbClient.Id, Constants.ClientSettings.PinCode, clientRegistrationInput.ClientData.PinCode, null, null);
+
                             var accounts = new List<Account>
                             {
                                 new Account
@@ -271,7 +281,7 @@ namespace IqSoft.CP.BLL.Services
                             scope.Complete();
                         }
                         var partnerHighRiskCountries = CacheManager.GetPartnerCountrySettings(partner.Id, (int)PartnerCountrySettingTypes.HighRisk, LanguageId);
-                        if(partnerHighRiskCountries.Any(x=>x.RegionId == dbClient.CountryId))
+                        if (partnerHighRiskCountries.Any(x => x.RegionId == dbClient.CountryId))
                         {
                             var clientSettings = new ClientCustomSettings
                             {
@@ -287,6 +297,15 @@ namespace IqSoft.CP.BLL.Services
                         if (affPlatform != null)
                         {
                             notificationBl.RegistrationNotification(dbClient.PartnerId, dbClient.Id, affPlatform, clientRegistrationInput.ReferralData.RefId, clientRegistrationInput.ReferralData.AffiliateId);
+                        }
+                        var partnerKey = CacheManager.GetPartnerSettingByKey(clientRegistrationInput.ClientData.PartnerId, Constants.PartnerKeys.CRMPlarforms).StringValue;
+                        if (!string.IsNullOrWhiteSpace(partnerKey))
+                        {
+                            var items = partnerKey.Split(',');
+                            foreach (var item in items)
+                            {
+                                notificationBl.RegistrationNotification(dbClient.PartnerId, dbClient.Id, new AffiliatePlatform { Name = item }, null, null);
+                            }
                         }
                         AddClientJobTrigger(dbClient.Id, (int)JobTriggerTypes.ReconsiderSegments);
                         return dbClient;
@@ -398,7 +417,7 @@ namespace IqSoft.CP.BLL.Services
             target.Info = source.Info;
             target.Title = source.Title;
             target.CharacterId = source.CharacterId;
-		}
+        }
 
         public Client RegisterClient(Client client)
         {
@@ -780,6 +799,7 @@ namespace IqSoft.CP.BLL.Services
             var parentState = CacheManager.GetClientSettingByName(client.Id, ClientSettings.ParentState);
             if (parentState.NumericValue.HasValue && CustomHelper.Greater((ClientStates)parentState.NumericValue.Value, (ClientStates)client.State))
                 client.State = Convert.ToInt32(parentState.NumericValue.Value);
+            client.PinCode = CacheManager.GetClientSettingByName(client.Id, ClientSettings.PinCode)?.StringValue;
             return client;
         }
 
@@ -1124,7 +1144,7 @@ namespace IqSoft.CP.BLL.Services
         {
             var url = CacheManager.GetPartnerSettingByKey(partnerId, Constants.PartnerKeys.ExternalApiUrl).StringValue;
             if (string.IsNullOrEmpty(url))
-                return null; 
+                return null;
             var res = CommonFunctions.SendHttpRequest(new Common.Models.HttpRequestInput
             {
                 ContentType = Constants.HttpContentTypes.ApplicationJson,
@@ -1527,6 +1547,50 @@ namespace IqSoft.CP.BLL.Services
                 }
                 Db.SaveChanges();
             }
+        }
+
+        public string ResetClientPinCode(int clientId)
+        {
+            GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.EditClientPinCode
+            });
+            var client = CacheManager.GetClientById(clientId) ??
+                throw CreateException(LanguageId, Constants.Errors.ClientNotFound);
+            var checkClientPermission = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewClient,
+                ObjectTypeId = ObjectTypes.Client
+            });
+
+            var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewPartner,
+                ObjectTypeId = ObjectTypes.Partner
+            });
+            if ((!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != clientId)) ||
+                (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != client.PartnerId)))
+                throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
+            if (string.IsNullOrEmpty(client.Email))
+                throw BaseBll.CreateException(LanguageId, Constants.Errors.EmailCantBeEmpty);
+            if (client.IsEmailVerified)
+                throw BaseBll.CreateException(LanguageId, Constants.Errors.EmailNotVerified);
+            var newPinCode = CommonFunctions.GetRandomString(10); // check RegEx
+            SaveClientSetting(clientId, Constants.ClientSettings.PinCode, newPinCode, null, null);
+            using (var notificationBll = new NotificationBll(Identity, Log))
+            {
+                var notificationModel = new NotificationModel
+                {
+                    PartnerId = client.PartnerId,
+                    ClientId = client.Id,
+                    VerificationCode = newPinCode,
+                    LanguageId = client.LanguageId,
+                    ClientInfoType = (int)ClientInfoTypes.ResetPinCode,
+                    MobileOrEmail = client.Email
+                };
+                notificationBll.SendNotificationMessage(notificationModel, out _);
+            }
+            return newPinCode;
         }
 
         public Client ChangeClientDataFromWebSite(ChangeClientFieldsInput clientData)
@@ -2406,8 +2470,9 @@ namespace IqSoft.CP.BLL.Services
             }
         }
 
-        private void VerifyClientFields(Client client, BllPartner partner, string reCaptcha, bool isFromAdmin)
+        private void VerifyClientFields(Client client, BllPartner partner, string reCaptcha, bool isFromAdmin, bool clientRegistrationInput)
         {
+            VerifyClientFieldsByWebSettings(client, true, clientRegistrationInput);
             if (string.IsNullOrWhiteSpace(client.Email) && string.IsNullOrWhiteSpace(client.MobileNumber) && string.IsNullOrWhiteSpace(client.UserName))
                 throw CreateException(LanguageId, Constants.Errors.UserNameCantBeEmpty);
             var dbClient =
@@ -2461,6 +2526,79 @@ namespace IqSoft.CP.BLL.Services
             if (!isFromAdmin)
                 CheckSiteCaptcha(partner.Id, reCaptcha);
         }
+
+        private void VerifyClientFieldsByWebSettings(Client client, bool isRegister, bool isQuickRegister)
+        {
+            Dictionary<string, ItemProperty> webSettings;
+            if (isRegister)
+                webSettings = Db.WebSiteSubMenuItems.Where(x => x.WebSiteMenuItem.WebSiteMenu.PartnerId == client.PartnerId &&
+                                                                x.WebSiteMenuItem.WebSiteMenu.Type == Constants.WebSiteConfiguration.Config &&
+                                                              ((isQuickRegister && x.WebSiteMenuItem.Title  == Constants.WebSiteConfiguration.QuickRegister) ||
+                                                              (!isQuickRegister && x.WebSiteMenuItem.Title  == Constants.WebSiteConfiguration.FullRegister)))
+                                                       .Select(x => new { x.Title, x.Href }).ToList()
+                                                       .ToDictionary(x => x.Title, x => JsonConvert.DeserializeObject<ItemProperty>(x.Href));
+            else
+                webSettings = Db.WebSiteSubMenuItems.Where(x => x.WebSiteMenuItem.WebSiteMenu.PartnerId == client.PartnerId &&
+                                                  x.WebSiteMenuItem.WebSiteMenu.Type == Constants.WebSiteConfiguration.AccountTabsList &&
+                                                  x.WebSiteMenuItem.Title  == Constants.WebSiteConfiguration.ProfileDetails)
+                                       .Select(x => new { x.Title, x.Href }).ToList()
+                                       .ToDictionary(x => x.Title, x => JsonConvert.DeserializeObject<ItemProperty>(x.Href));
+
+
+            var properties = client.GetType().GetProperties().Where(x => webSettings.ContainsKey(x.Name));
+            foreach (var field in properties)
+            {
+                var value = field.GetValue(client, null);
+                var p = webSettings[field.Name];
+                if (!string.IsNullOrEmpty(p.Mandatory))
+                {
+                    if (!bool.TryParse(p.Mandatory.ToLower(), out bool isMandatory))
+                        isMandatory = p.Mandatory != "0";
+                    if (isMandatory)
+                    {
+                        if (value == null)
+                            switch (field.Name)
+                            {
+                                case nameof(client.FirstName):
+                                    throw CreateException(LanguageId, Constants.Errors.FirstNameCantBeEmpty);
+                                case nameof(client.LastName):
+                                    throw CreateException(LanguageId, Constants.Errors.LastNameCantBeEmpty);
+                                case nameof(client.UserName):
+                                    throw CreateException(LanguageId, Constants.Errors.UserNameCantBeEmpty);
+                                case nameof(client.Email):
+                                    throw CreateException(LanguageId, Constants.Errors.EmailCantBeEmpty);
+                                case nameof(client.MobileNumber):
+                                    throw CreateException(LanguageId, Constants.Errors.MobileNumberCantBeEmpty);
+                                case nameof(client.Address):
+                                    throw CreateException(LanguageId, Constants.Errors.AddressCantBeEmpty);
+                                case nameof(client.ZipCode):
+                                    throw CreateException(LanguageId, Constants.Errors.ZipCodeCantBeEmpty);
+                                default:
+                                    throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
+                            }
+                        else if (field.Name == nameof(client.BirthDate) && (client.BirthDate== DateTime.MinValue ||  client.BirthDate== Constants.DefaultDateTime))
+                            throw CreateException(LanguageId, Constants.Errors.InvalidBirthDate);
+                    }
+                }
+                else if (!string.IsNullOrEmpty(p.Regex) && !Regex.IsMatch((string)value, p.Regex))
+                {
+                    switch (field.Name)
+                    {
+                        case nameof(client.Email):
+                            throw CreateException(LanguageId, Constants.Errors.InvalidEmail);
+                        case nameof(client.MobileNumber):
+                            throw CreateException(LanguageId, Constants.Errors.InvalidMobile);
+                        case nameof(client.UserName):
+                            throw CreateException(LanguageId, Constants.Errors.InvalidUserName);
+                        case nameof(client.ZipCode):
+                            throw CreateException(LanguageId, Constants.Errors.ZipCodeCantBeEmpty);
+                        default:
+                            throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
+                    }
+                }
+            }
+        }
+
 
         private void VerifyAffiliateFields(Client client, BllPartner partner, string reCaptcha, bool isFromAdmin)
         {
@@ -2900,9 +3038,7 @@ namespace IqSoft.CP.BLL.Services
             var client = CacheManager.GetClientById(input.ClientId);
             if (client == null)
                 throw CreateException(LanguageId, Constants.Errors.ClientNotFound);
-            documentName = documentName.Replace(" ", string.Empty);
-            if (documentName.Length > 50)
-                documentName = documentName.Substring(0, 50);
+
             var docSavePath = string.Empty;
             if (checkPermission)
             {
@@ -2994,6 +3130,9 @@ namespace IqSoft.CP.BLL.Services
                 }
                 if (imageData != null)
                 {
+                    documentName = documentName.Replace(" ", string.Empty);
+                    if (documentName.Length > 50)
+                        documentName = documentName.Substring(0, 50);
                     var currentPath = HttpContext.Current.Server.MapPath("~");
                     var parentPath = Path.GetDirectoryName(currentPath);
                     string[] paths = { Path.GetDirectoryName(parentPath), "AdminWebApi", "ClientDocuments" };
@@ -3268,6 +3407,8 @@ namespace IqSoft.CP.BLL.Services
 
         public void ChangeClientDetails(Client client, ClientAffiliateModel affInput, out bool isBonusAccepted, out bool isSessionExpired, int? referralType)
         {
+            CheckPermission(Constants.Permissions.EditClient);
+            VerifyClientFieldsByWebSettings(client, false, false);
             using (var bonusBl = new BonusService(this))
             {
                 using (var documentBl = new DocumentBll(this))
@@ -3275,8 +3416,6 @@ namespace IqSoft.CP.BLL.Services
                     using (var transactionScope = CommonFunctions.CreateTransactionScope())
                     {
                         Db.sp_GetClientLock(client.Id);
-
-                        CheckPermission(Constants.Permissions.EditClient);
                         isBonusAccepted = false;
                         isSessionExpired = false;
                         var currentTime = DateTime.UtcNow;
@@ -3406,14 +3545,13 @@ namespace IqSoft.CP.BLL.Services
                                 ReferralType = referralType
                             });
                         }
-                        var newRef = affInput.AffiliatePlatformId.HasValue ? Db.AffiliateReferrals.FirstOrDefault(x =>
-                        x.AffiliatePlatformId == affInput.AffiliatePlatformId &&
-                        x.AffiliateId == affInput.AffiliateId &&
-                        x.RefId == affInput.RefId
-                        ) : null;
-                        if (affInput.AffiliatePlatformId.HasValue && newRef == null)
+                        AffiliateReferral newRef = null;
+                        if (int.TryParse(affInput.AffiliatePlatformId, out int affId))
+                            newRef =  Db.AffiliateReferrals.FirstOrDefault(x => x.AffiliatePlatformId == affId &&
+                                                                                x.AffiliateId == affInput.AffiliateId && x.RefId == affInput.RefId);
+                        if (!string.IsNullOrEmpty(affInput.AffiliatePlatformId) && newRef == null)
                         {
-                            var affPlatform = Db.AffiliatePlatforms.FirstOrDefault(x => x.Id == affInput.AffiliatePlatformId &&
+                            var affPlatform = Db.AffiliatePlatforms.FirstOrDefault(x => x.Id == Convert.ToInt32(affInput.AffiliatePlatformId) &&
                                                                                         x.PartnerId == oldClient.PartnerId && x.Status == (int)BaseStates.Active) ??
                                 throw CreateException(LanguageId, Constants.Errors.AffiliateNotFound);
 
@@ -3422,7 +3560,7 @@ namespace IqSoft.CP.BLL.Services
 
                             newRef = new AffiliateReferral
                             {
-                                AffiliatePlatformId = affInput.AffiliatePlatformId.Value,
+                                AffiliatePlatformId = Convert.ToInt32(affInput.AffiliatePlatformId),
                                 AffiliateId = affInput.AffiliateId,
                                 RefId = affInput.RefId,
                                 Type = affType,
@@ -3462,7 +3600,7 @@ namespace IqSoft.CP.BLL.Services
                                  });
         }
 
-        public static string LoginClientByCard(int partnerId, string clientCardNumber, string ussdPin, string ip, 
+        public static string LoginClientByCard(int partnerId, string clientCardNumber, string ussdPin, string ip,
             string languageId, BllCashDesk cashDesk, out int clientId)
         {
             using (var db = CreateEntities())
@@ -3476,15 +3614,19 @@ namespace IqSoft.CP.BLL.Services
                     throw CreateException(languageId, Constants.Errors.ClientBlocked);
 
                 var usePin = BetShopBll.GetBetShopUsePin(cashDesk.BetShopId);
-                if(usePin && client.USSDPin != ussdPin)
+                if (usePin && client.USSDPin != ussdPin)
                     throw CreateException(languageId, Constants.Errors.WrongLoginParameters);
 
                 clientId = client.Id;
                 var currentTime = DateTime.UtcNow;
-                var sessions = db.ClientSessions.Where(x => x.ClientId == client.Id && x.ProductId == Constants.PlatformProductId && 
+                var sessions = db.ClientSessions.Where(x => x.ClientId == client.Id && x.ProductId == Constants.PlatformProductId &&
                 x.State == (int)SessionStates.Active);
-                sessions.UpdateFromQuery(x => new ClientSession { State = (int)SessionStates.Inactive, LogoutType = (int)LogoutTypes.MultipleDevice, 
-                    EndTime = currentTime });
+                sessions.UpdateFromQuery(x => new ClientSession
+                {
+                    State = (int)SessionStates.Inactive,
+                    LogoutType = (int)LogoutTypes.MultipleDevice,
+                    EndTime = currentTime
+                });
                 var lastSession = sessions.OrderByDescending(x => x.Id).FirstOrDefault();
                 client.LastSessionId = lastSession?.Id;
                 var account = db.Accounts.FirstOrDefault(x => x.ObjectId == client.Id &&
@@ -3964,14 +4106,16 @@ namespace IqSoft.CP.BLL.Services
         public ProductInfo GetPartnerProductInfo(int? clientId, int productId, int partnerId)
         {
             var partnerProductSetting = CacheManager.GetPartnerProductSettingByProductId(partnerId, productId);
+            var product = CacheManager.GetProductById(productId);
             var volatility = string.Empty;
             if (partnerProductSetting.Volatility.HasValue)
                 volatility =  CacheManager.GetEnumerations(nameof(VolatilityTypes), LanguageId).FirstOrDefault(x => x.Value == partnerProductSetting.Volatility.Value)?.Text;
             var productInfo = new ProductInfo
             {
                 Name = partnerProductSetting.NickName,
-                RTP = partnerProductSetting.RTP ?? 0,
-                Volatility = volatility
+                RTP = partnerProductSetting.RTP ?? (product.RTP ?? 0),
+                Volatility = string.IsNullOrWhiteSpace(volatility) ? product.Volatility : volatility,
+                Tags = product.Lines
             };
             if (clientId.HasValue)
             {
@@ -4134,8 +4278,8 @@ namespace IqSoft.CP.BLL.Services
         {
             var clientClassifications = CacheManager.GetClientClassifications(clientId);
             if (clientClassifications.Any())
-               return clientClassifications.Where(x => x.SegmentId.HasValue && x.ProductId == (int)Constants.PlatformProductId)
-                                           .Select(x => x.SegmentId.Value).ToList();
+                return clientClassifications.Where(x => x.SegmentId.HasValue && x.ProductId == (int)Constants.PlatformProductId)
+                                            .Select(x => x.SegmentId.Value).ToList();
             return new List<int>();
         }
 
@@ -4143,7 +4287,7 @@ namespace IqSoft.CP.BLL.Services
         {
             if (segmentIds == null || !segmentIds.Any())
                 return new List<int>();
-            return Db.ClientClassifications.Where(x =>x.ProductId == (int)Constants.PlatformProductId && x.SegmentId.HasValue &&
+            return Db.ClientClassifications.Where(x => x.ProductId == (int)Constants.PlatformProductId && x.SegmentId.HasValue &&
                                                        segmentIds.Contains(x.SegmentId.Value)).Select(x => x.ClientId).Distinct().ToList();
 
         }
@@ -4578,7 +4722,7 @@ namespace IqSoft.CP.BLL.Services
                 else if (clientIds == null || !clientIds.Any())
                     clientIds = segmentsClients;
             }
-            if (clientIds == null || !clientIds.Any() || Db.Clients.Any(x=> x.PartnerId != ticket.PartnerId && clientIds.Contains(x.Id)))
+            if (clientIds == null || !clientIds.Any() || Db.Clients.Any(x => x.PartnerId != ticket.PartnerId && clientIds.Contains(x.Id)))
                 throw CreateException(LanguageId, Constants.Errors.ClientNotFound);
             var currentTime = GetServerDate();
             ticket.CreationTime = currentTime;
@@ -5137,12 +5281,12 @@ namespace IqSoft.CP.BLL.Services
             }
         }
 
-        public List<ClientBonusTrigger> FairClientBonusTrigger(ClientTriggerInput clientTriggerInput, out bool alreadyAdded)
+        public List<ClientBonusTrigger> FairClientBonusTrigger(ClientTriggerInput triggerToFair, out bool alreadyAdded)
         {
             var result = new List<ClientBonusTrigger>();
             alreadyAdded = false;
             var currentTime = GetServerDate();
-            var client = CacheManager.GetClientById(clientTriggerInput.ClientId);
+            var client = CacheManager.GetClientById(triggerToFair.ClientId);
             var partner = CacheManager.GetPartnerById(client.PartnerId);
             var betTriggers = new List<int>
             {
@@ -5152,7 +5296,7 @@ namespace IqSoft.CP.BLL.Services
                 (int)TriggerTypes.CrossProductBetPlacement
             };
 
-            foreach (var cb in clientTriggerInput.ClientBonuses)
+            foreach (var cb in triggerToFair.ClientBonuses)
             {
                 var bonus = CacheManager.GetBonusById(cb.BonusId);
                 foreach (var g in bonus.TriggerGroups)
@@ -5160,30 +5304,32 @@ namespace IqSoft.CP.BLL.Services
                     foreach (var tgs in g.TriggerGroupSettings)
                     {
                         var trigger = CacheManager.GetTriggerSettingById(tgs.SettingId);
-                        if (trigger.StartTime <= currentTime && trigger.FinishTime > currentTime && (!trigger.DayOfWeek.HasValue || trigger.DayOfWeek == (int)DateTime.UtcNow.DayOfWeek)
-                            && ((trigger.Type == clientTriggerInput.TriggerType
-                                && (clientTriggerInput.TriggerType != (int)TriggerTypes.PromotionalCode || trigger.BonusSettingCodes == clientTriggerInput.PromoCode)
-                                && (clientTriggerInput.TriggerType != (int)TriggerTypes.NthDeposit || trigger.Condition == clientTriggerInput.DepositsCount.ToString()
-                                && (clientTriggerInput.TriggerType != (int)TriggerTypes.SegmentChange || trigger.SegmentId == clientTriggerInput.SegmentId)))
-                                || (clientTriggerInput.TriggerType == (int)TriggerTypes.BetSettlement && trigger.Type == (int)TriggerTypes.BetPlacementAndSettlement)
-                                || (clientTriggerInput.TriggerType == (int)TriggerTypes.NthDeposit && trigger.Type == (int)TriggerTypes.AnyDeposit)
-                                || (clientTriggerInput.TriggerType == (int)TriggerTypes.SignUp && trigger.Type == (int)TriggerTypes.SignupCode && trigger.BonusSettingCodes == clientTriggerInput.PromoCode))
-                           && (!clientTriggerInput.PaymentSystemId.HasValue || trigger.PaymentSystemIds == null ||
-                           !trigger.PaymentSystemIds.Any() || trigger.PaymentSystemIds.Contains(clientTriggerInput.PaymentSystemId.Value)))
+                        if (trigger.StartTime <= currentTime && trigger.FinishTime > currentTime &&
+                            (!trigger.DayOfWeek.HasValue || trigger.DayOfWeek == (int)DateTime.UtcNow.DayOfWeek)
+                            && ((trigger.Type == triggerToFair.TriggerType
+                                && (triggerToFair.TriggerType != (int)TriggerTypes.PromotionalCode || trigger.BonusSettingCodes == triggerToFair.PromoCode)
+                                && (triggerToFair.TriggerType != (int)TriggerTypes.NthDeposit || trigger.Condition == triggerToFair.DepositsCount.ToString()
+                                && (triggerToFair.TriggerType != (int)TriggerTypes.SegmentChange || trigger.SegmentId == triggerToFair.SegmentId)))
+                                || (triggerToFair.TriggerType == (int)TriggerTypes.BetSettlement && trigger.Type == (int)TriggerTypes.BetPlacementAndSettlement)
+                                || (triggerToFair.TriggerType == (int)TriggerTypes.NthDeposit && (trigger.Type == (int)TriggerTypes.AnyDeposit || trigger.Type == (int)TriggerTypes.DailyDeposit))
+                                || (triggerToFair.TriggerType == (int)TriggerTypes.SignUp && trigger.Type == (int)TriggerTypes.SignupCode &&
+                                trigger.BonusSettingCodes == triggerToFair.PromoCode))
+                           && (!triggerToFair.PaymentSystemId.HasValue || trigger.PaymentSystemIds == null ||
+                           !trigger.PaymentSystemIds.Any() || trigger.PaymentSystemIds.Contains(triggerToFair.PaymentSystemId.Value)))
                         {
-                            var fTrigger = Db.ClientBonusTriggers.FirstOrDefault(x => x.ClientId == clientTriggerInput.ClientId &&
+                            var existingTrigger = Db.ClientBonusTriggers.FirstOrDefault(x => x.ClientId == triggerToFair.ClientId &&
                                 x.TriggerId == trigger.Id && x.BonusId == cb.BonusId && x.ReuseNumber == cb.ReuseNumber);
 
                             var cItem = Db.AmountCurrencySettings.FirstOrDefault(x => x.TriggerId == trigger.Id && x.CurrencyId == client.CurrencyId);
                             var triggerMinAmount = trigger.MinAmount.HasValue ? (cItem != null && cItem.MinAmount.HasValue ? cItem.MinAmount.Value :
                                 ConvertCurrency(partner.CurrencyId, client.CurrencyId, trigger.MinAmount.Value)) : (decimal?)null;
-                            var triggerMaxAmount = trigger.MaxAmount.HasValue ? (cItem != null && cItem.MaxAmount.HasValue ? cItem.MaxAmount.Value : 
+                            var triggerMaxAmount = trigger.MaxAmount.HasValue ? (cItem != null && cItem.MaxAmount.HasValue ? cItem.MaxAmount.Value :
                                 ConvertCurrency(partner.CurrencyId, client.CurrencyId, trigger.MaxAmount.Value)) : (decimal?)null;
                             var triggerUpToAmount = trigger.UpToAmount.HasValue ? (cItem != null && cItem.UpToAmount.HasValue ? cItem.UpToAmount.Value :
                                 ConvertCurrency(partner.CurrencyId, client.CurrencyId, trigger.UpToAmount.Value)) : (decimal?)null;
 
-                            if (fTrigger == null || (fTrigger.BetCount != null && fTrigger.BetCount < trigger.MinBetCount) ||
-                                (fTrigger.WageringAmount != null && fTrigger.WageringAmount < triggerMinAmount))
+                            if (existingTrigger == null || (existingTrigger.BetCount != null && existingTrigger.BetCount < trigger.MinBetCount) ||
+                                (existingTrigger.WageringAmount != null && existingTrigger.WageringAmount < triggerMinAmount))
                             {
                                 bool accept = true;
                                 decimal? percent = null;
@@ -5191,26 +5337,26 @@ namespace IqSoft.CP.BLL.Services
                                     trigger.Type == (int)TriggerTypes.BetPlacementAndSettlement) && !string.IsNullOrEmpty(trigger.Condition))
                                 {
                                     var conditions = JsonConvert.DeserializeObject<Common.Models.Bonus.BonusCondition>(trigger.Condition);
-                                    var info = string.IsNullOrEmpty(clientTriggerInput.TicketInfo) ? new BonusTicketInfo() : JsonConvert.DeserializeObject<BonusTicketInfo>(clientTriggerInput.TicketInfo);
-                                    info.BetAmount = clientTriggerInput.SourceAmount != null ? clientTriggerInput.SourceAmount.Value : (triggerMinAmount ?? 0);
-                                    if (!string.IsNullOrEmpty(clientTriggerInput.WinInfo))
+                                    var info = string.IsNullOrEmpty(triggerToFair.TicketInfo) ? new BonusTicketInfo() : JsonConvert.DeserializeObject<BonusTicketInfo>(triggerToFair.TicketInfo);
+                                    info.BetAmount = triggerToFair.SourceAmount != null ? triggerToFair.SourceAmount.Value : (triggerMinAmount ?? 0);
+                                    if (!string.IsNullOrEmpty(triggerToFair.WinInfo))
                                     {
-                                        var win = JsonConvert.DeserializeObject<BonusTicketInfo>(clientTriggerInput.WinInfo);
+                                        var win = JsonConvert.DeserializeObject<BonusTicketInfo>(triggerToFair.WinInfo);
                                         info.NumberOfWonSelections = win.NumberOfWonSelections;
                                         info.NumberOfLostSelections = win.NumberOfLostSelections;
                                         info.BetStatus = win.BetStatus;
                                         if (trigger.BonusSettingCodes == "2")
-                                            clientTriggerInput.SourceAmount = win.WinAmount - info.BetAmount;
+                                            triggerToFair.SourceAmount = win.WinAmount - info.BetAmount;
                                     }
                                     accept = IsCorrectConditionGroup(conditions, info, client.CurrencyId, partner.CurrencyId);
-                                    Log.Info("FairClientBonusTrigger_" + clientTriggerInput.ClientId + trigger.Condition + "_" + JsonConvert.SerializeObject(info) + "_" +
+                                    Log.Info("FairClientBonusTrigger_" + triggerToFair.ClientId + trigger.Condition + "_" + JsonConvert.SerializeObject(info) + "_" +
                                         JsonConvert.SerializeObject(trigger) + "_" + accept);
                                 }
-                                else if (trigger.Type == (int)TriggerTypes.CrossProductBetPlacement && clientTriggerInput.ProductId != null)
+                                else if (trigger.Type == (int)TriggerTypes.CrossProductBetPlacement && triggerToFair.ProductId != null)
                                 {
                                     while (true)
                                     {
-                                        var pr = trigger.ProductSettings.FirstOrDefault(x => x.ProductId == clientTriggerInput.ProductId.Value);
+                                        var pr = trigger.ProductSettings.FirstOrDefault(x => x.ProductId == triggerToFair.ProductId.Value);
                                         if (pr != null)
                                         {
                                             accept = (pr.Percent > 0);
@@ -5219,55 +5365,83 @@ namespace IqSoft.CP.BLL.Services
                                         }
                                         else
                                         {
-                                            var product = CacheManager.GetProductById(clientTriggerInput.ProductId.Value);
+                                            var product = CacheManager.GetProductById(triggerToFair.ProductId.Value);
                                             if (!product.ParentId.HasValue)
                                                 break;
-                                            clientTriggerInput.ProductId = product.ParentId.Value;
+                                            triggerToFair.ProductId = product.ParentId.Value;
                                         }
                                     }
                                 }
 
                                 if (accept)
                                 {
-                                    var amount = (clientTriggerInput.SourceAmount != null && trigger.Percent > 0) ? clientTriggerInput.SourceAmount.Value * trigger.Percent / 100 : triggerMinAmount;
+                                    var amount = (triggerToFair.SourceAmount != null && trigger.Percent > 0) ?
+                                        triggerToFair.SourceAmount.Value * trigger.Percent / 100 : triggerMinAmount;
                                     bool isBetTrigger = betTriggers.Contains(trigger.Type);
+
                                     if (triggerUpToAmount != null && amount > triggerUpToAmount)
                                         amount = triggerUpToAmount;
 
-                                    if (isBetTrigger || ((triggerMinAmount == null || amount >= triggerMinAmount.Value) && (triggerMaxAmount == null || amount <= triggerMaxAmount.Value)))
+                                    if (isBetTrigger || triggerToFair.SourceAmount == null || (
+                                        (triggerMinAmount == null || triggerToFair.SourceAmount.Value >= triggerMinAmount.Value) &&
+                                        (triggerMaxAmount == null || triggerToFair.SourceAmount.Value <= triggerMaxAmount.Value))
+                                        )
                                     {
-                                        if (fTrigger == null)
+                                        if (existingTrigger == null)
                                         {
-                                            fTrigger = new ClientBonusTrigger
+                                            existingTrigger = new ClientBonusTrigger
                                             {
-                                                ClientId = clientTriggerInput.ClientId,
+                                                ClientId = triggerToFair.ClientId,
                                                 TriggerId = trigger.Id,
                                                 BonusId = cb.BonusId,
-                                                SourceAmount = amount,
+                                                SourceAmount = (trigger.Type == (int)TriggerTypes.DailyDeposit ? triggerUpToAmount : amount),
                                                 CreationTime = DateTime.UtcNow,
-                                                BetCount = isBetTrigger ? 1 : (int?)null,
-                                                WageringAmount = isBetTrigger && triggerMinAmount != null ? (clientTriggerInput.SourceAmount * (percent ?? 100)) / 100 : null,
-                                                ReuseNumber = cb.ReuseNumber
+                                                BetCount = (isBetTrigger || trigger.Type == (int)TriggerTypes.DailyDeposit) ? 1 : (int?)null,
+                                                WageringAmount = isBetTrigger && triggerMinAmount != null ? (triggerToFair.SourceAmount * (percent ?? 100)) / 100 :
+                                                    (trigger.Type == (int)TriggerTypes.DailyDeposit ? triggerMinAmount : null),
+                                                ReuseNumber = cb.ReuseNumber,
+                                                LastActionDate = DateTime.UtcNow
                                             };
                                             if (isBetTrigger && triggerMaxAmount.HasValue && triggerMaxAmount.Value < amount)
-                                                fTrigger.SourceAmount = triggerMaxAmount;
-                                            Db.ClientBonusTriggers.Add(fTrigger);
+                                                existingTrigger.SourceAmount = triggerMaxAmount;
+                                            Db.ClientBonusTriggers.Add(existingTrigger);
                                         }
                                         else
                                         {
-                                            if (fTrigger.BetCount != null)
-                                                fTrigger.BetCount = fTrigger.BetCount.Value + 1;
-                                            if (fTrigger.WageringAmount != null)
-                                                fTrigger.WageringAmount = fTrigger.WageringAmount.Value + (clientTriggerInput.SourceAmount * (percent ?? 100)) / 100;
-                                            if (isBetTrigger)
+                                            if (trigger.Type == (int)TriggerTypes.DailyDeposit)
                                             {
-                                                fTrigger.SourceAmount += amount;
-                                                if (triggerMaxAmount != null && fTrigger.SourceAmount >= triggerMaxAmount)
-                                                    fTrigger.SourceAmount = triggerMaxAmount;
+                                                var sDate = existingTrigger.LastActionDate.Value.Date;
+                                                var tDate = currentTime.Date;
+
+                                                if ((tDate - sDate).TotalDays == 1)
+                                                {
+                                                    existingTrigger.BetCount = existingTrigger.BetCount.Value + 1;
+                                                    existingTrigger.LastActionDate = currentTime;
+                                                }
+                                                else if ((tDate - sDate).TotalDays > 1)
+                                                {
+                                                    existingTrigger.BetCount = 1;
+                                                    existingTrigger.LastActionDate = currentTime;
+                                                }
                                             }
+                                            else
+                                            {
+                                                if (existingTrigger.BetCount != null)
+                                                    existingTrigger.BetCount = existingTrigger.BetCount.Value + 1;
+                                                if (existingTrigger.WageringAmount != null)
+                                                    existingTrigger.WageringAmount = existingTrigger.WageringAmount.Value + (triggerToFair.SourceAmount * (percent ?? 100)) / 100;
+                                                if (isBetTrigger)
+                                                {
+                                                    existingTrigger.SourceAmount += amount;
+                                                    if (triggerMaxAmount != null && existingTrigger.SourceAmount >= triggerMaxAmount)
+                                                        existingTrigger.SourceAmount = triggerMaxAmount;
+                                                }
+                                                existingTrigger.LastActionDate = currentTime;
+                                            }
+
                                         }
                                         Db.SaveChanges();
-                                        result.Add(fTrigger);
+                                        result.Add(existingTrigger);
                                     }
                                 }
                             }
@@ -5599,7 +5773,7 @@ namespace IqSoft.CP.BLL.Services
             var partner = CacheManager.GetPartnerById(client.PartnerId);
 
             var cItem = dbTrigger.AmountCurrencySettings?.FirstOrDefault(x => x.CurrencyId == client.CurrencyId);
-            var triggerMinAmount = dbTrigger.MinAmount.HasValue ? (cItem != null && cItem.MinAmount.HasValue ? cItem.MinAmount.Value : 
+            var triggerMinAmount = dbTrigger.MinAmount.HasValue ? (cItem != null && cItem.MinAmount.HasValue ? cItem.MinAmount.Value :
                 ConvertCurrency(partner.CurrencyId, client.CurrencyId, dbTrigger.MinAmount.Value)) : (decimal?)null;
 
             var clientBonusTrigger = new ClientBonusTrigger
@@ -5698,7 +5872,7 @@ namespace IqSoft.CP.BLL.Services
                     MinBetCount = y.TriggerSetting.MinBetCount
                 }).ToList()
             });
-            var resp = new List<TriggerSettingItem>();
+            var triggerSettings = new List<TriggerSettingItem>();
 
             foreach (var s in settings)
             {
@@ -5709,44 +5883,44 @@ namespace IqSoft.CP.BLL.Services
                         ts.Name = CacheManager.GetTranslation(ts.TranslationId, LanguageId);
                     }
                 }
-                resp.AddRange(s.TriggerSettings);
+                triggerSettings.AddRange(s.TriggerSettings);
             }
 
-            var triggers = Db.ClientBonusTriggers.Where(x => x.BonusId == bonusId && (x.ClientId == clientId || x.ClientId == null) &&
+            var clientBonusTriggers = Db.ClientBonusTriggers.Where(x => x.BonusId == bonusId && (x.ClientId == clientId || x.ClientId == null) &&
                 x.ReuseNumber == reuseNumber).ToList();
-            var betTriggers = new List<int> { (int)TriggerTypes.BetPlacement, (int)TriggerTypes.BetSettlement,
-                        (int)TriggerTypes.BetPlacementAndSettlement, (int)TriggerTypes.CrossProductBetPlacement };
+            var specialTriggers = new List<int> { (int)TriggerTypes.BetPlacement, (int)TriggerTypes.BetSettlement,
+                        (int)TriggerTypes.BetPlacementAndSettlement, (int)TriggerTypes.CrossProductBetPlacement, (int)TriggerTypes.DailyDeposit };
 
-            foreach (var r in resp)
+            foreach (var ts in triggerSettings)
             {
-                r.MinAmount = r.MinAmount.HasValue ? ConvertCurrency(partner.CurrencyId, client.CurrencyId, r.MinAmount.Value) : (decimal?)null;
-                r.MaxAmount = r.MaxAmount.HasValue ? ConvertCurrency(partner.CurrencyId, client.CurrencyId, r.MaxAmount.Value) : (decimal?)null;
-                var item = triggers.FirstOrDefault(x => x.TriggerId == r.Id);
-                if (item != null)
+                ts.MinAmount = ts.MinAmount.HasValue ? ConvertCurrency(partner.CurrencyId, client.CurrencyId, ts.MinAmount.Value) : (decimal?)null;
+                ts.MaxAmount = ts.MaxAmount.HasValue ? ConvertCurrency(partner.CurrencyId, client.CurrencyId, ts.MaxAmount.Value) : (decimal?)null;
+                var clientBonusTrigger = clientBonusTriggers.FirstOrDefault(x => x.TriggerId == ts.Id);
+                if (clientBonusTrigger != null)
                 {
-                    if (!betTriggers.Contains(r.Type) || (item.BetCount >= r.MinBetCount && (r.MinAmount == null || item.WageringAmount >= r.MinAmount)))
+                    if (!specialTriggers.Contains(ts.Type) || (clientBonusTrigger.BetCount >= ts.MinBetCount && (ts.MinAmount == null || clientBonusTrigger.WageringAmount >= ts.MinAmount)))
                     {
-                        r.Status = (int)ClientBonusTriggerStatuses.Realised;
-                        r.SourceAmount = item.SourceAmount;
+                        ts.Status = (int)ClientBonusTriggerStatuses.Realised;
+                        ts.SourceAmount = clientBonusTrigger.SourceAmount;
                     }
                     else
-                        r.Status = (int)ClientBonusTriggerStatuses.NotRealised;
+                        ts.Status = (int)ClientBonusTriggerStatuses.NotRealised;
 
-                    r.BetCount = item.BetCount;
-                    r.WageringAmount = item.WageringAmount;
+                    ts.BetCount = clientBonusTrigger.BetCount;
+                    ts.WageringAmount = clientBonusTrigger.WageringAmount;
                 }
                 else
                 {
-                    r.Status = (int)ClientBonusTriggerStatuses.NotRealised;
+                    ts.Status = (int)ClientBonusTriggerStatuses.NotRealised;
 
-                    if (betTriggers.Contains(r.Type))
+                    if (specialTriggers.Contains(ts.Type))
                     {
-                        r.BetCount = 0;
-                        r.WageringAmount = r.MinAmount.HasValue ? 0 : (decimal?)null;
+                        ts.BetCount = 0;
+                        ts.WageringAmount = ts.MinAmount.HasValue ? 0 : (decimal?)null;
                     }
                 }
             }
-            return resp;
+            return triggerSettings;
         }
         public PagedModel<fnClientBonus> GetClientBonuses(int clientId, int? bonusType)
         {
@@ -5916,7 +6090,7 @@ namespace IqSoft.CP.BLL.Services
             }
             fnClientBonus resp = null;
             using (var scope = CommonFunctions.CreateTransactionScope())
-            {               
+            {
                 if (dbClientBonus.Status != (int)ClientBonusStatuses.Active && dbClientBonus.Status != (int)ClientBonusStatuses.NotAwarded)
                     throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
                 var oldValue = new
@@ -6012,7 +6186,7 @@ namespace IqSoft.CP.BLL.Services
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
 
             }
-            if (dbClientBonus.Bonu.Type != (int)BonusTypes.CampaignFreeSpin || 
+            if (dbClientBonus.Bonu.Type != (int)BonusTypes.CampaignFreeSpin ||
                (dbClientBonus.Status != (int)ClientBonusStatuses.Active && dbClientBonus.Status != (int)ClientBonusStatuses.NotAwarded))
                 throw CreateException(LanguageId, Constants.Errors.BonusNotFound);
             var oldValue = new
@@ -6152,24 +6326,24 @@ namespace IqSoft.CP.BLL.Services
                                              ((x.ReusingMaxCount == null && !x.ClientBonus.Any(y => y.ClientId == client.Id)) ||
                                               (x.ReusingMaxCount != null && !x.ClientBonus.Any(y => y.ClientId == client.Id && y.ReuseNumber >= x.ReusingMaxCount))) &&
                                               (!x.BonusSegmentSettings.Any() ||
-                                               (x.BonusSegmentSettings.Any(y => y.Type == (int)BonusSettingConditionTypes.InSet && 
+                                               (x.BonusSegmentSettings.Any(y => y.Type == (int)BonusSettingConditionTypes.InSet &&
                                                clientSegmentsIds.Contains(y.SegmentId)) &&
-                                               !x.BonusSegmentSettings.Any(y => y.Type == (int)BonusSettingConditionTypes.OutOfSet && 
+                                               !x.BonusSegmentSettings.Any(y => y.Type == (int)BonusSettingConditionTypes.OutOfSet &&
                                                clientSegmentsIds.Contains(y.SegmentId)))) &&
                                               (!x.BonusCountrySettings.Any() ||
-                                               (x.BonusCountrySettings.Any(y => y.Type == (int)BonusSettingConditionTypes.InSet && 
+                                               (x.BonusCountrySettings.Any(y => y.Type == (int)BonusSettingConditionTypes.InSet &&
                                                y.CountryId == (client.CountryId ?? client.RegionId)) &&
-                                               !x.BonusCountrySettings.Any(y => y.Type == (int)BonusSettingConditionTypes.OutOfSet && 
+                                               !x.BonusCountrySettings.Any(y => y.Type == (int)BonusSettingConditionTypes.OutOfSet &&
                                                y.CountryId == (client.CountryId ?? client.RegionId)))) &&
                                               (!x.BonusCurrencySettings.Any() ||
-                                               (x.BonusCurrencySettings.Any(y => y.Type == (int)BonusSettingConditionTypes.InSet && 
+                                               (x.BonusCurrencySettings.Any(y => y.Type == (int)BonusSettingConditionTypes.InSet &&
                                                y.CurrencyId == client.CurrencyId) &&
-                                               !x.BonusCurrencySettings.Any(y => y.Type == (int)BonusSettingConditionTypes.OutOfSet && 
+                                               !x.BonusCurrencySettings.Any(y => y.Type == (int)BonusSettingConditionTypes.OutOfSet &&
                                                y.CurrencyId == client.CurrencyId))) &&
                                               (!x.BonusLanguageSettings.Any() ||
-                                               (x.BonusLanguageSettings.Any(y => y.Type == (int)BonusSettingConditionTypes.InSet && 
+                                               (x.BonusLanguageSettings.Any(y => y.Type == (int)BonusSettingConditionTypes.InSet &&
                                                y.LanguageId == client.LanguageId) &&
-                                               !x.BonusLanguageSettings.Any(y => y.Type == (int)BonusSettingConditionTypes.OutOfSet && 
+                                               !x.BonusLanguageSettings.Any(y => y.Type == (int)BonusSettingConditionTypes.OutOfSet &&
                                                y.LanguageId == client.LanguageId)))
                                         ).ToList();
             var depCount = CacheManager.GetClientDepositCount(client.Id);
@@ -6182,9 +6356,9 @@ namespace IqSoft.CP.BLL.Services
                                                       ).ToList();
             availableBonuses = availableBonuses.Where(x => !x.TriggerGroups.Any(y => y.TriggerGroupSettings.Any(z => (z.TriggerSetting.Type == (int)TriggerTypes.AnyDeposit ||
             z.TriggerSetting.Type == (int)TriggerTypes.NthDeposit) && z.TriggerSetting.BonusPaymentSystemSettings.Any() &&
-            ((z.TriggerSetting.BonusPaymentSystemSettings.First().Type == (int)BonusSettingConditionTypes.InSet && 
+            ((z.TriggerSetting.BonusPaymentSystemSettings.First().Type == (int)BonusSettingConditionTypes.InSet &&
             !z.TriggerSetting.BonusPaymentSystemSettings.Any(k => k.PaymentSystemId == paymentSystemId)) ||
-            (z.TriggerSetting.BonusPaymentSystemSettings.First().Type == (int)BonusSettingConditionTypes.OutOfSet && 
+            (z.TriggerSetting.BonusPaymentSystemSettings.First().Type == (int)BonusSettingConditionTypes.OutOfSet &&
             z.TriggerSetting.BonusPaymentSystemSettings.Any(k => k.PaymentSystemId == paymentSystemId)))))).ToList();
 
             var excludedIds = new List<int>();
@@ -6327,9 +6501,9 @@ namespace IqSoft.CP.BLL.Services
                 if (suspensionSetting != null && suspensionSetting.Id > 0 && suspensionSetting.StringValue == "1")
                     throw CreateException(LanguageId, Constants.Errors.CautionSuspension);
                 var isBetShop = paymentSystem.Name.ToLower() == Constants.PaymentSystems.BetShop.ToLower();
-               var dailyLimit = isBetShop ? CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.CashWithdrawMaxCountPerDayPerCustomer) :
-                    CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.WithdrawMaxCountPerDayPerCustomer);               
-                var maxPendingWithdrawalsCount =  CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.MaxPendingWithdrawalsCount);
+                var dailyLimit = isBetShop ? CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.CashWithdrawMaxCountPerDayPerCustomer) :
+                     CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.WithdrawMaxCountPerDayPerCustomer);
+                var maxPendingWithdrawalsCount = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.MaxPendingWithdrawalsCount);
 
                 if (dailyLimit?.NumericValue != null || maxPendingWithdrawalsCount?.NumericValue != null)
                 {
@@ -6339,8 +6513,8 @@ namespace IqSoft.CP.BLL.Services
                                                               x.Status != (int)PaymentRequestStates.Deleted &&
                                                               x.Status != (int)PaymentRequestStates.Failed &&
                                                               x.Status != (int)PaymentRequestStates.PayPanding &&
-                                                              x.Status != (int)PaymentRequestStates.Expired && 
-                                                              x.Status != (int)PaymentRequestStates.Approved && 
+                                                              x.Status != (int)PaymentRequestStates.Expired &&
+                                                              x.Status != (int)PaymentRequestStates.Approved &&
                                                               x.Status != (int)PaymentRequestStates.ApprovedManually);
                     if (dailyLimit?.NumericValue != null)
                     {
@@ -6421,7 +6595,8 @@ namespace IqSoft.CP.BLL.Services
                 if (clientBalance.Balances.Where(x => x.TypeId != (int)AccountTypes.ClientBonusBalance)
                     .Sum(x => x.TypeId == (int)AccountTypes.ClientUnusedBalance ? x.Balance * (100 - percent) / 100 : x.Balance) < request.Amount)
                     throw CreateException(LanguageId, Constants.Errors.LowBalance);
-                if ((request.Amount - partnerPaymentSetting.FixedFee - request.Amount * partnerPaymentSetting.Commission / 100m) <= 0)
+                if ((!partnerPaymentSetting.ApplyPercentAmount.HasValue || request.Amount >= partnerPaymentSetting.ApplyPercentAmount) &&
+                    (request.Amount - partnerPaymentSetting.FixedFee - request.Amount * partnerPaymentSetting.Commission / 100m) <= 0)
                     throw CreateException(LanguageId, Constants.Errors.WrongOperationAmount);
                 var maxUsedBalance = clientBalance.Balances.Where(x => x.TypeId != (int)AccountTypes.ClientUnusedBalance && x.TypeId != (int)AccountTypes.ClientBonusBalance)
                     .Sum(x => x.Balance);
@@ -6436,6 +6611,9 @@ namespace IqSoft.CP.BLL.Services
                 if (request.Parameters == null || !request.Parameters.Any())
                     request.Parameters = new Dictionary<string, string>();
                 request.Parameters.Add(nameof(request.SavePaymentDetails), request.SavePaymentDetails.ToString());
+                var commissionAmount = partnerPaymentSetting.FixedFee;
+                if (!partnerPaymentSetting.ApplyPercentAmount.HasValue || request.Amount >= partnerPaymentSetting.ApplyPercentAmount)
+                    commissionAmount +=  request.Amount * partnerPaymentSetting.Commission / 100;
                 var paymentRequest = new PaymentRequest
                 {
                     ClientId = request.ClientId,
@@ -6456,7 +6634,7 @@ namespace IqSoft.CP.BLL.Services
                     LastUpdateTime = currentTime,
                     CashCode = request.CashCode,
                     Date = date,
-                    CommissionAmount = request.Amount * partnerPaymentSetting.Commission / 100 + partnerPaymentSetting.FixedFee
+                    CommissionAmount = commissionAmount
                 };
                 Db.PaymentRequests.Add(paymentRequest);
                 Db.SaveChanges();
@@ -6507,7 +6685,7 @@ namespace IqSoft.CP.BLL.Services
 
             if (paymentRequest.Status != (int)PaymentRequestStates.Pending & paymentRequest.Status != (int)PaymentRequestStates.Confirmed)
                 throw CreateException(LanguageId, Constants.Errors.CanNotChangePaymentRequestStatus);
-            if (installments.Any(x=> x <= 0 || x < partnerPaymentSetting.MinAmount || x > partnerPaymentSetting.MaxAmount) || paymentRequest.Amount != installments.Sum() )
+            if (installments.Any(x => x <= 0 || x < partnerPaymentSetting.MinAmount || x > partnerPaymentSetting.MaxAmount) || paymentRequest.Amount != installments.Sum())
                 throw CreateException(LanguageId, Constants.Errors.WrongOperationAmount);
             var paymentSystem = CacheManager.GetPaymentSystemById(paymentRequest.PaymentSystemId);
             if (paymentSystem.Name == Constants.PaymentSystems.PaymentIQ)
@@ -6525,6 +6703,9 @@ namespace IqSoft.CP.BLL.Services
 
                     installments.ForEach(amount =>
                     {
+                        var commissionAmount = partnerPaymentSetting.FixedFee;
+                        if (!partnerPaymentSetting.ApplyPercentAmount.HasValue || amount >= partnerPaymentSetting.ApplyPercentAmount)
+                            commissionAmount +=  amount * partnerPaymentSetting.Commission / 100;
                         var newPaymentRequest = new PaymentRequest
                         {
                             ParentId = paymentRequest.Id,
@@ -6546,7 +6727,7 @@ namespace IqSoft.CP.BLL.Services
                             LastUpdateTime = currentTime,
                             CashCode = paymentRequest.CashCode,
                             Date = date,
-                            CommissionAmount = amount * partnerPaymentSetting.Commission / 100 + partnerPaymentSetting.FixedFee
+                            CommissionAmount = commissionAmount
                         };
                         Db.PaymentRequests.Add(newPaymentRequest);
                         Db.SaveChanges();
@@ -6600,7 +6781,7 @@ namespace IqSoft.CP.BLL.Services
             item = new OperationItem
             {
                 AccountId = accountId,
-				ObjectId = request.ClientId.Value,
+                ObjectId = request.ClientId.Value,
                 ObjectTypeId = (int)ObjectTypes.Client,
                 Amount = request.Amount + extraAmount,
                 CurrencyId = request.CurrencyId,
@@ -6935,7 +7116,9 @@ namespace IqSoft.CP.BLL.Services
             var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, resp.PaymentSystemId, resp.CurrencyId, (int)PaymentRequestTypes.Withdraw);
             if (partnerPaymentSetting == null)
                 throw CreateException(LanguageId, Constants.Errors.PartnerPaymentSettingNotFound);
-            var commission = resp.RequestAmount * partnerPaymentSetting.Commission / 100 + partnerPaymentSetting.FixedFee;
+            var commission = partnerPaymentSetting.FixedFee;
+            if (!partnerPaymentSetting.ApplyPercentAmount.HasValue || resp.RequestAmount >= partnerPaymentSetting.ApplyPercentAmount)
+                commission +=  resp.RequestAmount* partnerPaymentSetting.Commission / 100;
 
             var operation = new Operation
             {
@@ -7137,7 +7320,8 @@ namespace IqSoft.CP.BLL.Services
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
 
             if (client.State == (int)ClientStates.FullBlocked || client.State == (int)ClientStates.Disabled ||
-                client.State == (int)ClientStates.Suspended || client.State == (int)ClientStates.BlockedForDeposit)
+                client.State == (int)ClientStates.Suspended || client.State == (int)ClientStates.SuspendedWithWithdraw ||
+                client.State == (int)ClientStates.BlockedForDeposit)
                 throw CreateException(LanguageId, Constants.Errors.ClientBlocked);
             var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, paymentRequestInput.PaymentSystemId, client.CurrencyId,
                                         (int)PaymentRequestTypes.Deposit) ?? throw CreateException(LanguageId, Constants.Errors.PartnerPaymentSettingNotFound);
@@ -7145,7 +7329,9 @@ namespace IqSoft.CP.BLL.Services
                 throw CreateException(LanguageId, Constants.Errors.PartnerPaymentSettingBlocked);
             if (paymentRequestInput.Amount < partnerPaymentSetting.MinAmount || paymentRequestInput.Amount > partnerPaymentSetting.MaxAmount)
                 throw CreateException(LanguageId, Constants.Errors.PaymentRequestInValidAmount);
-            var commissionAmount = paymentRequestInput.Amount * partnerPaymentSetting.Commission/100 + partnerPaymentSetting.FixedFee;
+            var commissionAmount = partnerPaymentSetting.FixedFee;
+            if (!partnerPaymentSetting.ApplyPercentAmount.HasValue || paymentRequestInput.Amount >= partnerPaymentSetting.ApplyPercentAmount)
+                commissionAmount +=  paymentRequestInput.Amount * partnerPaymentSetting.Commission / 100;
             if (paymentRequestInput.Amount - commissionAmount < 0)
                 throw CreateException(LanguageId, Constants.Errors.PaymentRequestInValidAmount);
             var clientPaymentSetting = Db.ClientPaymentSettings.FirstOrDefault(x => x.ClientId == paymentRequestInput.ClientId &&
@@ -7164,11 +7350,11 @@ namespace IqSoft.CP.BLL.Services
             {
                 var clientAccounts = GetClientAccounts(client.Id, false);
                 var account = clientAccounts.FirstOrDefault(x => x.Id == paymentRequestInput.AccountId);
-                if(account == null)
+                if (account == null)
                     throw CreateException(LanguageId, Constants.Errors.AccountNotFound);
-                if(account.PaymentSystemId != null && account.PaymentSystemId != paymentRequestInput.PaymentSystemId)
+                if (account.PaymentSystemId != null && account.PaymentSystemId != paymentRequestInput.PaymentSystemId)
                     throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
-                if(account.BetShopId != null && account.PaymentSystemId == null)
+                if (account.BetShopId != null && account.PaymentSystemId == null)
                     throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
             }
             var paymentRequest = new PaymentRequest
@@ -7207,7 +7393,8 @@ namespace IqSoft.CP.BLL.Services
             if (client == null)
                 throw CreateException(LanguageId, Constants.Errors.ClientNotFound);
             if (client.State == (int)ClientStates.FullBlocked || client.State == (int)ClientStates.Disabled ||
-                client.State == (int)ClientStates.Suspended || client.State == (int)ClientStates.BlockedForDeposit)
+                client.State == (int)ClientStates.Suspended || client.State == (int)ClientStates.SuspendedWithWithdraw ||
+                client.State == (int)ClientStates.BlockedForDeposit)
                 throw CreateException(LanguageId, Constants.Errors.ClientBlocked);
             if (request.CurrencyId != client.CurrencyId)
                 throw CreateException(LanguageId, Constants.Errors.WrongCurrencyId);
@@ -7223,7 +7410,9 @@ namespace IqSoft.CP.BLL.Services
             var isVoucherPayment = !string.IsNullOrEmpty(request.PaymentSystemName) && Constants.VoucherPaymentSystems.Contains(request.PaymentSystemName);
             if (!isVoucherPayment && checkLimits && (request.Amount < partnerPaymentSetting.MinAmount || request.Amount > partnerPaymentSetting.MaxAmount))
                 throw CreateException(LanguageId, Constants.Errors.PaymentRequestInValidAmount);
-            var commissionAmount = request.Amount* partnerPaymentSetting.Commission/100 + partnerPaymentSetting.FixedFee;
+            var commissionAmount = partnerPaymentSetting.FixedFee;
+            if (!partnerPaymentSetting.ApplyPercentAmount.HasValue || request.Amount >= partnerPaymentSetting.ApplyPercentAmount)
+                commissionAmount += request.Amount * partnerPaymentSetting.Commission / 100;
             if (checkLimits && request.Amount - commissionAmount < 0)
                 throw CreateException(LanguageId, Constants.Errors.PaymentRequestInValidAmount);
 
@@ -7297,12 +7486,12 @@ namespace IqSoft.CP.BLL.Services
             else
                 request.Info = "{}";
             request.DepositCount = CacheManager.GetClientDepositCount(request.ClientId.Value);
-			Db.PaymentRequests.Add(request);
+            Db.PaymentRequests.Add(request);
             Db.SaveChanges();
             return request;
         }
 
-        public void ApproveDepositFromPaymentSystem(PaymentRequest request, bool fromAdmin, string comment = "", 
+        public void ApproveDepositFromPaymentSystem(PaymentRequest request, bool fromAdmin, string comment = "",
             ClientPaymentInfo info = null, MerchantRequest mr = null, long? accountId = null)
         {
             if (fromAdmin)
@@ -7334,7 +7523,8 @@ namespace IqSoft.CP.BLL.Services
                 if (paymentRequest.Status == (int)PaymentRequestStates.Approved || paymentRequest.Status == (int)PaymentRequestStates.ApprovedManually)
                     throw CreateException(LanguageId, Constants.Errors.RequestAlreadyPayed, dateTimeInfo: paymentRequest.CreationTime);
                 var pureAmount = request.Amount;
-                if (partnerPaymentSetting.Commission > 0)
+                if ((!partnerPaymentSetting.ApplyPercentAmount.HasValue || request.Amount >= partnerPaymentSetting.ApplyPercentAmount) &&
+                    partnerPaymentSetting.Commission > 0)
                     pureAmount -= request.Amount * partnerPaymentSetting.Commission / 100;
                 if (partnerPaymentSetting.FixedFee > 0)
                     pureAmount -= partnerPaymentSetting.FixedFee;
@@ -7342,18 +7532,18 @@ namespace IqSoft.CP.BLL.Services
                     throw CreateException(LanguageId, Constants.Errors.LowBalance);
                 paymentRequest.CommissionAmount = request.Amount - pureAmount;
 
-                if(paymentRequest.AccountId != null)
+                if (paymentRequest.AccountId != null)
                 {
                     var acc = GetAccount(paymentRequest.AccountId.Value);
-                    if(acc.TypeId == (int)AccountTypes.ClientUnusedBalance)
+                    if (acc.TypeId == (int)AccountTypes.ClientUnusedBalance)
                     {
                         accountId = paymentRequest.AccountId.Value;
                     }
                 }
 
-                if (!Db.Documents.Any(x => x.ExternalTransactionId == paymentRequest.ExternalTransactionId &&
-                                           x.OperationTypeId == (int)OperationTypes.Deposit &&
-                                           x.PartnerPaymentSettingId == partnerPaymentSetting.Id))
+                if (!Db.Documents.Any(x => x.OperationTypeId == (int)OperationTypes.Deposit &&
+                                           x.PartnerPaymentSettingId == partnerPaymentSetting.Id &&
+                                           x.ExternalTransactionId == paymentRequest.ExternalTransactionId))
                 {
                     var operation = new Operation
                     {
@@ -7401,7 +7591,7 @@ namespace IqSoft.CP.BLL.Services
                         Amount = pureAmount,
                         CurrencyId = request.CurrencyId,
                         Type = (int)TransactionTypes.Debit,
-                        OperationTypeId = (int)OperationTypes.Deposit, 
+                        OperationTypeId = (int)OperationTypes.Deposit,
                         AccountId = accountId
                     };
                     operation.OperationItems.Add(item);
@@ -7492,7 +7682,8 @@ namespace IqSoft.CP.BLL.Services
                             setting.PaymentSystemIds.Contains(paymentRequest.PaymentSystemId))) ||
                             (setting.Type == (int)TriggerTypes.NthDeposit && (setting.PaymentSystemIds == null || !setting.PaymentSystemIds.Any() ||
                             setting.PaymentSystemIds.Contains(paymentRequest.PaymentSystemId)) &&
-                            depCount.ToString() == setting.Condition)))
+                            depCount.ToString() == setting.Condition) ||
+                            setting.Type == (int)TriggerTypes.DailyDeposit))
                         {
                             awardedStatus = 1;
                             var notAwardedCampaigns = CacheManager.GetClientNotAwardedCampaigns(paymentRequest.ClientId.Value).Where(x => x.BonusId == b.Id).ToList();
@@ -7517,7 +7708,8 @@ namespace IqSoft.CP.BLL.Services
             CacheManager.RemoveClientNotAwardedCampaigns(paymentRequest.ClientId.Value);
         }
 
-        public bool GiveAffiliateCommission(BllClient client, long paymetRequestId, int partnerPaymentSettingId, decimal depositAmount, DocumentBll documentBl)
+        public bool GiveAffiliateCommission(BllClient client, long paymetRequestId, int partnerPaymentSettingId,
+            int depCount, decimal depositAmount, DocumentBll documentBl)
         {
             var result = false;
             if (client.AffiliateReferralId != null)
@@ -7527,9 +7719,9 @@ namespace IqSoft.CP.BLL.Services
                     ar.Type == (int)AffiliateReferralTypes.InternalAffiliatePlatform && Int32.TryParse(ar.AffiliateId, out int affId))
                 {
                     result = true;
-                    var commission = Db.AffiliateCommissions.FirstOrDefault(x => x.AffiliateId == affId && x.Percent > 0 && 
+                    var commission = Db.AffiliateCommissions.FirstOrDefault(x => x.AffiliateId == affId && x.Percent > 0 &&
                                                                                  x.CommissionType == (int)AffiliateCommissionTypes.Deposit);
-                    if (commission != null)
+                    if (commission != null && (commission.DepositCount == null || depCount <= commission.DepositCount.Value))
                     {
                         var amount = depositAmount * commission.Percent / 100;
                         if (!string.IsNullOrEmpty(commission.CurrencyId) && commission.UpToAmount != null && commission.UpToAmount > 0)
@@ -7582,9 +7774,9 @@ namespace IqSoft.CP.BLL.Services
         public PaymentRequest CreateDepositFromBetShop(PaymentRequest transaction)
         {
             var currentTime = DateTime.UtcNow;
-			var date = (long)currentTime.Year * 100000000 + (long)currentTime.Month * 1000000 + (long)currentTime.Day * 10000 +
-					   (long)currentTime.Hour * 100 + currentTime.Minute;
-			CheckPermission(Constants.Permissions.CreateDepositFromBetShop);
+            var date = (long)currentTime.Year * 100000000 + (long)currentTime.Month * 1000000 + (long)currentTime.Day * 10000 +
+                       (long)currentTime.Hour * 100 + currentTime.Minute;
+            CheckPermission(Constants.Permissions.CreateDepositFromBetShop);
             var client = CacheManager.GetClientById(transaction.ClientId.Value);
             if (client == null)
                 throw CreateException(LanguageId, Constants.Errors.ClientNotFound);
@@ -8135,7 +8327,7 @@ namespace IqSoft.CP.BLL.Services
             transaction.ProductId = product.Id;
             Document document = null;
             var operationItemFromProduct = transaction.OperationItems[0];
-            var operationAmount = operationItemFromProduct.Amount;
+            var initialOperationAmount = operationItemFromProduct.Amount;
             
             var partnerProductSetting = CacheManager.GetPartnerProductSettingByProductId(operationItemFromProduct.Client.PartnerId, product.Id);
             if (partnerProductSetting == null)
@@ -8144,18 +8336,18 @@ namespace IqSoft.CP.BLL.Services
                 throw CreateException(LanguageId, Constants.Errors.ProductBlockedForThisPartner);
             var clientState = ClientBll.GetClientStateByProduct(operationItemFromProduct.Client, product);
             if (clientState == (int)ClientStates.FullBlocked || clientState == (int)ClientStates.Disabled ||
-                clientState == (int)ClientStates.BlockedForBet || clientState == (int)ClientStates.Suspended)
+                clientState == (int)ClientStates.BlockedForBet || clientState == (int)ClientStates.Suspended ||
+                clientState == (int)ClientStates.SuspendedWithWithdraw)
                 throw CreateException(LanguageId, Constants.Errors.ClientBlocked);
             info = CheckClientLimit(product.Id, operationItemFromProduct.Client, operationItemFromProduct.Amount, LanguageId, transaction.TicketInfo);
             var partner = CacheManager.GetPartnerById(operationItemFromProduct.Client.PartnerId);
-            CheckPartnerProductLimit(product.Id, partner,
-                operationItemFromProduct.Client.CurrencyId, operationItemFromProduct.Amount, LanguageId);
+            CheckPartnerProductLimit(product.Id, partner, operationItemFromProduct.Client.CurrencyId, operationItemFromProduct.Amount, LanguageId);
             
             using (var scope = CommonFunctions.CreateTransactionScope())
             {
                 var operation = new Operation
                 {
-                    Amount = transaction.BonusId > 0 ? 0 : operationAmount,
+                    Amount = transaction.BonusId > 0 ? 0 : operationItemFromProduct.Amount,
                     CurrencyId = transaction.CurrencyId,
                     Type = operationTypeId,
                     ExternalTransactionId = transaction.TransactionId,
@@ -8182,6 +8374,12 @@ namespace IqSoft.CP.BLL.Services
                         var amlVerified = CacheManager.GetClientSettingByName(operationItemFromProduct.Client.Id, ClientSettings.AMLVerified);
                         if (amlVerified == null || amlVerified.Id == 0 || amlVerified.StringValue != "1")
                             throw CreateException(LanguageId, Constants.Errors.AMLProhibited);
+                    }
+
+                    var cmm = CacheManager.GetPartnerSettingByKey(operationItemFromProduct.Client.PartnerId, Constants.PartnerKeys.BetCommissionPercent);
+                    if (cmm != null && cmm.Id > 0 && cmm.NumericValue != null && cmm.NumericValue > 0)
+                    {
+                        operation.Amount += operation.Amount * cmm.NumericValue.Value / 100;
                     }
                     if (transaction.BonusId > 0)
                     {
@@ -8228,16 +8426,18 @@ namespace IqSoft.CP.BLL.Services
                         }
                     }
                 }
+
                 var externalPlatformType = CacheManager.GetPartnerSettingByKey(operationItemFromProduct.Client.PartnerId, Constants.PartnerKeys.ExternalPlatform);
                 if (externalPlatformType == null || externalPlatformType.NumericValue == null ||
-                    externalPlatformType.NumericValue.Value != (int)PartnerTypes.ExternalPlatform || !operationItemFromProduct.Client.UserName.Contains(Constants.ExternalClientPrefix))
+                    externalPlatformType.NumericValue.Value != (int)PartnerTypes.ExternalPlatform ||
+                    !operationItemFromProduct.Client.UserName.Contains(Constants.ExternalClientPrefix))
                 {
                     var item = new OperationItem
                     {
                         AccountTypeId = (int)AccountTypes.ProductDebtToPartner,
                         ObjectId = partnerProductSetting.Id,
                         ObjectTypeId = (int)ObjectTypes.PartnerProduct,
-                        Amount = transaction.BonusId > 0 ? 0 : operationAmount,
+                        Amount = transaction.BonusId > 0 ? 0 : operation.Amount,
                         CurrencyId = transaction.CurrencyId,
                         Type = (int)TransactionTypes.Debit,
                         OperationTypeId = operationTypeId
@@ -8247,7 +8447,7 @@ namespace IqSoft.CP.BLL.Services
                     {
                         ObjectId = operationItemFromProduct.Client.Id,
                         ObjectTypeId = (int)ObjectTypes.Client,
-                        Amount = transaction.BonusId > 0 ? 0 : operationAmount,
+                        Amount = transaction.BonusId > 0 ? 0 : operation.Amount,
                         CurrencyId = transaction.CurrencyId,
                         Type = (int)TransactionTypes.Credit,
                         OperationTypeId = operationTypeId
@@ -8271,7 +8471,7 @@ namespace IqSoft.CP.BLL.Services
                 {
                     if (transaction.BonusId > 0)
                     {
-                        UpdateClientFreeBetBonus(transaction.BonusId, operationItemFromProduct.Client.Id, operationAmount);
+                        UpdateClientFreeBetBonus(transaction.BonusId, operationItemFromProduct.Client.Id, initialOperationAmount);
                         document.BonusId = transaction.BonusId;
                     }
                     else
@@ -8288,7 +8488,7 @@ namespace IqSoft.CP.BLL.Services
                                     (int)TriggerTypes.BetPlacement : (int)TriggerTypes.CrossProductBetPlacement,
                                 ProductId = product.Id,
                                 TicketInfo = operation.TicketInfo,
-                                SourceAmount = operationAmount
+                                SourceAmount = initialOperationAmount
                             }, out bool alreadyAdded);
                         }
                         else
@@ -8299,7 +8499,7 @@ namespace IqSoft.CP.BLL.Services
                 scope.Complete();
                 CacheManager.RemoveClientBalance(operationItemFromProduct.Client.Id);
             }
-            CacheManager.UpdateTotalBetAmount(operationItemFromProduct.Client.Id, transaction.BonusId > 0 ? 0 : operationAmount);
+            CacheManager.UpdateTotalBetAmount(operationItemFromProduct.Client.Id, transaction.BonusId > 0 ? 0 : initialOperationAmount);
             return document;
         }
 
@@ -8364,7 +8564,7 @@ namespace IqSoft.CP.BLL.Services
                 throw CreateException(LanguageId, Constants.Errors.ProductNotFound);
             if (creditTransaction.State == (int)BetDocumentStates.Deleted && creditTransaction.OperationTypeId == (int)OperationTypes.Bet)
                 throw CreateException(LanguageId, Constants.Errors.DocumentAlreadyRollbacked);
-           var alreadyDoneTransactionId = documentBl.GetExistingDocumentId(transactions.GameProviderId, transactions.TransactionId, operationTypeId, product.Id);
+            var alreadyDoneTransactionId = documentBl.GetExistingDocumentId(transactions.GameProviderId, transactions.TransactionId, operationTypeId, product.Id);
             if (alreadyDoneTransactionId > 0)
                 throw CreateException(LanguageId, Constants.Errors.TransactionAlreadyExists, alreadyDoneTransactionId, info: transactions.TransactionId);
             transactions.ProductId = product.Id;
@@ -8396,7 +8596,8 @@ namespace IqSoft.CP.BLL.Services
                         {
                             documentInfo = JsonConvert.DeserializeObject<DocumentInfo>(creditTransaction.Info);
                         }
-                        catch { 
+                        catch
+                        {
                         }
 
                         var info = string.IsNullOrEmpty(creditTransaction.TicketInfo) ? new BonusTicketInfo() :
@@ -8941,7 +9142,7 @@ namespace IqSoft.CP.BLL.Services
                     (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != client.PartnerId)))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             }
-            var clientSettings = Db.ClientSettings.Where(x => x.ClientId == clientId && 
+            var clientSettings = Db.ClientSettings.Where(x => x.ClientId == clientId &&
             (!x.Name.Contains("Limit") || x.Name == Constants.ClientSettings.PayoutLimit)).ToList();
             var termsConditions = clientSettings.FirstOrDefault(x => x.Name == Constants.ClientSettings.TermsConditionsAcceptanceVersion);
             var amlStatus = clientSettings.FirstOrDefault(x => x.Name == Constants.ClientSettings.AMLProhibited)?.StringValue;
@@ -8966,7 +9167,7 @@ namespace IqSoft.CP.BLL.Services
                 CautionSuspension = clientSettings.FirstOrDefault(x => x.Name == Constants.ClientSettings.CautionSuspension)?.StringValue == "1",
                 BlockedForInactivity =clientSettings.FirstOrDefault(x => x.Name == Constants.ClientSettings.BlockedForInactivity)?.StringValue == "1",
                 DocumentVerified = client.IsDocumentVerified,
-                ExternalStatus = new ExternalState { Status = externalStatus?.StringValue, CheckedAt = externalStatus?.LastUpdateTime },
+                ExternalStatus = new StatusModel { Status = externalStatus?.StringValue, CheckedAt = externalStatus?.LastUpdateTime },
                 VerificationServices = clientSettings.Where(x => x.Name.StartsWith(Constants.ClientSettings.VerificationServiceName))
                                                      .Select(x => new VerificationService
                                                      {
@@ -8986,13 +9187,13 @@ namespace IqSoft.CP.BLL.Services
             if (!string.IsNullOrEmpty(underMonitoring?.StringValue))
             {
                 var underMonitoringTypes = JsonConvert.DeserializeObject<List<int>>(underMonitoring?.StringValue);
-                apiClientSetting.PEPSanctioned = new ExternalState { Status = underMonitoringTypes.Contains((int)UnderMonitoringTypes.PEPSanction).ToString(), CheckedAt = underMonitoring?.DateValue };
-                apiClientSetting.UnderHighRiskCountry = new ExternalState { Status = underMonitoringTypes.Contains((int)UnderMonitoringTypes.HighRiskCountry).ToString(), CheckedAt = underMonitoring?.LastUpdateTime };
+                apiClientSetting.PEPSanctioned = new StatusModel { Status = underMonitoringTypes.Contains((int)UnderMonitoringTypes.PEPSanction).ToString(), CheckedAt = underMonitoring?.DateValue };
+                apiClientSetting.UnderHighRiskCountry = new StatusModel { Status = underMonitoringTypes.Contains((int)UnderMonitoringTypes.HighRiskCountry).ToString(), CheckedAt = underMonitoring?.LastUpdateTime };
             }
             else
             {
-                apiClientSetting.PEPSanctioned = new ExternalState { Status = false.ToString(), CheckedAt = client.CreationTime };
-                apiClientSetting.UnderHighRiskCountry = new ExternalState { Status = false.ToString(), CheckedAt = client.CreationTime };
+                apiClientSetting.PEPSanctioned = new StatusModel { Status = false.ToString(), CheckedAt = client.CreationTime };
+                apiClientSetting.UnderHighRiskCountry = new StatusModel { Status = false.ToString(), CheckedAt = client.CreationTime };
 
             }
             var selfExcluded = CacheManager.GetClientSettingByName(client.Id, ClientSettings.SelfExcluded);
@@ -9698,7 +9899,7 @@ namespace IqSoft.CP.BLL.Services
                 throw CreateException(LanguageId, Errors.WrongInputParameters);
         }
 
-        public ApiClientLimit GetClientLimitSettings(int clientId, bool checkPermission, bool isHistoryChange= false)
+        public ApiClientLimit GetClientLimitSettings(int clientId, bool checkPermission, bool isHistoryChange = false)
         {
             var client = CacheManager.GetClientById(clientId) ??
                  throw CreateException(LanguageId, Constants.Errors.ClientNotFound);
@@ -9720,7 +9921,6 @@ namespace IqSoft.CP.BLL.Services
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             }
 
-            var editingSettings = new List<string>();
             var currentTime = DateTime.UtcNow;
             var dbSettings = Db.ClientSettings.Where(x => x.ClientId == clientId).ToList();
             var apiClientLimit = new ApiClientLimit();
@@ -9728,7 +9928,7 @@ namespace IqSoft.CP.BLL.Services
             foreach (var setting in dbSettings)
             {
                 var limit = type.GetProperty(setting.Name);
-                if (limit != null && limit.PropertyType.Name == "LimitItem" && setting.NumericValue.HasValue)
+                if (limit != null && limit.PropertyType.Name == nameof(LimitItem) && setting.NumericValue.HasValue)
                 {
                     limit.SetValue(apiClientLimit, new LimitItem
                     {
@@ -9781,11 +9981,36 @@ namespace IqSoft.CP.BLL.Services
                                                                                 creditVerified?.NumericValue == (int)VerificationStatuses.SUCCESS);
                 apiClientLimit.IsHighCreditVerified = client.IsDocumentVerified && highCreditVerified?.NumericValue == (int)VerificationStatuses.SUCCESS;
             }
-            apiClientLimit.SelfExcludedUntil = CacheManager.GetClientSettingByName(clientId, ClientSettings.SelfExcluded)?.DateValue?.GetGMTDateFromUTC(Identity.TimeZone);
-            apiClientLimit.SystemExcludedUntil = CacheManager.GetClientSettingByName(clientId, ClientSettings.SystemExcluded)?.DateValue?.GetGMTDateFromUTC(Identity.TimeZone);
-
+            var st = CacheManager.GetClientSettingByName(clientId, ClientSettings.SelfExcluded);
+            if (st != null)
+            {
+                apiClientLimit.SelfExcluded = new SelfExcludedModel
+                {
+                    ExcludedUntil = st.DateValue?.GetGMTDateFromUTC(Identity.TimeZone)
+                };
+                if (int.TryParse(st.StringValue, out int reason))
+                {
+                    apiClientLimit.SelfExcluded.Reason = reason;
+                    apiClientLimit.SelfExcluded.ReasonText = CacheManager.GetPartnerCommentTemplates(client.PartnerId, (int)CommentTemplateTypes.ExclusionReason, LanguageId)
+                                                              .FirstOrDefault(x => x.Id == reason)?.Text;
+                }
+            }
+            st = CacheManager.GetClientSettingByName(clientId, ClientSettings.SystemExcluded);
+            if (st != null)
+            {
+                apiClientLimit.SystemExcluded = new SelfExcludedModel
+                {
+                    ExcludedUntil = st.DateValue?.GetGMTDateFromUTC(Identity.TimeZone)
+                };
+                if (int.TryParse(st.StringValue, out int reason))
+                {
+                    apiClientLimit.SelfExcluded.Reason = reason;
+                    apiClientLimit.SelfExcluded.ReasonText = CacheManager.GetPartnerCommentTemplates(client.PartnerId, (int)CommentTemplateTypes.ExclusionReason, LanguageId)
+                                                              .FirstOrDefault(x => x.Id == reason)?.Text;
+                }
+            }
             return apiClientLimit;
-        }            
+        }
 
         private void SetSetting(List<SettingModel> dbSettings, LimitSetting limitSetting)
         {
@@ -9899,7 +10124,7 @@ namespace IqSoft.CP.BLL.Services
             return setting.StringValue;
         }
 
-        public void RemoveClientExclusion(int clientId, bool isSystem)
+        public void RemoveClientExclusion(int clientId, bool isSystem, string comment)
         {
             CheckPermission(Constants.Permissions.EditSelfExcusion);
             var checkClientPermission = GetPermissionsToObject(new CheckPermissionInput
@@ -9920,7 +10145,7 @@ namespace IqSoft.CP.BLL.Services
             var oldSettings = JsonConvert.SerializeObject(GetClientSettings(clientId, false));
             Db.ClientSettings.Where(x => x.ClientId == client.Id && ((isSystem && x.Name == ClientSettings.SystemExcluded)
             || (!isSystem && x.Name == ClientSettings.SelfExcluded))).DeleteFromQuery();
-            SaveChangesWithHistory((int)ObjectTypes.ClientLimit, clientId, JsonConvert.SerializeObject(oldLimitSettings), string.Empty);
+            SaveChangesWithHistory((int)ObjectTypes.ClientLimit, clientId, JsonConvert.SerializeObject(oldLimitSettings), comment);
             if (isSystem)
                 CacheManager.RemoveClientSetting(clientId, ClientSettings.SystemExcluded);
             else
@@ -9945,7 +10170,7 @@ namespace IqSoft.CP.BLL.Services
                     var state = x.State;
                     if (ss.NumericValue.HasValue && CustomHelper.Greater((ClientStates)ss.NumericValue, (ClientStates)state))
                         state = Convert.ToInt32(ss.NumericValue.Value);
-                    
+
                     result.Add(new UserBalance
                     {
                         UserId = x.Id,
@@ -10102,18 +10327,18 @@ namespace IqSoft.CP.BLL.Services
             var client = CacheManager.GetClientById(clientId);
             if (string.IsNullOrEmpty(apiClientSecurityModel.SMSCode))
                 throw CreateException(LanguageId, Constants.Errors.WrongVerificationKey);
-            VerifyClientMobileNumber(apiClientSecurityModel.SMSCode, client.MobileNumber, client.Id, client.PartnerId, 
+            VerifyClientMobileNumber(apiClientSecurityModel.SMSCode, client.MobileNumber, client.Id, client.PartnerId,
                 true, null, (int)ClientInfoTypes.MobileVerificationKey, false);
             if (apiClientSecurityModel.SecurityQuestions == null || apiClientSecurityModel.SecurityQuestions.Count < 3)
                 throw CreateException(LanguageId, Constants.Errors.WrongSecurityQuestionAnswer);
-            var partnerSecurityQuestions = CacheManager.GetPartnerSecurityQuestions(client.PartnerId, LanguageId).Select(x=>x.Id).ToList();
+            var partnerSecurityQuestions = CacheManager.GetPartnerSecurityQuestions(client.PartnerId, LanguageId).Select(x => x.Id).ToList();
             var notChangedAnswers = apiClientSecurityModel.SecurityQuestions.Where(x => string.IsNullOrEmpty(x.Answer)).Select(x => x.Id).ToList();
             if (apiClientSecurityModel.SecurityQuestions.Any(x => !partnerSecurityQuestions.Contains(x.Id)) ||
                 apiClientSecurityModel.SecurityQuestions.Count != 3 || notChangedAnswers.Count == 3)
                 throw CreateException(LanguageId, Constants.Errors.WrongSecurityQuestionAnswer);
             var currentAnswers = Db.ClientSecurityAnswers.Where(x => x.ClientId == clientId).ToList();
             var currentAnswersIds = currentAnswers.Select(x => x.SecurityQuestionId).ToList();
-            if (notChangedAnswers.Any(x=> !currentAnswersIds.Contains(x)))
+            if (notChangedAnswers.Any(x => !currentAnswersIds.Contains(x)))
                 throw CreateException(LanguageId, Constants.Errors.WrongSecurityQuestionAnswer);
             var ids = apiClientSecurityModel.SecurityQuestions.Select(x => x.Id);
             Db.ClientSecurityAnswers.Where(x => x.ClientId == clientId && !ids.Contains(x.SecurityQuestionId)).DeleteFromQuery();
@@ -10367,38 +10592,38 @@ namespace IqSoft.CP.BLL.Services
             }
         }
 
-		public void EnableClientTwoFactor(string code, string pin)
-		{
-			var dbClient = Db.Clients.FirstOrDefault(x => x.Id == Identity.Id);
-			if (dbClient.IsTwoFactorEnabled ?? false)
-				throw CreateException(Identity.LanguageId, Constants.Errors.NotAllowed);
-			var res = CommonFunctions.GeteratePin(code);
-			if (res != pin)
-				throw CreateException(Identity.LanguageId, Constants.Errors.InvalidTwoFactorKey);
+        public void EnableClientTwoFactor(string code, string pin)
+        {
+            var dbClient = Db.Clients.FirstOrDefault(x => x.Id == Identity.Id);
+            if (dbClient.IsTwoFactorEnabled ?? false)
+                throw CreateException(Identity.LanguageId, Constants.Errors.NotAllowed);
+            var res = CommonFunctions.GeteratePin(code);
+            if (res != pin)
+                throw CreateException(Identity.LanguageId, Constants.Errors.InvalidTwoFactorKey);
             dbClient.IsTwoFactorEnabled = true;
             dbClient.QRCode = code;
             Db.SaveChanges();
-			CacheManager.RemoveClientFromCache(dbClient.Id);
-		}
+            CacheManager.RemoveClientFromCache(dbClient.Id);
+        }
 
-		public void DisableClientTwoFactor(string pin)
-		{
-			var dbClient = Db.Clients.FirstOrDefault(x => x.Id == Identity.Id);
-			if (!dbClient.IsTwoFactorEnabled.HasValue || !dbClient.IsTwoFactorEnabled.Value)
-				throw CreateException(Identity.LanguageId, Constants.Errors.NotAllowed);
-			var res = CommonFunctions.GeteratePin(dbClient.QRCode);
-			if (res != pin)
-				throw CreateException(Identity.LanguageId, Constants.Errors.InvalidTwoFactorKey);
+        public void DisableClientTwoFactor(string pin)
+        {
+            var dbClient = Db.Clients.FirstOrDefault(x => x.Id == Identity.Id);
+            if (!dbClient.IsTwoFactorEnabled.HasValue || !dbClient.IsTwoFactorEnabled.Value)
+                throw CreateException(Identity.LanguageId, Constants.Errors.NotAllowed);
+            var res = CommonFunctions.GeteratePin(dbClient.QRCode);
+            if (res != pin)
+                throw CreateException(Identity.LanguageId, Constants.Errors.InvalidTwoFactorKey);
             dbClient.IsTwoFactorEnabled = false;
             dbClient.QRCode = string.Empty;
             Db.SaveChanges();
-			CacheManager.RemoveClientFromCache(dbClient.Id);
-		}
+            CacheManager.RemoveClientFromCache(dbClient.Id);
+        }
 
-		public ClientPaymentInfo GetClientPaymentInfoesByWalletNumber(string walletNumber)
-		{
-			return Db.ClientPaymentInfoes.FirstOrDefault(x => x.WalletNumber == walletNumber);
-		}
+        public ClientPaymentInfo GetClientPaymentInfoesByWalletNumber(string walletNumber)
+        {
+            return Db.ClientPaymentInfoes.FirstOrDefault(x => x.WalletNumber == walletNumber);
+        }
 
         public Client GetClientByName(int partnerId, string firstName, string lastName, DateTime date)
         {
@@ -10464,33 +10689,66 @@ namespace IqSoft.CP.BLL.Services
             }
         }
 
-		public int AddCharacterToClient(int clientId, int characterId)
-		{
+        public int AddCharacterToClient(int clientId, int characterId)
+        {
             var dbClient = Db.Clients.FirstOrDefault(x => x.Id == clientId) ?? throw CreateException(Identity.LanguageId, Constants.Errors.ClientNotFound);
             var firstChild = Db.Characters.FirstOrDefault(x => x.ParentId == characterId && x.Order == 1) ?? throw CreateException(Identity.LanguageId, Constants.Errors.CharacterNotFound);
             dbClient.CharacterId = firstChild.Id;
             Db.SaveChanges();
-			CacheManager.RemoveClientFromCache(clientId);
+            CacheManager.RemoveClientFromCache(clientId);
             return dbClient.CharacterId ?? 0;
-		}
+        }
 
         public string ResetClientPassword(int clientId, int betShopId, string languageId, out string clientUserName)
-		{
-			var dbClient = Db.Clients.FirstOrDefault(x => x.Id == clientId);
-			if (dbClient == null)
-				throw BaseBll.CreateException(languageId, Constants.Errors.ClientNotFound);
+        {
+            var dbClient = Db.Clients.FirstOrDefault(x => x.Id == clientId);
+            if (dbClient == null)
+                throw BaseBll.CreateException(languageId, Constants.Errors.ClientNotFound);
             var account = Db.Accounts.FirstOrDefault(x => x.ObjectTypeId == (int)ObjectTypes.Client && x.ObjectId == clientId && x.BetShopId == betShopId);
-            if(account == null)
+            if (account == null)
                 throw BaseBll.CreateException(languageId, Constants.Errors.ClientNotFound);
 
             clientUserName = dbClient.UserName;
-			var newPassword = CommonFunctions.GetRandomString(10);
-			var passwordHash = CommonFunctions.ComputeClientPasswordHash(newPassword, dbClient.Salt);
-			dbClient.PasswordHash = passwordHash;
-			dbClient.LastUpdateTime = DateTime.UtcNow;
-			Db.SaveChanges();
-			CacheManager.RemoveClientFromCache(clientId);
-			return newPassword;
-		}
-	}
+            var newPassword = CommonFunctions.GetRandomString(10);
+            var passwordHash = CommonFunctions.ComputeClientPasswordHash(newPassword, dbClient.Salt);
+            dbClient.PasswordHash = passwordHash;
+            dbClient.LastUpdateTime = DateTime.UtcNow;
+            Db.SaveChanges();
+            CacheManager.RemoveClientFromCache(clientId);
+            return newPassword;
+        }
+
+        public List<BllPopup> GetClientPopups(int clientId, int type)
+        {
+            if (!Enum.IsDefined(typeof(PopupTypes), type))
+                throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
+            var currentTime = DateTime.UtcNow;
+            var client = CacheManager.GetClientById(clientId);
+            var clientSegments = GetClientSegments(clientId);
+
+            var received = CacheManager.GetClientViewedPopups(clientId);
+            var popups = CacheManager.GetPopups(client.PartnerId, type);
+            return popups.Where(x => x.State == (int)BaseStates.Active &&
+                                    x.StartDate <= currentTime && x.FinishDate >= currentTime &&
+                                   (!x.ClientIds.Any() || x.ClientIds.Any(y => y == clientId)) &&
+                                   (!x.SegmentIds.Any() || x.SegmentIds.Intersect(clientSegments).Any()) &&  !received.Any(y => y == x.Id))
+                         .OrderBy(x => x.Order).ToList();
+        }
+
+        public void ViewPopup(int clientId, int popupId)
+        {
+            if (!Db.ClientMessageStates.Any(x => x.ClientId == clientId && x.PopupId == popupId))
+            {
+                Db.ClientMessageStates.Add(new ClientMessageState
+                {
+                    ClientId = clientId,
+                    PopupId = popupId,
+                    State = (int)ClientMessageStates.Readed,
+                    LastUpdateTime = DateTime.UtcNow
+                });
+                Db.SaveChanges();
+                CacheManager.RemoveKeysFromCache($"{Constants.CacheItems.ClientPopups}_{clientId}");
+            }
+        }
+    }
 }

@@ -1,18 +1,21 @@
 ﻿using IqSoft.CP.Common.Enums;
+using IqSoft.CP.Common.Models.AdminModels;
 using IqSoft.CP.Common.Models.WebSiteModels;
 using IqSoft.CP.CommonCore.Models.WebSiteModels;
 using IqSoft.CP.WebSiteWebApi.Hubs;
 using Microsoft.AspNetCore.SignalR;
+using Newtonsoft.Json;
+using Serilog;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace IqSoft.CP.WebSiteWebApi.Common
 {
 	public class BroadcastService
-    {
-        public static void BroadcastWin(ApiWin win, object message)
+	{
+		public static void BroadcastWin(ApiWin win, object message)
 		{
 			Thread.Sleep(5000);
 			BaseHub.CurrentContext.Clients.Group("Partner_" + win.PartnerId).SendAsync("onWin", message);
@@ -50,5 +53,15 @@ namespace IqSoft.CP.WebSiteWebApi.Common
 		{
 			BaseHub.CurrentContext.Clients.Group("Client_" + info.ClientId).SendAsync("onBetLimit", info);
 		}
-	}
+
+		public static void BroadcastPopup(ApiPopup popup)
+		{
+
+			if (popup.ClientIds != null && popup.ClientIds.Any())
+				foreach (int clientId in popup.ClientIds)
+					BaseHub.CurrentContext.Clients.Group($"Client_{clientId}").SendAsync("onPopup", popup);
+			else
+				BaseHub.CurrentContext.Clients.Group($"Partner_{popup.PartnerId}").SendAsync("onPopup", popup);
+		}
+    }
 }

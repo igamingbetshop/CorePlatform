@@ -65,6 +65,7 @@
         WithdrawVerificationSMS = 61,
         WithdrawVerificationEmail = 62,
 		AffiliateConfirmationEmail = 63,
-        AffiliateClientInvitationEmailSubject = 64
+        AffiliateClientInvitationEmailSubject = 64,
+        ResetPinCode = 65
     }
 }

@@ -2,14 +2,8 @@
 
 namespace IqSoft.CP.Integration.Payments.Models.Flexepin
 {
-    public class VoucherOutput
+    public class VoucherOutput : BaseOutput
     {
-        [JsonProperty(PropertyName = "result")]
-        public string Result { get; set; }
-
-        [JsonProperty(PropertyName = "result_description")]
-        public string ResultDescription { get; set; }
-
         [JsonProperty(PropertyName = "transaction_id")]
         public string Transaction_id { get; set; }
 

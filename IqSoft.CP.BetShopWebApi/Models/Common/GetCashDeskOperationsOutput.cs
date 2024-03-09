@@ -2,12 +2,9 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-
 namespace IqSoft.CP.BetShopWebApi.Models.Common
 {
-	public class GetCashDeskOperationsOutput : ClientRequestResponseBase
+	public class GetCashDeskOperationsOutput : ApiResponseBase
 	{
 		public List<CashDeskOperation> Operations { get; set; }
 

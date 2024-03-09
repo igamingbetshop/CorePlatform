@@ -14,6 +14,8 @@ using static IqSoft.CP.Common.Constants;
 using System.Data.Entity;
 using IqSoft.CP.Common.Models.CacheModels;
 using IqSoft.CP.DataWarehouse;
+using ILog = log4net.ILog;
+using IqSoft.CP.Common.Models.WebSiteModels;
 
 namespace IqSoft.CP.BLL.Caching
 {
@@ -83,9 +85,28 @@ namespace IqSoft.CP.BLL.Caching
             return newValue;
         }
 
+        public static BllPartner GetPartnerByDomain(string domain)
+        {
+            var key = string.Format("{0}_{1}", Constants.CacheItems.Partners, domain);
+            var oldValue = MemcachedCache.Get<BllPartner>(key);
+            if (oldValue != null) return oldValue;
+            var newValue = GetPartnerFromDb(domain);
+            MemcachedCache.Store(StoreMode.Set, key, newValue, TimeSpan.FromDays(1d));
+            return newValue;
+        }
+
         public static void RemovePartner(int partnerId)
         {
-            MemcachedCache.Remove(string.Format("{0}_{1}", Constants.CacheItems.Partners, partnerId));
+            var partner = GetPartnerById(partnerId);
+            if (partner != null && partner.Id > 0)
+            {
+                var domains = partner.SiteUrl.Split(',').ToList();
+                foreach (var d in domains)
+                {
+                    MemcachedCache.Remove(string.Format("{0}_{1}", Constants.CacheItems.Partners, d));
+                }
+                MemcachedCache.Remove(string.Format("{0}_{1}", Constants.CacheItems.Partners, partnerId));
+            }
         }
 
         private static BllPartner GetPartnerFromDb(int id)
@@ -118,6 +139,39 @@ namespace IqSoft.CP.BLL.Caching
                     AutoConfirmWithdrawMaxAmount = x.AutoConfirmWithdrawMaxAmount,
                     ClientSessionExpireTime = x.ClientSessionExpireTime
                 }).FirstOrDefault(x => x.Id == id);
+            }
+        }
+
+        private static BllPartner GetPartnerFromDb(string domain)
+        {
+            using (var db = new IqSoftCorePlatformEntities())
+            {
+                return db.Partners.Where(x => x.SiteUrl.Contains(domain)).Select(x => new BllPartner
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    CurrencyId = x.CurrencyId,
+                    SiteUrl = x.SiteUrl,
+                    AdminSiteUrl = x.AdminSiteUrl,
+                    State = x.State,
+                    SessionId = x.SessionId,
+                    CreationTime = x.CreationTime,
+                    LastUpdateTime = x.LastUpdateTime,
+                    AccountingDayStartTime = x.AccountingDayStartTime,
+                    ClientMinAge = x.ClientMinAge,
+                    PasswordRegExp = x.PasswordRegExp,
+                    VerificationType = x.VerificationType,
+                    EmailVerificationCodeLength = x.EmailVerificationCodeLength,
+                    MobileVerificationCodeLength = x.MobileVerificationCodeLength,
+                    UnusedAmountWithdrawPercent = x.UnusedAmountWithdrawPercent,
+                    UserSessionExpireTime = x.UserSessionExpireTime,
+                    UnpaidWinValidPeriod = x.UnpaidWinValidPeriod,
+                    VerificationKeyActiveMinutes = x.VerificationKeyActiveMinutes,
+                    AutoApproveBetShopDepositMaxAmount = x.AutoApproveBetShopDepositMaxAmount,
+                    AutoApproveWithdrawMaxAmount = x.AutoApproveWithdrawMaxAmount,
+                    AutoConfirmWithdrawMaxAmount = x.AutoConfirmWithdrawMaxAmount,
+                    ClientSessionExpireTime = x.ClientSessionExpireTime
+                }).FirstOrDefault();
             }
         }
 
@@ -817,40 +871,46 @@ namespace IqSoft.CP.BLL.Caching
             }
         }
 
-        public static BllProduct GetProductById(int id)
+        public static BllProduct GetProductById(int id, string languageId = Constants.DefaultLanguageId, ILog logger = null)
         {
-            var key = string.Format("{0}_{1}", Constants.CacheItems.Products, id);
+            var key = string.Format("{0}_{1}_{2}", Constants.CacheItems.Products, id, languageId);
             var oldValue = MemcachedCache.Get<BllProduct>(key);
             if (oldValue != null) return oldValue;
-            var newValue = GetProductFromDb(id);
+            var newValue = GetProductFromDb(languageId, id);
+            var res = MemcachedCache.Store(StoreMode.Set, key, newValue, TimeSpan.FromDays(1d));
+            if (logger != null)
+                logger.Info("GetProductById_" + key + "_" + res);
+
+            return newValue;
+        }
+
+        public static BllProduct GetProductByExternalId(int providerId, string externalProductId, string languageId = Constants.DefaultLanguageId)
+        {
+            var key = string.Format("{0}_{1}_{2}_{3}", Constants.CacheItems.Products, providerId, externalProductId, languageId);
+            var oldValue = MemcachedCache.Get<BllProduct>(key);
+            if (oldValue != null) return oldValue;
+            var newValue = GetProductFromDb(languageId, providerId: providerId, externalProductId: externalProductId);
             MemcachedCache.Store(StoreMode.Set, key, newValue, TimeSpan.FromDays(1d));
             return newValue;
         }
 
-        public static BllProduct GetProductByExternalId(int providerId, string externalProductId)
+        public static void DeleteProductFromCache(int id)
         {
-            var key = string.Format("{0}_{1}_{2}", Constants.CacheItems.Products, providerId, externalProductId);
-            var oldValue = MemcachedCache.Get<BllProduct>(key);
-            if (oldValue != null) return oldValue;
-            var newValue = GetProductFromDb(providerId: providerId, externalProductId: externalProductId);
-            MemcachedCache.Store(StoreMode.Set, key, newValue, TimeSpan.FromDays(1d));
-            return newValue;
+            var languages = GetAvailableLanguages();
+            var product = GetProductById(id);
+            foreach (var l in languages)
+            {
+                MemcachedCache.Remove(string.Format("{0}_{1}_{2}", Constants.CacheItems.Products, id, l.Id));
+                MemcachedCache.Remove(string.Format("{0}_{1}_{2}_{3}", Constants.CacheItems.Products, product.GameProviderId, 
+                    product.ExternalId, l.Id));
+            }
         }
 
-        public static void UpdateProductById(int id)
-        {
-            var newValue = GetProductFromDb(id);
-            var key = string.Format("{0}_{1}", Constants.CacheItems.Products, id);
-            MemcachedCache.Store(StoreMode.Set, key, newValue, TimeSpan.FromDays(1d));
-            key = string.Format("{0}_{1}_{2}", Constants.CacheItems.Products, newValue.GameProviderId, newValue.ExternalId);
-            MemcachedCache.Store(StoreMode.Set, key, newValue, TimeSpan.FromDays(1d));
-        }
-
-        private static BllProduct GetProductFromDb(int? id = null, int? providerId = null, string externalProductId = null)
+        private static BllProduct GetProductFromDb(string langageId, int? id = null, int? providerId = null, string externalProductId = null)
         {
             using (var db = new IqSoftCorePlatformEntities())
             {
-                return db.Products.Where(x => (id != null && x.Id == id.Value) ||
+                return db.fn_Product(langageId).Where(x => (id != null && x.Id == id.Value) ||
                     (id == null && x.GameProviderId == providerId.Value && x.ExternalId == externalProductId)).Select(x => new BllProduct
                     {
                         Id = x.Id,
@@ -859,6 +919,7 @@ namespace IqSoft.CP.BLL.Caching
                         SubProviderId = x.SubproviderId,
                         Level = x.Level,
                         NickName = x.NickName,
+                        Name = x.Name,
                         ParentId = x.ParentId,
                         ExternalId = x.ExternalId,
                         State = x.State,
@@ -868,7 +929,14 @@ namespace IqSoft.CP.BLL.Caching
                         MobileImageUrl = x.MobileImageUrl,
                         BackgroundImageUrl = x.BackgroundImageUrl,
                         HasDemo = x.HasDemo,
-                        CategoryId = x.CategoryId
+                        CategoryId = x.CategoryId,
+                        IsForDesktop = x.IsForDesktop,
+                        IsForMobile = x.IsForMobile,
+                        RTP = x.RTP,
+                        Lines = x.Lines,
+                        BetValues = x.BetValues,
+                        Path = x.Path,
+                        Volatility = x.Volatility
                     }).FirstOrDefault();
             }
         }
@@ -880,7 +948,7 @@ namespace IqSoft.CP.BLL.Caching
             if (!string.IsNullOrEmpty(oldValue))
                 return oldValue;
             var newValue = GetTranslationFromDb(translationId, languageId);
-            MemcachedCache.Store(StoreMode.Set, key, newValue, TimeSpan.FromDays(1d));
+            var res = MemcachedCache.Store(StoreMode.Set, key, newValue, TimeSpan.FromDays(1d));
             return newValue;
         }
 
@@ -1036,6 +1104,7 @@ namespace IqSoft.CP.BLL.Caching
                         Type = x.Type,
                         Commission = x.Commission,
                         FixedFee = x.FixedFee,
+                        ApplyPercentAmount = x.ApplyPercentAmount ,
                         Info = x.Info,
                         MinAmount = x.MinAmount,
                         MaxAmount = x.MaxAmount,
@@ -1053,67 +1122,113 @@ namespace IqSoft.CP.BLL.Caching
 
         #region PartnerProductSettings
 
-        public static List<BllProductSetting> GetPartnerProductSettingsForDesktop(int partnerId, string languageId)
+        public static List<BllProductSetting> GetPartnerProductSettings(int partnerId, string countryISO2Code, int deviceType, string languageId, ILog log)
         {
-            var key = string.Format("{0}_{1}_{2}_Desktop", Constants.CacheItems.PartnerProductSettings, partnerId, languageId);
-            var oldValue = MemcachedCache.Get<List<BllProductSetting>>(key);
-            if (oldValue != null)
-                return oldValue;
-            var newValue = GetPartnerProductSettingsFromDb(partnerId, languageId, false);
-            MemcachedCache.Store(StoreMode.Set, key, newValue, TimeSpan.FromDays(1d));
-            return newValue;
+            var pageSize = 5000;
+            var response = new List<BllProductSetting>();
+            var key = string.Format("{0}_{1}_{2}_{3}", Constants.CacheItems.PartnerProductSettingPages, partnerId, countryISO2Code, deviceType);
+            var oldPages = MemcachedCache.Get<List<int>>(key);
+            if (oldPages == null)
+            {
+                var newValue = GetPartnerProductSettingsFromDb(partnerId, deviceType == (int)DeviceTypes.Mobile, languageId);
+                if (!string.IsNullOrEmpty(countryISO2Code))
+                {
+                    var restrictedProducts = CacheManager.GetRestrictedProductCountrySettings(countryISO2Code);
+                    newValue = newValue.Where(x => !restrictedProducts.Contains(x.I)).OrderBy(x => x.I).ToList();
+                }
+                response.AddRange(newValue);
+                
+                var k = (newValue.Count % pageSize > 0 ? 1 : 0) + newValue.Count / pageSize;
+                var pages = new List<int>();
+                for (int i = 0; i < k; i++)
+                    pages.Add(i + 1);
+
+                var res = MemcachedCache.Store(StoreMode.Set, key, pages, TimeSpan.FromDays(1d));
+
+                foreach (var p in pages)
+                {
+                    var storevalue = newValue.Skip((p - 1) * pageSize).Take(pageSize).ToList();
+                    key = string.Format("{0}_{1}_{2}_{3}_{4}_Page_{5}", Constants.CacheItems.PartnerProductSettings, partnerId, countryISO2Code, deviceType, languageId, p);
+                    res = MemcachedCache.Store(StoreMode.Set, key, storevalue, TimeSpan.FromDays(1d));
+                }
+            }
+            else
+            {
+                foreach (var op in oldPages)
+                {
+                    key = string.Format("{0}_{1}_{2}_{3}_{4}_Page_{5}", Constants.CacheItems.PartnerProductSettings, partnerId, countryISO2Code, deviceType, languageId, op);
+                    var oldValue = MemcachedCache.Get<List<BllProductSetting>>(key);
+                    if (oldValue != null)
+                    {
+                        response.AddRange(oldValue);
+                    }
+                    else
+                    {
+                        var newValue = GetPartnerProductSettingsFromDb(partnerId, deviceType == (int)DeviceTypes.Mobile, languageId);
+                        if (!string.IsNullOrEmpty(countryISO2Code))
+                        {
+                            var restrictedProducts = CacheManager.GetRestrictedProductCountrySettings(countryISO2Code);
+                            newValue = newValue.Where(x => !restrictedProducts.Contains(x.I)).OrderBy(x => x.I).ToList();
+                        }
+                        var storevalue = newValue.Skip((op - 1) * pageSize).Take(pageSize).ToList();
+                        var res = MemcachedCache.Store(StoreMode.Set, key, storevalue, TimeSpan.FromDays(1d));
+                        response.AddRange(storevalue);
+                    }
+                }
+            }
+            
+            return response;
         }
 
-        public static List<BllProductSetting> GetPartnerProductSettingsForMobile(int partnerId, string languageId)
-        {
-            var key = string.Format("{0}_{1}_{2}_Mobile", Constants.CacheItems.PartnerProductSettings, partnerId, languageId);
-            var oldValue = MemcachedCache.Get<List<BllProductSetting>>(key);
-            if (oldValue != null)
-                return oldValue;
-            var newValue = GetPartnerProductSettingsFromDb(partnerId, languageId, true);
-            MemcachedCache.Store(StoreMode.Set, key, newValue, TimeSpan.FromDays(1d));
-            UpdateListedKeys(key);
-            return newValue;
-        }
-
-        public static List<string> RemovePartnerProductSettings(int partnerId)
+        public static List<string> RemovePartnerProductSettingPages(int partnerId)
         {
             var resp = new List<string>();
-            var languages = GetAvailableLanguages();
-            foreach (var l in languages)
+            using (var db = new IqSoftCorePlatformEntities())
             {
-                var key = string.Format("{0}_{1}_{2}_Desktop", Constants.CacheItems.PartnerProductSettings, partnerId, l.Id);
-                MemcachedCache.Remove(key);
-                resp.Add(key);
-
-                key = string.Format("{0}_{1}_{2}_Mobile", Constants.CacheItems.PartnerProductSettings, partnerId, l.Id);
-                MemcachedCache.Remove(key);
-                resp.Add(key);
+                var countries = db.Regions.Where(x => x.TypeId == (int)RegionTypes.Country).Select(x => x.IsoCode).ToList();
+                foreach (var c in countries)
+                {
+                    var key = string.Format("{0}_{1}_{2}_{3}", Constants.CacheItems.PartnerProductSettingPages, partnerId, c, (int)DeviceTypes.Desktop);
+                    RemoveFromCache(key);
+                    resp.Add(key);
+                    key = string.Format("{0}_{1}_{2}_{3}", Constants.CacheItems.PartnerProductSettingPages, partnerId, c, (int)DeviceTypes.Mobile);
+                    RemoveFromCache(key);
+                    resp.Add(key);
+                }
             }
             return resp;
         }
 
-        private static List<BllProductSetting> GetPartnerProductSettingsFromDb(int partnerId, string languageId, bool isForMobile)
+        private static List<BllProductSetting> GetPartnerProductSettingsFromDb(int partnerId, bool isForMobile, string languageId)
         {
             using (var db = new IqSoftCorePlatformEntities())
             {
-                return db.fn_PartnerProductSetting(languageId)
+                var response = db.fn_PartnerProductSetting(languageId)
                           .Where(x => x.PartnerId == partnerId && x.State == (int)PartnerProductSettingStates.Active &&
                                       x.ProductState == (int)ProductStates.Active &&
                                       ((isForMobile && x.IsForMobile) || (!isForMobile && x.IsForDesktop)))
                           .Select(x => new BllProductSetting
                           {
-                              PartnerId = x.PartnerId,
-                              ProductId = x.ProductId,
-                              Rating = x.Rating,
-                              NickName = x.ProductNickName,
-                              Name = x.ProductName,
-                              OpenMode = x.OpenMode,
-                              SubproviderId = x.SubproviderId ?? x.ProductGameProviderId.Value,
-                              Categories = x.CategoryIds,
-                              HasDemo = x.HasDemo,
-                              ProviderName = x.SubproviderId.HasValue ? x.SubproviderName : x.GameProviderName
-                          }).ToList();
+                              I = x.ProductId,
+                              N = x.ProductName,
+                              NN = x.ProductNickName,
+                              SN = x.SubproviderId == null ? x.GameProviderName : x.SubproviderName,
+                              R = x.Rating,
+                              OM = x.OpenMode,
+                              SI = x.SubproviderId ?? x.ProductGameProviderId.Value,
+                              C = x.CategoryIds,
+                              HD = x.HasDemo
+                          }).OrderBy(x => x.I).ToList();
+
+                foreach(var p in response)
+                {
+                    if(!string.IsNullOrEmpty(p.C))
+                    {
+                        p.CI = JsonConvert.DeserializeObject<List<int>>(p.C);
+                        p.C = null;
+                    }
+                }
+                return response;
             }
         }
 
@@ -1225,11 +1340,10 @@ namespace IqSoft.CP.BLL.Caching
             return newValue;
         }
 
-        public static void UpdateUserPermissionsInCache(int userId)
+        public static void DeleteUserPermissions(int userId)
         {
             var key = string.Format("{0}_{1}", Constants.CacheItems.UserPermissions, userId);
-            var newValue = GetUserPermissionsFromDb(userId);
-            MemcachedCache.Store(StoreMode.Set, key, newValue, TimeSpan.FromDays(1d));
+            MemcachedCache.Remove(key);
         }
 
         private static List<BllFnUserPermission> GetUserPermissionsFromDb(int userId)
@@ -1373,9 +1487,10 @@ namespace IqSoft.CP.BLL.Caching
         {
             var key = string.Format("{0}_{1}", Constants.CacheItems.GameProviders, id);
             var oldValue = MemcachedCache.Get<BllGameProvider>(key);
-            if (oldValue != null) return oldValue;
+            if (oldValue != null) 
+                return oldValue;
             var newValue = GetGameProviderFromDb(id, string.Empty);
-            MemcachedCache.Store(StoreMode.Set, key, newValue, TimeSpan.FromDays(1d));
+            var res = MemcachedCache.Store(StoreMode.Set, key, newValue, TimeSpan.FromDays(1d));
             return newValue;
         }
 
@@ -1406,6 +1521,7 @@ namespace IqSoft.CP.BLL.Caching
                             Id = x.Id,
                             Name = x.Name,
                             Type = x.Type,
+                            IsActive = x.IsActive,
                             SessionExpireTime = x.SessionExpireTime,
                             GameLaunchUrl = x.GameLaunchUrl,
                             CurrencySetting = x.GameProviderCurrencySettings
@@ -2275,6 +2391,30 @@ namespace IqSoft.CP.BLL.Caching
                 }).ToList();
             }
         }
+
+        public static List<BllLanguage> GetPartnerLanguages(int partnerId)
+        {
+            var key = string.Format("{0}_{1}", Constants.CacheItems.Languages, partnerId);
+            var oldValue = MemcachedCache.Get<List<BllLanguage>>(key);
+            if (oldValue != null) return oldValue;
+            var newValue = GetPartnerLanguagesFromDb(partnerId);
+            MemcachedCache.Store(StoreMode.Set, key, newValue, TimeSpan.FromDays(1));
+            return newValue;
+        }
+
+        private static List<BllLanguage> GetPartnerLanguagesFromDb(int partnerId)
+        {
+            using (var db = new IqSoftCorePlatformEntities())
+            {
+                return db.PartnerLanguageSettings.Where(x => x.PartnerId == partnerId && x.State == (int)PartnerLanguageStates.Active)
+                                                 .Select(x => new BllLanguage
+                                                 {
+                                                     Id = x.LanguageId,
+                                                     Name = x.LanguageId
+                                                 }).ToList();
+            }
+        }
+
 
         #endregion
 
@@ -3584,6 +3724,123 @@ namespace IqSoft.CP.BLL.Caching
                 }
 
                 return resp;
+            }
+        }
+
+        public static List<BllNews> GetNews(int partnerId, string languageId)
+        {
+            var key = string.Format("{0}_{1}_{2}", Constants.CacheItems.News, partnerId, languageId);
+            var oldValue = MemcachedCache.Get(key);
+            if (oldValue != null) return oldValue as List<BllNews>;
+            var newValue = GetBllNewsFromDb(partnerId, languageId);
+            MemcachedCache.Store(StoreMode.Set, key, newValue, TimeSpan.FromDays(1d));
+            return newValue;
+        }
+
+        public static void RemoveNews(int partnerId)
+        {
+            var key = string.Format("{0}_{1}", Constants.CacheItems.News, partnerId);
+            var languages = GetAvailableLanguages();
+            foreach (var l in languages)
+            {
+                MemcachedCache.Remove(key + "_" + l.Id);
+            }
+        }
+
+        private static List<BllNews> GetBllNewsFromDb(int partnerId, string languageId)
+        {
+            var currentDate = DateTime.UtcNow;
+            using (var db = new IqSoftCorePlatformEntities())
+            {
+                var resp = db.fn_News(languageId, false).Where(x => x.PartnerId == partnerId &&
+                ((x.ParentId == null && x.State == (int)BaseStates.Active) || 
+                (x.ParentId != null && x.ParentState == (int)BaseStates.Active && 
+                x.State == (int)BaseStates.Active && x.StartDate <= currentDate && x.FinishDate > currentDate)))
+                                                      .Select(x => new BllNews
+                                                      {
+                                                          Id = x.Id,
+                                                          PartnerId = x.PartnerId,
+                                                          Type = x.Type.ToString(),
+                                                          NickName = x.NickName,
+                                                          Title = x.Title,
+                                                          Description = x.Description,
+                                                          ImageName = x.ImageName,
+                                                          Order = x.Order,
+                                                          ParentId = x.ParentId,
+                                                          StyleType = x.StyleType,
+                                                          StartDate = x.StartDate,
+                                                          FinishDate = x.FinishDate
+                                                      }).ToList();
+                var ids = resp.Select(x => x.Id).ToList();
+                var segments = db.NewsSegmentSettings.Where(x => ids.Contains(x.NewsId)).ToList();
+                var languages = db.NewsLanguageSettings.Where(x => ids.Contains(x.NewsId)).ToList();
+
+                foreach (var n in resp)
+                {
+                    var pSegments = segments.Where(x => x.NewsId == n.Id).ToList();
+                    n.Segments = new BllSetting { Type = pSegments.Any() ? pSegments[0].Type : 0, Ids = pSegments.Select(x => x.SegmentId).ToList() };
+
+                    var pLanguages = languages.Where(x => x.NewsId == n.Id).ToList();
+                    n.Languages = new BllSetting { Type = pLanguages.Any() ? pLanguages[0].Type : 0, Names = pLanguages.Select(x => x.LanguageId).ToList() };
+                }
+
+                return resp;
+            }
+        }
+
+        public static List<BllPopup> GetPopups(int partnerId, int type)
+        {
+            var key = string.Format("{0}_{1}_{2}", Constants.CacheItems.Popups, partnerId, type);
+            var oldValue = MemcachedCache.Get(key);
+            if (oldValue != null) return oldValue as List<BllPopup>;
+            var newValue = GetPopupsFromDb(partnerId, type);
+            MemcachedCache.Store(StoreMode.Set, key, newValue, TimeSpan.FromDays(1d));
+            return newValue;
+        }
+
+        private static List<BllPopup> GetPopupsFromDb(int partnerId, int type)
+        {
+            using (var db = new IqSoftCorePlatformEntities())
+            {
+                return db.Popups.Where(x => x.PartnerId == partnerId && x.Type == type).OrderBy(x => x.Order)
+                                 .Select(x => new BllPopup
+                                 {
+                                     Id = x.Id,
+                                     PartnerId = x.PartnerId,
+                                     NickName = x.NickName,
+                                     Type = x.Type,
+                                     State = x.State,
+                                     ContentTranslationId = x.ContentTranslationId,
+                                     ImageName = x.ImageName,
+                                     Order = x.Order,
+                                     Page = x.Page,
+                                     StartDate = x.StartDate,
+                                     FinishDate = x.FinishDate,
+                                     CreationTime = x.CreationTime,
+                                     LastUpdateTime = x.LastUpdateTime,
+                                     SegmentIds = x.PopupSettings.Where(y => y.ObjectTypeId == (int)ObjectTypes.Segment)
+                                                                 .Select(y => y.ObjectId).ToList(),
+                                     ClientIds = x.PopupSettings.Where(y => y.ObjectTypeId == (int)ObjectTypes.Client)
+                                                                .Select(y => y.ObjectId).ToList()
+                                 }).ToList();
+            }
+        }
+        public static List<int> GetClientViewedPopups(int clientId)
+        {
+            var key = string.Format("{0}_{1}", Constants.CacheItems.ClientPopups, clientId);
+            var oldValue = MemcachedCache.Get(key);
+            if (oldValue != null) return oldValue as List<int>;
+            var newValue = GetClientViewedPopupsFromDb(clientId);
+            MemcachedCache.Store(StoreMode.Set, key, newValue, TimeSpan.FromDays(1d));
+            return newValue;
+        }
+
+        private static List<int> GetClientViewedPopupsFromDb(int clientId)
+        {
+            using (var db = new IqSoftCorePlatformEntities())
+            {
+                return db.ClientMessageStates.Where(x => x.ClientId == clientId && x.PopupId.HasValue && x.State == (int)ClientMessageStates.Readed)
+                                             .Select(x => x.PopupId.Value).ToList();
             }
         }
 

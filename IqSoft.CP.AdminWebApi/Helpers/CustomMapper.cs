@@ -58,10 +58,14 @@ using IqSoft.CP.Common.Models;
 using IqSoft.CP.DataWarehouse;
 using IqSoft.CP.DataWarehouse.Models;
 using IqSoft.CP.DataWarehouse.Filters;
+using IqSoft.CP.Common.Models.Report;
 using Client = IqSoft.CP.DAL.Client;
 using Document = IqSoft.CP.DAL.Document;
 using User = IqSoft.CP.DAL.User;
-using IqSoft.CP.Common.Models.Report;
+using ClientSession = IqSoft.CP.DAL.ClientSession;
+using AffiliatePlatform = IqSoft.CP.DAL.AffiliatePlatform;
+using Partner = IqSoft.CP.DAL.Partner;
+using Bonu = IqSoft.CP.DAL.Bonu;
 
 namespace IqSoft.CP.AdminWebApi.Helpers
 {
@@ -934,6 +938,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 CharacterId = client.CharacterId,
                 CharacterLevel = client.Character?.Order,
                 CharacterName = client.Character?.NickName,
+                PinCode = client.PinCode,
 				UnderMonitoringTypes = underMonitoringTypes?.StringValue != null ? JsonConvert.DeserializeObject<List<int>>(underMonitoringTypes.StringValue) : null
             };
         }
@@ -1616,7 +1621,8 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 TranslationId = translationEntryModel.TranslationId,
                 ObjectTypeId = translationEntryModel.ObjectTypeId,
                 LanguageId = translationEntryModel.LanguageId,
-                Text = translationEntryModel.Text
+                Text = translationEntryModel.Text,
+                Type = translationEntryModel.Type
             };
         }
 
@@ -2341,18 +2347,19 @@ namespace IqSoft.CP.AdminWebApi.Helpers
 
         #region PaymentSystem
 
-        public static List<PaymentSystemModel> MapToPaymentSystemModels(this IEnumerable<PaymentSystem> paymentSystems, double timeZone)
+        public static List<ApiPaymentSystemModel> MapToPaymentSystemModels(this IEnumerable<PaymentSystem> paymentSystems, double timeZone)
         {
             return paymentSystems.Select(x => x.MapToPaymentSystemModel(timeZone)).ToList();
         }
 
-        public static PaymentSystemModel MapToPaymentSystemModel(this PaymentSystem paymentSystem, double timeZone)
+        public static ApiPaymentSystemModel MapToPaymentSystemModel(this PaymentSystem paymentSystem, double timeZone)
         {
-            return new PaymentSystemModel
+            return new ApiPaymentSystemModel
             {
                 Id = paymentSystem.Id,
                 Name = paymentSystem.Name,
                 Type = paymentSystem.Type,
+                IsActive = paymentSystem.IsActive,
                 ContentType = paymentSystem.ContentType,
                 PeriodicityOfRequest = paymentSystem.PeriodicityOfRequest,
                 PaymentRequestSendCount = paymentSystem.PaymentRequestSendCount,
@@ -2372,24 +2379,6 @@ namespace IqSoft.CP.AdminWebApi.Helpers
             };
         }
 
-        public static PaymentSystem MapToPaymentSystem(this PaymentSystemModel paymentSystem)
-        {
-            return new PaymentSystem
-            {
-                Id = paymentSystem.Id,
-                Name = paymentSystem.Name,
-                Type = paymentSystem.Type,
-                PeriodicityOfRequest = paymentSystem.PeriodicityOfRequest,
-                PaymentRequestSendCount = paymentSystem.PaymentRequestSendCount,
-                ContentType = paymentSystem.ContentType
-            };
-        }
-
-        public static List<PaymentSystem> MapToPaymentSystems(this IEnumerable<PaymentSystemModel> paymentSystems)
-        {
-            return paymentSystems.Select(MapToPaymentSystem).ToList();
-        }
-
         #endregion
 
         #region PERMISSIONS WITH ROLES
@@ -2403,7 +2392,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 Comment = role.Comment,
                 IsAdmin = role.IsAdmin,
                 PartnerId = role.PartnerId,
-                RolePermissions = role.RolePermissions.MapToRolePermissionModels()
+                RolePermissions = role.RolePermissions.Select(x => x.MapToRolePermissionModel()).ToList()
             };
         }
 
@@ -2421,20 +2410,8 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 Comment = roleModel.Comment,
                 IsAdmin = roleModel.IsAdmin,
                 PartnerId = roleModel.PartnerId,
-                RolePermissions = roleModel.RolePermissions.MapToRolePermissions()
+                RolePermissions = roleModel.RolePermissions.Select(x => x.MapToRolePermission()).ToList()
             };
-        }
-
-        public static List<Role> MapToRoles(this IEnumerable<RoleModel> roleModels)
-        {
-            return roleModels.Select(MapToRole).ToList();
-        }
-
-
-
-        public static List<ApiPermissionModel> MapToRolePermissionModels(this ICollection<RolePermission> rolePermissions)
-        {
-            return rolePermissions.Select(MapToRolePermissionModel).ToList();
         }
 
         public static ApiPermissionModel MapToRolePermissionModel(this RolePermission rolePermission)
@@ -2464,27 +2441,6 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 RoleId = rolePermission.RoleId,
                 AccessObjectsIds = rolePermission.Permission != null ? rolePermission.Permission.AccessObjects.Select(a => a.ObjectId).ToList() : null
             };
-        }
-
-        public static List<RolePermission> MapToRolePermissions(this IEnumerable<RolePermissionModel> rolePermissions)
-        {
-            return rolePermissions.Select(MapToRolePermission).ToList();
-        }
-
-        public static RolePermission MapToRolePermission(this RolePermissionModel rolePermission)
-        {
-            return new RolePermission
-            {
-                Id = rolePermission.Id,
-                IsForAll = rolePermission.IsForAll,
-                RoleId = rolePermission.RoleId,
-                PermissionId = rolePermission.PermissionId
-            };
-        }
-
-        public static List<RolePermission> MapToRolePermissions(this List<ApiPermissionModel> rolePermissions)
-        {
-            return rolePermissions.Select(MapToRolePermission).ToList();
         }
 
         public static RolePermission MapToRolePermission(this ApiPermissionModel rolePermission)
@@ -2563,7 +2519,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 ParentId = product.ParentId,
                 Name = product.Name,
                 ExternalId = product.ExternalId,
-                State = product.State,
+                State = product.State ?? (int)ProductStates.Active,
                 IsForDesktop = product.IsForDesktop,
                 IsForMobile = product.IsForMobile,
                 SubproviderId = product.SubproviderId,
@@ -2602,6 +2558,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 TranslationId = product.TranslationId,
                 ExternalId = product.ExternalId,
                 State = product.State,
+                StateName = Enum.GetName(typeof(ProductStates), product.State),
                 IsForDesktop = product.IsForDesktop,
                 IsForMobile = product.IsForMobile,
                 SubproviderId = product.SubproviderId,
@@ -2756,6 +2713,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 Type = partnerPaymentSetting.Type,
                 Commission = partnerPaymentSetting.Commission,
                 FixedFee = partnerPaymentSetting.FixedFee,
+                ApplyPercentAmount = partnerPaymentSetting.ApplyPercentAmount,
                 Info = partnerPaymentSetting.Info,
                 MinAmount = partnerPaymentSetting.MinAmount,
                 MaxAmount = partnerPaymentSetting.MaxAmount,
@@ -2782,6 +2740,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 CurrencyId = input.CurrencyId,
                 Commission = input.Commission ?? 0,
                 FixedFee = input.FixedFee ?? 0,
+                ApplyPercentAmount = input.ApplyPercentAmount,
                 Type = input.Type,
                 Info = input.Info,
                 MinAmount = input.MinAmount,
@@ -2840,6 +2799,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 PartnerId = setting.PartnerId,
                 ProviderId = setting.ProviderId,
                 CategoryIds = setting.CategoryIds?.ToString(),
+                HasImages = setting.HasImages,
                 Ids = setting.Ids == null ? new FiltersOperation() : setting.Ids.MapToFiltersOperation(),
                 ProductIds = setting.ProductIds == null ? new FiltersOperation() : setting.ProductIds.MapToFiltersOperation(),
                 ProductDescriptions = setting.ProductDescriptions == null ? new FiltersOperation() : setting.ProductDescriptions.MapToFiltersOperation(),
@@ -2870,6 +2830,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
             {
                 SkipCount = setting.SkipCount,
                 TakeCount = setting.TakeCount,
+                HasImages = setting.HasImages,
                 Ids = setting.Ids == null ? new FiltersOperation() : setting.Ids.MapToFiltersOperation(),
                 Descriptions = setting.ProductDescriptions == null ? new FiltersOperation() : setting.ProductDescriptions.MapToFiltersOperation(),
                 Names = setting.ProductNames == null ? new FiltersOperation() : setting.ProductNames.MapToFiltersOperation(),
@@ -2923,6 +2884,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 MobileImageUrl = setting.MobileImageUrl,
                 WebImageUrl = setting.WebImageUrl,
                 HasDemo = setting.HasDemo,
+                HasImages = setting.HasImages ?? false,
                 CreationTime = setting.CreationTime.GetGMTDateFromUTC(timeZone),
                 LastUpdateTime = setting.LastUpdateTime.GetGMTDateFromUTC(timeZone)
             };
@@ -2931,6 +2893,46 @@ namespace IqSoft.CP.AdminWebApi.Helpers
         #endregion
 
         #region Dashboard
+
+        public static ApiPlayersInfo MapToApiPlayersInfo(this PlayersInfo info)
+        {
+            return new ApiPlayersInfo
+            {
+                VisitorsCount = info.VisitorsCount,
+                SignUpsCount = info.SignUpsCount,
+                AverageBet = Math.Round(info.AverageBet, 2),
+                MaxBet = Math.Round(info.MaxBet, 2),
+                MaxWin = Math.Round(info.MaxWin, 2),
+                DepositsCount = info.DepositsCount,
+                MaxWinBet = Math.Round(info.MaxWinBet, 2),
+                ReturnsCount = info.ReturnsCount,
+                TotalBetAmount = Math.Round(info.TotalBetAmount, 2),
+                TotalBonusAmount = Math.Round(info.TotalBonusAmount, 2),
+                TotalCashoutAmount = Math.Round(info.TotalCashoutAmount, 2),
+                TotalPlayersCount = info.TotalPlayersCount,
+                DailyInfo = info.DailyInfo == null ? new List<ApiPlayersDailyInfo>() : info.DailyInfo.Select(x => x.ToApiPlayersDailyInfo()).ToList()
+            };
+        }
+
+        public static ApiPlayersDailyInfo ToApiPlayersDailyInfo(this PlayersDailyInfo info)
+        {
+            return new ApiPlayersDailyInfo
+            {
+                Date = info.Date,
+                VisitorsCount = info.VisitorsCount,
+                SignUpsCount = info.SignUpsCount,
+                AverageBet = Math.Round(info.AverageBet, 2),
+                MaxBet = Math.Round(info.MaxBet, 2),
+                MaxWin = Math.Round(info.MaxWin, 2),
+                DepositsCount = info.DepositsCount,
+                MaxWinBet = Math.Round(info.MaxWinBet, 2),
+                ReturnsCount = info.ReturnsCount,
+                TotalBetAmount = Math.Round(info.TotalBetAmount, 2),
+                TotalBonusAmount = Math.Round(info.TotalBonusAmount, 2),
+                TotalCashoutAmount = Math.Round(info.TotalCashoutAmount, 2),
+                TotalPlayersCount = info.TotalPlayersCount
+            };
+        }
 
         public static ApiBetsInfo MapToApiBetsInfo(this BetsInfo info)
         {
@@ -2951,63 +2953,105 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 TotalPlayersCountFromMobile = info.TotalPlayersCountFromMobile,
                 TotalGGRFromMobile = Math.Round(info.TotalGGRFromMobile, 2),
                 TotalNGRFromMobile = Math.Round(info.TotalNGRFromMobile, 2),
-                TotalBetsCountFromWap = info.TotalBetsCountFromWap,
-                TotalBetsFromWap = Math.Round(info.TotalBetsFromWap, 2),
-                TotalGGRFromWap = Math.Round(info.TotalGGRFromWap, 2),
-                TotalNGRFromWap = Math.Round(info.TotalNGRFromWap, 2),
-                TotalPlayersCountFromWap = info.TotalPlayersCountFromWap,
+                TotalBetsCountFromTablet = info.TotalBetsCountFromTablet,
+                TotalBetsFromTablet = Math.Round(info.TotalBetsFromTablet, 2),
+                TotalGGRFromTablet = Math.Round(info.TotalGGRFromTablet, 2),
+                TotalNGRFromTablet = Math.Round(info.TotalNGRFromTablet, 2),
+                TotalPlayersCountFromTablet = info.TotalPlayersCountFromTablet,
+                DailyInfo = info.DailyInfo == null ? new List<ApiBetsDailyInfo>() : info.DailyInfo.Select(x => x.ToApiBetsDailyInfo()).ToList()
             };
         }
 
-        public static ApiDepositsInfo MapToApiPaymentRequestsInfo(this PaymentRequestsInfo info)
+        public static ApiBetsDailyInfo ToApiBetsDailyInfo(this BetsDailyInfo info)
+        {
+            return new ApiBetsDailyInfo
+            {
+                Date = info.Date,
+                TotalBetsAmount = Math.Round(info.TotalBetsAmount, 2),
+                TotalBetsCount = info.TotalBetsCount,
+                TotalPlayersCount = info.TotalPlayersCount,
+                TotalGGR = Math.Round(info.TotalGGR, 2),
+                TotalNGR = Math.Round(info.TotalGGR, 2),
+                TotalBetsFromWebSite = Math.Round(info.TotalBetsFromWebSite, 2),
+                TotalBetsCountFromWebSite = info.TotalBetsCountFromWebSite,
+                TotalPlayersCountFromWebSite = info.TotalPlayersCountFromWebSite,
+                TotalGGRFromWebSite = Math.Round(info.TotalGGRFromWebSite, 2),
+                TotalNGRFromWebSite = Math.Round(info.TotalNGRFromWebSite, 2),
+                TotalBetsFromMobile = Math.Round(info.TotalBetsFromMobile, 2),
+                TotalBetsCountFromMobile = info.TotalBetsCountFromMobile,
+                TotalPlayersCountFromMobile = info.TotalPlayersCountFromMobile,
+                TotalGGRFromMobile = Math.Round(info.TotalGGRFromMobile, 2),
+                TotalNGRFromMobile = Math.Round(info.TotalNGRFromMobile, 2),
+                TotalBetsCountFromTablet = info.TotalBetsCountFromTablet,
+                TotalBetsFromTablet = Math.Round(info.TotalBetsFromTablet, 2),
+                TotalGGRFromTablet = Math.Round(info.TotalGGRFromTablet, 2),
+                TotalNGRFromTablet = Math.Round(info.TotalNGRFromTablet, 2),
+                TotalPlayersCountFromTablet = info.TotalPlayersCountFromTablet
+            };
+        }
+
+        public static ApiDepositsInfo ToApiDepositsInfo(this PaymentRequestsInfo info)
         {
             return new ApiDepositsInfo
             {
                 Status = info.Status,
                 TotalPlayersCount = info.TotalPlayersCount,
+                TotalAmount = info.TotalAmount,
+                DailyInfo = info.DailyInfo == null ? new List<ApiDepositDailyInfo>() : 
+                    info.DailyInfo.Select(x => x.ToApiDepositDailyInfo()).ToList(),
                 Deposits = info.PaymentRequests.Select(x => new ApiDepositInfo
                 {
                     PaymentSystemId = x.PaymentSystemId,
                     PaymentSystemName = x.PaymentSystemName,
                     TotalAmount = Math.Round(x.TotalAmount, 2),
                     TotalDepositsCount = x.TotalRequestsCount,
-                    TotalPlayersCount = x.TotalPlayersCount
+                    TotalPlayersCount = x.TotalPlayersCount,
+                    DailyInfo = x.DailyInfo == null ? new List<ApiDepositDailyInfo>() :
+                        x.DailyInfo.Select(y => y.ToApiDepositDailyInfo()).ToList()
                 }).ToList()
             };
         }
 
-        public static ApiWithdrawalsInfo MapToApiWithdrawalsInfo(this PaymentRequestsInfo info)
+        public static ApiDepositDailyInfo ToApiDepositDailyInfo(this PaymentDailyInfo info)
+        {
+            return new ApiDepositDailyInfo
+            {
+                Date = info.Date,
+                TotalAmount = info.TotalAmount,
+                TotalRequestsCount = info.TotalRequestsCount,
+                TotalPlayersCount = info.TotalPlayersCount
+            };
+        }
+
+        public static ApiWithdrawalsInfo ToApiWithdrawalsInfo(this PaymentRequestsInfo info)
         {
             return new ApiWithdrawalsInfo
             {
                 Status = info.Status,
                 TotalPlayersCount = info.TotalPlayersCount,
+                TotalAmount = info.TotalAmount,
+                DailyInfo = info.DailyInfo == null ? new List<ApiWithdrawDailyInfo>() :
+                    info.DailyInfo.Select(x => x.ToApiWithdrawDailyInfo()).ToList(),
                 Withdrawals = info.PaymentRequests.Select(x => new ApiWithdrawalInfo
                 {
                     PaymentSystemId = x.PaymentSystemId,
                     PaymentSystemName = x.PaymentSystemName,
                     TotalAmount = Math.Round(x.TotalAmount, 2),
                     TotalWithdrawalsCount = x.TotalRequestsCount,
-                    TotalPlayersCount = x.TotalPlayersCount
+                    TotalPlayersCount = x.TotalPlayersCount,
+                    DailyInfo = x.DailyInfo == null ? new List<ApiWithdrawDailyInfo>() :
+                        x.DailyInfo.Select(y => y.ToApiWithdrawDailyInfo()).ToList()
                 }).ToList()
             };
         }
 
-        public static ApiPlayersInfo MapToApiPlayersInfo(this PlayersInfo info)
+        public static ApiWithdrawDailyInfo ToApiWithdrawDailyInfo(this PaymentDailyInfo info)
         {
-            return new ApiPlayersInfo
+            return new ApiWithdrawDailyInfo
             {
-                VisitorsCount = info.VisitorsCount,
-                SignUpsCount = info.SignUpsCount,
-                AverageBet = Math.Round(info.AverageBet, 2),
-                MaxBet = Math.Round(info.MaxBet, 2),
-                MaxWin = Math.Round(info.MaxWin, 2),
-                DepositsCount = info.DepositsCount,
-                MaxWinBet = Math.Round(info.MaxWinBet, 2),
-                ReturnsCount = info.ReturnsCount,
-                TotalBetAmount = Math.Round(info.TotalBetAmount, 2),
-                TotalBonusAmount = Math.Round(info.TotalBonusAmount, 2),
-                TotalCashoutAmount = Math.Round(info.TotalCashoutAmount, 2),
+                Date = info.Date,
+                TotalAmount = info.TotalAmount,
+                TotalRequestsCount = info.TotalRequestsCount,
                 TotalPlayersCount = info.TotalPlayersCount
             };
         }
@@ -3025,7 +3069,10 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 TotalNGR = Math.Round(info.TotalNGR, 2),
                 Bets = info.Bets.Select(x => new ApiProviderBetsInfo
                 {
-                    ProviderId = x.ProviderId,
+                    GameProviderName = x.GameProviderName,
+                    SubProviderName = x.SubProviderName,
+                    GameProviderId = x.GameProviderId,
+                    SubProviderId = x.SubProviderId,
                     TotalBetsAmount = Math.Round(x.TotalBetsAmount, 2),
                     TotalWinsAmount = Math.Round(x.TotalWinsAmount, 2),
                     TotalBetsCount = x.TotalBetsCount,
@@ -3033,8 +3080,29 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                     TotalNGR = Math.Round(x.TotalNGR, 2),
                     TotalPlayersCount = x.TotalPlayersCount,
                     TotalBetsAmountFromInternet = Math.Round(x.TotalBetsAmountFromInternet, 2),
-                    TotalBetsAmountFromBetShop = Math.Round(x.TotalBetsAmountFromBetShop, 2)
-                }).OrderByDescending(x => x.TotalBetsAmount).ToList()
+                    TotalBetsAmountFromBetShop = Math.Round(x.TotalBetsAmountFromBetShop, 2),
+                    DailyInfo = x.DailyInfo == null ? new List<ApiProviderDailyInfo>() : x.DailyInfo.Select(y => y.ToApiProviderDailyInfo()).ToList()
+                }).OrderByDescending(x => x.TotalBetsAmount).ToList(),
+            };
+        }
+
+        public static ApiProviderDailyInfo ToApiProviderDailyInfo(this ProviderDailyInfo info)
+        {
+            return new ApiProviderDailyInfo
+            {
+                Date = info.Date,
+                GameProviderName = info.GameProviderName,
+                SubProviderName = info.SubProviderName,
+                GameProviderId = info.GameProviderId,
+                SubProviderId = info.SubProviderId,
+                TotalBetsAmount = Math.Round(info.TotalBetsAmount, 2),
+                TotalWinsAmount = Math.Round(info.TotalWinsAmount, 2),
+                TotalBetsCount = info.TotalBetsCount,
+                TotalGGR = Math.Round(info.TotalGGR, 2),
+                TotalNGR = Math.Round(info.TotalNGR, 2),
+                TotalPlayersCount = info.TotalPlayersCount,
+                TotalBetsAmountFromInternet = Math.Round(info.TotalBetsAmountFromInternet, 2),
+                TotalBetsAmountFromBetShop = Math.Round(info.TotalBetsAmountFromBetShop, 2)
             };
         }
 
@@ -3103,9 +3171,9 @@ namespace IqSoft.CP.AdminWebApi.Helpers
 
         #region Currency
 
-        public static Currency MapToCurrency(this CurrencyModel model)
+        public static DAL.Currency MapToCurrency(this CurrencyModel model)
         {
-            return new Currency
+            return new DAL.Currency
             {
                 Id = model.Id,
                 CurrentRate = model.CurrentRate != 0m ? 1 / model.CurrentRate : 0,
@@ -3115,7 +3183,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
             };
         }
 
-        public static CurrencyModel MapToCurrency(this Currency currency)
+        public static CurrencyModel MapToCurrency(this DAL.Currency currency)
         {
             var rate = (currency.CurrentRate != 0m ? 1 / currency.CurrentRate : 0);
             return new CurrencyModel
@@ -3323,6 +3391,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 Status = input.Status,
                 BonusName = input.Name,
                 BonusPrize = input.BonusPrize,
+                SpinsCount = input.SpinsCount,
                 BonusType = input.Type,
                 TurnoverAmountLeft = input.Type == (int)BonusTypes.CampaignFreeBet ? null : input.TurnoverAmountLeft,
                 CreationTime = input.CreationTime.GetGMTDateFromUTC(timeZone),
@@ -3569,6 +3638,15 @@ namespace IqSoft.CP.AdminWebApi.Helpers
         public static ApiTriggerSetting MapToApiTriggerSetting(this TriggerSetting triggerSetting, double timeZone)
         {
             var triggerSettingTypeNames = CacheManager.GetEnumerations(Constants.EnumerationTypes.TriggerTypes, Constants.DefaultLanguageId);
+            var minAmountTriggers = new List<int> {
+                (int)TriggerTypes.SignIn,
+                (int)TriggerTypes.SignUp,
+                (int)TriggerTypes.PromotionalCode,
+                (int)TriggerTypes.SignupCode
+            };
+            var upToAmountTriggers = new List<int> {
+                (int)TriggerTypes.DailyDeposit
+            };
             return new ApiTriggerSetting
             {
                 Id = triggerSetting.Id,
@@ -3582,7 +3660,8 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 FinishTime = triggerSetting.FinishTime.GetGMTDateFromUTC(timeZone),
                 Percent = triggerSetting.Percent,
                 BonusSettingCodes = triggerSetting.BonusSettingCodes,
-                MinAmount = triggerSetting.MinAmount,
+                Amount = minAmountTriggers.Contains(triggerSetting.Type) ? triggerSetting.MinAmount : (upToAmountTriggers.Contains(triggerSetting.Type) ? triggerSetting.UpToAmount : null),
+                MinAmount = minAmountTriggers.Contains(triggerSetting.Type) ? null : triggerSetting.MinAmount,
                 MaxAmount = triggerSetting.MaxAmount,
                 MinBetCount = triggerSetting.MinBetCount,
                 SegmentId = triggerSetting.SegmentId,
@@ -3609,7 +3688,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                     Type = triggerSetting.BonusPaymentSystemSettings.First().Type,
                     Ids = triggerSetting.BonusPaymentSystemSettings.Select(x => x.PaymentSystemId).ToList()
                 } : null,
-                UpToAmount = triggerSetting.UpToAmount,
+                UpToAmount = upToAmountTriggers.Contains(triggerSetting.Type) ? null : triggerSetting.UpToAmount,
                 AmountSettings = triggerSetting.AmountCurrencySettings.Select(x => new ApiAmountSetting {
                     CurrencyId = x.CurrencyId,
                     MinAmount = x.MinAmount,
@@ -4048,6 +4127,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 MobileNumbers = filter.MobileNumbers == null ? new FiltersOperation() : filter.MobileNumbers.MapToFiltersOperation(),
                 CategoryIds = filter.CategoryIds == null ? new FiltersOperation() : filter.CategoryIds.MapToFiltersOperation(),
                 BonusPrizes = filter.BonusPrizes == null ? new FiltersOperation() : filter.BonusPrizes.MapToFiltersOperation(),
+                SpinsCounts = filter.SpinsCounts == null ? new FiltersOperation() : filter.SpinsCounts.MapToFiltersOperation(),
                 TurnoverAmountLefts = filter.TurnoverAmountLefts == null ? new FiltersOperation() : filter.TurnoverAmountLefts.MapToFiltersOperation(),
                 RemainingCredits = filter.RemainingCredits == null ? new FiltersOperation() : filter.RemainingCredits.MapToFiltersOperation(),
                 WageringTargets = filter.WageringTargets == null ? new FiltersOperation() : filter.WageringTargets.MapToFiltersOperation(),
@@ -4070,6 +4150,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 TakeCount = filter.TakeCount,
                 OrderBy = filter.OrderBy,
                 FieldNameToOrderBy = filter.FieldNameToOrderBy,
+                PartnerId = filter.PartnerId,
                 Ids = filter.Ids == null ? new FiltersOperation() : filter.Ids.MapToFiltersOperation(),
                 PartnerIds = filter.PartnerIds == null ? new FiltersOperation() : filter.PartnerIds.MapToFiltersOperation(),
                 ClientIds = filter.ClientIds == null ? new FiltersOperation() : filter.ClientIds.MapToFiltersOperation(),
@@ -4738,7 +4819,8 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 RegionIsoCodes = filterClient.RegionIsoCodes == null ? new FiltersOperation() : filterClient.RegionIsoCodes.MapToFiltersOperation(),
                 States = filterClient.States == null ? new FiltersOperation() : filterClient.States.MapToFiltersOperation(),
                 CreationTimes = filterClient.CreationTimes == null ? new FiltersOperation() : filterClient.CreationTimes.MapToFiltersOperation(),
-                Balances = filterClient.Balances == null ? new FiltersOperation() : filterClient.Balances.MapToFiltersOperation(),
+                RealBalances = filterClient.RealBalances == null ? new FiltersOperation() : filterClient.RealBalances.MapToFiltersOperation(),
+                BonusBalances = filterClient.BonusBalances == null ? new FiltersOperation() : filterClient.BonusBalances.MapToFiltersOperation(),
                 GGRs = filterClient.GGRs == null ? new FiltersOperation() : filterClient.GGRs.MapToFiltersOperation(),
                 NETGamings = filterClient.NETGamings == null ? new FiltersOperation() : filterClient.NETGamings.MapToFiltersOperation(),
                 AffiliatePlatformIds = filterClient.AffiliatePlatformIds == null ? new FiltersOperation() : filterClient.AffiliatePlatformIds.MapToFiltersOperation(),
@@ -5115,6 +5197,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 ParentId = filter.ParentId,
                 ProductId = filter.ProductId,
                 Pattern = filter.Pattern,
+                IsProviderActive = filter.IsProviderActive,
                 Ids = filter.Ids == null ? new FiltersOperation() : filter.Ids.MapToFiltersOperation(),
                 Names = filter.Names == null ? new FiltersOperation() : filter.Names.MapToFiltersOperation(),
                 Descriptions = filter.Descriptions == null ? new FiltersOperation() : filter.Descriptions.MapToFiltersOperation(),
@@ -5143,7 +5226,8 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 ParentId = filter.ParentId,
                 PartnerId = filter.PartnerId,
                 SettingPartnerId = filter.SettingPartnerId,
-                Name = filter.Name
+                Name = filter.Name,
+                IsActive = filter.IsActive
             };
         }
 
@@ -5219,13 +5303,20 @@ namespace IqSoft.CP.AdminWebApi.Helpers
 
         #region FilterDashboard
 
-        public static FilterDashboard MapToFilterDashboard(this ApiFilterDashboard filter)
+        public static FilterDashboard MapToFilterDashboard(this ApiFilterDashboard filter, double timeZone)
         {
+            var fromDate = filter.FromDate ?? DateTime.UtcNow;
+            var toDate = filter.ToDate ?? DateTime.UtcNow;
+            
+            var fromDay = fromDate.AddHours(timeZone);
+            var toDay = toDate.AddHours(timeZone);
             return new FilterDashboard
             {
                 PartnerId = filter.PartnerId,
-                FromDate = filter.FromDate ?? DateTime.UtcNow,
-                ToDate = filter.ToDate ?? DateTime.UtcNow
+                FromDate = fromDay,
+                ToDate = toDay,
+                FromDay = (long)fromDay.Year * 10000 + (long)fromDay.Month * 100 + (long)fromDay.Day,
+                ToDay = (long)toDay.Year * 10000 + (long)toDay.Month * 100 + (long)toDay.Day
             };
         }
 
@@ -5408,6 +5499,54 @@ namespace IqSoft.CP.AdminWebApi.Helpers
         #endregion
 
         #region Content
+        public static FilterfnBanner MaptToFilterfnBanner(this ApiFilterBanner filter)
+        {
+            return new FilterfnBanner
+            {
+                SkipCount = filter.SkipCount,
+                TakeCount = filter.TakeCount,
+                PartnerId = filter.PartnerId,
+                IsEnabled = filter.IsEnabled,
+                ShowDescription = filter.ShowDescription,
+                Visibility = filter.Visibility,
+                Ids = filter.Ids == null ? new FiltersOperation() : filter.Ids.MapToFiltersOperation(),
+                PartnerIds = filter.PartnerIds == null ? new FiltersOperation() : filter.PartnerIds.MapToFiltersOperation(),
+                Orders = filter.Orders == null ? new FiltersOperation() : filter.Orders.MapToFiltersOperation(),
+                NickNames = filter.NickNames == null ? new FiltersOperation() : filter.NickNames.MapToFiltersOperation(),
+                Images = filter.Images == null ? new FiltersOperation() : filter.Images.MapToFiltersOperation(),
+                Types = filter.Types == null ? new FiltersOperation() : filter.Types.MapToFiltersOperation(),
+                FragmentNames = filter.FragmentNames == null ? new FiltersOperation() : filter.FragmentNames.MapToFiltersOperation(),
+                Heads = filter.Heads == null ? new FiltersOperation() : filter.Heads.MapToFiltersOperation(),
+                Bodies = filter.Bodies == null ? new FiltersOperation() : filter.Bodies.MapToFiltersOperation(),
+                StartDates = filter.StartDates == null ? new FiltersOperation() : filter.StartDates.MapToFiltersOperation(),
+                EndDates = filter.EndDates == null ? new FiltersOperation() : filter.EndDates.MapToFiltersOperation(),
+                OrderBy = filter.OrderBy,
+                FieldNameToOrderBy = filter.FieldNameToOrderBy
+            };
+        }
+
+        public static FilterPopup MaptToFilterPopup(this ApiFilterPopup filter)
+        {
+            return new FilterPopup
+            {
+                SkipCount = filter.SkipCount,
+                TakeCount = filter.TakeCount,
+                PartnerId = filter.PartnerId,
+                Ids = filter.Ids == null ? new FiltersOperation() : filter.Ids.MapToFiltersOperation(),
+                PartnerIds = filter.PartnerIds == null ? new FiltersOperation() : filter.PartnerIds.MapToFiltersOperation(),
+                NickNames = filter.NickNames == null ? new FiltersOperation() : filter.NickNames.MapToFiltersOperation(),
+                States = filter.States == null ? new FiltersOperation() : filter.States.MapToFiltersOperation(),
+                Types = filter.Types == null ? new FiltersOperation() : filter.Types.MapToFiltersOperation(),
+                Orders = filter.Orders == null ? new FiltersOperation() : filter.Orders.MapToFiltersOperation(),
+                Pages = filter.Pages == null ? new FiltersOperation() : filter.Pages.MapToFiltersOperation(),
+                StartDates = filter.StartDates == null ? new FiltersOperation() : filter.StartDates.MapToFiltersOperation(),
+                FinishDates = filter.FinishDates == null ? new FiltersOperation() : filter.FinishDates.MapToFiltersOperation(),
+                CreationTimes = filter.CreationTimes == null ? new FiltersOperation() : filter.CreationTimes.MapToFiltersOperation(),
+                LastUpdateTimes = filter.LastUpdateTimes == null ? new FiltersOperation() : filter.LastUpdateTimes.MapToFiltersOperation(),
+                OrderBy = filter.OrderBy,
+                FieldNameToOrderBy = filter.FieldNameToOrderBy
+            };
+        }
 
         public static CRMSetting ToCRMSetting(this ApiCRMSetting apiCRMSetting)
         {
@@ -5543,6 +5682,41 @@ namespace IqSoft.CP.AdminWebApi.Helpers
             };
         }
 
+        public static News ToNews(this ApiNews input)
+        {
+            return new News
+            {
+                Id = input.Id,
+                PartnerId = input.PartnerId,
+                NickName = input.NickName,
+                Type = input.Type,
+                Title = input.Title,
+                Content = input.Title,
+                Description = input.Description,
+                ImageName = input.ImageName,
+                State = input.State,
+                StartDate = input.StartDate,
+                FinishDate = input.FinishDate,
+                NewsSegmentSettings = (input.Segments == null || input.Segments.Ids == null) ? new List<NewsSegmentSetting>() :
+                                          input.Segments?.Ids?.Select(x => new NewsSegmentSetting
+                                          {
+                                              NewsId = input.Id,
+                                              SegmentId = x,
+                                              Type = input.Segments.Type ?? (int)BonusSettingConditionTypes.InSet
+                                          }).ToList(),
+                NewsLanguageSettings = (input.Languages == null || input.Languages.Names == null) ? new List<NewsLanguageSetting>() :
+                                           input.Languages?.Names?.Select(x => new NewsLanguageSetting
+                                           {
+                                               NewsId = input.Id,
+                                               LanguageId = x,
+                                               Type = input.Languages.Type ?? (int)BonusSettingConditionTypes.InSet
+                                           }).ToList(),
+                Order = input.Order,
+                ParentId = input.ParentId,
+                StyleType = input.StyleType
+            };
+        }
+
         public static ApiPromotion ToApiPromotion(this Promotion input, double timeZone)
         {
             return new ApiPromotion
@@ -5575,6 +5749,59 @@ namespace IqSoft.CP.AdminWebApi.Helpers
             };
         }
 
+        public static ApiNews ToApiNews(this News input, double timeZone)
+        {
+            return new ApiNews
+            {
+                Id = input.Id,
+                PartnerId = input.PartnerId,
+                NickName = input.NickName,
+                Type = input.Type,
+                State = input.State,
+                Title = input.Title,
+                Description = input.Description,
+                ImageName = input.ImageName,
+                StartDate = input.StartDate.GetGMTDateFromUTC(timeZone),
+                FinishDate = input.FinishDate.GetGMTDateFromUTC(timeZone),
+                CreationTime = input.CreationTime.GetGMTDateFromUTC(timeZone),
+                LastUpdateTime = input.LastUpdateTime.GetGMTDateFromUTC(timeZone),
+                Order = input.Order,
+                Segments = input.NewsSegmentSettings != null && input.NewsSegmentSettings.Any() ? new ApiSetting
+                {
+                    Type = input.NewsSegmentSettings.First().Type,
+                    Ids = input.NewsSegmentSettings.Select(x => x.SegmentId).ToList()
+                } : new ApiSetting { Type = (int)BonusSettingConditionTypes.InSet, Ids = new List<int>() },
+                Languages = input.NewsLanguageSettings != null && input.NewsLanguageSettings.Any() ? new ApiSetting
+                {
+                    Type = input.NewsLanguageSettings.First().Type,
+                    Names = input.NewsLanguageSettings.Select(x => x.LanguageId).ToList()
+                } : new ApiSetting { Type = (int)BonusSettingConditionTypes.InSet, Names = new List<string>() },
+                StyleType = input.StyleType,
+                ParentId = input.ParentId
+            };
+        }
+        public static ApiPopup MapToApiPopup(this Popup popup, double timeZone)
+        {
+            return new ApiPopup
+            {
+                Id = popup.Id,
+                PartnerId = popup.PartnerId,
+                NickName = popup.NickName,
+                Type = popup.Type,
+                State = popup.State,
+                Order = popup.Order,
+                Page = popup.Page,
+                StartDate = popup.StartDate.GetGMTDateFromUTC(timeZone),
+                FinishDate = popup.FinishDate.GetGMTDateFromUTC(timeZone),
+                CreationTime   = popup.CreationTime.GetGMTDateFromUTC(timeZone),
+                LastUpdateTime  = popup.LastUpdateTime.GetGMTDateFromUTC(timeZone),
+                TranslationId = popup.ContentTranslationId,
+                ImageName = popup.ImageName,
+                SegmentIds = popup.PopupSettings.Where(x => x.ObjectTypeId == (int)ObjectTypes.Segment).Select(x => x.ObjectId).ToList(),
+                ClientIds = popup.PopupSettings.Where(x => x.ObjectTypeId == (int)ObjectTypes.Client).Select(x => x.ObjectId).ToList()
+            };
+        }
+        
         #endregion
 
         #region Languages
@@ -5820,7 +6047,8 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 OpenInRouting = apiWebSiteMenuItem.OpenInRouting,
                 Orientation = apiWebSiteMenuItem.Orientation,
                 Order = apiWebSiteMenuItem.Order,
-                Image = apiWebSiteMenuItem.Image
+                Image = apiWebSiteMenuItem.Image,
+                HoverImage = apiWebSiteMenuItem.HoverImage
             };
         }
 
@@ -5858,7 +6086,8 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 Href = string.IsNullOrEmpty(apiWebSitSubeMenuItem.Href) ? string.Empty : apiWebSitSubeMenuItem.Href,
                 OpenInRouting = apiWebSitSubeMenuItem.OpenInRouting,
                 Order = apiWebSitSubeMenuItem.Order,
-                Image = apiWebSitSubeMenuItem.Image
+                Image = apiWebSitSubeMenuItem.Image,
+                HoverImage = apiWebSitSubeMenuItem.HoverImage
             };
         }
 
@@ -5943,8 +6172,9 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 Order = input.Order,
                 CompPoints = input.CompPoints,
                 ImageData = input.ImageData,
-                BackgroundImageData = input.BackgroundImageData
-            };
+                BackgroundImageData = input.BackgroundImageData,
+				MobileBackgroundImageData = input.MobileBackgroundImageData
+			};
         }
 
         public static ApiCharacter MapToApiCharacter(this Character input)
@@ -5960,8 +6190,9 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 Status = input.Status,
                 Order = input.Order,
                 ImageData = input.ImageUrl,
-                BackgroundImageData = input.BackgroundImageUrl
-            };
+                BackgroundImageData = input.BackgroundImageUrl,
+				MobileBackgroundImageData = input.BackgroundImageUrl?.Replace("/assets/images/characters/background/", "/assets/images/characters/background/mobile/")
+			};
         }
 
         public static ApiCharacter MapToApiCharacter(this fnCharacter character)
@@ -5978,6 +6209,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
 				Order = character.Order,
 				ImageData = character.ImageUrl,
 				BackgroundImageData = character.BackgroundImageUrl,
+				MobileBackgroundImageData = character.BackgroundImageUrl?.Replace("/assets/images/characters/background/", "/assets/images/characters/background/mobile/"),
 				CompPoints = character.CompPoints
 			};
         }

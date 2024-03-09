@@ -2,8 +2,7 @@
 using System.Collections.Concurrent;
 using Serilog;
 using IqSoft.CP.TerminalManager.Models;
-using IqSoft.CP.Common.Helpers;
-using System.Net.Mail;
+using IqSoft.CP.TerminalManager.Helpers;
 
 namespace IqSoft.CP.TerminalManager.Hubs
 {
@@ -42,5 +41,31 @@ namespace IqSoft.CP.TerminalManager.Hubs
             configurationModel.Hash = encryption.Encrypt("{\"MacAddress\":\"" + Program.AppSetting.HDDSerialNumber + "\"}");
             return configurationModel;
         }
+
+        public void PrintBetReceipt(BetReceiptModel receiptObject)
+        {
+            try
+            {
+                var printReceip = new PrintTicket(receiptObject, Enum.TicketTypes.Bet);
+                printReceip.PrintReceipt();
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+        }
+        public void PrintWithdrawReceipt(WithdrawReceiptModel receiptObject)
+        {
+            try
+            {
+                var printReceip = new PrintTicket(receiptObject, Enum.TicketTypes.Withdraw);
+                printReceip.PrintReceipt();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+        }
+
     }
 }

@@ -11,10 +11,11 @@ namespace IqSoft.CP.MasterCacheWebApi.Helpers
     {
         private readonly static BllGameProvider Provider = CacheManager.GetGameProviderByName(Constants.GameProviders.Kiron);
 
-        public static string GetUrl(string token, int partnerId, int clientId, int productId, bool isForDemo, bool isForMobile, SessionIdentity session)
+        public static string GetUrl(string token, int partnerId, int clientId, int productId, bool isForDemo, bool isForMobile, bool isForShop, SessionIdentity session)
         {
             var client = CacheManager.GetClientById(clientId);
-            var operatorId = CacheManager.GetGameProviderValueByKey(partnerId, Provider.Id, Constants.PartnerKeys.KironOperatorId);
+            var operatorId = CacheManager.GetGameProviderValueByKey(partnerId, Provider.Id,
+                isForShop ? Constants.PartnerKeys.KironBetShopOperatorId : Constants.PartnerKeys.KironOperatorId);
             var inputData = new
             {
                 o = operatorId,

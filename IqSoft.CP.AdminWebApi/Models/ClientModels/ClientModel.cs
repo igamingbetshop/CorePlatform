@@ -67,5 +67,6 @@ namespace IqSoft.CP.AdminWebApi.ClientModels.Models
         public int? CharacterId { get; set; }
         public int? CharacterLevel { get; set; }
         public string CharacterName { get; set; }
+        public string PinCode { get; set; }
     }
 }

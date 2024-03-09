@@ -55,7 +55,8 @@ namespace IqSoft.CP.DAL.Filters
 
         public FiltersOperation CreationTimes { get; set; }
 
-        public FiltersOperation Balances { get; set; }
+        public FiltersOperation RealBalances { get; set; }
+        public FiltersOperation BonusBalances { get; set; }
 
         public FiltersOperation GGRs { get; set; }
 
@@ -98,7 +99,8 @@ namespace IqSoft.CP.DAL.Filters
             FilterByValue(ref objects, RegionIds, "RegionId");
             FilterByValue(ref objects, BirthDates, "BirthDate");
             FilterByValue(ref objects, States, "State");
-            FilterByValue(ref objects, Balances, "Balance");
+            FilterByValue(ref objects, RealBalances, "RealBalances");
+            FilterByValue(ref objects, BonusBalances, "BonusBalance");
             FilterByValue(ref objects, GGRs, "GGR");
             FilterByValue(ref objects, NETGamings, "NETGaming");
             FilterByValue(ref objects, AffiliatePlatformIds, "AffiliatePlatformId");

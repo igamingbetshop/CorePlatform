@@ -73,6 +73,7 @@ namespace IqSoft.CP.WindowsServices.JobService
         private readonly Timer _calculateCompPoints;
         private readonly Timer _settleBets;
         private readonly Timer _restrictUnverifiedClients;
+        private readonly Timer _expireClientVerificationStatus;
 
 
         public JobService()
@@ -115,7 +116,7 @@ namespace IqSoft.CP.WindowsServices.JobService
             _inactiveUsersTimer = new Timer(CallJob, Constants.Jobs.CheckInactiveUsers, Timeout.Infinite, Timeout.Infinite);
             _applyClientRestriction = new Timer(CallJob, Constants.Jobs.ApplyClientRestriction, Timeout.Infinite, Timeout.Infinite);
             _notifyIdentityExpirationTimer = new Timer(CallJob, Constants.Jobs.NotifyIdentityExpiration, Timeout.Infinite, Timeout.Infinite);
-            _inactivateImpossiblBonuses = new Timer(CallJob, Constants.Jobs.InactivateImpossiblBonuses, Timeout.Infinite, Timeout.Infinite);
+            _inactivateImpossiblBonuses = new Timer(CallJob, Constants.Jobs.InactivateImpossibleBonuses, Timeout.Infinite, Timeout.Infinite);
             _updateJackpotFeed = new Timer(CallJob, Constants.Jobs.UpdateJackpotFeed, Timeout.Infinite, Timeout.Infinite);
             _reconsiderDynamicSegments = new Timer(CallJob, Constants.Jobs.ReconsiderDynamicSegments, Timeout.Infinite, Timeout.Infinite);
             _fulfillDepositAction = new Timer(CallJob, Constants.Jobs.FulfillDepositAction, Timeout.Infinite, Timeout.Infinite);
@@ -127,6 +128,7 @@ namespace IqSoft.CP.WindowsServices.JobService
             _sendPartnerActivityReport = new Timer(CallJob, Constants.Jobs.SendPartnerActivityReport, Timeout.Infinite, Timeout.Infinite);
             _settleBets = new Timer(CallJob, Constants.Jobs.SettleBets, Timeout.Infinite, Timeout.Infinite);
             _restrictUnverifiedClients = new Timer(CallJob, Constants.Jobs.RestrictUnverifiedClients, Timeout.Infinite, Timeout.Infinite);
+            _expireClientVerificationStatus = new Timer(CallJob, Constants.Jobs.ExpireClientVerificationStatus, Timeout.Infinite, Timeout.Infinite);
         }
 
         protected override void OnStart(string[] args)
@@ -179,6 +181,7 @@ namespace IqSoft.CP.WindowsServices.JobService
             _sendPartnerActivityReport.Change(60000, 600000);
             _settleBets.Change(60000, 60000);
             _restrictUnverifiedClients.Change(60000, 60000);
+            _expireClientVerificationStatus.Change(60000, 3600000);
 
             var startOptions = new StartOptions("http://*:9010/");
             _server = WebApp.Start<Startup>(startOptions);
@@ -234,6 +237,7 @@ namespace IqSoft.CP.WindowsServices.JobService
             _calculateCompPoints.Change(Timeout.Infinite, Timeout.Infinite);
             _settleBets.Change(Timeout.Infinite, Timeout.Infinite);
             _restrictUnverifiedClients.Change(Timeout.Infinite, Timeout.Infinite);
+            _expireClientVerificationStatus.Change(Timeout.Infinite, Timeout.Infinite);
 
             if (_server != null)
             {
@@ -393,7 +397,7 @@ namespace IqSoft.CP.WindowsServices.JobService
                     timer = _notifyIdentityExpirationTimer;
                     duration = 300000;
                     break;
-                case Constants.Jobs.InactivateImpossiblBonuses:
+                case Constants.Jobs.InactivateImpossibleBonuses:
                     timer = _inactivateImpossiblBonuses;
                     duration = 300000;
                     break;
@@ -439,6 +443,10 @@ namespace IqSoft.CP.WindowsServices.JobService
                     break;
                 case Constants.Jobs.RestrictUnverifiedClients:
                     timer = _restrictUnverifiedClients;
+                    duration = 60000;
+                    break;
+                case Constants.Jobs.ExpireClientVerificationStatus:
+                    timer = _expireClientVerificationStatus;
                     duration = 60000;
                     break;
             }
@@ -526,6 +534,9 @@ namespace IqSoft.CP.WindowsServices.JobService
                     break;
                 case Constants.Jobs.ExpireClientSessions:
                     JobBll.ExpireClientSessions();
+                    break;
+                case Constants.Jobs.ExpireClientVerificationStatus:
+                    JobBll.ExpireClientVerificationStatus();
                     break;
                 case Constants.Jobs.ResetBetShopDailyTicketNumber:
                     {
@@ -638,7 +649,7 @@ namespace IqSoft.CP.WindowsServices.JobService
                 case Constants.Jobs.NotifyIdentityExpiration:
                     JobBll.NotifyIdentityExpiration(Program.DbLogger);
                     break;
-                case Constants.Jobs.InactivateImpossiblBonuses:
+                case Constants.Jobs.InactivateImpossibleBonuses:
                     JobBll.InactivateImpossiblBonuses();
                     break;
                 case Constants.Jobs.UpdateJackpotFeed:
@@ -732,7 +743,8 @@ namespace IqSoft.CP.WindowsServices.JobService
                                                                           x.Date >= date).AsNoTracking().ToList();
 
                 confirmedPaymentRequests = db.PaymentRequests.
-                    Where(x => x.Type == (int)PaymentRequestTypes.Withdraw && x.Status == (int)PaymentRequestStates.Confirmed && x.Date >= date && x.BetShopId == null).GroupBy(x => x.Client.PartnerId).Select(x => new
+                    Where(x => x.Type == (int)PaymentRequestTypes.Withdraw && x.Status == (int)PaymentRequestStates.Confirmed && 
+                    x.Date >= date && x.BetShopId == null).GroupBy(x => x.Client.PartnerId).Select(x => new
                     {
                         PartnerId = x.Key,
                         Requests = x.ToList()
@@ -812,10 +824,18 @@ namespace IqSoft.CP.WindowsServices.JobService
                         case Constants.PaymentSystems.OktoPay:
                             OktoPayHelpers.CancelPaymentRequest(paymentRequest, session, log);
                             break;
+                        case Constants.PaymentSystems.Chapa:
+                            ChapaHelpers.CheckTransactionStatus(paymentRequest, session, log);
+                            break;
                         default:
                             break;
                     }
                     JobBll.BroadcastRemoveCache(string.Format("{0}_{1}", Constants.CacheItems.ClientBalance, paymentRequest.ClientId));
+                    // should be added broadcast to WebSiteWebApi
+                }
+                catch (FaultException<BllFnErrorType> ex)
+                {
+                    log.Error(ex);
                 }
                 catch (Exception e)
                 {
@@ -842,18 +862,25 @@ namespace IqSoft.CP.WindowsServices.JobService
                                         {
                                             var partnerAutoApproveWithdrawMaxAmount = BaseBll.ConvertCurrency(partner.CurrencyId, pr.CurrencyId, partner.AutoApproveWithdrawMaxAmount);
                                             if (partnerAutoApproveWithdrawMaxAmount > pr.Amount)
-                                            {
-                                                var response = PaymentHelpers.SendPaymentWithdrawalsRequest(pr, session, log);
-                                                if (response.Status == PaymentRequestStates.Approved || response.Status == PaymentRequestStates.ApprovedManually || response.Status == PaymentRequestStates.PayPanding)
+											{
+												var response = PaymentHelpers.SendPaymentWithdrawalsRequest(pr, session, log);
+                                                var changeFromPaymentSystem = response.Status == PaymentRequestStates.Approved;
+
+												if (response.Status == PaymentRequestStates.Approved || 
+                                                    response.Status == PaymentRequestStates.ApprovedManually || 
+                                                    response.Status == PaymentRequestStates.PayPanding)
                                                 {
                                                     var resp = clientBl.ChangeWithdrawRequestState(pr.Id, response.Status,
-                                                        String.Empty, null, null, false, pr.Parameters, documentBl, notificationBl, false);
+                                                        String.Empty, null, null, false, pr.Parameters, documentBl, notificationBl, false, changeFromPaymentSystem);
                                                     if (response.Status != PaymentRequestStates.PayPanding)
                                                         clientBl.PayWithdrawFromPaymentSystem(resp, documentBl, notificationBl);
                                                     JobBll.BroadcastRemoveCache(string.Format("{0}_{1}", Constants.CacheItems.ClientBalance, pr.ClientId));
-
                                                 }
                                             }
+                                        }
+                                        catch (FaultException<BllFnErrorType> ex)
+                                        {
+                                            log.Error(ex.Detail);
                                         }
                                         catch (Exception e)
                                         {
@@ -861,6 +888,10 @@ namespace IqSoft.CP.WindowsServices.JobService
                                         }
                                     }
                                 }
+                            }
+                            catch (FaultException<BllFnErrorType> ex)
+                            {
+                                log.Error(ex);
                             }
                             catch (Exception e)
                             {
@@ -881,7 +912,8 @@ namespace IqSoft.CP.WindowsServices.JobService
             using (var db = new IqSoftCorePlatformEntities())
             {
                 paymentRequests = db.PaymentRequests.Include(x => x.PaymentSystem)
-                                                    .Where(x => x.Type == (int)PaymentRequestTypes.Deposit && x.Status == (int)PaymentRequestStates.PayPanding &&
+                                                    .Where(x => x.Type == (int)PaymentRequestTypes.Deposit && 
+                                                               (x.Status == (int)PaymentRequestStates.PayPanding || x.Status == (int)PaymentRequestStates.Pending) &&
                                                                 x.Date >= date).AsNoTracking().ToList();
             }
             foreach (var paymentRequest in paymentRequests)
@@ -907,7 +939,13 @@ namespace IqSoft.CP.WindowsServices.JobService
 						case Constants.PaymentSystems.OktoPay:
 							OktoPayHelpers.CancelPaymentRequest(paymentRequest, session, log);
 							break;
-						default:
+                        case Constants.PaymentSystems.Chapa:
+                            ChapaHelpers.CheckTransactionStatus(paymentRequest, session, log);
+                            break;
+                        case Constants.PaymentSystems.InternationalPSP:
+                            InternationalPSPHelpers.CheckPaymentRequestStatus(paymentRequest, session, log);
+                            break;
+                        default:
                             break;
                     }
                     JobBll.BroadcastRemoveCache(string.Format("{0}_{1}", Constants.CacheItems.ClientBalance, paymentRequest.ClientId));
@@ -1072,18 +1110,36 @@ namespace IqSoft.CP.WindowsServices.JobService
                                         });
                                         break;
                                     case Constants.GameProviders.PlaynGo:
-                                        productsBySpin = x.Products.GroupBy(s => s.SpinCount)
-                                                                      .Select(s => new
-                                                                      {
-                                                                          SpinCount = s.Key,
-                                                                          ExternalIds = s.Select(e => e.ExternalId).ToList(),
-                                                                      });
-                                        foreach (var p in productsBySpin)
+                                        x.Products.ForEach(y =>
                                         {
-                                            freespinModel.ProductExternalIds = p.ExternalIds;
-                                            freespinModel.SpinCount = Convert.ToInt32(p.SpinCount);
+                                            freespinModel.ProductExternalIds = new List<string> { y.ExternalId };
+                                            freespinModel.SpinCount = Convert.ToInt32(y.SpinCount);
+                                            freespinModel.Lines = y.Lines;
+                                            freespinModel.Coins = y.Coins;
+                                            freespinModel.CoinValue = y.CoinValue;
+                                            freespinModel.BetValueLevel = y.BetValueLevel;
+                                            freespinModel.BonusId = clientBonus.Id;
                                             Integration.Products.Helpers.PlaynGoHelpers.AddFreeRound(freespinModel, log);
-                                        }
+                                        });
+                                        break;
+                                    case Constants.GameProviders.AleaPlay:
+                                        x.Products.ForEach(y =>
+                                        {
+                                            freespinModel.ProductExternalId = y.ExternalId;
+                                            freespinModel.SpinCount = Convert.ToInt32(y.SpinCount);
+                                            freespinModel.BetValueLevel = y.BetValueLevel;
+                                            freespinModel.BonusId = clientBonus.Id;
+                                            Integration.Products.Helpers.AleaPlayHelpers.AddFreeRound(freespinModel, log);
+                                        });
+                                        break;
+                                    case Constants.GameProviders.TimelessTech:
+                                        x.Products.ForEach(y =>
+                                        {
+                                            freespinModel.ProductExternalId = y.ExternalId;
+                                            freespinModel.SpinCount = Convert.ToInt32(y.SpinCount);
+                                            freespinModel.BonusId = clientBonus.Id;
+                                            Integration.Products.Helpers.TimelessTechHelpers.CreateCampaign(freespinModel, log);
+                                        });
                                         break;
                                     default:
                                         break;

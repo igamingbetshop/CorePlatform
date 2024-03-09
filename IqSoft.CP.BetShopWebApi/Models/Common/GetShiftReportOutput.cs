@@ -7,7 +7,7 @@ using System.Web;
 
 namespace IqSoft.CP.BetShopWebApi.Models.Common
 {
-	public class GetShiftReportOutput : ClientRequestResponseBase
+	public class GetShiftReportOutput : ApiResponseBase
 	{
 		public List<ShiftReport> Shifts { get; set; }
 	}

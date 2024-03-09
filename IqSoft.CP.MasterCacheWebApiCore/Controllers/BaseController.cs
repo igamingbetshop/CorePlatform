@@ -120,7 +120,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
             else if (providerName == Constants.GameProviders.SoftSwiss.ToLower())
                 return Integration.Products.Helpers.SoftSwissHelpers.GetUrl(input.PartnerId, input.ProductId, input.ClientId, input.IsForDemo, input.IsForMobile ?? false, clientSession, token);
             else if (providerName == Constants.GameProviders.Kiron.ToLower())
-                return KironHelpers.GetUrl(token, input.PartnerId, input.ClientId, input.ProductId, input.IsForDemo, input.IsForMobile ?? false, clientSession);
+                return KironHelpers.GetUrl(token, input.PartnerId, input.ClientId, input.ProductId, input.IsForDemo, input.IsForMobile ?? false, false, clientSession);
             else if (providerName == Constants.GameProviders.BetSoft.ToLower())
                 return Integration.Products.Helpers.BetSoftHelpers.GetSessionUrl(input.PartnerId, product, token, input.IsForDemo, clientSession);
             else if (providerName == Constants.GameProviders.AWC.ToLower())

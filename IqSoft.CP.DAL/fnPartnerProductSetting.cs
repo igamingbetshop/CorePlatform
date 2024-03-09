@@ -37,6 +37,7 @@ namespace IqSoft.CP.DAL
         public string Jackpot { get; set; }
         public string MobileImageUrl { get; set; }
         public string WebImageUrl { get; set; }
+        public Nullable<bool> HasImages { get; set; }
         public int ProductState { get; set; }
         public Nullable<decimal> RTP { get; set; }
         public Nullable<int> Volatility { get; set; }

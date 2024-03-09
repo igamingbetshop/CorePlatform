@@ -549,7 +549,9 @@ namespace IqSoft.CP.AdminWebApi.Helpers
         {
             var category = categoryList.FirstOrDefault(x => x.Key == input.Genre.Replace(" ", string.Empty).ToLower());
             var parent = dbCategories.FirstOrDefault(y => y.Value == category.Value);
-            var subProvider = input.Software.Name.Replace(" ", string.Empty).ToLower().Replace("salsatechnology", "salsa").Replace("play'ngo", "playngo");
+            var subProvider = input.Software.Name.Replace(" ", string.Empty).ToLower().Replace("salsatechnology", "salsa")
+                                                                                      .Replace("play'ngo", "playngo")
+                                                                                      .Replace("pragmaticplaylive", "pragmaticlive");
             int? subProviderId = providers.FirstOrDefault(p => p.Name.Replace(" ", string.Empty).ToLower() == subProvider ||
                                                                p.Name.Replace(" ", string.Empty).ToLower().Replace("gaming", string.Empty).Replace("new", string.Empty)
                                                                .Replace("direct", string.Empty) == subProvider.Replace("gaming", string.Empty))?.Id;
@@ -595,8 +597,8 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 State = (int)ProductStates.Active,
                 IsForDesktop = true,
                 IsForMobile = true,
-                HasDemo = true,
-                FreeSpinSupport = true                
+                HasDemo = true
+                //FreeSpinSupport = true                
             };
         }
 
@@ -674,9 +676,14 @@ namespace IqSoft.CP.AdminWebApi.Helpers
         {
             var category = categoryList.FirstOrDefault(x => x.Key == input.category);
             var parent = dbCategories.FirstOrDefault(y => y.Value == category.Value);
-            var subProvider = providers.FirstOrDefault(p => p.Name.ToLower() == input.provider.ToLower().Replace(" ", "") || 
-                                                            p.Name.ToLower().Replace("gambling", string.Empty).Replace("play", string.Empty)
-                                                         == input.provider.ToLower().Replace(" ", "").Replace("gaming", string.Empty).Replace("games", string.Empty).Replace("studios", string.Empty));
+			var subProvider = providers.FirstOrDefault(p => p.Name.ToLower() == input.provider.ToLower().Replace(" ", "") ||
+															p.Name.ToLower().Replace("playsondirect", "playson") == input.provider.ToLower() ||
+															p.Name.ToLower().Replace("gambling", string.Empty).Replace("play", string.Empty)
+                                                         == input.provider.ToLower().Replace(" ", "").Replace("gaming", string.Empty)
+                                                                                                     .Replace("games", string.Empty)
+                                                                                                     .Replace("studio", string.Empty)
+                                                                                                     .Replace("pragmaticplay(livedealer)", "pragmatic")
+                                                                                                     .Replace("ezugi(e)","ezugi"));
             var nickName = input.name;
             if (nickName.Length > 50)
                 nickName = nickName.Substring(0, 48);
@@ -715,15 +722,17 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 NickName = nickName,
                 SubproviderId = subProvider?.Id,
                 Name = input.title,
-                ExternalId = input.id.ToString(),
+                ExternalId = input.title.Contains("lobby") ? input.title : input.id.ToString(),
                 State = (int)ProductStates.Active,
-                WebImageUrl = input.details.thumbnails._300x300gif,
-                MobileImageUrl = input.details.thumbnails._300x300gif,
-                IsForDesktop = true,
+                WebImageUrl = input.details?.thumbnails._450x345jpg,
+				MobileImageUrl = input.details?.thumbnails._450x345jpg,
+				IsForDesktop = true,
                 IsForMobile = true,
                 HasDemo = input.fun_mode == 1,
-                RTP = input.details.rtp
-            };
+                RTP = input.details?.rtp,
+                Volatility = input.details?.volatility,
+                Lines = input.details?.tags != null ? string.Join(",", input.details?.tags) : null
+			};
         }
 
         public static fnProduct ToFnProduct(this Integration.Products.Models.SoftLand.Game input, int gameProviderId,

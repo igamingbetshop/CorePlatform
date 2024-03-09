@@ -819,7 +819,12 @@ namespace IqSoft.CP.BLL.Services
             var dbCharacter = Db.Characters.FirstOrDefault(x => x.Id == input.Id);
             if (dbCharacter != null)
             {
-                dbCharacter.NickName = input.NickName;
+				var imageVersion = dbCharacter.ImageUrl?.Split('?');
+				dbCharacter.ImageUrl = imageVersion?.Length > 0 ? imageVersion[0] + "?ver=" + ((imageVersion?.Length > 1 ? Convert.ToInt32(imageVersion[1]?.Replace("ver=", string.Empty)) : 0) + 1) : string.Empty;
+				var backgroundImage = dbCharacter.BackgroundImageUrl?.Split('?');
+				dbCharacter.BackgroundImageUrl = backgroundImage?.Length > 0 ? backgroundImage[0] + "?ver=" + ((backgroundImage?.Length > 1 ? Convert.ToInt32(backgroundImage[1]?.Replace("ver=", string.Empty)) : 0) + 1) : string.Empty;
+				dbCharacter.MobileBackgroundImageData = dbCharacter.BackgroundImageUrl?.Replace("/assets/images/characters/background/", "/assets/images/characters/background/mobile/");
+				dbCharacter.NickName = input.NickName;
                 dbCharacter.Status = input.Status;
                 dbCharacter.Order = input.Order;
                 dbCharacter.LastUpdateTime = currentTime;
@@ -850,40 +855,52 @@ namespace IqSoft.CP.BLL.Services
                     compPoints = childrenCount == 0 ? compPoints : input.CompPoints;
 				}
 				dbCharacter.Order = order;
+				dbCharacter.CompPoints = compPoints;
 				dbCharacter.CreationTime = currentTime;
                 dbCharacter.LastUpdateTime = currentTime;
                 Db.Characters.Add(dbCharacter);
-                Db.SaveChanges();
-            }
-            if (!string.IsNullOrEmpty(input.ImageData) || !string.IsNullOrEmpty(input.BackgroundImageData))
+				Db.SaveChanges();
+				if (!string.IsNullOrEmpty(input.ImageData))
+					dbCharacter.ImageUrl = "/assets/images/characters/" + dbCharacter.Id.ToString() + extension + "?ver=1";
+				if (!string.IsNullOrEmpty(input.BackgroundImageData))
+					dbCharacter.BackgroundImageUrl = "/assets/images/characters/background/" + dbCharacter.Id.ToString() + extension + "?ver=1";
+				if (!string.IsNullOrEmpty(input.MobileBackgroundImageData))
+					dbCharacter.MobileBackgroundImageData = "/assets/images/characters/background/mobile/" + dbCharacter.Id.ToString() + extension + "?ver=1";
+				Db.SaveChanges();
+			}
+			if (!string.IsNullOrEmpty(input.ImageData) || !string.IsNullOrEmpty(input.BackgroundImageData) || !string.IsNullOrEmpty(input.MobileBackgroundImageData))
             {
                 var ftpModel = GetPartnerEnvironments(input.PartnerId)[environmentTypeId];
                 if (ftpModel == null)
                     throw BaseBll.CreateException(LanguageId, Constants.Errors.PartnerKeyNotFound);
-                var imgName = dbCharacter.Id.ToString() + extension;
-				try
-                {
-                    if(!string.IsNullOrEmpty(input.ImageData))
+                try
+				{
+					var imgName = dbCharacter.Id.ToString() + extension;
+					if (!string.IsNullOrEmpty(input.ImageData))
                     {
-						var path = "/assets/images/characters/" + imgName;
-						byte[] bytes = Convert.FromBase64String(input.ImageData);
-						UploadFtpImage(bytes, ftpModel, "ftp://" + ftpModel.Url + "/coreplatform/website/" + partner.Name + path);
-						dbCharacter.ImageUrl = path;
-					}
-                    if(!string.IsNullOrEmpty(input.BackgroundImageData))
-					{
-						var path = "/assets/images/characters/background/" + imgName;
-						byte[] bytes = Convert.FromBase64String(input.BackgroundImageData);
-						UploadFtpImage(bytes, ftpModel, "ftp://" + ftpModel.Url + "/coreplatform/website/" + partner.Name + path);
-						dbCharacter.BackgroundImageUrl = path;
-					}                    
+                        var path = "/assets/images/characters/" + imgName;
+                        byte[] bytes = Convert.FromBase64String(input.ImageData);
+                        UploadFtpImage(bytes, ftpModel, "ftp://" + ftpModel.Url + "/coreplatform/website/" + partner.Name + path);
+                    }
+                    if (!string.IsNullOrEmpty(input.BackgroundImageData))
+                    {
+                        var path = "/assets/images/characters/background/" + imgName;
+                        byte[] bytes = Convert.FromBase64String(input.BackgroundImageData);
+                        UploadFtpImage(bytes, ftpModel, "ftp://" + ftpModel.Url + "/coreplatform/website/" + partner.Name + path);
+                    }
+                    if (!string.IsNullOrEmpty(input.MobileBackgroundImageData))
+                    {
+                        var path = "/assets/images/characters/background/mobile/" + imgName;
+                        byte[] bytes = Convert.FromBase64String(input.MobileBackgroundImageData);
+                        UploadFtpImage(bytes, ftpModel, "ftp://" + ftpModel.Url + "/coreplatform/website/" + partner.Name + path);
+                    }
                 }
                 catch (Exception e)
                 {
                     Log.Error(e);
                 }
             }
-            Db.SaveChanges();
+			Db.SaveChanges();
             CacheManager.RemoveCharacters(input.PartnerId);
             return dbCharacter;
         }

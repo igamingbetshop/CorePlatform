@@ -1,15 +1,7 @@
-﻿using IqSoft.CP.DAL;
-using System;
-using System.Collections.Generic;
+﻿using System;
 
 namespace IqSoft.CP.BetShopGatewayWebApi.Models
 {
-	public class CashDesksOutput : ApiResponseBase
-	{
-		public List<CashDesk> Entities { get; set; }
-
-		public long Count { get; set; }
-	}
 	public class CashDesk 
 	{
 		public int Id { get; set; }

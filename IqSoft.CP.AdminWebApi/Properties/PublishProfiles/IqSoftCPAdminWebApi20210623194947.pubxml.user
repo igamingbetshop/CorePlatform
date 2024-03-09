@@ -6,6 +6,7 @@ by editing this MSBuild file. In order to learn more about this please visit htt
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <TimeStampOfAssociatedLegacyPublishXmlFile />
-    <History>False|2021-06-30T07:51:42.1550230Z;False|2021-06-23T20:09:10.6108283+04:00;False|2021-06-23T20:08:12.8372897+04:00;False|2021-06-23T19:54:00.8599734+04:00;</History>
+    <History>False|2024-01-13T14:40:57.9769890Z;False|2024-01-13T18:39:58.7913756+04:00;False|2021-06-30T11:51:42.1550230+04:00;False|2021-06-23T20:09:10.6108283+04:00;False|2021-06-23T20:08:12.8372897+04:00;False|2021-06-23T19:54:00.8599734+04:00;</History>
+    <LastFailureDetails>2024-01-13T14:40:57.9769890Z|checkContainerPrereq</LastFailureDetails>
   </PropertyGroup>
 </Project>

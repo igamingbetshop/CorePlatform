@@ -22,7 +22,7 @@ namespace IqSoft.CP.DAL
         public string Response { get; set; }
         public int RetryCount { get; set; }
     
-        public virtual PaymentSystem PaymentSystem { get; set; }
         public virtual PaymentRequest PaymentRequest { get; set; }
+        public virtual PaymentSystem PaymentSystem { get; set; }
     }
 }

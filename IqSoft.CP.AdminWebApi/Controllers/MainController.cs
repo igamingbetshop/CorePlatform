@@ -1,31 +1,32 @@
-﻿using System;
+﻿using IqSoft.CP.AdminWebApi.ControllerClasses;
+using IqSoft.CP.AdminWebApi.Models.AdminModels;
+using IqSoft.CP.AdminWebApi.Models.AffiliateModels;
+using IqSoft.CP.AdminWebApi.Models.CommonModels;
+using IqSoft.CP.AdminWebApi.Models.UserModels;
+using IqSoft.CP.BLL.Caching;
+using IqSoft.CP.BLL.Services;
+using IqSoft.CP.Common;
+using IqSoft.CP.Common.Enums;
+using IqSoft.CP.Common.Helpers;
+using IqSoft.CP.Common.Models.CacheModels;
+using IqSoft.CP.Common.Models.UserModels;
+using IqSoft.CP.DAL.Filters;
+using IqSoft.CP.DAL.Models;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
+using System.Data.Entity.Validation;
 using System.Linq;
+using System.Reflection;
 using System.ServiceModel;
 using System.Web;
 using System.Web.Http;
 using System.Web.Http.Cors;
-using IqSoft.CP.Common;
-using IqSoft.CP.DAL.Filters;
-using IqSoft.CP.DAL.Models;
-using IqSoft.CP.AdminWebApi.ControllerClasses;
-using Newtonsoft.Json;
 using Language = IqSoft.CP.AdminWebApi.Models.CommonModels.Language;
-using IqSoft.CP.BLL.Caching;
-using IqSoft.CP.BLL.Services;
-using IqSoft.CP.AdminWebApi.Models.UserModels;
-using IqSoft.CP.AdminWebApi.Models.CommonModels;
-using IqSoft.CP.Common.Helpers;
-using IqSoft.CP.Common.Enums;
-using System.Reflection;
-using System.Data.Entity.Validation;
-using IqSoft.CP.AdminWebApi.Models.AdminModels;
-using IqSoft.CP.Common.Models.UserModels;
-using IqSoft.CP.Common.Models.CacheModels;
 
 namespace IqSoft.CP.AdminWebApi.Controllers
 {
-    [EnableCors(origins: "*", headers: "*", methods: "GET,POST")]
+	[EnableCors(origins: "*", headers: "*", methods: "GET,POST")]
     public class MainController : ApiController
     {
         [HttpPost]
@@ -539,5 +540,94 @@ namespace IqSoft.CP.AdminWebApi.Controllers
                 return userIdentity;
             }
         }
-    }
+
+		[HttpGet]
+		public ApiResponseBase GetAffiliateReport([FromUri] GetAffiliateReportInput input)
+		{
+			var response = new ApiResponseBase();
+            try
+            {
+                using (var affiliateBl = new AffiliateService(new SessionIdentity(), WebApiApplication.DbLogger))
+                {
+					if(string.IsNullOrEmpty(input.ApiKey) || !input.UserId.HasValue)
+                        throw BaseBll.CreateException(string.Empty, Constants.Errors.WrongApiCredentials);
+					var identity = CheckApiAuthorization(input.UserId.Value, input.ApiKey, input.LanguageId, input.TimeZone);
+                    affiliateBl.GetPermissionsToObject(new CheckPermissionInput
+                    {
+                        UserId = input.UserId,
+						Permission = Constants.Permissions.GetAffiliateReport
+                    });
+                    var affiliatePlatforms = affiliateBl.GetAffiliatePlatforms().Where(x => Constants.ReportingAffiliates.Contains(x.Name)).Select(x => x.Id).ToList();
+                    if (affiliatePlatforms.Count <= 0)        
+                        return new ApiResponseBase();
+					var clientsByAffiliate = affiliateBl.GetClients(affiliatePlatforms, input.FromDate, input.ToDate)
+                                                           .Select(x => new DAL.Models.Affiliates.AffiliatePlatformModel
+                                                           {
+                                                               PartnerId = x.PartnerId,
+                                                               ClientId = x.Id,
+                                                               ClientName = x.UserName,
+                                                               AffiliateId = x.AffiliateReferral.AffiliatePlatform.Id,
+                                                               AffiliateName = x.AffiliateReferral.AffiliatePlatform.Name,
+                                                               ClickId = x.AffiliateReferral.RefId,
+                                                               RegistrationIp = x.RegistrationIp,
+                                                               RegistrationDate = x.CreationTime,
+                                                               FirstDepositDate = x.FirstDepositDate,
+                                                               CountryCode = x.Region.IsoCode,
+                                                               Language = x.LanguageId,
+                                                               CurrencyId = x.CurrencyId,
+                                                               LastExecutionTime = x.AffiliateReferral.AffiliatePlatform.LastExecutionTime.Value,
+                                                               KickOffTime = x.AffiliateReferral.AffiliatePlatform.KickOffTime,
+                                                               StepInHours = x.AffiliateReferral.AffiliatePlatform.StepInHours.Value
+                                                           })
+                                                           .GroupBy(x => new { x.PartnerId, x.AffiliateName, x.AffiliateId, x.KickOffTime, x.LastExecutionTime, x.StepInHours })
+                                                           .ToList();
+                    foreach (var affClient in clientsByAffiliate)
+                    {
+                        var partner = CacheManager.GetPartnerById(affClient.Key.PartnerId);
+                        var fDate = input.FromDate.Year * (long)1000000 + input.FromDate.Month * 10000 + input.FromDate.Day * 100 + input.FromDate.Hour;
+                        var tDate = input.ToDate.Year * (long)1000000 + input.ToDate.Month * 10000 + input.ToDate.Day * 100 + input.ToDate.Hour;
+                        var newRegisteredClients = affClient.Where(x => x.RegistrationDate >= input.FromDate && x.RegistrationDate < input.ToDate)
+                                                            .Select(x => new DAL.Models.Affiliates.RegistrationActivityModel
+                                                            {
+                                                                CustomerId = x.ClientId,
+                                                                CustomerCurrencyId = x.CurrencyId,
+                                                                CountryCode = x.CountryCode,
+                                                                BTag = x.ClickId,
+                                                                RegistrationDate = x.RegistrationDate.ToString("yyyy-MM-dd"),
+                                                                LanguageId = x.Language,
+                                                                RegistrationIp = x.RegistrationIp
+                                                            }).ToList();
+                        switch (affClient.Key.AffiliateName)
+                        {
+                            case AffiliatePlatforms.Scaleo:
+                                var scaleoClientActivies = affiliateBl.GetScaleoClientActivity(affClient.ToList(), input.FromDate, input.ToDate);
+                                var data = affiliateBl.CreateScaleoReport(newRegisteredClients, scaleoClientActivies, input.ApiKey, affClient.Key.PartnerId);
+                                response.ResponseObject = data;
+                                break;
+                        }
+                    }
+                }
+            }
+			catch (FaultException<BllFnErrorType> ex)
+			{
+				if (ex.Detail != null)
+					response = new ApiResponseBase
+					{
+						ResponseCode = ex.Detail.Id,
+						Description = ex.Detail.Message
+					};
+				else
+					response = new ApiResponseBase
+					{
+						ResponseCode = Constants.Errors.GeneralException,
+						Description = ex.Message
+					};
+			}
+			catch (Exception e)
+            {
+                WebApiApplication.DbLogger.Error(e);
+            }
+			return response;
+		}
+	}
 }

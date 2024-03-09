@@ -64,8 +64,8 @@
     <Reference Include="Enyim.Caching, Version=2.16.0.0, Culture=neutral, PublicKeyToken=cec98615db04012e, processorArchitecture=MSIL">
       <HintPath>..\packages\EnyimMemcached.2.16.0\lib\net35\Enyim.Caching.dll</HintPath>
     </Reference>
-    <Reference Include="log4net, Version=2.0.14.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
-      <HintPath>..\packages\log4net.2.0.14\lib\net45\log4net.dll</HintPath>
+    <Reference Include="log4net, Version=2.0.15.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>..\packages\log4net.2.0.15\lib\net45\log4net.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.AspNet.SignalR.Client, Version=2.4.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.SignalR.Client.2.4.3\lib\net45\Microsoft.AspNet.SignalR.Client.dll</HintPath>
@@ -76,8 +76,8 @@
     <Reference Include="Microsoft.AspNet.SignalR.SystemWeb, Version=2.4.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.SignalR.SystemWeb.2.4.3\lib\net45\Microsoft.AspNet.SignalR.SystemWeb.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=6.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.6.0.0\lib\net461\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
+    <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.8.0.0\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Extensions.Configuration, Version=6.0.0.1, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
@@ -119,14 +119,17 @@
     <Reference Include="Microsoft.Extensions.Primitives, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Extensions.Primitives.6.0.0\lib\net461\Microsoft.Extensions.Primitives.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.IdentityModel.JsonWebTokens, Version=6.17.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.IdentityModel.JsonWebTokens.6.17.0\lib\net472\Microsoft.IdentityModel.JsonWebTokens.dll</HintPath>
+    <Reference Include="Microsoft.IdentityModel.Abstractions, Version=7.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.IdentityModel.Abstractions.7.2.0\lib\net472\Microsoft.IdentityModel.Abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.IdentityModel.Logging, Version=6.17.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.IdentityModel.Logging.6.17.0\lib\net472\Microsoft.IdentityModel.Logging.dll</HintPath>
+    <Reference Include="Microsoft.IdentityModel.JsonWebTokens, Version=7.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.IdentityModel.JsonWebTokens.7.2.0\lib\net472\Microsoft.IdentityModel.JsonWebTokens.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.IdentityModel.Tokens, Version=6.17.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.IdentityModel.Tokens.6.17.0\lib\net472\Microsoft.IdentityModel.Tokens.dll</HintPath>
+    <Reference Include="Microsoft.IdentityModel.Logging, Version=7.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.IdentityModel.Logging.7.2.0\lib\net472\Microsoft.IdentityModel.Logging.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.IdentityModel.Tokens, Version=7.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.IdentityModel.Tokens.7.2.0\lib\net472\Microsoft.IdentityModel.Tokens.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Net.Http.Headers, Version=2.2.8.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Net.Http.Headers.2.2.8\lib\netstandard2.0\Microsoft.Net.Http.Headers.dll</HintPath>
@@ -166,8 +169,8 @@
     </Reference>
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="System.IdentityModel.Tokens.Jwt, Version=6.17.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.IdentityModel.Tokens.Jwt.6.17.0\lib\net472\System.IdentityModel.Tokens.Jwt.dll</HintPath>
+    <Reference Include="System.IdentityModel.Tokens.Jwt, Version=7.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.IdentityModel.Tokens.Jwt.7.2.0\lib\net472\System.IdentityModel.Tokens.Jwt.dll</HintPath>
     </Reference>
     <Reference Include="System.IO, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.IO.4.3.0\lib\net462\System.IO.dll</HintPath>
@@ -260,8 +263,8 @@
       <HintPath>..\packages\System.Security.Principal.Windows.5.0.0\lib\net461\System.Security.Principal.Windows.dll</HintPath>
     </Reference>
     <Reference Include="System.ServiceModel" />
-    <Reference Include="System.Text.Encodings.Web, Version=6.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Text.Encodings.Web.6.0.0\lib\net461\System.Text.Encodings.Web.dll</HintPath>
+    <Reference Include="System.Text.Encodings.Web, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Text.Encodings.Web.8.0.0\lib\net462\System.Text.Encodings.Web.dll</HintPath>
     </Reference>
     <Reference Include="System.Text.Json, Version=6.0.0.3, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Text.Json.6.0.3\lib\net461\System.Text.Json.dll</HintPath>
@@ -351,6 +354,7 @@
     <Compile Include="ControllerClasses\UtilController.cs" />
     <Compile Include="Filters\Affiliate\ApiFilterfnAffiliate.cs" />
     <Compile Include="Filters\ApiFilterAnnouncement.cs" />
+    <Compile Include="Filters\ApiFilterBanner.cs" />
     <Compile Include="Filters\ApiFilterCharacter.cs" />
     <Compile Include="Filters\ApiFilterContent.cs" />
     <Compile Include="Filters\ApiFilterBetShopGroup.cs" />
@@ -360,6 +364,8 @@
     <Compile Include="Filters\ApiFilterClientLog.cs" />
     <Compile Include="Filters\ApiFilterClientMessage.cs" />
     <Compile Include="Filters\ApiFilterEmail.cs" />
+    <Compile Include="Filters\ApiFilterPaymentSystem.cs" />
+    <Compile Include="Filters\ApiFilterPopup.cs" />
     <Compile Include="Filters\ApiFilterReportByLog.cs" />
     <Compile Include="Filters\ApiFilterMessageTemplate.cs" />
     <Compile Include="Filters\ApiFilterPartnerKey.cs" />
@@ -384,6 +390,7 @@
     <Compile Include="Models\AdminModels\EncryptedData.cs" />
     <Compile Include="Models\AffiliateModels\ApiAffiliateCommission.cs" />
     <Compile Include="Models\AffiliateModels\ApiFnAffiliateModel.cs" />
+    <Compile Include="Models\AffiliateModels\GetAffiliateReportInput.cs" />
     <Compile Include="Models\BetShopModels\BetShopSetting.cs" />
     <Compile Include="Models\BonusModels\ApiAmountSetting.cs" />
     <Compile Include="Models\BonusModels\ApiClientTrigger.cs" />
@@ -402,6 +409,8 @@
     <Compile Include="Models\ClientModels\ApiExlusionModel.cs" />
     <Compile Include="Models\ClientModels\ApiSegmentClient.cs" />
     <Compile Include="Models\CommonModels\ObjectModel.cs" />
+    <Compile Include="Models\ContentModels\ApiNews.cs" />
+    <Compile Include="Models\ContentModels\ApiPopup.cs" />
     <Compile Include="Models\ContentModels\ApiPromotion.cs" />
     <Compile Include="Models\NotificationModels\EmailModel.cs" />
     <Compile Include="Models\PartnerModels\ApiCharacter.cs" />
@@ -416,7 +425,6 @@
     <Compile Include="Models\PaymentModels\ApiPartnerPaymentCurrencyRate.cs" />
     <Compile Include="Models\PaymentModels\FilterPaymentSegment.cs" />
     <Compile Include="Models\PaymentModels\NotificationServiceModel.cs" />
-    <Compile Include="Models\ProductModels\ApiGameProvider.cs" />
     <Compile Include="Models\ProductModels\ApiGameProviderSetting.cs" />
     <Compile Include="Models\ProductModels\ApiProductCategory.cs" />
     <Compile Include="Filters\PaymentRequests\ApiFilterReportByPaymentSystem.cs" />
@@ -576,7 +584,6 @@
     <Compile Include="Models\PaymentModels\PaymentRequestHistoryModel.cs" />
     <Compile Include="Models\PaymentModels\ApiPaymentRequest.cs" />
     <Compile Include="Models\PaymentModels\ApiPaymentRequestsReport.cs" />
-    <Compile Include="Models\PaymentModels\PaymentSystemModel.cs" />
     <Compile Include="Models\RoleModels\CloneModel.cs" />
     <Compile Include="Models\RoleModels\PermissionModel.cs" />
     <Compile Include="Models\CommonModels\RegionModel.cs" />

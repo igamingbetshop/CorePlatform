@@ -297,8 +297,14 @@ namespace IqSoft.CP.Common.Helpers
                     {
                         var response = ex.Response as HttpWebResponse;
                         var msg = reader.ReadToEnd();
-                        throw new Exception($"StatusCode: {response?.StatusCode} Message: {msg}, " +
-                                            $"PostData: {JsonConvert.SerializeObject(input.PostData)} Url: {input.Url}");
+                        throw new Exception(JsonConvert.SerializeObject(new
+                        {
+                            StatusCode = response?.StatusCode,
+                            Message = msg,
+                            PostData = input.PostData,
+                            Url = input.Url,
+                            Headers = input.RequestHeaders
+                        }));
                     }
                 }
             }
@@ -306,7 +312,12 @@ namespace IqSoft.CP.Common.Helpers
             {
                 if (input.Log != null)
                     input.Log.Error(JsonConvert.SerializeObject(input.PostData) + "_" + input.Url + "_" + ex.Message);
-                throw new Exception($"PostData: {JsonConvert.SerializeObject(input.PostData)} Url: {input.Url} Ex: {ex}");
+                throw new Exception(JsonConvert.SerializeObject(new
+                {
+                    PostData = input.PostData,
+                    Url = input.Url,
+                    Exception = ex
+                }));
             }
         }
 
@@ -348,6 +359,14 @@ namespace IqSoft.CP.Common.Helpers
             });
         }
 
+        public static TransactionScope CreateReadUncommittedTransactionScope()
+        {
+            return new TransactionScope(TransactionScopeOption.Required, new TransactionOptions
+            {
+                IsolationLevel = IsolationLevel.ReadUncommitted
+            });
+        }
+
         public static T DeserializeToObject<T>(string input)
         {
             var serializer = new XmlSerializer(typeof(T));
@@ -386,18 +405,18 @@ namespace IqSoft.CP.Common.Helpers
             return result.Remove(result.LastIndexOf(delimiter), delimiter.Length);
         }
 
-        public static string GetSortedParamWithValuesAsString(object paymentRequest, string delimiter = "")
+        public static string GetSortedParamWithValuesAsString(object sourceObj, string delimiter = "", bool withEscape = true)
         {
             var sortedParams = new SortedDictionary<string, string>();
-            var properties = paymentRequest.GetType().GetProperties();
+            var properties = sourceObj.GetType().GetProperties();
             foreach (var field in properties)
             {
-                var value = field.GetValue(paymentRequest, null);
+                var value = field.GetValue(sourceObj, null);
                 if ((delimiter != string.Empty && value == null) || field.Name.ToLower().Contains("sign"))
                     continue;
                 sortedParams.Add(field.Name, value == null ? string.Empty : value.ToString());
             }
-            var result = sortedParams.Aggregate(string.Empty, (current, par) => current + par.Key + "=" + Uri.EscapeDataString(par.Value) + delimiter);
+            var result = sortedParams.Aggregate(string.Empty, (current, par) => current + par.Key + "=" + ( withEscape ? Uri.EscapeDataString(par.Value) : par.Value ) + delimiter);
 
             return string.IsNullOrEmpty(result) ? result : result.Remove(result.LastIndexOf(delimiter), delimiter.Length);
         }
@@ -589,6 +608,22 @@ namespace IqSoft.CP.Common.Helpers
                 foreach (var child in childSelector(next))
                     stack.Push(child);
             }
+        }
+
+        public static object CopyValues<T>(object target, T source)
+        {
+            Type t = typeof(T);
+            if (target == null || target.ToString() == "{}")
+                return source;
+            var properties = t.GetProperties().Where(prop => prop.CanRead && prop.CanWrite);
+            var targetProperties = target.GetType().GetProperties().Where(prop => prop.CanRead && prop.CanWrite);
+            foreach (var prop in properties)
+            {
+                var value = prop.GetValue(source, null);
+                if (value != null && targetProperties.Any(x=>x.Name == prop.Name))
+                    prop.SetValue(target, value, null);
+            }
+            return target;
         }
     }
 }

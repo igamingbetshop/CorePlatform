@@ -31,6 +31,9 @@ namespace IqSoft.CP.ProductGateway.Models.BGGames
 		[JsonProperty(PropertyName = "old_balance")]
 		public string OldBalance { get; set; }
 
+		[JsonProperty(PropertyName = "currency")]
+		public string Currency { get; set; }
+
 		[JsonProperty(PropertyName = "signature")]
 		public string Signature { get; set; }
 	}

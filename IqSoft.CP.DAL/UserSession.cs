@@ -26,11 +26,11 @@ namespace IqSoft.CP.DAL
             this.PaymentRequestHistories = new HashSet<PaymentRequestHistory>();
             this.Users = new HashSet<User>();
             this.ClientMessages = new HashSet<ClientMessage>();
-            this.PartnerPaymentSettings = new HashSet<PartnerPaymentSetting>();
             this.Notes = new HashSet<Note>();
             this.BetShops = new HashSet<BetShop>();
             this.BetShopGroups = new HashSet<BetShopGroup>();
             this.TranslationEntries = new HashSet<TranslationEntry>();
+            this.PartnerPaymentSettings = new HashSet<PartnerPaymentSetting>();
         }
     
         public long Id { get; set; }
@@ -72,8 +72,6 @@ namespace IqSoft.CP.DAL
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ClientMessage> ClientMessages { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PartnerPaymentSetting> PartnerPaymentSettings { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Note> Notes { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<BetShop> BetShops { get; set; }
@@ -81,5 +79,7 @@ namespace IqSoft.CP.DAL
         public virtual ICollection<BetShopGroup> BetShopGroups { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<TranslationEntry> TranslationEntries { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PartnerPaymentSetting> PartnerPaymentSettings { get; set; }
     }
 }

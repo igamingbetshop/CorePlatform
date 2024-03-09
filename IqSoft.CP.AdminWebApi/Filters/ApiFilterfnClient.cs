@@ -62,7 +62,8 @@ namespace IqSoft.CP.AdminWebApi.Filters
         public ApiFiltersOperation LastUpdateTimes { get; set; }
         public ApiFiltersOperation LastSessionDates { get; set; }
 
-        public ApiFiltersOperation Balances { get; set; }
+        public ApiFiltersOperation RealBalances { get; set; }
+        public ApiFiltersOperation BonusBalances { get; set; }
 
         public ApiFiltersOperation GGRs { get; set; }
 

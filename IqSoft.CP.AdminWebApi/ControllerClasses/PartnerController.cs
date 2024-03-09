@@ -621,36 +621,40 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
 
         private static ApiResponseBase GetPartnerGameProviderSettings(int partnerId, SessionIdentity identity, ILog log)
         {
-            var partner = CacheManager.GetPartnerById(partnerId);
-            if (partner == null)
+            var partner = CacheManager.GetPartnerById(partnerId) ??
                 throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.ClientNotFound);
             using (var productBll = new ProductBll(identity, log))
             {
-                using (var partnerBll = new PartnerBll(productBll))
+                var checkPartnerPermission = productBll.GetPermissionsToObject(new CheckPermissionInput
                 {
-                    var checkPartnerPermission = partnerBll.GetPermissionsToObject(new CheckPermissionInput
-                    {
-                        Permission = Constants.Permissions.ViewPartner,
-                        ObjectTypeId = ObjectTypes.Partner
-                    });
-                    if (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != partnerId))
-                        throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.DontHavePermission);
-                    var partnerProviderSettings = productBll.GetGameProviderSettings((int)ObjectTypes.Partner, partnerId).Select(x => new ApiGameProviderSetting
-                    {
-                        ObjectId = Convert.ToInt32(x.ObjectId),
-                        GameProviderId = x.GameProviderId,
-                        GameProviderName = x.GameProvider.Name,
-                        State = x.State,
-                        Order = x.Order ?? 1
-                    }).ToList();
+                    Permission = Constants.Permissions.ViewPartner,
+                    ObjectTypeId = ObjectTypes.Partner
+                });
+                if (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != partnerId))
+                    throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.DontHavePermission);
+                var partnerProviderSettings = productBll.GetGameProviderSettings((int)ObjectTypes.Partner, partnerId).Select(x => new ApiGameProviderSetting
+                {
+                    ObjectId = Convert.ToInt32(x.ObjectId),
+                    GameProviderId = x.GameProviderId,
+                    GameProviderName = x.GameProvider.Name,
+                    State = x.State,
+                    Order = x.Order ?? 1
+                }).ToList();
 
-                    partnerProviderSettings.AddRange(productBll.GetGameProviders(new FilterGameProvider()).Where(x => !partnerProviderSettings.Any(y => y.GameProviderId == x.Id))
-                        .Select(x => new ApiGameProviderSetting { ObjectId = partnerId, GameProviderId = x.Id, GameProviderName = x.Name, State = (int)BaseStates.Active, Order = 10000 }));
-                    return new ApiResponseBase
-                    {
-                        ResponseObject = partnerProviderSettings
-                    };
-                }
+                partnerProviderSettings.AddRange(productBll.GetGameProviders(new FilterGameProvider { IsActive = true })
+                                                           .Where(x => !partnerProviderSettings.Any(y => y.GameProviderId == x.Id))
+                                                           .Select(x => new ApiGameProviderSetting
+                                                           {
+                                                               ObjectId = partnerId,
+                                                               GameProviderId = x.Id,
+                                                               GameProviderName = x.Name,
+                                                               State = (int)BaseStates.Active, 
+                                                               Order = 10000 
+                                                           }));
+                return new ApiResponseBase
+                {
+                    ResponseObject = partnerProviderSettings
+                };
             }
         }
 

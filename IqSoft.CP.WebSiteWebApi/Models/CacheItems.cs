@@ -5,6 +5,7 @@
 		public const string Countries = "CoreSlave_Countries";
 		public const string Banners = "CoreSlave_Banners";
 		public const string Promotions = "CoreSlave_Promotions";
+		public const string News = "CoreSlave_News";
 		public const string PartnerProductSettings = "CoreSlave_PartnerProductSettings";
 		public const string PaymentInfoTypes = "CoreSlave_PaymentInfoTypes";
         public const string Products = "CoreSlave_Products";
@@ -17,5 +18,6 @@
 		public const string ReferralTypes = "CoreSlave_ReferralTypes";
 		public const string ExclusionReasons = "CoreSlave_ExclusionReasons";
 		public const string Errors = "CoreSlave_Errors";
-	}
+        public const string Partners = "CoreSlave_Partners";
+    }
 }

@@ -854,19 +854,22 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                                             Integration.Products.Helpers.TwoWinPowerHelpers.CancelFreeSpin(bonus.PartnerId, clientBonusId);
                                             break;
                                         case Constants.GameProviders.BlueOcean:
-                                            Integration.Products.Helpers.BlueOceanHelpers.CancelFreeRound(bonus.PartnerId, clientBonusId.ToString()/*must be bo id*/);
+                                            Integration.Products.Helpers.BlueOceanHelpers.CancelFreeRound(cBonus.ClientId, clientBonusId.ToString()/*must be bo id*/);
                                             break;
                                         case Constants.GameProviders.PragmaticPlay:
-                                            Integration.Products.Helpers.PragmaticPlayHelpers.CancelFreeRound(bonus.PartnerId, bonus.Id);
+                                            Integration.Products.Helpers.PragmaticPlayHelpers.CancelFreeRound(cBonus.ClientId, cBonus.Id);
                                             break;
                                         case Constants.GameProviders.SoftSwiss:
-                                            Integration.Products.Helpers.SoftSwissHelpers.CancelFreeRound(bonus.Id, bonus.Id);
+                                            Integration.Products.Helpers.SoftSwissHelpers.CancelFreeRound(cBonus.ClientId, cBonus.Id);
                                             break;
                                         case Constants.GameProviders.EveryMatrix:
-                                            Integration.Products.Helpers.EveryMatrixHelpers.ForfeitFreeSpinBonus(bonus.Id, bonus.Id, product.Id);
+                                            Integration.Products.Helpers.EveryMatrixHelpers.ForfeitFreeSpinBonus(cBonus.ClientId, cBonus.Id, product.Id);
                                             break;
                                         case Constants.GameProviders.PlaynGo:
-                                            Integration.Products.Helpers.PlaynGoHelpers.CancelFreeSpinBonus(bonus.Id, bonus.Id, product.Id);
+                                            Integration.Products.Helpers.PlaynGoHelpers.CancelFreeSpinBonus(cBonus.ClientId, cBonus.Id);
+                                            break;
+                                        case Constants.GameProviders.AleaPlay:
+                                            Integration.Products.Helpers.AleaPlayHelpers.CancelFreeRound(cBonus.ClientId, cBonus.Id);
                                             break;
                                         default:
                                             break;

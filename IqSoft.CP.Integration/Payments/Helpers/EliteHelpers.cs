@@ -135,7 +135,8 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 					receiverAccountName = accountName,
 					receiverBankIban = iban,
                     withdrawalAmount = amount,
-                    trxId = paymentRequest.Id.ToString()
+					description =  "",
+					trxId = paymentRequest.Id.ToString()
 				};
 				var httpRequestInput = new HttpRequestInput
 				{

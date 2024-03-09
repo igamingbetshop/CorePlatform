@@ -1345,10 +1345,21 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                     userBl.CheckPermission(Constants.Permissions.EditAnnouncement);
                     user = CacheManager.GetUserById(user.ParentId.Value);
                 }
-
+                apiAnnouncement.PartnerId = user.PartnerId;
                 using (var contentBl = new ContentBll(identity, log))
                 {
-                    contentBl.SaveAnnouncement(apiAnnouncement, false);
+                    var announcement = contentBl.SaveAnnouncement(apiAnnouncement, false, user);
+                    var translations = new List<fnTranslation>{ new fnTranslation
+                    {
+                        TranslationId = announcement.TranslationId,
+                        LanguageId = Constants.DefaultLanguageId,
+                        PartnerId = announcement.PartnerId,
+                        ObjectTypeId = (int)ObjectTypes.Announcement,
+                        SessionId = identity.SessionId,
+                        Text = apiAnnouncement.Message
+                    } };
+                    contentBl.SaveTranslationEntries(translations, false, out _);  ;
+
                     if (apiAnnouncement.Type == (int)AnnouncementTypes.Ticker)
                     {
                         CacheManager.RemovePartnerTickerFromCache(apiAnnouncement.PartnerId, identity.LanguageId);// to check with transaltion 

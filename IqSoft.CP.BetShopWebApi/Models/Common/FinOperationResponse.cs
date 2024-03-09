@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
 
 namespace IqSoft.CP.BetShopWebApi.Models.Common
 {
-	public class FinOperationResponse : ClientRequestResponseBase
+	public class FinOperationResponse : ApiResponseBase
 	{
 		public decimal CashierBalance { get; set; }
 		public decimal Balance

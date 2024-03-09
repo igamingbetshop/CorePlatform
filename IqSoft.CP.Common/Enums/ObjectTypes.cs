@@ -96,6 +96,10 @@
         UserConfiguration = 93,
 		CharacterTitle = 94, 
         CharacterDescription = 95,
-        Segment = 96
-	}
+        Segment = 96,
+        News = 97,
+        NewsContent = 98,
+        NewsDescription = 99,
+        Popup = 100
+    }
 }

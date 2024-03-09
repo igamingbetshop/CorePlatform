@@ -6,6 +6,7 @@
         STARTED = 2,
         SUCCESS = 3,
         FAILURE = 4,
-        DOWN = 5
+        DOWN = 5, 
+        EXPIRED = 6
     }
 }

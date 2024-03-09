@@ -38,8 +38,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="log4net, Version=2.0.14.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
-      <HintPath>..\packages\log4net.2.0.14\lib\net45\log4net.dll</HintPath>
+    <Reference Include="log4net, Version=2.0.15.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>..\packages\log4net.2.0.15\lib\net45\log4net.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -124,6 +124,7 @@
     <Compile Include="Enums\OSTypes.cs" />
     <Compile Include="Enums\PartnerStates.cs" />
     <Compile Include="Enums\PayoutCancelationTypes.cs" />
+    <Compile Include="Enums\PopupTypes.cs" />
     <Compile Include="Enums\ProductCountrySettingTypes.cs" />
     <Compile Include="Enums\PromotionTypes.cs" />
     <Compile Include="Enums\ReferralTypes.cs" />
@@ -141,13 +142,16 @@
     <Compile Include="Enums\MessageTemplateStates.cs" />
     <Compile Include="Models\AdminModels\ApiAdminClientSetting.cs" />
     <Compile Include="Models\AdminModels\ApiAnnouncement.cs" />
+    <Compile Include="Models\AdminModels\ApiGameProvider.cs" />
     <Compile Include="Models\AdminModels\PaymentRequestInput.cs" />
+    <Compile Include="Models\AdminModels\ApiPaymentSystemModel.cs" />
     <Compile Include="Models\AffiliateModels\ApiAffiliateCommission.cs" />
     <Compile Include="Models\AffiliateModels\BetCommission.cs" />
     <Compile Include="Models\AffiliateModels\BllAffiliate.cs" />
     <Compile Include="Models\AffiliateModels\ClientAffiliateModel.cs" />
     <Compile Include="Models\AffiliateModels\DepositCommission.cs" />
     <Compile Include="Models\AffiliateModels\FixedFeeCommission.cs" />
+    <Compile Include="Models\AffiliateModels\ScaleoEventData.cs" />
     <Compile Include="Models\AgentModels\CommissionItem.cs" />
     <Compile Include="Models\ApiQRCodeInput.cs" />
     <Compile Include="Models\Bonus\FreeSpinModel.cs" />
@@ -280,6 +284,8 @@
     <Compile Include="Models\CacheModels\BllGeolocationData.cs" />
     <Compile Include="Models\CacheModels\BllIpCount.cs" />
     <Compile Include="Models\CacheModels\BllJobArea.cs" />
+    <Compile Include="Models\CacheModels\BllNews.cs" />
+    <Compile Include="Models\CacheModels\BllPartner.cs" />
     <Compile Include="Models\CacheModels\BllPartnerProductSetting.cs" />
     <Compile Include="Models\CacheModels\BllProduct.cs" />
     <Compile Include="Models\CacheModels\BllProductSetting.cs" />
@@ -297,6 +303,7 @@
     <Compile Include="Models\Filters\ApiFiltersOperationType.cs" />
     <Compile Include="Models\Filters\Condition.cs" />
     <Compile Include="Models\FtpModel.cs" />
+    <Compile Include="Models\ItemProperty.cs" />
     <Compile Include="Models\LimitSetting.cs" />
     <Compile Include="Models\Notification\AffiliateNotificationInput.cs" />
     <Compile Include="Models\HttpRequestInput.cs" />
@@ -324,7 +331,9 @@
     <Compile Include="Models\PlatformBet.cs" />
     <Compile Include="Models\Products\ApiPartnerProductSettingInput.cs" />
     <Compile Include="Models\Products\ProductInfo.cs" />
+    <Compile Include="Models\Products\ProductSettingInfo.cs" />
     <Compile Include="Models\Products\TwoWinPowerFreespin.cs" />
+    <Compile Include="Models\ProviderData.cs" />
     <Compile Include="Models\RegExProperty.cs" />
     <Compile Include="Models\RegionTree.cs" />
     <Compile Include="Models\Report\InternetBetByClient.cs" />
@@ -340,6 +349,7 @@
     <Compile Include="Models\WebSiteModels\ApiCharacterRelations.cs" />
     <Compile Include="Models\WebSiteModels\ApiClientBonusItem.cs" />
     <Compile Include="Models\WebSiteModels\ApiClientInfo.cs" />
+    <Compile Include="Models\WebSiteModels\ApiClientPopupInput.cs" />
     <Compile Include="Models\WebSiteModels\ApiClientSecurityModel.cs" />
     <Compile Include="Models\WebSiteModels\ApiEnumeration.cs" />
     <Compile Include="Models\WebSiteModels\ApiExternalApiInput.cs" />
@@ -350,9 +360,12 @@
     <Compile Include="Models\WebSiteModels\ApiPartnerBankInfo.cs" />
     <Compile Include="Models\WebSiteModels\ApiPartnerProduct.cs" />
     <Compile Include="Models\WebSiteModels\ApiPartnerProductSetting.cs" />
+    <Compile Include="Models\WebSiteModels\ApiPopupWeSiteModel.cs" />
     <Compile Include="Models\WebSiteModels\ApiProduct.cs" />
+    <Compile Include="Models\WebSiteModels\ApiNews.cs" />
     <Compile Include="Models\WebSiteModels\ApiPromotion.cs" />
     <Compile Include="Models\WebSiteModels\ApiPromotionGroup.cs" />
+    <Compile Include="Models\WebSiteModels\ApiProviderInfo.cs" />
     <Compile Include="Models\WebSiteModels\ApiRequestBase.cs" />
     <Compile Include="Models\WebSiteModels\ApiResponseBase.cs" />
     <Compile Include="Models\WebSiteModels\ApiNotificationInput.cs" />
@@ -413,6 +426,7 @@
     <Compile Include="Models\WebSiteModels\GetBalanceInput.cs" />
     <Compile Include="Models\WebSiteModels\GetBalanceOutput.cs" />
     <Compile Include="Models\WebSiteModels\GetBetsHistoryOutput.cs" />
+    <Compile Include="Models\WebSiteModels\GetCharactersInput.cs" />
     <Compile Include="Models\WebSiteModels\GetClientAccountsInput.cs" />
     <Compile Include="Models\WebSiteModels\GetClientAccountsOutput.cs" />
     <Compile Include="Models\WebSiteModels\GetClientMessagesOutput.cs" />

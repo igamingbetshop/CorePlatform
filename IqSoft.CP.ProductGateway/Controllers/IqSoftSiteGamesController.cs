@@ -28,6 +28,7 @@ using System.Text;
 using System.Net.Http.Headers;
 using System.IO;
 using System.Web;
+using IqSoft.CP.Common.Models.Document;
 
 namespace IqSoft.CP.ProductGateway.Controllers
 {
@@ -340,10 +341,8 @@ namespace IqSoft.CP.ProductGateway.Controllers
             {
                 using (var documentBl = new DocumentBll(new SessionIdentity(), WebApiApplication.DbLogger))
                 {
-                    var clientSession = CheckClientSession(input.Token, false);
                     var operationsFromProduct = new ListOfOperationsFromApi
                     {
-                        SessionId = clientSession.SessionId,
                         GameProviderId = providerId,
                         ExternalProductId = input.GameId,
                         TransactionId = input.RollbackTransactionId,
@@ -584,6 +583,9 @@ namespace IqSoft.CP.ProductGateway.Controllers
                                 freespinModel.ProductExternalIds = new List<string> { partnerSetting.ProductExternalId };
                                 Integration.Products.Helpers.PlaynGoHelpers.AddFreeRound(freespinModel, WebApiApplication.DbLogger);
                                 break;
+                            case Constants.GameProviders.AleaPlay:
+                                Integration.Products.Helpers.AleaPlayHelpers.AddFreeRound(freespinModel, WebApiApplication.DbLogger);                             
+                                break;
                             default:
                                 break;
                         }
@@ -681,6 +683,19 @@ namespace IqSoft.CP.ProductGateway.Controllers
                     }
 
                     var documents = clientBl.CreateDebitsToClients(operationsFromProduct, creditTransaction, documentBl);
+                    if (operationsFromProduct.State == (int)BetDocumentStates.Cashouted && creditTransaction != null && !string.IsNullOrEmpty(creditTransaction.Info))
+                    {
+                        try
+                        {
+                            var info = JsonConvert.DeserializeObject<DocumentInfo>(creditTransaction.Info);
+                            if (info != null && info.BonusId > 0)
+                                documentBl.RevertClientBonusBet(info, creditTransaction.ClientId.Value, string.Empty, creditTransaction.Amount);
+                        }
+                        catch 
+                        { 
+                        
+                        }
+                    }
                     BaseHelpers.RemoveClientBalanceFromeCache(client.Id);
                     BaseHelpers.BroadcastWin(new ApiWin
                     {

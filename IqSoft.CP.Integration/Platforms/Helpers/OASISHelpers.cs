@@ -1,6 +1,7 @@
 ﻿using IqSoft.CP.BLL.Caching;
 using IqSoft.CP.BLL.Services;
 using IqSoft.CP.Common;
+using IqSoft.CP.Common.Enums;
 using IqSoft.CP.Common.Helpers;
 using IqSoft.CP.DAL.Models;
 using IqSoft.CP.DAL.Models.Cache;
@@ -121,9 +122,11 @@ namespace IqSoft.CP.Integration.Platforms.Helpers
             using (var clientBl = new ClientBll(sessionIdentity, log))
             {
                 clientBl.SaveClientSetting(client.Id, Constants.ClientSettings.ExternalStatus, ((RequestResults)requestResult).ToString(), requestResult, DateTime.UtcNow);
+                if (requestResult == (int)RequestResults.PlayerBlocked1)
+                    clientBl.ChangeClientState(client.Id, (int)ClientStates.SuspendedWithWithdraw, null);
+                else if (requestResult == (int)RequestResults.NotBlockedPlayer && client.State == (int)ClientStates.SuspendedWithWithdraw)
+                    clientBl.ChangeClientState(client.Id, (int)ClientStates.Active, null);
             }
-            if (requestResult == (int)RequestResults.PlayerBlocked1)
-                throw BaseBll.CreateException(languageId, Constants.Errors.ClientBlocked);
         }
 
         private static int CheckInsicClientStatus(BllClient client, ILog log)

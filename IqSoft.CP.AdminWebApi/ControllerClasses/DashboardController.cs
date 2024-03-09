@@ -18,18 +18,18 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             switch (request.Method)
             {
+                case Constants.RequestMethods.GetPlayersInfo:
+                    return GetPlayersInfo(JsonConvert.DeserializeObject<ApiFilterDashboard>(request.RequestData),
+                        identity, log);
                 case Constants.RequestMethods.GetBetsInfo:
                     return GetBetsInfo(JsonConvert.DeserializeObject<ApiFilterDashboard>(request.RequestData), identity, log);
+                case Constants.RequestMethods.GetProviderBets:
+                    return GetProviderBets(JsonConvert.DeserializeObject<ApiFilterDashboard>(request.RequestData),
+                        identity, log);
                 case Constants.RequestMethods.GetDeposits:
                     return GetDeposits(JsonConvert.DeserializeObject<ApiFilterDashboard>(request.RequestData), identity, log);
                 case Constants.RequestMethods.GetWithdrawals:
                     return GetWithdrawals(JsonConvert.DeserializeObject<ApiFilterDashboard>(request.RequestData),
-                        identity, log);
-                case Constants.RequestMethods.GetPlayersInfo:
-                    return GetPlayersInfo(JsonConvert.DeserializeObject<ApiFilterDashboard>(request.RequestData),
-                        identity, log);
-                case Constants.RequestMethods.GetProviderBets:
-                    return GetProviderBets(JsonConvert.DeserializeObject<ApiFilterDashboard>(request.RequestData),
                         identity, log);
                 case Constants.RequestMethods.GetOnlineClients:
                     return GetOnlineClients(JsonConvert.DeserializeObject<ApiFilterRealTime>(request.RequestData),
@@ -46,12 +46,23 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             throw BaseBll.CreateException(string.Empty, Constants.Errors.MethodNotFound);
         }
 
+        private static ApiResponseBase GetPlayersInfo(ApiFilterDashboard input, SessionIdentity identity, ILog log)
+        {
+            using (var reportBl = new ReportBll(identity, log))
+            {
+                var response = new ApiResponseBase();
+                var filter = input.MapToFilterDashboard(identity.TimeZone);
+                response.ResponseObject = reportBl.GetPlayersInfoForDashboard(filter).MapToApiPlayersInfo();
+                return response;
+            }
+        }
+
         private static ApiResponseBase GetBetsInfo(ApiFilterDashboard input, SessionIdentity identity, ILog log)
         {
             using (var reportBl = new ReportBll(identity, log, 120))
             {
                 var response = new ApiResponseBase();
-                var filter = input.MapToFilterDashboard();
+                var filter = input.MapToFilterDashboard(identity.TimeZone);
                 response.ResponseObject = reportBl.GetBetsInfoForDashboard(filter).MapToApiBetsInfo();
                 return response;
             }
@@ -62,9 +73,9 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             using (var reportBl = new ReportBll(identity, log))
             {
                 var response = new ApiResponseBase();
-                var filter = input.MapToFilterDashboard();
+                var filter = input.MapToFilterDashboard(identity.TimeZone);
                 var responseList =  reportBl.GetPaymentRequestsForDashboard(filter, (int)PaymentRequestTypes.Deposit);
-                response.ResponseObject = responseList.Select(x => x.MapToApiPaymentRequestsInfo()).ToList();
+                response.ResponseObject = responseList.Select(x => x.ToApiDepositsInfo()).ToList();
                 return response;
             }
         }
@@ -74,20 +85,9 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             using (var reportBl = new ReportBll(identity, log))
             {
                 var response = new ApiResponseBase();
-                var filter = input.MapToFilterDashboard();
+                var filter = input.MapToFilterDashboard(identity.TimeZone);
                 var responseList = reportBl.GetPaymentRequestsForDashboard(filter, (int)PaymentRequestTypes.Withdraw);
-                response.ResponseObject = responseList.Select(x => x.MapToApiWithdrawalsInfo()).ToList();
-                return response;
-            }
-        }
-
-        private static ApiResponseBase GetPlayersInfo(ApiFilterDashboard input, SessionIdentity identity, ILog log)
-        {
-            using (var reportBl = new ReportBll(identity, log))
-            {
-                var response = new ApiResponseBase();
-                var filter = input.MapToFilterDashboard();
-                response.ResponseObject = reportBl.GetPlayersInfoForDashboard(filter).MapToApiPlayersInfo();
+                response.ResponseObject = responseList.Select(x => x.ToApiWithdrawalsInfo()).ToList();
                 return response;
             }
         }
@@ -97,7 +97,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             using (var reportBl = new ReportBll(identity, log, 120))
             {
                 var response = new ApiResponseBase();
-                var filter = input.MapToFilterDashboard();
+                var filter = input.MapToFilterDashboard(identity.TimeZone);
                 response.ResponseObject = reportBl.GetProviderBetsForDashboard(filter).MapToApiProvidersBetsInfo();
                 return response;
             }

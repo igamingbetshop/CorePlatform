@@ -32,7 +32,7 @@ namespace IqSoft.CP.DataWarehouse.Filters
 
         public FiltersOperation BetCounts { get; set; }
 
-        protected override IQueryable<fnInternetGame> CreateQuery(IQueryable<fnInternetGame> objects, Func<IQueryable<fnInternetGame>, IOrderedQueryable<fnInternetGame>> orderBy = null)
+        public override void CreateQuery(ref IQueryable<fnInternetGame> objects, Func<IQueryable<fnInternetGame>, IOrderedQueryable<fnInternetGame>> orderBy = null)
         {
             if (PartnerId.HasValue)
                 objects = objects.Where(x => x.PartnerId == PartnerId.Value);
@@ -49,12 +49,12 @@ namespace IqSoft.CP.DataWarehouse.Filters
             FilterByValue(ref objects, GGRs, "GGR");
             FilterByValue(ref objects, BetCounts, "BetCount");
 
-            return base.FilteredObjects(objects, orderBy);
+            base.FilteredObjects(ref objects, orderBy);
         }
 
         public IQueryable<fnInternetGame> FilterObjects(IQueryable<fnInternetGame> internetBets, Func<IQueryable<fnInternetGame>, IOrderedQueryable<fnInternetGame>> orderBy = null)
         {
-            internetBets = CreateQuery(internetBets, orderBy);
+            CreateQuery(ref internetBets, orderBy);
             return internetBets;
         }
     }

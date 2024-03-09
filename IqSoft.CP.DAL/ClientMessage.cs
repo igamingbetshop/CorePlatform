@@ -34,10 +34,10 @@ namespace IqSoft.CP.DAL
         public Nullable<int> AffiliateId { get; set; }
     
         public virtual UserSession UserSession { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<ClientMessageState> ClientMessageStates { get; set; }
         public virtual Affiliate Affiliate { get; set; }
         public virtual Client Client { get; set; }
         public virtual Email Email { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<ClientMessageState> ClientMessageStates { get; set; }
     }
 }

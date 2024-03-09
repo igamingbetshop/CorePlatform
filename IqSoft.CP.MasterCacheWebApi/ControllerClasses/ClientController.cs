@@ -171,6 +171,8 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                     return GetCharacterCurrentState(request.ClientId, request.PartnerId, session, log);
                 case "ConfirmLimit":
                     return ConfirmLimit(request.ClientId, JsonConvert.DeserializeObject<ConfirmLimitInput>(request.RequestData), session, log);
+                case "ViewPopup":
+                    return ViewPopup(request.ClientId, JsonConvert.DeserializeObject<ApiPopupWeSiteModel>(request.RequestData), session, log);
                 default:
                     throw BaseBll.CreateException(string.Empty, Constants.Errors.MethodNotFound);
             }
@@ -1480,20 +1482,16 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                     clientBl.SaveClientSetting(clientId, Constants.ClientSettings.LimitConfirmed, true.ToString(), 1, DateTime.UtcNow);
                     if (input.DefaultLimit)
                     {
-                        var clientSettings = clientBl.GetClientSettings(clientId, false);
+                        var clientSettings = clientBl.GetClientLimitSettings(clientId, false);
                         var clientSettingsDictionary = clientSettings.GetType().GetProperties()
                                                     .Where(y => y != null && !string.IsNullOrWhiteSpace(y.ToString()) && y.Name.Contains("Limit") &&
-                                                               !y.Name.Contains("System") && y.GetValue(clientSettings, null) != null) 
+                                                               !y.Name.Contains("System") && y.GetValue(clientSettings, null) != null  &&
+                                                               y.PropertyType == typeof(LimitItem) )
                                                     .OrderByDescending(x => x.Name.Contains(PeriodsOfTime.Monthly.ToString()))
                                                     .ThenByDescending(x => x.Name.Contains(PeriodsOfTime.Weekly.ToString()))
                                                     .ThenByDescending(x => x.Name.Contains(PeriodsOfTime.Daily.ToString()))
-                                                    .ToDictionary(x => x.Name,
-                                                                  x => new
-                                                                  {
-                                                                      LimitValue = x.GetValue(clientSettings, null) != null && Convert.ToDecimal(x.GetValue(clientSettings, null)) != -1 ?
-                                                                      Convert.ToDecimal(x.GetValue(clientSettings, null)) : (decimal?)null
-                                                                  });
-
+                                                    .ToDictionary(x => x.Name, x => x.GetValue(clientSettings, null));
+                        log.Debug("limits: " +JsonConvert.SerializeObject(clientSettingsDictionary));
                         var verificationPlatform = CacheManager.GetConfigKey(session.PartnerId, Constants.PartnerKeys.VerificationPlatform);
                         if (!string.IsNullOrEmpty(verificationPlatform) && int.TryParse(verificationPlatform, out int verificationPatformId))
                         {
@@ -1501,7 +1499,10 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                             {
                                 case (int)VerificationPlatforms.Insic:
                                     foreach (var limit in clientSettingsDictionary)
-                                        InsicHelpers.UpdatePlayerLimit(session.PartnerId, clientId, limit.Key, limit.Value.LimitValue, WebApiApplication.DbLogger);
+                                    {
+                                        var limitItem = (LimitItem)limit.Value;
+                                        InsicHelpers.UpdatePlayerLimit(session.PartnerId, clientId, limit.Key, limitItem.Limit, WebApiApplication.DbLogger);
+                                    }
                                     break;
                                 default:
                                     break;
@@ -1510,6 +1511,15 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                     }
                 }
                 scope.Complete();
+                return new ApiResponseBase();
+            }
+        }
+
+        private static ApiResponseBase ViewPopup(int clientId, ApiPopupWeSiteModel input, SessionIdentity session, ILog log)
+        {
+            using (var clientBl = new ClientBll(session, log))
+            {
+                clientBl.ViewPopup(clientId, input.Id);
                 return new ApiResponseBase();
             }
         }

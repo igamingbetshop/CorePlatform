@@ -15,6 +15,7 @@ using IqSoft.CP.BLL.Services;
 using IqSoft.CP.DAL.Models.Cache;
 using System.Text;
 using IqSoft.CP.Common.Models.Bonus;
+using YamlDotNet.Core.Tokens;
 
 namespace IqSoft.CP.Integration.Products.Helpers
 {
@@ -254,6 +255,55 @@ namespace IqSoft.CP.Integration.Products.Helpers
             return JsonConvert.DeserializeObject<BonusLoginOutput>(CommonFunctions.SendHttpRequest(httpRequestInput, out _)).SessionId;
         }
 
+        private static readonly Dictionary<string, string> Vendors = new Dictionary<string, string>
+        {
+            {"ELKStudios", "ELK"},
+            {"PlaysonDirect", "Playson"},
+            {"PushGaming", "Push"},
+            {"SpearheadStudios", "RGS_Matrix"},
+            {"2BY2", "Microgaming"},
+            {"AdoptItPublishing", "Microgaming"},
+            {"AlchemyGaming", "Microgaming"},
+            {"All41Studios", "Microgaming"},
+            {"Aurum", "Microgaming"},
+            {"Foxium", "Microgaming"},
+            {"GachaStudios", "Microgaming"},
+            {"GameburgerStudios", "Microgaming"},
+            {"BuckStakesEntertainment", "Microgaming"},
+            {"CrazyTooth", "Microgaming"},
+            {"FortuneFactory", "Microgaming"},
+            {"GoldCoinStudios", "Microgaming"},
+            {"GongGaming", "Microgaming"},
+            {"InfinityDragonStudios", "Microgaming"},
+            {"JadeRabbitStudios", "Microgaming"},
+            {"Jftw", "Microgaming"},
+            {"JustForTheWin", "Microgaming"},
+            {"LightningBox", "Microgaming"},
+            {"Live5Gaming", "Microgaming"},
+            {"NekoGames", "Microgaming"},
+            {"NeonValleyStudios", "Microgaming"},
+            {"NorthernLights", "Microgaming"},
+            {"OldSkool", "Microgaming"},
+            {"PearFiction", "Microgaming"},
+            {"PlankGaming", "Microgaming"},
+            {"Pulse8", "Microgaming"},
+            {"RabcatGambling", "Microgaming"},
+            {"RealDealerStudios", "Microgaming"},
+            {"Realistic", "Microgaming"},
+            {"Slingshot", "Microgaming"},
+            {"SnowbornGames", "Microgaming"},
+            {"SpinPlayGames", "Microgaming"},
+            {"StormcraftStudios", "Microgaming"},
+            {"TripleEdgeStudios", "Microgaming"},
+            {"4ThePlayer", "RelaxGaming"},
+            {"Arcadem", "Oryx"},
+            {"AtomicLab", "Oryx"},
+            {"ArmadilloStudios", "RGS_Matrix"},
+
+ //{"BigTimeGaming", "Microgaming,RelaxGaming"},
+ //{"GoldenRockStudios", "Microgaming,RelaxGaming"},
+ //{"StormGames", "Microgaming,RelaxGaming"}
+        };
         public static void AwardFreeSpin( FreeSpinModel freeSpinModel, ILog log)
         {
             var client = CacheManager.GetClientById(freeSpinModel.ClientId);
@@ -261,6 +311,12 @@ namespace IqSoft.CP.Integration.Products.Helpers
             if (!product.SubProviderId.HasValue)
                 throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongProviderId);
             var vendor = CacheManager.GetGameProviderById(product.SubProviderId.Value).Name;
+            if (Vendors.ContainsKey(vendor))
+                vendor = Vendors[vendor];
+            else if (freeSpinModel.ProductExternalId.ToLower().Contains("microgaming"))
+                vendor = "Microgaming";
+            else if (freeSpinModel.ProductExternalId.ToLower().Contains("relaxgaming"))
+                vendor = "RelaxGaming";
             var vendorApiUrl = CacheManager.GetGameProviderValueByKey(client.PartnerId, Provider.Id, Constants.PartnerKeys.EveryMatrixVendorApiUrl);
             var domainID = CacheManager.GetGameProviderValueByKey(client.PartnerId, Provider.Id, Constants.PartnerKeys.EveryMatrixOperatorId);
             var username = CacheManager.GetGameProviderValueByKey(client.PartnerId, Provider.Id, Constants.PartnerKeys.EveryMatrixFSBonusApiUsername);
@@ -297,16 +353,21 @@ namespace IqSoft.CP.Integration.Products.Helpers
                     //LineCount = 0,
                     //CampaignId = freeSpinModel.BonusId.ToString(),
                     Lines = (int?)freeSpinModel.Lines,
-                    LineCount= (int?)freeSpinModel.Lines,
-                    Coins = freeSpinModel.Coins,
+                    LineCount = (int?)freeSpinModel.Lines,
+                    Coins = (int?)freeSpinModel.Coins,
                     BetValueLevel = (int?)freeSpinModel.BetValueLevel,
                     //CoinSize = freeSpinModel.CoinValue / freeSpinModel.Lines,
                     //SpinCoinPosition = 0,
                     //BetLine = freeSpinModel.BetValueLevel, //??
                     //BetValue = freeSpinModel.BetValueLevel, //??
                     //BetLevel = freeSpinModel.BetValueLevel, //??
+                    Denomination =(int?)freeSpinModel.Coins, 
                     BetAmount = (int?)freeSpinModel.BetValueLevel,
-                    BetPerLine = (int?)freeSpinModel.BetValueLevel
+                    Value = freeSpinModel.BetValueLevel,
+                    betPerLine = freeSpinModel.BetValueLevel,
+                    SpinCoinPosition = (int?)freeSpinModel.Coins,
+                    BetValue = freeSpinModel.BetValueLevel,
+                    Bet = freeSpinModel.BetValueLevel
                 }
             };
             var httpRequestInput = new HttpRequestInput

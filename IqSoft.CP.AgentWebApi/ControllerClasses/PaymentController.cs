@@ -163,7 +163,7 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
         {
             using (var paymentSystemBl = new PaymentSystemBll(identity, log))
             {
-                var result = paymentSystemBl.GetPaymentSystems();
+                var result = paymentSystemBl.GetPaymentSystems(null);
                 return new ApiResponseBase
                 {
                     ResponseObject =

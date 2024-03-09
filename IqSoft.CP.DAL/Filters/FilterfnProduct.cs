@@ -11,6 +11,8 @@ namespace IqSoft.CP.DAL.Filters
         public int? Level { get; set; }
         public bool? FreeSpinSupport { get; set; }
         public string Pattern { get; set; }
+        public bool? HasImages { get; set; }
+        public bool? IsProviderActive { get; set; }
 
         public FiltersOperation Ids { get; set; }
 
@@ -44,6 +46,11 @@ namespace IqSoft.CP.DAL.Filters
                 objects = objects.Where(x => x.Id == ProductId.Value);
             if (Level.HasValue)
                 objects = objects.Where(x => x.Level == Level.Value);
+            if (HasImages.HasValue)
+                objects = objects.Where(x => x.HasImages == HasImages.Value);
+            if (IsProviderActive.HasValue)
+                objects = objects.Where(x => x.IsProviderActive == IsProviderActive.Value);
+
             if (FreeSpinSupport.HasValue)
                 objects = objects.Where(x => x.GameProviderId == null || x.FreeSpinSupport == FreeSpinSupport.Value);
             if (!string.IsNullOrEmpty(Pattern))

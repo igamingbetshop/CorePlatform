@@ -1,12 +1,7 @@
 ﻿using IqSoft.CP.BetShopWebApi.Models.Common;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-
 namespace IqSoft.CP.BetShopWebApi.Models.Reports
 {
-    public class GetUnitResultInfoOutput : ClientRequestResponseBase
+    public class GetUnitResultInfoOutput : ApiResponseBase
     {
         public string State { get; set; }
 

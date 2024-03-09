@@ -23,6 +23,7 @@ namespace IqSoft.CP.AdminWebApi.Models.PartnerModels
         public bool IsForMobile { get; set; }
         public bool IsForDesktop { get; set; }
         public bool? HasDemo { get; set; }
+        public bool HasImages { get; set; }
         public string Jackpot { get; set; }
         public string MobileImageUrl { get; set; }
         public string WebImageUrl { get; set; }

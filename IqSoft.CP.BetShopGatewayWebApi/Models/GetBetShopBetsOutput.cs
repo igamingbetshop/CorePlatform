@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace IqSoft.CP.BetShopGatewayWebApi.Models
 {
-    public class GetBetShopBetsOutput : ApiResponseBase
+    public class GetBetShopBetsOutput
     {
         public List<BetShopBet> Bets { get; set; }
     }

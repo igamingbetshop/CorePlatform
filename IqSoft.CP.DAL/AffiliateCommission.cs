@@ -24,6 +24,7 @@ namespace IqSoft.CP.DAL
         public Nullable<decimal> TotalDepositAmount { get; set; }
         public Nullable<bool> RequireVerification { get; set; }
         public Nullable<decimal> UpToAmount { get; set; }
+        public Nullable<int> DepositCount { get; set; }
     
         public virtual Affiliate Affiliate { get; set; }
         public virtual Currency Currency { get; set; }

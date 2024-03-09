@@ -7,7 +7,7 @@ using System.Web;
 
 namespace IqSoft.CP.BetShopWebApi.Models.Common
 {
-	public class CloseShiftOutput : ClientRequestResponseBase
+	public class CloseShiftOutput : ApiResponseBase
 	{
 		public int Id { get; set; }
 

@@ -60,8 +60,8 @@
     <Reference Include="Enyim.Caching, Version=2.16.0.0, Culture=neutral, PublicKeyToken=cec98615db04012e, processorArchitecture=MSIL">
       <HintPath>..\packages\EnyimMemcached.2.16.0\lib\net35\Enyim.Caching.dll</HintPath>
     </Reference>
-    <Reference Include="log4net, Version=2.0.14.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
-      <HintPath>..\packages\log4net.2.0.14\lib\net45\log4net.dll</HintPath>
+    <Reference Include="log4net, Version=2.0.15.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>..\packages\log4net.2.0.15\lib\net45\log4net.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.AspNet.SignalR.Client, Version=2.4.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.SignalR.Client.2.4.3\lib\net45\Microsoft.AspNet.SignalR.Client.dll</HintPath>
@@ -132,8 +132,8 @@
     <Reference Include="Microsoft.AspNetCore.WebUtilities, Version=2.2.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNetCore.WebUtilities.2.2.0\lib\netstandard2.0\Microsoft.AspNetCore.WebUtilities.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=6.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.6.0.0\lib\net461\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
+    <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.8.0.0\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Extensions.Configuration.Abstractions, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
@@ -254,8 +254,8 @@
       <HintPath>..\packages\System.Security.Principal.Windows.5.0.0\lib\net461\System.Security.Principal.Windows.dll</HintPath>
     </Reference>
     <Reference Include="System.ServiceModel" />
-    <Reference Include="System.Text.Encodings.Web, Version=6.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Text.Encodings.Web.6.0.0\lib\net461\System.Text.Encodings.Web.dll</HintPath>
+    <Reference Include="System.Text.Encodings.Web, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Text.Encodings.Web.8.0.0\lib\net462\System.Text.Encodings.Web.dll</HintPath>
     </Reference>
     <Reference Include="System.Text.Json, Version=6.0.0.3, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Text.Json.6.0.3\lib\net461\System.Text.Json.dll</HintPath>
@@ -308,18 +308,17 @@
     </Compile>
     <Compile Include="Helpers\CustomMapper.cs" />
     <Compile Include="Helpers\Helpers.cs" />
+    <Compile Include="Helpers\ProductHelpers.cs" />
     <Compile Include="Models\ApiBetShopTicket.cs" />
+    <Compile Include="Models\ApiCashierInput.cs" />
     <Compile Include="Models\ApiCashierSession.cs" />
-    <Compile Include="Models\ApiClientSetting.cs" />
-    <Compile Include="Models\ApiCloseShiftInput.cs" />
+    <Compile Include="Models\ApiClientInput.cs" />
     <Compile Include="Models\ApiCloseShiftOutput.cs" />
     <Compile Include="Models\ApiFilterCashDesk.cs" />
     <Compile Include="Models\ApiFnAccount.cs" />
-    <Compile Include="Models\ApiGetCashierSessionInput.cs" />
-    <Compile Include="Models\ApiGetClientsOutput.cs" />
     <Compile Include="Models\ApiPaymentSystem.cs" />
+    <Compile Include="Models\ApiProductInput.cs" />
     <Compile Include="Models\ApiRequestBase.cs" />
-    <Compile Include="Models\AssignPinInput.cs" />
     <Compile Include="Models\AuthorizationBase.cs" />
     <Compile Include="Models\CardReaderAuthorizationInput.cs" />
     <Compile Include="Models\CashDesksOutput.cs" />
@@ -328,38 +327,28 @@
     <Compile Include="Models\CreatePaymentRequest.cs" />
     <Compile Include="Models\GetBetByDocumentIdInput.cs" />
     <Compile Include="Models\GetBetShopOperationsOutput.cs" />
-    <Compile Include="Models\GetBetShopOperationsInput.cs" />
     <Compile Include="Models\AuthorizationInput.cs" />
     <Compile Include="Models\AuthorizationOutput.cs" />
-    <Compile Include="Models\BetShopBetInfo.cs" />
     <Compile Include="Models\CashDeskCorrectionInput.cs" />
-    <Compile Include="Models\GetCashDeskCurrentBalanceInput.cs" />
     <Compile Include="Models\GetCashDeskCurrentBalanceOutput.cs" />
-    <Compile Include="Models\GetCashDeskOperationsOutput.cs" />
     <Compile Include="Models\DepositToInternetClientInput.cs" />
     <Compile Include="Models\DepositToInternetClientOutput.cs" />
     <Compile Include="Models\FinOperationResponse.cs" />
     <Compile Include="Models\GetCashDeskInfoInput.cs" />
-    <Compile Include="Models\GetCashDeskInfoOutput.cs" />
-    <Compile Include="Models\GetBetByBarcodeInput.cs" />
     <Compile Include="Models\GetBetShopBetsOutput.cs" />
-    <Compile Include="Models\GetCashDeskOperationsInput.cs" />
+    <Compile Include="Models\CashDeskOperations.cs" />
+    <Compile Include="Models\GetCashDeskInfoOutput.cs" />
+    <Compile Include="Models\GetCashDeskOperationsOutput.cs" />
     <Compile Include="Models\GetCashiersBalanceIntput.cs" />
     <Compile Include="Models\GetCashiersBalanceOutput.cs" />
     <Compile Include="Models\ApiClientFilter.cs" />
     <Compile Include="Models\GetClientOutput.cs" />
     <Compile Include="Models\GetErrorInput.cs" />
-    <Compile Include="Models\GetPaymentRequestsInput.cs" />
     <Compile Include="Models\GetPaymentRequestsOutput.cs" />
-    <Compile Include="Models\GetProductSessionInput.cs" />
     <Compile Include="Models\GetProductSessionOutput.cs" />
-    <Compile Include="Models\CloseSessionInput.cs" />
-    <Compile Include="Models\GetReportByBetInput.cs" />
-    <Compile Include="Models\GetShiftReportInput.cs" />
+    <Compile Include="Models\ReportByBetInput.cs" />
     <Compile Include="Models\ApiFilterBase.cs" />
     <Compile Include="Models\Reports\ApiGetShiftReportOutput.cs" />
-    <Compile Include="Models\GetTicketInfoInput.cs" />
-    <Compile Include="Models\GetTicketInfoOutput.cs" />
     <Compile Include="Models\PayPaymentRequestOutput.cs" />
     <Compile Include="Models\PayWinInput.cs" />
     <Compile Include="Models\Reports\ApiShift.cs" />

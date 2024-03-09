@@ -21,5 +21,7 @@
         public int Order { get; set; }
 
         public string Image { get; set; }
+
+        public string HoverImage { get; set; }
     }
 }

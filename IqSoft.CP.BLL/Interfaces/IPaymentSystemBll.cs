@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using IqSoft.CP.Common.Models.AdminModels;
 using IqSoft.CP.DAL;
 using IqSoft.CP.DAL.Filters;
 using IqSoft.CP.DAL.Filters.PaymentRequests;
@@ -8,10 +9,9 @@ namespace IqSoft.CP.BLL.Interfaces
 {
     public interface IPaymentSystemBll : IBaseBll
     {
-        List<PaymentSystem> GetPaymentSystems();
+        List<PaymentSystem> GetPaymentSystems(bool? isActive);
+        void SavePaymentSystem(ApiPaymentSystemModel apiPaymentSystemModel);
 
-        PaymentSystem SavePaymentSystem(PaymentSystem paymentSystem);
-        
         List<fnPartnerPaymentSetting> GetfnPartnerPaymentSettings(FilterfnPartnerPaymentSetting filter, bool checkPermissions, int partnerId);
 
         PartnerPaymentSetting SavePartnerPaymentSetting(PartnerPaymentSetting partnerPaymentSetting);

@@ -8,6 +8,7 @@ namespace IqSoft.CP.DAL.Filters.Clients
     {
         public DateTime FromDate { get; set; }
         public DateTime ToDate { get; set; }
+        public int? PartnerId { get; set; }
         public FiltersOperation Ids { get; set; }
         public FiltersOperation PartnerIds { get; set; }
         public FiltersOperation ClientIds { get; set; }
@@ -25,7 +26,8 @@ namespace IqSoft.CP.DAL.Filters.Clients
         {
             objects = objects.Where(x => x.StartTime >= FromDate);
             objects = objects.Where(x => x.StartTime < ToDate);
-
+            if(PartnerId.HasValue)
+                objects = objects.Where(x => x.PartnerId == PartnerId);
             FilterByValue(ref objects, Ids, "Id");
             FilterByValue(ref objects, PartnerIds, "PartnerId");
             FilterByValue(ref objects, ClientIds, "ClientId");

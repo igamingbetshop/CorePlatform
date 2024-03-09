@@ -434,7 +434,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                             CacheManager.RemoveKeysFromCache(string.Format("{0}_", Constants.CacheItems.ProductCountrySetting));
                             foreach (var id in ids)
                             {
-                                CacheManager.UpdateProductById(id);
+                                CacheManager.DeleteProductFromCache(id);
                                 CacheManager.RemovePartnerProductSetting(partnerId, id);
                             }
                         }

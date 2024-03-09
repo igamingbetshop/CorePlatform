@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Cryptography;
+using System.Text.RegularExpressions;
 
 namespace IqSoft.CP.Integration.Payments.Helpers
 {
@@ -80,50 +81,66 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 		public static PaymentResponse PayoutRequest(PaymentRequest paymentRequest, SessionIdentity session, ILog log)
 		{
 			using (var paymentSystemBl = new PaymentSystemBll(session, log))
+			using (var clientBl = new ClientBll(paymentSystemBl))
 			{
-				var client = CacheManager.GetClientById(paymentRequest.ClientId.Value);
-				var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, paymentRequest.PaymentSystemId,
-																				   paymentRequest.CurrencyId, (int)PaymentRequestTypes.Withdraw);
-				var url = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.SantimaPayUrl).StringValue;
-				var paymentInfo = JsonConvert.DeserializeObject<PaymentInfo>(paymentRequest.Info);
-				var bankInfo = paymentSystemBl.GetBankInfoById(Convert.ToInt32(paymentInfo.BankId)) ??
-					throw BaseBll.CreateException(session.LanguageId, Constants.Errors.BankIsUnavailable);
-				var signature = GenerateSignedToken(new Dictionary<string, object>()
+				try
+				{
+					var client = CacheManager.GetClientById(paymentRequest.ClientId.Value);
+					var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, paymentRequest.PaymentSystemId,
+																					   paymentRequest.CurrencyId, (int)PaymentRequestTypes.Withdraw);
+					var url = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.SantimaPayUrl).StringValue;
+					var paymentInfo = JsonConvert.DeserializeObject<PaymentInfo>(paymentRequest.Info);
+					var bankInfo = paymentSystemBl.GetBankInfoById(Convert.ToInt32(paymentInfo.BankId)) ??
+						throw BaseBll.CreateException(session.LanguageId, Constants.Errors.BankIsUnavailable);
+					var signature = GenerateSignedToken(new Dictionary<string, object>()
 						{
 							{ "amount", paymentRequest.Amount},
 							{ "paymentreason", "Withdraw"},
 							{ "merchantId", partnerPaymentSetting.UserName }
 						}, partnerPaymentSetting.Password);
-				var paymentInput = new
-				{
-					amount = paymentRequest.Amount,
-					clientReference = paymentRequest.Id.ToString(),
-					id = bankInfo.BankCode,
-					merchantId = partnerPaymentSetting.UserName,
-					paymentMethod = bankInfo.NickName,
-					reason = "Withdraw",
-					receiverAccountNumber = paymentInfo.BankAccountNumber,
-					signedToken = signature,
-				};
-				var httpRequestInput = new HttpRequestInput
-				{
-					ContentType = Constants.HttpContentTypes.ApplicationJson,
-					RequestMethod = Constants.HttpRequestMethods.Post,
-					Url = $"{url}payout-transfer",
-					PostData = JsonConvert.SerializeObject(paymentInput)
-				};
-				var response = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
-				var output = JsonConvert.DeserializeObject<PayoutOutput>(response);
-				if (output.Status == "SUCCESS")
-				{
-					return new PaymentResponse
+					var paymentInput = new
 					{
-						Status = PaymentRequestStates.Approved,
+						amount = paymentRequest.Amount,
+						clientReference = paymentRequest.Id.ToString(),
+						id = bankInfo.BankCode,
+						merchantId = partnerPaymentSetting.UserName,
+						paymentMethod = bankInfo.NickName,
+						reason = "Withdraw",
+						receiverAccountNumber = paymentInfo.BankAccountNumber,
+						signedToken = signature,
 					};
+					var httpRequestInput = new HttpRequestInput
+					{
+						ContentType = Constants.HttpContentTypes.ApplicationJson,
+						RequestMethod = Constants.HttpRequestMethods.Post,
+						Url = $"{url}payout-transfer",
+						PostData = JsonConvert.SerializeObject(paymentInput)
+					};
+					var response = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
+					var output = JsonConvert.DeserializeObject<PayoutOutput>(response);
+					paymentRequest.ExternalTransactionId = output.TxnId;
+					paymentSystemBl.ChangePaymentRequestDetails(paymentRequest);
+					if (output.Status == "SUCCESS")
+						return new PaymentResponse
+						{
+							Status = PaymentRequestStates.Approved,
+						};
+					throw new Exception($"Error: {output.Status} {output.Message}");
 				}
-				else
-				   throw new Exception($"Error: {output.Status} {output.Message}");
-			}
+				catch (Exception ex)
+				{
+                    var output = JsonConvert.DeserializeObject<PayoutOutput>(ex.Message);
+                    var message = JsonConvert.DeserializeObject<PayoutOutput>(output.Message);
+                    if (message.Status == "declined")
+                    {
+                        using (var documentBl = new DocumentBll(paymentSystemBl))
+                        using (var notificationBl = new NotificationBll(paymentSystemBl))
+                            clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed, message.Message,
+                                                                null, null, false, paymentRequest.Parameters, documentBl, notificationBl);
+                    }
+                    throw;
+                }
+            }
 		}
 
 		private static ECDsa GetEllipticCurveAlgorithm(string privateKey)

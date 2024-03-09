@@ -24,7 +24,7 @@ namespace IqSoft.CP.DAL
         public Nullable<decimal> CoinValue { get; set; }
         public Nullable<decimal> BetValueLevel { get; set; }
     
-        public virtual Product Product { get; set; }
         public virtual Bonu Bonu { get; set; }
+        public virtual Product Product { get; set; }
     }
 }

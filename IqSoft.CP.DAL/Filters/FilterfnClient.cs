@@ -71,7 +71,8 @@ namespace IqSoft.CP.DAL.Filters
         public FiltersOperation LastUpdateTimes { get; set; }
         public FiltersOperation LastSessionDates { get; set; }
 
-        public FiltersOperation Balances { get; set; }
+        public FiltersOperation RealBalances { get; set; }
+        public FiltersOperation BonusBalances { get; set; }
 
         public FiltersOperation GGRs { get; set; }
 
@@ -133,7 +134,8 @@ namespace IqSoft.CP.DAL.Filters
             FilterByValue(ref objects, Ages, "Age");
             FilterByValue(ref objects, RegionIsoCodes, "RegionIsoCode");
             FilterByValue(ref objects, States, "State");
-            FilterByValue(ref objects, Balances, "Balance");
+            FilterByValue(ref objects, RealBalances, "RealBalance");
+            FilterByValue(ref objects, BonusBalances, "BonusBalance");
             FilterByValue(ref objects, GGRs, "GGR");
             FilterByValue(ref objects, NETGamings, "NETGaming");
             FilterByValue(ref objects, AffiliatePlatformIds, "AffiliatePlatformId");

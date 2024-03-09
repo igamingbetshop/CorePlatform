@@ -41,7 +41,6 @@ namespace IqSoft.CP.DAL
         public virtual BetShop BetShop { get; set; }
         public virtual Currency Currency { get; set; }
         public virtual ObjectType ObjectType { get; set; }
-        public virtual PaymentSystem PaymentSystem { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<AccountBalance> AccountBalances { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
@@ -52,5 +51,6 @@ namespace IqSoft.CP.DAL
         public virtual ICollection<Transaction> Transactions { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PaymentRequest> PaymentRequests { get; set; }
+        public virtual PaymentSystem PaymentSystem { get; set; }
     }
 }

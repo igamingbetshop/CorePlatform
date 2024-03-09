@@ -25,10 +25,17 @@ using IqSoft.CP.BLL.Caching;
 using static IqSoft.CP.Common.Constants;
 using IqSoft.CP.Integration.Platforms.Helpers;
 using IqSoft.CP.DataWarehouse;
-using Product = IqSoft.CP.DAL.Product;
-using User = IqSoft.CP.DAL.User;
 using System.IO;
 using System.Reflection;
+using System.Data.Entity.Infrastructure;
+using System.Security.Cryptography;
+using Product = IqSoft.CP.DAL.Product;
+using User = IqSoft.CP.DAL.User;
+using ClientBonu = IqSoft.CP.DAL.ClientBonu;
+using PaymentRequest = IqSoft.CP.DAL.PaymentRequest;
+using JobTrigger = IqSoft.CP.DAL.JobTrigger;
+using Bonu = IqSoft.CP.DAL.Bonu;
+using IqSoft.CP.Common.Models.Partner;
 
 namespace IqSoft.CP.JobService
 {
@@ -276,6 +283,36 @@ namespace IqSoft.CP.JobService
             }
         }
 
+        public static void ExpireClientVerificationStatus()
+        {
+            using (var db = new IqSoftCorePlatformEntities())
+            {
+                var currentTime = DateTime.UtcNow;
+                var partnerSetting = db.WebSiteMenuItems.Where(x => x.WebSiteMenu.Type == Constants.WebSiteConfiguration.Config &&
+                                                               x.Title == Constants.PartnerKeys.VerificationValidPeriodInMonth && x.Href != null)
+                                                  .Select(x => new { x.WebSiteMenu.PartnerId, x.Href }).ToList()
+                                                  .Select(x => new PartnerSetting { PartnerId = x.PartnerId, Type = Convert.ToInt32(x.Href) }).ToList();
+                var partnerIds = partnerSetting.Select(x => x.PartnerId).ToList();
+                var clientSettings = db.ClientSettings.Where(x => x.Name.StartsWith(Constants.ClientSettings.VerificationServiceName) &&
+                                                                  x.DateValue != null && partnerIds.Contains(x.Client.PartnerId))
+                                                      .GroupBy(x=>x.Client.PartnerId).ToList();
+                var clientIds = new List<int>();
+                foreach(var cs in clientSettings)
+                {
+                    var expirationPeriod = partnerSetting.FirstOrDefault(x=> x.PartnerId == cs.Key).Type;
+                    clientIds.AddRange(cs.Where(x => x.DateValue.Value.AddMonths(expirationPeriod) < currentTime)
+                                         .Select(x => { x.NumericValue = (int)VerificationStatuses.EXPIRED; return x.ClientId; }));
+                }
+                db.SaveChanges();
+                db.Clients.Where(x => x.IsDocumentVerified && clientIds.Contains(x.Id)).UpdateFromQuery(x => new DAL.Client { IsDocumentVerified = false });
+                clientIds.ForEach(clientId =>
+                {
+                    CacheManager.RemoveClientFromCache(clientId);
+                    BroadcastRemoveClientFromCache(clientId.ToString());
+                });
+            }
+        }
+
         public static void ExpireUserSessions()
         {
             using (var db = new IqSoftCorePlatformEntities())
@@ -446,7 +483,7 @@ namespace IqSoft.CP.JobService
                                 httpRequestInput.Url = partnerKey[Constants.PartnerKeys.XeApiUrl] + "convert_from/?" + CommonFunctions.GetUriEndocingFromObject(request);
                                 var response = JsonConvert.DeserializeObject<XeRateResponse>(CommonFunctions.SendHttpRequest(httpRequestInput, out _));
                                 var beforeRate = dbCurr.CurrentRate;
-                                db.Currencies.Where(x => x.Id == dbCurr.Id).UpdateFromQuery(x => new Currency { CurrentRate = response.To[0].Mid, LastUpdateTime = currentDate });
+                                db.Currencies.Where(x => x.Id == dbCurr.Id).UpdateFromQuery(x => new DAL.Currency { CurrentRate = response.To[0].Mid, LastUpdateTime = currentDate });
                                 db.CurrencyRates.Add(new CurrencyRate
                                 {
                                     CurrencyId = dbCurr.Id,
@@ -823,6 +860,7 @@ namespace IqSoft.CP.JobService
                                                                PartnerId = x.PartnerId,
                                                                ClientId =x.Id,
                                                                ClientName =x.UserName,
+                                                               ClientStatus = x.State,
                                                                AffiliateId = x.AffiliateReferral.AffiliatePlatform.Id,
                                                                AffiliateName = x.AffiliateReferral.AffiliatePlatform.Name,
                                                                ClickId = x.AffiliateReferral.RefId,
@@ -860,7 +898,7 @@ namespace IqSoft.CP.JobService
                                 continue;
                             var fromDate = affClient.Key.KickOffTime.Value;
                             var fDate = fromDate.Year * (long)1000000 + fromDate.Month * 10000 + fromDate.Day * 100 + fromDate.Hour;
-                            var upToDate = affClient.Key.LastExecutionTime.AddHours(affClient.Key.StepInHours);
+                            var upToDate = affClient.Key.LastExecutionTime.Value.AddHours(affClient.Key.StepInHours.Value);
                             var tDate = upToDate.Year * (long)1000000 + upToDate.Month * 10000 + upToDate.Day * 100 + upToDate.Hour;
                             var dateString = fromDate.ToString("yyyy-MM-dd");
 
@@ -1668,7 +1706,8 @@ namespace IqSoft.CP.JobService
             {
                 var currentDate = DateTime.UtcNow;
                 var lostBonuses = db.ClientBonus.Where(x => x.Status == (int)ClientBonusStatuses.NotAwarded &&
-                (x.Bonu.Status != (int)BonusStatuses.Active || !x.Bonu.ValidForAwarding.HasValue || DbFunctions.AddHours(x.CreationTime, x.Bonu.ValidForAwarding.Value) < currentDate ||
+                (x.Bonu.Status != (int)BonusStatuses.Active || !x.Bonu.ValidForAwarding.HasValue || 
+                    DbFunctions.AddHours(x.CreationTime, x.Bonu.ValidForAwarding.Value) < currentDate ||
                 x.Bonu.FinishTime < currentDate)).ToList();
                 foreach (var b in lostBonuses)
                 {
@@ -1747,7 +1786,7 @@ namespace IqSoft.CP.JobService
                             if (sourceAmount != null)
                                 break;
                         }
-                        clientBonus.FinalAmount = sourceAmount ?? clientBonus.BonusPrize;
+                        clientBonus.PossibleBonusPrize = sourceAmount ?? clientBonus.BonusPrize;
                         awardedBonuses.Add(clientBonus);
                     }
                 }
@@ -1758,7 +1797,7 @@ namespace IqSoft.CP.JobService
 
                 foreach (var gb in groupedBonuses)
                 {
-                    int count = 0;
+                    int count = 1;
                     if (partnerKeys.ContainsKey(gb.Key) && !string.IsNullOrEmpty(partnerKeys[gb.Key]))
                         int.TryParse(partnerKeys[gb.Key], out count);
                     var partnerBonuses = gb.OrderBy(x => x.Bonu.Priority ?? 0).ToList();
@@ -1766,11 +1805,9 @@ namespace IqSoft.CP.JobService
                     {
                         try
                         {
-                            if (count > 0 && db.ClientBonus.Count(x => x.ClientId == ab.ClientId && x.Status == (int)ClientBonusStatuses.Active) >= count)
-                                throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.ClientAlreadyHasActiveBonus);
-
                             if (ab.Bonu.Type == (int)BonusTypes.CampaignCash)
                             {
+                                ab.FinalAmount = ab.PossibleBonusPrize;
                                 ab.Status = (int)ClientBonusStatuses.Finished;
                                 db.SaveChanges();
                                 BroadcastRemoveCache(string.Format("{0}_{1}", Constants.CacheItems.NotAwardedCampaigns, ab.ClientId));
@@ -1779,9 +1816,8 @@ namespace IqSoft.CP.JobService
                             {
                                 ab.Status = (int)ClientBonusStatuses.Active;
                                 ab.AwardingTime = DateTime.UtcNow;
-                                ab.BonusPrize = ab.FinalAmount.Value;
+                                ab.BonusPrize = ab.PossibleBonusPrize.Value;
                                 ab.TurnoverAmountLeft = ab.BonusPrize;
-                                ab.FinalAmount = null;
                                 db.SaveChanges();
                                 BroadcastRemoveCache(string.Format("{0}_{1}", Constants.CacheItems.NotAwardedCampaigns, ab.ClientId));
                             }
@@ -1790,23 +1826,27 @@ namespace IqSoft.CP.JobService
                                 ab.Status = (int)ClientBonusStatuses.Active;
                                 ab.AwardingTime = DateTime.UtcNow;
                                 ab.BonusPrize = 0;
-                                ab.FinalAmount = null;
                                 db.SaveChanges();
                                 BroadcastRemoveCache(string.Format("{0}_{1}", Constants.CacheItems.NotAwardedCampaigns, ab.ClientId));
                             }
                             else if (ab.Bonu.Type == (int)BonusTypes.CampaignWagerCasino || ab.Bonu.Type == (int)BonusTypes.CampaignWagerSport)
                             {
+                                if (count > 0 && db.ClientBonus.Count(x => x.ClientId == ab.ClientId &&
+                                   (x.Status == (int)ClientBonusStatuses.Active || x.Status == (int)ClientBonusStatuses.Finished) &&
+                                   (x.Bonu.Type == (int)BonusTypes.CampaignWagerCasino || x.Bonu.Type == (int)BonusTypes.CampaignWagerSport)) >= count)
+                                   throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.ClientAlreadyHasActiveBonus,
+                                       info: "AwardClientCampaignBonus_" + ab.Id + "_" + ab.ClientId);
+
+                                var bonusAmount = ab.PossibleBonusPrize.Value;
                                 using (var bonusService = new BonusService(new SessionIdentity(), log))
                                 {
-                                    var bonusAmount = ab.FinalAmount.Value;
                                     var partnerAmount = BaseBll.ConvertCurrency(ab.Client.CurrencyId, ab.Client.Partner.CurrencyId, bonusAmount);
                                     bonusService.GiveWageringBonus(ab.Bonu, ab.Client, bonusAmount, ab.ReuseNumber ?? 1);
                                 }
                                 ab.Status = (int)ClientBonusStatuses.Active;
                                 ab.AwardingTime = DateTime.UtcNow;
-                                ab.BonusPrize = ab.FinalAmount.Value;
+                                ab.BonusPrize = bonusAmount;
                                 ab.TurnoverAmountLeft = ab.BonusPrize * ab.Bonu.TurnoverCount;
-                                ab.FinalAmount = null;
                                 db.SaveChanges();
                                 BroadcastRemoveCache(string.Format("{0}_{1}_{2}_{3}", Constants.CacheItems.Accounts, (int)ObjectTypes.Client, ab.ClientId, ab.Client.CurrencyId));
                                 BroadcastRemoveCache(string.Format("{0}_{1}", Constants.CacheItems.ActiveBonusId, ab.ClientId));
@@ -1817,7 +1857,8 @@ namespace IqSoft.CP.JobService
                         }
                         catch (FaultException<BllFnErrorType> ex)
                         {
-                            log.Error(JsonConvert.SerializeObject(new { Id = ex.Detail.Id, Message = ex.Detail.Message }) + "_" + JsonConvert.SerializeObject(new { ab.Id, ab.BonusId, ab.ClientId }));
+                            log.Error(JsonConvert.SerializeObject(new { Id = ex.Detail.Id, Message = ex.Detail.Message, Info = ex.Detail.Info }) + 
+                                "_" + JsonConvert.SerializeObject(new { ab.Id, ab.BonusId, ab.ClientId }));
                         }
                         catch (Exception ex)
                         {
@@ -1850,12 +1891,7 @@ namespace IqSoft.CP.JobService
                                 {
                                     x.Jackpot = JsonConvert.SerializeObject(jackpodFeed[x.ExternalId]);
                                 });
-                                db.SaveChanges();
-                                Parallel.ForEach(providerProducts, x =>
-                                {
-                                    BroadcastRemoveCache(string.Format("{0}_{1}", Constants.CacheItems.Products, x.Id));
-                                    BroadcastRemoveCache(string.Format("{0}_{1}_{2}", Constants.CacheItems.Products, gp.Id, x.ExternalId));
-                                });
+                                db.SaveChanges();//keep jackpots separately
                                 break;
                             default:
                                 break;
@@ -1888,19 +1924,23 @@ namespace IqSoft.CP.JobService
                             foreach (var trigger in depositTriggers)
                             {
                                 var client = CacheManager.GetClientById(trigger.ClientId);
-                                var isInternalAffiliate = clientBl.GiveAffiliateCommission(client, trigger.PaymentRequestId.Value,
-                                    trigger.PaymentRequest.PartnerPaymentSettingId.Value, trigger.Amount??0, documentBl);
+                                var depCount = CacheManager.GetClientDepositCount(trigger.ClientId);
+
+                                var isInternalAffiliate = clientBl.GiveAffiliateCommission(client, trigger.PaymentRequestId.Value, 
+                                    trigger.PaymentRequest.PartnerPaymentSettingId.Value, depCount, trigger.Amount ?? 0, documentBl);
+
                                 var parameters = string.IsNullOrEmpty(trigger.PaymentRequest.Parameters) ? new Dictionary<string, string>() :
                                 JsonConvert.DeserializeObject<Dictionary<string, string>>(trigger.PaymentRequest.Parameters);
                                 if (!parameters.ContainsKey(nameof(trigger.PaymentRequest.BonusRefused)) ||
                                     !Convert.ToBoolean(parameters[nameof(trigger.PaymentRequest.BonusRefused)]))
                                     clientBl.CheckDepositBonus(trigger.PaymentRequest, bonusService);
-                                var depCount = CacheManager.GetClientDepositCount(trigger.ClientId);
+                                
                                 clientBl.ChangeClientDepositInfo(trigger.ClientId, depCount, trigger.PaymentRequest.Amount, trigger.PaymentRequest.LastUpdateTime);
                                 notificationBl.SendDepositNotification(client.Id, trigger.PaymentRequest.Status, trigger.Amount ?? 0, string.Empty);
-                                if (!isInternalAffiliate)
-                                    notificationBl.DepositAffiliateNotification(client, trigger.PaymentRequest.Amount, trigger.PaymentRequest.Id, depCount);
-                                clientBl.AddClientJobTrigger(trigger.ClientId, (int)JobTriggerTypes.ReconsiderSegments);
+								var partnerKey = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.CRMPlarforms).StringValue;
+								if (!isInternalAffiliate || !string.IsNullOrWhiteSpace(partnerKey))
+                                    notificationBl.DepositAffiliateNotification(client, trigger.PaymentRequest.Amount, trigger.PaymentRequest.Id, depCount, partnerKey);
+								clientBl.AddClientJobTrigger(trigger.ClientId, (int)JobTriggerTypes.ReconsiderSegments);
                             }
                         }
                         db.JobTriggers.RemoveRange(depositTriggers);
@@ -1914,9 +1954,10 @@ namespace IqSoft.CP.JobService
                 log.Error(ex);
             }
         }
-         
+
         public static void ReconsiderDynamicSegments(ILog log)
         {
+            var segId = 0;
             try
             {
                 using (var db = new IqSoftCorePlatformEntities())
@@ -1930,15 +1971,16 @@ namespace IqSoft.CP.JobService
 
                         if (triggers.Any())
                         {
-                            var segments = db.Segments.Where(x => x.Mode == (int)PaymentSegmentModes.Dynamic &&
+                            var segments = db.Segments.Include(x=>x.Partner).Where(x => x.Mode == (int)PaymentSegmentModes.Dynamic &&
                                                                   x.State == (int)SegmentStates.Active && partnerIds.Contains(x.PartnerId))
-                                                      .ToList().Select(x => x.MapToSegmentModel()).GroupBy(x => x.PartnerId);
+                                                      .ToList().Select(x => x.MapToSegmentModel(0)).GroupBy(x => x.PartnerId);
 
                             foreach (var partnerSegments in segments)
                             {
                                 var query = fnClients.Where(x => x.PartnerId == partnerSegments.Key);
                                 foreach (var s in partnerSegments)
                                 {
+                                    segId = s.Id ?? 0;
                                     var sQuery = query.Where(x => (!s.IsKYCVerified.HasValue || x.IsDocumentVerified == s.IsKYCVerified) && (!s.Gender.HasValue || x.Gender == s.Gender));
 
                                     sQuery = CustomHelper.FilterByCondition(sQuery, s.ClientStatusSet, "State", isAndCondition: true);
@@ -1955,175 +1997,180 @@ namespace IqSoft.CP.JobService
                                         sQuery = CustomHelper.FilterByCondition(sQuery, s.SignUpPeriodObject, "CreationTime");
 
                                     var clientIds = sQuery.Select(x => x.Id).ToList();
+                                    if (s.SessionPeriod != null && s.SessionPeriodObject.ConditionItems.Any())
+                                    {
+                                        var sessionPeriodQuery = dwh.ClientSessions.Where(x => clientIds.Contains(x.ClientId) && x.ProductId == Constants.PlatformProductId)
+                                                                   .Select(x => new
+                                                                   {
+                                                                       x.ClientId,
+                                                                       SessionPeriod = DbFunctions.DiffMinutes(x.StartTime, x.EndTime ?? DateTime.UtcNow)
+                                                                   });
+                                        CustomHelper.FilterByCondition(sessionPeriodQuery, s.SessionPeriodObject, "SessionPeriod");
+                                        var tmpIds = sessionPeriodQuery.Select(x => x.ClientId).ToList();
+                                        clientIds = clientIds.Where(x => tmpIds.Contains(x)).ToList();
+                                    }
+
                                     if ((s.TotalDepositsAmount != null && s.TotalDepositsAmountObject.ConditionItems.Any()) ||
                                         (s.TotalDepositsCount != null && s.TotalDepositsCountObject.ConditionItems.Any()))
                                     {
-                                        var totalDeposits = db.PaymentRequests.Where(x => clientIds.Contains(x.ClientId.Value) &&
+                                        var dep = db.PaymentRequests.Where(x => clientIds.Contains(x.ClientId.Value) &&
                                                             (x.Type == (int)PaymentRequestTypes.Deposit || x.Type == (int)PaymentRequestTypes.ManualDeposit) &&
                                                             (x.Status == (int)PaymentRequestStates.Approved || x.Status == (int)PaymentRequestStates.ApprovedManually))
-                                                            .GroupBy(x => x.ClientId)
-                                                            .Select(x => new { ClientId = x.Key, Amount = x.Sum(y => y.Amount), Count = x.Count() });
-                                        if (totalDeposits.Any())
+                                                            .GroupBy(x => new { x.ClientId, x.CurrencyId } )
+                                                            .Select(x => new { x.Key.ClientId, Currency = x.Key.CurrencyId, Amount = x.Sum(y => y.Amount), Count = x.Count() })
+                                                            .ToList().Select(x=>new { x.ClientId, Amount = BaseBll.ConvertCurrency(x.Currency, s.CurrencyId, x.Amount), x.Count});
+                                        var depQuery = dep.AsQueryable();
+                                        var queryIds = clientIds.Where(x => !dep.Any(y => y.ClientId == x))
+                                                                .Select(x => new { ClientId = x, Count = 0, Amount = 0 }).AsQueryable();
+                                        queryIds = CustomHelper.FilterByCondition(queryIds, s.TotalDepositsAmountObject, "Amount");
+                                        queryIds = CustomHelper.FilterByCondition(queryIds, s.TotalDepositsCountObject, "Count");
+                                        if (dep.Any())
                                         {
-                                            totalDeposits = CustomHelper.FilterByCondition(totalDeposits, s.TotalDepositsAmountObject, "Amount");
-                                            totalDeposits = CustomHelper.FilterByCondition(totalDeposits, s.TotalDepositsCountObject, "Count");
-                                            var tmpClientIds = clientIds.Where(x => !totalDeposits.Any(y => y.ClientId == x))
-                                                                        .Select(x => new { ClientId = x, Count = 0, Amount = 0 }).AsQueryable();
-                                            tmpClientIds = CustomHelper.FilterByCondition(tmpClientIds, s.TotalDepositsAmountObject, "Amount");
-                                            tmpClientIds = CustomHelper.FilterByCondition(tmpClientIds, s.TotalDepositsCountObject, "Count");
-                                            clientIds = clientIds.Where(x => totalDeposits.Any(y => y.ClientId == x) ||
-                                                                             tmpClientIds.Any(z => z.ClientId == x)).ToList();
+                                            depQuery = CustomHelper.FilterByCondition(depQuery, s.TotalDepositsAmountObject, "Amount");
+                                            depQuery = CustomHelper.FilterByCondition(depQuery, s.TotalDepositsCountObject, "Count");
                                         }
+                                        var tmpIds = queryIds.ToList();
+                                        dep = depQuery.ToList();
+                                        clientIds = clientIds.Where(x => dep.Any(y => y.ClientId == x) ||
+                                                                         tmpIds.Any(z => z.ClientId == x)).ToList();
                                     }
                                     if ((s.TotalWithdrawalsAmount != null && s.TotalWithdrawalsAmountObject.ConditionItems.Any()) ||
                                         (s.TotalWithdrawalsCount != null && s.TotalWithdrawalsCountObject.ConditionItems.Any()))
                                     {
-                                        var totalWithdrawals = db.PaymentRequests.Where(x => clientIds.Contains(x.ClientId.Value) && x.Type == (int)PaymentRequestTypes.Withdraw &&
+                                        var withdIds = db.PaymentRequests.Where(x => clientIds.Contains(x.ClientId.Value) && x.Type == (int)PaymentRequestTypes.Withdraw &&
                                                             (x.Status == (int)PaymentRequestStates.Approved || x.Status == (int)PaymentRequestStates.ApprovedManually))
-                                                            .GroupBy(x => x.ClientId)
-                                                            .Select(x => new
-                                                            {
-                                                                ClientId = x.Key,
-                                                                Amount = x.Sum(y => y.Amount),
-                                                                Count = x.Count()
-                                                            });
-                                        if (totalWithdrawals.Any())
+                                                            .GroupBy(x =>new { x.ClientId, x.CurrencyId })
+                                                            .Select(x => new { x.Key.ClientId, Currency = x.Key.CurrencyId, Amount = x.Sum(y => y.Amount), Count = x.Count() })
+                                                            .ToList().Select(x => new { x.ClientId, Amount = BaseBll.ConvertCurrency(x.Currency, s.CurrencyId, x.Amount), x.Count }); 
+                                        var withdQuery = withdIds.AsQueryable();
+                                        var queryIds = clientIds.Where(x => !withdIds.Any(y => y.ClientId == x))
+                                                                .Select(x => new { ClientId = x, Count = 0, Amount = 0 }).AsQueryable();
+                                        queryIds = CustomHelper.FilterByCondition(queryIds, s.TotalWithdrawalsAmountObject, "Amount");
+                                        queryIds = CustomHelper.FilterByCondition(queryIds, s.TotalWithdrawalsCountObject, "Count");
+
+                                        if (withdIds.Any())
                                         {
-                                            totalWithdrawals = CustomHelper.FilterByCondition(totalWithdrawals, s.TotalWithdrawalsAmountObject, "Amount");
-                                            totalWithdrawals = CustomHelper.FilterByCondition(totalWithdrawals, s.TotalWithdrawalsCountObject, "Count");
-                                            var tmpClientIds = clientIds.Where(x => !totalWithdrawals.Any(y => y.ClientId == x))
-                                                                       .Select(x => new { ClientId = x, Count = 0, Amount = 0 }).AsQueryable();
-                                            tmpClientIds = CustomHelper.FilterByCondition(tmpClientIds, s.TotalWithdrawalsAmountObject, "Amount");
-                                            tmpClientIds = CustomHelper.FilterByCondition(tmpClientIds, s.TotalWithdrawalsCountObject, "Count");
-                                            clientIds = clientIds.Where(x => totalWithdrawals.Any(y => y.ClientId == x) ||
-                                                                             tmpClientIds.Any(z => z.ClientId == x)).ToList();
+                                            withdQuery = CustomHelper.FilterByCondition(withdQuery, s.TotalWithdrawalsAmountObject, "Amount");
+                                            withdQuery = CustomHelper.FilterByCondition(withdQuery, s.TotalWithdrawalsCountObject, "Count");
                                         }
+                                        var tmpIds = queryIds.ToList();
+                                        withdIds = withdQuery.ToList();
+                                        clientIds = clientIds.Where(x => withdIds.Any(y => y.ClientId == x) ||
+                                                                         tmpIds.Any(z => z.ClientId == x)).ToList();
                                     }
                                     if ((s.TotalBetsCount != null && s.TotalBetsCountObject.ConditionItems.Any()) ||
                                         (s.TotalBetsAmount != null && s.TotalBetsAmountObject.ConditionItems.Any()))
                                     {
 
                                         var totalBets = dwh.Bets.Where(x => clientIds.Contains(x.ClientId.Value) && x.BetAmount > 0 && x.State != (int)BetDocumentStates.Deleted)
-                                                               .GroupBy(x => x.ClientId)
-                                                               .Select(x => new { ClientId = x.Key, Count = x.Count(), BetAmount = x.Sum(y => y.BetAmount) });
+                                                               .GroupBy(x =>new { x.ClientId, x.CurrencyId })
+                                                               .Select(x => new { x.Key.ClientId, Currency = x.Key.CurrencyId, Count = x.Count(), BetAmount = x.Sum(y => y.BetAmount) })
+                                                               .ToList().Select(x => new { x.ClientId, BetAmount = BaseBll.ConvertCurrency(x.Currency, s.CurrencyId, x.BetAmount), x.Count }); 
+                                        var betsQuery = totalBets.AsQueryable();
+                                        var queryIds = clientIds.Where(x => !totalBets.Any(y => y.ClientId == x))
+                                                               .Select(x => new { ClientId = x, Count = 0, BetAmount = 0 }).AsQueryable();
 
                                         if (s.TotalBetsCount != null && s.TotalBetsCountObject.ConditionItems.Any())
                                         {
-                                            totalBets = CustomHelper.FilterByCondition(totalBets, s.TotalBetsCountObject, "Count");
-                                            var tmpClientIds = clientIds.Where(x => !totalBets.Any(y => y.ClientId == x))
-                                                                        .Select(x => new { ClientId = x, Count = 0 }).AsQueryable();
-                                            tmpClientIds = CustomHelper.FilterByCondition(tmpClientIds, s.TotalBetsCountObject, "Count");
-                                            clientIds = clientIds.Where(x => totalBets.Any(y => y.ClientId == x) ||
-                                            tmpClientIds.Any(z => z.ClientId == x)).ToList();
+                                            queryIds = CustomHelper.FilterByCondition(queryIds, s.TotalBetsCountObject, "Count");
+                                            if (totalBets.Any())
+                                                betsQuery = CustomHelper.FilterByCondition(betsQuery, s.TotalBetsCountObject, "Count");
                                         }
                                         if (s.TotalBetsAmount != null && s.TotalBetsAmountObject.ConditionItems.Any())
                                         {
-                                            totalBets = CustomHelper.FilterByCondition(totalBets, s.TotalBetsAmountObject, "BetAmount");
-                                            var tmpClientIds = clientIds.Where(x => !totalBets.Any(y => y.ClientId == x))
-                                                                        .Select(x => new { ClientId = x, BetAmount = 0 }).AsQueryable();
-                                            tmpClientIds = CustomHelper.FilterByCondition(tmpClientIds, s.TotalBetsAmountObject, "BetAmount");
-                                            clientIds = clientIds.Where(x => totalBets.Any(y => y.ClientId == x) ||
-                                            tmpClientIds.Any(z => z.ClientId == x)).ToList();
+                                            queryIds = CustomHelper.FilterByCondition(queryIds, s.TotalBetsAmountObject, "BetAmount");
+                                            if (totalBets.Any())
+                                                betsQuery = CustomHelper.FilterByCondition(betsQuery, s.TotalBetsAmountObject, "BetAmount");
                                         }
-                                    }
-                                    if (s.Profit != null && s.ProfitObject.ConditionItems.Any()) // must be clarified
-                                    {
-                                        var profit = db.PaymentRequests.Where(x => clientIds.Contains(x.ClientId.Value) &&
-                                        (x.Status == (int)PaymentRequestStates.Approved || x.Status == (int)PaymentRequestStates.ApprovedManually))
-                                                               .GroupBy(x => x.ClientId)
-                                                               .Select(x => new
-                                                               {
-                                                                   ClientId = x.Key,
-                                                                   Profit = x.Where(y => y.Type == (int)PaymentRequestTypes.Deposit).Sum(y => y.Amount) -
-                                                                    x.Where(y => y.Type == (int)PaymentRequestTypes.Withdraw).Sum(y => y.Amount)
-                                                               });
-                                        profit = CustomHelper.FilterByCondition(profit, s.ProfitObject, "Profit");
-                                        var tmpClientIds = clientIds.Where(x => !profit.Any(y => y.ClientId == x))
-                                                                      .Select(x => new { ClientId = x, Profit = 0 }).AsQueryable();
-                                        tmpClientIds = CustomHelper.FilterByCondition(tmpClientIds, s.ProfitObject, "Profit");
-                                        clientIds = clientIds.Where(x => profit.Any(y => y.ClientId == x) ||
-                                                                         tmpClientIds.Any(z => z.ClientId == x)).ToList();
-                                    }
-                                    if (!string.IsNullOrEmpty(s.Bonus) && s.BonusSet.ConditionItems.Any()) // must be clarified
-                                    {
-                                        var clientBonuses = db.ClientBonus.Where(x => clientIds.Contains(x.ClientId) &&
-                                       (x.Status == (int)ClientBonusStatuses.Active || x.Status == (int)ClientBonusStatuses.Closed ||
-                                         x.Status == (int)ClientBonusStatuses.Finished || x.Status == (int)ClientBonusStatuses.Lost));
-                                        clientBonuses = CustomHelper.FilterByCondition(clientBonuses, s.BonusSet, "BonusId");
-                                    }
+                                        var tmpIds = queryIds.ToList();
+                                        totalBets = betsQuery.ToList();
+                                        clientIds = clientIds.Where(x => totalBets.Any(y => y.ClientId == x) ||
+                                                                         tmpIds.Any(z => z.ClientId == x)).ToList();
+                                    }                                   
 
-                                    if (s.SuccessDepositPaymentSystem != null && s.SuccessDepositPaymentSystemObject.ConditionItems.Any())
-                                    {
-                                        var successDepositPayments = db.PaymentRequests.Where(x => x.ClientId.HasValue && clientIds.Contains(x.ClientId.Value) &&
-                                                       (x.Type == (int)PaymentRequestTypes.Deposit || x.Type == (int)PaymentRequestTypes.ManualDeposit) &&
-                                                       (x.Status == (int)PaymentRequestStates.Approved || x.Status == (int)PaymentRequestStates.ApprovedManually))
-                                                       .GroupBy(x => x.ClientId)
-                                                       .ToDictionary(k => k.Key, v => v.Select(x => x.PaymentSystemId));
-                                        CustomHelper.FilterByCondition(successDepositPayments, s.SuccessDepositPaymentSystemObject, "Value");
-                                        clientIds = clientIds.Where(x => successDepositPayments.Keys.Contains(x)).ToList();
-                                    }
-                                    if (s.SuccessWithdrawalPaymentSystem != null && s.SuccessWithdrawalPaymentSystemObject.ConditionItems.Any())
-                                    {
-                                        var successWithdrawalPayments = db.PaymentRequests.Where(x => x.ClientId.HasValue && clientIds.Contains(x.ClientId.Value) &&
-                                                        x.Type == (int)PaymentRequestTypes.Withdraw &&
-                                                       (x.Status == (int)PaymentRequestStates.Approved || x.Status == (int)PaymentRequestStates.ApprovedManually))
-                                                       .GroupBy(x => x.ClientId)
-                                                       .ToDictionary(k => k.Key, v => v.Select(x => x.PaymentSystemId));
-                                        CustomHelper.FilterByCondition(successWithdrawalPayments, s.TotalWithdrawalsAmountObject, "Value");
-                                        clientIds = clientIds.Where(x => successWithdrawalPayments.Keys.Contains(x)).ToList();
-                                    }
                                     if (s.ComplimentaryPoint != null && s.ComplimentaryPointObject.ConditionItems.Any())
                                     {
-                                        var accounts = db.Accounts.Where(x => x.ObjectTypeId == (int)ObjectTypes.Client && clientIds.Contains((int)x.ObjectId) &&
-                                                                              x.TypeId == (int)AccountTypes.ClientCompBalance)
-                                                                  .GroupBy(x => x.ObjectId)
-                                                                  .Select(x => new { ClientId = x.Key, Balance = x.Sum(y => y.Balance) });
-                                        if (accounts != null)
-                                        {
-                                            accounts = CustomHelper.FilterByCondition(accounts, s.ComplimentaryPointObject, "Balance");
-                                            var tmpClientIds = clientIds.Where(x => !accounts.Any(y => y.ClientId == x))
-                                                                        .Select(x => new { ClientId = x, Count = 0 }).AsQueryable();
-                                            tmpClientIds = CustomHelper.FilterByCondition(tmpClientIds, s.ComplimentaryPointObject, "Balance");
+                                        var accountsQuery = db.Accounts.Where(x => x.ObjectTypeId == (int)ObjectTypes.Client && clientIds.Contains((int)x.ObjectId) &&
+                                                                                   x.TypeId == (int)AccountTypes.ClientCompBalance)
+                                                                       .GroupBy(x => x.ObjectId)
+                                                                       .Select(x => new { ClientId = x.Key, Balance = x.Select(y => y.Balance).DefaultIfEmpty(0).Sum() });
+                                        var accounts = accountsQuery?.ToList();
+                                        var queryIds = clientIds.Where(x => accounts == null || !accounts.Any(y => y.ClientId == x))
+                                                                       .Select(x => new { ClientId = x, Balance = 0 }).AsQueryable();
+                                        queryIds = CustomHelper.FilterByCondition(queryIds, s.ComplimentaryPointObject, "Balance");
+                                        if (accountsQuery != null)
+                                            accountsQuery = CustomHelper.FilterByCondition(accountsQuery, s.ComplimentaryPointObject, "Balance");
 
-                                            clientIds = clientIds.Where(x => accounts.Any(y => y.ClientId == x) ||
-                                                                             tmpClientIds.Any(z => z.ClientId == x)).ToList();
-                                        }
+                                        var tmpIds = queryIds.ToList();
+                                        accounts = accountsQuery.ToList();
+                                        clientIds = clientIds.Where(x => accounts.Any(y => y.ClientId == x) ||
+                                                                         tmpIds.Any(z => z.ClientId == x)).ToList();
                                     }
                                     if (s.SegmentId != null && s.SegmentIdSet.ConditionItems.Any())
                                     {
                                         var cs = db.ClientClassifications.Where(x => clientIds.Contains(x.ClientId) &&
                                                                                      x.ProductId == Constants.PlatformProductId)
-                                                                         .Select(x => new { ClientId = x.ClientId, SegmentId = x.SegmentId.Value });
-                                        CustomHelper.FilterByCondition(cs, s.SegmentIdSet, "SegmentId", isAndCondition: false);
+                                                                         .Select(x => new { x.ClientId, SegmentId = x.SegmentId.Value });
+                                        CustomHelper.FilterByCondition(cs, s.SegmentIdSet, "SegmentId", isAndCondition: true);
                                         clientIds = clientIds.Where(x => cs.Any(y => y.ClientId == x)).ToList();
                                     }
                                     if (s.SportBetsCount != null && s.SportBetsCountObject.ConditionItems.Any())
                                     {
-                                        var sportBets = dwh.Bets.Where(x => clientIds.Contains(x.ClientId.Value) &&
+                                        var sportBetsQuery = dwh.Bets.Where(x => clientIds.Contains(x.ClientId.Value) &&
                                                                            x.ProductId == Constants.SportsbookProductId)
                                                                .GroupBy(x => x.ClientId)
                                                                .Select(x => new { ClientId = x.Key, Count = x.Count() });
-
-                                        sportBets = CustomHelper.FilterByCondition(sportBets, s.SportBetsCountObject, "Count");
-                                        var tmpClientIds = clientIds.Where(x => !sportBets.Any(y => y.ClientId == x))
+                                        var sportBets = sportBetsQuery.ToList();
+                                        var queryIds = clientIds.Where(x => !sportBets.Any(y => y.ClientId == x))
                                                                        .Select(x => new { ClientId = x, Count = 0 }).AsQueryable();
-                                        tmpClientIds = CustomHelper.FilterByCondition(tmpClientIds, s.SportBetsCountObject, "Count");
+                                        queryIds = CustomHelper.FilterByCondition(queryIds, s.SportBetsCountObject, "Count");
+                                        if (sportBets.Any())
+                                            sportBetsQuery = CustomHelper.FilterByCondition(sportBetsQuery, s.SportBetsCountObject, "Count");
+
+                                        var tmpIds = queryIds.ToList();
+                                        sportBets = sportBetsQuery.ToList();
                                         clientIds = clientIds.Where(x => sportBets.Any(y => y.ClientId == x) ||
-                                                                         tmpClientIds.Any(z => z.ClientId == x)).ToList();
+                                                                         tmpIds.Any(z => z.ClientId == x)).ToList();
                                     }
                                     if (s.CasinoBetsCount != null && s.CasinoBetsCountObject.ConditionItems.Any())
                                     {
-                                        var casinoBets = dwh.Bets.Where(x => clientIds.Contains(x.ClientId.Value) &&
+                                        var casinoBetsQuery = dwh.Bets.Where(x => clientIds.Contains(x.ClientId.Value) &&
                                                                             x.ProductId != Constants.SportsbookProductId)
                                                                 .GroupBy(x => x.ClientId)
                                                                 .Select(x => new { ClientId = x.Key, Count = x.Count() });
-                                        casinoBets = CustomHelper.FilterByCondition(casinoBets, s.CasinoBetsCountObject, "Count");
-                                        var tmpClientIds = clientIds.Where(x => !casinoBets.Any(y => y.ClientId == x))
-                                                                    .Select(x => new { ClientId = x, Count = 0 }).AsQueryable();
-                                        tmpClientIds = CustomHelper.FilterByCondition(tmpClientIds, s.CasinoBetsCountObject, "Count");
+                                        var casinoBets = casinoBetsQuery.ToList();
+                                        var queryIds = clientIds.Where(x => !casinoBets.Any(y => y.ClientId == x))
+                                                                       .Select(x => new { ClientId = x, Count = 0 }).AsQueryable();
+                                        if (casinoBets.Any())
+                                            casinoBetsQuery = CustomHelper.FilterByCondition(casinoBetsQuery, s.CasinoBetsCountObject, "Count");
+                                        var tmpIds = queryIds.ToList();
+                                        casinoBets = casinoBetsQuery.ToList();
                                         clientIds = clientIds.Where(x => casinoBets.Any(y => y.ClientId == x) ||
-                                                                         tmpClientIds.Any(z => z.ClientId == x)).ToList();
+                                                                         tmpIds.Any(z => z.ClientId == x)).ToList();
                                     }
+                                    if (s.SuccessDepositPaymentSystemList != null && s.SuccessDepositPaymentSystemList.Any())
+
+                                    {
+                                        var successDepositPayments = db.PaymentRequests.Where(x => x.ClientId.HasValue && clientIds.Contains(x.ClientId.Value) &&
+                                                   (x.Type == (int)PaymentRequestTypes.Deposit || x.Type == (int)PaymentRequestTypes.ManualDeposit) &&
+                                                   (x.Status == (int)PaymentRequestStates.Approved || x.Status == (int)PaymentRequestStates.ApprovedManually))
+                                                   .GroupBy(x => x.ClientId)
+                                                   .Select(x => new { ClientId = x.Key, PaymentSystemIds = x.Select(y => y.PaymentSystemId).Distinct().ToList() }).ToList();
+                                        var tmpClientIds = successDepositPayments.Where(x => s.SuccessDepositPaymentSystemList.All( y=> x.PaymentSystemIds.Contains(y))).Select(x => x.ClientId).ToList();
+                                        clientIds = clientIds.Where(x => tmpClientIds.Contains(x)).ToList();
+                                    }
+                                    if (s.SuccessWithdrawalPaymentSystemList != null && s.SuccessWithdrawalPaymentSystemList.Any())
+                                    {
+                                        var successWithdrawalPayments = db.PaymentRequests.Where(x => x.ClientId.HasValue && clientIds.Contains(x.ClientId.Value) &&
+                                                        x.Type == (int)PaymentRequestTypes.Withdraw &&
+                                                       (x.Status == (int)PaymentRequestStates.Approved || x.Status == (int)PaymentRequestStates.ApprovedManually))
+                                                       .GroupBy(x => x.ClientId)
+                                                       .Select(x => new { ClientId = x.Key, PaymentSystemIds = x.Select(y => y.PaymentSystemId).Distinct().ToList() }).ToList();
+
+                                        var tmpClientIds = successWithdrawalPayments.Where(x =>s.SuccessWithdrawalPaymentSystemList.All(y=> x.PaymentSystemIds.Contains(y))).Select(x => x.ClientId).ToList();
+                                        clientIds = clientIds.Where(x => tmpClientIds.Contains(x)).ToList();
+                                    }
+
 
                                     var existings = db.ClientClassifications.Where(x => clientIds.Contains(x.ClientId) &&
                                         x.SegmentId == s.Id && x.ProductId == Constants.PlatformProductId).Select(x => x.ClientId);
@@ -2167,7 +2214,7 @@ namespace IqSoft.CP.JobService
             }
             catch (Exception ex)
             {
-                log.Error(ex);
+                log.Error($"SegmentId: {segId},  " + ex);
             }
         }
 

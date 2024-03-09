@@ -13,9 +13,9 @@ using log4net;
 using IqSoft.CP.BLL.Caching;
 using IqSoft.CP.BLL.Interfaces;
 using IqSoft.CP.DAL.Models.Cache;
-using Newtonsoft.Json;
 using  System.Data.Entity;
 using IqSoft.CP.Common.Models;
+using IqSoft.CP.Common.Models.AdminModels;
 
 namespace IqSoft.CP.BLL.Services
 {
@@ -37,43 +37,99 @@ namespace IqSoft.CP.BLL.Services
 
         #endregion
 
-        public List<PaymentSystem> GetPaymentSystems()
+        public List<PaymentSystem> GetPaymentSystems(bool? isActive)
         {
             GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPaymentSystems
             });
-
+            if(isActive.HasValue)
+                return Db.PaymentSystems.Where(x => x.IsActive == isActive).ToList();
             return Db.PaymentSystems.ToList();
         }
 
-        public PaymentSystem SavePaymentSystem(PaymentSystem paymentSystem)
+        public void SavePaymentSystem(ApiPaymentSystemModel apiPaymentSystemModel)
         {
-            if (!Enum.IsDefined(typeof(OpenModes), paymentSystem.ContentType))
-                throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
-            var currentTime = GetServerDate();
-            var dbPaymentSystem = Db.PaymentSystems.FirstOrDefault(x => x.Id == paymentSystem.Id);
-            if (dbPaymentSystem == null)
+            GetPermissionsToObject(new CheckPermissionInput
             {
-                paymentSystem.SessionId = SessionId;
-                paymentSystem.CreationTime = currentTime;
-                paymentSystem.LastUpdateTime = currentTime;
-                paymentSystem.Translation = CreateTranslation(new fnTranslation
+                Permission = Constants.Permissions.ViewPaymentSystems,
+                ObjectTypeId = ObjectTypes.PaymentSystem
+            });
+            GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.EditPaymentSystem,
+                ObjectTypeId = ObjectTypes.PaymentSystem
+            });
+
+            if (apiPaymentSystemModel.ContentType.HasValue && !Enum.IsDefined(typeof(OpenModes), apiPaymentSystemModel.ContentType) ||
+                ((apiPaymentSystemModel.Ids == null || !apiPaymentSystemModel.Ids.Any()) && apiPaymentSystemModel.Id.HasValue && apiPaymentSystemModel.Id <=0 ))
+                throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
+
+            var currentTime = DateTime.Now;
+            if (apiPaymentSystemModel.Ids == null || !apiPaymentSystemModel.Ids.Any())
+            {
+                if (Db.PaymentSystems.Any(x => x.Name.ToLower() == apiPaymentSystemModel.Name.ToLower() && x.Id != apiPaymentSystemModel.Id))
+                    throw CreateException(LanguageId, Constants.Errors.NickNameExists);
+                var dbPaymentSystem = Db.PaymentSystems.FirstOrDefault(x => x.Id == apiPaymentSystemModel.Id);
+                if (dbPaymentSystem == null)
                 {
-                    ObjectTypeId = (int)ObjectTypes.PaymentSystem,
-                    Text = paymentSystem.Name,
-                    LanguageId = Constants.DefaultLanguageId
-                });
-                Db.PaymentSystems.Add(paymentSystem);
+                    if (Db.PaymentSystems.Any(x => x.Name == apiPaymentSystemModel.Name))
+                        throw CreateException(LanguageId, Constants.Errors.NickNameExists);
+                    Db.PaymentSystems.Add(new PaymentSystem
+                    {
+                        Id = apiPaymentSystemModel.Id.Value,
+                        Name = apiPaymentSystemModel.Name,
+                        PeriodicityOfRequest = apiPaymentSystemModel.PeriodicityOfRequest ?? 0,
+                        PaymentRequestSendCount = apiPaymentSystemModel.PaymentRequestSendCount ?? 0,
+                        Type = apiPaymentSystemModel.Type ?? 0,
+                        IsActive = apiPaymentSystemModel.IsActive ?? true,
+                        ContentType = apiPaymentSystemModel.ContentType ?? 0,
+                        CreationTime = currentTime,
+                        LastUpdateTime = currentTime,
+                        Translation = CreateTranslation(new fnTranslation
+                        {
+                            ObjectTypeId = (int)ObjectTypes.PaymentSystem,
+                            Text = apiPaymentSystemModel.Name,
+                            LanguageId = Constants.DefaultLanguageId
+                        })
+                    });
+                }
+                else
+                {                   
+                    dbPaymentSystem.SessionId = SessionId;
+                    dbPaymentSystem.Name = apiPaymentSystemModel.Name;
+                    if (apiPaymentSystemModel.Type.HasValue)
+                        dbPaymentSystem.Type = apiPaymentSystemModel.Type.Value;
+                    if (apiPaymentSystemModel.ContentType.HasValue)
+                        dbPaymentSystem.ContentType = apiPaymentSystemModel.ContentType.Value;
+                    if (apiPaymentSystemModel.IsActive.HasValue)
+                        dbPaymentSystem.IsActive = apiPaymentSystemModel.IsActive.Value;
+                    dbPaymentSystem.LastUpdateTime = currentTime;
+                }
                 SaveChanges();
-                return paymentSystem;
             }
-            dbPaymentSystem.SessionId = SessionId;
-            dbPaymentSystem.Name = paymentSystem.Name;
-            dbPaymentSystem.Type = paymentSystem.Type;
-            dbPaymentSystem.ContentType = paymentSystem.ContentType;
-            SaveChanges();
-            return dbPaymentSystem;
+            else
+            {
+                Db.PaymentSystems.Where(x => apiPaymentSystemModel.Ids.Contains(x.Id)).ToList()
+                    .ForEach(x =>
+                    {
+                        if (apiPaymentSystemModel.Type.HasValue)
+                            x.Type = apiPaymentSystemModel.Type.Value;
+                        if (apiPaymentSystemModel.ContentType.HasValue)
+                            x.ContentType = apiPaymentSystemModel.ContentType.Value;
+                        if (apiPaymentSystemModel.IsActive.HasValue)
+                            x.IsActive = apiPaymentSystemModel.IsActive.Value;
+                        x.LastUpdateTime = currentTime;
+                    });
+                SaveChanges();
+            }
+            if (apiPaymentSystemModel.Id.HasValue && apiPaymentSystemModel.Id> 0)
+                CacheManager.RemoveKeysFromCache(string.Format("{0}_{1}", Constants.CacheItems.PaymentSystems, apiPaymentSystemModel.Id.Value));
+            else
+                apiPaymentSystemModel.Ids.ForEach(x =>
+                {
+                    CacheManager.RemoveKeysFromCache(string.Format("{0}_{1}", Constants.CacheItems.PaymentSystems, x));
+                });
         }
 
         public PartnerPaymentSetting GetPartnerPaymentSettingById(int partnerPaymentSettingId, bool checkPermissions = true)
@@ -152,7 +208,8 @@ namespace IqSoft.CP.BLL.Services
                 !checkPermissionResult.AccessibleObjects.Contains(partnerPaymentSetting.Id))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             if ((partnerPaymentSetting.OpenMode.HasValue && !Enum.IsDefined(typeof(OpenModes), partnerPaymentSetting.OpenMode.Value)) ||
-                 partnerPaymentSetting.Commission < 0 || partnerPaymentSetting.Commission >=100 || partnerPaymentSetting.FixedFee < 0 )
+                 partnerPaymentSetting.Commission < 0 || partnerPaymentSetting.Commission >=100 || partnerPaymentSetting.FixedFee < 0 ||
+                 partnerPaymentSetting.ApplyPercentAmount < 0)
                 throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
             var currentTime = GetServerDate();
             var dbPartnerSetting = Db.PartnerPaymentSettings.Include(x => x.PartnerPaymentCountrySettings).FirstOrDefault(x => x.Id == partnerPaymentSetting.Id);
@@ -584,7 +641,10 @@ namespace IqSoft.CP.BLL.Services
                     dbRequest.Amount = request.Amount;
                     var client = CacheManager.GetClientById(dbRequest.ClientId.Value);
                     var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, dbRequest.PaymentSystemId, client.CurrencyId, dbRequest.Type);
-                    dbRequest.CommissionAmount = (dbRequest.Amount * partnerPaymentSetting.Commission / 100m) + partnerPaymentSetting.FixedFee;
+                    var commissionAmount = partnerPaymentSetting.FixedFee;
+                    if (!partnerPaymentSetting.ApplyPercentAmount.HasValue || request.Amount >= partnerPaymentSetting.ApplyPercentAmount)
+                        commissionAmount +=  request.Amount * partnerPaymentSetting.Commission / 100;
+                    dbRequest.CommissionAmount = commissionAmount;
                 }
                 dbRequest.LastUpdateTime = DateTime.UtcNow;
                 Db.SaveChanges();

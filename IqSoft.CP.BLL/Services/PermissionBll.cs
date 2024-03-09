@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Web.Security;
 using IqSoft.CP.BLL.Caching;
 using IqSoft.CP.BLL.Interfaces;
 using IqSoft.CP.Common;
@@ -124,6 +126,9 @@ namespace IqSoft.CP.BLL.Services
 
         public Role SaveRole(Role role)
         {
+            if (role.PartnerId == Constants.MainPartnerId)
+                role.PartnerId = null;
+
             var checkPermissionResult = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.CreateRole,
@@ -137,46 +142,70 @@ namespace IqSoft.CP.BLL.Services
             if ((!checkPermissionResult.HaveAccessForAllObjects && !checkPermissionResult.AccessibleObjects.Contains(role.Id)) ||
                 (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != role.PartnerId)))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
+
             var dbRole = Db.Roles.Include(x => x.RolePermissions).FirstOrDefault(x => x.Id == role.Id);
             if (dbRole == null)
             {
-                dbRole = new Role { Id = role.Id };
+                dbRole = new Role { 
+                    Id = role.Id,
+                    Name = role.Name,
+                    IsStatic = role.IsStatic,
+                    IsAdmin = role.IsAdmin,
+                    Comment = role.Comment,
+                    PartnerId = role.PartnerId
+                };
                 Db.Roles.Add(dbRole);
+                Db.SaveChanges();
             }
-            Db.Entry(dbRole).CurrentValues.SetValues(role);
+            var userPermissions = CacheManager.GetUserPermissions(Identity.Id);
+            var userRoles = GetUserRoles(Identity.Id);
+            var isAdmin = userRoles.Any(x => x.IsAdmin);
 
-            var rolePermissions = dbRole.RolePermissions.ToList();
-            // delete old role permissions
-            foreach (var rolePermission in rolePermissions)
+            var dbRolePermissions = dbRole.RolePermissions.ToList();
+            foreach (var dbRolePermission in dbRolePermissions)
             {
-                var newRolePermission =
-                    role.RolePermissions.FirstOrDefault(
-                        x => x.PermissionId == rolePermission.PermissionId && x.RoleId == rolePermission.RoleId);
+                var newRolePermission = role.RolePermissions.FirstOrDefault(
+                        x => x.PermissionId == dbRolePermission.PermissionId && x.RoleId == dbRolePermission.RoleId);
                 if (newRolePermission == null)
-                    Db.RolePermissions.Remove(rolePermission);
+                    Db.RolePermissions.Remove(dbRolePermission);
                 else
                 {
-                    rolePermission.Id = newRolePermission.Id;
-                    Db.Entry(rolePermission).CurrentValues.SetValues(newRolePermission);
+                    if (!isAdmin)
+                    {
+                        var up = userPermissions.FirstOrDefault(x => x.PermissionId == dbRolePermission.PermissionId);
+                        if (up == null || (!up.IsForAll && newRolePermission.IsForAll))
+                            throw CreateException(LanguageId, Constants.Errors.NotAllowed);
+                    }
+                    dbRolePermission.IsForAll = newRolePermission.IsForAll;
                     role.RolePermissions.Remove(newRolePermission);
                 }
             }
-
-            // add new role permissions
             foreach (var rolePermission in role.RolePermissions)
             {
-                var dbRolePermission = new RolePermission();
-                Db.RolePermissions.Add(dbRolePermission);
-                Db.Entry(dbRolePermission).CurrentValues.SetValues(rolePermission);
+                if (!isAdmin)
+                {
+                    var up = userPermissions.FirstOrDefault(x => x.PermissionId == rolePermission.PermissionId);
+                    if (up == null || (!up.IsForAll && rolePermission.IsForAll))
+                        throw CreateException(LanguageId, Constants.Errors.NotAllowed);
+                }
+
+                Db.RolePermissions.Add(new RolePermission
+                {
+                    RoleId = rolePermission.RoleId,
+                    PermissionId = rolePermission.PermissionId,
+                    IsForAll = rolePermission.IsForAll
+                });
             }
-            SaveChanges();
+            Db.SaveChanges();
+
             var users = Db.UserRoles.Where(x => x.RoleId == role.Id).Select(x => x.UserId).ToList();
             foreach (var u in users)
             {
-                CacheManager.UpdateUserPermissionsInCache(u);
+                CacheManager.DeleteUserPermissions(u);
             }
             return dbRole;
         }
+
         public Role CloneRole(int roleId, string newRoleName)
         {
             var checkPermissionResult = GetPermissionsToObject(new CheckPermissionInput
@@ -289,7 +318,7 @@ namespace IqSoft.CP.BLL.Services
                 Db.Entry(dbUserRole).CurrentValues.SetValues(userRole);
             }
             SaveChanges();
-            CacheManager.UpdateUserPermissionsInCache(userId);
+            CacheManager.DeleteUserPermissions(userId);
         }
 
         public Role GetUserCustomRole(int userId)
@@ -330,7 +359,7 @@ namespace IqSoft.CP.BLL.Services
                 Db.Entry(dbUserAccessobject).CurrentValues.SetValues(accessObject);
             }
             SaveChanges();
-            CacheManager.UpdateUserPermissionsInCache(userId);
+            CacheManager.DeleteUserPermissions(userId);
             CacheManager.UpdateUserAccessObjectsInCache(userId);
         }
 

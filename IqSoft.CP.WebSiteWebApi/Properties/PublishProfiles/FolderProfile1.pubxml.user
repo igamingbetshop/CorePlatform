@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+This file is used by the publish/package process of your Web project. You can customize the behavior of this process
+by editing this MSBuild file. In order to learn more about this please visit https://go.microsoft.com/fwlink/?LinkID=208121. 
+-->
+<Project>
+  <PropertyGroup>
+    <_PublishTargetUrl>C:\inetpub\wwwroot\CP\WebSiteWebApi\</_PublishTargetUrl>
+    <History>True|2024-03-04T23:06:52.5328108Z;True|2024-03-05T03:01:46.7352393+04:00;True|2024-03-05T02:55:49.1089161+04:00;True|2024-03-05T02:51:04.1923471+04:00;True|2024-03-05T02:44:58.6435858+04:00;True|2024-03-05T02:41:45.8266244+04:00;True|2024-03-05T02:01:08.8225983+04:00;True|2024-03-05T01:46:03.1959347+04:00;True|2024-03-05T01:19:05.1761183+04:00;True|2024-03-04T19:57:03.8158884+04:00;True|2024-03-04T19:43:02.9492530+04:00;True|2024-03-04T19:30:23.8093224+04:00;True|2024-03-04T19:19:37.0067857+04:00;True|2024-02-21T10:04:54.9633630+04:00;</History>
+    <LastFailureDetails />
+  </PropertyGroup>
+</Project>

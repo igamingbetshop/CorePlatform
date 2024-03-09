@@ -33,7 +33,7 @@ namespace IqSoft.CP.DataWarehouse.Filters
         public FiltersOperation TotalCreditCorrections { get; set; }
         public FiltersOperation CreditCorrectionsCounts { get; set; }
 
-        protected override IQueryable<fnClientReport> CreateQuery(IQueryable<fnClientReport> objects, Func<IQueryable<fnClientReport>, IOrderedQueryable<fnClientReport>> orderBy = null)
+        public override void CreateQuery(ref IQueryable<fnClientReport> objects, Func<IQueryable<fnClientReport>, IOrderedQueryable<fnClientReport>> orderBy = null)
         {
             if (PartnerId.HasValue)
                 objects = objects.Where(x => x.PartnerId == PartnerId.Value);
@@ -62,18 +62,18 @@ namespace IqSoft.CP.DataWarehouse.Filters
             FilterByValue(ref objects, CreditCorrectionsCounts, "CreditCorrectionsCount");
             FilterByValue(ref objects, TotalCreditCorrections, "TotalCreditCorrection");
             FilterByValue(ref objects, DebitCorrectionsCounts, "DebitCorrectionsCount");
-            return base.FilteredObjects(objects, orderBy);
+            base.FilteredObjects(ref objects, orderBy);
         }
 
         public IQueryable<fnClientReport> FilterObjects(IQueryable<fnClientReport> clients, Func<IQueryable<fnClientReport>,
             IOrderedQueryable<fnClientReport>> orderBy = null)
         {
-            clients = CreateQuery(clients, orderBy);
+            CreateQuery(ref clients, orderBy);
             return clients;
         }
         public long SelectedObjectsCount(IQueryable<fnClientReport> objects)
         {
-            objects = CreateQuery(objects);
+            CreateQuery(ref objects);
             return objects.Count();
         }             
     }

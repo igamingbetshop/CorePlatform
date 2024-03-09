@@ -206,6 +206,23 @@ namespace IqSoft.CP.BLL.Services
             }
         }
 
+        public void CreateFtpDirectory(FtpModel ftpModel, string path)
+        {
+            try
+            {
+                FtpWebRequest requestDir = (FtpWebRequest)WebRequest.Create(new Uri(path));
+                requestDir.Method = WebRequestMethods.Ftp.MakeDirectory;
+                requestDir.Credentials = new NetworkCredential(ftpModel.UserName, ftpModel.Password);
+                requestDir.UseBinary = true;
+                requestDir.KeepAlive = false;
+
+                FtpWebResponse response = (FtpWebResponse)requestDir.GetResponse();
+                response.Close();
+                response.Dispose();
+            }
+            catch  { }
+        }
+
         public static void GeneratePDF(string filePath, byte[] imageData)
         {
             using (var document = new PdfDocument())

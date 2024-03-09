@@ -20,8 +20,8 @@ namespace IqSoft.CP.DAL
         public Nullable<int> TriggerId { get; set; }
         public int Type { get; set; }
     
-        public virtual PaymentSystem PaymentSystem { get; set; }
         public virtual TriggerSetting TriggerSetting { get; set; }
         public virtual Bonu Bonu { get; set; }
+        public virtual PaymentSystem PaymentSystem { get; set; }
     }
 }

@@ -6,6 +6,7 @@ namespace IqSoft.CP.AdminWebApi.Filters.Reporting
     {
         public DateTime FromDate { get; set; }
         public DateTime ToDate { get; set; }
+        public int? PartnerId { get; set; }
         public ApiFiltersOperation Ids { get; set; }
         public ApiFiltersOperation PartnerIds { get; set; }
         public ApiFiltersOperation ClientIds { get; set; }

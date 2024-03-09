@@ -1,6 +1,6 @@
 ﻿namespace IqSoft.CP.BetShopWebApi.Models.Common
 {
-	public class GetCashDeskCurrentBalanceOutput : ClientRequestResponseBase
+	public class GetCashDeskCurrentBalanceOutput : ApiResponseBase
 	{
 		public decimal Balance { get; set; }
 		public decimal TerminalBalance { get; set; }

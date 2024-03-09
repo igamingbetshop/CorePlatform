@@ -42,7 +42,7 @@ namespace IqSoft.CP.AdminWebApi
             });
             JobHubProxy.On<int>("onUpdateProduct", (productId) =>
             {
-                CacheManager.UpdateProductById(productId);
+                CacheManager.DeleteProductFromCache(productId);
             });
             JobHubProxy.On<int, long, int, int>("onUpdateProductLimit", (objectTypeId, objectId, limitTypeId, productId) =>
             {

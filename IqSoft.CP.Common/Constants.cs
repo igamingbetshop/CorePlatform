@@ -5,7 +5,7 @@ namespace IqSoft.CP.Common
 {
     public static class Constants
     {
-        public const string CurrentVersion = "2.2004.1";
+        public const string CurrentVersion = "9.1.4";
         public const int MainExternalClientId = 21;
         public const int MainPartnerId = 1000;
         public const string DefaultLanguageId = "en";
@@ -60,6 +60,7 @@ namespace IqSoft.CP.Common
             public const string JobArea = "JobArea";
             public const string AccountTabsList = "AccountTabsList";
             public const string HeaderPanel1Menu = "HeaderPanel1Menu";
+            public const string HeaderPanel2Menu = "HeaderPanel2Menu";
             public const string DocumentType = "DocumentType";
             public const string CasinoMenu = "CasinoMenu";
             public const string FooterMenu = "FooterMenu";
@@ -73,6 +74,10 @@ namespace IqSoft.CP.Common
             public const string MobileHomeMenu = "MobileHomeMenu";
             public const string WebFragments = "WebFragments";
             public const string MobileFragments = "MobileFragments";
+            public const string FullRegister = "FullRegister";
+            public const string QuickRegister = "QuickRegister";
+            public const string ProfileDetails = "ProfileDetails";
+            public const string Documentation = "Documentation";
 
             public const string Fonts = "Fonts";
         }
@@ -272,6 +277,7 @@ namespace IqSoft.CP.Common
             public const int ClientExist = 186;
             public const int CharacterNotFound = 187;
             public const int AnnouncementNotFound = 188;
+            public const int NewsNotFound = 189;
         }
 
         public static class Languages
@@ -632,6 +638,12 @@ namespace IqSoft.CP.Common
             public const string FugaPayBankTransfer = "FugaPayBankTransfer";
             public const string FugaPayPapara = "FugaPayPapara";
             public const string FugaPayPayFix = "FugaPayPayFix";
+            public const string XcoinsPayCrypto = "XcoinsPayCrypto";
+            public const string XcoinsPayCard = "XcoinsPayCard";
+            public const string Changelly = "Changelly";
+            public const string ChangellyCard = "ChangellyCard";
+            public const string ChangellyBankTransfer = "ChangellyBankTransfer";
+            public const string InternationalPSP = "InternationalPSP";
 
 
             public const string MoneyPayVisaMaster = "MoneyPayVisaMaster";
@@ -714,6 +726,8 @@ namespace IqSoft.CP.Common
             public const string Chapa = "Chapa";
 
             public const string Telebirr = "Telebirr";
+
+            public const string Jmitsolutions = "Jmitsolutions";
         }
 
         public static List<string> VoucherPaymentSystems { get; private set; } = new List<string>
@@ -782,6 +796,7 @@ namespace IqSoft.CP.Common
             public const string TurboGames = "TurboGames";
             public const string AleaPlay = "AleaPlay";
             public const string PlaynGo = "PlaynGo";
+            public const string AleaPartners = "AleaPartners";
 
             public const string NetEnt = "NetEnt";
             public const string RedTiger = "RedTiger";
@@ -796,6 +811,8 @@ namespace IqSoft.CP.Common
             public const string SoftLand = "SoftLand";            
             public const string BGGames = "BGGames"; 
             public const string TimelessTech = "TimelessTech"; 
+            public const string BCWGames = "BCWGames"; 
+            public const string Fiverscool = "Fiverscool"; 
 		}
 
         public static class InternalOperationType
@@ -905,8 +922,11 @@ namespace IqSoft.CP.Common
             public const string Translation = "Translation";
 			public const string ProductLimits = "ProductLimits";
             public const string BetshopGroups = "BetshopGroups";
+
+            public const string PartnerProductSettingPages = "PartnerProductSettingPages";
             public const string PartnerProductSettings = "PartnerProductSettings";
-			public const string PartnerProducts = "PartnerProducts";
+            
+            public const string PartnerProducts = "PartnerProducts";
 			public const string fnPartnerProductSettings = "fnPartnerProductSettings";
 			public const string ProductCountrySetting = "ProductCountrySetting";
             public const string Permissions = "Permissions";
@@ -957,6 +977,9 @@ namespace IqSoft.CP.Common
             public const string AggregatedFreeSpin = "AggregatedFreeSpin";
             public const string Banners = "Banners";
             public const string Promotions = "Promotions";
+            public const string News = "News";
+            public const string Popups = "Popups";
+            public const string ClientPopups = "ClientPopups";
             public const string Restrictions = "Restrictions";
 			public const string ActiveBonusId = "ActiveBonusId";
 			public const string BonusProducts = "BonusProducts";
@@ -1038,6 +1061,7 @@ namespace IqSoft.CP.Common
             public const string JapaneseYen = "JPY";
             public const string CanadianDollar = "CAD";
             public const string TunisianDinar = "TND";
+            public const string EthiopianBirr = "ETB";
         }
 
         public static class Permissions
@@ -1186,6 +1210,7 @@ namespace IqSoft.CP.Common
             public const string ViewDashboard = "ViewDashboard";
             public const string ViewPaymentRequests = "ViewPaymentRequests";
             public const string ViewPaymentSystems = "ViewPaymentSystems";
+            public const string EditPaymentSystem = "EditPaymentSystem";
             public const string ViewRealTime = "ViewRealTime";
             public const string ViewPlayerDashboard = "ViewPlayerDashboard";
             public const string ViewBonuses = "ViewBonuses";
@@ -1208,6 +1233,7 @@ namespace IqSoft.CP.Common
             public const string FrozenPaymentRequest = "FrozenPaymentRequest";
             public const string KYCPaymentRequest = "KYCPaymentRequest";
             public const string EditClientPass = "EditClientPassword";
+            public const string EditClientPinCode = "EditClientPinCode";
             public const string ViewReportByCorrection = "ViewReportByCorrection";
             public const string ViewReportByObjectChangeHistory = "ViewReportByObjectChangeHistory";
             public const string ExportObjectChangeHistory = "ExportObjectChangeHistory";
@@ -1217,10 +1243,14 @@ namespace IqSoft.CP.Common
             public const string SaveBanner = "SaveBanner";
             public const string ViewBanner = "ViewBanner";
             public const string ViewPromotion = "ViewPromotion";
+            public const string ViewNews = "ViewNews";
+            public const string ViewPopup= "ViewPopup";
             public const string EditPromotions = "EditPromotions";
             public const string RemovePromotions = "RemovePromotions";
+            public const string RemoveNews = "RemoveNews";
             public const string ViewWebSiteMenu = "ViewWebSiteMenu";
             public const string ViewAdminTranslations = "ViewAdminTranslations";
+            public const string ViewDocumentation = "ViewDocumentation";
             public const string EditWebSiteMenu = "EditWebSiteMenu";
             public const string EditWebSiteMenuTranslationEntry = "EditWebSiteMenuTranslationEntry";
             public const string EditAdminTranslation = "EditAdminTranslation";
@@ -1238,6 +1268,7 @@ namespace IqSoft.CP.Common
             public const string EditStyles = "EditStyles";
             public const string EditConfig = "EditConfig";
             public const string EditNews = "EditNews";
+            public const string EditPopup = "EditPopup";
             public const string EditPartnerAccounts = "EditPartnerAccounts";
             public const string ExportReportByPartners = "ExportReportByPartners";
             public const string ViewAffiliatePlatforms = "ViewAffiliatePlatforms";
@@ -1245,6 +1276,7 @@ namespace IqSoft.CP.Common
             public const string ViewAffiliate = "ViewAffiliate";
             public const string ViewAffiliates = "ViewAffiliates";
             public const string UpdateAffiliate = "UpdateAffiliate";
+            public const string GetAffiliateReport = "GetAffiliateReport";
 
             public const string ViewPaymentStatuses = "ViewPaymentStatuses";
             public const string EditSelfExcusion = "EditSelfExcusion";
@@ -1306,7 +1338,8 @@ namespace IqSoft.CP.Common
             public const int CheckUserBlockedSessions = 29;
             public const int CheckInactiveClients = 30;
             public const int NotifyIdentityExpiration = 31;
-            public const int InactivateImpossiblBonuses = 32;
+            public const int InactivateImpossibleBonuses = 32;
+            public const int SendAffiseReport = 33;
             public const int UpdateJackpotFeed = 34;
             public const int ReconsiderDynamicSegments = 35;
             public const int CheckInactiveUsers = 36;
@@ -1327,6 +1360,8 @@ namespace IqSoft.CP.Common
             public const int SettleBets = 51;
             public const int RestrictUnverifiedClients = 52;
             public const int GiveAffiliateCommission = 53;
+            public const int ExpireClientVerificationStatus = 54;
+
         }
 
         public static class EnumerationTypes
@@ -1524,6 +1559,7 @@ namespace IqSoft.CP.Common
             public const string ResourcesUrl = "ResourcesUrl";
             public const string IgnoreSessionDomain = "IgnoreSessionDomain";
             public const string BetCommissionPercent = "BetCommissionPercent";
+            public const string CRMPlarforms = "CRMPlarforms";
 
             #region Services
 
@@ -1579,6 +1615,9 @@ namespace IqSoft.CP.Common
             public const string TelegramBotToken = "TelegramBotToken";
             public const string GeezSmsUrl = "GeezSmsUrl";
             public const string GeezSmsToken = "GeezSmsToken";
+
+            public const string CustomerIoApiKey = "CustomerIoApiKey";
+            public const string CustomerIoUrl = "CustomerIoUrl";
 
             #endregion
 
@@ -1698,6 +1737,7 @@ namespace IqSoft.CP.Common
             public const string SoftSwissResourcesUrl = "SoftSwissResourcesUrl";
 
             public const string KironOperatorId = "KironOperatorId";
+            public const string KironBetShopOperatorId = "KironBetShopOperatorId";
 
             public const string BetSoftBankId = "BetSoftBankId";
             public const string BetSoftPassKey = "BetSoftPassKey";
@@ -1781,6 +1821,7 @@ namespace IqSoft.CP.Common
             public const string AleaPlaySecretKey = "AleaPlaySecretKey";
             public const string AleaPlayEnvironment = "AleaPlayEnvironment";
             public const string AleaPlayGamesUrl = "AleaPlayGamesUrl";
+            public const string AleaPlayFSApiUrl = "AleaPlayFSApiUrl";
 
             public const string PlaynGoAccessToken = "PlaynGoAccessToken";
             public const string PlaynGoGMTIsStaging = "PlaynGoGMTIsStaging";
@@ -1790,6 +1831,9 @@ namespace IqSoft.CP.Common
             public const string PlaynGoApiUsername = "PlaynGoApiUsername";
             public const string PlaynGoApiPassword = "PlaynGoApiPassword";
             public const string PlaynGoApiPId= "PlaynGoApiPId";
+
+            public const string AleaPartnersName = "AleaPartnersName";
+            public const string AleaPartnersInstance = "AleaPartnersInstance";
 
             public const string JackpotGamingApiToken = "JackpotGamingApiToken";
 
@@ -1821,12 +1865,17 @@ namespace IqSoft.CP.Common
             public const string TimelessTechOperatorID = "TimelessTechOperatorID";
             public const string TimelessTechSecretkey = "TimelessTechSecretkey";
             public const string TimelessTechUrl = "TimelessTechUrl";
+            public const string TimelessTechPragmaticLaunchUrl = "TimelessTechPragmaticLaunchUrl";
 
-            #endregion
+			public const string FiverscoolAgentCode = "FiverscoolAgentCode";
+			public const string FiverscoolAgentToken = "FiverscoolAgentToken";
+			public const string FiverscoolAgentSecret = "FiverscoolAgentSecret";
 
-            #region PaymentSystems
+			#endregion
 
-            public const string BankTransferUrl = "BankTransferUrl";
+			#region PaymentSystems
+
+			public const string BankTransferUrl = "BankTransferUrl";
             public const string SkrillDepositUrl = "SkrillDepositUrl";
             public const string SkrillSecurKey = "SkrillSecurKey";
             public const string SkrillWithdrawUrl = "SkrillWithdrawUrl";
@@ -1941,7 +1990,11 @@ namespace IqSoft.CP.Common
             public const string NodaPayApiUrl = "NodaPayApiUrl";
             public const string FugaPayApiUrl = "FugaPayApiUrl";
             public const string FugaPayPayoutApiUrl = "FugaPayPayoutApiUrl";
-
+            public const string XcoinsPayApiUrl = "XcoinsPayApiUrl";
+            public const string XcoinsPayApiPublicKey = "XcoinsPayApiPublicKey";
+            public const string XcoinsPayApiPrivateKey = "XcoinsPayApiPrivateKey";
+            public const string XcoinsPayRedirectUrl = "XcoinsPayRedirectUrl";
+            public const string InternationalPSPApiUrl = "InternationalPSPApiUrl";
 
             public const string LuckyPayWithdrawUrl = "LuckyPayWithdrawUrl";
             public const string LuckyPayDepositUrl = "LuckyPayDepositUrl";
@@ -2008,6 +2061,8 @@ namespace IqSoft.CP.Common
 			public const string TelebirrUrl = "TelebirrUrl";
 			public const string TelebirrPublicKey = "TelebirrPublicKey";
 
+			public const string JmitsolutionsUrl = "JmitsolutionsUrl";
+
 			#endregion
 
 			#region Config
@@ -2022,6 +2077,8 @@ namespace IqSoft.CP.Common
             public const string IPCountryHeader = "IPCountryHeader";
             public const string FirstLastBirthUnique = "FirstLastBirthUnique";
             public const string CharactersEnabled = "CharactersEnabled";
+            public const string HasCustomerIo = "HasCustomerIo";
+            public const string VerificationValidPeriodInMonth = "VerificationValidPeriodInMonth";
 
             #endregion
         }
@@ -2080,6 +2137,7 @@ namespace IqSoft.CP.Common
             public const string VerificationServiceName = "VerificationServiceName";
             public const string AffiliateCommissionGranted = "AffiliateCommissionGranted";
             public const string LimitConfirmed = "LimitConfirmed";
+            public const string PinCode = "PinCode";
         }
         public static class UserConfigurations
         {
@@ -2232,7 +2290,8 @@ namespace IqSoft.CP.Common
             AffiliatePlatforms.Intelitics,
             AffiliatePlatforms.DIM,
             AffiliatePlatforms.Affilka,
-            AffiliatePlatforms.IncomeAccess
+            AffiliatePlatforms.IncomeAccess,
+            AffiliatePlatforms.Scaleo
         };
         public static class InternalGames
 		{

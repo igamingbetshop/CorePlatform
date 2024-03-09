@@ -18,9 +18,9 @@ using IqSoft.CP.Common.Models;
 using System.Data.Entity.Validation;
 using IqSoft.CP.BLL.Models;
 using IqSoft.CP.DAL.Models.Segment;
-using System.Threading.Tasks;
 using IqSoft.CP.Common.Models.AdminModels;
 using IqSoft.CP.Common.Helpers;
+using System.Web.UI.WebControls;
 
 namespace IqSoft.CP.BLL.Services
 {
@@ -78,7 +78,7 @@ namespace IqSoft.CP.BLL.Services
                 dbBanner.Visibility = input.Visibility;
                 dbBanner.ShowDescription = input.ShowDescription;
                 dbBanner.ButtonType = input.ButtonType;
-                
+
                 if (input.BannerSegmentSettings == null || !input.BannerSegmentSettings.Any())
                     Db.BannerSegmentSettings.Where(x => x.BannerId == dbBanner.Id).DeleteFromQuery();
                 else
@@ -175,31 +175,39 @@ namespace IqSoft.CP.BLL.Services
             Db.SaveChanges();
         }
 
-        public PagedModel<fnBanner> GetBanners(int? partnerId, int? id, int skipCount, int takeCount)
+        public PagedModel<fnBanner> GetBanners(FilterfnBanner filter)
         {
-            var result = Db.fn_Banner(Identity.LanguageId).AsQueryable();
-            if (partnerId != null)
-                result = result.Where(x => x.PartnerId == partnerId);
-            if (id != null)
-                result = result.Where(x => x.Id == id);
-
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewPartner,
+                ObjectTypeId = ObjectTypes.Partner
+            });
             GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewBanner,
                 ObjectTypeId = ObjectTypes.Banner
             });
-
-            var partners = GetPermissionsToObject(new CheckPermissionInput
+            filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnBanner>>
             {
-                Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
-            });
+                new CheckPermissionOutput<fnBanner>
+                {
+                    AccessibleObjects = partnerAccess.AccessibleObjects,
+                    HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
+                    Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                }
+            };
+            Func<IQueryable<fnBanner>, IOrderedQueryable<fnBanner>> orderBy;
+            if (filter.OrderBy.HasValue && !string.IsNullOrEmpty(filter.FieldNameToOrderBy))
+                orderBy = QueryableUtilsHelper.OrderByFunc<fnBanner>(filter.FieldNameToOrderBy, filter.OrderBy.Value);
+            else
+                orderBy = banners => banners.OrderByDescending(x => x.Id);
 
-            if (!partners.HaveAccessForAllObjects)
-                result = result.Where(x => partners.AccessibleObjects.Contains(x.PartnerId));
-
-            var entities = result.OrderByDescending(x => x.Id).Skip(skipCount * takeCount).Take(takeCount).ToList();
-            if (entities.Any())
+            var result = new PagedModel<fnBanner>
+            {
+                Entities = filter.FilterObjects(Db.fn_Banner(Identity.LanguageId), orderBy),
+                Count = filter.SelectedObjectsCount(Db.fn_Banner(Identity.LanguageId))
+            };
+            if (result.Entities.Any())
             {
                 var smiFragments = Db.WebSiteSubMenuItems.Include(x => x.WebSiteMenuItem)
                                   .Where(x => x.WebSiteMenuItem.WebSiteMenu.Type == Constants.WebSiteConfiguration.Config &&
@@ -209,7 +217,7 @@ namespace IqSoft.CP.BLL.Services
                                   .Where(x => (x.WebSiteMenu.Type == Constants.WebSiteConfiguration.HomeMenu ||
                                               x.WebSiteMenu.Type == Constants.WebSiteConfiguration.MobileHomeMenu) && x.Type == "banner").ToList();
 
-                entities.ForEach(b =>
+                result.Entities.ToList().ForEach(b =>
                 {
                     var smiFragment = smiFragments.FirstOrDefault(x => x.Id == b.Type);
                     if (smiFragment != null)
@@ -222,11 +230,7 @@ namespace IqSoft.CP.BLL.Services
                     }
                 });
             }
-            return new PagedModel<fnBanner>
-            {
-                Entities = entities,
-                Count = result.Count()
-            };
+            return result;
         }
 
         public DAL.Banner GetBannerById(int? partnerId, int bannerId)
@@ -383,6 +387,349 @@ namespace IqSoft.CP.BLL.Services
             }
         }
 
+        public News SaveNews(News news)
+        {
+            GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.EditNews,
+                ObjectTypeId = ObjectTypes.News
+            });
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewPartner,
+                ObjectTypeId = ObjectTypes.Partner
+            });
+            if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != news.PartnerId))
+                throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
+            if (news.StartDate == DateTime.MinValue || news.FinishDate == DateTime.MinValue ||
+                news.StartDate >= news.FinishDate)
+                throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
+            var currentDate = DateTime.Now;
+            var dbNews = Db.News.Include(x => x.NewsSegmentSettings).FirstOrDefault(x => x.Id == news.Id);
+            if (dbNews != null)
+            {
+                var version = dbNews.ImageName.Split('?');
+                dbNews.ImageName = version.Length > 0 ? version[0] + "?ver=" + ((version.Length > 1 ? Convert.ToInt32(version[1].Replace("ver=", string.Empty)) : 0) + 1) : string.Empty;
+                dbNews.NickName = news.NickName;
+                dbNews.Type = news.Type;
+                dbNews.StartDate = news.StartDate;
+                dbNews.State = news.State;
+                dbNews.StartDate = news.StartDate;
+                dbNews.FinishDate = news.FinishDate;
+                dbNews.LastUpdateTime = currentDate;
+                dbNews.Order = news.Order;
+                dbNews.ParentId = news.ParentId;
+                dbNews.StyleType = news.StyleType;
+
+                if (news.NewsSegmentSettings == null || !news.NewsSegmentSettings.Any())
+                    Db.NewsSegmentSettings.Where(x => x.NewsId == dbNews.Id).DeleteFromQuery();
+                else
+                {
+                    var type = news.NewsSegmentSettings.First().Type;
+                    var segments = news.NewsSegmentSettings.Select(x => x.SegmentId).ToList();
+                    Db.NewsSegmentSettings.Where(x => x.NewsId == dbNews.Id &&
+                                                          (x.Type != type || !segments.Contains(x.SegmentId))).DeleteFromQuery();
+                    var dbSegments = Db.NewsSegmentSettings.Where(x => x.NewsId == dbNews.Id).Select(x => x.SegmentId).ToList();
+                    segments.RemoveAll(x => dbSegments.Contains(x));
+                    foreach (var s in segments)
+                        Db.NewsSegmentSettings.Add(new NewsSegmentSetting { NewsId = dbNews.Id, SegmentId = s, Type = type });
+                }
+
+                if (news.NewsLanguageSettings == null || !news.NewsLanguageSettings.Any())
+                    Db.NewsLanguageSettings.Where(x => x.NewsId == dbNews.Id).DeleteFromQuery();
+                else
+                {
+                    var type = news.NewsLanguageSettings.First().Type;
+                    var languages = news.NewsLanguageSettings.Select(x => x.LanguageId).ToList();
+                    Db.NewsLanguageSettings.Where(x => x.NewsId == dbNews.Id && (x.Type != type || !languages.Contains(x.LanguageId))).DeleteFromQuery();
+                    var dbLang = Db.NewsLanguageSettings.Where(x => x.NewsId == dbNews.Id).Select(x => x.LanguageId).ToList();
+                    languages.RemoveAll(x => dbLang.Contains(x));
+                    foreach (var l in languages)
+                    {
+                        Db.NewsLanguageSettings.Add(new NewsLanguageSetting { NewsId = dbNews.Id, LanguageId = l, Type = type });
+                    }
+                }
+
+                Db.SaveChanges();
+                return dbNews;
+            }
+            else
+            {
+                news.Translation = CreateTranslation(new fnTranslation
+                {
+                    ObjectTypeId = (int)ObjectTypes.NewsContent,
+                    Text = string.IsNullOrEmpty(news.Content) ? string.Empty : news.Content,
+                    LanguageId = Constants.DefaultLanguageId
+                });
+                news.Translation1 = CreateTranslation(new fnTranslation
+                {
+                    ObjectTypeId = (int)ObjectTypes.NewsDescription,
+                    Text = string.IsNullOrEmpty(news.Description) ? string.Empty : news.Description,
+                    LanguageId = Constants.DefaultLanguageId
+                });
+                news.Translation2 = CreateTranslation(new fnTranslation
+                {
+                    ObjectTypeId = (int)ObjectTypes.News,
+                    Text = string.IsNullOrEmpty(news.Title) ? string.Empty : news.Title,
+                    LanguageId = Constants.DefaultLanguageId
+                });
+                news.CreationTime = currentDate;
+                news.LastUpdateTime = currentDate;
+                Db.News.Add(news);
+                Db.SaveChanges();
+                if (!string.IsNullOrEmpty(news.ImageName))
+                    news.ImageName = news.Id.ToString() + "." + news.ImageName.ToLower() + "?ver=1";
+                Db.SaveChanges();
+                return news;
+            }
+        }
+
+        public Popup SavePopup(Popup apiPopup)
+        {
+            GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewPopup,
+                ObjectTypeId = ObjectTypes.Popup
+            });
+            GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.EditPopup,
+                ObjectTypeId = ObjectTypes.Popup
+            });
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewPartner,
+                ObjectTypeId = ObjectTypes.Partner
+            });
+            if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != apiPopup.PartnerId))
+                throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
+            var currentDate = DateTime.Now;
+            if (apiPopup.FinishDate <= apiPopup.StartDate || apiPopup.FinishDate <= currentDate ||
+                !Enum.IsDefined(typeof(PopupTypes), apiPopup.Type) || !Enum.IsDefined(typeof(BaseStates), apiPopup.State))
+                throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
+            apiPopup.LastUpdateTime = currentDate;
+            var dbPopup = Db.Popups.Include(x => x.PopupSettings).FirstOrDefault(x => x.Id == apiPopup.Id);
+            if (dbPopup != null)
+            {
+                var version = dbPopup.ImageName.Split('?');
+                dbPopup.ImageName = version.Length > 0 ? version[0] + "?ver=" + ((version.Length > 1 ? Convert.ToInt32(version[1].Replace("ver=", string.Empty)) : 0) + 1) : string.Empty;
+                dbPopup.NickName = apiPopup.NickName;
+                dbPopup.Type = apiPopup.Type;
+                dbPopup.State = apiPopup.State;
+                dbPopup.Page = apiPopup.Page;
+                dbPopup.Order = apiPopup.Order;
+                dbPopup.LastUpdateTime = currentDate;
+                dbPopup.StartDate = apiPopup.StartDate;
+                dbPopup.FinishDate = apiPopup.FinishDate;
+                apiPopup.CreationTime = dbPopup.CreationTime;
+
+                if (apiPopup.SegmentIds == null || !apiPopup.SegmentIds.Any())
+                    Db.PopupSettings.Where(x => x.PopupId == apiPopup.Id && x.ObjectTypeId == (int)ObjectTypes.Segment).DeleteFromQuery();
+                else
+                {
+                    Db.PopupSettings.Where(x => x.PopupId == apiPopup.Id && x.ObjectTypeId == (int)ObjectTypes.Segment &&
+                                               !apiPopup.SegmentIds.Contains(x.ObjectId)).DeleteFromQuery();
+                    var dbSegments = dbPopup.PopupSettings.Where(x => x.PopupId == apiPopup.Id && x.ObjectTypeId == (int)ObjectTypes.Segment)
+                                                     .Select(x => x.ObjectId).ToList();
+                    apiPopup.SegmentIds.RemoveAll(x => dbSegments.Contains(x));
+                    foreach (var s in apiPopup.SegmentIds)
+                        Db.PopupSettings.Add(new PopupSetting
+                        {
+                            PopupId = dbPopup.Id,
+                            ObjectTypeId = (int)ObjectTypes.Segment,
+                            ObjectId = s
+                        });
+                }
+                if (apiPopup.ClientIds == null || !apiPopup.ClientIds.Any())
+                    Db.PopupSettings.Where(x => x.PopupId == apiPopup.Id && x.ObjectTypeId == (int)ObjectTypes.Client).DeleteFromQuery();
+                else
+                {
+                    Db.PopupSettings.Where(x => x.PopupId == apiPopup.Id && x.ObjectTypeId == (int)ObjectTypes.Client &&
+                                               !apiPopup.ClientIds.Contains(x.ObjectId)).DeleteFromQuery();
+                    var dbClients = dbPopup.PopupSettings.Where(x => x.PopupId == apiPopup.Id && x.ObjectTypeId == (int)ObjectTypes.Client)
+                                                     .Select(x => x.ObjectId).ToList();
+                    apiPopup.ClientIds.RemoveAll(x => dbClients.Contains(x));
+                    foreach (var c in apiPopup.ClientIds)
+                        Db.PopupSettings.Add(new PopupSetting
+                        {
+                            PopupId = dbPopup.Id,
+                            ObjectTypeId = (int)ObjectTypes.Client,
+                            ObjectId = c
+                        });
+                }
+                Db.SaveChanges();
+
+                return dbPopup;
+            }
+            var newPopup = Db.Popups.Add(new Popup
+            {
+                PartnerId = apiPopup.PartnerId,
+                NickName = apiPopup.NickName,
+                Type = apiPopup.Type,
+                State = apiPopup.State,
+                Page = apiPopup.Page,
+                Order = apiPopup.Order,
+                ImageName = apiPopup.ImageName,
+                StartDate = apiPopup.StartDate,
+                FinishDate = apiPopup.FinishDate,
+                CreationTime =  currentDate,
+                LastUpdateTime = currentDate,
+                Translation = CreateTranslation(new fnTranslation
+                {
+                    ObjectTypeId = (int)ObjectTypes.Popup,
+                    Text = apiPopup.NickName,
+                    LanguageId = Constants.DefaultLanguageId
+                }),
+            });
+            Db.SaveChanges();
+            newPopup.ImageName = newPopup.Id.ToString() + "." + apiPopup.ImageName.ToLower() + "?ver=1";
+            apiPopup.ImageName = newPopup.ImageName;
+            apiPopup.Id= newPopup.Id;
+            apiPopup.CreationTime = currentDate;
+            if (apiPopup.ClientIds != null && apiPopup.ClientIds.Any())
+                foreach (var c in apiPopup.ClientIds)
+                    Db.PopupSettings.Add(new PopupSetting
+                    {
+                        PopupId = newPopup.Id,
+                        ObjectTypeId = (int)ObjectTypes.Client,
+                        ObjectId = c
+                    });
+            if (apiPopup.SegmentIds != null && apiPopup.SegmentIds.Any())
+                foreach (var s in apiPopup.SegmentIds)
+                    Db.PopupSettings.Add(new PopupSetting
+                    {
+                        PopupId = newPopup.Id,
+                        ObjectTypeId = (int)ObjectTypes.Segment,
+                        ObjectId = s
+                    });
+            Db.SaveChanges();
+            CacheManager.RemoveFromCache(string.Format("{0}_{1}_{2}", Constants.CacheItems.Popups, apiPopup.PartnerId, apiPopup.Type));
+            return newPopup;
+        }
+
+        public PagedModel<Popup> GetPopups(FilterPopup filter)
+        {
+            GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewPopup,
+                ObjectTypeId = ObjectTypes.Popup
+            });
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewPartner,
+                ObjectTypeId = ObjectTypes.Partner
+            });
+            filter.CheckPermissionResuts = new List<CheckPermissionOutput<Popup>>
+            {
+                new CheckPermissionOutput<Popup>
+                {
+                    AccessibleObjects = partnerAccess.AccessibleObjects,
+                    HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
+                    Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                }
+            };
+            Func<IQueryable<Popup>, IOrderedQueryable<Popup>> orderBy;
+            if (filter.OrderBy.HasValue && !string.IsNullOrEmpty(filter.FieldNameToOrderBy))
+                orderBy = QueryableUtilsHelper.OrderByFunc<Popup>(filter.FieldNameToOrderBy, filter.OrderBy.Value);
+            else
+                orderBy = popups => popups.OrderByDescending(x => x.Id);
+            return new PagedModel<Popup>
+            {
+                Entities = filter.FilterObjects(Db.Popups, orderBy).ToList(),
+                Count = filter.SelectedObjectsCount(Db.Popups)
+            };
+        }
+
+        public Popup GetPopupById(int popupId)
+        {
+            GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewPopup,
+                ObjectTypeId = ObjectTypes.Popup
+            });
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewPartner,
+                ObjectTypeId = ObjectTypes.Partner
+            });
+            var dbPopup = Db.Popups.Include(x => x.PopupSettings).FirstOrDefault(x => x.Id == popupId) ??
+                throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
+
+            if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != dbPopup.PartnerId))
+                throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
+            return dbPopup;
+        }
+
+        public void RemovePopup(int popupId)
+        {
+            GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewPopup,
+                ObjectTypeId = ObjectTypes.Popup
+            });
+            GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.EditPopup,
+                ObjectTypeId = ObjectTypes.Popup
+            });
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewPartner,
+                ObjectTypeId = ObjectTypes.Partner
+            });
+            var dbPopup = Db.Popups.Include(x => x.PopupSettings).FirstOrDefault(x => x.Id == popupId);
+            if (dbPopup == null)
+                throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
+
+            if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != dbPopup.PartnerId))
+                throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
+            var translationId = dbPopup.ContentTranslationId;
+            Db.PopupSettings.Where(x => x.PopupId == popupId).DeleteFromQuery();
+            Db.Popups.Where(x => x.Id == popupId).DeleteFromQuery();
+            Db.TranslationEntries.Where(x => x.TranslationId == translationId).DeleteFromQuery();
+            Db.Translations.Where(x => x.Id == translationId).DeleteFromQuery();
+        }
+
+        public void UploadPopupFile(int popupId, int type)
+        {
+            var popup = Db.Popups.Where(x => x.Id == popupId)
+                                 .Select(x => new
+                                 {
+                                     x.Id,
+                                     x.PartnerId,
+                                     x.Type,
+                                     x.ImageName,
+                                     Content = x.Translation.TranslationEntries.OrderBy(y => y.LanguageId != Constants.DefaultLanguageId)
+                                                                               .Select(y => new { y.LanguageId, y.Text }).ToList()
+                                 }).FirstOrDefault() ??
+                throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
+            var partner = CacheManager.GetPartnerById(popup.PartnerId);
+            var languages = Db.PartnerLanguageSettings.Where(x => x.PartnerId == partner.Id && x.State == (int)PartnerLanguageStates.Active)
+                                                      .Select(x => x.LanguageId).ToList();
+            var pathTemplate = "/assets/json/popups/" + (type == (int)DeviceTypes.Mobile ? "mobile/" : "web/");
+            var ftpModels = Db.PartnerKeys.Where(x => x.PartnerId == partner.Id && x.PaymentSystemId == null &&
+                   (x.Name == Constants.PartnerKeys.FtpServer || x.Name == Constants.PartnerKeys.FtpUserName || x.Name == Constants.PartnerKeys.FtpPassword)).
+                   GroupBy(x => x.NotificationServiceId.Value).
+                   ToDictionary(x => x.Key, x => new FtpModel
+                   {
+                       Url = x.Where(y => y.Name == Constants.PartnerKeys.FtpServer).Select(y => y.StringValue).FirstOrDefault(),
+                       UserName = x.Where(y => y.Name == Constants.PartnerKeys.FtpUserName).Select(y => y.StringValue).FirstOrDefault(),
+                       Password = x.Where(y => y.Name == Constants.PartnerKeys.FtpPassword).Select(y => y.StringValue).FirstOrDefault()
+                   });
+            foreach (var lang in languages)
+            {
+                var p = new
+                {
+                    popup.Id,
+                    popup.Type,
+                    popup.ImageName,
+                    Content = popup.Content.FirstOrDefault(x => x.LanguageId == lang || x.LanguageId == Constants.DefaultLanguageId).Text
+                };
+                foreach (var ftp in ftpModels)
+                    UploadFile(JsonConvert.SerializeObject(p), $"/coreplatform/website/{partner.Name.ToLower()}{pathTemplate}{p.Id}_{lang.ToLower()}.json", ftp.Value);
+            }
+        }
+
         public Promotion RemovePromotion(int promotionId)
         {
             var dbPromotion = Db.Promotions.FirstOrDefault(x => x.Id == promotionId);
@@ -417,6 +764,40 @@ namespace IqSoft.CP.BLL.Services
             return dbPromotion;
         }
 
+        public News RemoveNews(int newsId)
+        {
+            var dbNews = Db.News.FirstOrDefault(x => x.Id == newsId);
+            if (dbNews == null)
+                throw CreateException(LanguageId, Constants.Errors.PromotionNotFound);
+
+            GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.RemoveNews,
+                ObjectTypeId = ObjectTypes.News
+            });
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewPartner,
+                ObjectTypeId = ObjectTypes.Partner
+            });
+            if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != dbNews.PartnerId))
+                throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
+            var contentTranslationId = dbNews.ContentTranslationId;
+            var titleTranslationId = dbNews.TitleTranslationId;
+            var descriptionTranslationId = dbNews.DescriptionTranslationId;
+            Db.NewsSegmentSettings.Where(x => x.NewsId == newsId).DeleteFromQuery();
+            Db.NewsLanguageSettings.Where(x => x.NewsId == newsId).DeleteFromQuery();
+            Db.News.Remove(dbNews);
+            Db.SaveChanges();
+            Db.TranslationEntries.Where(x => x.TranslationId == contentTranslationId ||
+                                             x.TranslationId == titleTranslationId ||
+                                             x.TranslationId == descriptionTranslationId).DeleteFromQuery();
+            Db.Translations.Where(x => x.Id == contentTranslationId ||
+                                       x.Id == titleTranslationId ||
+                                       x.Id == descriptionTranslationId).DeleteFromQuery();
+            return dbNews;
+        }
+
         public List<fnPromotion> GetPromotions(int? promotionId, int? partnerId, int? parentId, int skipCount, int takeCount)
         {
             var result = Db.fn_Promotion(Identity.LanguageId, false).AsQueryable();
@@ -424,7 +805,7 @@ namespace IqSoft.CP.BLL.Services
                 result = result.Where(x => x.PartnerId == partnerId);
             if (promotionId != null)
                 result = result.Where(x => x.Id == promotionId);
-            if(parentId == null)
+            if (parentId == null)
                 result = result.Where(x => x.ParentId == null);
             else
                 result = result.Where(x => x.ParentId == parentId.Value);
@@ -437,6 +818,33 @@ namespace IqSoft.CP.BLL.Services
             GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPromotion,
+                ObjectTypeId = ObjectTypes.Promotion
+            });
+            if (partners.HaveAccessForAllObjects)
+                return result.OrderByDescending(x => x.Id).Skip(skipCount * takeCount).Take(takeCount).ToList();
+            return result.Where(x => partners.AccessibleObjects.Contains(x.PartnerId)).OrderByDescending(x => x.Id).Skip(skipCount * takeCount).Take(takeCount).ToList();
+        }
+
+        public List<fnNews> GetNews(int? promotionId, int? partnerId, int? parentId, int skipCount, int takeCount)
+        {
+            var result = Db.fn_News(Identity.LanguageId, false).AsQueryable();
+            if (partnerId != null)
+                result = result.Where(x => x.PartnerId == partnerId);
+            if (promotionId != null)
+                result = result.Where(x => x.Id == promotionId);
+            if (parentId == null)
+                result = result.Where(x => x.ParentId == null);
+            else
+                result = result.Where(x => x.ParentId == parentId.Value);
+
+            var partners = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewPartner,
+                ObjectTypeId = ObjectTypes.Partner
+            });
+            GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewNews,
                 ObjectTypeId = ObjectTypes.Promotion
             });
             if (partners.HaveAccessForAllObjects)
@@ -463,6 +871,27 @@ namespace IqSoft.CP.BLL.Services
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
 
             return dbPromotion;
+        }
+
+        public News GetNewsById(int id)
+        {
+            var dbNews = Db.News.Include(x => x.NewsSegmentSettings).Include(x => x.NewsLanguageSettings).FirstOrDefault(x => x.Id == id);
+            if (dbNews == null)
+                throw CreateException(LanguageId, Constants.Errors.PromotionNotFound);
+
+            var newsAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewNews
+            });
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewPartner,
+                ObjectTypeId = ObjectTypes.Partner
+            });
+            if (!newsAccess.HaveAccessForAllObjects || (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != dbNews.PartnerId)))
+                throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
+
+            return dbNews;
         }
 
         #endregion
@@ -509,16 +938,16 @@ namespace IqSoft.CP.BLL.Services
             {
                 var parents = nodes.Where(x => x.Level == i && (isAdmin || permissionIds.Contains(x.PermissionId))).ToList();
                 var children = nodes.Where(x => x.Level == i + 1 && (isAdmin || permissionIds.Contains(x.PermissionId))).ToList();
-                foreach(var childNode in children)
+                foreach (var childNode in children)
                 {
                     var responseItem = parents.FirstOrDefault(x => x.Id == childNode.ParentId);
-                    if(responseItem != null)
+                    if (responseItem != null)
                         responseItem.Pages.Add(childNode);
                 }
             }
 
             return nodes.Where(x => x.Level == 1 && (isAdmin || permissionIds.Contains(x.PermissionId))).ToList();
-		}
+        }
 
         public WebSiteSubMenuItem FindSubMenuItemByTitle(int menuId, string title)
         {
@@ -567,7 +996,7 @@ namespace IqSoft.CP.BLL.Services
                 Permission = Constants.Permissions.ViewAdminTranslations
             });
 
-            return Db.WebSiteMenuItems.Where(x => x.WebSiteMenu.PartnerId == (int)Constants.MainPartnerId && 
+            return Db.WebSiteMenuItems.Where(x => x.WebSiteMenu.PartnerId == (int)Constants.MainPartnerId &&
                 x.WebSiteMenu.Type == Constants.WebSiteConfiguration.Translations).OrderBy(x => x.Order).ToList();
         }
 
@@ -719,7 +1148,11 @@ namespace IqSoft.CP.BLL.Services
                 CacheManager.RemoveCasinoMenues(generalMenu.PartnerId);
             }
             if (!string.IsNullOrEmpty(webSiteMenuItem.Image))
-                UploadMenuImage(webSiteMenuItem.PartnerId, webSiteMenuItem.Icon, webSiteMenuItem.Image, webSiteMenuItem.Title, string.Empty, generalMenu.Type);
+                UploadMenuImage(webSiteMenuItem.PartnerId, webSiteMenuItem.Icon, webSiteMenuItem.Image,
+                    generalMenu.Type, webSiteMenuItem.Title, string.Empty);
+            if (!string.IsNullOrEmpty(webSiteMenuItem.HoverImage))
+                UploadMenuImage(webSiteMenuItem.PartnerId, "hover/" + webSiteMenuItem.Icon, webSiteMenuItem.HoverImage,
+                    generalMenu.Type, webSiteMenuItem.Title, string.Empty);
 
             return webSiteMenuItem;
         }
@@ -734,7 +1167,7 @@ namespace IqSoft.CP.BLL.Services
             webSiteMenuItem.MenuId = menu.Id;
 
             var dbWebSiteMenuItem = Db.WebSiteMenuItems.Include(x => x.WebSiteMenu).FirstOrDefault(x => x.Id == webSiteMenuItem.Id);
-            
+
             if (dbWebSiteMenuItem != null)
             {
                 dbWebSiteMenuItem.Icon = webSiteMenuItem.Icon;
@@ -819,7 +1252,18 @@ namespace IqSoft.CP.BLL.Services
                 webSiteSubMenuItem.PartnerId = menuItem.WebSiteMenu.PartnerId;
                 webSiteSubMenuItem.MenuItemName = menuItem.Title;
                 if (!string.IsNullOrEmpty(webSiteSubMenuItem.Image))
-                    UploadMenuImage(webSiteSubMenuItem.PartnerId, webSiteSubMenuItem.Icon, webSiteSubMenuItem.Image, webSiteSubMenuItem.MenuItemName, webSiteSubMenuItem.Title, menuItem.WebSiteMenu.Type);
+                {
+                    if (menuItem.WebSiteMenu.Type == Constants.WebSiteConfiguration.Documentation)
+                    {
+                        var fileName = $"{webSiteSubMenuItem.Id}.pdf";
+                        UploadDocument(menuItem.WebSiteMenu.PartnerId, menuItem.WebSiteMenu.DeviceType ?? (int)DeviceTypes.Desktop,
+                                       webSiteSubMenuItem.MenuItemName, fileName, webSiteSubMenuItem.Image);
+                    }
+                    else
+                        UploadMenuImage(webSiteSubMenuItem.PartnerId, webSiteSubMenuItem.Icon, webSiteSubMenuItem.Image, menuItem.WebSiteMenu.Type, webSiteSubMenuItem.MenuItemName, webSiteSubMenuItem.Title);
+                }
+                if (!string.IsNullOrEmpty(webSiteSubMenuItem.HoverImage))
+                    UploadMenuImage(webSiteSubMenuItem.PartnerId, "hover/" + webSiteSubMenuItem.Icon, webSiteSubMenuItem.Image, menuItem.WebSiteMenu.Type, webSiteSubMenuItem.MenuItemName, webSiteSubMenuItem.Title);
 
                 return webSiteSubMenuItem;
             }
@@ -1161,6 +1605,26 @@ namespace IqSoft.CP.BLL.Services
                         (objectTypeId == (int)ObjectTypes.PromotionContent ? promotion.ContentTranslationId : promotion.DescriptionTranslationId)
                     };
                     break;
+                case (int)ObjectTypes.News:
+                case (int)ObjectTypes.NewsContent:
+                case (int)ObjectTypes.NewsDescription:
+                    GetPermissionsToObject(new CheckPermissionInput
+                    {
+                        Permission = Constants.Permissions.EditNews
+                    });
+
+                    var news = Db.News.FirstOrDefault(x => x.Id == objectId);
+                    if (news == null)
+                        throw CreateException(LanguageId, Constants.Errors.NewsNotFound);
+                    partnerId = news.PartnerId;
+                    translationObject = new ObjectTranslations
+                    {
+                        Id = news.Id,
+                        NickName = news.NickName,
+                        TranslationId = objectTypeId == (int)ObjectTypes.News ? news.TitleTranslationId :
+                        (objectTypeId == (int)ObjectTypes.NewsContent ? news.ContentTranslationId : news.DescriptionTranslationId)
+                    };
+                    break;
                 case (int)ObjectTypes.SecurityQuestion:
                     var securityQuestion = Db.SecurityQuestions.FirstOrDefault(x => x.Id == objectId);
                     if (securityQuestion == null)
@@ -1196,6 +1660,19 @@ namespace IqSoft.CP.BLL.Services
                         Id = (int)character.Id,
                         NickName = character.NickName,
                         TranslationId = objectTypeId == (int)ObjectTypes.CharacterTitle ? character.TitleTranslationId : character.DescriptionTranslationId
+                    };
+                    break;
+
+                case (int)ObjectTypes.Popup:
+                    var popup = Db.Popups.FirstOrDefault(x => x.Id == objectId);
+                    if (popup == null)
+                        throw CreateException(LanguageId, Constants.Errors.ObjectTypeNotFound);
+                    partnerId = popup.PartnerId;
+                    translationObject = new ObjectTranslations
+                    {
+                        Id = (int)popup.Id,
+                        NickName = popup.NickName,
+                        TranslationId = popup.ContentTranslationId
                     };
                     break;
                 default: break;
@@ -1264,38 +1741,73 @@ namespace IqSoft.CP.BLL.Services
             });
             if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != partnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
+            var partner = CacheManager.GetPartnerById(partnerId);
+            if (partner == null)
+                throw CreateException(LanguageId, Constants.Errors.PartnerNotFound);
 
-            var stylesQuery = Db.WebSiteSubMenuItems.Where(x => x.WebSiteMenuItem.WebSiteMenu.PartnerId == partnerId &&
-            x.WebSiteMenuItem.WebSiteMenu.Type == Constants.WebSiteConfiguration.Styles).Select(x => new
+            var webStylesQuery = Db.WebSiteSubMenuItems.Where(x => x.WebSiteMenuItem.WebSiteMenu.PartnerId == partnerId &&
+            x.WebSiteMenuItem.WebSiteMenu.Type == Constants.WebSiteConfiguration.Styles &&
+            x.WebSiteMenuItem.WebSiteMenu.DeviceType == (int)DeviceTypes.Desktop).Select(x => new
             {
                 x.Title,
                 x.Type,
                 ParentType = x.WebSiteMenuItem.Type,
                 ParentStyleType = x.WebSiteMenuItem.StyleType
             }).AsEnumerable();
-            var partner = CacheManager.GetPartnerById(partnerId);
-            if (partner == null)
-                throw CreateException(LanguageId, Constants.Errors.PartnerNotFound);
-
-            var styles = stylesQuery.ToDictionary(y => (string.IsNullOrEmpty(y.ParentType) ? string.Empty : (y.ParentType + "-" + y.ParentStyleType + "-")) + y.Title, y => y.Type);
-            if (styles != null)
+            var webStyles = webStylesQuery.ToDictionary(y => (string.IsNullOrEmpty(y.ParentType) ? string.Empty : (y.ParentType + "-" + y.ParentStyleType + "-")) + y.Title, y => y.Type);
+            if (webStyles != null)
             {
-                var text = styles.Aggregate(":root{" + Environment.NewLine, (current, par) => current + par.Key + ":" + par.Value + ";" + Environment.NewLine) + "}";
-
-
+                var text = webStyles.Aggregate(":root{" + Environment.NewLine, (current, par) => current + par.Key + ":" + par.Value + ";" + Environment.NewLine) + "}";
                 UploadFile(text, "/coreplatform/website/" + partner.Name.ToLower() + "/assets/css/skin.css", ftpInput);
-                UploadFile(string.Format("window.VERSION = {0};", new Random().Next(1, 1000)), "/coreplatform/website/" + partner.Name.ToLower() + "/assets/js/version.js", ftpInput);
             }
-            var fonts = Db.WebSiteSubMenuItems.Where(x => x.WebSiteMenuItem.WebSiteMenu.PartnerId == partnerId && x.WebSiteMenuItem.WebSiteMenu.Type == Constants.WebSiteConfiguration.Assets &&
-                                                          x.WebSiteMenuItem.Title == Constants.WebSiteConfiguration.Fonts)
-                                              .Select(x => new
-                                              {
-                                                  FontFamily = x.Title,
-                                                  x.Type,
-                                                  Weight = x.Href,
-                                                  Src = x.Icon,
-                                                  x.Order
-                                              }).OrderBy(x => x.Order).ToList();
+
+            var mobileStylesQuery = Db.WebSiteSubMenuItems.Where(x => x.WebSiteMenuItem.WebSiteMenu.PartnerId == partnerId &&
+            x.WebSiteMenuItem.WebSiteMenu.Type == Constants.WebSiteConfiguration.Styles &&
+            x.WebSiteMenuItem.WebSiteMenu.DeviceType == (int)DeviceTypes.Mobile).Select(x => new
+            {
+                x.Title,
+                x.Type,
+                ParentType = x.WebSiteMenuItem.Type,
+                ParentStyleType = x.WebSiteMenuItem.StyleType
+            }).AsEnumerable();
+            var mobileStyles = mobileStylesQuery.ToDictionary(y => (string.IsNullOrEmpty(y.ParentType) ? string.Empty : (y.ParentType + "-" + y.ParentStyleType + "-")) + y.Title, y => y.Type);
+            if (mobileStyles != null)
+            {
+                var text = mobileStyles.Aggregate(":root{" + Environment.NewLine, (current, par) => current + par.Key + ":" + par.Value + ";" + Environment.NewLine) + "}";
+                UploadFile(text, "/coreplatform/website/" + partner.Name.ToLower() + "/assets/css/mobile.css", ftpInput);
+            }
+
+            var shopStylesQuery = Db.WebSiteSubMenuItems.Where(x => x.WebSiteMenuItem.WebSiteMenu.PartnerId == partnerId &&
+            x.WebSiteMenuItem.WebSiteMenu.Type == Constants.WebSiteConfiguration.Styles &&
+            x.WebSiteMenuItem.WebSiteMenu.DeviceType == (int)DeviceTypes.BetShop).Select(x => new
+            {
+                x.Title,
+                x.Type,
+                ParentType = x.WebSiteMenuItem.Type,
+                ParentStyleType = x.WebSiteMenuItem.StyleType
+            }).AsEnumerable();
+            var shopStyles = mobileStylesQuery.ToDictionary(y => (string.IsNullOrEmpty(y.ParentType) ? string.Empty : (y.ParentType + "-" + y.ParentStyleType + "-")) + y.Title, y => y.Type);
+            if (shopStyles != null)
+            {
+                var text = shopStyles.Aggregate(":root{" + Environment.NewLine, (current, par) => current + par.Key + ":" + par.Value + ";" + Environment.NewLine) + "}";
+                UploadFile(text, "/betshopwebsite/" + partner.Name.ToLower() + "/assets/css/betshop.css", ftpInput);
+            }
+
+            UploadFile(string.Format("window.VERSION = {0};", new Random().Next(1, 1000)), "/coreplatform/website/" + partner.Name.ToLower() + "/assets/js/version.js", ftpInput);
+
+
+
+
+            var fonts = Db.WebSiteSubMenuItems.Where(x => x.WebSiteMenuItem.WebSiteMenu.PartnerId == partnerId &&
+                x.WebSiteMenuItem.WebSiteMenu.Type == Constants.WebSiteConfiguration.Assets &&
+                x.WebSiteMenuItem.Title == Constants.WebSiteConfiguration.Fonts).Select(x => new
+                {
+                    FontFamily = x.Title,
+                    x.Type,
+                    Weight = x.Href,
+                    Src = x.Icon,
+                    x.Order
+                }).OrderBy(x => x.Order).ToList();
             UploadFile(JsonConvert.SerializeObject(fonts), "/coreplatform/website/" + partner.Name.ToLower() + "/assets/json/fonts.json", ftpInput);
         }
 
@@ -1405,7 +1917,7 @@ namespace IqSoft.CP.BLL.Services
                 Currencies = Db.PartnerCurrencySettings.Where(x => x.PartnerId == partnerId &&
                     x.State == (int)PartnerCurrencyStates.Active).OrderBy(x => x.Priority).Select(x => x.Currency.Name).ToList(),
                 ProductsWithTransfer = new List<object>(),
-                MobileCodes = mc == null ? new List<object>().Select(x => new { Title = "", Type = "", Mask = "", StyleType = "" }).ToList() : mc.SubMenu.Select(x => new { x.Title,x.Type, Mask = x.Href, x.StyleType }).ToList(),
+                MobileCodes = mc == null ? new List<object>().Select(x => new { Title = "", Type = "", Mask = "", StyleType = "" }).ToList() : mc.SubMenu.Select(x => new { x.Title, x.Type, Mask = x.Href, x.StyleType }).ToList(),
                 RegisterType = rt == null ? new List<object>().Select(x => new { Title = "", Order = 0, Settings = "{}" }).ToList() :
                     rt.SubMenu.Select(x => new { Title = x.Title, Order = x.Order, Settings = x.Href }).ToList(),
                 QuickRegisterType = (qrt == null ? new List<object>().Select(x => new { Title = "", Order = 0, Type = "" }).ToList() : qrt.SubMenu.Select(x => new { Title = x.Title, Order = x.Order, Type = x.Type }).ToList()),
@@ -1442,9 +1954,9 @@ namespace IqSoft.CP.BLL.Services
                 VerificationKeyFormat = !string.IsNullOrEmpty(partnerSetting) && partnerSetting == "1",
                 FormValidationType = fvt != null ? fvt.Href : "blur",
                 DefaultMode = dm != null ? dm.Href : "dark",
-				CharactersEnabled = che != null && che.Href != "0",
+                CharactersEnabled = che != null && che.Href != "0",
                 AllowCancelConfirmedWithdraw = accw != null && accw.Href != "0"
-			};
+            };
 
             var manifest = new
             {
@@ -1767,7 +2279,7 @@ namespace IqSoft.CP.BLL.Services
             //{
             //    GenerateWebSitePromotions(partnerId, lang, ftpInput);
             //});
-            foreach(var lang in languages)
+            foreach (var lang in languages)
                 GenerateWebSitePromotions(partnerId, lang, ftpInput);
         }
 
@@ -1816,69 +2328,27 @@ namespace IqSoft.CP.BLL.Services
 
         private void GenerateWebSiteNews(int partnerId, string languageId, FtpModel ftpInput)
         {
-            string content = string.Empty;
-            Dictionary<string, string> contents = new Dictionary<string, string>();
-            using (var db = new IqSoftCorePlatformEntities())
-            {
-                var translations = Db.WebSiteMenuItems.Where(x => x.WebSiteMenu.PartnerId == partnerId && x.WebSiteMenu.Type == Constants.WebSiteConfiguration.Translations &&
-                    x.Type == "news").Select(x => new
-                    {
-                        x.Title,
-                        SubMenu = x.WebSiteSubMenuItems.Select(z => new
-                        {
-                            z.Title,
-                            Value = db.fn_Translation(languageId).Where(o => o.TranslationId == z.TranslationId).FirstOrDefault()
-                        })
-                    }).ToList();
 
-                var items = Db.WebSiteMenuItems.Include(x => x.WebSiteSubMenuItems).Where(x => x.WebSiteMenu.PartnerId == partnerId &&
-                x.WebSiteMenu.Type == Constants.WebSiteConfiguration.News).OrderBy(x => x.Order).ToList();
-                var contentItems = new List<object>();
-                foreach (var item in items)
-                {
-                    var translation = translations.FirstOrDefault(x => x.Title == item.Title);
-                    var translationItems = translation?.SubMenu;
-
-                    var title = item.WebSiteSubMenuItems.FirstOrDefault(x => x.Title == "Title");
-                    var description = item.WebSiteSubMenuItems.FirstOrDefault(x => x.Title == "Description");
-                    var cnt = item.WebSiteSubMenuItems.FirstOrDefault(x => x.Title == "Content");
-                    var t_title = translationItems?.FirstOrDefault(x => x.Title == "Title");
-                    var t_description = translationItems?.FirstOrDefault(x => x.Title == "Description");
-                    var t_cnt = translationItems?.FirstOrDefault(x => x.Title == "Content");
-
-                    contentItems.Add(new
-                    {
-                        id = item.Id,
-                        image = item.Icon,
-                        date = item.Type,
-                        title = (t_title == null ? string.Empty : t_title.Value.Text),
-                        description = (t_description == null ? string.Empty : t_description.Value.Text)
-                    });
-                    contents.Add("/assets/json/news/" + item.Id + "_" + languageId.ToLower() + ".json", JsonConvert.SerializeObject(
-                    new
-                    {
-                        id = item.Id,
-                        image = item.Icon,
-                        date = item.Type,
-                        title = (t_title == null ? string.Empty : t_title.Value.Text),
-                        description = (t_description == null ? string.Empty : t_description.Value.Text),
-                        content = (t_cnt == null ? string.Empty : t_cnt.Value.Text)
-                    }));
-                }
-                content = JsonConvert.SerializeObject(contentItems);
-            }
             var partner = CacheManager.GetPartnerById(partnerId);
-
-            UploadFile(content, "/coreplatform/website/" + partner.Name.ToLower() + "/assets/json/news/list_" + languageId.ToLower() + ".json", ftpInput);
-            foreach (var c in contents)
-            {
-                UploadFile(c.Value, "/coreplatform/website/" + partner.Name.ToLower() + c.Key, ftpInput);
-            }
-            UploadFile(string.Format("window.VERSION = {0};", (new Random()).Next(1, 1000)), "/coreplatform/website/" + partner.Name.ToLower() + "/assets/js/version.js", ftpInput);
+            var pathTemplate = "/assets/json/news/{0}_{1}.json";
+            //var pts = CacheManager.GetEnumerations(nameof(PromotionTypes), languageId);
+            Db.fn_News(languageId, true).Where(x => x.PartnerId == partnerId && x.State == (int)BaseStates.Active)
+                                                                .Select(x => new NewsItem
+                                                                {
+                                                                    id = x.Id,
+                                                                    type = x.Type.ToString(),
+                                                                    image = x.ImageName,
+                                                                    content = x.Content,
+                                                                    description = x.Description,
+                                                                    title = x.Title
+                                                                }).ToList().ForEach(p =>
+                                                                {
+                                                                    UploadFile(JsonConvert.SerializeObject(p), "/coreplatform/website/" + partner.Name.ToLower() + String.Format(pathTemplate, p.id, languageId.ToLower()), ftpInput);
+                                                                });
+            UploadFile($"window.VERSION = {new Random().Next(1, 1000)};", $"/coreplatform/website/{partner.Name.ToLower()}/assets/js/version.js", ftpInput);
         }
 
-        private void UploadMenuImage(int partnerId, string imageName, string image, string menuItemName, 
-            string submenuItemName, string menuType)
+        private void UploadMenuImage(int partnerId, string imageName, string image, string menuType, string menuItemName, string submenuItemName)
         {
             using (var partnerBl = new PartnerBll(Identity, Log))
             {
@@ -1899,6 +2369,8 @@ namespace IqSoft.CP.BLL.Services
                     path += ("account-tabs-list/" + imageName);
                 else if (menuType == Constants.WebSiteConfiguration.HeaderPanel1Menu)
                     path += ("header-panel-1-menu/" + imageName);
+                else if (menuType == Constants.WebSiteConfiguration.HeaderPanel2Menu)
+                    path += ("header-panel-2-menu/" + imageName);
                 else if (menuType == Constants.WebSiteConfiguration.CasinoMenu)
                     path += ("casino-menu/" + imageName);
                 else if (menuType == Constants.WebSiteConfiguration.FooterMenu)
@@ -1933,6 +2405,24 @@ namespace IqSoft.CP.BLL.Services
             }
         }
 
+        public void UploadDocument(int partnerId, int menuDeviceType, string menuName, string fileName, string base64Data)
+        {
+            using (var partnerBl = new PartnerBll(Identity, Log))
+            {
+                var partner = CacheManager.GetPartnerById(partnerId);
+                var ftpModel = partnerBl.GetPartnerEnvironments(partnerId).First().Value;
+                var directory = $"ftp://{ftpModel.Url}/resources/documents";
+                CreateFtpDirectory(ftpModel, directory);
+                directory += $"/{partner.Name}";
+                CreateFtpDirectory(ftpModel, directory);
+                directory += $"/{Enum.GetName(typeof(DeviceTypes), menuDeviceType)}";
+                CreateFtpDirectory(ftpModel, directory);
+                directory += $"/{menuName}";
+                CreateFtpDirectory(ftpModel, directory);
+                var path = $"{directory}/{fileName}";
+                UploadFtpImage(Convert.FromBase64String(base64Data), ftpModel, path);
+            }
+        }
         #endregion
 
         public CRMSetting SaveCRMSetting(CRMSetting setting)
@@ -2087,12 +2577,11 @@ namespace IqSoft.CP.BLL.Services
             Db.SaveChanges();
         }
 
-        public void SaveAnnouncement(ApiAnnouncement apiAnnouncement, bool isFromAdmin)
+        public Announcement SaveAnnouncement(ApiAnnouncement apiAnnouncement, bool isFromAdmin, BllUser user)
         {
-
             var partner = CacheManager.GetPartnerById(apiAnnouncement.PartnerId) ??
                 throw BaseBll.CreateException(LanguageId, Constants.Errors.PartnerNotFound);
-
+        
             if (isFromAdmin)
             {
                 var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
@@ -2106,32 +2595,35 @@ namespace IqSoft.CP.BLL.Services
                 CheckPermission(Constants.Permissions.ViewAnnouncement);
                 CheckPermission(Constants.Permissions.EditAnnouncement);
             }
+
             var currentDate = DateTime.UtcNow;
             if (!Enum.IsDefined(typeof(AnnouncementTypes), apiAnnouncement.Type) ||
                 !Enum.IsDefined(typeof(AnnouncementReceiverTypes), apiAnnouncement.ReceiverType) ||
                 !Enum.IsDefined(typeof(BaseStates), apiAnnouncement.State) ||
                 (apiAnnouncement.ReceiverType == (int)AnnouncementReceiverTypes.Client && apiAnnouncement.UserIds != null && apiAnnouncement.UserIds.Any()) ||
-                (apiAnnouncement.ReceiverType != (int)AnnouncementReceiverTypes.Client && 
-                ((apiAnnouncement.ClientIds != null && apiAnnouncement.ClientIds.Any()) ||(apiAnnouncement.SegmentIds != null && apiAnnouncement.SegmentIds.Any()))))
+                (apiAnnouncement.ReceiverType != (int)AnnouncementReceiverTypes.Client &&
+                ((apiAnnouncement.ClientIds != null && apiAnnouncement.ClientIds.Any()) || (apiAnnouncement.SegmentIds != null && apiAnnouncement.SegmentIds.Any()))))
                 throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
-
+            var userId = user != null ? $"/{user.Id}/" : string.Empty;
             if (apiAnnouncement.ClientIds!= null && apiAnnouncement.ClientIds.Any())
-            {
-                var clients = Db.Clients.Where(x => x.PartnerId == apiAnnouncement.PartnerId && apiAnnouncement.ClientIds.Contains(x.Id))
+            {                
+                var clients = Db.Clients.Where(x => x.PartnerId == apiAnnouncement.PartnerId && apiAnnouncement.ClientIds.Contains(x.Id) && 
+                                                   (isFromAdmin || x.User.Path.Contains(userId)))
                                         .Select(x => x.Id).ToList();
                 if (apiAnnouncement.ClientIds.Any(x => !clients.Contains(x)))
                     throw CreateException(LanguageId, Constants.Errors.ClientNotFound);
             }
             if (apiAnnouncement.UserIds != null && apiAnnouncement.UserIds.Any())
             {
-                var users = Db.Users.Where(x => x.PartnerId == apiAnnouncement.PartnerId && apiAnnouncement.UserIds.Contains(x.Id))
+                var users = Db.Users.Where(x => x.PartnerId == apiAnnouncement.PartnerId && apiAnnouncement.UserIds.Contains(x.Id) &&
+                 (isFromAdmin || x.Path.Contains(userId)))
                                         .Select(x => x.Id).ToList();
                 if (apiAnnouncement.UserIds.Any(x => !users.Contains(x)))
                     throw CreateException(LanguageId, Constants.Errors.UserNotFound);
             }
             if (apiAnnouncement.SegmentIds != null && apiAnnouncement.SegmentIds.Any())
             {
-                var segments = Db.Segments.Where(x => x.PartnerId == apiAnnouncement.PartnerId && apiAnnouncement.SegmentIds.Contains(x.Id) && 
+                var segments = Db.Segments.Where(x => x.PartnerId == apiAnnouncement.PartnerId && apiAnnouncement.SegmentIds.Contains(x.Id) &&
                                                       x.State == (int)SegmentStates.Active)
                                           .Select(x => x.Id).ToList();
                 if (apiAnnouncement.SegmentIds.Any(x => !segments.Contains(x)))
@@ -2227,6 +2719,7 @@ namespace IqSoft.CP.BLL.Services
                 scope.Complete();
                 if (dbAnnouncement.Type == (int)AnnouncementTypes.Ticker)
                     CacheManager.RemoveKeysFromCache(string.Format("{0}_{1}_", Constants.CacheItems.Ticker, dbAnnouncement.PartnerId));
+                return dbAnnouncement;
             }
 
         }
@@ -2288,9 +2781,9 @@ namespace IqSoft.CP.BLL.Services
             };
         }
 
-        public List<fnTranslation> SaveTranslationEntries(List<fnTranslation> translationEntries, out Dictionary<string, int> broadcastKey)
+        public List<fnTranslation> SaveTranslationEntries(List<fnTranslation> translationEntries, bool checkPermission, out Dictionary<string, int> broadcastKey)
         {
-            if (translationEntries.Count > 0)
+            if (checkPermission && translationEntries.Count > 0)
             {
                 switch (translationEntries[0].ObjectTypeId)
                 {
@@ -2367,6 +2860,12 @@ namespace IqSoft.CP.BLL.Services
                             Permission = Constants.Permissions.EditPartnerCommentTemplate,
                         });
                         break;
+                    case (int)ObjectTypes.Popup:
+                        GetPermissionsToObject(new CheckPermissionInput
+                        {
+                            Permission = Constants.Permissions.EditPopup
+                        });
+                        break;
                     default:
                         GetPermissionsToObject(new CheckPermissionInput
                         {
@@ -2420,8 +2919,8 @@ namespace IqSoft.CP.BLL.Services
                         if (commentTemplate != null)
                         {
                             CacheManager.RemoveCommentTemplateFromCache(commentTemplate.PartnerId, commentTemplate.Type);
-                             var lgs = Db.PartnerLanguageSettings.Where(x => x.PartnerId == commentTemplate.PartnerId && x.State == (int)PartnerLanguageStates.Active)
-                                                                .Select(x => x.LanguageId).ToList();
+                            var lgs = Db.PartnerLanguageSettings.Where(x => x.PartnerId == commentTemplate.PartnerId && x.State == (int)PartnerLanguageStates.Active)
+                                                               .Select(x => x.LanguageId).ToList();
                             foreach (var l in lgs)
                             {
                                 broadcastKey.Add(string.Format("{0}_{1}_{2}_{3}", Constants.CacheItems.CommentTemplates, commentTemplate.PartnerId,
@@ -2462,17 +2961,19 @@ namespace IqSoft.CP.BLL.Services
                         break;
                     case (int)ObjectTypes.Product:
                         var product = Db.Products.FirstOrDefault(x => x.TranslationId == translationEntry.TranslationId);
-                        CacheManager.UpdateProductById(product.Id);
+                        CacheManager.DeleteProductFromCache(product.Id);
                         var partners = Db.PartnerProductSettings.Where(x => x.ProductId == product.Id && x.State == (int)ProductStates.Active)
                                                        .Select(x => x.PartnerId).ToList();
                         foreach (var partnerId in partners)
                         {
-                            CacheManager.RemovePartnerProductSettings(partnerId);
-                            broadcastKey.Add(string.Format("{0}_{1}_{2}_Desktop", Constants.CacheItems.PartnerProductSettings, partnerId, translationEntry.LanguageId), partnerId);
-                            broadcastKey.Add(string.Format("{0}_{1}_{2}_Mobile", Constants.CacheItems.PartnerProductSettings, partnerId, translationEntry.LanguageId), partnerId);
+                            var keys = CacheManager.RemovePartnerProductSettingPages(partnerId);
+                            foreach (var k in keys)
+                            {
+                                broadcastKey.Add(k, partnerId);
+                            }
                         }
-                        broadcastKey.Add(string.Format("{0}_{1}", Constants.CacheItems.Products, product.Id), 0);
-                        broadcastKey.Add(string.Format("{0}_{1}_{2}", Constants.CacheItems.Products, product.GameProviderId, product.ExternalId), 0);
+                        broadcastKey.Add(string.Format("{0}_{1}_{2}", Constants.CacheItems.Products, product.Id, translationEntry.LanguageId), 0);
+                        broadcastKey.Add(string.Format("{0}_{1}_{2}_{3}", Constants.CacheItems.Products, product.GameProviderId, product.ExternalId, translationEntry.LanguageId), 0);
                         break;
                     case (int)ObjectTypes.Promotion:
                     case (int)ObjectTypes.PromotionContent:
@@ -2482,6 +2983,15 @@ namespace IqSoft.CP.BLL.Services
                                                                           x.ContentTranslationId == translationEntry.TranslationId);
                         CacheManager.RemovePromotions(promotion.PartnerId);
                         broadcastKey.Add(string.Format("{0}_{1}_{2}", Constants.CacheItems.Promotions, promotion.PartnerId, translationEntry.LanguageId), promotion.PartnerId);
+                        break;
+                    case (int)ObjectTypes.News:
+                    case (int)ObjectTypes.NewsContent:
+                    case (int)ObjectTypes.NewsDescription:
+                        var news = Db.News.FirstOrDefault(x => x.TitleTranslationId == translationEntry.TranslationId ||
+                                                                          x.DescriptionTranslationId == translationEntry.TranslationId ||
+                                                                          x.ContentTranslationId == translationEntry.TranslationId);
+                        CacheManager.RemoveNews(news.PartnerId);
+                        broadcastKey.Add(string.Format("{0}_{1}_{2}", Constants.CacheItems.News, news.PartnerId, translationEntry.LanguageId), news.PartnerId);
                         break;
                     case (int)ObjectTypes.SecurityQuestion:
                         var securityQuestion = Db.SecurityQuestions.FirstOrDefault(x => x.TranslationId == translationEntry.TranslationId);
@@ -2498,12 +3008,16 @@ namespace IqSoft.CP.BLL.Services
                         break;
                     case (int)ObjectTypes.Announcement:
                         var announcement = Db.Announcements.FirstOrDefault(x => x.TranslationId == translation.TranslationId);
-                        if(announcement.Type == (int)AnnouncementTypes.Ticker)
+                        if (announcement.Type == (int)AnnouncementTypes.Ticker)
                         {
                             CacheManager.RemovePartnerTickerFromCache(announcement.PartnerId, translation.LanguageId);
                             broadcastKey.Add(string.Format("{0}_{1}_{2}", Constants.CacheItems.Ticker, announcement.PartnerId, translationEntry.LanguageId),
                                              announcement.PartnerId);
                         }
+                        break;
+                    case (int)ObjectTypes.Popup:
+                        var popup = Db.Popups.FirstOrDefault(x => x.ContentTranslationId == translation.TranslationId);
+                        UploadPopupFile(popup.Id, translationEntry.Type ?? 0);
                         break;
                     default:
                         break;
@@ -2687,6 +3201,118 @@ namespace IqSoft.CP.BLL.Services
                 dbSegment.IsKYCVerified = segmentModel.IsKYCVerified;
                 dbSegment.Gender = segmentModel.Gender;
                 dbSegment.IsTermsConditionAccepted = segmentModel.IsTermsConditionAccepted;
+                if ((segmentModel.ClientStatus?.ConditionItems?.Any() ?? false) &&
+                    !string.IsNullOrEmpty(segmentModel.ClientStatus?.ConditionItems[0]?.StringValue) &&
+                    ((segmentModel.ClientStatus?.ConditionItems[0]?.StringValue.Split(',').Any(x => !int.TryParse(x, out int i)) ?? false) ||
+                    !Enum.IsDefined(typeof(FilterOperations), segmentModel.ClientStatus?.ConditionItems[0].OperationTypeId)) ||
+
+                    ((segmentModel.SegmentId?.ConditionItems?.Any() ?? false) &&
+                    !string.IsNullOrEmpty(segmentModel.SegmentId?.ConditionItems[0]?.StringValue) &&
+                    ((segmentModel.SegmentId?.ConditionItems[0]?.StringValue.Split(',').Any(x => !int.TryParse(x, out int i)) ?? false) ||
+                    !Enum.IsDefined(typeof(FilterOperations), segmentModel.SegmentId?.ConditionItems[0].OperationTypeId))) ||
+
+                    ((segmentModel.ClientId?.ConditionItems?.Any() ?? false) &&
+                    !string.IsNullOrEmpty(segmentModel.ClientId?.ConditionItems[0]?.StringValue) &&
+                    ((segmentModel.ClientId?.ConditionItems[0]?.StringValue.Split(',').Any(x => !int.TryParse(x, out int i)) ?? false) ||
+                    !Enum.IsDefined(typeof(FilterOperations), segmentModel.ClientId?.ConditionItems[0].OperationTypeId))) ||
+
+                    ((segmentModel.Region?.ConditionItems?.Any() ?? false) &&
+                    !string.IsNullOrEmpty(segmentModel.Region?.ConditionItems[0]?.StringValue) &&
+                    ((segmentModel.Region?.ConditionItems[0]?.StringValue.Split(',').Any(x => !int.TryParse(x, out int i)) ?? false) ||
+                    !Enum.IsDefined(typeof(FilterOperations), segmentModel.Region?.ConditionItems[0].OperationTypeId))) ||
+
+                    ((segmentModel.AffiliateId?.ConditionItems?.Any() ?? false) &&
+                    !string.IsNullOrEmpty(segmentModel.AffiliateId?.ConditionItems[0]?.StringValue) &&
+                    ((segmentModel.AffiliateId?.ConditionItems[0]?.StringValue.Split(',').Any(x => !int.TryParse(x, out int i)) ?? false)||
+                    !Enum.IsDefined(typeof(FilterOperations), segmentModel.AffiliateId?.ConditionItems[0].OperationTypeId))) ||
+
+                    ((segmentModel.SessionPeriod?.ConditionItems?.Any() ?? false) &&
+                    !string.IsNullOrEmpty(segmentModel.SessionPeriod?.ConditionItems[0]?.StringValue) &&                     
+                    ((segmentModel.SessionPeriod?.ConditionItems[0]?.StringValue.Split(',').Any(x => !int.TryParse(x, out int i)) ?? false) ||
+                    !Enum.IsDefined(typeof(FilterOperations), segmentModel.SessionPeriod?.ConditionItems[0].OperationTypeId))) ||
+
+                    ((segmentModel.TotalDepositsCount?.ConditionItems?.Any() ?? false) &&
+                    !string.IsNullOrEmpty(segmentModel.TotalDepositsCount?.ConditionItems[0]?.StringValue) &&
+                    ((segmentModel.TotalDepositsCount?.ConditionItems[0]?.StringValue.Split(',').Any(x => !int.TryParse(x, out int i)) ?? false)||
+                    !Enum.IsDefined(typeof(FilterOperations), segmentModel.TotalDepositsCount?.ConditionItems[0].OperationTypeId))) ||
+
+                    ((segmentModel.TotalDepositsAmount?.ConditionItems?.Any() ?? false) &&
+                    !string.IsNullOrEmpty(segmentModel.TotalDepositsAmount?.ConditionItems[0]?.StringValue) &&
+                    ((segmentModel.TotalDepositsAmount?.ConditionItems[0]?.StringValue.Split(',').Any(x => !decimal.TryParse(x, out decimal i)) ?? false)||
+                    !Enum.IsDefined(typeof(FilterOperations), segmentModel.TotalDepositsAmount?.ConditionItems[0].OperationTypeId))) ||
+
+                    ((segmentModel.TotalWithdrawalsCount?.ConditionItems?.Any() ?? false) &&
+                    !string.IsNullOrEmpty(segmentModel.TotalWithdrawalsCount?.ConditionItems[0]?.StringValue) &&
+                    ((segmentModel.TotalWithdrawalsCount?.ConditionItems[0]?.StringValue.Split(',').Any(x => !int.TryParse(x, out int i)) ?? false)||
+                    !Enum.IsDefined(typeof(FilterOperations), segmentModel.TotalWithdrawalsCount?.ConditionItems[0].OperationTypeId))) ||
+
+                     ((segmentModel.TotalWithdrawalsAmount?.ConditionItems?.Any() ?? false) &&
+                     !string.IsNullOrEmpty(segmentModel.TotalWithdrawalsAmount?.ConditionItems[0]?.StringValue) &&
+                    ((segmentModel.TotalWithdrawalsAmount?.ConditionItems[0]?.StringValue.Split(',').Any(x => !decimal.TryParse(x, out decimal i)) ?? false)||
+                    !Enum.IsDefined(typeof(FilterOperations), segmentModel.TotalWithdrawalsAmount?.ConditionItems[0].OperationTypeId))) ||
+
+                     ((segmentModel.TotalBetsCount?.ConditionItems?.Any() ?? false) &&
+                     !string.IsNullOrEmpty(segmentModel.TotalBetsCount?.ConditionItems[0]?.StringValue) &&
+                    ((segmentModel.TotalBetsCount?.ConditionItems[0]?.StringValue.Split(',').Any(x => !int.TryParse(x, out int i)) ?? false)||
+                    !Enum.IsDefined(typeof(FilterOperations), segmentModel.TotalBetsCount?.ConditionItems[0].OperationTypeId))) ||
+
+                     ((segmentModel.TotalBetsAmount?.ConditionItems?.Any() ?? false) &&
+                     !string.IsNullOrEmpty(segmentModel.TotalBetsAmount?.ConditionItems[0]?.StringValue) &&
+                    ((segmentModel.TotalBetsAmount?.ConditionItems[0]?.StringValue.Split(',').Any(x => !int.TryParse(x, out int i)) ?? false)||
+                    !Enum.IsDefined(typeof(FilterOperations), segmentModel.TotalBetsAmount?.ConditionItems[0].OperationTypeId))) ||
+
+                     ((segmentModel.SportBetsCount?.ConditionItems?.Any() ?? false) &&
+                     !string.IsNullOrEmpty(segmentModel.SportBetsCount?.ConditionItems[0]?.StringValue) &&
+                    ((segmentModel.SportBetsCount?.ConditionItems[0]?.StringValue.Split(',').Any(x => !int.TryParse(x, out int i)) ?? false)||
+                    !Enum.IsDefined(typeof(FilterOperations), segmentModel.SportBetsCount?.ConditionItems[0].OperationTypeId))) ||
+
+                    ((segmentModel.CasinoBetsCount?.ConditionItems?.Any() ?? false) &&
+                    !string.IsNullOrEmpty(segmentModel.CasinoBetsCount?.ConditionItems[0]?.StringValue) &&
+                    ((segmentModel.CasinoBetsCount?.ConditionItems[0]?.StringValue.Split(',').Any(x => !int.TryParse(x, out int i)) ?? false)||
+                    !Enum.IsDefined(typeof(FilterOperations), segmentModel.CasinoBetsCount?.ConditionItems[0].OperationTypeId))) ||
+
+                    ((segmentModel.Profit?.ConditionItems?.Any() ?? false) &&
+                    !string.IsNullOrEmpty(segmentModel.Profit?.ConditionItems[0]?.StringValue) &&
+                    ((segmentModel.Profit?.ConditionItems[0]?.StringValue.Split(',').Any(x => !decimal.TryParse(x, out decimal i)) ?? false)||
+                    !Enum.IsDefined(typeof(FilterOperations), segmentModel.Profit?.ConditionItems[0].OperationTypeId))) ||
+
+                    ((segmentModel.Bonus?.ConditionItems?.Any() ?? false) &&
+                    !string.IsNullOrEmpty(segmentModel.Bonus?.ConditionItems[0]?.StringValue) &&
+                    ((segmentModel.Bonus?.ConditionItems[0]?.StringValue.Split(',').Any(x => !int.TryParse(x, out int i)) ?? false)||
+                    !Enum.IsDefined(typeof(FilterOperations), segmentModel.Bonus?.ConditionItems[0].OperationTypeId))) ||
+
+                    ((segmentModel.SuccessDepositPaymentSystem?.ConditionItems?.Any() ?? false) &&
+                    !string.IsNullOrEmpty(segmentModel.SuccessDepositPaymentSystem?.ConditionItems[0]?.StringValue) &&
+                    ((segmentModel.SuccessDepositPaymentSystem?.ConditionItems[0]?.StringValue.Split(',').Any(x => !int.TryParse(x, out int i)) ?? false)||
+                    !Enum.IsDefined(typeof(FilterOperations), segmentModel.SuccessDepositPaymentSystem?.ConditionItems[0].OperationTypeId))) ||
+
+                    ((segmentModel.SuccessWithdrawalPaymentSystem?.ConditionItems?.Any() ?? false) &&
+                    !string.IsNullOrEmpty(segmentModel.SuccessWithdrawalPaymentSystem?.ConditionItems[0]?.StringValue) &&
+                    ((segmentModel.SuccessWithdrawalPaymentSystem?.ConditionItems[0]?.StringValue.Split(',').Any(x => !int.TryParse(x, out int i)) ?? false)||
+                    !Enum.IsDefined(typeof(FilterOperations), segmentModel.SuccessWithdrawalPaymentSystem?.ConditionItems[0].OperationTypeId))) ||
+
+                    ((segmentModel.ComplimentaryPoint?.ConditionItems?.Any() ?? false) &&
+                    !string.IsNullOrEmpty(segmentModel.ComplimentaryPoint?.ConditionItems[0]?.StringValue) &&
+                    ((segmentModel.ComplimentaryPoint?.ConditionItems[0]?.StringValue.Split(',').Any(x => !int.TryParse(x, out int i)) ?? false) ||
+                    !Enum.IsDefined(typeof(FilterOperations), segmentModel.ComplimentaryPoint?.ConditionItems[0].OperationTypeId))) ||
+
+                    ((segmentModel.Email?.ConditionItems?.Any() ?? false) &&
+                    !string.IsNullOrEmpty(segmentModel.Email?.ConditionItems[0]?.StringValue) &&
+                     !Enum.IsDefined(typeof(FilterOperations), segmentModel.Email?.ConditionItems[0].OperationTypeId)) ||
+
+                     ((segmentModel.FirstName?.ConditionItems?.Any() ?? false) &&
+                     !string.IsNullOrEmpty(segmentModel.FirstName?.ConditionItems[0]?.StringValue) &&
+                     !Enum.IsDefined(typeof(FilterOperations), segmentModel.FirstName?.ConditionItems[0].OperationTypeId)) ||
+
+                     ((segmentModel.LastName?.ConditionItems?.Any() ?? false) &&
+                     !string.IsNullOrEmpty(segmentModel.LastName?.ConditionItems[0]?.StringValue) &&
+                     !Enum.IsDefined(typeof(FilterOperations), segmentModel.LastName?.ConditionItems[0].OperationTypeId)) ||
+
+                     ((segmentModel.MobileCode?.ConditionItems?.Any() ?? false) &&
+                     !string.IsNullOrEmpty(segmentModel.MobileCode?.ConditionItems[0]?.StringValue) &&
+                     !Enum.IsDefined(typeof(FilterOperations), segmentModel.MobileCode?.ConditionItems[0].OperationTypeId))
+                    )
+                    throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
                 dbSegment.ClientStatus = segmentModel.ClientStatus?.ToString();
                 dbSegment.SegmentId = segmentModel.SegmentId?.ToString();
                 dbSegment.ClientId = segmentModel.ClientId?.ToString();
@@ -2716,7 +3342,7 @@ namespace IqSoft.CP.BLL.Services
                 segmentModel.PartnerId = dbSegment.PartnerId;
                 segmentModel.CreationTime = dbSegment.CreationTime;
                 CacheManager.RemoveSegmentSettingFromCache(dbSegment.Id);
-                Db.ClientClassifications.Where(x => x.SegmentId == dbSegment.Id && 
+                Db.ClientClassifications.Where(x => x.SegmentId == dbSegment.Id &&
                     x.ProductId == (int)Constants.PlatformProductId).DeleteFromQuery(); //Save change history
             }
             else
@@ -2760,7 +3386,7 @@ namespace IqSoft.CP.BLL.Services
             CacheManager.RemoveSegmentSettingFromCache(dbSegment.Id);
             return dbSegment;
         }
-      
+
         public List<Segment> GetSegments(int? id, int? partnerId)
         {
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
@@ -2779,10 +3405,38 @@ namespace IqSoft.CP.BLL.Services
             else if (!partnerAccess.HaveAccessForAllObjects)
                 query = query.Where(x => partnerAccess.AccessibleObjects.Contains(x.PartnerId));
 
-            if(id.HasValue)
+            if (id.HasValue)
                 query = query.Where(x => x.Id == id.Value);
 
             return query.ToList();
+        }
+
+        public object GetDocuments(int partnerId, int platformType)
+        {
+            GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewDocumentation
+            });
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewPartner,
+                ObjectTypeId = ObjectTypes.Partner
+            });
+            if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != partnerId))
+                throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
+            var partner = CacheManager.GetPartnerById(partnerId);
+            var root = $"{partner.Name}/{Enum.GetName(typeof(DeviceTypes), platformType)}/";
+            return Db.WebSiteSubMenuItems.Where(x => x.WebSiteMenuItem.WebSiteMenu.Type == Constants.WebSiteConfiguration.Documentation &&
+                                                     x.WebSiteMenuItem.WebSiteMenu.PartnerId == partnerId &&
+                                                     x.WebSiteMenuItem.WebSiteMenu.DeviceType == platformType)
+                                         .OrderBy(x => x.WebSiteMenuItem.Order).ThenBy(x => x.Order)
+                                         .GroupBy(x => x.WebSiteMenuItem.Title)
+                                         .Select(x => new
+                                         {
+                                             Menu = x.Key,
+                                             Documets = x.Select(y => new { y.Title, Path = root + x.Key +"/" + y.Id + ".pdf" }).ToList()
+                                         }).ToList();
+
         }
     }
 }

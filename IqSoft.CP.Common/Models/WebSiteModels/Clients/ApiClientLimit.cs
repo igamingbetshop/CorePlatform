@@ -1,5 +1,6 @@
 ﻿using IqSoft.CP.DAL.Models.Clients;
 using System;
+using System.Activities.Debugger;
 
 namespace IqSoft.CP.Common.Models.WebSiteModels.Clients
 {
@@ -28,7 +29,7 @@ namespace IqSoft.CP.Common.Models.WebSiteModels.Clients
         public bool IsCreditVerified { get; set; }
         public bool IsHighCreditVerified { get; set; }
 
-        public DateTime? SelfExcludedUntil { get; set; }
+        public SelfExcludedModel SelfExcluded { get; set; }
         public decimal? SystemDepositLimitDaily { get; set; }
         public decimal? SystemDepositLimitWeekly { get; set; }
         public decimal? SystemDepositLimitMonthly { get; set; }
@@ -42,6 +43,13 @@ namespace IqSoft.CP.Common.Models.WebSiteModels.Clients
         public int? SystemSessionLimitDaily { get; set; }
         public int? SystemSessionLimitWeekly { get; set; }
         public int? SystemSessionLimitMonthly { get; set; }
-        public DateTime? SystemExcludedUntil { get; set; }
+        public SelfExcludedModel SystemExcluded { get; set; }
+    }
+
+    public class SelfExcludedModel
+    {
+        public DateTime? ExcludedUntil { get; set; }
+        public int Reason { get; set; }
+        public string ReasonText { get; set; }
     }
 }

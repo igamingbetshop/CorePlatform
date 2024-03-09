@@ -5,6 +5,7 @@
         public int BrandId { get; set; }
         public long CustomerId { get; set; }
         public string CustomerName { get; set; }
+        public string CustomerCurrencyId { get; set; }
         public string BTag { get; set; }
         public string CountryCode { get; set; }
         public string RegistrationDate { get; set; }

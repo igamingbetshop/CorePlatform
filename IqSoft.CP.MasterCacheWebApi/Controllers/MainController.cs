@@ -27,13 +27,11 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity.Validation;
 using System.Linq;
-using System.Net.Http.Headers;
 using System.ServiceModel;
 using System.Text;
 using System.Threading;
 using System.Web.Http;
 using System.Web.Http.Cors;
-
 using static IqSoft.CP.Common.Constants;
 
 namespace IqSoft.CP.MasterCacheWebApi.Controllers
@@ -258,7 +256,47 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
             }
             return response;
         }
-        /*
+
+		[HttpPost]
+		public ApiResponseBase GetProviderData(ProviderData request)
+		{
+			var response = new ApiResponseBase();
+            try
+            {
+                var partner = CacheManager.GetPartnerById(request.PartnerId);
+                if (partner == null || !partner.SiteUrl.Split(',').Any(x => x == request.Domain))
+                    throw BaseBll.CreateException(request.LanguageId, Constants.Errors.PartnerNotFound);
+                var client = new BllClient();
+                if (request.ClientId != 0)
+                {
+                    var session = Helpers.Helpers.CheckToken(request.Token, request.ClientId, request.TimeZone);
+					client = CacheManager.GetClientById(session.Id);
+				}
+                var provider = CacheManager.GetGameProviderById(request.ProviderId);
+                switch (provider.Name)
+                {
+                    case Constants.GameProviders.TimelessTech:
+                        var key = Integration.Products.Helpers.TimelessTechHelpers.GetSignature(request.PartnerId, request.RequestData, client.Id, client.CurrencyId);
+						response.ResponseObject = new { key };
+						break;
+                }
+            }
+            catch (FaultException<BllFnErrorType> fex)
+            {
+                WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(fex.Detail));
+                response.ResponseCode = fex.Detail.Id;
+                response.Description = fex.Detail.Message;
+            }
+            catch (Exception ex)
+            {
+                WebApiApplication.DbLogger.Error(ex);
+                response.ResponseCode = Constants.Errors.GeneralException;
+                response.Description = ex.Message;
+            }
+			return response;
+		}
+
+		/*
         [HttpPost]
         public ApiResponseBase GetTicketInfoByBarcode(GetTicketInfoByBarcodeInput request)
         {
@@ -329,11 +367,11 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
             }
         }
         */
-        #endregion
+		#endregion
 
-        #region AfterLogin
+		#region AfterLogin
 
-        [HttpPost]
+		[HttpPost]
         public ApiResponseBase ApiRequest(RequestBase request)
         {
             try
@@ -937,7 +975,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                             if (existingClient != null)
                                 throw BaseBll.CreateException(input.LanguageId, Constants.Errors.ClientExist);
                         }
-                        var client = clientBl.RegisterClient(clientRegistrationInput);
+						var client = clientBl.RegisterClient(clientRegistrationInput);
                         var verificationPlatform = CacheManager.GetConfigKey(client.PartnerId, Constants.PartnerKeys.VerificationPlatform);
                         if (!string.IsNullOrEmpty(verificationPlatform) && int.TryParse(verificationPlatform, out int verificationPatformId))
                         {
@@ -1481,6 +1519,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                     var questions = clientBl.GetClientSecurityQuestions(client.Id);
                     var responseClient = client.ToApiClientInfo(request.TimeZone, clientLoginOut);
                     responseClient.SecurityQuestions = questions;
+                    responseClient.PinCode = CacheManager.GetClientSettingByName(client.Id, Constants.ClientSettings.PinCode)?.StringValue;
                     var clientIdentities = clientBl.GetClientIdentities(client.Id)
                                                    .OrderByDescending(x => x.Status == (int)KYCDocumentStates.Approved)
                                                    .ThenByDescending(x => x.Status ==(int)KYCDocumentStates.InProcess)
@@ -1534,6 +1573,16 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                     dbClient.CurrencySymbol = currency.Symbol;
                     dbClient.Token = clientLoginOut.NewToken;
                     var responseClient = dbClient.MapToApiLoginClientOutput(request.TimeZone, clientLoginOut);
+                    responseClient.Popups = clientBl.GetClientPopups(client.Id, (int)PopupTypes.NextLogin)
+                        .Select(x => new ApiPopupWeSiteModel
+                        {
+                            Id = x.Id,
+                            PartnerId = x.PartnerId,
+                            Type = x.Type,
+                            ImageName = x.ImageName,
+                            Page = x.Page,
+                            Order = x.Order
+                        }).ToList();
                     if (request.Token != clientLoginOut.NewToken)
                         Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}", Constants.CacheItems.ClientSessions, request.Token));
                     return responseClient;
@@ -1970,12 +2019,19 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
         {
             try
             {
+                var partner = CacheManager.GetPartnerById(input.PartnerId);
+                if (partner == null || !partner.SiteUrl.Split(',').Any(x => x == input.Domain))
+                    throw BaseBll.CreateException(input.LanguageId, Constants.Errors.PartnerNotFound);
+
                 using (var regionBl = new RegionBll(new SessionIdentity(), WebApiApplication.DbLogger))
                 {
                     return new ApiResponseBase
                     {
-                        ResponseObject = regionBl.GetfnRegions(new FilterRegion { ParentId = input.ParentId, TypeId = input.TypeId },
-                            input.LanguageId, false, input.PartnerId).Where(x => x.State == (int)RegionStates.Active).OrderBy(x => x.Name).MapToRegionModels()
+                        ResponseObject = regionBl.GetfnRegions(new FilterRegion { ParentId = input.ParentId, TypeId = input.TypeId }, input.LanguageId,
+                                                               false, input.PartnerId, input.ClientId)
+                                                 .Where(x => x.State == (int)RegionStates.Active)
+                                                 .OrderBy(x => x.Name)
+                                                 .MapToRegionModels()
                     };
                 }
             }
@@ -2191,6 +2247,56 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
         }
 
         [HttpPost]
+        public ApiResponseBase GetNews(ApiRequestBase input)
+        {
+            try
+            {
+                var partner = CacheManager.GetPartnerById(input.PartnerId);
+                if (partner == null || !partner.SiteUrl.Split(',').Any(x => x == input.Domain))
+                    throw BaseBll.CreateException(input.LanguageId, Constants.Errors.PartnerNotFound);
+                return new ApiResponseBase
+                {
+                    ResponseObject = CacheManager.GetNews(input.PartnerId, input.LanguageId).Select(x => new ApiNews
+                    {
+                        Id = x.Id,
+                        Title = x.Title,
+                        Description = x.Description,
+                        Type = x.Type,
+                        ImageName = x.ImageName,
+                        Segments = x.Segments == null ? new Common.Models.AdminModels.ApiSetting() :
+                            new Common.Models.AdminModels.ApiSetting { Type = x.Segments.Type, Ids = x.Segments.Ids },
+                        Languages = x.Languages == null ? new Common.Models.AdminModels.ApiSetting() :
+                            new Common.Models.AdminModels.ApiSetting { Type = x.Languages.Type, Names = x.Languages.Names },
+                        Order = x.Order,
+                        ParentId = x.ParentId,
+                        StyleType = x.StyleType,
+                        StartDate = x.StartDate
+                    }).ToList()
+                };
+            }
+            catch (FaultException<BllFnErrorType> ex)
+            {
+                var response = new ApiResponseBase
+                {
+                    ResponseCode = ex.Detail.Id,
+                    Description = ex.Detail.Message
+                };
+                WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(response));
+                return response;
+            }
+            catch (Exception ex)
+            {
+                WebApiApplication.DbLogger.Error(ex);
+                var response = new ApiResponseBase
+                {
+                    ResponseCode = Constants.Errors.GeneralException,
+                    Description = ex.Message
+                };
+                return response;
+            }
+        }
+
+        [HttpPost]
         public ApiResponseBase GetTicker(RequestBase input)
         {
             try
@@ -2204,8 +2310,10 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                     Helpers.Helpers.CheckToken(input.Token, input.ClientId, input.TimeZone);
                     var clientSegments = ClientBll.GetClientSegments(input.ClientId);
                     tickers = tickers.Where(x => (!x.ClientIds.Any() || x.ClientIds.Contains(input.ClientId)) &&
-                                                 (!x.SegmentIds.Any() || clientSegments.Intersect(x.SegmentIds).Any())).ToList();
+                                                 (!x.SegmentIds.Any() || x.SegmentIds.All(y=> clientSegments.Contains(y)))).ToList();
                 }
+                else
+                    tickers = tickers.Where(x => !x.ClientIds.Any() && !x.SegmentIds.Any() ).ToList();
                 return new ApiResponseBase
                 {
                     ResponseObject = tickers.Select(x => x.Message).ToList()
@@ -2390,27 +2498,27 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
         }
 
         [HttpPost]
-        public ApiResponseBase GetApiRestrictions(int partnerId)
+        public ApiResponseBase GetApiRestrictions(ApiRequestBase input)
         {
             try
             {
-                var partner = CacheManager.GetPartnerById(partnerId);
+                var partner = CacheManager.GetPartnerById(input.PartnerId);
                 if (partner == null)
                     throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.PartnerNotFound);
                 using (var contentBl = new ContentBll(new SessionIdentity(), WebApiApplication.DbLogger))
                 {
-                    var registrationLimitPerDay = CacheManager.GetConfigKey(partnerId, Constants.PartnerKeys.RegistrationLimitPerDay);
+                    var registrationLimitPerDay = CacheManager.GetConfigKey(input.PartnerId, Constants.PartnerKeys.RegistrationLimitPerDay);
                     return new ApiResponseBase
                     {
                         ResponseObject = new ApiRestrictionModel
                         {
-                            WhitelistedCountries = CacheManager.GetConfigParameters(partnerId, PartnerKeys.WhitelistedCountries).Select(x => x.Value).ToList() ?? new List<string>(),
-                            BlockedCountries = CacheManager.GetConfigParameters(partnerId, PartnerKeys.BlockedCountries).Select(x => x.Value).ToList() ?? new List<string>(),
-                            WhitelistedIps = CacheManager.GetConfigParameters(partnerId, PartnerKeys.WhitelistedIps).Select(x => x.Value).ToList() ?? new List<string>(),
-                            BlockedIps = CacheManager.GetConfigParameters(partnerId, PartnerKeys.BlockedIps).Select(x => x.Value).ToList() ?? new List<string>(),
+                            WhitelistedCountries = CacheManager.GetConfigParameters(input.PartnerId, PartnerKeys.WhitelistedCountries).Select(x => x.Value).ToList() ?? new List<string>(),
+                            BlockedCountries = CacheManager.GetConfigParameters(input.PartnerId, PartnerKeys.BlockedCountries).Select(x => x.Value).ToList() ?? new List<string>(),
+                            WhitelistedIps = CacheManager.GetConfigParameters(input.PartnerId, PartnerKeys.WhitelistedIps).Select(x => x.Value).ToList() ?? new List<string>(),
+                            BlockedIps = CacheManager.GetConfigParameters(input.PartnerId, PartnerKeys.BlockedIps).Select(x => x.Value).ToList() ?? new List<string>(),
                             RegistrationLimitPerDay = int.TryParse(registrationLimitPerDay, out int limit) ? limit : (int?)null,
-                            ConnectingIPHeader = CacheManager.GetConfigKey(partnerId, PartnerKeys.ConnectingIPHeader),
-                            IPCountryHeader = CacheManager.GetConfigKey(partnerId, PartnerKeys.IPCountryHeader)
+                            ConnectingIPHeader = CacheManager.GetConfigKey(input.PartnerId, PartnerKeys.ConnectingIPHeader),
+                            IPCountryHeader = CacheManager.GetConfigKey(input.PartnerId, PartnerKeys.IPCountryHeader)
                         }
                     };
                 }
@@ -2480,7 +2588,46 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                 return response;
             }
         }
-        
+
+        [HttpPost]
+        public ApiResponseBase GetPartnerByDomain(ApiRequestBase input)
+        {
+            try
+            {
+                using (var contentBl = new ContentBll(new SessionIdentity(), WebApiApplication.DbLogger))
+                {
+                    var partner = CacheManager.GetPartnerByDomain(input.Domain);
+                    var resp = new ApiResponseBase();
+                    if (partner == null || partner.Id == 0)
+                        resp.ResponseCode = Constants.Errors.WrongInputParameters;
+                    else
+                        resp.ResponseObject = partner.MapToApiGetPartnerByIdOutput();
+
+                    return resp;
+                }
+            }
+            catch (FaultException<BllFnErrorType> ex)
+            {
+                var response = new ApiResponseBase
+                {
+                    ResponseCode = ex.Detail.Id,
+                    Description = ex.Detail.Message
+                };
+                WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(response));
+                return response;
+            }
+            catch (Exception ex)
+            {
+                WebApiApplication.DbLogger.Error(ex);
+                var response = new ApiResponseBase
+                {
+                    ResponseCode = Constants.Errors.GeneralException,
+                    Description = ex.Message
+                };
+                return response;
+            }
+        }
+
         [HttpPost]
         public ApiResponseBase SendSMSCode(ApiNotificationInput request)
         {
@@ -2849,75 +2996,71 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                         var client = CacheManager.GetClientById(input.ClientId);
                         blockedProviders.AddRange(CacheManager.GetRestrictedGameProviders(client.CurrencyId));
                     }
-                    var restrictedProducts = CacheManager.GetRestrictedProductCountrySettings(input.CountryCode);
-
-                    var games = (input.IsForMobile ? CacheManager.GetPartnerProductSettingsForMobile(input.PartnerId, input.LanguageId) :
-                                                     CacheManager.GetPartnerProductSettingsForDesktop(input.PartnerId, input.LanguageId))
-                        .Where(x => !blockedProviders.Contains(x.SubproviderId) && !restrictedProducts.Contains(x.ProductId))
-                        .AsEnumerable();
+                    
+                    var games = (input.IsForMobile ? CacheManager.GetPartnerProductSettings(input.PartnerId, input.CountryCode, (int)DeviceTypes.Mobile, input.LanguageId, WebApiApplication.DbLogger) :
+                                                     CacheManager.GetPartnerProductSettings(input.PartnerId, input.CountryCode, (int)DeviceTypes.Desktop, input.LanguageId, WebApiApplication.DbLogger))
+                        .Where(x => !blockedProviders.Contains(x.SI)).AsEnumerable();
                     if (input.CategoryId != null)
                     {
                         if (input.CategoryId == 0)
-                            games = games.Where(x => favoriteProducts.Contains(x.ProductId));
+                            games = games.Where(x => favoriteProducts.Contains(x.I));
                         else
-                            games = games.Where(x => x.CategoryIds!=null && x.CategoryIds.Contains(input.CategoryId.Value));
+                            games = games.Where(x => x.CI != null && x.CI.Contains(input.CategoryId.Value));
                     }
                     else
                     {
                         if (input.CategoryIds != null && input.CategoryIds.Any())
-                            games = games.Where(x => x.CategoryIds != null && x.CategoryIds.Any(y=> input.CategoryIds.Contains(y)));
+                            games = games.Where(x => x.CI != null && x.CI.Any(y=> input.CategoryIds.Contains(y)));
                         else
                         {
                             var casinoMenues = CacheManager.GetCasinoMenues(partner.Id);
-                            games = games.Where(x => x.CategoryIds != null &&  casinoMenues.Any(y => int.TryParse(y.Type, out int t) && x.CategoryIds.Contains(t)));
+                            games = games.Where(x => x.CI != null &&  casinoMenues.Any(y => int.TryParse(y.Type, out int t) && x.CI.Contains(t)));
                         }
                     }
+
                     if (!string.IsNullOrEmpty(input.Name))
-                        games = games.Where(x => x.Name.ToLower().Contains(input.Name.ToLower()));
-                    games = games.OrderByDescending(x => x.Rating).ThenBy(x => x.Name);
-                    var gamesCategories = games.Where(x => x.CategoryIds != null).SelectMany(x => x.CategoryIds).Distinct().ToList();
+                    {
+                        games = games.Where(x => x.N.ToLower().Contains(input.Name.ToLower())).ToList();
+                    }
+                    games = games.OrderByDescending(x => x.R).ThenBy(x => x.N).ToList();
+
+                    var gamesCategories = games.Where(x => x.CI != null).SelectMany(x => x.CI).Distinct().ToList();
                     var categories = CacheManager.GetProductCategories(input.PartnerId, input.LanguageId, (int)ProductCategoryTypes.ForPartner)
                              .Where(x => x.Type == (int)ProductCategoryTypes.ForPartner && gamesCategories.Contains(x.Id))
                              .Select(x => new { x.Id, x.Name }).ToList();
-                    var providers = games.Select(x => x.SubproviderId).Distinct().ToList();
+                    var providers = games.Select(x => x.SI).Distinct().ToList();
                     if (input.ProviderIds != null && input.ProviderIds.Any())
-                        games = games.Where(x => input.ProviderIds.Contains(x.SubproviderId));
+                        games = games.Where(x => input.ProviderIds.Contains(x.SI)).ToList();
                     var gamesCount = games.Count();
 
-                    var providerGamesCount = games.GroupBy(x => x.SubproviderId).ToDictionary(x => x.Key, x => x.Count());
-                    games = games.Skip(skipCount).Take(takeCount);
+                    var providerGamesCount = games.GroupBy(x => x.SI).ToDictionary(x => x.Key, x => x.Count());
+                    games = games.Skip(skipCount).Take(takeCount).ToList();
                     var result = new List<ApiPartnerProduct>();
+                    
                     foreach (var g in games)
                     {
-                        var game = CacheManager.GetProductById(g.ProductId);
-                        var imageUrl = input.IsForMobile ? game.MobileImageUrl : game.WebImageUrl;
-                        var providerName = CacheManager.GetGameProviderById(game.GameProviderId.Value).Name;
-
+                        var product = CacheManager.GetProductById(g.I, input.LanguageId, WebApiApplication.DbLogger);
                         result.Add(new ApiPartnerProduct
                         {
-                            i = string.IsNullOrEmpty(imageUrl) ? string.Empty : imageUrl,
-                            n = g.Name,
-                            nn = g.NickName,
-                            s = g.SubproviderId,
-                            p = g.ProductId,
-                            sn = providerName,
-                            r = g.Rating ?? 0,
-                            o = g.OpenMode ?? (int)GameOpenModes.Small,
-                            ss = g.SubproviderId,
-                            sp = g.ProviderName,
-                            hd = game.HasDemo && g.HasDemo.HasValue ? g.HasDemo.Value : game.HasDemo,
-                           // jp = game.Jackpot,
-                            c = g.CategoryIds,
-                            f = favoriteProducts.Contains(g.ProductId)
+                            i = input.IsForMobile ? product.MobileImageUrl : product.WebImageUrl,
+                            n = g.N,
+                            nn = g.NN,
+                            s = g.SI,
+                            sp = g.SN,
+                            p = g.I,
+                            r = g.R ?? 0,
+                            o = g.OM ?? (int)GameOpenModes.Small,
+                            hd = product.HasDemo && g.HD.HasValue ? g.HD.Value : product.HasDemo,
+                            c = g.CI,
+                            f = favoriteProducts.Contains(g.I)
                         });
                     }
-
-                    return new ApiResponseBase
+                    var output = new ApiResponseBase
                     {
                         ResponseObject = new
                         {
                             Games = result,
-                            Providers = providers.Select(x => new
+                            Providers = input.CategoryId != null ? null : providers.Select(x => new
                             {
                                 Id = x,
                                 Name = CacheManager.GetGameProviderById(x)?.Name,
@@ -2930,7 +3073,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                             LeftGamesCount = Math.Max(0, gamesCount - skipCount - takeCount)
                         }
                     };
-
+                    return output;
                 }
             }
             catch (FaultException<BllFnErrorType> ex)
@@ -2977,12 +3120,10 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                         blockedProviders.AddRange(CacheManager.GetGameProviderSettings((int)ObjectTypes.Client, input.ClientId)
                                         .Where(x => x.State == (int)BaseStates.Inactive).Select(x => x.GameProviderId).ToList());
                     }
-                    var restrictedProducts = CacheManager.GetRestrictedProductCountrySettings(input.CountryCode);
-                    var product = (input.IsForMobile ? CacheManager.GetPartnerProductSettingsForMobile(input.PartnerId, input.LanguageId) :
-                                                    CacheManager.GetPartnerProductSettingsForDesktop(input.PartnerId, input.LanguageId))
-                       .Where(x => !blockedProviders.Contains(x.SubproviderId) && !restrictedProducts.Contains(x.ProductId) &&
-                        (input.CategoryIds == null || !input.CategoryIds.Any() || input.CategoryIds.Any(y=>x.CategoryIds.Contains(y))))
-                       .AsEnumerable();
+                    var product = (input.IsForMobile ? CacheManager.GetPartnerProductSettings(input.PartnerId, input.CountryCode, (int)DeviceTypes.Mobile, input.LanguageId, WebApiApplication.DbLogger) :
+                                                    CacheManager.GetPartnerProductSettings(input.PartnerId, input.CountryCode, (int)DeviceTypes.Desktop, input.LanguageId, WebApiApplication.DbLogger))
+                       .Where(x => !blockedProviders.Contains(x.SI) &&
+                        (input.CategoryIds == null || !input.CategoryIds.Any() || input.CategoryIds.Any(y => x.CI != null && x.CI.Contains(y)))).AsEnumerable();
                     var partnerGameProviderSettings = CacheManager.GetGameProviderSettings((int)ObjectTypes.Partner, partner.Id);
                     if (!string.IsNullOrEmpty(input.Token))
                         blockedProviders.AddRange(CacheManager.GetGameProviderSettings((int)ObjectTypes.Client, input.ClientId)
@@ -2994,50 +3135,143 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                     if (input.CategoryId != null)
                     {
                         if (input.CategoryId == 0)
-                            product = product.Where(x => favoriteProducts.Contains(x.ProductId));
+                            product = product.Where(x => favoriteProducts.Contains(x.I));
                         else
-                            product = product.Where(x => x.CategoryIds.Contains(input.CategoryId.Value));
+                            product = product.Where(x => x.CI != null && x.CI.Contains(input.CategoryId.Value));
                     }
                     else
                     {
                         if (input.CategoryIds != null && input.CategoryIds.Any())
-                            product = product.Where(x => x.CategoryIds != null && x.CategoryIds.Any(y => input.CategoryIds.Contains(y)));
+                            product = product.Where(x => x.CI != null && x.CI.Any(y => input.CategoryIds.Contains(y)));
                         else
                         {
                             var casinoMenues = CacheManager.GetCasinoMenues(partner.Id);
-                            product = product.Where(x => x.CategoryIds != null &&  casinoMenues.Any(y => int.TryParse(y.Type, out int t) && x.CategoryIds.Contains(t)));
+                            product = product.Where(x => x.CI != null && casinoMenues.Any(y => int.TryParse(y.Type, out int t) && x.CI.Contains(t)));
                         }
                     }
-                    var providers = product.Where(x => (string.IsNullOrEmpty(input.Pattern) || x.ProviderName.ToLower().Contains(input.Pattern))  &&
-                                                       !blockedProviders.Contains(x.SubproviderId))
-                                           .Select(x => new
-                                           {
-                                               Id = x.SubproviderId,
-                                               Name = x.ProviderName,
-                                               Order = partnerGameProviderSettings.FirstOrDefault(y => y.GameProviderId == x.SubproviderId)?.Order ?? 10000
-                                           })
-                                           .Distinct().OrderBy(x => x.Order).ThenBy(x => x.Name).ToList();
 
-                    var games = product.Where(x => x.Name.ToLower().Contains(input.Pattern ?? string.Empty)).Take(100).ToList();
-                    var resp = new List<object>();
+                    var providerIds = product.Select(x => x.SI).Distinct().ToList();
+                    var providers = providerIds.Select(x => new ApiProviderInfo
+                    {
+                        Id = x,
+                        Name = CacheManager.GetGameProviderById(x).Name,
+                        Order = partnerGameProviderSettings.FirstOrDefault(y => y.GameProviderId == x)?.Order ?? 10000
+                    }).ToList();
+                    if(!string.IsNullOrEmpty(input.Pattern))
+                    {
+                        providers = providers.Where(x => x.Name.ToLower().Contains(input.Pattern)).ToList();
+                    }
+
+                    //var games = product.Where(x => x.N.ToLower().Contains(input.Pattern ?? string.Empty)).Take(100).ToList();
+                    /*var resp = new List<object>();
                     foreach (var g in games)
                     {
-                        var game = CacheManager.GetProductById(g.ProductId);
+                        var game = CacheManager.GetProductById(g.I);
                         var imageUrl = input.IsForMobile ? game.MobileImageUrl : game.WebImageUrl;
                         resp.Add(new
                         {
-                            Id = g.ProductId,
-                            g.Name,
+                            Id = g.I,
+                            g.N,
                             ImageUrl = string.IsNullOrEmpty(imageUrl) ? string.Empty : imageUrl,
                             IsFavorite = favoriteProducts.Contains(game.Id),
-                            HasDemo = game.HasDemo && g.HasDemo.HasValue ? g.HasDemo.Value : game.HasDemo,
+                            HasDemo = game.HasDemo && g.HD.HasValue ? g.HD.Value : game.HasDemo,
+                        });
+                    }*/
+                    return new ApiResponseBase
+                    {
+                        ResponseObject = new
+                        {
+                            Providers = providers.OrderBy(x => x.Order).ThenBy(x => x.Name).ToList(),
+                            //Games = resp,
+                            Categories = categories
+                        }
+                    };
+                }
+            }
+            catch (FaultException<BllFnErrorType> ex)
+            {
+                var response = new ApiResponseBase
+                {
+                    ResponseCode = ex.Detail.Id,
+                    Description = ex.Detail.Message
+                };
+                WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(response));
+                return response;
+            }
+            catch (Exception ex)
+            {
+                WebApiApplication.DbLogger.Error(ex);
+                return new ApiResponseBase
+                {
+                    ResponseCode = Constants.Errors.GeneralException,
+                    Description = ex.Message
+                };
+            }
+        }
+
+        [HttpPost]
+        public ApiResponseBase SearchContentInfo(ApiGetGamesInput input)
+        {
+            try
+            {
+                var partner = CacheManager.GetPartnerById(input.PartnerId);
+                if (partner == null || !partner.SiteUrl.Split(',').Any(x => x == input.Domain))
+                    throw BaseBll.CreateException(input.LanguageId, Constants.Errors.PartnerNotFound);
+                if (!string.IsNullOrEmpty(input.Pattern))
+                    input.Pattern = input.Pattern.ToLower();
+                using (var productBl = new ProductBll(new SessionIdentity { LanguageId = input.LanguageId, Domain = input.Domain }, WebApiApplication.DbLogger))
+                {
+                    var blockedProviders = CacheManager.GetGameProviderSettings((int)ObjectTypes.Partner, partner.Id)
+                                          .Where(x => x.State == (int)BaseStates.Inactive).Select(x => x.GameProviderId).ToList();
+                    if (!string.IsNullOrEmpty(input.Token))
+                    {
+                        Helpers.Helpers.CheckToken(input.Token, input.ClientId, input.TimeZone);
+                        blockedProviders.AddRange(CacheManager.GetGameProviderSettings((int)ObjectTypes.Client, input.ClientId)
+                                        .Where(x => x.State == (int)BaseStates.Inactive).Select(x => x.GameProviderId).ToList());
+                    }
+                    var product = (input.IsForMobile ? CacheManager.GetPartnerProductSettings(input.PartnerId, input.CountryCode, (int)DeviceTypes.Mobile, input.LanguageId, WebApiApplication.DbLogger) :
+                                                    CacheManager.GetPartnerProductSettings(input.PartnerId, input.CountryCode, (int)DeviceTypes.Desktop, input.LanguageId, WebApiApplication.DbLogger))
+                       .Where(x => !blockedProviders.Contains(x.SI) &&
+                        (input.CategoryIds == null || !input.CategoryIds.Any() || input.CategoryIds.Any(y => x.CI.Contains(y)))).AsEnumerable();
+                    var partnerGameProviderSettings = CacheManager.GetGameProviderSettings((int)ObjectTypes.Partner, partner.Id);
+                    if (!string.IsNullOrEmpty(input.Token))
+                        blockedProviders.AddRange(CacheManager.GetGameProviderSettings((int)ObjectTypes.Client, input.ClientId)
+                                        .Where(x => x.State == (int)BaseStates.Inactive).Select(x => x.GameProviderId).ToList());
+                    var categories = CacheManager.GetProductCategories(input.PartnerId, input.LanguageId, (int)ProductCategoryTypes.ForPartner)
+                                                 .Where(x => x.Type == (int)ProductCategoryTypes.ForPartner && x.Name.ToLower().Contains(input.Pattern ?? string.Empty))
+                                                 .Select(x => new { x.Id, x.Name }).ToList();
+
+                    var casinoMenues = CacheManager.GetCasinoMenues(partner.Id);
+                    product = product.Where(x => x.CI != null && casinoMenues.Any(y => int.TryParse(y.Type, out int t) && x.CI.Contains(t)));
+
+                    var providerIds = product.Select(x => x.SI).Distinct().ToList();
+                    var providers = providerIds.Select(x => new ApiProviderInfo
+                    {
+                        Id = x,
+                        Name = CacheManager.GetGameProviderById(x).Name,
+                        Order = partnerGameProviderSettings.FirstOrDefault(y => y.GameProviderId == x)?.Order ?? 10000
+                    }).ToList();
+                    if (!string.IsNullOrEmpty(input.Pattern))
+                    {
+                        providers = providers.Where(x => x.Name.ToLower().Contains(input.Pattern)).ToList();
+                    }
+
+                    var games = product.Where(x => x.N.ToLower().Contains(input.Pattern ?? string.Empty)).Take(100).ToList();
+                    var resp = new List<object>();
+
+                    foreach (var g in games)
+                    {
+                        resp.Add(new
+                        {
+                            Id = g.I,
+                            g.N
                         });
                     }
                     return new ApiResponseBase
                     {
                         ResponseObject = new
                         {
-                            Providers = providers,
+                            Providers = providers.OrderBy(x => x.Order).ThenBy(x => x.Name).ToList(),
                             Games = resp,
                             Categories = categories
                         }
@@ -3063,7 +3297,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                     Description = ex.Message
                 };
             }
-        }       
+        }
 
         [HttpPost]
         public ApiResponseBase GetExternalModuleUrl(ApiExternalApiInput input)
@@ -3251,13 +3485,13 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
 		}
 
 		[HttpPost]
-		public ApiResponseBase GetCharacterHierarchy(ApiRequestBase input)
+		public ApiResponseBase GetCharacterHierarchy(GetCharactersInput input)
         {
             try
             {
                 using (var partnerBll = new PartnerBll(new SessionIdentity(), WebApiApplication.DbLogger))
                 {
-                    var characters = CacheManager.GetCharacters(input.PartnerId, input.LanguageId).Select(x => x.MapToApiCharacter()).ToList();
+                    var characters = CacheManager.GetCharacters(input.PartnerId, input.LanguageId).Select(x => x.MapToApiCharacter(input.IsForMobile.HasValue && input.IsForMobile.Value)).ToList();
                     var parentIds = characters.Where(x => x.ParentId == null).Select(x => x.Id);
                     var relations = new List<ApiCharacterRelations>();
                     foreach (var pId in parentIds)
@@ -3265,7 +3499,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                         var relation = new ApiCharacterRelations
 						{
                             Parent = characters.FirstOrDefault(x => x.Id == pId),
-                            Children = characters.Where(x => x.ParentId == pId).ToList()
+                            Children = characters.Where(x => x.ParentId == pId).OrderBy(y => y.Order).ToList()
                         };
                         relations.Add(relation);
                     }

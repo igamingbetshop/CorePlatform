@@ -7,5 +7,6 @@
         public int? PartnerId { get; set; }        
         public int? SettingPartnerId { get; set; }        
         public string Name { get; set; }
+        public bool? IsActive { get; set; }
     }
 }

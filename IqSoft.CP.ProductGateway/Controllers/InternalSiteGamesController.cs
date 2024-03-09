@@ -91,6 +91,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                         if(countryId != null)
                            response.CountryCode = CacheManager.GetRegionById(countryId.Value, languageId).IsoCode;
                     }
+                    response.ClientCountryCode = ps.Country;
                     response.AvailableBalance = BaseHelpers.GetClientProductBalance(client.Id, productId);
                     response.DepositCount = CacheManager.GetClientDepositCount(client.Id);
 
@@ -537,6 +538,20 @@ namespace IqSoft.CP.ProductGateway.Controllers
                             creditTransaction.State = (int)BetDocumentStates.Cashouted;
                     }
                     var documents = clientBl.CreateDebitsToClients(operationsFromProduct, creditTransaction, documentBl);
+                    if (operationsFromProduct.State == (int)BetDocumentStates.Cashouted && creditTransaction != null && !string.IsNullOrEmpty(creditTransaction.Info))
+                    {
+                        try
+                        {
+                            var info = JsonConvert.DeserializeObject<DocumentInfo>(creditTransaction.Info);
+                            if (info != null && info.BonusId > 0)
+                                documentBl.RevertClientBonusBet(info, creditTransaction.ClientId.Value, string.Empty, creditTransaction.Amount);
+                        }
+                        catch
+                        {
+
+                        }
+                    }
+
                     foreach (var win in documents)
                     {
                         var outputItem =

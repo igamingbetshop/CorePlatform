@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace IqSoft.CP.BetShopGatewayWebApi.Models
 {
-    public class GetPaymentRequestsOutput : ApiResponseBase
+    public class GetPaymentRequestsOutput 
     {
         public List<PaymentRequest> PaymentRequests { get; set; }
     }

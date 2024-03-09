@@ -1,17 +1,14 @@
-﻿using IqSoft.CP.Common.Helpers;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Web;
 
 namespace IqSoft.CP.BetShopWebApi.Models.Common
 {
-	public class PlaceBetOutput : ClientRequestResponseBase
+    public class PlaceBetOutput : ApiResponseBase
 	{
 		public string Token;
+        public int CashierId;
 
-		public List<BetOutput> Bets { get; set; }
+        public List<BetOutput> Bets { get; set; }
 
 		private decimal _balance;
 		public decimal Balance
@@ -33,7 +30,7 @@ namespace IqSoft.CP.BetShopWebApi.Models.Common
 		}
 	}
 
-	public class BetOutput : ClientRequestResponseBase
+	public class BetOutput : ApiResponseBase
 	{
 		public decimal BetAmount { get; set; }
 		public decimal AmountPerBet { get; set; }

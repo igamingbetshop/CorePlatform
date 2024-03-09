@@ -54,6 +54,21 @@ namespace IqSoft.CP.ProductGateway.Models.BGGames
 
 		[JsonProperty(PropertyName = "extra")]
 		public object Extra { get; set; }
+
+		[JsonProperty(PropertyName = "betslipID")]
+		public string BetslipID { get; set; }
+
+		[JsonProperty(PropertyName = "amount")]
+		public string Amount { get; set; }
+
+		[JsonProperty(PropertyName = "data")]
+		public object Data { get; set; }
+
+		[JsonProperty(PropertyName = "status")]
+		public string Status { get; set; }
+
+		[JsonProperty(PropertyName = "betID")]
+		public string BetID { get; set; }
 	}
 	public class Extra
 	{

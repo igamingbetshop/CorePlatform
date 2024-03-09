@@ -557,12 +557,20 @@ namespace IqSoft.CP.BLL.Services
             NotifyAffiliator(partnerId, clientId, affiliatePlatform, clieckId, string.Empty, null, null, false);
         }
 
-        public void DepositAffiliateNotification(BllClient client, decimal depositAmount, long transactionId, int depositCount)
+        public void DepositAffiliateNotification(BllClient client, decimal depositAmount, long transactionId, int depositCount, string crmPlatforms)
         {
             var ar = Db.AffiliateReferrals.Include(x => x.AffiliatePlatform).FirstOrDefault(x => x.Id == client.AffiliateReferralId);
             if (ar != null)
                 NotifyAffiliator(client.PartnerId, client.Id, ar.AffiliatePlatform, ar.RefId, client.CurrencyId, depositAmount, transactionId, false, depositCount);
-        }
+            if(!string.IsNullOrWhiteSpace(crmPlatforms))
+            {
+                var items = crmPlatforms.Split(',');
+                foreach (var crmPlatform in items)
+                {
+					NotifyAffiliator(client.PartnerId, client.Id, new AffiliatePlatform { Name = crmPlatform }, null, client.CurrencyId, depositAmount, transactionId, false, depositCount);
+				}
+            }				
+		}
 
         public void WithdrawAffiliateNotification(BllClient client, decimal withdrawAmount, long transactionId)
         {
@@ -891,10 +899,77 @@ namespace IqSoft.CP.BLL.Services
                         };
                         var resp = CommonFunctions.SendHttpRequest(httpInput, out _);
                         break;
+                    case AffiliatePlatforms.CustomerIo:
+                        var customer = CacheManager.GetClientById(clientId);
+                        url = CacheManager.GetPartnerSettingByKey(partnerId, Constants.PartnerKeys.CustomerIoUrl).StringValue;
+						if (amount.HasValue)
+                        {
+                            postData = JsonConvert.SerializeObject(new
+                            {
+                                userId = customer.Id.ToString(),
+                                type = "track",
+                                @event = "Deposit",
+                                properties = new
+                                {
+                                    amount,
+                                    transactionId,
+                                    currency = customer.CurrencyId,
+                                    depositCount 
+                                }
+                            });
+							url = $"{url}/track";
+						}
+                        else
+                        {
+                            postData = JsonConvert.SerializeObject(new
+                            {
+                                userId = customer.Id.ToString(),
+                                traits = new
+                                {
+                                    partnerId = customer.PartnerId,
+                                    currencyId = customer.CurrencyId,
+                                    userName = customer.UserName,
+                                    email = customer.Email,
+                                    firstname = customer.FirstName,
+                                    lastName = customer.LastName,
+                                    gender = customer.Gender,
+                                    mobileNumber = customer.MobileNumber,
+                                    zipCode = customer.ZipCode,
+                                    birthDate = customer.BirthDate,
+                                    regionId = customer.RegionId,
+                                    categoryId = customer.CategoryId,
+                                    state = customer.State,
+                                    countryId = customer.CountryId,
+                                    city = customer.City,
+                                    languageId = customer.LanguageId,
+                                    isDocumentVerified = customer.IsDocumentVerified,
+                                    documentNumber = customer.DocumentNumber,
+                                    documentIssuedBy = customer.DocumentIssuedBy,
+                                    sendPromotions = customer.SendPromotions,
+                                    affiliateReferralId = customer.AffiliateReferralId,
+                                    creationTime = customer.CreationTime,
+                                    address = customer.Address
+                                }
+
+                            });
+                            url = $"{url}/identify";
+						}
+						var apikey = CacheManager.GetPartnerSettingByKey(partnerId, Constants.PartnerKeys.CustomerIoApiKey).StringValue;
+						var httpRequest = new HttpRequestInput
+						{
+							RequestMethod = Constants.HttpRequestMethods.Post,
+							ContentType = Constants.HttpContentTypes.ApplicationJson,
+							Url = url,
+							RequestHeaders = new Dictionary<string, string> { { "Authorization", "Basic " + Convert.ToBase64String(Encoding.Default.GetBytes($"{apikey}:")) } },
+							PostData = postData
+						};
+						Log.Info(JsonConvert.SerializeObject(httpRequest));
+						CommonFunctions.SendHttpRequest(httpRequest, out _);
+						break;
                     default:
                         break;
                 }
-                if (!string.IsNullOrEmpty(postData))
+                if (!string.IsNullOrEmpty(postData) && affiliatePlatform.Name != AffiliatePlatforms.CustomerIo)
                 {
                     var httpRequestInput = new HttpRequestInput
                     {

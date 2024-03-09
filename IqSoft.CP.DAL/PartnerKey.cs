@@ -24,8 +24,8 @@ namespace IqSoft.CP.DAL
         public Nullable<decimal> NumericValue { get; set; }
         public Nullable<int> NotificationServiceId { get; set; }
     
-        public virtual GameProvider GameProvider { get; set; }
         public virtual Partner Partner { get; set; }
+        public virtual GameProvider GameProvider { get; set; }
         public virtual PaymentSystem PaymentSystem { get; set; }
     }
 }

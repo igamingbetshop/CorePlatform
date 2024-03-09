@@ -212,9 +212,12 @@ namespace IqSoft.CP.Integration.Products.Helpers
             }
             var casinoPageUrl = CacheManager.GetGameProviderValueByKey(partnerId, product.SubProviderId ?? gameProvider.Id, Constants.PartnerKeys.CasinoPageUrl);
             if (string.IsNullOrEmpty(casinoPageUrl))
+                casinoPageUrl = CacheManager.GetPartnerSettingByKey(partnerId, Constants.PartnerKeys.CasinoPageUrl).StringValue;
+            if (string.IsNullOrEmpty(casinoPageUrl))
                 casinoPageUrl = string.Format("https://{0}/casino/all-games", session.Domain);
             else
                 casinoPageUrl = string.Format(casinoPageUrl, session.Domain);
+
 
             var input = new LaunchInput
             {
@@ -353,7 +356,7 @@ namespace IqSoft.CP.Integration.Products.Helpers
                 Url = url
             };
             if (freeSpinModel.BetValueLevel.HasValue)
-                log.Debug("Softgaming_FreeSpin: " + JsonConvert.SerializeObject(httpRequestInput));
+                log.Info("Softgaming_FreeSpin: " + JsonConvert.SerializeObject(httpRequestInput));
             var res = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
             if (res != "1")
                 throw new Exception(JsonConvert.SerializeObject(res));

@@ -28,6 +28,7 @@ namespace IqSoft.CP.DAL
             this.BannerLanguageSettings = new HashSet<BannerLanguageSetting>();
             this.PartnerLanguageSettings = new HashSet<PartnerLanguageSetting>();
             this.TranslationEntries = new HashSet<TranslationEntry>();
+            this.NewsLanguageSettings = new HashSet<NewsLanguageSetting>();
         }
     
         public string Id { get; set; }
@@ -55,5 +56,7 @@ namespace IqSoft.CP.DAL
         public virtual ICollection<PartnerLanguageSetting> PartnerLanguageSettings { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<TranslationEntry> TranslationEntries { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<NewsLanguageSetting> NewsLanguageSettings { get; set; }
     }
 }

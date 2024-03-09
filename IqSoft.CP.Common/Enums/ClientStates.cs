@@ -9,6 +9,7 @@
         ForceBlock = 5,
         FullBlocked = 6000,
         Suspended = 7,
-        Disabled = 8
+        Disabled = 8,
+        SuspendedWithWithdraw = 9
     }
 }

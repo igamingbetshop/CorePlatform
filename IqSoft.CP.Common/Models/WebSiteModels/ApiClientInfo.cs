@@ -110,5 +110,6 @@ namespace IqSoft.CP.Common.Models.WebSiteModels
         public string USSDPin { get; set; }
         public int? Title { get; set; }
 		public bool IsTwoFactorEnabled { get; set; }
+		public string PinCode { get; set; }
 	}
 }

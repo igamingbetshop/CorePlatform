@@ -5,6 +5,7 @@
         public int PartnerId { get; set; }
         public int ClientId { get; set; }
         public string ClientName { get; set; }
+        public int ClientStatus { get; set; }
         public int AffiliateId { get; set; }
         public string AffiliateName { get; set; }
         public string ClickId { get; set; }
@@ -15,8 +16,8 @@
         public string Language { get; set; }
         public string CurrencyId { get; set; }
         public System.DateTime? KickOffTime { get; set; }
-        public System.DateTime LastExecutionTime { get; set; }
-        public int StepInHours { get; set; }
+        public System.DateTime? LastExecutionTime { get; set; }
+        public int? StepInHours { get; set; }
 
     }
 }

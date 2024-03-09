@@ -48,8 +48,8 @@
     <Reference Include="BCrypt.Net, Version=0.1.4141.31969, Culture=neutral, PublicKeyToken=f3bc8f8c31beeb49, processorArchitecture=MSIL">
       <HintPath>..\packages\BCrypt.Net.0.1.0\lib\net35\BCrypt.Net.dll</HintPath>
     </Reference>
-    <Reference Include="BouncyCastle.Crypto, Version=1.8.9.0, Culture=neutral, PublicKeyToken=0e99375e54769942">
-      <HintPath>..\packages\BouncyCastle.1.8.9\lib\BouncyCastle.Crypto.dll</HintPath>
+    <Reference Include="BouncyCastle.Cryptography, Version=2.0.0.0, Culture=neutral, PublicKeyToken=072edcf4a5328938, processorArchitecture=MSIL">
+      <HintPath>..\packages\BouncyCastle.Cryptography.2.3.0\lib\net461\BouncyCastle.Cryptography.dll</HintPath>
     </Reference>
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>..\packages\EntityFramework.6.4.4\lib\net45\EntityFramework.dll</HintPath>
@@ -57,118 +57,127 @@
     <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>..\packages\EntityFramework.6.4.4\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
-    <Reference Include="GraphQL, Version=7.1.1.0, Culture=neutral, PublicKeyToken=e6238258560628ee, processorArchitecture=MSIL">
-      <HintPath>..\packages\GraphQL.7.1.1\lib\netstandard2.0\GraphQL.dll</HintPath>
+    <Reference Include="GraphQL, Version=7.7.2.0, Culture=neutral, PublicKeyToken=e6238258560628ee, processorArchitecture=MSIL">
+      <HintPath>..\packages\GraphQL.7.7.2\lib\netstandard2.0\GraphQL.dll</HintPath>
     </Reference>
-    <Reference Include="GraphQL.Client, Version=5.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GraphQL.Client.5.1.0\lib\net461\GraphQL.Client.dll</HintPath>
+    <Reference Include="GraphQL.Client, Version=6.0.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GraphQL.Client.6.0.2\lib\net461\GraphQL.Client.dll</HintPath>
     </Reference>
-    <Reference Include="GraphQL.Client.Abstractions, Version=5.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GraphQL.Client.Abstractions.5.1.0\lib\netstandard2.0\GraphQL.Client.Abstractions.dll</HintPath>
+    <Reference Include="GraphQL.Client.Abstractions, Version=6.0.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GraphQL.Client.Abstractions.6.0.2\lib\netstandard2.0\GraphQL.Client.Abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="GraphQL.Client.Abstractions.Websocket, Version=5.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GraphQL.Client.Abstractions.Websocket.5.1.0\lib\netstandard2.0\GraphQL.Client.Abstractions.Websocket.dll</HintPath>
+    <Reference Include="GraphQL.Client.Abstractions.Websocket, Version=6.0.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GraphQL.Client.Abstractions.Websocket.6.0.2\lib\netstandard2.0\GraphQL.Client.Abstractions.Websocket.dll</HintPath>
     </Reference>
-    <Reference Include="GraphQL.Client.Serializer.Newtonsoft, Version=5.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GraphQL.Client.Serializer.Newtonsoft.5.1.0\lib\netstandard2.0\GraphQL.Client.Serializer.Newtonsoft.dll</HintPath>
+    <Reference Include="GraphQL.Client.Serializer.Newtonsoft, Version=6.0.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GraphQL.Client.Serializer.Newtonsoft.6.0.2\lib\netstandard2.0\GraphQL.Client.Serializer.Newtonsoft.dll</HintPath>
     </Reference>
-    <Reference Include="GraphQL.Primitives, Version=5.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GraphQL.Primitives.5.1.0\lib\netstandard2.0\GraphQL.Primitives.dll</HintPath>
+    <Reference Include="GraphQL.Primitives, Version=6.0.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GraphQL.Primitives.6.0.2\lib\netstandard2.0\GraphQL.Primitives.dll</HintPath>
     </Reference>
-    <Reference Include="GraphQLParser, Version=8.1.0.0, Culture=neutral, PublicKeyToken=e6238258560628ee, processorArchitecture=MSIL">
-      <HintPath>..\packages\GraphQL-Parser.8.1.0\lib\netstandard2.0\GraphQLParser.dll</HintPath>
+    <Reference Include="GraphQLParser, Version=9.3.1.0, Culture=neutral, PublicKeyToken=e6238258560628ee, processorArchitecture=MSIL">
+      <HintPath>..\packages\GraphQL-Parser.9.3.1\lib\netstandard2.0\GraphQLParser.dll</HintPath>
     </Reference>
-    <Reference Include="jose-jwt, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\jose-jwt.4.0.0\lib\net472\jose-jwt.dll</HintPath>
+    <Reference Include="jose-jwt, Version=4.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\jose-jwt.4.1.0\lib\net472\jose-jwt.dll</HintPath>
     </Reference>
-    <Reference Include="JWT, Version=8.0.0.0, Culture=neutral, PublicKeyToken=6f98bca0f40f2ecf, processorArchitecture=MSIL">
-      <HintPath>..\packages\JWT.8.9.0\lib\net46\JWT.dll</HintPath>
+    <Reference Include="JWT, Version=9.0.0.0, Culture=neutral, PublicKeyToken=6f98bca0f40f2ecf, processorArchitecture=MSIL">
+      <HintPath>..\packages\JWT.9.0.3\lib\net46\JWT.dll</HintPath>
     </Reference>
-    <Reference Include="log4net, Version=2.0.14.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
-      <HintPath>..\packages\log4net.2.0.14\lib\net45\log4net.dll</HintPath>
+    <Reference Include="log4net, Version=2.0.15.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>..\packages\log4net.2.0.15\lib\net45\log4net.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.AspNet.SignalR.Client, Version=2.4.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.SignalR.Client.2.4.3\lib\net45\Microsoft.AspNet.SignalR.Client.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=6.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.6.0.0\lib\net461\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
+    <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.8.0.0\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.Configuration, Version=6.0.0.1, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Extensions.Configuration.6.0.1\lib\net461\Microsoft.Extensions.Configuration.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.Configuration, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Configuration.8.0.0\lib\net462\Microsoft.Extensions.Configuration.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.Configuration.Abstractions, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Extensions.Configuration.Abstractions.6.0.0\lib\net461\Microsoft.Extensions.Configuration.Abstractions.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.Configuration.Abstractions, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Configuration.Abstractions.8.0.0\lib\net462\Microsoft.Extensions.Configuration.Abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.Configuration.FileExtensions, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Extensions.Configuration.FileExtensions.6.0.0\lib\net461\Microsoft.Extensions.Configuration.FileExtensions.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.Configuration.FileExtensions, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Configuration.FileExtensions.8.0.0\lib\net462\Microsoft.Extensions.Configuration.FileExtensions.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Extensions.Configuration.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Extensions.Configuration.Json.6.0.0\lib\net461\Microsoft.Extensions.Configuration.Json.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.DependencyInjection, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Extensions.DependencyInjection.6.0.0\lib\net461\Microsoft.Extensions.DependencyInjection.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.DependencyInjection, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.DependencyInjection.8.0.0\lib\net462\Microsoft.Extensions.DependencyInjection.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Extensions.DependencyInjection.Abstractions.6.0.0\lib\net461\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.DependencyInjection.Abstractions.8.0.0\lib\net462\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.FileProviders.Abstractions, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Extensions.FileProviders.Abstractions.6.0.0\lib\net461\Microsoft.Extensions.FileProviders.Abstractions.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.Diagnostics.Abstractions, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Diagnostics.Abstractions.8.0.0\lib\net462\Microsoft.Extensions.Diagnostics.Abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.FileProviders.Physical, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Extensions.FileProviders.Physical.6.0.0\lib\net461\Microsoft.Extensions.FileProviders.Physical.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.FileProviders.Abstractions, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.FileProviders.Abstractions.8.0.0\lib\net462\Microsoft.Extensions.FileProviders.Abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.FileSystemGlobbing, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Extensions.FileSystemGlobbing.6.0.0\lib\net461\Microsoft.Extensions.FileSystemGlobbing.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.FileProviders.Physical, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.FileProviders.Physical.8.0.0\lib\net462\Microsoft.Extensions.FileProviders.Physical.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.Hosting.Abstractions, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Extensions.Hosting.Abstractions.6.0.0\lib\net461\Microsoft.Extensions.Hosting.Abstractions.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.FileSystemGlobbing, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.FileSystemGlobbing.8.0.0\lib\net462\Microsoft.Extensions.FileSystemGlobbing.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.Logging, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Extensions.Logging.6.0.0\lib\net461\Microsoft.Extensions.Logging.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.Hosting.Abstractions, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Hosting.Abstractions.8.0.0\lib\net462\Microsoft.Extensions.Hosting.Abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.Logging.Abstractions, Version=6.0.0.1, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Extensions.Logging.Abstractions.6.0.1\lib\net461\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.Logging, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Logging.8.0.0\lib\net462\Microsoft.Extensions.Logging.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.Options, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Extensions.Options.6.0.0\lib\net461\Microsoft.Extensions.Options.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.Logging.Abstractions, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Logging.Abstractions.8.0.0\lib\net462\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.Primitives, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Extensions.Primitives.6.0.0\lib\net461\Microsoft.Extensions.Primitives.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.Options, Version=8.0.0.1, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Options.8.0.1\lib\net462\Microsoft.Extensions.Options.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.IdentityModel.JsonWebTokens, Version=6.17.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.IdentityModel.JsonWebTokens.6.17.0\lib\net472\Microsoft.IdentityModel.JsonWebTokens.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.Primitives, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Primitives.8.0.0\lib\net462\Microsoft.Extensions.Primitives.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.IdentityModel.Logging, Version=6.17.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.IdentityModel.Logging.6.17.0\lib\net472\Microsoft.IdentityModel.Logging.dll</HintPath>
+    <Reference Include="Microsoft.IdentityModel.Abstractions, Version=7.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.IdentityModel.Abstractions.7.2.0\lib\net472\Microsoft.IdentityModel.Abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.IdentityModel.Tokens, Version=6.17.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.IdentityModel.Tokens.6.17.0\lib\net472\Microsoft.IdentityModel.Tokens.dll</HintPath>
+    <Reference Include="Microsoft.IdentityModel.JsonWebTokens, Version=7.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.IdentityModel.JsonWebTokens.7.2.0\lib\net472\Microsoft.IdentityModel.JsonWebTokens.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.IdentityModel.Logging, Version=7.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.IdentityModel.Logging.7.2.0\lib\net472\Microsoft.IdentityModel.Logging.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.IdentityModel.Tokens, Version=7.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.IdentityModel.Tokens.7.2.0\lib\net472\Microsoft.IdentityModel.Tokens.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Web.Infrastructure, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Web.Infrastructure.2.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json.Bson, Version=1.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.Bson.1.0.2\lib\net45\Newtonsoft.Json.Bson.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
     </Reference>
-    <Reference Include="System.Collections.Immutable, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Collections.Immutable.6.0.0\lib\net461\System.Collections.Immutable.dll</HintPath>
+    <Reference Include="System.Collections.Immutable, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Collections.Immutable.8.0.0\lib\net462\System.Collections.Immutable.dll</HintPath>
     </Reference>
     <Reference Include="System.ComponentModel.Annotations, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.ComponentModel.Annotations.4.7.0\lib\net461\System.ComponentModel.Annotations.dll</HintPath>
+      <HintPath>..\packages\System.ComponentModel.Annotations.5.0.0\lib\net461\System.ComponentModel.Annotations.dll</HintPath>
     </Reference>
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Diagnostics.DiagnosticSource, Version=6.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Diagnostics.DiagnosticSource.6.0.0\lib\net461\System.Diagnostics.DiagnosticSource.dll</HintPath>
+    <Reference Include="System.Diagnostics.DiagnosticSource, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Diagnostics.DiagnosticSource.8.0.0\lib\net462\System.Diagnostics.DiagnosticSource.dll</HintPath>
     </Reference>
-    <Reference Include="System.IdentityModel.Tokens.Jwt, Version=6.17.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.IdentityModel.Tokens.Jwt.6.17.0\lib\net472\System.IdentityModel.Tokens.Jwt.dll</HintPath>
+    <Reference Include="System.IdentityModel.Tokens.Jwt, Version=7.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.IdentityModel.Tokens.Jwt.7.2.0\lib\net472\System.IdentityModel.Tokens.Jwt.dll</HintPath>
     </Reference>
     <Reference Include="System.IO, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.IO.4.3.0\lib\net462\System.IO.dll</HintPath>
@@ -190,8 +199,8 @@
       <HintPath>..\packages\System.Memory.4.5.5\lib\net461\System.Memory.dll</HintPath>
     </Reference>
     <Reference Include="System.Net.Http" />
-    <Reference Include="System.Net.Http.Formatting, Version=5.2.8.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.AspNet.WebApi.Client.5.2.8\lib\net45\System.Net.Http.Formatting.dll</HintPath>
+    <Reference Include="System.Net.Http.Formatting, Version=6.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebApi.Client.6.0.0\lib\net45\System.Net.Http.Formatting.dll</HintPath>
     </Reference>
     <Reference Include="System.Net.Http.WebRequest" />
     <Reference Include="System.Net.WebSockets.Client.Managed, Version=1.0.22.0, Culture=neutral, processorArchitecture=MSIL">
@@ -201,8 +210,8 @@
     <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
     </Reference>
-    <Reference Include="System.Reactive, Version=5.0.0.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Reactive.5.0.0\lib\net472\System.Reactive.dll</HintPath>
+    <Reference Include="System.Reactive, Version=6.0.0.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Reactive.6.0.0\lib\net472\System.Reactive.dll</HintPath>
     </Reference>
     <Reference Include="System.Reflection, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Reflection.4.3.0\lib\net462\System.Reflection.dll</HintPath>
@@ -254,8 +263,8 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System.ServiceModel" />
-    <Reference Include="System.Text.Encodings.Web, Version=6.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Text.Encodings.Web.6.0.0\lib\net461\System.Text.Encodings.Web.dll</HintPath>
+    <Reference Include="System.Text.Encodings.Web, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Text.Encodings.Web.8.0.0\lib\net462\System.Text.Encodings.Web.dll</HintPath>
     </Reference>
     <Reference Include="System.Text.Json, Version=6.0.0.3, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Text.Json.6.0.3\lib\net461\System.Text.Json.dll</HintPath>
@@ -272,18 +281,18 @@
       <HintPath>..\packages\System.ValueTuple.4.5.0\lib\net47\System.ValueTuple.dll</HintPath>
     </Reference>
     <Reference Include="System.Web" />
-    <Reference Include="System.Web.Cors, Version=5.2.8.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.AspNet.Cors.5.2.8\lib\net45\System.Web.Cors.dll</HintPath>
+    <Reference Include="System.Web.Cors, Version=5.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.Cors.5.3.0\lib\net45\System.Web.Cors.dll</HintPath>
     </Reference>
     <Reference Include="System.Web.Extensions" />
-    <Reference Include="System.Web.Http, Version=5.2.8.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.AspNet.WebApi.Core.5.2.8\lib\net45\System.Web.Http.dll</HintPath>
+    <Reference Include="System.Web.Http, Version=5.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebApi.Core.5.3.0\lib\net45\System.Web.Http.dll</HintPath>
     </Reference>
-    <Reference Include="System.Web.Http.Cors, Version=5.2.8.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.AspNet.WebApi.Cors.5.2.8\lib\net45\System.Web.Http.Cors.dll</HintPath>
+    <Reference Include="System.Web.Http.Cors, Version=5.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebApi.Cors.5.3.0\lib\net45\System.Web.Http.Cors.dll</HintPath>
     </Reference>
-    <Reference Include="System.Web.Http.WebHost, Version=5.2.8.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.AspNet.WebApi.WebHost.5.2.8\lib\net45\System.Web.Http.WebHost.dll</HintPath>
+    <Reference Include="System.Web.Http.WebHost, Version=5.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebApi.WebHost.5.3.0\lib\net45\System.Web.Http.WebHost.dll</HintPath>
     </Reference>
     <Reference Include="System.Windows" />
     <Reference Include="System.Windows.Forms" />
@@ -302,7 +311,7 @@
     </Reference>
     <Reference Include="WindowsBase" />
     <Reference Include="YamlDotNet, Version=13.0.0.0, Culture=neutral, PublicKeyToken=ec19458f3c15af5e, processorArchitecture=MSIL">
-      <HintPath>..\packages\YamlDotNet.13.1.1\lib\net47\YamlDotNet.dll</HintPath>
+      <HintPath>..\packages\YamlDotNet.13.7.1\lib\net47\YamlDotNet.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -318,6 +327,7 @@
     <Compile Include="Payments\Helpers\CartipalHelpers.cs" />
     <Compile Include="Payments\Helpers\CashLibHelpers.cs" />
     <Compile Include="Payments\Helpers\ChapaHelpers.cs" />
+    <Compile Include="Payments\Helpers\ChangellyHelpers.cs" />
     <Compile Include="Payments\Helpers\CoinsPaidHelpers.cs" />
     <Compile Include="Payments\Helpers\CorefyHelpers.cs" />
     <Compile Include="Payments\Helpers\CryptonPayHelpers.cs" />
@@ -332,9 +342,11 @@
     <Compile Include="Payments\Helpers\ImpayaHelpers.cs" />
     <Compile Include="Payments\Helpers\InteracHelpers.cs" />
     <Compile Include="Payments\Helpers\InterkassaHelpers.cs" />
+    <Compile Include="Payments\Helpers\InternationalPSPHelpers.cs" />
     <Compile Include="Payments\Helpers\IXOPayHelpers.cs" />
     <Compile Include="Payments\Helpers\JetonHavaleHelpers.cs" />
     <Compile Include="Payments\Helpers\JetonHelpers.cs" />
+    <Compile Include="Payments\Helpers\JmitsolutionsHelpers.cs" />
     <Compile Include="Payments\Helpers\MaldoPayHelpers.cs" />
     <Compile Include="Payments\Helpers\MaxPayHelpers.cs" />
     <Compile Include="Payments\Helpers\NgineHelpers.cs" />
@@ -387,6 +399,7 @@
     <Compile Include="Payments\Helpers\Transact365Helpers.cs" />
     <Compile Include="Payments\Helpers\TronLinkHelpers.cs" />
     <Compile Include="Payments\Helpers\VevoPayHelpers.cs" />
+    <Compile Include="Payments\Helpers\XcoinsPayHelpers.cs" />
     <Compile Include="Payments\Helpers\ZippyHelpers.cs" />
     <Compile Include="Payments\Models\ApcoPay\PaymentInput.cs" />
     <Compile Include="Payments\Models\ApcoPay\PaymentOutput.cs" />
@@ -406,7 +419,10 @@
     <Compile Include="Payments\Models\Cartipal\PaymentOutput.cs" />
     <Compile Include="Payments\Models\Cartipal\PayoutOutput.cs" />
     <Compile Include="Payments\Models\CashLib\VoucherOutput.cs" />
+    <Compile Include="Payments\Models\Changelly\PaymentOutput.cs" />
+    <Compile Include="Payments\Models\Chapa\BaseOutput.cs" />
     <Compile Include="Payments\Models\Chapa\PaymentOutput.cs" />
+    <Compile Include="Payments\Models\Chapa\VerifyPaymentOutput.cs" />
     <Compile Include="Payments\Models\CoinsPaid\PaymentOutput.cs" />
     <Compile Include="Payments\Models\CoinsPaid\PayoutOutput.cs" />
     <Compile Include="Payments\Models\Corefy\PaymentInput.cs" />
@@ -420,7 +436,10 @@
     <Compile Include="Payments\Models\Elite\Result.cs" />
     <Compile Include="Payments\Models\Eway\PaymentOutput.cs" />
     <Compile Include="Payments\Models\FinVert\PaymentOutput.cs" />
+    <Compile Include="Payments\Models\Flexepin\BaseOutput.cs" />
     <Compile Include="Payments\Models\Flexepin\StatusOutput.cs" />
+    <Compile Include="Payments\Models\Flexepin\SwapedVoucher.cs" />
+    <Compile Include="Payments\Models\Flexepin\SwapOutput.cs" />
     <Compile Include="Payments\Models\Flexepin\VoucherOutput.cs" />
     <Compile Include="Payments\Models\FugaPay\PayoutOutput.cs" />
     <Compile Include="Payments\Models\FugaPay\PaymentInput.cs" />
@@ -434,6 +453,7 @@
     <Compile Include="Payments\Models\Interkassa\PaymentOutput.cs" />
     <Compile Include="Payments\Models\Interkassa\PayoutInput.cs" />
     <Compile Include="Payments\Models\Interkassa\PayoutOutput.cs" />
+    <Compile Include="Payments\Models\InternationalPSP\StatusOutput.cs" />
     <Compile Include="Payments\Models\IXOPay\PaymentOutput.cs" />
     <Compile Include="Payments\Models\IXOPay\PayoutInput.cs" />
     <Compile Include="Payments\Models\IXOPay\PayoutOutput.cs" />
@@ -444,6 +464,8 @@
     <Compile Include="Payments\Models\Jeton\PaymentOutput.cs" />
     <Compile Include="Payments\Models\Jeton\TokenOutput.cs" />
     <Compile Include="Payments\Models\Jeton\VoucherOutput.cs" />
+    <Compile Include="Payments\Models\Jmitsolutions\PaymentOutput.cs" />
+    <Compile Include="Payments\Models\Jmitsolutions\PayoutOutput.cs" />
     <Compile Include="Payments\Models\MaldoPay\PayoutInput.cs" />
     <Compile Include="Payments\Models\MaldoPay\PaymentOutput.cs" />
     <Compile Include="Payments\Models\MaxPay\PaymentOutput.cs" />
@@ -561,11 +583,14 @@
     <Compile Include="Payments\Models\Stripe\PaymentLinkInput.cs" />
     <Compile Include="Payments\Models\Stripe\PaymentLinkOutput.cs" />
     <Compile Include="Payments\Models\Stripe\ProductOutput.cs" />
+    <Compile Include="Payments\Models\Telebirr\PaymentInput.cs" />
+    <Compile Include="Payments\Models\Telebirr\PaymentOutput.cs" />
     <Compile Include="Payments\Models\Transact365\AuthenticationInput.cs" />
     <Compile Include="Payments\Models\Transact365\PaymentOutput.cs" />
     <Compile Include="Payments\Models\TronLink\PayoutOutput.cs" />
     <Compile Include="Payments\Models\VevoPay\PaymentOutput.cs" />
     <Compile Include="Payments\Models\VevoPay\PayoutOutput.cs" />
+    <Compile Include="Payments\Models\XcoinsPay\PaymentOutput.cs" />
     <Compile Include="Payments\Models\Zippy\PaymentRequestOutput.cs" />
     <Compile Include="Payments\Models\Zippy\PayoutGeneratorOutput.cs" />
     <Compile Include="Payments\Models\Zippy\PayoutOutput.cs" />
@@ -646,6 +671,7 @@
     <Compile Include="Platforms\Models\Webflow\AuthOutput.cs" />
     <Compile Include="Platforms\Models\Webflow\BaseOutput.cs" />
     <Compile Include="Platforms\Models\Webflow\CollectionOutput.cs" />
+    <Compile Include="Products\Helpers\AleaPartnersHelpers.cs" />
     <Compile Include="Products\Helpers\BGGamesHelpers.cs" />
     <Compile Include="Products\Helpers\EliteHelpers.cs" />
     <Compile Include="Products\Helpers\AleaPlayHelpers.cs" />
@@ -660,6 +686,7 @@
     <Compile Include="Products\Helpers\EvoplayHelpers.cs" />
     <Compile Include="Products\Helpers\EzugiHelpers.cs" />
     <Compile Include="Products\Helpers\EkkoSpinHelpers.cs" />
+    <Compile Include="Products\Helpers\FiverscoolHelpers.cs" />
     <Compile Include="Products\Helpers\GlobalSlotsHelpers.cs" />
     <Compile Include="Products\Helpers\GoldenRaceHelpers.cs" />
     <Compile Include="Products\Helpers\GrooveHelpers.cs" />
@@ -668,6 +695,7 @@
     <Compile Include="Products\Helpers\InternalHelpers.cs" />
     <Compile Include="Products\Helpers\IPTGamingHelpers.cs" />
     <Compile Include="Products\Helpers\JackpotGamingHelpers.cs" />
+    <Compile Include="Products\Helpers\KironHelpers.cs" />
     <Compile Include="Products\Helpers\LuckyGamingHelpers.cs" />
     <Compile Include="Products\Helpers\MancalaHelpers.cs" />
     <Compile Include="Products\Helpers\NucleusHelpers.cs" />
@@ -681,6 +709,7 @@
     <Compile Include="Products\Helpers\SunCityHelpers.cs" />
     <Compile Include="Products\Helpers\TimelessTechHelpers.cs" />
     <Compile Include="Products\Helpers\TwoWinPowerHelpers.cs" />
+    <Compile Include="Products\Models\AleaPlay\FreespinOutput.cs" />
     <Compile Include="Products\Models\AleaPlay\GamesOutput.cs" />
     <Compile Include="Products\Models\AleaPlay\LaunchOutput.cs" />
     <Compile Include="Products\Models\AleaPlay\ProvidersOutput.cs" />
@@ -745,6 +774,9 @@
     <Compile Include="Products\Models\Ezugi\ReportOutput.cs" />
     <Compile Include="Products\Models\Ezugi\SessionInitializationInput.cs" />
     <Compile Include="Products\Models\Elite\Game.cs" />
+    <Compile Include="Products\Models\Fiverscool\GameList.cs" />
+    <Compile Include="Products\Models\Fiverscool\PaymentOutput.cs" />
+    <Compile Include="Products\Models\Fiverscool\ProviderList.cs" />
     <Compile Include="Products\Models\GlobalSlots\TransferInput.cs" />
     <Compile Include="Products\Models\GoldenRace\GameModel.cs" />
     <Compile Include="Products\Models\Groove\GameItem.cs" />
@@ -785,7 +817,10 @@
     <Compile Include="Products\Models\SunCity\OuthOutput.cs" />
     <Compile Include="Products\Models\SunCity\PlayerInput.cs" />
     <Compile Include="Products\Models\SunCity\PlayerOutput.cs" />
+    <Compile Include="Products\Models\TimelessTech\Campaign.cs" />
     <Compile Include="Products\Models\TimelessTech\Game.cs" />
+    <Compile Include="Products\Models\TimelessTech\Lobbies.cs" />
+    <Compile Include="Products\Models\TimelessTech\Vendor.cs" />
     <Compile Include="Products\Models\Tomhorn\BaseOutput.cs" />
     <Compile Include="Products\Models\Tomhorn\GamesOutput.cs" />
     <Compile Include="Products\Models\Tomhorn\SessionOutput.cs" />
@@ -1279,6 +1314,10 @@
       <LastGenOutput>Reference.cs</LastGenOutput>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <Analyzer Include="..\packages\GraphQL.Analyzers.7.7.2\analyzers\dotnet\cs\GraphQL.Analyzers.CodeFixes.dll" />
+    <Analyzer Include="..\packages\GraphQL.Analyzers.7.7.2\analyzers\dotnet\cs\GraphQL.Analyzers.dll" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
@@ -1287,15 +1326,13 @@
     </PropertyGroup>
     <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
     <Error Condition="!Exists('..\packages\NETStandard.Library.2.0.3\build\netstandard2.0\NETStandard.Library.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\NETStandard.Library.2.0.3\build\netstandard2.0\NETStandard.Library.targets'))" />
-    <Error Condition="!Exists('..\packages\Microsoft.Extensions.Logging.Abstractions.6.0.1\build\Microsoft.Extensions.Logging.Abstractions.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Extensions.Logging.Abstractions.6.0.1\build\Microsoft.Extensions.Logging.Abstractions.targets'))" />
-    <Error Condition="!Exists('..\packages\System.Text.Json.6.0.3\build\System.Text.Json.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\System.Text.Json.6.0.3\build\System.Text.Json.targets'))" />
     <Error Condition="!Exists('..\packages\EntityFramework.6.4.4\build\EntityFramework.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\EntityFramework.6.4.4\build\EntityFramework.props'))" />
     <Error Condition="!Exists('..\packages\EntityFramework.6.4.4\build\EntityFramework.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\EntityFramework.6.4.4\build\EntityFramework.targets'))" />
+    <Error Condition="!Exists('..\packages\System.Text.Json.6.0.3\build\System.Text.Json.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\System.Text.Json.6.0.3\build\System.Text.Json.targets'))" />
   </Target>
   <Import Project="..\packages\NETStandard.Library.2.0.3\build\netstandard2.0\NETStandard.Library.targets" Condition="Exists('..\packages\NETStandard.Library.2.0.3\build\netstandard2.0\NETStandard.Library.targets')" />
-  <Import Project="..\packages\Microsoft.Extensions.Logging.Abstractions.6.0.1\build\Microsoft.Extensions.Logging.Abstractions.targets" Condition="Exists('..\packages\Microsoft.Extensions.Logging.Abstractions.6.0.1\build\Microsoft.Extensions.Logging.Abstractions.targets')" />
-  <Import Project="..\packages\System.Text.Json.6.0.3\build\System.Text.Json.targets" Condition="Exists('..\packages\System.Text.Json.6.0.3\build\System.Text.Json.targets')" />
   <Import Project="..\packages\EntityFramework.6.4.4\build\EntityFramework.targets" Condition="Exists('..\packages\EntityFramework.6.4.4\build\EntityFramework.targets')" />
+  <Import Project="..\packages\System.Text.Json.6.0.3\build\System.Text.Json.targets" Condition="Exists('..\packages\System.Text.Json.6.0.3\build\System.Text.Json.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

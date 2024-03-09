@@ -3,13 +3,8 @@
 	public class ApiFilterCashDesk : ApiFilterBase
 	{
 		public int? Id { get; set; }
-
 		public int? BetShopId { get; set; }
-
-		public int CashDeskId { get; set; }
-
 		public string Name { get; set; }
-
 		public int? State { get; set; }
 	}
 }

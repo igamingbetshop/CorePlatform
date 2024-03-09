@@ -1271,8 +1271,7 @@ namespace IqSoft.CP.BLL.Services
 					if (cashDesk.State == Constants.CashDeskStates.Blocked ||
 						cashDesk.State == Constants.CashDeskStates.BlockedForWithdraw)
 						throw CreateException(LanguageId, Constants.Errors.CashDeskBlocked);
-
-					var partnerProductSetting = CacheManager.GetPartnerProductSettingByProductId(betShop.PartnerId, product.Id);
+                    var partnerProductSetting = CacheManager.GetPartnerProductSettingByProductId(betShop.PartnerId, product.Id);
 					if (partnerProductSetting == null)
 						throw CreateException(LanguageId, Constants.Errors.ProductNotAllowedForThisPartner);
 					if (partnerProductSetting.State == (int)PartnerProductSettingStates.Blocked)
@@ -1281,8 +1280,7 @@ namespace IqSoft.CP.BLL.Services
                     var partner = CacheManager.GetPartnerById(betShop.PartnerId);
                     ClientBll.CheckPartnerProductLimit(product.Id, partner, betShop.CurrencyId,
 						operationItemFromProduct.Amount, LanguageId);
-
-					var clientOperation = new ClientOperation
+                    var clientOperation = new ClientOperation
 					{
 						GameProviderId = transactions.GameProviderId,
 						Amount = operationItemFromProduct.Amount,
@@ -1300,7 +1298,7 @@ namespace IqSoft.CP.BLL.Services
 						OperationTypeId = operationTypeId
 					};
 					var withdrawResponse = PlaceBetFromBetShop(clientOperation, documentBl).MapToBetShopFinOperationDocument();
-					withdrawResponse.Type = operationItemFromProduct.Type;
+                    withdrawResponse.Type = operationItemFromProduct.Type;
 					response.Documents.Add(withdrawResponse);
 					var currentTime = DateTime.UtcNow;
 					var bet = new BetShopTicket
@@ -1315,7 +1313,6 @@ namespace IqSoft.CP.BLL.Services
 
 					Db.BetShopTickets.Add(bet);
 					Db.SaveChanges();
-
                     withdrawResponse.Barcode = bet.BarCode;
                 }
 				scope.Complete();
@@ -1763,15 +1760,19 @@ namespace IqSoft.CP.BLL.Services
 			}
 		}
 
-        public Document GetDocumentByExternalId(string externalTransactionId, int productId, int gameProviderId, long? parentId, int operationTypeId)
+        public Document GetDocumentByExternalId(string externalTransactionId, int productId, int gameProviderId, int operationTypeId)
         {
             return Db.Documents.FirstOrDefault(x => x.ExternalTransactionId == externalTransactionId && x.OperationTypeId == operationTypeId
-                && x.GameProviderId == gameProviderId && x.ProductId == productId && x.ParentId == parentId);
+                && x.GameProviderId == gameProviderId && x.ProductId == productId);
         }
 
-        public Document GetDocumentByRoundId(int operationTypeId, string roundId, int providerId, int userId)
+        public List<Document> GetDocumentsByRoundId(int operationTypeId, string roundId, int providerId, int userId, int? state)
         {
-            return Db.Documents.FirstOrDefault(x => x.GameProviderId == providerId && x.OperationTypeId == operationTypeId && x.RoundId == roundId && x.UserId == userId);
+            var query = Db.Documents.Where(x => x.GameProviderId == providerId && x.OperationTypeId == operationTypeId && x.RoundId == roundId && x.UserId == userId);
+            if (state != null)
+                query = query.Where(x => x.State == state);
+
+            return query.ToList();
         }
 
         #endregion

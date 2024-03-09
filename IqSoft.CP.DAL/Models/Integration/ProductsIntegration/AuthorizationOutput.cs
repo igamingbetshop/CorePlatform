@@ -14,6 +14,7 @@ namespace IqSoft.CP.DAL.Models.Integration.ProductsIntegration
         public string CurrencyId { get; set; }
         public string CurrencySymbol { get; set; }
         public string CountryCode { get; set; }
+        public string ClientCountryCode { get; set; }
         public string BetShopCurrencyId { get; set; }
 		public string UserName { get; set; }
 		public string FirstName { get; set; }

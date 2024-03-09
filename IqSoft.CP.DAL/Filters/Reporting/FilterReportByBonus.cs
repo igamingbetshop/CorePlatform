@@ -23,6 +23,7 @@ namespace IqSoft.CP.DAL.Filters.Reporting
         public FiltersOperation Emails { get; set; }
         public FiltersOperation MobileNumbers { get; set; }
         public FiltersOperation BonusPrizes { get; set; }
+        public FiltersOperation SpinsCounts { get; set; }
         public FiltersOperation TurnoverAmountLefts { get; set; }
         public FiltersOperation RemainingCredits { get; set; }
         public FiltersOperation WageringTargets { get; set; }
@@ -57,6 +58,7 @@ namespace IqSoft.CP.DAL.Filters.Reporting
             FilterByValue(ref objects, MobileNumbers, "MobileNumber");
             FilterByValue(ref objects, CategoryIds, "CategoryId");
             FilterByValue(ref objects, BonusPrizes, "BonusPrize");
+            FilterByValue(ref objects, SpinsCounts, "SpinsCount");
             FilterByValue(ref objects, TurnoverAmountLefts, "TurnoverAmountLeft");
             FilterByValue(ref objects, RemainingCredits, "RemainingCredit");
             FilterByValue(ref objects, WageringTargets, "WageringTarget");

@@ -1395,6 +1395,7 @@ namespace IqSoft.CP.Common
             public const string SoftSwissAuthToken = "SoftSwissAuthToken";
 
             public const string KironOperatorId = "KironOperatorId";
+            public const string KironBetShopOperatorId = "KironBetShopOperatorId";
 
             public const string BetSoftBankId = "BetSoftBankId";
             public const string BetSoftPassKey = "BetSoftPassKey";
@@ -1660,6 +1661,8 @@ namespace IqSoft.CP.Common
             public const string ExportClientsInfoList = "ExportClientsInfoList";
             public const string GetPaymentsInfo = "GetPaymentsInfo";
             public const string GetClientsInfo = "GetClientsInfo";
+            public const string GetPopups = "GetPopups";
+            public const string ApiRequest = "ApiRequest";
         }
 
         public static class PublishKeys

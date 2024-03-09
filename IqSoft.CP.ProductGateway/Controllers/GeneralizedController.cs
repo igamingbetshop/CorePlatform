@@ -189,8 +189,12 @@ namespace IqSoft.CP.ProductGateway.Controllers
                 {
                     client = CacheManager.GetClientById(Convert.ToInt32(input.ClientId)) ??
                         throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.ClientNotFound);
-                    product = CacheManager.GetProductByExternalId(product.GameProviderId.Value, input.ProductId) ??
+                    product = CacheManager.GetProductByExternalId(ProviderId, input.ProductId);
+                    if (product == null)
+                        product = CacheManager.GetProductByExternalId(DGSProviderId, input.ProductId);
+                    if (product == null)
                         throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.ProductNotFound);
+
                 }
                 var partnerKey = CacheManager.GetGameProviderValueByKey(partnerId, product.GameProviderId.Value, Constants.PartnerKeys.BASApiKey);
                 var signature = CommonFunctions.ComputeMd5(string.Format("{0}|{1}|{2}|{3}|{4}|{5}|{6}", partnerId, input.ProductId, input.TransactionId,

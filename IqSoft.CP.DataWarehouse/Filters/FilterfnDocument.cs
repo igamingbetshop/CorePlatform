@@ -26,7 +26,7 @@ namespace IqSoft.CP.DataWarehouse.Filters
         public FiltersOperation GameProviderNames { get; set; }
         public FiltersOperation LastUpdateTimes { get; set; }
 
-        protected override IQueryable<fnDocument> CreateQuery(IQueryable<fnDocument> objects, Func<IQueryable<fnDocument>, IOrderedQueryable<fnDocument>> orderBy = null)
+        public override void CreateQuery(ref IQueryable<fnDocument> objects, Func<IQueryable<fnDocument>, IOrderedQueryable<fnDocument>> orderBy = null)
         {
             var fDate = FromDate.Year * 1000000 + FromDate.Month * 10000 + FromDate.Day * 100 + FromDate.Hour;
             var tDate = ToDate.Year * 1000000 + ToDate.Month * 10000 + ToDate.Day * 100 + ToDate.Hour;
@@ -53,18 +53,19 @@ namespace IqSoft.CP.DataWarehouse.Filters
             FilterByValue(ref objects, GameProviderIds, "GameProviderId");
             FilterByValue(ref objects, GameProviderNames, "GameProviderName");
             FilterByValue(ref objects, LastUpdateTimes, "LastUpdateTime");
-            return base.FilteredObjects(objects, orderBy);
+            base.FilteredObjects(ref objects, orderBy);
         }
 
         public IQueryable<fnDocument> FilterObjects(IQueryable<fnDocument> documents, Func<IQueryable<fnDocument>, IOrderedQueryable<fnDocument>> orderBy = null)
         {
-            documents = CreateQuery(documents, orderBy);
+            CreateQuery(ref documents, orderBy);
             return documents;
         }
 
         public long SelectedObjectsCount(IQueryable<fnDocument> documents, Func<IQueryable<fnDocument>, IOrderedQueryable<fnDocument>> orderBy = null)
         {
-            return CreateQuery(documents, orderBy).Count();
+            CreateQuery(ref documents, orderBy);
+            return documents.Count();
         }
     }
 }

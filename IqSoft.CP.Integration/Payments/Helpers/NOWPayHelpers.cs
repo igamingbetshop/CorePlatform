@@ -38,9 +38,9 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             };
 
             var headers = new Dictionary<string, string>
-                        {
-                            {"x-api-key",partnerPaymentSetting.Password }
-                        };
+            {
+                {"x-api-key",partnerPaymentSetting.Password }
+            };
             var httpRequestInput = new HttpRequestInput
             {
                 ContentType = Constants.HttpContentTypes.ApplicationJson,
@@ -74,6 +74,43 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             var distributionUrl = string.Format(distributionUrlKey.StringValue, session.Domain);
             var data = AESEncryptHelper.EncryptDistributionString(JsonConvert.SerializeObject(paymentProcessingInput));
             return string.Format("{0}/paymentform/paymentprocessing?data={1}", distributionUrl, data);
+        }
+
+        public static string GetTransactionWalletNumber(long paymentRequestId, int clientId, decimal amount, string cryptoCurrency, ILog log)
+        {
+            var client = CacheManager.GetClientById(clientId);
+            var url = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.NOWPayApiUrl).StringValue;
+            var paymentSystem = CacheManager.GetPaymentSystemByName(Constants.PaymentSystems.NOWPay);
+            var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId,paymentSystem.Id,
+                                                                               client.CurrencyId, (int)PaymentRequestTypes.Deposit);
+            var paymentGatewayUrl = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.PaymentGateway).StringValue;
+            var paymentRequestInput = new
+            {
+                price_amount = Math.Round(amount, 2),
+                price_currency = client.CurrencyId,
+                pay_currency = cryptoCurrency?.ToLower(),
+                ipn_callback_url = string.Format("{0}/api/NOWPay/ApiRequest", paymentGatewayUrl),
+                order_id = paymentRequestId
+            };
+
+            var headers = new Dictionary<string, string>
+                        {
+                            {"x-api-key",partnerPaymentSetting.Password }
+                        };
+            var httpRequestInput = new HttpRequestInput
+            {
+                ContentType = Constants.HttpContentTypes.ApplicationJson,
+                RequestMethod = Constants.HttpRequestMethods.Post,
+                RequestHeaders = headers,
+                Url = string.Format("{0}{1}", url, "payment"),
+                PostData = JsonConvert.SerializeObject(paymentRequestInput)
+            };
+            var response = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
+            log.Info("CallNOWPayApi_" + response);
+            var resp = JsonConvert.DeserializeObject<PaymentOutput>(response);
+            if (resp.Payment_status?.ToLower() == "failed")
+                throw new Exception(resp.Payment_status);
+            return resp.Pay_address;
         }
 
         public static string CallNOWPayFiatApi(PaymentRequest input, SessionIdentity session, ILog log)

@@ -112,7 +112,7 @@ namespace IqSoft.CP.BLL.Services
             return Db.fn_Region(langId).FirstOrDefault(x => x.Id == id);
         }
 
-        public List<fnRegion> GetfnRegions(FilterRegion filter, string languageId, bool checkPermission, int? partnerId)
+        public List<fnRegion> GetfnRegions(FilterRegion filter, string languageId, bool checkPermission, int? partnerId, int? clientId = null)
         {
             if (checkPermission)
             {
@@ -127,7 +127,18 @@ namespace IqSoft.CP.BLL.Services
             var resp = filter.FilterObjects(Db.fn_Region(languageId)).ToList();
             if (partnerId.HasValue)
             {
-                var partnerCountrySettings = CacheManager.GetPartnerCountrySettings(partnerId.Value, (int)PartnerCountrySettingTypes.BlockedForRegistration, languageId);
+                var regions =  new List<int>();
+                if (clientId.HasValue)
+                {
+                    var client = CacheManager.GetClientById(clientId.Value);
+                    regions.Add(client.RegionId);
+                    if (client.CountryId.HasValue)
+                        regions.Add(client.CountryId.Value);
+                    if (client.Citizenship.HasValue)
+                        regions.Add(client.Citizenship.Value);
+                }
+                var partnerCountrySettings = CacheManager.GetPartnerCountrySettings(partnerId.Value, (int)PartnerCountrySettingTypes.BlockedForRegistration, languageId)
+                                            .Where(x=> !regions.Contains(x.RegionId));
                 resp = resp.Where(x => !partnerCountrySettings.Any(y => y.RegionId == x.Id)).ToList();
             }
             return resp;

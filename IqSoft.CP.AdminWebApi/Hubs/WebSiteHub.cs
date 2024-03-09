@@ -1,5 +1,4 @@
-﻿using IqSoft.CP.Common.Models;
-using Microsoft.AspNet.SignalR;
+﻿using Microsoft.AspNet.SignalR;
 using Microsoft.AspNet.SignalR.Hubs;
 using System.Threading.Tasks;
 

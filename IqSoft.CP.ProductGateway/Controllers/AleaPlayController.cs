@@ -71,7 +71,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                     var subProvider = CacheManager.GetGameProviderById(product.SubProviderId.Value);
                     subProviderName = subProvider.Name.ToLower();
                 }
-                var balance = BaseHelpers.GetClientProductBalance(client.Id, 0);
+                var balance = BaseHelpers.GetClientProductBalance(client.Id, product.Id);
 
                 if (IntgrationAleaHelpers.AleaPlayHelpers.NotSupportedCurrencies.ContainsKey(subProviderName) &&
                     IntgrationAleaHelpers.AleaPlayHelpers.NotSupportedCurrencies[subProviderName].Contains(client.CurrencyId))
@@ -209,6 +209,15 @@ namespace IqSoft.CP.ProductGateway.Controllers
                             }
                         });
                         break;
+                    case "BET_WIN_BONUS_FREE_SPIN":
+                        document = DoFreespinWin(input.Bonus.Id, input.Id, input.Win.Amount, client, clientSession);
+                        response = JsonConvert.SerializeObject(new
+                        {
+                            id = document.Id.ToString(),
+                            realBalance = decimal.Parse(string.Format("{0:N2}", Math.Round(BaseBll.ConvertCurrency(client.CurrencyId, input.currency, BaseHelpers.GetClientProductBalance(client.Id, product.Id)), 2))),
+                            bonusBalance = 0
+                        });
+                        break;
                     case "ROLLBACK":
                         document = Rollback(input.Id, input.Transaction.Id, clientSession);
                         response = JsonConvert.SerializeObject(new
@@ -338,6 +347,86 @@ namespace IqSoft.CP.ProductGateway.Controllers
                     });
 
                     winDocument =  clientBl.CreateDebitsToClients(operationsFromProduct, betDocument, documentBl)[0];                   
+                    BaseHelpers.RemoveClientBalanceFromeCache(client.Id);
+                    BaseHelpers.BroadcastWin(new ApiWin
+                    {
+                        GameName = product.NickName,
+                        ClientId = client.Id,
+                        ClientName = client.FirstName,
+                        Amount = amount,
+                        CurrencyId = client.CurrencyId,
+                        PartnerId = client.PartnerId,
+                        ProductId = product.Id,
+                        ProductName = product.NickName,
+                        ImageUrl = product.WebImageUrl
+                    });
+                    return winDocument;
+                }
+            }
+        }
+
+        private Document DoFreespinWin(string transactionId, string roundId, decimal amount, BllClient client, SessionIdentity clientSession)
+        {
+            if (amount < 0)
+                throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongOperationAmount);
+            using (var clientBl = new ClientBll(new SessionIdentity(), WebApiApplication.DbLogger))
+            {
+                using (var documentBl = new DocumentBll(clientBl))
+                {
+                    var product = CacheManager.GetProductById(clientSession.ProductId);
+                    var partnerProductSetting = CacheManager.GetPartnerProductSettingByProductId(client.PartnerId, clientSession.ProductId);
+                    if (partnerProductSetting == null || partnerProductSetting.Id == 0)
+                        throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.PartnerProductSettingNotFound);
+                    var winTransactionId = $"FrespinWin_{transactionId}";
+                    var betTransactionId = $"FrespinBet_{transactionId}";
+                    var winDocument = documentBl.GetDocumentByExternalId(winTransactionId, client.Id, ProviderId, partnerProductSetting.Id, (int)OperationTypes.Win);
+                    if (winDocument != null)
+                        throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.ClientDocumentAlreadyExists);
+                    var listOfOperationsFromApi = new ListOfOperationsFromApi
+                    {
+                        SessionId = clientSession.SessionId,
+                        CurrencyId = client.CurrencyId,
+                        RoundId = roundId,
+                        ExternalProductId = product.ExternalId,
+                        GameProviderId = ProviderId,
+                        ProductId = product.Id,
+                        TransactionId = betTransactionId,
+                        OperationItems = new List<OperationItemFromProduct>()
+                    };
+                    listOfOperationsFromApi.OperationItems.Add(new OperationItemFromProduct
+                    {
+                        Client = client,
+                        Amount = 0,
+                        DeviceTypeId = clientSession.DeviceType
+                    });
+                    var betDocument = clientBl.CreateCreditFromClient(listOfOperationsFromApi, documentBl, out LimitInfo info);
+
+
+                    var state = amount > 0 ? (int)BetDocumentStates.Won : (int)BetDocumentStates.Lost;
+                    betDocument.State = state;
+                    var operationsFromProduct = new ListOfOperationsFromApi
+                    {
+                        SessionId = clientSession.SessionId,
+                        CurrencyId = client.CurrencyId,
+                        RoundId = roundId,
+                        GameProviderId = ProviderId,
+                        OperationTypeId = (int)OperationTypes.Win,
+                        ExternalOperationId = null,
+                        ExternalProductId = product.ExternalId,
+                        ProductId = betDocument.ProductId,
+                        TransactionId = winTransactionId,
+                        CreditTransactionId = betDocument.Id,
+                        State = state,
+                        Info = string.Empty,
+                        OperationItems = new List<OperationItemFromProduct>()
+                    };
+                    operationsFromProduct.OperationItems.Add(new OperationItemFromProduct
+                    {
+                        Client = client,
+                        Amount = amount
+                    });
+
+                    winDocument =  clientBl.CreateDebitsToClients(operationsFromProduct, betDocument, documentBl)[0];
                     BaseHelpers.RemoveClientBalanceFromeCache(client.Id);
                     BaseHelpers.BroadcastWin(new ApiWin
                     {

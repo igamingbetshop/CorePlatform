@@ -7,6 +7,7 @@
         Tablet = 3,
         BetShop = 4,
         Terminal = 5,
-        Application = 6
+        Application = 6,
+        USSD = 7
     }
 }

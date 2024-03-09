@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using IqSoft.CP.DAL.Models.Dashboard;
+using System;
+using System.Collections.Generic;
 
 namespace IqSoft.CP.AdminWebApi.Models.DashboardModels
 {
@@ -7,6 +9,10 @@ namespace IqSoft.CP.AdminWebApi.Models.DashboardModels
         public int Status { get; set; }
 
         public int TotalPlayersCount { get; set; }
+
+        public decimal TotalAmount { get; set; }
+
+        public List<ApiDepositDailyInfo> DailyInfo { get; set; }
 
         public List<ApiDepositInfo> Deposits { get; set; }
     }
@@ -20,6 +26,19 @@ namespace IqSoft.CP.AdminWebApi.Models.DashboardModels
         public decimal TotalAmount { get; set; }
 
         public int TotalDepositsCount { get; set; }
+
+        public int TotalPlayersCount { get; set; }
+
+        public List<ApiDepositDailyInfo> DailyInfo { get; set; }
+    }
+
+    public class ApiDepositDailyInfo
+    {
+        public DateTime Date { get; set; }
+
+        public decimal TotalAmount { get; set; }
+
+        public int TotalRequestsCount { get; set; }
 
         public int TotalPlayersCount { get; set; }
     }

@@ -23,10 +23,10 @@ namespace IqSoft.CP.BetShopWebApi.Common
 			var betOutput = JsonConvert.DeserializeObject<PlaceBetOutput>(responseStr);
 			return betOutput.Bets;
 		}
-		public static ClientRequestResponseBase Cashout(ApiCashoutInput input)
+		public static ApiResponseBase Cashout(ApiCashoutInput input)
 		{
 			var responseStr = SendRequest(Constants.Games.Sportsbook, ApiMethods.Cashout, JsonConvert.SerializeObject(input));
-			var response = JsonConvert.DeserializeObject<ClientRequestResponseBase>(responseStr);
+			var response = JsonConvert.DeserializeObject<ApiResponseBase>(responseStr);
 			return response;
 		}
 		public static BetOutput GetBookedBet(GetTicketInfoInput requestInput)
@@ -37,7 +37,7 @@ namespace IqSoft.CP.BetShopWebApi.Common
 				return null;
 			WebApiApplication.LogWriter.Info(responseStr);
 
-			var betOutput = JsonConvert.DeserializeObject<BetShopRequestOutput>(responseStr);
+			var betOutput = JsonConvert.DeserializeObject<ApiResponseBase>(responseStr);
 			if (betOutput.ResponseCode != Constants.SuccessResponseCode)
 				return new BetOutput { ResponseCode = betOutput.ResponseCode, Description = betOutput.Description };
 
@@ -57,27 +57,23 @@ namespace IqSoft.CP.BetShopWebApi.Common
 						PartnerId = (productId == (int)Constants.Games.IqSoftSportsbook ? IqSoftBrandId : requestInput.PartnerId.ToString()) }));
 			if (string.IsNullOrEmpty(responseStr)) return null;
 
-			var betOutput = JsonConvert.DeserializeObject<BetShopRequestOutput>(responseStr);
+			var betOutput = JsonConvert.DeserializeObject<ApiResponseBase>(responseStr);
 			if (betOutput.ResponseCode != Constants.SuccessResponseCode)
 				return new BetOutput { ResponseCode = betOutput.ResponseCode, Description = betOutput.Description };
 
 			return JsonConvert.DeserializeObject<BetOutput>(betOutput.ResponseObject.ToString());
 		}
 
-		public static ClientRequestResponseBase CancelBetSelection(CancelBetSelectionInput cancelInput, int productId)
+		public static ApiResponseBase CancelBetSelection(CancelBetSelectionInput cancelInput, int productId)
 		{
 			var responseStr = SendRequest(productId, ApiMethods.CancelBetSelection, JsonConvert.SerializeObject(cancelInput));
 			if (!string.IsNullOrEmpty(responseStr))
+				return JsonConvert.DeserializeObject<ApiResponseBase>(responseStr);
+			return new ApiResponseBase
 			{
-				var cancelOutput = JsonConvert.DeserializeObject<BetShopRequestOutput>(responseStr);
-				if (cancelOutput.ResponseCode != Constants.SuccessResponseCode)
-					return new CancelBetSelectionOutput
-					{
-						ResponseCode = cancelOutput.ResponseCode,
-						Description = cancelOutput.Description
-					};
-			}
-			return new CancelBetSelectionOutput();
+				ResponseCode = Constants.Errors.GeneralException,
+				Description = responseStr
+			};
 		}
 
         public static GetResultsReportOutput GetResultsReport(GetResultsReportInput input)
@@ -85,7 +81,7 @@ namespace IqSoft.CP.BetShopWebApi.Common
             var responseStr = SendRequest(Constants.Games.Keno, ApiMethods.GetUnitResults, JsonConvert.SerializeObject(input));
             if (!string.IsNullOrEmpty(responseStr))
             {
-                var output = JsonConvert.DeserializeObject<ClientRequestResponseBase>(responseStr);
+                var output = JsonConvert.DeserializeObject<ApiResponseBase>(responseStr);
                 return JsonConvert.DeserializeObject<GetResultsReportOutput>(JsonConvert.SerializeObject(output.ResponseObject));
             }
             return new GetResultsReportOutput { ResponseCode = Constants.Errors.GeneralException };
@@ -96,7 +92,7 @@ namespace IqSoft.CP.BetShopWebApi.Common
             var responseStr = SendRequest(Constants.Games.Keno, ApiMethods.GetUnitInfo, JsonConvert.SerializeObject(input));
             if (!string.IsNullOrEmpty(responseStr))
             {
-                var output = JsonConvert.DeserializeObject<ClientRequestResponseBase>(responseStr);
+                var output = JsonConvert.DeserializeObject<ApiResponseBase>(responseStr);
                 return JsonConvert.DeserializeObject<GetUnitResultInfoOutput>(JsonConvert.SerializeObject(output.ResponseObject));
             }
             return new GetUnitResultInfoOutput { ResponseCode = Constants.Errors.GeneralException };

@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Web;
 using IqSoft.CP.BetShopWebApi.Common;
@@ -16,7 +18,12 @@ namespace IqSoft.CP.BetShopWebApi.Hubs
 	[HubName("BaseHub")]
 	public class BaseHub : Hub
 	{
-		public override Task OnConnected()
+        public static IHubContext<BaseHub> CurrentContext;
+        public BaseHub(IHubContext<BaseHub> hubContext) : base()
+        {
+            CurrentContext = hubContext;
+        }
+        public override Task OnConnected()
 		{
 			Connect();
 			return base.OnConnected();
@@ -30,37 +37,36 @@ namespace IqSoft.CP.BetShopWebApi.Hubs
 
 		private void Connect()
 		{
-			string partnerId = Context.QueryString[QueryStringParams.PartnerId];
-			string cashDeskId = Context.QueryString[QueryStringParams.CashDeskId];
+			string partnerId = string.Empty, cashDeskId = string.Empty;
 			try
 			{
-				var ip = HttpContext.Current == null ? Constants.DefaultIp : HttpContext.Current.Request.UserHostAddress;
-				int parsedPartnerId = 0;
-				if (string.IsNullOrWhiteSpace(partnerId) || !int.TryParse(partnerId, out parsedPartnerId))
-					throw new Exception(Constants.Errors.PartnerNotFound.ToString());
+				partnerId = Context.QueryString[QueryStringParams.PartnerId];
+				cashDeskId = Context.QueryString[QueryStringParams.CashDeskId];
+				string languageId = Context.QueryString[QueryStringParams.LanguageId];
+				var timeZone = Convert.ToDouble(Context.QueryString[QueryStringParams.TimeZone]);
+				var token = Context.QueryString[QueryStringParams.Token];
+
+				if (string.IsNullOrWhiteSpace(partnerId) || !int.TryParse(partnerId, out int parsedPartnerId))
+					throw new Exception($"Code: {Constants.Errors.PartnerNotFound}, Description: {nameof(Constants.Errors.PartnerNotFound)}");
 				if (parsedPartnerId == Constants.MainPartnerId)
 					return;
-				string languageId = Context.QueryString[QueryStringParams.LanguageId];
+				var ip = HttpContext.Current == null ? Constants.DefaultIp : HttpContext.Current.Request.UserHostAddress;
+
 				if (string.IsNullOrWhiteSpace(languageId))
-				{
 					languageId = Constants.DefaultLanguageId;
-				}
-				var token = Context.QueryString[QueryStringParams.Token];
-				int parsedCashDeskId = 0;
-				if (string.IsNullOrWhiteSpace(cashDeskId) || !int.TryParse(cashDeskId, out parsedCashDeskId))
+				if (string.IsNullOrWhiteSpace(cashDeskId) || !int.TryParse(cashDeskId, out int parsedCashDeskId))
 					throw new Exception(Constants.Errors.CashDeskNotFound.ToString());
-
-				var timeZone = Convert.ToDouble(Context.QueryString[QueryStringParams.TimeZone]);
-
-				var session = PlatformIntegration.GetCashierSessionByToken(new GetCashierSessionInput
+				var requestInput = new PlatformRequestBase
 				{
 					TimeZone = timeZone,
 					LanguageId = languageId,
 					PartnerId = parsedPartnerId,
-					SessionToken = token
-				});
-				if (session == null)
-					throw new Exception(Constants.Errors.SessionNotFound.ToString());
+					Token = token
+				};
+				var resp = PlatformIntegration.SendRequestToPlatform(requestInput, ApiMethods.GetCashierSessionByToken);
+				if (resp.ResponseCode != Constants.SuccessResponseCode)
+					throw new Exception($"Code: {resp.ResponseCode}, Description: {resp.Description}");
+				var session = JsonConvert.DeserializeObject<AuthorizationOutput>(JsonConvert.SerializeObject(resp.ResponseObject));
 
 				if (WebApiApplication.Clients.ContainsKey(token))
 				{
@@ -80,7 +86,8 @@ namespace IqSoft.CP.BetShopWebApi.Hubs
 						BetShopId = session.BetShopId
 					});
 				}
-			}
+                BaseHub.CurrentContext.Groups.Add(Context.ConnectionId, "Partner_" + partnerId);
+            }
 			catch (Exception e)
 			{
 				WebApiApplication.LogWriter.Error(string.Format("{0}_{1}", partnerId, cashDeskId), e);

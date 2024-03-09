@@ -37,10 +37,13 @@ namespace IqSoft.CP.DAL
         public string BetValues { get; set; }
         public System.DateTime CreationTime { get; set; }
         public System.DateTime LastUpdateTime { get; set; }
+        public string Volatility { get; set; }
+        public Nullable<bool> HasImages { get; set; }
         public string Path { get; set; }
         public string Name { get; set; }
         public string GameProviderName { get; set; }
         public string SubproviderName { get; set; }
+        public Nullable<bool> IsProviderActive { get; set; }
         public int IsLeaf { get; set; }
         public int IsLastProductGroup { get; set; }
     }

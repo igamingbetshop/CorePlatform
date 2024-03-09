@@ -15,6 +15,7 @@
         PromotionalCode = 11,
         SignupCode = 12,
         SegmentChange = 13,
-        CompPointSpend = 14
+        CompPointSpend = 14,
+        DailyDeposit = 15
     }
 }

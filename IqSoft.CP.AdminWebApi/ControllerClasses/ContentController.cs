@@ -36,19 +36,37 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 case "RemoveWebSiteBanner":
                     return RemoveWebSiteBanner(Convert.ToInt32(request.RequestData), identity, log);
                 case "GetWebSiteBanners":
-                    return GetWebSiteBanners(JsonConvert.DeserializeObject<ApiFilterContent>(request.RequestData), identity, log);
+                    return GetWebSiteBanners(JsonConvert.DeserializeObject<ApiFilterBanner>(request.RequestData), identity, log);
                 case "GetBannerById":
                     return GetBannerById(JsonConvert.DeserializeObject<ApiFilterContent>(request.RequestData), identity, log);
                 case "GetBannerFragments":
                     return GetBannerFragments(Convert.ToInt32(request.RequestData), identity, log);
                 case "GetPromotions":
                     return GetPromotions(JsonConvert.DeserializeObject<ApiFilterContent>(request.RequestData), identity, log);
+                case "GetNews":
+                    return GetNews(JsonConvert.DeserializeObject<ApiFilterContent>(request.RequestData), identity, log);
                 case "GetPromotionById":
                     return GetPromotionById(JsonConvert.DeserializeObject<ApiFilterContent>(request.RequestData), identity, log);
+                case "GetNewsById":
+                    return GetNewsById(JsonConvert.DeserializeObject<ApiFilterContent>(request.RequestData), identity, log);
                 case "SavePromotion":
                     return SavePromotion(JsonConvert.DeserializeObject<ApiPromotion>(request.RequestData), identity, log);
+                case "SaveNews":
+                    return SaveNews(JsonConvert.DeserializeObject<ApiNews>(request.RequestData), identity, log);
                 case "RemovePromotion":
                     return RemovePromotion(Convert.ToInt32(request.RequestData), identity, log);
+                case "RemoveNews":
+                    return RemoveNews(Convert.ToInt32(request.RequestData), identity, log);
+                case "SavePopup":
+                    return SavePopup(JsonConvert.DeserializeObject<ApiPopup>(request.RequestData), identity, log);
+                case "GetPopups":
+                    return GetPopups(JsonConvert.DeserializeObject<ApiFilterPopup>(request.RequestData), identity, log);
+                case "GetPopupById":
+                    return GetPopupById(Convert.ToInt32(request.RequestData), identity, log);
+                case "RemovePopup":
+                    return RemovePopup(Convert.ToInt32(request.RequestData), identity, log);
+                case "BroadcastPopup":
+                    return BaseController.BroadcastPopup(Convert.ToInt32(request.RequestData), identity, log);
                 case "GetWebSiteMenus":
                     return GetWebSiteMenus(JsonConvert.DeserializeObject<ApiFilterContent>(request.RequestData), identity, log);
                 case "SaveWebSiteMenu":
@@ -268,16 +286,16 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             }
         }
 
-        private static ApiResponseBase GetWebSiteBanners(ApiFilterContent input, SessionIdentity identity, ILog log)
+        private static ApiResponseBase GetWebSiteBanners(ApiFilterBanner input, SessionIdentity identity, ILog log)
         {
             using (var contentBl = new ContentBll(identity, log))
             {
-                var resp = contentBl.GetBanners(input.PartnerId, input.Id, input.SkipCount, input.TakeCount);
+                var resp = contentBl.GetBanners(input.MaptToFilterfnBanner());
                 return new ApiResponseBase
                 {
                     ResponseObject = new
                     {
-                        Count = resp.Count,
+                        resp.Count,
                         Entities = resp.Entities.Select(x => new ApiBanner
                         {
                             Id = x.Id,
@@ -420,30 +438,256 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             }
         }
 
-        private static ApiResponseBase RemovePromotion(int promotionId, SessionIdentity identity, ILog log)
+        private static ApiResponseBase SaveNews(ApiNews apiNewsInput, SessionIdentity identity, ILog log)
+        {
+            if ((apiNewsInput.Languages != null && !Enum.IsDefined(typeof(BonusSettingConditionTypes), apiNewsInput.Languages.Type)) ||
+                (apiNewsInput.Segments != null && !Enum.IsDefined(typeof(BonusSettingConditionTypes), apiNewsInput.Segments.Type)))
+                throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.WrongInputParameters);
+
+            using (var contentBl = new ContentBll(identity, log))
+            {
+                using (var partnerBl = new PartnerBll(contentBl))
+                {
+                    var dbNews = contentBl.SaveNews(apiNewsInput.ToNews());
+
+                    CacheManager.RemoveNews(apiNewsInput.PartnerId);
+                    Helpers.Helpers.InvokeMessage("RemoveNews", apiNewsInput.PartnerId);
+                    var partner = CacheManager.GetPartnerById(apiNewsInput.PartnerId);
+                    if (!string.IsNullOrEmpty(apiNewsInput.ImageName) && (!string.IsNullOrEmpty(apiNewsInput.ImageData) ||
+                                                                               !string.IsNullOrEmpty(apiNewsInput.ImageDataMedium) ||
+                                                                               !string.IsNullOrEmpty(apiNewsInput.ImageDataSmall)))
+
+                    {
+                        var ftpModel = partnerBl.GetPartnerEnvironments(apiNewsInput.PartnerId)[apiNewsInput.EnvironmentTypeId];
+                        if (ftpModel == null)
+                            throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.PartnerKeyNotFound);
+                        var ext = apiNewsInput.ImageName.Split('.', '?');
+                        var extension = ext.Length > 1 ? "." + ext[1] : ".png";
+                        var imgName = dbNews.Id.ToString() + extension;
+
+                        var path = "ftp://" + ftpModel.Url + "/coreplatform/website/" + partner.Name + "/assets/images/news/";
+                        try
+                        {
+                            if (!string.IsNullOrEmpty(apiNewsInput.ImageData))
+                            {
+                                byte[] bytes = Convert.FromBase64String(apiNewsInput.ImageData);
+                                contentBl.UploadFtpImage(bytes, ftpModel, path + imgName);
+                            }
+                            if (!string.IsNullOrEmpty(apiNewsInput.ImageDataMedium))
+                            {
+                                byte[] bytesMedium = Convert.FromBase64String(apiNewsInput.ImageDataMedium);
+                                contentBl.UploadFtpImage(bytesMedium, ftpModel, path + "medium/" + imgName);
+                            }
+                            if (!string.IsNullOrEmpty(apiNewsInput.ImageDataSmall))
+                            {
+                                byte[] bytesSmall = Convert.FromBase64String(apiNewsInput.ImageDataSmall);
+                                contentBl.UploadFtpImage(bytesSmall, ftpModel, path + "small/" + imgName);
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            log.Error(e);
+                        }
+                    }
+                    var languages = CacheManager.GetAvailableLanguages();
+                    foreach (var lan in languages)
+                    {
+                        BaseController.BroadcastCacheChanges(dbNews.PartnerId, string.Format("{0}_{1}_{2}", Constants.CacheItems.News, dbNews.PartnerId, lan.Id));
+                    }
+                    return new ApiResponseBase
+                    {
+                        ResponseObject = new ApiNews
+                        {
+                            Id = dbNews.Id,
+                            PartnerId = dbNews.PartnerId,
+                            NickName = dbNews.NickName,
+                            Type = dbNews.Type,
+                            State = dbNews.State,
+                            Title = apiNewsInput.Title,
+                            Description = apiNewsInput.Description,
+                            ImageName = dbNews.ImageName,
+                            StartDate = dbNews.StartDate,
+                            FinishDate = dbNews.FinishDate,
+                            CreationTime = dbNews.CreationTime,
+                            LastUpdateTime = dbNews.LastUpdateTime,
+                            Order = dbNews.Order,
+                            Segments = dbNews.NewsSegmentSettings != null && dbNews.NewsSegmentSettings.Any() ? new ApiSetting
+                            {
+                                Type = dbNews.NewsSegmentSettings.First().Type,
+                                Ids = dbNews.NewsSegmentSettings.Select(x => x.SegmentId).ToList()
+                            } : new ApiSetting { Type = (int)BonusSettingConditionTypes.InSet, Ids = new List<int>() },
+                            Languages = dbNews.NewsLanguageSettings != null && dbNews.NewsLanguageSettings.Any() ? new ApiSetting
+                            {
+                                Type = dbNews.NewsLanguageSettings.First().Type,
+                                Names = dbNews.NewsLanguageSettings.Select(x => x.LanguageId).ToList()
+                            } : new ApiSetting { Type = (int)BonusSettingConditionTypes.InSet, Names = new List<string>() },
+                            StyleType = dbNews.StyleType
+                        }
+                    };
+                }
+            }
+        }
+
+        private static ApiResponseBase SavePopup(ApiPopup apiPopupInput, SessionIdentity identity, ILog log)
         {
             using (var contentBl = new ContentBll(identity, log))
             {
                 using (var partnerBl = new PartnerBll(contentBl))
                 {
-                    var promotion = contentBl.RemovePromotion(promotionId);
-                    CacheManager.RemovePromotions(promotion.PartnerId);
-                    Helpers.Helpers.InvokeMessage("RemovePromotions", promotion.PartnerId);
-                    var partner = CacheManager.GetPartnerById(promotion.PartnerId);
-                    var languages = CacheManager.GetAvailableLanguages();
-                    foreach (var lan in languages)
+                    var input = new Popup
                     {
-                        BaseController.BroadcastCacheChanges(promotion.PartnerId,
-                            string.Format("{0}_{1}_{2}", Constants.CacheItems.Promotions, promotion.Id, lan.Id));
+                        Id =apiPopupInput.Id,
+                        PartnerId = apiPopupInput.PartnerId,
+                        NickName = apiPopupInput.NickName,
+                        Type = apiPopupInput.Type,
+                        State = apiPopupInput.State,
+                        ImageName = apiPopupInput.ImageName,
+                        Order = apiPopupInput.Order,
+                        Page = apiPopupInput.Page,
+                        SegmentIds = apiPopupInput.SegmentIds,
+                        ClientIds = apiPopupInput.ClientIds,
+                        StartDate = apiPopupInput.StartDate,
+                        FinishDate = apiPopupInput.FinishDate
+                    };
+                    var dbPopup = contentBl.SavePopup(input);
+                    apiPopupInput.Id = dbPopup.Id;
+                    apiPopupInput.CreationTime = dbPopup.CreationTime;
+                    apiPopupInput.LastUpdateTime = dbPopup.LastUpdateTime;
+                    if (!string.IsNullOrEmpty(apiPopupInput.ImageName) && !string.IsNullOrEmpty(apiPopupInput.ImageData))
+                    {
+                        var ftpModel = partnerBl.GetPartnerEnvironments(apiPopupInput.PartnerId)[apiPopupInput.EnvironmentTypeId] ??
+                            throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.PartnerKeyNotFound);
+                        var ext = apiPopupInput.ImageName.Split('.', '?');
+                        var extension = ext.Length > 1 ? "." + ext[1] : ".png";
+                        apiPopupInput.ImageName = dbPopup.Id.ToString() + extension;
+                        var partner = CacheManager.GetPartnerById(apiPopupInput.PartnerId);
+                        var path = "ftp://" + ftpModel.Url + "/coreplatform/website/" + partner.Name + "/assets/images/popup/";
+                        try
+                        {
+                            if (!string.IsNullOrEmpty(apiPopupInput.ImageData))
+                            {
+                                byte[] bytes = Convert.FromBase64String(apiPopupInput.ImageData);
+                                contentBl.UploadFtpImage(bytes, ftpModel, $"{path}/web/{apiPopupInput.ImageName}");
+                            }
+                            if (!string.IsNullOrEmpty(apiPopupInput.MobileImageData))
+                            {
+                                byte[] bytes = Convert.FromBase64String(apiPopupInput.MobileImageData);
+                                contentBl.UploadFtpImage(bytes, ftpModel, $"{path}/mobile/{apiPopupInput.ImageName}");
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            log.Error(e);
+                        }
                     }
+                    Helpers.Helpers.InvokeMessage("RemoveFromCache", string.Format("{0}_{1}_{2}", Constants.CacheItems.Popups, apiPopupInput.PartnerId, apiPopupInput.Type));
                     return new ApiResponseBase
                     {
-                        ResponseObject = new ApiPromotion
-                        {
-                            Id = promotion.Id
-                        }
+                        ResponseObject = apiPopupInput
                     };
                 }
+            }
+        }
+
+        private static ApiResponseBase GetPopups(ApiFilterPopup apiFilterPopup, SessionIdentity identity, ILog log)
+        {
+            using (var contentBl = new ContentBll(identity, log))
+            {
+                var res = contentBl.GetPopups(apiFilterPopup.MaptToFilterPopup());
+                return new ApiResponseBase
+                {
+                    ResponseObject =  new
+                    {
+                        res.Count,
+                        Entities = res.Entities.Select(x=> new
+                        {
+                            x.Id,
+                            x.PartnerId,
+                            x.NickName,
+                            x.Type,
+                            x.State,
+                            x.Page,
+                            x.Order,
+                            StartDate = x.StartDate.GetGMTDateFromUTC(identity.TimeZone),
+                            FinishDate = x.FinishDate.GetGMTDateFromUTC(identity.TimeZone),
+                            CreationTime = x.CreationTime.GetGMTDateFromUTC(identity.TimeZone),
+                            LastUpdateTime = x.LastUpdateTime.GetGMTDateFromUTC(identity.TimeZone)
+                        })
+                    }                
+                };
+            }
+        }
+
+        private static ApiResponseBase GetPopupById(int popupId, SessionIdentity identity, ILog log)
+        {
+            using (var contentBl = new ContentBll(identity, log))
+            {
+                var apiPopup = contentBl.GetPopupById(popupId).MapToApiPopup(identity.TimeZone);
+                var partner = CacheManager.GetPartnerById(apiPopup.PartnerId);
+                var siteurl = partner.SiteUrl.Split(',')[0];
+                apiPopup.SiteUrl = siteurl;
+
+                return new ApiResponseBase
+                {
+                    ResponseObject =  apiPopup
+                };
+            }
+        }
+
+        private static ApiResponseBase RemovePopup(int popupId, SessionIdentity identity, ILog log)
+        {
+            using (var contentBl = new ContentBll(identity, log))
+            {
+                contentBl.RemovePopup(popupId);
+                return new ApiResponseBase();
+            }
+        }
+
+        private static ApiResponseBase RemovePromotion(int promotionId, SessionIdentity identity, ILog log)
+        {
+            using (var contentBl = new ContentBll(identity, log))
+            {
+                var promotion = contentBl.RemovePromotion(promotionId);
+                CacheManager.RemovePromotions(promotion.PartnerId);
+                Helpers.Helpers.InvokeMessage("RemovePromotions", promotion.PartnerId);
+                var partner = CacheManager.GetPartnerById(promotion.PartnerId);
+                var languages = CacheManager.GetAvailableLanguages();
+                foreach (var lan in languages)
+                {
+                    BaseController.BroadcastCacheChanges(promotion.PartnerId,
+                        string.Format("{0}_{1}_{2}", Constants.CacheItems.Promotions, promotion.Id, lan.Id));
+                }
+                return new ApiResponseBase
+                {
+                    ResponseObject = new ApiPromotion
+                    {
+                        Id = promotion.Id
+                    }
+                };
+            }
+        }
+
+        private static ApiResponseBase RemoveNews(int newsId, SessionIdentity identity, ILog log)
+        {
+            using (var contentBl = new ContentBll(identity, log))
+            {
+                var news = contentBl.RemoveNews(newsId);
+                CacheManager.RemoveNews(news.PartnerId);
+                Helpers.Helpers.InvokeMessage("RemoveNews", news.PartnerId);
+                var partner = CacheManager.GetPartnerById(news.PartnerId);
+                var languages = CacheManager.GetAvailableLanguages();
+                foreach (var lan in languages)
+                {
+                    BaseController.BroadcastCacheChanges(news.PartnerId,
+                        string.Format("{0}_{1}_{2}", Constants.CacheItems.News, news.Id, lan.Id));
+                }
+                return new ApiResponseBase
+                {
+                    ResponseObject = new ApiNews
+                    {
+                        Id = news.Id
+                    }
+                };
             }
         }
 
@@ -477,6 +721,35 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             }
         }
 
+        private static ApiResponseBase GetNews(ApiFilterContent filter, SessionIdentity identity, ILog log)
+        {
+            using (var contentBl = new ContentBll(identity, log))
+            {
+                var result = contentBl.GetNews(filter.Id, filter.PartnerId, filter.ParentId, filter.SkipCount, filter.TakeCount);
+                return new ApiResponseBase
+                {
+                    ResponseObject = result.Select(x => new ApiPromotion
+                    {
+                        Id = x.Id,
+                        PartnerId = x.PartnerId,
+                        NickName = x.NickName,
+                        Type = x.Type,
+                        State = x.State,
+                        Title = x.Title,
+                        Description = x.Description,
+                        ImageName = x.ImageName,
+                        StartDate = x.StartDate,
+                        FinishDate = x.FinishDate,
+                        CreationTime = x.CreationTime,
+                        LastUpdateTime = x.LastUpdateTime,
+                        Order = x.Order,
+                        ParentId = x.ParentId,
+                        StyleType = x.StyleType
+                    }).ToList()
+                };
+            }
+        }
+
         private static ApiResponseBase GetPromotionById(ApiFilterContent input, SessionIdentity identity, ILog log)
         {
             using (var contentBl = new ContentBll(identity, log))
@@ -490,6 +763,22 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 {
                     ResponseObject = apiPromotion
 				};
+            }
+        }
+
+        private static ApiResponseBase GetNewsById(ApiFilterContent input, SessionIdentity identity, ILog log)
+        {
+            using (var contentBl = new ContentBll(identity, log))
+            {
+                var apiNews = contentBl.GetNewsById(input.Id ?? 0).ToApiNews(identity.TimeZone);
+                var partner = CacheManager.GetPartnerById(apiNews.PartnerId);
+                var siteurl = partner.SiteUrl.Split(',')[0];
+                apiNews.SiteUrl = siteurl;
+
+                return new ApiResponseBase
+                {
+                    ResponseObject = apiNews
+                };
             }
         }
 
@@ -875,7 +1164,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         private static ApiResponseBase SaveAnnouncement(ApiAnnouncement apiAnnouncement, SessionIdentity identity, ILog log)
         {
             using (var contentBl = new ContentBll(identity, log))
-                contentBl.SaveAnnouncement(apiAnnouncement, true);
+                contentBl.SaveAnnouncement(apiAnnouncement, true, null);
             if (apiAnnouncement.Type == (int)AnnouncementTypes.Ticker)
                 Helpers.Helpers.InvokeMessage("RemoveKeysFromCache", string.Format("{0}_{1}_", Constants.CacheItems.Ticker, apiAnnouncement.PartnerId));
             return new ApiResponseBase();
@@ -1001,7 +1290,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             {
                 return new ApiResponseBase
                 {
-                    ResponseObject = contentBl.SaveSegment(segmentModel).MapToSegmentModel()
+                    ResponseObject = contentBl.SaveSegment(segmentModel).MapToSegmentModel(identity.TimeZone)
                 };
             }
         }
@@ -1012,7 +1301,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             {
                 return new ApiResponseBase
                 {
-                    ResponseObject = contentBl.DeleteSegment(segmentId).MapToSegmentModel()
+                    ResponseObject = contentBl.DeleteSegment(segmentId).MapToSegmentModel(identity.TimeZone)
                 };
             }
         }
@@ -1023,7 +1312,8 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             {
                 return new ApiResponseBase
                 {
-                    ResponseObject = contentBl.GetSegments(filter.Id, filter.PartnerId).Select(x => x.MapToSegmentModel()).OrderByDescending(x => x.Id).ToList()
+                    ResponseObject = contentBl.GetSegments(filter.Id, filter.PartnerId).Select(x => x.MapToSegmentModel(identity.TimeZone))
+                                                                                       .OrderByDescending(x => x.Id).ToList()
                 };
             }
         }

@@ -413,7 +413,9 @@ namespace IqSoft.CP.Integration.Platforms.Helpers
         public static void UpdatePlayerLimit(int partnerId, int clientId, string limitSettingName, decimal? amount, ILog log) //+
         {
             var limitScore = limitSettingName.Contains(LimitScores.Deposit.ToString()) ? LimitScores.Deposit :
-                            (limitSettingName.Contains(LimitScores.Loss.ToString()) ? LimitScores.Loss : LimitScores.Stake);
+                            (limitSettingName.Contains(LimitScores.Loss.ToString()) ? LimitScores.Loss :
+                          (limitSettingName.Contains("Bet") ? LimitScores.Stake : 0));
+            if (limitScore == 0) return;
             var timeUnit = limitSettingName.Contains(TimeUnits.Month.ToString()) ? TimeUnits.Month :
                           (limitSettingName.Contains(TimeUnits.Week.ToString()) ? TimeUnits.Week : TimeUnits.Day);
             if (amount.HasValue)

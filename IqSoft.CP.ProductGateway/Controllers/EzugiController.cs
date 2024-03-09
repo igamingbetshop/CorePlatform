@@ -28,7 +28,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
     public class EzugiController : ApiController
     {
         private readonly static int ProviderId = CacheManager.GetGameProviderByName(Constants.GameProviders.Ezugi).Id;
-        private static readonly List<string> WhitelistedIps = CacheManager.GetProviderWhitelistedIps(Constants.GameProviders.Ezugi);
+        public static readonly List<string> WhitelistedIps = CacheManager.GetProviderWhitelistedIps(Constants.GameProviders.Ezugi);
         
 
         [HttpPost]

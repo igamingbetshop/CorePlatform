@@ -1,6 +1,6 @@
 ﻿namespace IqSoft.CP.BetShopGatewayWebApi.Models
 {
-    public class FinOperationResponse : ApiResponseBase
+    public class FinOperationResponse
     {
         public decimal CashierBalance { get; set; }
         public decimal ClientBalance { get; set; }

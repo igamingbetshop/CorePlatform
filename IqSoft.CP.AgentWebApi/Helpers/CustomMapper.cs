@@ -39,6 +39,8 @@ using IqSoft.CP.DataWarehouse.Filters;
 using Client = IqSoft.CP.DAL.Client;
 using Document = IqSoft.CP.DAL.Document;
 using User = IqSoft.CP.DAL.User;
+using AffiliateReferral = IqSoft.CP.DAL.AffiliateReferral;
+using IqSoft.CP.Common.Models.CacheModels;
 
 namespace IqSoft.CP.AgentWebApi.Helpers
 {
@@ -75,6 +77,7 @@ namespace IqSoft.CP.AgentWebApi.Helpers
                 UserName = user.UserName,
                 Phone = !string.IsNullOrEmpty(user.Phone) ? user.Phone.Split('/')[0] : string.Empty,
                 Fax = (!string.IsNullOrEmpty(user.Phone) && user.Phone.Split('/').Length > 1) ? user.Phone.Split('/')[1] : string.Empty,
+                Type = user.Type,
                 State = (user.ParentState.HasValue && CustomHelper.Greater((UserStates)user.ParentState.Value, (UserStates)user.State)) ? user.ParentState.Value : user.State,
                 ParentState = parentState,
                 Email = user.Email,
@@ -323,90 +326,8 @@ namespace IqSoft.CP.AgentWebApi.Helpers
                 PhoneNumber = string.Format("{0}/{1}", input.Phone, input.Fax),
                 CategoryId = input.Group
             };
-        }
-
-        public static List<FilterfnClient> MapToFilterfnClients(this IEnumerable<ApiFilterfnClient> filterClients)
-        {
-            return filterClients.Select(MapToFilterfnClient).ToList();
-        }
-
-        public static FilterfnClient MapToFilterfnClient(this ApiFilterfnClient filterClient)
-        {
-            return new FilterfnClient
-            {
-                PartnerId = filterClient.PartnerId,
-                CreatedFrom = filterClient.CreatedFrom,
-                CreatedBefore = filterClient.CreatedBefore,
-                Ids = filterClient.Ids == null ? new FiltersOperation() : filterClient.Ids.MapToFiltersOperation(),
-                Emails = filterClient.Emails == null ? new FiltersOperation() : filterClient.Emails.MapToFiltersOperation(),
-                UserNames = filterClient.UserNames == null ? new FiltersOperation() : filterClient.UserNames.MapToFiltersOperation(),
-                Currencies = filterClient.CurrencyIds == null ? new FiltersOperation() : filterClient.CurrencyIds.MapToFiltersOperation(),
-                Genders = filterClient.Genders == null ? new FiltersOperation() : filterClient.Genders.MapToFiltersOperation(),
-                FirstNames = filterClient.FirstNames == null ? new FiltersOperation() : filterClient.FirstNames.MapToFiltersOperation(),
-                LastNames = filterClient.LastNames == null ? new FiltersOperation() : filterClient.LastNames.MapToFiltersOperation(),
-                DocumentNumbers = filterClient.DocumentNumbers == null ? new FiltersOperation() : filterClient.DocumentNumbers.MapToFiltersOperation(),
-                DocumentIssuedBys = filterClient.DocumentIssuedBys == null ? new FiltersOperation() : filterClient.DocumentIssuedBys.MapToFiltersOperation(),
-                LanguageIds = filterClient.LanguageIds == null ? new FiltersOperation() : filterClient.LanguageIds.MapToFiltersOperation(),
-                Categories = filterClient.Categories == null ? new FiltersOperation() : filterClient.Categories.MapToFiltersOperation(),
-                MobileNumbers = filterClient.MobileNumbers == null ? new FiltersOperation() : filterClient.MobileNumbers.MapToFiltersOperation(),
-                ZipCodes = filterClient.ZipCodes == null ? new FiltersOperation() : filterClient.ZipCodes.MapToFiltersOperation(),
-                IsDocumentVerifieds = filterClient.IsDocumentVerifieds == null ? new FiltersOperation() : filterClient.IsDocumentVerifieds.MapToFiltersOperation(),
-                PhoneNumbers = filterClient.PhoneNumbers == null ? new FiltersOperation() : filterClient.PhoneNumbers.MapToFiltersOperation(),
-                RegionIds = filterClient.RegionIds == null ? new FiltersOperation() : filterClient.RegionIds.MapToFiltersOperation(),
-                BirthDates = filterClient.BirthDates == null ? new FiltersOperation() : filterClient.BirthDates.MapToFiltersOperation(),
-                States = filterClient.States == null ? new FiltersOperation() : filterClient.States.MapToFiltersOperation(),
-                CreationTimes = filterClient.CreationTimes == null ? new FiltersOperation() : filterClient.CreationTimes.MapToFiltersOperation(),
-                Balances = filterClient.Balances == null ? new FiltersOperation() : filterClient.Balances.MapToFiltersOperation(),
-                GGRs = filterClient.GGRs == null ? new FiltersOperation() : filterClient.GGRs.MapToFiltersOperation(),
-                NETGamings = filterClient.NETGamings == null ? new FiltersOperation() : filterClient.NETGamings.MapToFiltersOperation(),
-                AffiliatePlatformIds = filterClient.AffiliatePlatformIds == null ? new FiltersOperation() : filterClient.AffiliatePlatformIds.MapToFiltersOperation(),
-                AffiliateIds = filterClient.AffiliateIds == null ? new FiltersOperation() : filterClient.AffiliateIds.MapToFiltersOperation(),
-                UserIds = filterClient.UserIds == null ? new FiltersOperation() : filterClient.UserIds.MapToFiltersOperation(),
-                SkipCount = filterClient.SkipCount,
-                TakeCount = filterClient.TakeCount,
-                OrderBy = filterClient.OrderBy,
-                FieldNameToOrderBy = filterClient.FieldNameToOrderBy
-            };
-        }
-        public static FilterfnClient MapToFilterFnClient(this ApiFilterfnClient filterClient)
-        {
-            return new FilterfnClient
-            {
-                PartnerId = filterClient.PartnerId,
-                AgentId = filterClient.AgentId,
-                CreatedFrom = filterClient.CreatedFrom,
-                CreatedBefore = filterClient.CreatedBefore,
-                Ids = filterClient.Ids == null ? new FiltersOperation() : filterClient.Ids.MapToFiltersOperation(),
-                Emails = filterClient.Emails == null ? new FiltersOperation() : filterClient.Emails.MapToFiltersOperation(),
-                UserNames = filterClient.UserNames == null ? new FiltersOperation() : filterClient.UserNames.MapToFiltersOperation(),
-                Currencies = filterClient.CurrencyIds == null ? new FiltersOperation() : filterClient.CurrencyIds.MapToFiltersOperation(),
-                Genders = filterClient.Genders == null ? new FiltersOperation() : filterClient.Genders.MapToFiltersOperation(),
-                FirstNames = filterClient.FirstNames == null ? new FiltersOperation() : filterClient.FirstNames.MapToFiltersOperation(),
-                LastNames = filterClient.LastNames == null ? new FiltersOperation() : filterClient.LastNames.MapToFiltersOperation(),
-                DocumentNumbers = filterClient.DocumentNumbers == null ? new FiltersOperation() : filterClient.DocumentNumbers.MapToFiltersOperation(),
-                DocumentIssuedBys = filterClient.DocumentIssuedBys == null ? new FiltersOperation() : filterClient.DocumentIssuedBys.MapToFiltersOperation(),
-                LanguageIds = filterClient.LanguageIds == null ? new FiltersOperation() : filterClient.LanguageIds.MapToFiltersOperation(),
-                Categories = filterClient.Categories == null ? new FiltersOperation() : filterClient.Categories.MapToFiltersOperation(),
-                MobileNumbers = filterClient.MobileNumbers == null ? new FiltersOperation() : filterClient.MobileNumbers.MapToFiltersOperation(),
-                ZipCodes = filterClient.ZipCodes == null ? new FiltersOperation() : filterClient.ZipCodes.MapToFiltersOperation(),
-                IsDocumentVerifieds = filterClient.IsDocumentVerifieds == null ? new FiltersOperation() : filterClient.IsDocumentVerifieds.MapToFiltersOperation(),
-                PhoneNumbers = filterClient.PhoneNumbers == null ? new FiltersOperation() : filterClient.PhoneNumbers.MapToFiltersOperation(),
-                RegionIds = filterClient.RegionIds == null ? new FiltersOperation() : filterClient.RegionIds.MapToFiltersOperation(),
-                BirthDates = filterClient.BirthDates == null ? new FiltersOperation() : filterClient.BirthDates.MapToFiltersOperation(),
-                States = filterClient.States == null ? new FiltersOperation() : filterClient.States.MapToFiltersOperation(),
-                CreationTimes = filterClient.CreationTimes == null ? new FiltersOperation() : filterClient.CreationTimes.MapToFiltersOperation(),
-                Balances = filterClient.Balances == null ? new FiltersOperation() : filterClient.Balances.MapToFiltersOperation(),
-                GGRs = filterClient.GGRs == null ? new FiltersOperation() : filterClient.GGRs.MapToFiltersOperation(),
-                NETGamings = filterClient.NETGamings == null ? new FiltersOperation() : filterClient.NETGamings.MapToFiltersOperation(),
-                AffiliatePlatformIds = filterClient.AffiliatePlatformIds == null ? new FiltersOperation() : filterClient.AffiliatePlatformIds.MapToFiltersOperation(),
-                AffiliateIds = filterClient.AffiliateIds == null ? new FiltersOperation() : filterClient.AffiliateIds.MapToFiltersOperation(),
-                UserIds = filterClient.UserIds == null ? new FiltersOperation() : filterClient.UserIds.MapToFiltersOperation(),
-                SkipCount = filterClient.SkipCount,
-                TakeCount = filterClient.TakeCount,
-                OrderBy = filterClient.OrderBy,
-                FieldNameToOrderBy = filterClient.FieldNameToOrderBy
-            };
-        }
+        }      
+     
         public static FilterClientModel MapToFilterClientModel(this ApiFilterfnClient filterClient)
         {
             return new FilterClientModel
@@ -434,7 +355,8 @@ namespace IqSoft.CP.AgentWebApi.Helpers
                 BirthDates = filterClient.BirthDates == null ? new FiltersOperation() : filterClient.BirthDates.MapToFiltersOperation(),
                 States = filterClient.States == null ? new FiltersOperation() : filterClient.States.MapToFiltersOperation(),
                 CreationTimes = filterClient.CreationTimes == null ? new FiltersOperation() : filterClient.CreationTimes.MapToFiltersOperation(),
-                Balances = filterClient.Balances == null ? new FiltersOperation() : filterClient.Balances.MapToFiltersOperation(),
+                RealBalances = filterClient.RealBalances == null ? new FiltersOperation() : filterClient.RealBalances.MapToFiltersOperation(),
+                BonusBalances = filterClient.BonusBalances == null ? new FiltersOperation() : filterClient.BonusBalances.MapToFiltersOperation(),
                 GGRs = filterClient.GGRs == null ? new FiltersOperation() : filterClient.GGRs.MapToFiltersOperation(),
                 NETGamings = filterClient.NETGamings == null ? new FiltersOperation() : filterClient.NETGamings.MapToFiltersOperation(),
                 AffiliatePlatformIds = filterClient.AffiliatePlatformIds == null ? new FiltersOperation() : filterClient.AffiliatePlatformIds.MapToFiltersOperation(),
@@ -811,8 +733,10 @@ namespace IqSoft.CP.AgentWebApi.Helpers
             return new FilterfnPaymentRequest
             {
                 PartnerId = request.PartnerId,
-                FromDate = (request.FromDate == null ? 0 : (long)request.FromDate.Value.Year * 1000000 + (long)request.FromDate.Value.Month * 10000 + (long)request.FromDate.Value.Day * 100 + (long)request.FromDate.Value.Hour),
-                ToDate = (request.ToDate == null ? 0 : (long)request.ToDate.Value.Year * 1000000 + (long)request.ToDate.Value.Month * 10000 + (long)request.ToDate.Value.Day * 100 + (long)request.ToDate.Value.Hour),
+                FromDate = request.FromDate == null ? 0 : (long)request.FromDate.Value.Year * 100000000 + (long)request.FromDate.Value.Month * 1000000 +
+                    (long)request.FromDate.Value.Day * 10000 + (long)request.FromDate.Value.Hour * 100 + request.FromDate.Value.Minute,
+                ToDate = request.ToDate == null ? 0 : (long)request.ToDate.Value.Year * 100000000 + (long)request.ToDate.Value.Month * 1000000 +
+                    (long)request.ToDate.Value.Day * 10000 + (long)request.ToDate.Value.Hour * 100 + request.ToDate.Value.Minute,
                 Type = request.Type,
                 AgentId = request.AgentId,
                 Ids = request.Ids == null ? new FiltersOperation() : request.Ids.MapToFiltersOperation(),

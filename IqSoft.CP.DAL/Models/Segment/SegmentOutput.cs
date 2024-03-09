@@ -2,6 +2,7 @@
 using IqSoft.CP.Common.Models.Filters;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace IqSoft.CP.DAL.Models.Segment
 {
@@ -10,6 +11,7 @@ namespace IqSoft.CP.DAL.Models.Segment
         public int? Id { get; set; }
         public string Name { get; set; }
         public int PartnerId { get; set; }
+        public string CurrencyId { get; set; }
         public int State { get; set; }
         public int Mode { get; set; }
         public DateTime? CreationTime { get; set; }
@@ -130,37 +132,46 @@ namespace IqSoft.CP.DAL.Models.Segment
         }
         public Condition MobileCodeSet { get; set; }
         public string SessionPeriod { get; set; }
-        public Condition SessionPeriodObject
-        {
-            set
-            {
-                SessionPeriodSet = !string.IsNullOrEmpty(SessionPeriod) ? new Condition
-                {
-                    ConditionItems = new List<ConditionItem> { new ConditionItem { OperationTypeId =  (int)FilterOperations.InSet, StringValue = SessionPeriod } }
-                } : null;
-            }
-        }
-        public Condition SessionPeriodSet{ get; set; }
+        public Condition SessionPeriodObject {get; set; }
+
         public string SignUpPeriod { get; set; }
         public Condition SignUpPeriodObject { get; set; }
-        public string Profit { get; set; }
-        public Condition ProfitObject { get; set; }
-        public string Bonus { get; set; }
-        public Condition BonusObject
+        //public string Profit { get; set; }
+        //public Condition ProfitObject { get; set; }
+        //public string Bonus { get; set; }
+        //public Condition BonusObject
+        //{
+        //    set
+        //    {
+        //        BonusSet = !string.IsNullOrEmpty(Bonus) ? new Condition
+        //        {
+        //            ConditionItems = new List<ConditionItem> { new ConditionItem { OperationTypeId =  (int)FilterOperations.InSet, StringValue = Bonus } }
+        //        } : null;
+        //    }
+        //}
+        //public Condition BonusSet { get; set; }
+        public string SuccessDepositPaymentSystem { get; set; }
+        public Condition SuccessDepositPaymentSystemObject
         {
             set
             {
-                BonusSet = !string.IsNullOrEmpty(Bonus) ? new Condition
-                {
-                    ConditionItems = new List<ConditionItem> { new ConditionItem { OperationTypeId =  (int)FilterOperations.InSet, StringValue = Bonus } }
-                } : null;
+                SuccessDepositPaymentSystemList = !string.IsNullOrEmpty(SuccessDepositPaymentSystem) ?
+                                                   SuccessDepositPaymentSystem.Split(',').Select(Int32.Parse).ToList() : null;
             }
         }
-        public Condition BonusSet { get; set; }
-        public string SuccessDepositPaymentSystem { get; set; }
-        public Condition SuccessDepositPaymentSystemObject { get; set; }
+
+        public List<int> SuccessDepositPaymentSystemList { get; set; }
+
         public string SuccessWithdrawalPaymentSystem { get; set; }
-        public Condition SuccessWithdrawalPaymentSystemObject { get; set; }
+        public Condition SuccessWithdrawalPaymentSystemObject
+        {
+            set
+            {
+                SuccessWithdrawalPaymentSystemList = !string.IsNullOrEmpty(SuccessWithdrawalPaymentSystem) ?
+                                                                 SuccessWithdrawalPaymentSystem.Split(',').Select(Int32.Parse).ToList() : null;
+            }
+        }
+        public List<int> SuccessWithdrawalPaymentSystemList { get; set; }
         public string TotalBetsCount { get; set; }
         public Condition TotalBetsCountObject { get; set; }
         public string SportBetsCount { get; set; }

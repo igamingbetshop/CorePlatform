@@ -52,6 +52,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 							paymentSystemBl.ChangePaymentRequestDetails(paymentRequest);
 							if (input.Status == "approved")
 							{
+								WebApiApplication.DbLogger.Info("Log before approving");
 								clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
 								PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
 								BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);
@@ -82,7 +83,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 			}
 			catch (Exception ex)
 			{
-				response = ex.Message;
+				response = $"Message: {ex.Message} InnerException: {ex.InnerException.InnerException.Message}";
 				WebApiApplication.DbLogger.Error(response);
 				httpResponseMessage.StatusCode = HttpStatusCode.BadRequest;
 			}

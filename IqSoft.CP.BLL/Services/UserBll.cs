@@ -28,6 +28,7 @@ using IqSoft.CP.DataWarehouse;
 using User = IqSoft.CP.DAL.User;
 using Client = IqSoft.CP.DAL.Client;
 using Document = IqSoft.CP.DAL.Document;
+using System.Security.Principal;
 
 namespace IqSoft.CP.BLL.Services
 {
@@ -279,6 +280,32 @@ namespace IqSoft.CP.BLL.Services
             var savedSession = AddUserSession(newSession);
             Db.SaveChanges();
             return savedSession;
+        }
+
+        public SessionIdentity CheckCashierSession(string token, bool checkExpiration = true)
+        {
+            var userSession = GetUserSession(token, checkExpiration);
+            if (userSession.CashDeskId == null)
+                throw BaseBll.CreateException(LanguageId, Constants.Errors.SessionNotFound);
+            var cashDesk = CacheManager.GetCashDeskById(userSession.CashDeskId.Value) ??
+                       throw BaseBll.CreateException(LanguageId, Constants.Errors.CashDeskNotFound);
+            var betShop = CacheManager.GetBetShopById(cashDesk.BetShopId) ??
+            throw BaseBll.CreateException(LanguageId, Constants.Errors.BetShopNotFound);
+            var user = CacheManager.GetUserById(userSession.UserId.Value);
+            var userIdentity = new SessionIdentity
+            {
+                LanguageId = userSession.LanguageId,
+                LoginIp = userSession.Ip,
+                PartnerId = user.PartnerId,
+                SessionId = userSession.Id,
+                Token = userSession.Token,
+                Id = userSession.UserId .Value,
+                CurrencyId = user.CurrencyId,
+                IsAdminUser = false,
+                CashDeskId = userSession.CashDeskId.Value,
+                BetShopId = betShop.Id
+            };
+            return userIdentity;
         }
 
         public UserSession GetUserProductSession(long sessionId, int productId)
@@ -2263,12 +2290,12 @@ namespace IqSoft.CP.BLL.Services
 
             if (agentCommissionInput.ClientId != null)
             {
-                var partnerProducts = CacheManager.GetPartnerProductSettingsForDesktop(user.PartnerId, Constants.DefaultLanguageId);
+                var partnerProducts = CacheManager.GetPartnerProductSettings(user.PartnerId, string.Empty, (int)DeviceTypes.Desktop, Constants.DefaultLanguageId, Log);
                 foreach (var pp in partnerProducts)
-                    CacheManager.RemoveFromCache(string.Format("{0}_{1}_{2}", Constants.CacheItems.ClientProductCommissionTree, agentCommissionInput.ClientId, pp.ProductId));
-                partnerProducts = CacheManager.GetPartnerProductSettingsForMobile(user.PartnerId, Constants.DefaultLanguageId);
+                    CacheManager.RemoveFromCache(string.Format("{0}_{1}_{2}", Constants.CacheItems.ClientProductCommissionTree, agentCommissionInput.ClientId, pp.I));
+                partnerProducts = CacheManager.GetPartnerProductSettings(user.PartnerId, string.Empty, (int)DeviceTypes.Mobile, Constants.DefaultLanguageId, Log);
                 foreach (var pp in partnerProducts)
-                    CacheManager.RemoveFromCache(string.Format("{0}_{1}_{2}", Constants.CacheItems.ClientProductCommissionTree, agentCommissionInput.ClientId, pp.ProductId));
+                    CacheManager.RemoveFromCache(string.Format("{0}_{1}_{2}", Constants.CacheItems.ClientProductCommissionTree, agentCommissionInput.ClientId, pp.I));
             }
 
             return dbAgentCommission;

@@ -29,8 +29,6 @@ namespace IqSoft.CP.DAL
             this.MessageTemplates = new HashSet<MessageTemplate>();
             this.OperationTypes = new HashSet<OperationType>();
             this.PartnerBankInfoes = new HashSet<PartnerBankInfo>();
-            this.PaymentSystems = new HashSet<PaymentSystem>();
-            this.Products = new HashSet<Product>();
             this.ProductCategories = new HashSet<ProductCategory>();
             this.Promotions = new HashSet<Promotion>();
             this.Promotions1 = new HashSet<Promotion>();
@@ -43,6 +41,12 @@ namespace IqSoft.CP.DAL
             this.Announcements = new HashSet<Announcement>();
             this.Characters = new HashSet<Character>();
             this.Characters1 = new HashSet<Character>();
+            this.News = new HashSet<News>();
+            this.News1 = new HashSet<News>();
+            this.News2 = new HashSet<News>();
+            this.PaymentSystems = new HashSet<PaymentSystem>();
+            this.Popups = new HashSet<Popup>();
+            this.Products = new HashSet<Product>();
         }
     
         public long Id { get; set; }
@@ -76,10 +80,6 @@ namespace IqSoft.CP.DAL
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PartnerBankInfo> PartnerBankInfoes { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PaymentSystem> PaymentSystems { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Product> Products { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ProductCategory> ProductCategories { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Promotion> Promotions { get; set; }
@@ -103,5 +103,17 @@ namespace IqSoft.CP.DAL
         public virtual ICollection<Character> Characters { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Character> Characters1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<News> News { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<News> News1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<News> News2 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PaymentSystem> PaymentSystems { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Popup> Popups { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Product> Products { get; set; }
     }
 }

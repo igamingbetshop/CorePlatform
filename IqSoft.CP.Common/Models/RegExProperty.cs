@@ -31,11 +31,11 @@ namespace IqSoft.CP.Common.Models
                 IsSymbolRequired = true;
             regEx= regEx.Replace("(?=.*[0-9])", string.Empty).Replace("(?=.*[a-z])", string.Empty)
                         .Replace("(?=.*[A-Z])", string.Empty).Replace("(?=.*[!@#$%^&*./'\":`;()])", string.Empty);
-            if (regEx.Contains("a-z"))
+            if (regEx.Contains("a-z") || IsLowercaseRequired)
                 Lowercase = true;
-            if (regEx.Contains("A-Z"))
+            if (regEx.Contains("A-Z") || IsUppercaseRequired)
                 Uppercase = true;
-            if (regEx.Contains("0-9"))
+            if (regEx.Contains("0-9") || IsDigitRequired)
                 Numeric = true;
             if (!regEx.Contains("(?!.*[!@#$%^&*./'\":`;()])"))
                 Symbol = true;
@@ -63,10 +63,11 @@ namespace IqSoft.CP.Common.Models
                 expression.Append("(?=.*[A-Z])");
             if (IsDigitRequired)
                 expression.Append("(?=.*[0-9])");
-            if (!Symbol)
-                expression.Append("(?!.*[!@#$%^&*./'\":`;()])");
-            else if (IsSymbolRequired)
+            if (IsSymbolRequired)
                 expression.Append("(?=.*[!@#$%^&*./'\":`;()])");
+            else if (!Symbol)
+                expression.Append("(?!.*[!@#$%^&*./'\":`;()])");
+
             return expression.ToString();
         }
 

@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace IqSoft.CP.Common.Models.WebSiteModels
 {
+    [Serializable]
     public class ApiRestrictionModel
     {
         public List<string> WhitelistedCountries { get; set; }

@@ -489,6 +489,9 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 case Constants.PaymentSystems.FugaPayPayFix:
                     response = FugaPayHelpers.CreatePayoutRequest(paymentRequest, session, log);
                     break;
+                case Constants.PaymentSystems.XcoinsPayCrypto:
+                    response = XcoinsPayHelpers.CreatePayoutRequest(paymentRequest, session, log);
+                    break;
 
                 case Constants.PaymentSystems.NOWPay:
                     response = NOWPayHelpers.CreatePayoutRequest(paymentRequest, session, log);
@@ -573,7 +576,10 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 case Constants.PaymentSystems.SantimaPay:
                     response = SantimaPayHelpers.PayoutRequest(paymentRequest, session, log);
                     break;
-                default:
+				case Constants.PaymentSystems.GumballPay:
+					response = GumballPayHelpers.ReturnRequest(paymentRequest, session, log);
+					break;
+				default:
                     response.Status = PaymentRequestStates.Failed;
                     throw BaseBll.CreateException(session.LanguageId, Constants.Errors.PaymentSystemNotFound);
             }
@@ -1035,6 +1041,16 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 case Constants.PaymentSystems.FugaPayPayFix:
                     paymentResponse.Url = FugaPayHelpers.CallFugaPayApi(paymentRequest, cashierPageUrl, session, log);
                     break;
+                case Constants.PaymentSystems.XcoinsPayCrypto:
+                case Constants.PaymentSystems.XcoinsPayCard:
+                    paymentResponse.Url = XcoinsPayHelpers.CallXcoinsPayApi(paymentRequest, session, log);
+                    break;
+                case Constants.PaymentSystems.Changelly:
+                    paymentResponse.Url = ChangellyHelpers.CallChangellyApi(paymentRequest, session, log);
+                    break;
+                case Constants.PaymentSystems.InternationalPSP:
+                    paymentResponse.Url = InternationalPSPHelpers.CallPSPApi(paymentRequest, cashierPageUrl, session, log);
+                    break;
                 case Constants.PaymentSystems.MoneyPayVisaMaster:
                 case Constants.PaymentSystems.MoneyPayAmericanExpress:
                     paymentResponse.Url = MoneyPayHelpers.CallMoneyPayApi(paymentRequest, cashierPageUrl, session, log);
@@ -1144,6 +1160,9 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                     break;    
                 case Constants.PaymentSystems.Telebirr:
                     paymentResponse.Url = TelebirrHelpers.PaymentRequest(paymentRequest, cashierPageUrl, session, log);
+                    break;  
+                case Constants.PaymentSystems.Jmitsolutions:
+                    paymentResponse.Url = JmitsolutionsHelpers.PaymentRequest(paymentRequest, cashierPageUrl, session, log);
                     break;
                 default:
                     throw BaseBll.CreateException(session.LanguageId, Constants.Errors.PaymentSystemNotFound);

@@ -29,7 +29,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
 	[EnableCors(origins: "*", headers: "*", methods: "POST")]
     public class CModuleController : ApiController
     {
-		private static readonly List<string> WhitelistedIps = CacheManager.GetProviderWhitelistedIps(Constants.GameProviders.CModule);
+		public static readonly List<string> WhitelistedIps = CacheManager.GetProviderWhitelistedIps(Constants.GameProviders.CModule);
 		
 		private static readonly List<string> LowRateCurrencies = new List<string>
 		{

@@ -17,6 +17,8 @@ using log4net;
 using Newtonsoft.Json;
 using Document = IqSoft.CP.DAL.Document;
 using Client = IqSoft.CP.DAL.Client;
+using ClientBonu = IqSoft.CP.DAL.ClientBonu;
+using PaymentRequest = IqSoft.CP.DAL.PaymentRequest;
 using IqSoft.CP.Common.Models;
 
 namespace IqSoft.CP.BLL.Services
@@ -148,7 +150,7 @@ namespace IqSoft.CP.BLL.Services
             doc.State = (int)BetDocumentStates.Deleted;
             var currentDate = GetServerDate();
             doc.LastUpdateTime = currentDate;
-
+            var date = (long)currentDate.Year * 1000000 + (long)currentDate.Month * 10000 + (long)currentDate.Day * 100 + (long)currentDate.Hour;
             if (doc.OperationTypeId == (int)OperationTypes.DepositRollback)
             {
                 operationTypeId = (int)OperationTypes.DepositRollback;
@@ -175,7 +177,8 @@ namespace IqSoft.CP.BLL.Services
                 ClientId = doc.ClientId,
                 CreationTime = currentDate,
                 LastUpdateTime = currentDate,
-                OperationTypeId = operationTypeId
+                OperationTypeId = operationTypeId,
+                Date = date
             };
             Db.Documents.Add(document);
             var creditTrans = doc.Transactions.Where(x => x.Type == (int)TransactionTypes.Credit).ToList();
@@ -218,6 +221,16 @@ namespace IqSoft.CP.BLL.Services
                                        .Where(x => x.PaymentRequestId == paymentRequest.ParentId &&
                                        x.OperationTypeId == (int)OperationTypes.PaymentRequestBooking &&
                                        x.State == (int)BetDocumentStates.Uncalculated).FirstOrDefault();
+            var parentRequestId = paymentRequest.ParentId;
+            while (document == null && parentRequestId.HasValue)
+            {
+                document = Db.Documents.Include(x => x.Transactions.Select(y => y.Account))
+                                       .Where(x => x.PaymentRequestId == parentRequestId &&
+                                       x.OperationTypeId == (int)OperationTypes.PaymentRequestBooking &&
+                                       x.State == (int)BetDocumentStates.Uncalculated).FirstOrDefault();
+                parentRequestId = Db.PaymentRequests.FirstOrDefault(x => x.Id == parentRequestId)?.ParentId;
+
+            }
             if (document == null)
                 return;
             var currentDate = DateTime.UtcNow;
@@ -268,7 +281,13 @@ namespace IqSoft.CP.BLL.Services
 
         public void RevertClientBonusBet(DocumentInfo documentInfo, int clientId, string ticketInfo, decimal operationAmount)
         {
-            var bonus = Db.ClientBonus.Include(x => x.Bonu).FirstOrDefault(x => x.BonusId == documentInfo.BonusId && x.ClientId == clientId);
+            var query = Db.ClientBonus.Include(x => x.Bonu).Where(x => x.BonusId == documentInfo.BonusId && x.ClientId == clientId);
+            if (documentInfo.ReuseNumber > 1)
+                query = query.Where(x => x.ReuseNumber == documentInfo.ReuseNumber);
+            else
+                query = query.Where(x => x.ReuseNumber == 1 || x.ReuseNumber == null);
+
+            var bonus = query.FirstOrDefault();
             if (bonus == null)
                 return;
 

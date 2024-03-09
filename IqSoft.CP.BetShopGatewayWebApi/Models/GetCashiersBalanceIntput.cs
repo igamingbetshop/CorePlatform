@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace IqSoft.CP.BetShopGatewayWebApi.Models
 {
-    public class GetCashiersBalanceIntput : RequestBase
+    public class GetCashiersBalanceIntput
     {
         public DateTime BalanceDate { get; set; }
         public List<CashDeskBalanceInput> CashDesks { get; set; }

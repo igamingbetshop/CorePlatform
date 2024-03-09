@@ -8,5 +8,6 @@
         public decimal Profit { get; set; }
         public decimal Turnover { get; set; }
         public bool IsFavorite { get; set; }
+        public string Tags { get; set; }
     }
 }

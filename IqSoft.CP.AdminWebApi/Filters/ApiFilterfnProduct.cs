@@ -6,6 +6,7 @@
         public int? ProductId { get; set; }
         public int? BonusId { get; set; }
         public string Pattern { get; set; }
+        public bool? IsProviderActive { get; set; }
 
         public ApiFiltersOperation Ids { get; set; }
 

@@ -6,15 +6,18 @@ using IqSoft.CP.Common.Helpers;
 using IqSoft.CP.Common.Models;
 using IqSoft.CP.DAL;
 using IqSoft.CP.DAL.Models;
+using IqSoft.CP.Integration.Payments.Models.Telebirr;
 using log4net;
 using Newtonsoft.Json;
+using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Security;
 using System;
-using System.Security.Cryptography;
+using System.IO;
 using System.Text;
 
 namespace IqSoft.CP.Integration.Payments.Helpers
 {
-	public class TelebirrHelpers
+    public class TelebirrHelpers
 	{
 		public static string PaymentRequest(PaymentRequest input, string cashierPageUrl, SessionIdentity session, ILog log)
 		{
@@ -25,28 +28,32 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 					using (var clientBl = new ClientBll(paymentSystemBl))
 					{
 						var client = CacheManager.GetClientById(input.ClientId.Value);
+						var partner = CacheManager.GetPartnerById(client.PartnerId);
 						var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, input.PaymentSystemId, client.CurrencyId, (int)PaymentRequestTypes.Deposit);
 						var keys = partnerPaymentSetting.UserName.Split(',');
 						var paymentSystem = CacheManager.GetPaymentSystemByName(Constants.PaymentSystems.Telebirr);
 						var publicKey = partnerBl.GetPaymentValueByKey(client.PartnerId, paymentSystem.Id, Constants.PartnerKeys.TelebirrPublicKey);
 						var url = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.TelebirrUrl).StringValue;
 						var paymentGateway = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.PaymentGateway).StringValue;
-						var data = new
+						var datatime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+						var data = new PaymentInput
 						{
 							appId = keys[0],
-							appKey = partnerPaymentSetting.Password,
 							nonce = input.Id.ToString(),
-							notifyUrl = string.Format("{0}/api/Telebirr/ApiRequest", paymentGateway),
-							returnUrl = cashierPageUrl,
+							notifyUrl = string.Format($"{paymentGateway}/api/Telebirr/ApiRequest/{client.PartnerId}"),
 							outTradeNo = input.Id.ToString(),
+							returnUrl = cashierPageUrl,
 							shortCode = keys[1],
 							subject = "Deposit",
 							timeoutExpress = "30",
-							timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-							totalAmount = input.Amount.ToString()
+							timestamp = datatime,
+							totalAmount = input.Amount.ToString(),
+							receiveName = partner.Name
 						};
-						var ussd = GenerateSignedToken(JsonConvert.SerializeObject(data), publicKey);
-						var orderdParams = CommonFunctions.GetSortedParamWithValuesAsString(data, "&");
+						var a = JsonConvert.SerializeObject(data, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
+						string ussd = EncryptByPublicKey(JsonConvert.SerializeObject(data, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore }), publicKey);						
+						data.appKey = partnerPaymentSetting.Password;
+						var orderdParams = CommonFunctions.GetSortedParamWithValuesAsString(data, "&", false);
 						var sign = CommonFunctions.ComputeSha256(orderdParams);
 						var postData = new
 						{
@@ -61,37 +68,58 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 							Url = url,
 							PostData = JsonConvert.SerializeObject(postData)
 						};
-						var ddddd = JsonConvert.SerializeObject(data);
 
 						var response = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
-						//var output = JsonConvert.DeserializeObject<PaymentOutput>(response);
-						//if (!string.IsNullOrEmpty(output.Url))
-						//	return output.Url;
-						//else
-						//	throw new Exception($"Error: {output.Reason}");
-						return null;
+						var output = JsonConvert.DeserializeObject<PaymentOutput>(response);
+						if (output.Message == "Operation successful")
+							return output.UrlData.ToPayUrl;
+						else
+							throw new Exception($"Error: {output.Message}");
 					}
 				}
 			}
 		}
 
-		public static string GenerateSignedToken(string jsonData, string publicKey)
+		public static string EncryptByPublicKey(string input, string publicKey)
 		{
-			byte[] jsonDataBytes = Encoding.UTF8.GetBytes(jsonData);
-			byte[] publicKeyBytes = Encoding.UTF8.GetBytes(publicKey);
-			using (RSACryptoServiceProvider rsa = new RSACryptoServiceProvider())
+			var maxEncryptBlock = 117;
+			try
 			{
-				RSAParameters rsaParameters = new RSAParameters
-				{
-					Modulus = publicKeyBytes,
-					Exponent = new byte[] { 1, 0, 1 } 
-				};
-				rsa.ImportParameters(rsaParameters);
-				byte[] encryptedData = rsa.Encrypt(jsonDataBytes, false);
-				string encryptedBase64 = Convert.ToBase64String(encryptedData);
-				return encryptedBase64;
-			}
+				RsaKeyParameters publicKeyParams = (RsaKeyParameters)PublicKeyFactory.CreateKey(Convert.FromBase64String(publicKey));
+				var data = Encoding.UTF8.GetBytes(input);
+				var cipher = CipherUtilities.GetCipher("RSA/ECB/PKCS1Padding");
+				cipher.Init(true, publicKeyParams);
 
-		}
+				using (var memoryStream = new MemoryStream())
+				{
+					int inputLen = data.Length;
+					int offSet = 0;
+					byte[] cache;
+					int i = 0;
+
+					while (inputLen - offSet > 0)
+					{
+						if (inputLen - offSet > maxEncryptBlock)
+						{
+							cache = cipher.DoFinal(data, offSet, maxEncryptBlock);
+						}
+						else
+						{
+							cache = cipher.DoFinal(data, offSet, inputLen - offSet);
+						}
+						memoryStream.Write(cache, 0, cache.Length);
+						i++;
+						offSet = i * maxEncryptBlock;
+					}
+
+					return Convert.ToBase64String(memoryStream.ToArray());
+				}
+			}
+			catch (Exception e)
+			{
+				throw new ApplicationException(e.Message, e);
+			}
+		}		
 	}
 }
+

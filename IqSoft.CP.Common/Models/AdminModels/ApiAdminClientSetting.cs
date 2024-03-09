@@ -23,10 +23,10 @@ namespace IqSoft.CP.Common.Models.AdminModels
         public bool CautionSuspension { get; set; }
         public bool BlockedForInactivity { get; set; }
         public bool BlockedForBonuses { get; set; }
-        public ExternalState ExternalStatus { get; set; }
+        public StatusModel ExternalStatus { get; set; }
         public List<VerificationService> VerificationServices { get; set; }
-        public ExternalState PEPSanctioned { get; set; } 
-        public ExternalState UnderHighRiskCountry { get; set; }
+        public StatusModel PEPSanctioned { get; set; } 
+        public StatusModel UnderHighRiskCountry { get; set; }
         public bool? IsAffiliateManager { get; set; }
         public bool Restricted { get; set; }
         public bool Younger { get; set; }
@@ -38,7 +38,7 @@ namespace IqSoft.CP.Common.Models.AdminModels
         public DateTime? AcceptedAt { get; set; }
     }
 
-    public class ExternalState
+    public class StatusModel
     {
         public string Status { get; set; }
         public DateTime? CheckedAt { get; set; }

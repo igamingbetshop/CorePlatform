@@ -2,7 +2,7 @@
 
 namespace IqSoft.CP.BetShopGatewayWebApi.Models
 {
-    public class GetBetShopOperationsOutput : ApiResponseBase
+    public class GetBetShopOperationsOutput
     {
         public List<BetShopOperation> Operations { get; set; }
     }

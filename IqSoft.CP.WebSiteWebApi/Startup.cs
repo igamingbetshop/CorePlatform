@@ -14,13 +14,12 @@ using IqSoft.CP.WebSiteWebApi.Hubs;
 using IqSoft.CP.WebSiteWebApi.Models;
 using System.Linq;
 using System;
-using static IqSoft.CP.Common.Constants;
 using IqSoft.CP.Common;
 using Serilog;
-using Newtonsoft.Json;
 using IqSoft.CP.CommonCore.Models.WebSiteModels;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
+using IqSoft.CP.Common.Models.AdminModels;
 
 namespace IqSoft.CP.WebSiteWebApi
 {
@@ -146,6 +145,10 @@ namespace IqSoft.CP.WebSiteWebApi
             {
                 Log.Information("BroadcastCacheChanges_" + data);
                 SlaveCache.RemoveFromCache(data);
+            });
+            _adminHubProxy.On<ApiPopup>("BroadcastPopup", (data) =>
+            {
+                Task.Run(() => BroadcastService.BroadcastPopup(data));
             });
 
             _productGatewayHubProxy.On<ApiWin>("BroadcastWin", (data) =>

@@ -8,6 +8,6 @@ namespace IqSoft.CP.BLL.Interfaces
     {
         Region SaveRegion(Region region);
         fnRegion GetfnRegionById(int id, string languageId = null);
-        List<fnRegion> GetfnRegions(FilterRegion filter, string languageId, bool checkPermission, int? partnerId);
+        List<fnRegion> GetfnRegions(FilterRegion filter, string languageId, bool checkPermission, int? partnerId, int? clientId = null);
     }
 }

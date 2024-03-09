@@ -20,6 +20,9 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using Document = IqSoft.CP.DAL.Document;
+using AffiliateReferral = IqSoft.CP.DAL.AffiliateReferral;
+using static System.Data.Entity.Infrastructure.Design.Executor;
+using System.Security.Principal;
 
 namespace IqSoft.CP.BLL.Services
 {
@@ -149,13 +152,13 @@ namespace IqSoft.CP.BLL.Services
                     AffiliateId = affiliate.Id,
                     MobileOrEmail = affiliate.Email,
                     MessageType = (int)ClientMessageTypes.Email,
-					ClientInfoType = (int)ClientInfoTypes.AffiliateConfirmationEmail
-				}, out int responseCode);
+                    ClientInfoType = (int)ClientInfoTypes.AffiliateConfirmationEmail
+                }, out int responseCode);
             }
 
-			return affiliate;
+            return affiliate;
         }
-        
+
         public void UpdateCommissionPlan(ApiAffiliateCommission input)
         {
             GetPermissionsToObject(new CheckPermissionInput
@@ -183,92 +186,94 @@ namespace IqSoft.CP.BLL.Services
                  {
                      var commType = (AffiliateCommissionTypes)Enum.Parse(typeof(AffiliateCommissionTypes), commission.Name.Replace("Commission", string.Empty));
                      switch (commType)
-                    {
-                        case AffiliateCommissionTypes.FixedFee:
-                            var fixedFee = dbCommissions.FirstOrDefault(x => x.CommissionType == (int)commType);
-                            if (input.FixedFeeCommission.Amount <0 || input.FixedFeeCommission.TotalDepositAmount <= 0)
-                                throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
-                            if (fixedFee == null)
-                            {
-                                Db.AffiliateCommissions.Add(new AffiliateCommission
-                                {
-                                    AffiliateId = affiliate.Id,
-                                    CommissionType = (int)AffiliateCommissionTypes.FixedFee,
-                                    CurrencyId = input.FixedFeeCommission.CurrencyId,
-                                    Amount = input.FixedFeeCommission.Amount,
-                                    TotalDepositAmount = input.FixedFeeCommission.TotalDepositAmount,
-                                    RequireVerification = input.FixedFeeCommission.RequireVerification
-                                });
-                            }
-                            else
-                            {
-                                fixedFee.CurrencyId = input.FixedFeeCommission.CurrencyId;
-                                fixedFee.Amount = input.FixedFeeCommission.Amount;
-                                fixedFee.TotalDepositAmount = input.FixedFeeCommission.TotalDepositAmount;
-                                fixedFee.RequireVerification = input.FixedFeeCommission.RequireVerification;
-                            }
-                            break;
-                        case AffiliateCommissionTypes.Deposit:
-                            var deposit = dbCommissions.FirstOrDefault(x => x.CommissionType == (int)commType);
-                            if (!input.DepositCommission.Percent.HasValue || input.DepositCommission.Percent<= 0 || input.DepositCommission.UpToAmount <= 0)
-                                throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
-                            if (deposit == null)
-                            {
-                                Db.AffiliateCommissions.Add(new AffiliateCommission
-                                {
-                                    AffiliateId = affiliate.Id,
-                                    CommissionType = (int)AffiliateCommissionTypes.Deposit,
-                                    CurrencyId = input.DepositCommission.CurrencyId,
-                                    Percent = input.DepositCommission.Percent,
-                                    UpToAmount = input.DepositCommission.UpToAmount
-                                });
-                            }
-                            else
-                            {
-                                deposit.Percent = input.DepositCommission.Percent;
-                                deposit.CurrencyId = input.DepositCommission.CurrencyId;
-                                deposit.UpToAmount = input.DepositCommission.UpToAmount;
-                            }
-                            break;
-                        case AffiliateCommissionTypes.Turnover:
-                        case AffiliateCommissionTypes.GGR:
-                        case AffiliateCommissionTypes.NGR:
+                     {
+                         case AffiliateCommissionTypes.FixedFee:
+                             var fixedFee = dbCommissions.FirstOrDefault(x => x.CommissionType == (int)commType);
+                             if (input.FixedFeeCommission.Amount < 0 || input.FixedFeeCommission.TotalDepositAmount <= 0)
+                                 throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
+                             if (fixedFee == null)
+                             {
+                                 Db.AffiliateCommissions.Add(new AffiliateCommission
+                                 {
+                                     AffiliateId = affiliate.Id,
+                                     CommissionType = (int)AffiliateCommissionTypes.FixedFee,
+                                     CurrencyId = input.FixedFeeCommission.CurrencyId,
+                                     Amount = input.FixedFeeCommission.Amount,
+                                     TotalDepositAmount = input.FixedFeeCommission.TotalDepositAmount,
+                                     RequireVerification = input.FixedFeeCommission.RequireVerification
+                                 });
+                             }
+                             else
+                             {
+                                 fixedFee.CurrencyId = input.FixedFeeCommission.CurrencyId;
+                                 fixedFee.Amount = input.FixedFeeCommission.Amount;
+                                 fixedFee.TotalDepositAmount = input.FixedFeeCommission.TotalDepositAmount;
+                                 fixedFee.RequireVerification = input.FixedFeeCommission.RequireVerification;
+                             }
+                             break;
+                         case AffiliateCommissionTypes.Deposit:
+                             var deposit = dbCommissions.FirstOrDefault(x => x.CommissionType == (int)commType);
+                             if (!input.DepositCommission.Percent.HasValue || input.DepositCommission.Percent <= 0 || input.DepositCommission.UpToAmount <= 0)
+                                 throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
+                             if (deposit == null)
+                             {
+                                 Db.AffiliateCommissions.Add(new AffiliateCommission
+                                 {
+                                     AffiliateId = affiliate.Id,
+                                     CommissionType = (int)AffiliateCommissionTypes.Deposit,
+                                     CurrencyId = input.DepositCommission.CurrencyId,
+                                     Percent = input.DepositCommission.Percent,
+                                     UpToAmount = input.DepositCommission.UpToAmount,
+                                     DepositCount = input.DepositCommission.DepositCount
+                                 });
+                             }
+                             else
+                             {
+                                 deposit.Percent = input.DepositCommission.Percent;
+                                 deposit.CurrencyId = input.DepositCommission.CurrencyId;
+                                 deposit.UpToAmount = input.DepositCommission.UpToAmount;
+                                 deposit.DepositCount = input.DepositCommission.DepositCount;
+                             }
+                             break;
+                         case AffiliateCommissionTypes.Turnover:
+                         case AffiliateCommissionTypes.GGR:
+                         case AffiliateCommissionTypes.NGR:
                              var value = commission.GetValue(input, null);
                              var commissionItems = ((IEnumerable)value).Cast<BetCommission>();
-                            if (commissionItems != null && commissionItems.Any())
-                            {
-                                if (commissionItems.Any(x => x.Percent <= 0))
-                                    throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
-                                foreach (var c in commissionItems)
-                                {
-                                    var dbItem = dbCommissions.FirstOrDefault(x => x.AffiliateId == affiliate.Id &&
-                                                                                   x.CommissionType == (int)commType && x.ProductId == c.ProductId);
-                                    if (dbItem == null)
-                                    {
-                                        if (c.Percent != null)
-                                        {
-                                            Db.AffiliateCommissions.Add(new AffiliateCommission
-                                            {
-                                                AffiliateId = affiliate.Id,
-                                                CommissionType = (int)commType,
-                                                ProductId = c.ProductId,
-                                                Percent = c.Percent
-                                            });
-                                        }
-                                    }
-                                    else
-                                    {
-                                        if (c.Percent == null)
-                                            Db.AffiliateCommissions.Remove(dbItem);
-                                        else
-                                            dbItem.Percent = c.Percent;
-                                    }
-                                }
-                            }
-                            break;
-                        default:
-                            break;
-                    }
+                             if (commissionItems != null && commissionItems.Any())
+                             {
+                                 if (commissionItems.Any(x => x.Percent <= 0))
+                                     throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
+                                 foreach (var c in commissionItems)
+                                 {
+                                     var dbItem = dbCommissions.FirstOrDefault(x => x.AffiliateId == affiliate.Id &&
+                                                                                    x.CommissionType == (int)commType && x.ProductId == c.ProductId);
+                                     if (dbItem == null)
+                                     {
+                                         if (c.Percent != null)
+                                         {
+                                             Db.AffiliateCommissions.Add(new AffiliateCommission
+                                             {
+                                                 AffiliateId = affiliate.Id,
+                                                 CommissionType = (int)commType,
+                                                 ProductId = c.ProductId,
+                                                 Percent = c.Percent
+                                             });
+                                         }
+                                     }
+                                     else
+                                     {
+                                         if (c.Percent == null)
+                                             Db.AffiliateCommissions.Remove(dbItem);
+                                         else
+                                             dbItem.Percent = c.Percent;
+                                     }
+                                 }
+                             }
+                             break;
+                         default:
+                             break;
+                     }
                  });
             Db.SaveChanges();
         }
@@ -578,13 +583,25 @@ namespace IqSoft.CP.BLL.Services
 
         #region ExternalAffiliates
 
+        public IQueryable<DAL.AffiliatePlatform> GetAffiliatePlatforms()
+        {
+            return Db.AffiliatePlatforms.Where(x => Constants.ReportingAffiliates.Contains(x.Name));
+        }
+
+        public IQueryable<DAL.Client> GetClients(List<int> affiliatePlatforms, DateTime fromDate, DateTime toDate)
+        {
+            var currentTime = DateTime.UtcNow;
+            return Db.Clients.Where(x => affiliatePlatforms.Contains(x.AffiliateReferral.AffiliatePlatform.Id) &&
+                                                                       x.CreationTime > fromDate && x.CreationTime < toDate);
+        }
+
         public List<ClientActivityModel> GetClientActivity(List<AffiliatePlatformModel> affClients, int brandId, DateTime fromDate, DateTime upToDate)
         {
             var affiliateClientActivies = new List<ClientActivityModel>();
             var fDate = fromDate.Year * (long)1000000 + fromDate.Month * 10000 + fromDate.Day * 100 + fromDate.Hour;
-            var fPaymentDate = fromDate.Year * (long)100000000 + fromDate.Month * 1000000 + fromDate.Day * 10000 + fromDate.Hour*100 + fromDate.Minute;
+            var fPaymentDate = fromDate.Year * (long)100000000 + fromDate.Month * 1000000 + fromDate.Day * 10000 + fromDate.Hour * 100 + fromDate.Minute;
             var tDate = upToDate.Year * (long)1000000 + upToDate.Month * 10000 + upToDate.Day * 100 + upToDate.Hour;
-            var tPaymentDate = upToDate.Year * (long)100000000 + upToDate.Month * 1000000 + upToDate.Day * 10000 + upToDate.Hour*100 + upToDate.Minute;
+            var tPaymentDate = upToDate.Year * (long)100000000 + upToDate.Month * 1000000 + upToDate.Day * 10000 + upToDate.Hour * 100 + upToDate.Minute;
             var dateString = fromDate.ToString("yyyy-MM-dd");
             using (var dwh = new IqSoftDataWarehouseEntities())
             {
@@ -654,9 +671,9 @@ namespace IqSoft.CP.BLL.Services
         {
             var affiliateClientActivies = new List<NetreferActivityModel>();
             var fDate = fromDate.Year * (long)1000000 + fromDate.Month * 10000 + fromDate.Day * 100 + fromDate.Hour;
-            var fPaymentDate = fromDate.Year * (long)100000000 + fromDate.Month * 1000000 + fromDate.Day * 10000 + fromDate.Hour*100 + fromDate.Minute;
+            var fPaymentDate = fromDate.Year * (long)100000000 + fromDate.Month * 1000000 + fromDate.Day * 10000 + fromDate.Hour * 100 + fromDate.Minute;
             var tDate = upToDate.Year * (long)1000000 + upToDate.Month * 10000 + upToDate.Day * 100 + upToDate.Hour;
-            var tPaymentDate = upToDate.Year * (long)100000000 + upToDate.Month * 1000000 + upToDate.Day * 10000 + upToDate.Hour*100 + upToDate.Minute;
+            var tPaymentDate = upToDate.Year * (long)100000000 + upToDate.Month * 1000000 + upToDate.Day * 10000 + upToDate.Hour * 100 + upToDate.Minute;
             var dateString = fromDate.ToString("dd/MM/yyyy");
             using (var dwh = new IqSoftDataWarehouseEntities())
             {
@@ -739,9 +756,9 @@ namespace IqSoft.CP.BLL.Services
         {
             var affiliateClientActivies = new List<MyAffiliateClientActivityModel>();
             var fDate = fromDate.Year * (long)1000000 + fromDate.Month * 10000 + fromDate.Day * 100 + fromDate.Hour;
-            var fPaymentDate = fromDate.Year * (long)100000000 + fromDate.Month * 1000000 + fromDate.Day * 10000 + fromDate.Hour*100 + fromDate.Minute;
+            var fPaymentDate = fromDate.Year * (long)100000000 + fromDate.Month * 1000000 + fromDate.Day * 10000 + fromDate.Hour * 100 + fromDate.Minute;
             var tDate = upToDate.Year * (long)1000000 + upToDate.Month * 10000 + upToDate.Day * 100 + upToDate.Hour;
-            var tPaymentDate = upToDate.Year * (long)100000000 + upToDate.Month * 1000000 + upToDate.Day * 10000 + upToDate.Hour*100 + upToDate.Minute;
+            var tPaymentDate = upToDate.Year * (long)100000000 + upToDate.Month * 1000000 + upToDate.Day * 10000 + upToDate.Hour * 100 + upToDate.Minute;
             var clientIds = affClients.Select(x => x.ClientId).ToList();
             var clientTransactions = Db.Documents.Where(x => clientIds.Contains(x.ClientId.Value) &&
                                              (x.OperationTypeId == (int)OperationTypes.BonusWin ||
@@ -795,11 +812,12 @@ namespace IqSoft.CP.BLL.Services
                     }
                     var activies = from b in dwh.Bets
                                    join p in dwh.Products on b.ProductId equals p.Id
-                    where b.ClientId == client.ClientId && b.State != (int)BetDocumentStates.Deleted &&
-                          b.State != (int)BetDocumentStates.Uncalculated && b.CalculationDate.HasValue &&
-                          b.CalculationDate >= fDate && b.CalculationDate < tDate
+                                   where b.ClientId == client.ClientId && b.State != (int)BetDocumentStates.Deleted &&
+                                         b.State != (int)BetDocumentStates.Uncalculated && b.CalculationDate.HasValue &&
+                                         b.CalculationDate >= fDate && b.CalculationDate < tDate
                                    group b by ((p.ExternalId == "sports-betting" || p.ExternalId == "live-sports" || p.ExternalId == "esports") ? 1 : 2) into g
-                                   select new {
+                                   select new
+                                   {
                                        ProductId = g.Key,
                                        TotalBetAmount = g.Select(y => y.BetAmount).DefaultIfEmpty(0).Sum(),
                                        TotalWinAmount = g.Select(y => y.WinAmount).DefaultIfEmpty(0).Sum(),
@@ -861,6 +879,7 @@ namespace IqSoft.CP.BLL.Services
 
         public AffilkaActivityModel GetAffilkaClientActivity(List<AffiliatePlatformModel> affClients, DateTime fromDate, DateTime upToDate)
         {
+            var currentDate = DateTime.UtcNow;
             var affiliateClientActivies = new List<ActivityItem>();
             var fDate = fromDate.Year * (long)1000000 + fromDate.Month * 10000 + fromDate.Day * 100 + fromDate.Hour;
             var fPaymentDate = fromDate.Year * (long)100000000 + fromDate.Month * 1000000 + fromDate.Day * 10000 + fromDate.Hour * 100 + fromDate.Minute;
@@ -871,11 +890,16 @@ namespace IqSoft.CP.BLL.Services
                 foreach (var client in affClients)
                 {
                     var addItem = false;
+                    var excluded = CacheManager.GetClientSettingByName(client.ClientId, Constants.ClientSettings.SelfExcluded)?.DateValue > currentDate;
+                    if (!excluded)
+                        excluded = CacheManager.GetClientSettingByName(client.ClientId, Constants.ClientSettings.SystemExcluded)?.DateValue > currentDate;
                     var affilkaActivityModel = new ActivityItem
                     {
                         Tag = client.ClickId,
                         ClientId = client.ClientId.ToString(),
-                        Currency = client.CurrencyId
+                        Currency = client.CurrencyId,
+                        Disabled = client.ClientStatus != (int)ClientStates.Active,
+                        SelfExcluded = excluded
                     };
                     var transactions = Db.Documents.Where(x => x.ClientId == client.ClientId &&
                                               (x.OperationTypeId == (int)OperationTypes.BonusWin ||
@@ -967,48 +991,48 @@ namespace IqSoft.CP.BLL.Services
                 Items = affiliateClientActivies
             };
         }
-       /* public AffilkaActivityModel GetAffiseClientActivity(List<AffiliatePlatformModel> affClients, DateTime fromDate, DateTime upToDate)
-        {
-            var affiliateClientActivies = new List<ActivityItem>();
-            var fDate = fromDate.Year * (long)1000000 + fromDate.Month * 10000 + fromDate.Day * 100 + fromDate.Hour;
-            var fPaymentDate = fromDate.Year * (long)100000000 + fromDate.Month * 1000000 + fromDate.Day * 10000 + fromDate.Hour*100 + fromDate.Minute;
-            var tDate = upToDate.Year * (long)1000000 + upToDate.Month * 10000 + upToDate.Day * 100 + upToDate.Hour;
-            var tPaymentDate = upToDate.Year * (long)100000000 + upToDate.Month * 1000000 + upToDate.Day * 10000 + upToDate.Hour*100 + upToDate.Minute;
+        /* public AffilkaActivityModel GetAffiseClientActivity(List<AffiliatePlatformModel> affClients, DateTime fromDate, DateTime upToDate)
+         {
+             var affiliateClientActivies = new List<ActivityItem>();
+             var fDate = fromDate.Year * (long)1000000 + fromDate.Month * 10000 + fromDate.Day * 100 + fromDate.Hour;
+             var fPaymentDate = fromDate.Year * (long)100000000 + fromDate.Month * 1000000 + fromDate.Day * 10000 + fromDate.Hour*100 + fromDate.Minute;
+             var tDate = upToDate.Year * (long)1000000 + upToDate.Month * 10000 + upToDate.Day * 100 + upToDate.Hour;
+             var tPaymentDate = upToDate.Year * (long)100000000 + upToDate.Month * 1000000 + upToDate.Day * 10000 + upToDate.Hour*100 + upToDate.Minute;
 
-            foreach (var client in affClients)
-            {
-                var affisectivityModel = new AffiseActivityModel
-                {
-                    Tag= client.ClickId,
-                    ClientId = client.ClientId.ToString(),
-                    Currency = client.CurrencyId
-                };
-                var activies = Db.Bets.Where(x => x.ClientId == client.ClientId &&
-                                                  x.State != (int)BetDocumentStates.Deleted &&
-                                                  x.State != (int)BetDocumentStates.Uncalculated &&
-                                                  (!x.BonusId.HasValue || x.BonusId.Value== 0 ) &&
-                                                  x.BetDate >= fDate && x.BetDate < tDate)
-                                      .Select(x => x.BetAmount - x.WinAmount).DefaultIfEmpty(0).Sum();
+             foreach (var client in affClients)
+             {
+                 var affisectivityModel = new AffiseActivityModel
+                 {
+                     Tag= client.ClickId,
+                     ClientId = client.ClientId.ToString(),
+                     Currency = client.CurrencyId
+                 };
+                 var activies = Db.Bets.Where(x => x.ClientId == client.ClientId &&
+                                                   x.State != (int)BetDocumentStates.Deleted &&
+                                                   x.State != (int)BetDocumentStates.Uncalculated &&
+                                                   (!x.BonusId.HasValue || x.BonusId.Value== 0 ) &&
+                                                   x.BetDate >= fDate && x.BetDate < tDate)
+                                       .Select(x => x.BetAmount - x.WinAmount).DefaultIfEmpty(0).Sum();
 
-               
-            }
-            return new AffilkaActivityModel
-            {
-                FromDate = fromDate.ToString("yyyy-MM-dd'T'HH:mm:ss.fffffff'Z'"),
-                ToDate = upToDate.ToString("yyyy-MM-dd'T'HH:mm:ss.fffffff'Z'"),
-                Items = affiliateClientActivies
-            };
-        }*/
+
+             }
+             return new AffilkaActivityModel
+             {
+                 FromDate = fromDate.ToString("yyyy-MM-dd'T'HH:mm:ss.fffffff'Z'"),
+                 ToDate = upToDate.ToString("yyyy-MM-dd'T'HH:mm:ss.fffffff'Z'"),
+                 Items = affiliateClientActivies
+             };
+         }*/
 
         public List<DIMClientActivityModel> GetDIMClientActivity(List<AffiliatePlatformModel> affClients, int brandId, DateTime fromDate, DateTime upToDate)
         {
             var affiliateClientActivies = new List<DIMClientActivityModel>();
             var fDate = fromDate.Year * (long)1000000 + fromDate.Month * 10000 + fromDate.Day * 100 + fromDate.Hour;
-            var fPaymentDate = fromDate.Year * (long)100000000 + fromDate.Month * 1000000 + fromDate.Day * 10000 + fromDate.Hour*100 + fromDate.Minute;
+            var fPaymentDate = fromDate.Year * (long)100000000 + fromDate.Month * 1000000 + fromDate.Day * 10000 + fromDate.Hour * 100 + fromDate.Minute;
             var tDate = upToDate.Year * (long)1000000 + upToDate.Month * 10000 + upToDate.Day * 100 + upToDate.Hour;
-            var tPaymentDate = upToDate.Year * (long)100000000 + upToDate.Month * 1000000 + upToDate.Day * 10000 + upToDate.Hour*100 + upToDate.Minute;
+            var tPaymentDate = upToDate.Year * (long)100000000 + upToDate.Month * 1000000 + upToDate.Day * 10000 + upToDate.Hour * 100 + upToDate.Minute;
 
-            var bonusWinAmounts = Db.Documents.Where(x => x.OperationTypeId == (int)OperationTypes.BonusWin && 
+            var bonusWinAmounts = Db.Documents.Where(x => x.OperationTypeId == (int)OperationTypes.BonusWin &&
                                                           x.Date > fDate && x.Date <= tDate)
                                               .GroupBy(x => x.ClientId)
                                               .Select(x => new { ClientId = x.Key, Amount = x.Select(y => y.Amount).DefaultIfEmpty(0).Sum() }).ToList();
@@ -1125,7 +1149,6 @@ namespace IqSoft.CP.BLL.Services
             return affiliateClientActivies;
         }
 
-
         public List<IncomeAccessActivityModel> GetIncomeAccessClientActivity(List<AffiliatePlatformModel> affClients, int brandId, DateTime fromDate, DateTime upToDate)
         {
             var affiliateClientActivies = new List<IncomeAccessActivityModel>();
@@ -1201,6 +1224,190 @@ namespace IqSoft.CP.BLL.Services
                 return affiliateClientActivies;
             }
         }
-		#endregion
-	}
+
+        public List<ClientActivityModel> GetScaleoClientActivity(List<AffiliatePlatformModel> affClients, DateTime fromDate, DateTime upToDate)
+        {
+            var affiliateClientActivies = new List<ClientActivityModel>();
+            var fDate = fromDate.Year * (long)1000000 + fromDate.Month * 10000 + fromDate.Day * 100 + fromDate.Hour;
+            var fPaymentDate = fromDate.Year * (long)100000000 + fromDate.Month * 1000000 + fromDate.Day * 10000 + fromDate.Hour * 100 + fromDate.Minute;
+            var tDate = upToDate.Year * (long)1000000 + upToDate.Month * 10000 + upToDate.Day * 100 + upToDate.Hour;
+            var tPaymentDate = upToDate.Year * (long)100000000 + upToDate.Month * 1000000 + upToDate.Day * 10000 + upToDate.Hour * 100 + upToDate.Minute;
+            var dateString = fromDate.ToString("yyyy-MM-dd");
+            using (var dwh = new IqSoftDataWarehouseEntities())
+            {
+                foreach (var client in affClients)
+                {
+                    var clientActivityModel = new ClientActivityModel
+                    {
+                        CustomerId = client.ClientId,
+                        BTag = client.ClickId,
+                        ActivityDate = dateString,
+                        CurrencyId = client.CurrencyId
+                    };
+
+                    var paymentData = Db.PaymentRequests.Where(x => x.ClientId == client.ClientId &&
+                                                                   (x.Status == (int)PaymentRequestStates.Approved ||
+                                                                    x.Status == (int)PaymentRequestStates.ApprovedManually) &&
+                                                                    x.Date >= fPaymentDate && x.Date < tPaymentDate)
+                                                        .GroupBy(x => x.Type)
+                                                        .Select(x => new
+                                                        {
+                                                            Type = x.Key,
+                                                            Amount = x.Sum(y => y.Amount),
+                                                            Count = x.Count()
+                                                        }).ToList();
+                    if (paymentData.Count != 0)
+                    {
+                        clientActivityModel.TotalDepositsAmount = paymentData.Where(x => x.Type == (int)PaymentRequestTypes.Deposit || x.Type == (int)PaymentRequestTypes.ManualDeposit)
+                                                                             .Select(x => x.Amount).DefaultIfEmpty(0).Sum();
+                        clientActivityModel.TotalWithdrawalsAmount = paymentData.Where(x => x.Type == (int)PaymentRequestTypes.Withdraw).Select(x => x.Amount).DefaultIfEmpty(0).Sum();
+                        clientActivityModel.TotalDepositsCount = paymentData.Where(x => x.Type == (int)PaymentRequestTypes.Deposit || x.Type == (int)PaymentRequestTypes.ManualDeposit)
+                                                                           .Select(x => x.Count).DefaultIfEmpty(0).Sum();
+                    }
+                    var activies = dwh.Bets.Where(x => x.ClientId == client.ClientId &&
+                                                      x.State != (int)BetDocumentStates.Deleted &&
+                                                      x.State != (int)BetDocumentStates.Uncalculated &&
+                                                      x.BetDate >= fDate && x.BetDate < tDate)
+                                          .GroupBy(x => x.ProductId == Constants.SportsbookProductId ? 1 : 2)
+                                          .Select(x => new
+                                          {
+                                              ProductId = x.Key,
+                                              BetAmount = x.Where(y => !y.BonusId.HasValue || y.BonusId == 0).Select(y => y.BetAmount).DefaultIfEmpty(0).Sum(),
+                                              WinAmount = x.Where(y => !y.BonusId.HasValue || y.BonusId == 0).Select(y => y.WinAmount).DefaultIfEmpty(0).Sum(),
+                                              BonusBetAmount = x.Where(y => y.BonusId.HasValue && y.BonusId.Value > 0).Select(y => y.BetAmount).DefaultIfEmpty(0).Sum(),
+                                              BonusWinAmount = x.Where(y => y.BonusId.HasValue && y.BonusId.Value > 0).Select(y => y.WinAmount).DefaultIfEmpty(0).Sum(),
+                                              Count = x.Count()
+                                          });
+                    if (activies.Count() != 0)
+                    {
+                        clientActivityModel.SportGrossRevenue = activies.Where(y => y.ProductId == 1).Select(y => y.BetAmount - y.WinAmount).DefaultIfEmpty(0).Sum();
+                        clientActivityModel.CasinoGrossRevenue = activies.Where(y => y.ProductId == 2).Select(y => y.BetAmount - y.WinAmount).DefaultIfEmpty(0).Sum();
+                        clientActivityModel.SportBonusBetsAmount = activies.Where(y => y.ProductId == 1).Select(y => y.BonusBetAmount).DefaultIfEmpty(0).Sum();
+                        clientActivityModel.CasinoBonusBetsAmount = activies.Where(y => y.ProductId == 2).Select(y => y.BonusBetAmount).DefaultIfEmpty(0).Sum();
+                        clientActivityModel.SportBonusWinsAmount = activies.Where(y => y.ProductId == 1).Select(y => y.BonusWinAmount).DefaultIfEmpty(0).Sum();
+                        clientActivityModel.CasinoBonusWinsAmount = activies.Where(y => y.ProductId == 2).Select(y => y.BonusWinAmount).DefaultIfEmpty(0).Sum();
+                        clientActivityModel.SportTotalWinsAmount = activies.Where(y => y.ProductId == 1).Select(y => y.WinAmount).DefaultIfEmpty(0).Sum();
+                        clientActivityModel.CasinoTotalWinsAmount = activies.Where(y => y.ProductId == 2).Select(y => y.WinAmount).DefaultIfEmpty(0).Sum();
+                    }
+
+                    if (client.FirstDepositDate.HasValue)
+                    {
+                        var currentDay = new DateTime(fromDate.Year, fromDate.Month, fromDate.Day, 0, 0, 0);
+                        if (client.FirstDepositDate >= currentDay && client.FirstDepositDate < currentDay.AddHours(24))
+                            clientActivityModel.FirstDepositAmount = Db.PaymentRequests.FirstOrDefault(x => x.ClientId == client.ClientId && x.Amount > 0 &&
+                                                                  (x.Type == (int)PaymentRequestTypes.Deposit || x.Type == (int)PaymentRequestTypes.ManualDeposit) &&
+                                                                  (x.Status == (int)PaymentRequestStates.Approved ||
+                                                                   x.Status == (int)PaymentRequestStates.ApprovedManually))?.Amount ?? 0;
+                    }
+
+                    affiliateClientActivies.Add(clientActivityModel);
+                }
+            }
+            return affiliateClientActivies;
+        }
+
+		public ScaleoEventData CreateScaleoReport(List<RegistrationActivityModel> newRegisteredClients, List<ClientActivityModel> scaleoClientActivies, string apiKey, int partnerId)
+        {
+            var data = new ScaleoEventData()
+            {
+                status = "success",
+                code = 200,
+                data = new Data()
+            };
+            var events = new List<Event>();
+			foreach (var reg in newRegisteredClients)
+			{
+				events.Add(new Event()
+				{
+					type = "reg",
+					timestamp = reg.RegistrationDate,
+					click_id = reg.BTag,
+					player_id = reg.CustomerId.ToString(),
+					amount = 0,
+					currency = reg.CustomerCurrencyId
+				});
+			}
+			foreach (var activity in scaleoClientActivies)
+			{
+				if (activity.TotalDepositsAmount > 0)
+				{
+					events.Add(new Event()
+					{
+						type = "dep",
+						timestamp = activity.ActivityDate,
+						click_id = activity.BTag,
+						player_id = activity.CustomerId.ToString(),
+						amount = activity.TotalDepositsAmount,
+						currency = activity.CurrencyId
+					});
+				}
+				if (activity.TotalWithdrawalsAmount > 0)
+				{
+					events.Add(new Event()
+					{
+						type = "wdr",
+						timestamp = activity.ActivityDate,
+						click_id = activity.BTag,
+						player_id = activity.CustomerId.ToString(),
+						amount = activity.TotalWithdrawalsAmount,
+						currency = activity.CurrencyId
+					});
+				}
+				if (activity.FirstDepositAmount > 0)
+				{
+					events.Add(new Event()
+					{
+						type = "ftd",
+						timestamp = activity.ActivityDate,
+						click_id = activity.BTag,
+						player_id = activity.CustomerId.ToString(),
+						amount = activity.FirstDepositAmount,
+						currency = activity.CurrencyId
+					});
+				}
+				if (activity.CasinoTotalBetsAmount > 0 || activity.SportTotalBetsAmount > 0)
+				{
+					new Event()
+					{
+						type = "bet",
+						timestamp = activity.ActivityDate,
+						click_id = activity.BTag,
+						player_id = activity.CustomerId.ToString(),
+						amount = activity.CasinoTotalBetsAmount + activity.SportTotalBetsAmount,
+						currency = activity.CurrencyId
+					};
+				};
+				if (activity.CasinoTotalWinsAmount > 0 || activity.SportTotalWinsAmount > 0)
+				{
+					new Event()
+					{
+						type = "bet",
+						timestamp = activity.ActivityDate,
+						click_id = activity.BTag,
+						player_id = activity.CustomerId.ToString(),
+						amount = activity.CasinoTotalWinsAmount + activity.SportTotalWinsAmount,
+						currency = activity.CurrencyId
+					};
+				};
+				if (activity.CasinoBonusBetsAmount > 0 || activity.CasinoBonusWinsAmount > 0 ||
+				   activity.SportBonusBetsAmount > 0 || activity.SportBonusWinsAmount > 0)
+				{
+					new Event()
+					{
+						type = "bon",
+						timestamp = activity.ActivityDate,
+						click_id = activity.BTag,
+						player_id = activity.CustomerId.ToString(),
+						amount = activity.CasinoBonusBetsAmount + activity.CasinoBonusWinsAmount
+							   + activity.SportBonusBetsAmount + activity.SportBonusWinsAmount,
+						currency = activity.CurrencyId
+					};
+				};
+            }
+            data.data.events = events;
+            return data;
+        }
+
+        #endregion
+    }
 }

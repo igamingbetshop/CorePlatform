@@ -16,6 +16,7 @@ namespace IqSoft.CP.AdminWebApi.Models.BonusModels
         public System.DateTime StartTime { get; set; }
         public System.DateTime FinishTime { get; set; }
         public int? Percent { get; set; }
+        public decimal? Amount { get; set; }
         public decimal? MinAmount { get; set; }
         public decimal? MaxAmount { get; set; }
         public bool? Activate { get; set; }

@@ -17,7 +17,7 @@ using IqSoft.CP.DAL.Models.Cache;
 namespace IqSoft.CP.Integration.Payments.Helpers
 {
     public static class FlexepinHelpers
-    {        
+    {
         public static PaymentResponse RedeemVoucher(PaymentRequest input, SessionIdentity session, ILog log)
         {
             using (var paymentSystemBl = new PaymentSystemBll(session, log))
@@ -46,7 +46,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 httpRequestInput.Url = $"{url}{methodName}";
                 var validateResult = JsonConvert.DeserializeObject<VoucherOutput>(CommonFunctions.SendHttpRequest(httpRequestInput, out _));
                 input.ExternalTransactionId = validateResult.TransNo;
-                if (validateResult.Result == "0" && validateResult.Status.ToUpper() == "ACTIVE")
+                if (validateResult.Result == 0 && validateResult.Status.ToUpper() == "ACTIVE")
                 {
                     input.Amount = Math.Round(BaseBll.ConvertCurrency(validateResult.Currency, client.CurrencyId, validateResult.Value), 2);
                     var parameters = string.IsNullOrEmpty(input.Parameters) ? new Dictionary<string, string>() :
@@ -67,14 +67,14 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                     paymentSystemBl.ChangePaymentRequestDetails(input);
                     throw new Exception($"Code: {validateResult.Result}, Message: {validateResult.ResultDescription}");
                 }
-                methodName = $"/voucher/redeem/{paymentInfo.Info}/{partner.Name}/{input.Id}";
-                var requestBody = JsonConvert.SerializeObject(new { customer_ip = session.LoginIp });
-                httpRequestInput.RequestMethod = Constants.HttpRequestMethods.Put;
-                httpRequestInput.RequestHeaders = GetSignature(httpRequestInput.RequestMethod, methodName, requestBody, partnerPaymentSetting);
-                httpRequestInput.Url = $"{url}{methodName}";
-                httpRequestInput.PostData = requestBody;
-                var redeemResult = JsonConvert.DeserializeObject<VoucherOutput>(CommonFunctions.SendHttpRequest(httpRequestInput, out _));
-                if (redeemResult.Result == "0" && redeemResult.Status.ToUpper() == "USED")
+                var redeemResult = RedeemVoucherRequest(partner.Id, input.Id, paymentInfo.Info, session.LoginIp, partnerPaymentSetting);
+                if (redeemResult.Result == 4019) // swap
+                {
+                    var swapOutput = CallFlexSwapApi(partner.Id, input.Id.ToString(), paymentInfo.Info, partnerPaymentSetting);
+                    var newVoucherData = ConfirmSwap(partner.Id,input.Id.ToString(), swapOutput.TransNo, partnerPaymentSetting);
+                    redeemResult = RedeemVoucherRequest(partner.Id, input.Id, newVoucherData.Pin, session.LoginIp, partnerPaymentSetting);
+                }
+                if (redeemResult.Result == 0 && redeemResult.Status.ToUpper() == "USED")
                 {
                     input.ExternalTransactionId = redeemResult.TransNo;
                     paymentInfo.VoucherNumber = redeemResult.Serial;
@@ -120,6 +120,58 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             };
 
             return $"{url}&{CommonFunctions.GetUriDataFromObject(query)}";
+        }
+
+        private static SwapOutput CallFlexSwapApi(int partnerId, string terminalId, string pin, BllPartnerPaymentSetting partnerSetting)
+        {
+            var methodName = $"/voucher/flex_swap/quote/{terminalId}/{pin}";
+            var url = CacheManager.GetPartnerSettingByKey(partnerId, Constants.PartnerKeys.FlexPayApiUrl).StringValue;
+            var httpRequestInput = new HttpRequestInput
+            {
+                ContentType = Constants.HttpContentTypes.ApplicationJson,
+                RequestMethod = Constants.HttpRequestMethods.Get,
+                RequestHeaders =  GetSignature(Constants.HttpRequestMethods.Get, methodName, string.Empty, partnerSetting),
+                Url = $"{url}{methodName}"
+            };
+            var res = JsonConvert.DeserializeObject<SwapOutput>(CommonFunctions.SendHttpRequest(httpRequestInput, out _));
+            if (res.Result != 0)
+                throw new Exception($"Code: {res.Result}, Description: {res.ResultDescription}");
+            return res;
+        }
+
+        private static VoucherPin ConfirmSwap(int partnerId, string terminalId, string transNo, BllPartnerPaymentSetting partnerSetting)
+        {
+            var methodName = $"/voucher/flex_swap/confirm/{terminalId}/{transNo}/true";
+            var url = CacheManager.GetPartnerSettingByKey(partnerId, Constants.PartnerKeys.FlexPayApiUrl).StringValue;
+            var httpRequestInput = new HttpRequestInput
+            {
+                ContentType = Constants.HttpContentTypes.ApplicationJson,
+                RequestMethod = Constants.HttpRequestMethods.Post,
+                RequestHeaders =  GetSignature(Constants.HttpRequestMethods.Post, methodName, string.Empty, partnerSetting),
+                Url = $"{url}{methodName}",
+                PostData = "{}"
+            };
+            var res =  JsonConvert.DeserializeObject<SwapedVoucher>(CommonFunctions.SendHttpRequest(httpRequestInput, out _));
+            if (res.Result != 0)
+                throw new Exception($"Code: {res.Result}, Description: {res.ResultDescription}");
+            return res.DestinationVoucherPins[0];
+        }
+
+        private static VoucherOutput RedeemVoucherRequest(int partnerId, long paymentRequestId, string voucherPin, string sessionIp, BllPartnerPaymentSetting partnerSetting)
+        {
+            var partner = CacheManager.GetPartnerById(partnerId);
+            var methodName = $"/voucher/redeem/{voucherPin}/{partner.Name}/{paymentRequestId}";
+            var url = CacheManager.GetPartnerSettingByKey(partnerId, Constants.PartnerKeys.FlexPayApiUrl).StringValue;
+            var requestBody = JsonConvert.SerializeObject(new { customer_ip = sessionIp });
+            var httpRequestInput = new HttpRequestInput
+            {
+                ContentType = Constants.HttpContentTypes.ApplicationJson,
+                RequestMethod = Constants.HttpRequestMethods.Put,
+                RequestHeaders =  GetSignature(Constants.HttpRequestMethods.Put, methodName, requestBody, partnerSetting),
+                Url = $"{url}{methodName}",
+                PostData = requestBody
+            };
+            return JsonConvert.DeserializeObject<VoucherOutput>(CommonFunctions.SendHttpRequest(httpRequestInput, out _));
         }
 
         //private static void SwapVoucher()

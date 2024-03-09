@@ -32,6 +32,19 @@ namespace IqSoft.CP.ProductGateway.Models.AleaPlay
 
         [JsonProperty(PropertyName = "transaction")]
         public TransactionModel Transaction { get; set; }
+
+
+        [JsonProperty(PropertyName = "bonus")]
+        public BonusWin Bonus { get; set; }
+    }
+
+    public class BonusWin
+    {
+        [JsonProperty(PropertyName = "id")]
+        public string Id { get; set; }
+
+        [JsonProperty(PropertyName = "casinoBonusId")]
+        public string CasinoBonusId { get; set; }
     }
 
 

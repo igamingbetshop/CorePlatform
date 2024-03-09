@@ -16,5 +16,7 @@
         public const string DIM = "DIM"; //10
         public const string Affilka = "Affilka"; //11
         public const string IncomeAccess = "IncomeAccess"; //13
+        public const string CustomerIo = "CustomerIo"; //14
+        public const string Scaleo = "Scaleo"; //15
     }
 }

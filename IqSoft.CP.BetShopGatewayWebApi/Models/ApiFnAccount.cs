@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace IqSoft.CP.BetShopGatewayWebApi.Models
+﻿namespace IqSoft.CP.BetShopGatewayWebApi.Models
 {
 	public class ApiFnAccount
 	{

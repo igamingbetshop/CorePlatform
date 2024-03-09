@@ -16,11 +16,13 @@ namespace IqSoft.CP.DAL
     {
         public long Id { get; set; }
         public int ClientId { get; set; }
-        public long MessageId { get; set; }
+        public Nullable<long> MessageId { get; set; }
         public int State { get; set; }
         public System.DateTime LastUpdateTime { get; set; }
+        public Nullable<int> PopupId { get; set; }
     
-        public virtual ClientMessage ClientMessage { get; set; }
         public virtual Client Client { get; set; }
+        public virtual ClientMessage ClientMessage { get; set; }
+        public virtual Popup Popup { get; set; }
     }
 }

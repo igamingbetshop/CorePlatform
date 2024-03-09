@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace IqSoft.CP.Common.Models.WebSiteModels
 {
@@ -67,5 +68,6 @@ namespace IqSoft.CP.Common.Models.WebSiteModels
         public int? CharacterId { get; set; }
         public bool IsTwoFactorEnabled { get; set; }
         public string IframeUrl { get; set; }
+        public List<ApiPopupWeSiteModel> Popups { get; set; }
     }
 }

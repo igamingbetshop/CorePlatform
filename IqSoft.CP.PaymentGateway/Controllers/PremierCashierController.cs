@@ -73,7 +73,8 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                         paymentInfo.ExpirationDate = input.Transaction.CardDetails.CardExp;
                     }
                     if (client.State == (int)ClientStates.FullBlocked ||client.State == (int)ClientStates.BlockedForDeposit ||
-                        client.State == (int)ClientStates.Suspended || client.State == (int)ClientStates.Disabled)
+                        client.State == (int)ClientStates.Suspended || client.State == (int)ClientStates.SuspendedWithWithdraw ||
+                        client.State == (int)ClientStates.Disabled)
                         throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongHash);
                     paymentInfo.Info = JsonConvert.SerializeObject(paymentInfo);
                     if (!string.IsNullOrEmpty(input.Transaction.TraceId))

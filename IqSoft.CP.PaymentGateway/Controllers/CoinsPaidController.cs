@@ -213,7 +213,8 @@ namespace IqSoft.CP.PaymentGateway.Controllers
             if (partnerPaymentSetting.State != (int)PartnerPaymentSettingStates.Active)
                 throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.PartnerPaymentSettingBlocked);
             if (client.State == (int)ClientStates.BlockedForDeposit || client.State == (int)ClientStates.FullBlocked ||
-                                            client.State == (int)ClientStates.Suspended || client.State == (int)ClientStates.Disabled)
+                client.State == (int)ClientStates.Suspended || client.State == (int)ClientStates.SuspendedWithWithdraw ||  
+                client.State == (int)ClientStates.Disabled)
                 throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.ClientBlocked);
             if (Convert.ToDecimal(input.CurrencyReceived.Amount) < 0)
                 throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongInputParameters);

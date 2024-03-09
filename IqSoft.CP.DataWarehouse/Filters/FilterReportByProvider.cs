@@ -26,7 +26,7 @@ namespace IqSoft.CP.DataWarehouse.Filters
 
         public FiltersOperation GGRs { get; set; }
 
-        protected override IQueryable<fnReportByProvider> CreateQuery(IQueryable<fnReportByProvider> objects, Func<IQueryable<fnReportByProvider>, IOrderedQueryable<fnReportByProvider>> orderBy = null)
+        public override void CreateQuery(ref IQueryable<fnReportByProvider> objects, Func<IQueryable<fnReportByProvider>, IOrderedQueryable<fnReportByProvider>> orderBy = null)
         {
             FilterByValue(ref objects, ProviderNames, "ProviderName");
             FilterByValue(ref objects, Currencies, "Currency");
@@ -37,12 +37,12 @@ namespace IqSoft.CP.DataWarehouse.Filters
             FilterByValue(ref objects, TotalUncalculatedBetsAmounts, "TotalUncalculatedBetsAmount");
             FilterByValue(ref objects, GGRs, "GGR");
 
-            return base.FilteredObjects(objects, orderBy);
+            base.FilteredObjects(ref objects, orderBy);
         }
 
         public IQueryable<fnReportByProvider> FilterObjects(IQueryable<fnReportByProvider> objects, Func<IQueryable<fnReportByProvider>, IOrderedQueryable<fnReportByProvider>> orderBy = null)
         {
-            objects = CreateQuery(objects, orderBy);
+            CreateQuery(ref objects, orderBy);
             return objects;
         }
     }

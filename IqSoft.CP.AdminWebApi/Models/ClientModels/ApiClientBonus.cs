@@ -28,6 +28,7 @@ namespace IqSoft.CP.AdminWebApi.Models.ClientModels
         public int BonusType { get; set; }
         public int Status { get; set; }
         public decimal BonusPrize { get; set; }
+        public decimal? SpinsCount { get; set; }
         public decimal? TurnoverAmountLeft { get; set; }
         public decimal? FinalAmount { get; set; }
         public DateTime CreationTime { get; set; }

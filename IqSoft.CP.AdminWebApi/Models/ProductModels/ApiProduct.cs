@@ -1,10 +1,12 @@
 ﻿using IqSoft.CP.Common.Models.AdminModels;
+using System.Collections.Generic;
 
 namespace IqSoft.CP.AdminWebApi.Models.ProductModels
 {
     public class ApiProduct
     {
         public int Id { get; set; }
+        public List<int> Ids { get; set; }
         public int NewId { get; set; }
         public int? GameProviderId { get; set; }
         public string Description { get; set; }
@@ -13,7 +15,7 @@ namespace IqSoft.CP.AdminWebApi.Models.ProductModels
         public string ExternalId { get; set; }
         public string Name { get; set; }
         public string LanguageId { get; set; }
-        public int State { get; set; }
+        public int? State { get; set; }
         public bool IsForDesktop { get; set; }
         public bool IsForMobile { get; set; }
         public bool HasDemo { get; set; }

@@ -6,6 +6,7 @@
         ForManualAdjustment = 2,
         TicketSubject = 3,
         ExclusionReason = 4,
-        ClientNote = 5
+        ClientNote = 5, 
+        UnexclutionReason = 6
     }
 }

@@ -18,7 +18,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
             var product = CacheManager.GetProductById(productId);
             if (product == null)
                 throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.ProductNotFound);
-            if (product.State == (int)ProductStates.Inactive)
+            if (product.State == (int)ProductStates.Inactive || product.State == (int)ProductStates.DisabledByProvider)
                 throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.ProductBlockedForThisPartner);
 
             var partnerProductSetting = CacheManager.GetPartnerProductSettingByProductId(partnerId, product.Id);
@@ -121,7 +121,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                 return Integration.Products.Helpers.SoftSwissHelpers.GetUrl(input.PartnerId, input.ProductId, input.ClientId, 
                     input.IsForDemo, input.IsForMobile ?? false, clientSession, WebApiApplication.DbLogger);
             else if (providerName == Constants.GameProviders.Kiron.ToLower())
-                return KironHelpers.GetUrl(token, input.PartnerId, input.ClientId, input.ProductId, input.IsForDemo, input.IsForMobile ?? false, clientSession);
+                return Integration.Products.Helpers.KironHelpers.GetUrl(token, input.PartnerId, clientSession.CurrencyId, input.IsForDemo, input.IsForMobile ?? false, false, clientSession);
             else if (providerName == Constants.GameProviders.BetSoft.ToLower())
                 return Integration.Products.Helpers.BetSoftHelpers.GetSessionUrl(input.PartnerId, product, token, input.IsForDemo, clientSession);
             else if (providerName == Constants.GameProviders.AWC.ToLower())
@@ -158,7 +158,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                 return MahjongHelpers.GetUrl(token, input.PartnerId, input.ProductId, clientSession);
             else if (providerName == Constants.GameProviders.LuckyGaming.ToLower())
                 return Integration.Products.Helpers.LuckyGamingHelpers.GetUrl(input.PartnerId, input.ClientId, input.ProductId);
-            else if (providerName == Constants.GameProviders.BAS.ToLower())
+            else if (providerName == Constants.GameProviders.BAS.ToLower() || providerName == Constants.GameProviders.DGS.ToLower())
                 return BASHelpers.GetUrl(input.PartnerId,input.ProductId, token, input.ClientId, clientSession);
             else if (providerName == Constants.GameProviders.IPTGaming.ToLower())
                 return Integration.Products.Helpers.IPTGamingHelpers.GetUrl(input.ClientId, token, input.ProductId, clientSession);

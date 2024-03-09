@@ -4,12 +4,11 @@ namespace IqSoft.CP.Common.Models.WebSiteModels
 {
 	public class ApiPartnerProduct
 	{
-		public string i { get; set; }
-		public string n { get; set; }
-		public string nn { get; set; }
-		public int s { get; set; }
-		public int p { get; set; }
-		public string sn { get; set; }
+		public string i { get; set; } //ImageUrl
+		public string n { get; set; } //Name
+        public string nn { get; set; } //NickName
+		public int s { get; set; } //SubProviderId
+		public int p { get; set; } //Id
 		public decimal r { get; set; }
 		public int o { get; set; }
 		public int ss { get; set; }

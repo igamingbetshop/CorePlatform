@@ -46,6 +46,7 @@ namespace IqSoft.CP.DAL
         public Nullable<bool> AllowMultiplePaymentInfoes { get; set; }
         public Nullable<int> OpenMode { get; set; }
         public string OSTypes { get; set; }
+        public Nullable<decimal> ApplyPercentAmount { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ClientPaymentInfo> ClientPaymentInfoes { get; set; }
@@ -59,9 +60,9 @@ namespace IqSoft.CP.DAL
         public virtual ICollection<PartnerPaymentCountrySetting> PartnerPaymentCountrySettings { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PartnerPaymentCurrencyRate> PartnerPaymentCurrencyRates { get; set; }
-        public virtual PaymentSystem PaymentSystem { get; set; }
         public virtual UserSession UserSession { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PaymentRequest> PaymentRequests { get; set; }
+        public virtual PaymentSystem PaymentSystem { get; set; }
     }
 }

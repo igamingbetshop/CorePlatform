@@ -20,6 +20,7 @@ namespace IqSoft.CP.AdminWebApi.Filters.Reporting
         public ApiFiltersOperation Emails { get; set; }
         public ApiFiltersOperation MobileNumbers { get; set; }
         public ApiFiltersOperation BonusPrizes { get; set; }
+        public ApiFiltersOperation SpinsCounts { get; set; }
         public ApiFiltersOperation TurnoverAmountLefts { get; set; }
         public ApiFiltersOperation RemainingCredits { get; set; }
         public ApiFiltersOperation WageringTargets { get; set; }

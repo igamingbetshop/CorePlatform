@@ -25,6 +25,7 @@ using IqSoft.CP.DataWarehouse.Filters;
 using IqSoft.CP.DataWarehouse;
 using Client = IqSoft.CP.DAL.Client;
 using Document = IqSoft.CP.DAL.Document;
+using PaymentRequest = IqSoft.CP.DAL.PaymentRequest;
 
 namespace IqSoft.CP.MasterCacheWebApi.Helpers
 {
@@ -102,7 +103,8 @@ namespace IqSoft.CP.MasterCacheWebApi.Helpers
                 JobArea = client.JobArea,
                 Apartment = client.Apartment,
                 BuildingNumber = client.BuildingNumber,
-                Title = client.Title
+                Title = client.Title,
+                PinCode = client.PinCode
             };
         }
    
@@ -1354,7 +1356,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Helpers
 
 		#region Character
 
-		public static ApiCharacter MapToApiCharacter(this BllCharacter character)
+		public static ApiCharacter MapToApiCharacter(this BllCharacter character, bool IsForMobile = false)
 		{
 			return new ApiCharacter
 			{
@@ -1367,7 +1369,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Helpers
 				Status = character.Status,
 				Order = character.Order,
 				ImageData = character.ImageData,
-				BackgroundImageData = character.BackgroundImageData,
+				BackgroundImageData = IsForMobile ? character.BackgroundImageData?.Replace("/assets/images/characters/background/", "/assets/images/characters/background/mobile/") : character.BackgroundImageData,
 				CompPoints = character.CompPoints
 			};
 		}

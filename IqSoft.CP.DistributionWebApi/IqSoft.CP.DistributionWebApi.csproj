@@ -129,6 +129,7 @@
     <Compile Include="Controllers\BetGamesController.cs" />
     <Compile Include="Controllers\CardToCardController.cs" />
     <Compile Include="Controllers\CashCenterController.cs" />
+    <Compile Include="Controllers\ChangellyController.cs" />
     <Compile Include="Controllers\IframeController.cs" />
     <Compile Include="Controllers\InsicController.cs" />
     <Compile Include="Controllers\MifinityController.cs" />

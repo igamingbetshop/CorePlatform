@@ -1,6 +1,8 @@
-﻿namespace IqSoft.CP.BetShopGatewayWebApi.Models
+﻿using System;
+
+namespace IqSoft.CP.BetShopGatewayWebApi.Models
 {
-	public class ApiFilterBase : ApiRequestBase
+	public class ApiFilterBase
 	{
 		private int _takeCount = 100;
 
@@ -23,5 +25,7 @@
 		public bool? OrderBy { get; set; }
 
 		public string FieldNameToOrderBy { get; set; }
-	}
+        public DateTime? FromDate { get; set; }
+        public DateTime? ToDate { get; set; }
+    }
 }

@@ -5,16 +5,15 @@ using IqSoft.CP.Common.Enums;
 using IqSoft.CP.Common.Helpers;
 using IqSoft.CP.Common.Models;
 using IqSoft.CP.Common.Models.CacheModels;
+using IqSoft.CP.DAL;
 using IqSoft.CP.DAL.Models;
 using IqSoft.CP.Integration.Products.Models.BGGames;
+using log4net;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Metrics;
 using System.Linq;
-using System.Net;
 using System.Text.RegularExpressions;
-using System.Web;
 
 namespace IqSoft.CP.Integration.Products.Helpers
 {
@@ -29,25 +28,35 @@ namespace IqSoft.CP.Integration.Products.Helpers
 			var apiKey = CacheManager.GetGameProviderValueByKey(partnerId, Provider.Id, Constants.PartnerKeys.BGGamesApiKey);
 			var signatureKey = CacheManager.GetGameProviderValueByKey(partnerId, Provider.Id, Constants.PartnerKeys.BGGamesSignature);
 			var product = CacheManager.GetProductById(productId);
-			var hostName = Dns.GetHostName();
-			var serverIP = Dns.GetHostEntry(hostName.Replace("https://", string.Empty).Replace("http://", string.Empty)).AddressList;
-			log.Info(JsonConvert.SerializeObject(serverIP.ToString()));
+			//var hostName = Dns.GetHostName();
+			//var serverIP = Dns.GetHostEntry(hostName.Replace("https://", string.Empty).Replace("http://", string.Empty)).AddressList;
+			//log.Info(JsonConvert.SerializeObject(serverIP.ToString()));
 			using (var regionBl = new RegionBll(session, log))
 			{
 				var region = regionBl.GetRegionByCountryCode(session.Country);
-				var data = new
+				var data = new BaseInput()
 				{
-					action = "get_game",
 					appID = apiKey,
 					userID = client?.Id.ToString() ?? "0",
 					userIP = "109.75.47.208", //serverIP.FirstOrDefault().ToString(),
-					license = "2",
 					currency = client?.CurrencyId ?? "EUR",
 					customer = token,
-					game = product.ExternalId,
-					country = region.IsoCode3,
-					demo = isForDemo ? "true" : null
+					country = region.IsoCode3
 				};
+				if (product.NickName == "pregame" || product.NickName == "live")
+				{
+					data.action = product.NickName;
+					data.lang = session.LanguageId == "en" ? "en_us" : null;
+					data.device = session.DeviceType == (int)DeviceTypes.Desktop ? "D" : "M";
+				}
+				else
+				{
+					data.action = "get_game";
+					data.license = "2";
+					data.game = product.ExternalId;
+					data.demo = isForDemo ? "true" : null;
+				}
+				
 				var a = JsonConvert.SerializeObject(data, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
 				var signature = CommonFunctions.ComputeMd5(JsonConvert.SerializeObject(data, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore }) + signatureKey);
 				var httpRequestInput = new HttpRequestInput
@@ -66,7 +75,7 @@ namespace IqSoft.CP.Integration.Products.Helpers
 			}
 		}
 
-		public static List<Game> GetGames(int partnerId)
+		public static List<Game> GetGames(int partnerId, ILog log)
 		{
 			var apiKey = CacheManager.GetGameProviderValueByKey(partnerId, Provider.Id, Constants.PartnerKeys.BGGamesApiKey);
 			var signatureKey = CacheManager.GetGameProviderValueByKey(partnerId, Provider.Id, Constants.PartnerKeys.BGGamesSignature);
@@ -86,7 +95,8 @@ namespace IqSoft.CP.Integration.Products.Helpers
 			};
 			var res = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
 			var resData = JsonConvert.DeserializeObject<Data>(res);
-			return JsonConvert.DeserializeObject<List<Game>>(JsonConvert.SerializeObject(resData.data));
+            var response = JsonConvert.DeserializeObject<List<Game>>(JsonConvert.SerializeObject(resData.data));
+            return response;
 		}
 
 

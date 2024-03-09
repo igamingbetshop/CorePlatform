@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Web;
 
 namespace IqSoft.CP.BetShopWebApi.Models.Common
 {
-	public class AuthorizationOutput : ClientRequestResponseBase
-	{
+	public class AuthorizationOutput : ApiLoginResponse
+    {
 		public long Id { get; set; }
 		public int CashierId { get; set; }
 		public int UserId { get; set; }
@@ -19,7 +17,6 @@ namespace IqSoft.CP.BetShopWebApi.Models.Common
 		public int BetShopId { get; set; }
 		public string BetShopAddress { get; set; }
 		public string BetShopName { get; set; }
-		public string Token { get; set; }
 		private decimal _balance;
 		public decimal Balance
 		{

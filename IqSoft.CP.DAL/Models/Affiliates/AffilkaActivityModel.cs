@@ -23,6 +23,12 @@ namespace IqSoft.CP.DAL.Models.Affiliates
         [JsonProperty(PropertyName = "user_id")]
         public string ClientId { get; set; }
 
+        [JsonProperty(PropertyName = "disabled")]
+        public bool Disabled { get; set; }
+
+        [JsonProperty(PropertyName = "self_excluded")]
+        public bool SelfExcluded { get; set; }
+
         [JsonProperty(PropertyName = "currency")]
         public string Currency { get; set; }
 

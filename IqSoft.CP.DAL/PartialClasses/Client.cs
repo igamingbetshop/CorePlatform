@@ -35,6 +35,7 @@ namespace IqSoft.CP.DAL
         public string WelcomeBonusActivationKey { get; set; }
 		
         public string CurrencySymbol { get; set; }
+        public string PinCode { get; set; }
 
         public List<int> ParentsPath { get; set; }
 	}

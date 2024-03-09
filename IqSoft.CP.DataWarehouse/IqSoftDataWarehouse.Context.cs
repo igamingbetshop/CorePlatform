@@ -11,9 +11,8 @@ namespace IqSoft.CP.DataWarehouse
 {
     using System;
     using System.Data.Entity;
-    using System.Data.Entity.Core.Objects;
-    using System.Data.Entity.Core.Objects.DataClasses;
     using System.Data.Entity.Infrastructure;
+    using System.Data.Entity.Core.Objects;
     using System.Linq;
     
     public partial class IqSoftDataWarehouseEntities : DbContext
@@ -35,6 +34,19 @@ namespace IqSoft.CP.DataWarehouse
         public DbSet<Product> Products { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<GameProvider> GameProviders { get; set; }
+        public DbSet<Currency> Currencies { get; set; }
+        public DbSet<ClientSession> ClientSessions { get; set; }
+        public DbSet<ClientBonu> ClientBonus { get; set; }
+        public DbSet<Gtd_Dashboard_Info> Gtd_Dashboard_Info { get; set; }
+        public DbSet<Gtd_Provider_Bets> Gtd_Provider_Bets { get; set; }
+        public DbSet<PaymentRequest> PaymentRequests { get; set; }
+        public DbSet<Gtd_Deposit_Info> Gtd_Deposit_Info { get; set; }
+        public DbSet<Gtd_Withdraw_Info> Gtd_Withdraw_Info { get; set; }
+        public DbSet<JobTrigger> JobTriggers { get; set; }
+        public DbSet<AffiliatePlatform> AffiliatePlatforms { get; set; }
+        public DbSet<Partner> Partners { get; set; }
+        public DbSet<AffiliateReferral> AffiliateReferrals { get; set; }
+        public DbSet<Bonu> Bonus { get; set; }
     
         public virtual int sp_InsertDocuments(Nullable<long> minId)
         {
@@ -45,7 +57,7 @@ namespace IqSoft.CP.DataWarehouse
             return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("sp_InsertDocuments", minIdParameter);
         }
     
-        [EdmFunction("IqSoftDataWarehouseEntities", "fn_AffiliateClient")]
+        [DbFunction("IqSoftDataWarehouseEntities", "fn_AffiliateClient")]
         public virtual IQueryable<fnAffiliateClient> fn_AffiliateClient(Nullable<long> fromDate, Nullable<long> toDate, Nullable<int> partnerId)
         {
             var fromDateParameter = fromDate.HasValue ?
@@ -63,31 +75,13 @@ namespace IqSoft.CP.DataWarehouse
             return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnAffiliateClient>("[IqSoftDataWarehouseEntities].[fn_AffiliateClient](@FromDate, @ToDate, @PartnerId)", fromDateParameter, toDateParameter, partnerIdParameter);
         }
     
-        [EdmFunction("IqSoftDataWarehouseEntities", "fn_BetShopBet")]
+        [DbFunction("IqSoftDataWarehouseEntities", "fn_BetShopBet")]
         public virtual IQueryable<fnBetShopBet> fn_BetShopBet()
         {
             return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnBetShopBet>("[IqSoftDataWarehouseEntities].[fn_BetShopBet]()");
         }
     
-        [EdmFunction("IqSoftDataWarehouseEntities", "fn_ClientInfoForDashboard")]
-        public virtual IQueryable<fnClientInfoForDashboard> fn_ClientInfoForDashboard(Nullable<long> fromDate, Nullable<long> toDate, Nullable<int> partnerId)
-        {
-            var fromDateParameter = fromDate.HasValue ?
-                new ObjectParameter("FromDate", fromDate) :
-                new ObjectParameter("FromDate", typeof(long));
-    
-            var toDateParameter = toDate.HasValue ?
-                new ObjectParameter("ToDate", toDate) :
-                new ObjectParameter("ToDate", typeof(long));
-    
-            var partnerIdParameter = partnerId.HasValue ?
-                new ObjectParameter("PartnerId", partnerId) :
-                new ObjectParameter("PartnerId", typeof(int));
-    
-            return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnClientInfoForDashboard>("[IqSoftDataWarehouseEntities].[fn_ClientInfoForDashboard](@FromDate, @ToDate, @PartnerId)", fromDateParameter, toDateParameter, partnerIdParameter);
-        }
-    
-        [EdmFunction("IqSoftDataWarehouseEntities", "fn_ClientReport")]
+        [DbFunction("IqSoftDataWarehouseEntities", "fn_ClientReport")]
         public virtual IQueryable<fnClientReport> fn_ClientReport(Nullable<long> fromDate, Nullable<long> toDate)
         {
             var fromDateParameter = fromDate.HasValue ?
@@ -101,31 +95,13 @@ namespace IqSoft.CP.DataWarehouse
             return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnClientReport>("[IqSoftDataWarehouseEntities].[fn_ClientReport](@FromDate, @ToDate)", fromDateParameter, toDateParameter);
         }
     
-        [EdmFunction("IqSoftDataWarehouseEntities", "fn_InternetBet")]
+        [DbFunction("IqSoftDataWarehouseEntities", "fn_InternetBet")]
         public virtual IQueryable<fnInternetBet> fn_InternetBet()
         {
             return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnInternetBet>("[IqSoftDataWarehouseEntities].[fn_InternetBet]()");
         }
     
-        [EdmFunction("IqSoftDataWarehouseEntities", "fn_InternetBetForDashboard")]
-        public virtual IQueryable<fnInternetBetForDashboard> fn_InternetBetForDashboard(Nullable<long> fromDate, Nullable<long> toDate, string partnerIds)
-        {
-            var fromDateParameter = fromDate.HasValue ?
-                new ObjectParameter("FromDate", fromDate) :
-                new ObjectParameter("FromDate", typeof(long));
-    
-            var toDateParameter = toDate.HasValue ?
-                new ObjectParameter("ToDate", toDate) :
-                new ObjectParameter("ToDate", typeof(long));
-    
-            var partnerIdsParameter = partnerIds != null ?
-                new ObjectParameter("PartnerIds", partnerIds) :
-                new ObjectParameter("PartnerIds", typeof(string));
-    
-            return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnInternetBetForDashboard>("[IqSoftDataWarehouseEntities].[fn_InternetBetForDashboard](@FromDate, @ToDate, @PartnerIds)", fromDateParameter, toDateParameter, partnerIdsParameter);
-        }
-    
-        [EdmFunction("IqSoftDataWarehouseEntities", "fn_InternetGame")]
+        [DbFunction("IqSoftDataWarehouseEntities", "fn_InternetGame")]
         public virtual IQueryable<fnInternetGame> fn_InternetGame(Nullable<long> fromDate, Nullable<long> toDate)
         {
             var fromDateParameter = fromDate.HasValue ?
@@ -139,7 +115,7 @@ namespace IqSoft.CP.DataWarehouse
             return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnInternetGame>("[IqSoftDataWarehouseEntities].[fn_InternetGame](@FromDate, @ToDate)", fromDateParameter, toDateParameter);
         }
     
-        [EdmFunction("IqSoftDataWarehouseEntities", "fn_ProfitByAgent")]
+        [DbFunction("IqSoftDataWarehouseEntities", "fn_ProfitByAgent")]
         public virtual IQueryable<fnProfitByAgent> fn_ProfitByAgent(Nullable<long> fromDate, Nullable<long> toDate)
         {
             var fromDateParameter = fromDate.HasValue ?
@@ -153,7 +129,7 @@ namespace IqSoft.CP.DataWarehouse
             return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnProfitByAgent>("[IqSoftDataWarehouseEntities].[fn_ProfitByAgent](@FromDate, @ToDate)", fromDateParameter, toDateParameter);
         }
     
-        [EdmFunction("IqSoftDataWarehouseEntities", "fn_ProfitByClientProduct")]
+        [DbFunction("IqSoftDataWarehouseEntities", "fn_ProfitByClientProduct")]
         public virtual IQueryable<fnProfitByClientProduct> fn_ProfitByClientProduct(Nullable<long> fromDate, Nullable<long> toDate)
         {
             var fromDateParameter = fromDate.HasValue ?
@@ -167,7 +143,7 @@ namespace IqSoft.CP.DataWarehouse
             return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnProfitByClientProduct>("[IqSoftDataWarehouseEntities].[fn_ProfitByClientProduct](@FromDate, @ToDate)", fromDateParameter, toDateParameter);
         }
     
-        [EdmFunction("IqSoftDataWarehouseEntities", "fn_ReportByPartner")]
+        [DbFunction("IqSoftDataWarehouseEntities", "fn_ReportByPartner")]
         public virtual IQueryable<fnReportByPartner> fn_ReportByPartner(Nullable<long> fromDate, Nullable<long> toDate)
         {
             var fromDateParameter = fromDate.HasValue ?
@@ -181,7 +157,7 @@ namespace IqSoft.CP.DataWarehouse
             return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnReportByPartner>("[IqSoftDataWarehouseEntities].[fn_ReportByPartner](@FromDate, @ToDate)", fromDateParameter, toDateParameter);
         }
     
-        [EdmFunction("IqSoftDataWarehouseEntities", "fn_ReportByProvider")]
+        [DbFunction("IqSoftDataWarehouseEntities", "fn_ReportByProvider")]
         public virtual IQueryable<fnReportByProvider> fn_ReportByProvider(Nullable<long> fromDate, Nullable<long> toDate)
         {
             var fromDateParameter = fromDate.HasValue ?
@@ -195,7 +171,7 @@ namespace IqSoft.CP.DataWarehouse
             return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnReportByProvider>("[IqSoftDataWarehouseEntities].[fn_ReportByProvider](@FromDate, @ToDate)", fromDateParameter, toDateParameter);
         }
     
-        [EdmFunction("IqSoftDataWarehouseEntities", "fn_Document")]
+        [DbFunction("IqSoftDataWarehouseEntities", "fn_Document")]
         public virtual IQueryable<fnDocument> fn_Document()
         {
             return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnDocument>("[IqSoftDataWarehouseEntities].[fn_Document]()");

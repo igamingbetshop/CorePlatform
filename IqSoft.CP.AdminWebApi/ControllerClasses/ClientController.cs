@@ -71,6 +71,8 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     return
                         ResetClientPassword(
                             JsonConvert.DeserializeObject<NewPasswordInput>(request.RequestData), identity, log);
+                case "ResetClientPinCode":
+                    return ResetClientPinCode(Convert.ToInt32(request.RequestData), identity, log);
                 case "GetClientLogs":
                     return GetClientLogs(JsonConvert.DeserializeObject<ApiFilterClientLog>(request.RequestData),
                         identity, log);
@@ -252,9 +254,11 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 case "ApplySystemExclusion":
                     return ApplySystemExclusion(JsonConvert.DeserializeObject<ApiExlusionModel>(request.RequestData), identity, log);
                 case "RemoveSelfExclusion":
-                    return RemoveClientExclusion(Convert.ToInt32(request.RequestData), false, identity, log);
+                    return RemoveClientExclusion(JsonConvert.DeserializeObject<ApiExlusionModel>(request.RequestData), false, identity, log);
                 case "RemoveSystemExclusion":
-                    return RemoveClientExclusion(Convert.ToInt32(request.RequestData), true, identity, log);
+                    return RemoveClientExclusion(JsonConvert.DeserializeObject<ApiExlusionModel>(request.RequestData), true, identity, log);
+                case "CheckClientExternalStatus":
+                    return CheckClientExternalStatus(Convert.ToInt32(request.RequestData), identity, log);
                 case "GetSegmentClients":
                     return GetSegmentClients(JsonConvert.DeserializeObject<ApiFilterfnSegmentClient>(request.RequestData), identity, log);
                 case "ExportSegmentClients":
@@ -363,7 +367,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 resp.DistrictId = regionPath.FirstOrDefault(x => x.TypeId == (int)RegionTypes.District)?.Id;
                 resp.StateId = regionPath.FirstOrDefault(x => x.TypeId == (int)RegionTypes.State)?.Id;
                 resp.CityId = regionPath.FirstOrDefault(x => x.TypeId == (int)RegionTypes.City)?.Id;
-                resp.TownId =regionPath.FirstOrDefault(x => x.TypeId == (int)RegionTypes.Town)?.Id;
+                resp.TownId = regionPath.FirstOrDefault(x => x.TypeId == (int)RegionTypes.Town)?.Id;
                 return new ApiResponseBase
                 {
                     ResponseObject = new { Client = resp }
@@ -380,9 +384,10 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             {
                 var dbClient = clientBl.GetClientById(request.Id) ??
                     throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.ClientNotFound);
+
                 var affModel = new ClientAffiliateModel
                 {
-                    AffiliatePlatformId = request.AffiliatePlatformId ?? dbClient.AffiliateReferral?.AffiliatePlatformId,
+                    AffiliatePlatformId = request.AffiliatePlatformId ?? dbClient.AffiliateReferral?.AffiliatePlatformId.ToString(),
                     AffiliateId = request.AffiliateId ?? dbClient.AffiliateReferral?.AffiliateId,
                     RefId = request.RefId?? dbClient.AffiliateReferral?.RefId
                 };
@@ -431,6 +436,23 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}_{2}", Constants.CacheItems.ClientSettings, request.ClientId, "PasswordChangedDate"));
                 Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}_{2}", ClientSettings.BlockedForInactivity, request.ClientId, "BlockedForInactivity"));
                 return response;
+            }
+        }
+
+        private static ApiResponseBase ResetClientPinCode(int clientId, SessionIdentity identity, ILog log)
+        {
+            var client = CacheManager.GetClientById(clientId) ??
+                throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.ClientNotFound);            
+
+            var partner = CacheManager.GetPartnerById(client.PartnerId);
+            identity.Domain = partner.SiteUrl.Split(',')[0];
+
+            using (var clientBl = new ClientBll(identity, log))
+            {
+                return new ApiResponseBase
+                {
+                    ResponseObject = clientBl.ResetClientPinCode(clientId)
+                };
             }
         }
 
@@ -1274,7 +1296,10 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                                     Integration.Products.Helpers.EveryMatrixHelpers.ForfeitFreeSpinBonus(client.Id, clientFreeSpin.BonusId, product.Id);
                                     break;
                                 case Constants.GameProviders.PlaynGo:
-                                    Integration.Products.Helpers.PlaynGoHelpers.CancelFreeSpinBonus(client.Id, clientFreeSpin.BonusId, product.Id);
+                                    Integration.Products.Helpers.PlaynGoHelpers.CancelFreeSpinBonus(client.Id, clientFreeSpin.BonusId);
+                                    break;
+                                case Constants.GameProviders.AleaPlay:
+                                    Integration.Products.Helpers.AleaPlayHelpers.CancelFreeRound(client.Id, clientFreeSpin.BonusId);
                                     break;
                                 default:
                                     break;
@@ -1411,6 +1436,25 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             }
         }
 
+        private static ApiResponseBase CheckClientExternalStatus(int clientId, SessionIdentity session, ILog log)
+        {
+            var client = CacheManager.GetClientById(clientId) ??
+                throw BaseBll.CreateException(session.LanguageId, Constants.Errors.ClientNotFound);
+            var verificationPlatform = CacheManager.GetConfigKey(client.PartnerId, Constants.PartnerKeys.VerificationPlatform);
+            if (!string.IsNullOrEmpty(verificationPlatform) && int.TryParse(verificationPlatform, out int verificationPatformId))
+            {
+                switch (verificationPatformId)
+                {
+                    case (int)VerificationPlatforms.Insic:
+                        OASISHelpers.CheckClientStatus(client, null, session.LanguageId, session, WebApiApplication.DbLogger);
+                        break;
+                    default:
+                        break;
+                }
+            }
+            return new ApiResponseBase();
+        }
+
         private static ApiResponseBase SaveClientLimitSettings(ClientCustomSettings limits, SessionIdentity session, ILog log)
         {
             using (var scope = CommonFunctions.CreateTransactionScope())
@@ -1462,7 +1506,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             {
                 using (var notificationBll = new NotificationBll(identity, log))
                 {
-                    clientBl.AddOrUpdateClientSetting(input.ClientId, ClientSettings.SystemExcluded, 1, string.Empty, toDate, null, string.Empty);
+                    clientBl.AddOrUpdateClientSetting(input.ClientId, ClientSettings.SystemExcluded, 1, input.Reason.ToString(), toDate, null, string.Empty);
                     clientBl.LogoutClientById(input.ClientId, (int)LogoutTypes.System);
                     notificationBll.SendNotificationMessage(new NotificationModel
                     {
@@ -1495,16 +1539,20 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             }
         }
 
-        private static ApiResponseBase RemoveClientExclusion(int clientId, bool isSystem, SessionIdentity identity, ILog log)
+        private static ApiResponseBase RemoveClientExclusion(ApiExlusionModel apiExlusionModel, bool isSystem, SessionIdentity identity, ILog log)
         {
             using (var clientBl = new ClientBll(identity, log))
             {
-                clientBl.RemoveClientExclusion(clientId, isSystem);
+                var client = CacheManager.GetClientById(apiExlusionModel.ClientId) ??
+                    throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.ClientNotFound);
+                var reason = CacheManager.GetPartnerCommentTemplates(client.PartnerId, (int)CommentTemplateTypes.UnexclutionReason, identity.LanguageId)
+                                                    .FirstOrDefault(x => x.Id == apiExlusionModel.Reason)?.Text;
+
+                clientBl.RemoveClientExclusion(apiExlusionModel.ClientId, isSystem, reason);
                 if (isSystem)
-                    Helpers.Helpers.InvokeMessage("RemoveClientSetting", clientId, ClientSettings.SystemExcluded);
+                    Helpers.Helpers.InvokeMessage("RemoveClientSetting", apiExlusionModel.ClientId, ClientSettings.SystemExcluded);
                 else
-                    Helpers.Helpers.InvokeMessage("RemoveClientSetting", clientId, ClientSettings.SelfExcluded);
-                var client = CacheManager.GetClientById(clientId);
+                    Helpers.Helpers.InvokeMessage("RemoveClientSetting", apiExlusionModel.ClientId, ClientSettings.SelfExcluded);
                 var verificationPlatform = CacheManager.GetConfigKey(client.PartnerId, Constants.PartnerKeys.VerificationPlatform);
                 if (!string.IsNullOrEmpty(verificationPlatform) && int.TryParse(verificationPlatform, out int verificationPatformId))
                 {
@@ -1622,42 +1670,46 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
 
         private static ApiResponseBase GetClientGameProviderSettings(int clientId, SessionIdentity identity, ILog log)
         {
-            var client = CacheManager.GetClientById(clientId);
-            if (client == null)
+            var client = CacheManager.GetClientById(clientId) ??
                 throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.ClientNotFound);
             using (var productBll = new ProductBll(identity, log))
             {
-                using (var partnerBll = new PartnerBll(productBll))
+                var checkPartnerPermission = productBll.GetPermissionsToObject(new CheckPermissionInput
                 {
-                    var checkPartnerPermission = partnerBll.GetPermissionsToObject(new CheckPermissionInput
-                    {
-                        Permission = Constants.Permissions.ViewPartner,
-                        ObjectTypeId = ObjectTypes.Partner
-                    });
-                    var checkClientPermission = partnerBll.GetPermissionsToObject(new CheckPermissionInput
-                    {
-                        Permission = Constants.Permissions.ViewClient,
-                        ObjectTypeId = ObjectTypes.Client
-                    });
-                    if (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != client.PartnerId) ||
-                        !checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != client.Id))
-                        throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.DontHavePermission);
-                    var clientProviderSettings = productBll.GetGameProviderSettings((int)ObjectTypes.Client, clientId).Select(x => new ApiGameProviderSetting
-                    {
-                        ObjectId = Convert.ToInt32(x.ObjectId),
-                        GameProviderId = x.GameProviderId,
-                        GameProviderName = x.GameProvider.Name,
-                        State = x.State,
-                        Order = x.Order ?? 1
-                    }).ToList();
+                    Permission = Constants.Permissions.ViewPartner,
+                    ObjectTypeId = ObjectTypes.Partner
+                });
+                var checkClientPermission = productBll.GetPermissionsToObject(new CheckPermissionInput
+                {
+                    Permission = Constants.Permissions.ViewClient,
+                    ObjectTypeId = ObjectTypes.Client
+                });
+                if (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != client.PartnerId) ||
+                    !checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != client.Id))
+                    throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.DontHavePermission);
+                var clientProviderSettings = productBll.GetGameProviderSettings((int)ObjectTypes.Client, clientId).Select(x => new ApiGameProviderSetting
+                {
+                    ObjectId = Convert.ToInt32(x.ObjectId),
+                    GameProviderId = x.GameProviderId,
+                    GameProviderName = x.GameProvider.Name,
+                    State = x.State,
+                    Order = x.Order ?? 1
+                }).ToList();
 
-                    clientProviderSettings.AddRange(productBll.GetGameProviders(new FilterGameProvider()).Where(x => !clientProviderSettings.Any(y => y.GameProviderId == x.Id))
-                        .Select(x => new ApiGameProviderSetting { ObjectId = clientId, GameProviderId = x.Id, GameProviderName = x.Name, State = (int)BaseStates.Active, Order = 10000 }));
-                    return new ApiResponseBase
-                    {
-                        ResponseObject = clientProviderSettings
-                    };
-                }
+                clientProviderSettings.AddRange(productBll.GetGameProviders(new FilterGameProvider { IsActive = true })
+                                                          .Where(x => !clientProviderSettings.Any(y => y.GameProviderId == x.Id))
+                                                          .Select(x => new ApiGameProviderSetting
+                                                          {
+                                                              ObjectId = clientId,
+                                                              GameProviderId = x.Id,
+                                                              GameProviderName = x.Name,
+                                                              State = (int)BaseStates.Active,
+                                                              Order = 10000
+                                                          }));
+                return new ApiResponseBase
+                {
+                    ResponseObject = clientProviderSettings
+                };
             }
         }
 

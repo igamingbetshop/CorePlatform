@@ -1,5 +1,6 @@
 ﻿using IqSoft.CP.BLL.Services;
 using IqSoft.CP.Common;
+using IqSoft.CP.Common.Enums;
 using IqSoft.CP.Common.Models.CacheModels;
 using IqSoft.CP.DAL.Models;
 using IqSoft.CP.PaymentGateway.Helpers;
@@ -39,20 +40,21 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 					{
 						using (var notificationBl = new NotificationBll(paymentSystemBl))
 						{
-							using (var documentBll = new DocumentBll(paymentSystemBl))
+							var transaction = JsonConvert.DeserializeObject<Transaction>(inputString);
+							var paymentRequest = paymentSystemBl.GetPaymentRequestById(Convert.ToInt64(transaction.ThirdPartyId)) ??
+									 throw BaseBll.CreateException(string.Empty, Constants.Errors.PaymentRequestNotFound);
+							paymentRequest.ExternalTransactionId = transaction.TxnId;
+
+							if (transaction.Status == "COMPLETED")
 							{
-								var transaction = JsonConvert.DeserializeObject<Transaction>(inputString);
-								var paymentRequest = paymentSystemBl.GetPaymentRequestById(Convert.ToInt64(transaction.ThirdPartyId)) ??
-										 throw BaseBll.CreateException(string.Empty, Constants.Errors.PaymentRequestNotFound);
-								paymentRequest.ExternalTransactionId = transaction.TxnId;
-								if (transaction.Status == "COMPLETED")
-								{
-									clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
-									PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
-									BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);
-									response = "OK";
-								}
+								clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
+								PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
+								BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);
 							}
+							else if (transaction.Status.ToLower() == "declined")
+								clientBl.ChangeDepositRequestState(paymentRequest.Id, PaymentRequestStates.Deleted, transaction.Reason, notificationBl);
+
+							response = "OK";
 						}
 					}
 				}

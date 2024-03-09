@@ -32,7 +32,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             switch (request.Method)
             {
                 case "GetPaymentSystems":
-                    return GetPaymentSystems(identity, log);
+                    return GetPaymentSystems(request.RequestData != null ? JsonConvert.DeserializeObject<ApiFilterPaymentSystem>(request.RequestData) : null, identity, log);
                 case "GetPartnerPaymentSettings":
                     return GetPartnerPaymentSettings(
                             JsonConvert.DeserializeObject<ApiFilterfnPartnerPaymentSetting>(request.RequestData),
@@ -40,8 +40,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 case "GetPartnerPaymentSettingById":
                     return GetPartnerPaymentSettingById(Convert.ToInt32(request.RequestData), identity, log);
                 case "SavePaymentSystem":
-                    return SavePaymentSystem(JsonConvert.DeserializeObject<PaymentSystemModel>(request.RequestData),
-                        identity, log);
+                    return SavePaymentSystem(JsonConvert.DeserializeObject<ApiPaymentSystemModel>(request.RequestData),identity, log);
               case "SavePartnerPaymentCurrencyRate":
                     return SavePartnerPaymentCurrencyRate(
                             JsonConvert.DeserializeObject<ApiPartnerPaymentCurrencyRate>(request.RequestData), identity, log);
@@ -125,21 +124,19 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 case "RedirectPaymentRequest":
                     return RedirectPaymentRequest(JsonConvert.DeserializeObject<ApiRedirectPaymentRequestInput>(request.RequestData), identity, log);
                 case "CancelDepositFromBetShop":
-                    return DeleteDepositFromBetShop(JsonConvert.DeserializeObject<PaymentSystemModel>(request.RequestData).Id, identity, log);
+                    return DeleteDepositFromBetShop(JsonConvert.DeserializeObject<ApiPaymentSystemModel>(request.RequestData).Id ?? 0, identity, log);
             }
             throw BaseBll.CreateException(string.Empty, Constants.Errors.MethodNotFound);
         }
 
-        public static ApiResponseBase GetPaymentSystems(SessionIdentity identity, ILog log)
+        public static ApiResponseBase GetPaymentSystems(ApiFilterPaymentSystem filter, SessionIdentity identity, ILog log)
         {
             using (var paymentSystemBl = new PaymentSystemBll(identity, log))
             {
-                var result = paymentSystemBl.GetPaymentSystems();
+                var result = paymentSystemBl.GetPaymentSystems(filter?.IsActive);
                 return new ApiResponseBase
                 {
-                    ResponseObject =
-                        result.Select(
-                            x => x.MapToPaymentSystemModel(identity.TimeZone))
+                    ResponseObject = result.Select(x => x.MapToPaymentSystemModel(identity.TimeZone))
                 };
             }
         }
@@ -150,12 +147,11 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             {
                 var paymentSettings =
                     paymentSystemBl.GetfnPartnerPaymentSettings(filter.MapToFilterfnPartnerPaymentSetting(), true, identity.PartnerId);
-                var response = new ApiResponseBase
+                return new ApiResponseBase
                 {
                     ResponseObject = paymentSettings.Select(x => x.MapTofnPartnerPaymentSettingModel(identity.TimeZone)).
                         OrderBy(x => x.State).ThenBy(x => x.Type).ThenByDescending(x => x.Id).ToList()
                 };
-                return response;
             }
         }
 
@@ -197,6 +193,8 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     PaymentSystemPriority = paymentSystem.PaymentSystemPriority,
                     Type = paymentSystem.Type,
                     Commission = paymentSystem.Commission,
+                    FixedFee = paymentSystem.FixedFee,
+                    ApplyPercentAmount = paymentSystem.ApplyPercentAmount,
                     Info = paymentSystem.Info,
                     MaxAmount = paymentSystem.MaxAmount,
                     MinAmount = paymentSystem.MinAmount,
@@ -262,6 +260,8 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     PaymentSystemPriority = partnerPaymentSetting.PaymentSystemPriority,
                     Type = partnerPaymentSetting.Type,
                     Commission = partnerPaymentSetting.Commission,
+                    FixedFee = partnerPaymentSetting.FixedFee,
+                    ApplyPercentAmount = partnerPaymentSetting.ApplyPercentAmount,
                     Info = partnerPaymentSetting.Info,
                     MaxAmount = partnerPaymentSetting.MaxAmount,
                     MinAmount = partnerPaymentSetting.MinAmount,
@@ -290,15 +290,20 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
 
             }
         }
-        private static ApiResponseBase SavePaymentSystem(PaymentSystemModel paymentSystem, SessionIdentity identity, ILog log)
+
+        private static ApiResponseBase SavePaymentSystem(ApiPaymentSystemModel apiPaymentSystemModel, SessionIdentity identity, ILog log)
         {
             using (var paymentSystemBl = new PaymentSystemBll(identity, log))
             {
-                var response = new ApiResponseBase
-                {
-                    ResponseObject = paymentSystemBl.SavePaymentSystem(paymentSystem.MapToPaymentSystem()).MapToPaymentSystemModel(identity.TimeZone)
-                };
-                return response;
+                paymentSystemBl.SavePaymentSystem(apiPaymentSystemModel);
+                if (apiPaymentSystemModel.Id.HasValue && apiPaymentSystemModel.Id>=0)
+                    Helpers.Helpers.InvokeMessage("RemoveKeysFromCache", string.Format("{0}_{1}", Constants.CacheItems.PaymentSystems, apiPaymentSystemModel.Id));
+                else
+                    apiPaymentSystemModel.Ids.ForEach(x =>
+                    {
+                        Helpers.Helpers.InvokeMessage("RemoveKeysFromCache", string.Format("{0}_{1}", Constants.CacheItems.PaymentSystems, x));
+                    });
+                return new ApiResponseBase();
             }
         }
 

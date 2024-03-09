@@ -54,7 +54,8 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                 if (input.Signature.ToLower() != sign.ToLower())
                     throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongHash);
                 if (client.State == (int)ClientStates.BlockedForDeposit || client.State == (int)ClientStates.FullBlocked ||
-                   client.State == (int)ClientStates.Suspended || client.State == (int)ClientStates.Disabled)
+                    client.State == (int)ClientStates.Suspended || client.State == (int)ClientStates.SuspendedWithWithdraw ||
+                    client.State == (int)ClientStates.Disabled)
                     throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.ClientBlocked);
                 var regionPath = CacheManager.GetRegionPathById(client.RegionId);
                 var country = regionPath.FirstOrDefault(x => x.TypeId == (int)RegionTypes.Country);
@@ -121,7 +122,8 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                 if (input.Signature.ToLower() != sign.ToLower())
                     throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongHash);
                 if (client.State == (int)ClientStates.BlockedForDeposit || client.State == (int)ClientStates.FullBlocked ||
-                   client.State == (int)ClientStates.Suspended || client.State == (int)ClientStates.Disabled)
+                    client.State == (int)ClientStates.Suspended || client.State == (int)ClientStates.SuspendedWithWithdraw ||
+                    client.State == (int)ClientStates.Disabled)
                     throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.ClientBlocked);
                 if (input.Amount <= 0)
                     throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongInputParameters);

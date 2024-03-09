@@ -45,5 +45,6 @@ namespace IqSoft.CP.DataWarehouse
         public Nullable<long> Date { get; set; }
         public Nullable<int> PartnerId { get; set; }
         public Nullable<long> AccountId { get; set; }
+        public Nullable<bool> Considered { get; set; }
     }
 }

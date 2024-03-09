@@ -290,6 +290,8 @@
     <Compile Include="Filters\FilterClient.cs" />
     <Compile Include="Filters\FilterClientMessage.cs" />
     <Compile Include="Filters\FilterClientSession.cs" />
+    <Compile Include="Filters\FilterfnBanner.cs" />
+    <Compile Include="Filters\FilterPopup.cs" />
     <Compile Include="Filters\FilterShopWalletClient.cs" />
     <Compile Include="Filters\FilterUserCorrection.cs" />
     <Compile Include="Filters\FilterCorrection.cs" />
@@ -447,6 +449,9 @@
       <DependentUpon>IqSoftCP.tt</DependentUpon>
     </Compile>
     <Compile Include="fnMessageTemplate.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnNews.cs">
       <DependentUpon>IqSoftCP.tt</DependentUpon>
     </Compile>
     <Compile Include="fnNote.cs">
@@ -632,6 +637,8 @@
     <Compile Include="Models\Affiliates\NetreferActivityModel.cs" />
     <Compile Include="Models\Affiliates\RegistrationActivityModel.cs" />
     <Compile Include="Models\BetShopReconingOutput.cs" />
+    <Compile Include="Models\Cache\BllObjectSetting.cs" />
+    <Compile Include="Models\Cache\BllPopup.cs" />
     <Compile Include="Models\Cache\BllTicker.cs" />
     <Compile Include="Models\Cache\BllAsianCommissionPlan.cs" />
     <Compile Include="Models\Cache\BllBetShopGroup.cs" />
@@ -668,7 +675,6 @@
     <Compile Include="Models\Cache\BllMessageTemplate.cs" />
     <Compile Include="Models\Cache\BllObjectType.cs" />
     <Compile Include="Models\Cache\BllOnlineClient.cs" />
-    <Compile Include="Models\Cache\BllPartner.cs" />
     <Compile Include="Models\Cache\BllPartnerCountrySetting.cs" />
     <Compile Include="Models\Cache\BllPartnerCurrencySetting.cs" />
     <Compile Include="Models\Cache\BllPartnerPaymentSetting.cs" />
@@ -779,6 +785,7 @@
     <Compile Include="Models\PlayersDashboard\ClientReportTotal.cs" />
     <Compile Include="Models\Report\PaymentRequestHistoryElement.cs" />
     <Compile Include="Models\Report\SegmentByPaymentSystem.cs" />
+    <Compile Include="Models\Report\TotalValues.cs" />
     <Compile Include="Models\ResponseBase.cs" />
     <Compile Include="Models\Segment\SegementSettingModel.cs" />
     <Compile Include="Models\Segment\SegmentModel.cs" />
@@ -794,6 +801,15 @@
     <Compile Include="Models\User\UserBalance.cs" />
     <Compile Include="Models\User\UserTransferInput.cs" />
     <Compile Include="Models\WebSite\WebSiteTranslation.cs" />
+    <Compile Include="News.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="NewsLanguageSetting.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="NewsSegmentSetting.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
     <Compile Include="Note.cs">
       <DependentUpon>IqSoftCP.tt</DependentUpon>
     </Compile>
@@ -821,6 +837,7 @@
     <Compile Include="PartialClasses\BetShopTicket.cs" />
     <Compile Include="PartialClasses\BonusProduct.cs" />
     <Compile Include="PartialClasses\Character.cs" />
+    <Compile Include="PartialClasses\ClientBonu.cs" />
     <Compile Include="PartialClasses\Email.cs" />
     <Compile Include="PartialClasses\fnAffiliateClientInfo.cs" />
     <Compile Include="PartialClasses\fnAffiliateTransaction.cs" />
@@ -836,6 +853,8 @@
     <Compile Include="PartialClasses\fnReportByUserTransaction.cs" />
     <Compile Include="PartialClasses\fnShopWalletClient.cs" />
     <Compile Include="PartialClasses\fnUserSession.cs" />
+    <Compile Include="PartialClasses\News.cs" />
+    <Compile Include="PartialClasses\Popup.cs" />
     <Compile Include="PartialClasses\Promotion.cs" />
     <Compile Include="PartialClasses\fnBanner.cs" />
     <Compile Include="PartialClasses\fnUserCorrection.cs" />
@@ -972,6 +991,12 @@
       <DependentUpon>IqSoftCP.tt</DependentUpon>
     </Compile>
     <Compile Include="PermissionGroup.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Popup.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="PopupSetting.cs">
       <DependentUpon>IqSoftCP.tt</DependentUpon>
     </Compile>
     <Compile Include="Product.cs">

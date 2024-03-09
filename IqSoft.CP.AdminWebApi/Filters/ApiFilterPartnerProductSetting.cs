@@ -5,6 +5,7 @@
         public int PartnerId { get; set; }
         public int? ProviderId { get; set; }
         public int? CategoryIds { get; set; }
+        public bool? HasImages { get; set; }
         public ApiFiltersOperation IsForMobile { get; set; }
         public ApiFiltersOperation IsForDesktop { get; set; }
         public ApiFiltersOperation HasDemo { get; set; }
