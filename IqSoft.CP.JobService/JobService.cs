@@ -1138,7 +1138,7 @@ namespace IqSoft.CP.WindowsServices.JobService
                                             freespinModel.ProductExternalId = y.ExternalId;
                                             freespinModel.SpinCount = Convert.ToInt32(y.SpinCount);
                                             freespinModel.BonusId = clientBonus.Id;
-                                            Integration.Products.Helpers.TimelessTechHelpers.CreateCampaign(freespinModel, log);
+                                            Integration.Products.Helpers.TimelessTechHelpers.CreateCampaign(freespinModel, Constants.GameProviders.TimelessTech, log);
                                         });
                                         break;
                                     default:

@@ -15,7 +15,6 @@ using System.Data.Entity;
 using IqSoft.CP.Common.Models.CacheModels;
 using IqSoft.CP.DataWarehouse;
 using ILog = log4net.ILog;
-using IqSoft.CP.Common.Models.WebSiteModels;
 
 namespace IqSoft.CP.BLL.Caching
 {
@@ -689,7 +688,8 @@ namespace IqSoft.CP.BLL.Caching
                             PaymentRequestSendCount = x.PaymentRequestSendCount,
                             Type = x.Type,
                             TranslationId = x.TranslationId,
-                            ContentType = x.ContentType
+                            ContentType = x.ContentType,
+                            IsActive = x.IsActive
                         }).FirstOrDefault();
             }
         }
@@ -948,7 +948,7 @@ namespace IqSoft.CP.BLL.Caching
             if (!string.IsNullOrEmpty(oldValue))
                 return oldValue;
             var newValue = GetTranslationFromDb(translationId, languageId);
-            var res = MemcachedCache.Store(StoreMode.Set, key, newValue, TimeSpan.FromDays(1d));
+            MemcachedCache.Store(StoreMode.Set, key, newValue, TimeSpan.FromDays(1d));
             return newValue;
         }
 
@@ -1490,7 +1490,7 @@ namespace IqSoft.CP.BLL.Caching
             if (oldValue != null) 
                 return oldValue;
             var newValue = GetGameProviderFromDb(id, string.Empty);
-            var res = MemcachedCache.Store(StoreMode.Set, key, newValue, TimeSpan.FromDays(1d));
+            MemcachedCache.Store(StoreMode.Set, key, newValue, TimeSpan.FromDays(1d));
             return newValue;
         }
 
@@ -2419,6 +2419,29 @@ namespace IqSoft.CP.BLL.Caching
         #endregion
 
         #region Client
+        public static List<BllClientPaymentSetting> GetClientPaymentSettings(int clientId)
+        {
+            var key = string.Format("{0}_{1}", Constants.CacheItems.ClientPaymentSetting, clientId);
+            var oldValue = MemcachedCache.Get<List<BllClientPaymentSetting>>(key);
+            if (oldValue != null) return oldValue;
+            var newValue = GetClientPaymentSettingsFromDb(clientId);
+            MemcachedCache.Store(StoreMode.Set, key, newValue, TimeSpan.FromDays(1));
+            return newValue;
+        }
+
+        private static List<BllClientPaymentSetting> GetClientPaymentSettingsFromDb(int clientId)
+        {
+            using (var db = new IqSoftCorePlatformEntities())
+            {
+                return db.ClientPaymentSettings.Where(x => x.ClientId == clientId)
+                                               .Select(x => new BllClientPaymentSetting 
+                                               {
+                                                   PaymentSystemId = x.PartnerPaymentSetting.PaymentSystemId,
+                                                   State = x.State,
+                                                   Type = x.PartnerPaymentSetting.Type
+                                               }).ToList();
+            }
+        }
 
         public static List<BllClientClassification> GetClientClassifications(int clientId)
         {
@@ -3099,9 +3122,9 @@ namespace IqSoft.CP.BLL.Caching
             if (newValue != null && extend)
                 newValue.LastUpdateTime = DateTime.UtcNow;
 
-            var res = MemcachedCache.Store(StoreMode.Set, key0, newValue, TimeSpan.FromHours(3));
+            MemcachedCache.Store(StoreMode.Set, key0, newValue, TimeSpan.FromHours(3));
             if (productId != null)
-                res = MemcachedCache.Store(StoreMode.Set, keyp, newValue, TimeSpan.FromHours(3));
+                MemcachedCache.Store(StoreMode.Set, keyp, newValue, TimeSpan.FromHours(3));
 
             return newValue;
         }
@@ -3706,7 +3729,8 @@ namespace IqSoft.CP.BLL.Caching
                                                           ImageName = x.ImageName,
                                                           Order = x.Order,
                                                           ParentId = x.ParentId,
-                                                          StyleType = x.StyleType
+                                                          StyleType = x.StyleType,
+                                                          DeviceType = x.DeviceType
                                                       }).ToList();
                 var ids = resp.Select(x => x.Id).ToList();
                 var segments = db.PromotionSegmentSettings.Where(x => ids.Contains(x.PromotionId)).ToList();
@@ -4234,28 +4258,28 @@ namespace IqSoft.CP.BLL.Caching
 
         #endregion
 
-        public static List<BllTicker> GetPartnerTicker(int partnerId, string languageId)
+        public static List<BllTicker> GetPartnerTicker(int partnerId, int receiverTypes, string languageId)
         {
-            var key = string.Format("{0}_{1}_{2}", Constants.CacheItems.Ticker, partnerId, languageId);
+            var key = string.Format("{0}_{1}_{2}_{3}", Constants.CacheItems.Ticker, partnerId, receiverTypes, languageId);
             var oldValue = MemcachedCache.Get<List<BllTicker>>(key);
             if (oldValue != null) return oldValue;
-            var newValue = GetPartnerTickerFromDb(partnerId, languageId);
+            var newValue = GetPartnerTickerFromDb(partnerId, receiverTypes, languageId);
             MemcachedCache.Store(StoreMode.Set, key, newValue, TimeSpan.FromDays(1d));
             UpdateListedKeys(key);
             return newValue;
         }
 
-        public static void RemovePartnerTickerFromCache(int partnerId, string languageId)
+        public static void RemovePartnerTickerFromCache(int partnerId, int receiverTypes, string languageId)
         {
-            MemcachedCache.Remove(string.Format("{0}_{1}_{2}", Constants.CacheItems.Ticker, partnerId, languageId));
+            MemcachedCache.Remove(string.Format("{0}_{1}_{2}_{3}", Constants.CacheItems.Ticker, partnerId, receiverTypes, languageId));
         }
 
-        private static List<BllTicker> GetPartnerTickerFromDb(int partnerId, string languageId)
+        private static List<BllTicker> GetPartnerTickerFromDb(int partnerId, int receiverTypes, string languageId)
         {
             using (var db = new IqSoftCorePlatformEntities())
             {
                 var tickers = db.fn_Announcement(languageId).Where(x => x.PartnerId == partnerId && x.Type == (int)AnnouncementTypes.Ticker &&
-                                                                        x.ReceiverType == (int)AnnouncementReceiverTypes.Client &&
+                                                                        x.ReceiverType == receiverTypes &&
                                                                         x.State == (int)BaseStates.Active)
                                                             .OrderByDescending(x => x.Id).ToDictionary(k => k.Id, v => v.Message);
                 return db.Announcements.Include(x => x.AnnouncementSettings).Where(x => tickers.Keys.Contains(x.Id)).ToList()

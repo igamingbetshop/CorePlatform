@@ -86,7 +86,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                         {
                             using (var documentBll = new DocumentBll(paymentSystemBl))
                             {
-                                if (input.Status.ToUpper() == "ACCEPTED" || input.Status.ToUpper() == "COMPLETED" || input.Status.ToUpper() == "SUBMITTED")
+                                if (input.Status.ToUpper() == "ACCEPTED" || input.Status.ToUpper() == "COMPLETED")
                                 {
                                     if (request.Type == (int)PaymentRequestTypes.Deposit)
                                         clientBl.ApproveDepositFromPaymentSystem(request, false);

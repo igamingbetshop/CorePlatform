@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -12,8 +13,9 @@ namespace IqSoft.CP.Common.Models
         }
 
         public bool HaveAccessForAllObjects { get; set; }
-        public IQueryable<long> AccessibleObjects { get; set; }
-        public IQueryable<string> AccessibleStringObjects { get; set; }
+        public List<long> AccessibleObjects { get; set; }
+        public List<int> AccessibleIntegerObjects { get; set; }
+        public List<string> AccessibleStringObjects { get; set; }
     }
 
     public class CheckPermissionOutput<T> : CheckPermissionOutput
@@ -26,6 +28,7 @@ namespace IqSoft.CP.Common.Models
             {
                 HaveAccessForAllObjects = HaveAccessForAllObjects,
                 AccessibleObjects = AccessibleObjects,
+                AccessibleIntegerObjects = AccessibleIntegerObjects,
                 AccessibleStringObjects = AccessibleStringObjects,
                 Filter = Filter
             };

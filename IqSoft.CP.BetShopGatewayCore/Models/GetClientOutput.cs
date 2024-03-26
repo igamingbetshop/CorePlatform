@@ -9,7 +9,7 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Models
         public string Email { get; set; }
         public string CurrencyId { get; set; }
         public string UserName { get; set; }
-        public int Gender { get; set; }
+        public int? Gender { get; set; }
         public DateTime BirthDate { get; set; }
         public string FirstName { get; set; }
         public string SecondName { get; set; }

@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using IqSoft.CP.BetShopWebApi.Models.Common;
 using IqSoft.CP.BetShopWebApi.Hubs;
 using Microsoft.AspNet.SignalR;

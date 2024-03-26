@@ -8,7 +8,8 @@ namespace IqSoft.CP.AdminWebApi.Models.PaymentModels
 
         public long Count { get; set; }
 
-        public decimal? TotalAmount { get; set; }
+        public decimal TotalAmount { get; set; }
+        public decimal TotalFinalAmount { get; set; }
 
         public int TotalUniquePlayers { get; set; }
     }

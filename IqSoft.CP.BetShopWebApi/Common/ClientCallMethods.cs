@@ -44,7 +44,7 @@
 		public const string GetBalance = "GetBalance";
 		public const string PlaceBetByBarcode = "PlaceBetByBarcode";
 		public const string GetBetByDocumentId = "GetBetByDocumentId";
-		public const string GetUserProductSessions = "GetUserProductSessions";
+		public const string GetUserProductSession = "GetUserProductSession";
         public const string GetResultsReport = "GetResultsReport";
         public const string GetUnitResult = "GetUnitResult";
         public const string ChangeCashierPassword = "ChangeCashierPassword";

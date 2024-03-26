@@ -276,7 +276,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                 switch (provider.Name)
                 {
                     case Constants.GameProviders.TimelessTech:
-                        var key = Integration.Products.Helpers.TimelessTechHelpers.GetSignature(request.PartnerId, request.RequestData, client.Id, client.CurrencyId);
+                        var key = Integration.Products.Helpers.TimelessTechHelpers.GetSignature(request.PartnerId, provider.Id, request.RequestData, client.Id, client.CurrencyId);
 						response.ResponseObject = new { key };
 						break;
                 }
@@ -700,7 +700,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                     {
                         var agent = CacheManager.GetUserById(agentId);
                         if (agent != null && agent.PartnerId == quickRegistrationInput.PartnerId &&
-                           (agent.Type == (int)UserTypes.MasterAgent || agent.Type == (int)UserTypes.Agent))
+                           (agent.Type == (int)UserTypes.CompanyAgent || agent.Type == (int)UserTypes.DownlineAgent))
                         {
                             quickRegistrationInput.UserId = agentId;
                         }
@@ -809,7 +809,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                 {
                     var agent = CacheManager.GetUserById(agentId);
                     if (agent != null && agent.PartnerId == quickRegistrationInput.PartnerId &&
-                       (agent.Type == (int)UserTypes.MasterAgent || agent.Type == (int)UserTypes.Agent))
+                       (agent.Type == (int)UserTypes.CompanyAgent || agent.Type == (int)UserTypes.DownlineAgent))
                     {
                         quickRegistrationInput.UserId = agentId;
                     }
@@ -901,13 +901,16 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                             input.Email = input.Email.Replace(" ", string.Empty);
                         if (!string.IsNullOrEmpty(input.MobileNumber))
                             input.MobileNumber = input.MobileNumber.Replace(" ", string.Empty);
+                        if((input.BirthDay ?? input.BirthMonth ?? input.BirthYear) != null && 
+                            (!input.BirthDay.HasValue || !input.BirthMonth.HasValue || !input.BirthYear.HasValue))
+                            throw BaseBll.CreateException(input.LanguageId, Constants.Errors.InvalidBirthDate);
 
                         var clientRegistrationInput = new ClientRegistrationInput
                         {
                             ClientData = input.MapToClient(),
                             ReferralType = input.ReferralType,
                             SecurityQuestions = input.SecurityQuestions,
-                            IsQuickRegistration = false,
+                            RegistrationType = (int)Constants.RegisterTypes.Full,
                             ReCaptcha = input.ReCaptcha ?? string.Empty,
                             PromoCode = input.PromoCode,
                             GeneratedUsername = generatedUsername
@@ -949,7 +952,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                                 throw BaseBll.CreateException(input.LanguageId, Constants.Errors.WrongUserId);
                             var agent = CacheManager.GetUserById(agentId);
                             if (agent == null || agent.PartnerId != clientRegistrationInput.ClientData.PartnerId ||
-                                (agent.Type != (int)UserTypes.MasterAgent &&  agent.Type != (int)UserTypes.Agent))
+                                (agent.Type != (int)UserTypes.CompanyAgent &&  agent.Type != (int)UserTypes.DownlineAgent))
                                 throw BaseBll.CreateException(input.LanguageId, Constants.Errors.UserNotFound);
                             clientRegistrationInput.ClientData.UserId = agentId;
                         }
@@ -1674,6 +1677,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                     {
                         var filter = input.MapToFilterPartnerPaymentSystem();
                         filter.Status = (int)PartnerPaymentSettingStates.Active;
+                        var clientPaymentSettings = new List<BllClientPaymentSetting>();
                         if (input.ClientId != 0)
                         {
                             var client = CacheManager.GetClientById(input.ClientId);
@@ -1682,11 +1686,11 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                                 filter.CurrencyId = client.CurrencyId;
                                 filter.CountryId = CommonHelpers.GetCountryId(client.RegionId, input.LanguageId);
                             }
+                            clientPaymentSettings = CacheManager.GetClientPaymentSettings(client.Id);
                         }
-
                         var paymentSystems = paymentSystemBl.GetfnPartnerPaymentSettings(filter, false, input.PartnerId);
 
-						var resp = new GetPartnerPaymentSystemsOutput
+                        var resp = new GetPartnerPaymentSystemsOutput
                         {
                             PartnerPaymentSystems = new List<PartnerPaymentSettingModel>()
                         };
@@ -1715,7 +1719,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                         }
                         var psIdsWithBanks = paymentSystemBl.GetPartnerBanks(input.PartnerId, null, false, null).Select(y => (int)y.PaymentSystemId).Distinct().ToList();
 
-						foreach (var ps in paymentSystems)
+                        foreach (var ps in paymentSystems)
                         {
                             var setting = CacheManager.GetPartnerPaymentSettings(ps.PartnerId, ps.PaymentSystemId, ps.CurrencyId, ps.Type);
                             if (setting != null && setting.Id > 0 &&
@@ -1724,8 +1728,8 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                             {
                                 var item = ps.MapToPartnerPaymentSettingsModel();
                                 if (psIdsWithBanks.Contains(ps.PaymentSystemId))
-									item.HasBank = true;
-								if (input.ClientId != 0 && item.Type == (int)PaymentRequestTypes.Deposit)
+                                    item.HasBank = true;
+                                if (input.ClientId != 0 && item.Type == (int)PaymentRequestTypes.Deposit)
                                 {
                                     var settingName = string.Format("{0}_{1}", ClientSettings.PaymentAddress, item.PaymentSystemId);
                                     var clientSetting = CacheManager.GetClientSettingByName(input.ClientId, settingName);
@@ -1746,37 +1750,39 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
 
                                     }
                                 }
-                                    /*var segment = segments.Where(x => x.PaymentSystemId == item.PaymentSystemId && x.CurrencyId == item.CurrencyId).OrderBy(x => x.Priority).FirstOrDefault();
-                                    if (segment != null)
+                                /*var segment = segments.Where(x => x.PaymentSystemId == item.PaymentSystemId && x.CurrencyId == item.CurrencyId).OrderBy(x => x.Priority).FirstOrDefault();
+                                if (segment != null)
+                                {
+                                    if (segment.Status != 1 && item.Type == (int)PaymentSettingTypes.Deposit)
+                                        continue;
+                                    if (item.Type == (int)PaymentSettingTypes.Deposit)
                                     {
-                                        if (segment.Status != 1 && item.Type == (int)PaymentSettingTypes.Deposit)
-                                            continue;
-                                        if (item.Type == (int)PaymentSettingTypes.Deposit)
-                                        {
-                                            item.MinAmount = Math.Max(item.MinAmount, segment.DepositMinAmount);
-                                            item.MaxAmount = Math.Min(item.MaxAmount, segment.DepositMaxAmount);
-                                        }
-                                        else if (item.Type == (int)PaymentSettingTypes.Withdraw)
-                                        {
-                                            item.MinAmount = Math.Max(item.MinAmount, segment.WithdrawMinAmount);
-                                            item.MaxAmount = Math.Min(item.MaxAmount, segment.WithdrawMaxAmount);
-                                        }
-                                    }*/
-                                    if (limits != null)
-                                    {
-                                        if (item.Type == (int)PaymentSettingTypes.Deposit && limits.MaxDepositAmount != null)
-                                            item.MaxAmount = Math.Min(item.MaxAmount, limits.MaxDepositAmount.Value);
-                                        else if (item.Type == (int)PaymentSettingTypes.Withdraw && limits.MaxWithdrawAmount != null)
-                                            item.MaxAmount = Math.Min(item.MaxAmount, limits.MaxWithdrawAmount.Value);
+                                        item.MinAmount = Math.Max(item.MinAmount, segment.DepositMinAmount);
+                                        item.MaxAmount = Math.Min(item.MaxAmount, segment.DepositMaxAmount);
                                     }
-                                    resp.PartnerPaymentSystems.Add(item);
+                                    else if (item.Type == (int)PaymentSettingTypes.Withdraw)
+                                    {
+                                        item.MinAmount = Math.Max(item.MinAmount, segment.WithdrawMinAmount);
+                                        item.MaxAmount = Math.Min(item.MaxAmount, segment.WithdrawMaxAmount);
+                                    }
+                                }*/
+                                if (limits != null)
+                                {
+                                    if (item.Type == (int)PaymentSettingTypes.Deposit && limits.MaxDepositAmount != null)
+                                        item.MaxAmount = Math.Min(item.MaxAmount, limits.MaxDepositAmount.Value);
+                                    else if (item.Type == (int)PaymentSettingTypes.Withdraw && limits.MaxWithdrawAmount != null)
+                                        item.MaxAmount = Math.Min(item.MaxAmount, limits.MaxWithdrawAmount.Value);
                                 }
+                                if (clientPaymentSettings == null || !clientPaymentSettings.Any(x => x.PaymentSystemId == item.PaymentSystemId &&
+                                                                                                     x.Type == item.Type && x.State == (int)ClientPaymentStates.Blocked))
+                                    resp.PartnerPaymentSystems.Add(item);
                             }
-
-                            return resp;
                         }
+
+                        return resp;
                     }
-             }
+                }
+            }
             catch (FaultException<BllFnErrorType> ex)
             {
                 var response = new GetPartnerPaymentSystemsOutput
@@ -2220,7 +2226,8 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                             new Common.Models.AdminModels.ApiSetting { Type = x.Languages.Type, Names = x.Languages.Names },
                         Order = x.Order,
                         ParentId = x.ParentId,
-                        StyleType = x.StyleType
+                        StyleType = x.StyleType,
+                        DeviceType = x.DeviceType
                     }).ToList()
                 };
             }
@@ -2304,7 +2311,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                 var partner = CacheManager.GetPartnerById(input.PartnerId);
                 if (partner == null || !partner.SiteUrl.Split(',').Any(x => x == input.Domain))
                     throw BaseBll.CreateException(input.LanguageId, Constants.Errors.PartnerNotFound);
-                var tickers = CacheManager.GetPartnerTicker(input.PartnerId, input.LanguageId);
+                var tickers = CacheManager.GetPartnerTicker(input.PartnerId,(int)AnnouncementReceiverTypes.Client, input.LanguageId);
                 if (!string.IsNullOrEmpty(input.Token))
                 {
                     Helpers.Helpers.CheckToken(input.Token, input.ClientId, input.TimeZone);
@@ -2502,26 +2509,12 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
         {
             try
             {
-                var partner = CacheManager.GetPartnerById(input.PartnerId);
-                if (partner == null)
+                var partner = CacheManager.GetPartnerById(input.PartnerId) ??
                     throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.PartnerNotFound);
-                using (var contentBl = new ContentBll(new SessionIdentity(), WebApiApplication.DbLogger))
+                return new ApiResponseBase
                 {
-                    var registrationLimitPerDay = CacheManager.GetConfigKey(input.PartnerId, Constants.PartnerKeys.RegistrationLimitPerDay);
-                    return new ApiResponseBase
-                    {
-                        ResponseObject = new ApiRestrictionModel
-                        {
-                            WhitelistedCountries = CacheManager.GetConfigParameters(input.PartnerId, PartnerKeys.WhitelistedCountries).Select(x => x.Value).ToList() ?? new List<string>(),
-                            BlockedCountries = CacheManager.GetConfigParameters(input.PartnerId, PartnerKeys.BlockedCountries).Select(x => x.Value).ToList() ?? new List<string>(),
-                            WhitelistedIps = CacheManager.GetConfigParameters(input.PartnerId, PartnerKeys.WhitelistedIps).Select(x => x.Value).ToList() ?? new List<string>(),
-                            BlockedIps = CacheManager.GetConfigParameters(input.PartnerId, PartnerKeys.BlockedIps).Select(x => x.Value).ToList() ?? new List<string>(),
-                            RegistrationLimitPerDay = int.TryParse(registrationLimitPerDay, out int limit) ? limit : (int?)null,
-                            ConnectingIPHeader = CacheManager.GetConfigKey(input.PartnerId, PartnerKeys.ConnectingIPHeader),
-                            IPCountryHeader = CacheManager.GetConfigKey(input.PartnerId, PartnerKeys.IPCountryHeader)
-                        }
-                    };
-                }
+                    ResponseObject =  PartnerBll.GetApiPartnerRestrictions(partner.Id, SystemModuleTypes.WebSite)
+                };
             }
             catch (FaultException<BllFnErrorType> ex)
             {

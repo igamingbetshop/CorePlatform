@@ -866,6 +866,7 @@ namespace IqSoft.CP.JobService
                                                                ClickId = x.AffiliateReferral.RefId,
                                                                RegistrationIp = x.RegistrationIp,
                                                                RegistrationDate = x.CreationTime,
+                                                               ClientLastUpdateTime = x.LastUpdateTime,
                                                                FirstDepositDate = x.FirstDepositDate,
                                                                CountryCode = x.Region.IsoCode,
                                                                Language = x.LanguageId,
@@ -1772,7 +1773,8 @@ namespace IqSoft.CP.JobService
                     var clientBonusTriggers = bonusTriggers.Where(x => x.BonusId == clientBonus.BonusId && x.ReuseNumber == clientBonus.ReuseNumber &&
                       (x.ClientId == clientBonus.ClientId || x.ClientId == null) &&
                       (x.BetCount == null || x.BetCount >= x.TriggerSetting.MinBetCount) &&
-                      (x.WageringAmount == null || x.WageringAmount >= BaseBll.ConvertCurrency(partner.CurrencyId, clientBonus.Client.CurrencyId, x.TriggerSetting.MinAmount.Value))).ToList();
+                      (x.WageringAmount == null || x.WageringAmount >= Math.Floor(BaseBll.ConvertCurrency(partner.CurrencyId, 
+                        clientBonus.Client.CurrencyId, x.TriggerSetting.MinAmount.Value) * 100) / 100m)).ToList();
 
                     var clientBonusTriggerIds = clientBonusTriggers.Select(x => x.TriggerId).ToList();
                     if (bonus.Groups.All(y =>
@@ -1939,7 +1941,8 @@ namespace IqSoft.CP.JobService
                                 notificationBl.SendDepositNotification(client.Id, trigger.PaymentRequest.Status, trigger.Amount ?? 0, string.Empty);
 								var partnerKey = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.CRMPlarforms).StringValue;
 								if (!isInternalAffiliate || !string.IsNullOrWhiteSpace(partnerKey))
-                                    notificationBl.DepositAffiliateNotification(client, trigger.PaymentRequest.Amount, trigger.PaymentRequest.Id, depCount, partnerKey);
+                                    notificationBl.DepositAffiliateNotification(client, trigger.PaymentRequest.Amount, trigger.PaymentRequest.CreationTime,
+                                                                                              trigger.PaymentRequest.Id, depCount, partnerKey);
 								clientBl.AddClientJobTrigger(trigger.ClientId, (int)JobTriggerTypes.ReconsiderSegments);
                             }
                         }

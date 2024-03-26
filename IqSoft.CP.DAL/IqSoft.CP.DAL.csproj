@@ -637,6 +637,7 @@
     <Compile Include="Models\Affiliates\NetreferActivityModel.cs" />
     <Compile Include="Models\Affiliates\RegistrationActivityModel.cs" />
     <Compile Include="Models\BetShopReconingOutput.cs" />
+    <Compile Include="Models\Cache\BllClientPaymentSetting.cs" />
     <Compile Include="Models\Cache\BllObjectSetting.cs" />
     <Compile Include="Models\Cache\BllPopup.cs" />
     <Compile Include="Models\Cache\BllTicker.cs" />

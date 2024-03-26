@@ -90,8 +90,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                     description = fex.Detail.Message
                 };
                 jsonResponse = JsonConvert.SerializeObject(response);
-                var bodyStream = new StreamReader(HttpContext.Current.Request.InputStream);
-                WebApiApplication.DbLogger.Error($"Code: {fex.Detail.Id} Message: {fex.Detail.Message} Input: {bodyStream.ReadToEnd()} Response: {jsonResponse}");
+                WebApiApplication.DbLogger.Error($"Code: {fex.Detail.Id} Message: {fex.Detail.Message} Input: {JsonConvert.SerializeObject(input)} Response: {jsonResponse}");
             }
             catch (Exception ex)
             {
@@ -101,8 +100,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                     description = ex.Message
                 };
                 jsonResponse = JsonConvert.SerializeObject(response);
-                var bodyStream = new StreamReader(HttpContext.Current.Request.InputStream);
-                WebApiApplication.DbLogger.Error($"Error: {ex} InputString: {bodyStream.ReadToEnd()} Response: {jsonResponse}");
+                WebApiApplication.DbLogger.Error($"Error: {ex} InputString: {JsonConvert.SerializeObject(input)} Response: {jsonResponse}");
             }
             var resp = new HttpResponseMessage
             {
@@ -162,8 +160,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                     description = fex.Detail.Message
                 };
                 jsonResponse = JsonConvert.SerializeObject(response);
-                var bodyStream = new StreamReader(HttpContext.Current.Request.InputStream);
-                WebApiApplication.DbLogger.Error($"Code: {fex.Detail.Id} Message: {fex.Detail.Message} Input: {bodyStream.ReadToEnd()} Response: {jsonResponse}");
+                WebApiApplication.DbLogger.Error($"Code: {fex.Detail.Id} Message: {fex.Detail.Message} Input: {JsonConvert.SerializeObject(input)} Response: {jsonResponse}");
             }
             catch (Exception ex)
             {
@@ -173,8 +170,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                     description = ex.Message
                 };
                 jsonResponse = JsonConvert.SerializeObject(response);
-                var bodyStream = new StreamReader(HttpContext.Current.Request.InputStream);
-                WebApiApplication.DbLogger.Error($"Error: {ex} InputString: {bodyStream.ReadToEnd()} Response: {jsonResponse}");
+                WebApiApplication.DbLogger.Error($"Error: {ex} InputString: {JsonConvert.SerializeObject(input)} Response: {jsonResponse}");
             }
             var resp = new HttpResponseMessage
             {
@@ -248,7 +244,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                                 }
                                 catch (Exception ex)
                                 {
-                                    WebApiApplication.DbLogger.Error(ex.Message);
+                                    WebApiApplication.DbLogger.Error(ex);
                                     documentBl.RollbackProductTransactions(operationsFromProduct);
                                     throw;
                                 }
@@ -291,8 +287,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                     description = fex.Detail.Message
                 };
                 jsonResponse = JsonConvert.SerializeObject(response);
-                var bodyStream = new StreamReader(HttpContext.Current.Request.InputStream);
-                WebApiApplication.DbLogger.Error($"Code: {fex.Detail.Id} Message: {fex.Detail.Message} Input: {bodyStream.ReadToEnd()} Response: {jsonResponse}");
+                WebApiApplication.DbLogger.Error($"Code: {fex.Detail.Id} Message: {fex.Detail.Message} Input: {JsonConvert.SerializeObject(input)} Response: {jsonResponse}");
             }
             catch (Exception ex)
             {
@@ -302,8 +297,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                     description = ex.Message
                 };
                 jsonResponse = JsonConvert.SerializeObject(response);
-                var bodyStream = new StreamReader(HttpContext.Current.Request.InputStream);
-                WebApiApplication.DbLogger.Error($"Error: {ex} InputString: {bodyStream.ReadToEnd()} Response: {jsonResponse}");
+                WebApiApplication.DbLogger.Error($"Error: {ex} InputString: {JsonConvert.SerializeObject(input)} Response: {jsonResponse}");
             }
             var resp = new HttpResponseMessage
             {
@@ -391,7 +385,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                                 }
                                 catch (Exception ex)
                                 {
-                                    WebApiApplication.DbLogger.Error(ex.Message);
+                                    WebApiApplication.DbLogger.Error(ex);
                                     documentBl.RollbackProductTransactions(operationsFromProduct);
                                     throw;
                                 }
@@ -443,8 +437,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                     description = fex.Detail.Message
                 };
                 jsonResponse = JsonConvert.SerializeObject(response);
-                var bodyStream = new StreamReader(HttpContext.Current.Request.InputStream);
-                WebApiApplication.DbLogger.Error($"Code: {fex.Detail.Id} Message: {fex.Detail.Message} Input: {bodyStream.ReadToEnd()} Response: {jsonResponse}");
+                WebApiApplication.DbLogger.Error($"Code: {fex.Detail.Id} Message: {fex.Detail.Message} Input: {JsonConvert.SerializeObject(input)} Response: {jsonResponse}");
             }
             catch (Exception ex)
             {
@@ -454,8 +447,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                     description = ex.Message
                 };
                 jsonResponse = JsonConvert.SerializeObject(response);
-                var bodyStream = new StreamReader(HttpContext.Current.Request.InputStream);
-                WebApiApplication.DbLogger.Error($"Error: {ex} InputString: {bodyStream.ReadToEnd()} Response: {jsonResponse}");
+                WebApiApplication.DbLogger.Error($"Error: {ex} InputString: {JsonConvert.SerializeObject(input)} Response: {jsonResponse}");
             }
             var resp = new HttpResponseMessage
             {
@@ -557,8 +549,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                     description = fex.Detail.Message
                 };
                 jsonResponse = JsonConvert.SerializeObject(response);
-                var bodyStream = new StreamReader(HttpContext.Current.Request.InputStream);
-                WebApiApplication.DbLogger.Error($"Code: {fex.Detail.Id} Message: {fex.Detail.Message} Input: {bodyStream.ReadToEnd()} Response: {jsonResponse}");
+                WebApiApplication.DbLogger.Error($"Code: {fex.Detail.Id} Message: {fex.Detail.Message} Input: {JsonConvert.SerializeObject(input)} Response: {jsonResponse}");
             }
             catch (Exception ex)
             {
@@ -568,8 +559,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                     description = ex.Message
                 };
                 jsonResponse = JsonConvert.SerializeObject(response);
-                var bodyStream = new StreamReader(HttpContext.Current.Request.InputStream);
-                WebApiApplication.DbLogger.Error($"Error: {ex} InputString: {bodyStream.ReadToEnd()} Response: {jsonResponse}");
+                WebApiApplication.DbLogger.Error($"Error: {ex} InputString: {JsonConvert.SerializeObject(input)} Response: {jsonResponse}");
             }
             var resp = new HttpResponseMessage
             {
@@ -638,8 +628,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                     description = fex.Detail.Message
                 };
                 jsonResponse = JsonConvert.SerializeObject(response);
-                var bodyStream = new StreamReader(HttpContext.Current.Request.InputStream);
-                WebApiApplication.DbLogger.Error($"Code: {fex.Detail.Id} Message: {fex.Detail.Message} Input: {bodyStream.ReadToEnd()} Response: {jsonResponse}");
+                WebApiApplication.DbLogger.Error($"Code: {fex.Detail.Id} Message: {fex.Detail.Message} Input: {JsonConvert.SerializeObject(input)} Response: {jsonResponse}");
             }
             catch (Exception ex)
             {
@@ -649,8 +638,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                     description = ex.Message
                 };
                 jsonResponse = JsonConvert.SerializeObject(response);
-                var bodyStream = new StreamReader(HttpContext.Current.Request.InputStream);
-                WebApiApplication.DbLogger.Error($"Error: {ex} InputString: {bodyStream.ReadToEnd()} Response: {jsonResponse}");
+                WebApiApplication.DbLogger.Error($"Error: {ex} InputString: {JsonConvert.SerializeObject(input)} Response: {jsonResponse}");
             }
             var resp = new HttpResponseMessage
             {
@@ -811,8 +799,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                     description = fex.Detail.Message
                 };
                 jsonResponse = JsonConvert.SerializeObject(response);
-                var bodyStream = new StreamReader(HttpContext.Current.Request.InputStream);
-                WebApiApplication.DbLogger.Error($"Code: {fex.Detail.Id} Message: {fex.Detail.Message} Input: {bodyStream.ReadToEnd()} Response: {jsonResponse}");
+                WebApiApplication.DbLogger.Error($"Code: {fex.Detail.Id} Message: {fex.Detail.Message} Input: {JsonConvert.SerializeObject(input)} Response: {jsonResponse}");
             }
             catch (Exception ex)
             {
@@ -822,8 +809,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                     description = ex.Message
                 };
                 jsonResponse = JsonConvert.SerializeObject(response);
-                var bodyStream = new StreamReader(HttpContext.Current.Request.InputStream);
-                WebApiApplication.DbLogger.Error($"Error: {ex} InputString: {bodyStream.ReadToEnd()} Response: {jsonResponse}");
+                WebApiApplication.DbLogger.Error($"Error: {ex} InputString: {JsonConvert.SerializeObject(input)} Response: {jsonResponse}");
             }
             var resp = new HttpResponseMessage
             {
@@ -984,8 +970,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                     description = fex.Detail.Message
                 };
                 jsonResponse = JsonConvert.SerializeObject(response);
-                var bodyStream = new StreamReader(HttpContext.Current.Request.InputStream);
-                WebApiApplication.DbLogger.Error($"Code: {fex.Detail.Id} Message: {fex.Detail.Message} Input: {bodyStream.ReadToEnd()} Response: {jsonResponse}");
+                WebApiApplication.DbLogger.Error($"Code: {fex.Detail.Id} Message: {fex.Detail.Message} Input: {JsonConvert.SerializeObject(input)} Response: {jsonResponse}");
             }
             catch (Exception ex)
             {
@@ -995,8 +980,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                     description = ex.Message
                 };
                 jsonResponse = JsonConvert.SerializeObject(response);
-                var bodyStream = new StreamReader(HttpContext.Current.Request.InputStream);
-                WebApiApplication.DbLogger.Error($"Error: {ex} InputString: {bodyStream.ReadToEnd()} Response: {jsonResponse}");
+                WebApiApplication.DbLogger.Error($"Error: {ex} InputString: {JsonConvert.SerializeObject(input)} Response: {jsonResponse}");
             }
             var resp = new HttpResponseMessage
             {
@@ -1077,8 +1061,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                     description = fex.Detail.Message
                 };
                 jsonResponse = JsonConvert.SerializeObject(response);
-                var bodyStream = new StreamReader(HttpContext.Current.Request.InputStream);
-                WebApiApplication.DbLogger.Error($"Code: {fex.Detail.Id} Message: {fex.Detail.Message} Input: {bodyStream.ReadToEnd()} Response: {jsonResponse}");
+                WebApiApplication.DbLogger.Error($"Code: {fex.Detail.Id} Message: {fex.Detail.Message} Input: {JsonConvert.SerializeObject(input)} Response: {jsonResponse}");
             }
             catch (Exception ex)
             {
@@ -1088,8 +1071,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                     description = ex.Message
                 };
                 jsonResponse = JsonConvert.SerializeObject(response);
-                var bodyStream = new StreamReader(HttpContext.Current.Request.InputStream);
-                WebApiApplication.DbLogger.Error($"Error: {ex} InputString: {bodyStream.ReadToEnd()} Response: {jsonResponse}");
+                WebApiApplication.DbLogger.Error($"Error: {ex} InputString: {JsonConvert.SerializeObject(input)} Response: {jsonResponse}");
             }
             var resp = new HttpResponseMessage
             {

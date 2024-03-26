@@ -57,7 +57,7 @@ namespace IqSoft.CP.DataWarehouse.Filters
 
         public FiltersOperation BetDates { get; set; }
 
-        public override void CreateQuery(ref IQueryable<fnBetShopBet> objects, Func<IQueryable<fnBetShopBet>, IOrderedQueryable<fnBetShopBet>> orderBy = null)
+        public override void CreateQuery(ref IQueryable<fnBetShopBet> objects, bool ordering, bool orderByDate = false)
         {
             if (PartnerId.HasValue)
                 objects = objects.Where(x => x.PartnerId == PartnerId.Value);
@@ -107,18 +107,18 @@ namespace IqSoft.CP.DataWarehouse.Filters
             }
             FilterByValue(ref objects, BetDates, "Date");
 
-            base.FilteredObjects(ref objects, orderBy);
+            base.FilteredObjects(ref objects, ordering, orderByDate, null);
         }
 
-        public IQueryable<fnBetShopBet> FilterObjects(IQueryable<fnBetShopBet> betShopBets, Func<IQueryable<fnBetShopBet>, IOrderedQueryable<fnBetShopBet>> orderBy = null)
+        public IQueryable<fnBetShopBet> FilterObjects(IQueryable<fnBetShopBet> betShopBets, bool ordering)
         {
-            CreateQuery(ref betShopBets, orderBy);
+            CreateQuery(ref betShopBets, ordering);
             return betShopBets;
         }
 
         public IQueryable<fnBetShopBet> FilterObjectsTotals(IQueryable<fnBetShopBet> betShopBets)
         {
-            CreateQuery(ref betShopBets);
+            CreateQuery(ref betShopBets, false);
             return betShopBets;
         }
     }

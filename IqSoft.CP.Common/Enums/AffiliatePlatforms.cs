@@ -18,5 +18,6 @@
         public const string IncomeAccess = "IncomeAccess"; //13
         public const string CustomerIo = "CustomerIo"; //14
         public const string Scaleo = "Scaleo"; //15
+        public const string Smartico = "Smartico"; //16
     }
 }

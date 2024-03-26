@@ -16,6 +16,8 @@ using Newtonsoft.Json;
 using System.Web.UI.WebControls;
 using IqSoft.CP.DAL.Models.Clients;
 using System.Threading.Tasks;
+using static IqSoft.CP.Common.Constants;
+using System.Web;
 
 namespace IqSoft.CP.BLL.Services
 {
@@ -54,7 +56,7 @@ namespace IqSoft.CP.BLL.Services
 
         public PagedModel<Partner> GetPartnersPagedModel(FilterPartner filter)
         {
-            var checkP = GetPermissionsToObject(new CheckPermissionInput
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
                 ObjectTypeId = ObjectTypes.Partner
@@ -64,9 +66,9 @@ namespace IqSoft.CP.BLL.Services
             {
                 new CheckPermissionOutput<Partner>
                 {
-                    AccessibleObjects = checkP.AccessibleObjects,
-                    HaveAccessForAllObjects = checkP.HaveAccessForAllObjects,
-                    Filter = x => checkP.AccessibleObjects.Contains(x.Id)
+                    AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
+                    HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
+                    Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.Id)
                 }
             };
 
@@ -99,7 +101,7 @@ namespace IqSoft.CP.BLL.Services
         {
             if (checkPermissions)
             {
-                var checkPermission = GetPermissionsToObject(new CheckPermissionInput
+                var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
                     ObjectTypeId = ObjectTypes.Partner
@@ -109,9 +111,9 @@ namespace IqSoft.CP.BLL.Services
                 {
                     new CheckPermissionOutput<Partner>
                     {
-                        AccessibleObjects = checkPermission.AccessibleObjects,
-                        HaveAccessForAllObjects = checkPermission.HaveAccessForAllObjects,
-                        Filter = x => checkPermission.AccessibleObjects.Contains(x.ObjectId)
+                        AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
+                        HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
+                        Filter = x => partnerAccess.AccessibleIntegerObjects.Contains((int)x.ObjectId)
                     }
                 };
             }
@@ -190,7 +192,7 @@ namespace IqSoft.CP.BLL.Services
                 ObjectTypeId = ObjectTypes.Partner
             });
             CheckPermission(Constants.Permissions.ViewPartnerKey);
-            if (partnerAccess.HaveAccessForAllObjects || partnerAccess.AccessibleObjects.Contains(partnerid))
+            if (partnerAccess.HaveAccessForAllObjects || partnerAccess.AccessibleIntegerObjects.Contains(partnerid))
                 return Db.PartnerKeys.Where(x => x.PartnerId == partnerid || (partnerid == Constants.MainPartnerId && x.PartnerId == null)).ToList();
             else
                 return new List<PartnerKey>();
@@ -205,7 +207,7 @@ namespace IqSoft.CP.BLL.Services
             });
             CheckPermission(Constants.Permissions.ViewPartnerKey);
             CheckPermission(Constants.Permissions.EditPartnerKey);
-            if ((!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != partnerKey.PartnerId)))
+            if ((!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != partnerKey.PartnerId)))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             PartnerKey dbPartnerKey;
             var keyName = partnerKey.Name;
@@ -314,7 +316,7 @@ namespace IqSoft.CP.BLL.Services
                     Permission = Constants.Permissions.ViewPartner,
                     ObjectTypeId = ObjectTypes.Partner
                 });
-                if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != partnerPaymentLimit.PartnerId))
+                if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != partnerPaymentLimit.PartnerId))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
 
                 CheckPermission(Constants.Permissions.EditPartnerPaymentLimits);
@@ -356,7 +358,7 @@ namespace IqSoft.CP.BLL.Services
         {
             if (checkPermissions)
             {
-                var checkPermission = GetPermissionsToObject(new CheckPermissionInput
+                var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
                     ObjectTypeId = ObjectTypes.Partner
@@ -371,9 +373,9 @@ namespace IqSoft.CP.BLL.Services
                 {
                     new CheckPermissionOutput<Partner>
                     {
-                        AccessibleObjects = checkPermission.AccessibleObjects,
-                        HaveAccessForAllObjects = checkPermission.HaveAccessForAllObjects,
-                        Filter = x => checkPermission.AccessibleObjects.Contains(x.ObjectId)
+                        AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
+                        HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
+                        Filter = x => partnerAccess.AccessibleIntegerObjects.Contains((int)x.ObjectId)
                     },
                     new CheckPermissionOutput<Partner>
                     {
@@ -391,7 +393,7 @@ namespace IqSoft.CP.BLL.Services
 
         public List<Partner> ExportPartnersModel(FilterPartner filter)
         {
-            var checkP = GetPermissionsToObject(new CheckPermissionInput
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
                 ObjectTypeId = ObjectTypes.Partner
@@ -406,9 +408,9 @@ namespace IqSoft.CP.BLL.Services
             {
                 new CheckPermissionOutput<Partner>
                 {
-                    AccessibleObjects = checkP.AccessibleObjects,
-                    HaveAccessForAllObjects = checkP.HaveAccessForAllObjects,
-                    Filter = x => checkP.AccessibleObjects.Contains(x.Id)
+                    AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
+                    HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
+                    Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.Id)
                 },
                 new CheckPermissionOutput<Partner>
                 {
@@ -520,12 +522,12 @@ namespace IqSoft.CP.BLL.Services
 
         public Dictionary<int, FtpModel> GetPartnerEnvironments(int partnerId)
         {
-            var partners = GetPermissionsToObject(new CheckPermissionInput
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
                 ObjectTypeId = ObjectTypes.Partner
             });
-            if (!partners.HaveAccessForAllObjects && partners.AccessibleObjects.All(x => x != partnerId))
+            if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != partnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
 
 
@@ -547,25 +549,25 @@ namespace IqSoft.CP.BLL.Services
                 Permission = Constants.Permissions.ViewPartner,
                 ObjectTypeId = ObjectTypes.Partner
             });
-            if (partnerId.HasValue && !partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != partnerId))
+            if (partnerId.HasValue && !partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != partnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             var query = Db.SecurityQuestions.AsQueryable();
             if (partnerId.HasValue)
                 query = query.Where(x => x.PartnerId == partnerId);
             else if (!partnerAccess.HaveAccessForAllObjects)
-                query = query.Where(x => partnerAccess.AccessibleObjects.Contains(x.PartnerId));
+                query = query.Where(x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId));
             return query.ToList();
         }
 
         public SecurityQuestion SavePartnerSecurityQuestion(SecurityQuestion securityQuestion)
         {
-            var partners = GetPermissionsToObject(new CheckPermissionInput
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
                 ObjectTypeId = ObjectTypes.Partner
             });
 
-            if (!partners.HaveAccessForAllObjects && partners.AccessibleObjects.All(x => x != securityQuestion.PartnerId))
+            if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != securityQuestion.PartnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             var currentDate = DateTime.UtcNow;
             SecurityQuestion dbSecurityQuestion;
@@ -609,7 +611,7 @@ namespace IqSoft.CP.BLL.Services
             });
             CheckPermission(Constants.Permissions.ViewPartnerKey);
             CheckPermission(Constants.Permissions.EditPartnerKey);
-            if (!partnerAccess.HaveAccessForAllObjects && (!partnerAccess.AccessibleObjects.Contains(fromPartnerId) ||
+            if (!partnerAccess.HaveAccessForAllObjects && (!partnerAccess.AccessibleIntegerObjects.Contains(fromPartnerId) ||
                 !partnerAccess.AccessibleObjects.Contains(toPartnerId)))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             var dbToPartnerProducts = Db.PartnerKeys.Where(x => x.PartnerId == toPartnerId).Select(x => x.Name).ToList();
@@ -638,9 +640,9 @@ namespace IqSoft.CP.BLL.Services
                 {
                     new CheckPermissionOutput<Email>
                     {
-                        AccessibleObjects = partnerAccess.AccessibleObjects,
+                        AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                         HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                        Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                        Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                     }
                 };
             }
@@ -661,7 +663,7 @@ namespace IqSoft.CP.BLL.Services
                 Permission = Constants.Permissions.ViewPartner,
                 ObjectTypeId = ObjectTypes.Partner
             });
-            if (!partnerAccess.HaveAccessForAllObjects && !partnerAccess.AccessibleObjects.Contains(partner.Id))
+            if (!partnerAccess.HaveAccessForAllObjects && !partnerAccess.AccessibleIntegerObjects.Contains(partner.Id))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
 
             return CacheManager.GetPartnerCountrySettings(partner.Id, type, LanguageId);
@@ -678,7 +680,7 @@ namespace IqSoft.CP.BLL.Services
                 Permission = Constants.Permissions.ViewPartner,
                 ObjectTypeId = ObjectTypes.Partner
             });
-            if (!partnerAccess.HaveAccessForAllObjects && !partnerAccess.AccessibleObjects.Contains(partner.Id))
+            if (!partnerAccess.HaveAccessForAllObjects && !partnerAccess.AccessibleIntegerObjects.Contains(partner.Id))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             if (!Enum.IsDefined(typeof(PartnerCountrySettingTypes), input.Type))
                 throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
@@ -722,7 +724,7 @@ namespace IqSoft.CP.BLL.Services
                 Permission = Constants.Permissions.ViewPartner,
                 ObjectTypeId = ObjectTypes.Partner
             });
-            if (!partnerAccess.HaveAccessForAllObjects && !partnerAccess.AccessibleObjects.Contains(partner.Id))
+            if (!partnerAccess.HaveAccessForAllObjects && !partnerAccess.AccessibleIntegerObjects.Contains(partner.Id))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             Db.PartnerCountrySettings.Where(x => x.Id == input.Id).DeleteFromQuery();
             CacheManager.RemoveKeysFromCache(string.Format("{0}_{1}_{2}_", Constants.CacheItems.PartnerCountrySetting, input.PartnerId, input.Type));
@@ -762,7 +764,7 @@ namespace IqSoft.CP.BLL.Services
                 ObjectTypeId = ObjectTypes.Character
             });
 
-            var partners = GetPermissionsToObject(new CheckPermissionInput
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
                 ObjectTypeId = ObjectTypes.Partner
@@ -774,10 +776,10 @@ namespace IqSoft.CP.BLL.Services
             if (id != null)
                 result = result.Where(x => x.Id == id);
             List<fnCharacter> fnCharacter;
-            if (partners.HaveAccessForAllObjects)
+            if (partnerAccess.HaveAccessForAllObjects)
                 fnCharacter = result.OrderByDescending(x => x.Id).ToList();
             else
-                fnCharacter = result.Where(x => partners.AccessibleObjects.Contains(x.PartnerId)).OrderByDescending(x => x.Id).ToList();
+                fnCharacter = result.Where(x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)).OrderByDescending(x => x.Id).ToList();
 
             return fnCharacter;
         }
@@ -790,7 +792,7 @@ namespace IqSoft.CP.BLL.Services
                 ObjectTypeId = ObjectTypes.Character
             });
 
-            var partners = GetPermissionsToObject(new CheckPermissionInput
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
                 ObjectTypeId = ObjectTypes.Partner
@@ -811,7 +813,7 @@ namespace IqSoft.CP.BLL.Services
                 Permission = Constants.Permissions.ViewPartner,
                 ObjectTypeId = ObjectTypes.Partner
             });
-            if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != input.PartnerId))
+            if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != input.PartnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
 
             var partner = CacheManager.GetPartnerById(input.PartnerId);
@@ -819,12 +821,12 @@ namespace IqSoft.CP.BLL.Services
             var dbCharacter = Db.Characters.FirstOrDefault(x => x.Id == input.Id);
             if (dbCharacter != null)
             {
-				var imageVersion = dbCharacter.ImageUrl?.Split('?');
-				dbCharacter.ImageUrl = imageVersion?.Length > 0 ? imageVersion[0] + "?ver=" + ((imageVersion?.Length > 1 ? Convert.ToInt32(imageVersion[1]?.Replace("ver=", string.Empty)) : 0) + 1) : string.Empty;
-				var backgroundImage = dbCharacter.BackgroundImageUrl?.Split('?');
-				dbCharacter.BackgroundImageUrl = backgroundImage?.Length > 0 ? backgroundImage[0] + "?ver=" + ((backgroundImage?.Length > 1 ? Convert.ToInt32(backgroundImage[1]?.Replace("ver=", string.Empty)) : 0) + 1) : string.Empty;
-				dbCharacter.MobileBackgroundImageData = dbCharacter.BackgroundImageUrl?.Replace("/assets/images/characters/background/", "/assets/images/characters/background/mobile/");
-				dbCharacter.NickName = input.NickName;
+                var imageVersion = dbCharacter.ImageUrl?.Split('?');
+                dbCharacter.ImageUrl = imageVersion?.Length > 0 ? imageVersion[0] + "?ver=" + ((imageVersion?.Length > 1 ? Convert.ToInt32(imageVersion[1]?.Replace("ver=", string.Empty)) : 0) + 1) : string.Empty;
+                var backgroundImage = dbCharacter.BackgroundImageUrl?.Split('?');
+                dbCharacter.BackgroundImageUrl = backgroundImage?.Length > 0 ? backgroundImage[0] + "?ver=" + ((backgroundImage?.Length > 1 ? Convert.ToInt32(backgroundImage[1]?.Replace("ver=", string.Empty)) : 0) + 1) : string.Empty;
+                dbCharacter.MobileBackgroundImageData = dbCharacter.BackgroundImageUrl?.Replace("/assets/images/characters/background/", "/assets/images/characters/background/mobile/");
+                dbCharacter.NickName = input.NickName;
                 dbCharacter.Status = input.Status;
                 dbCharacter.Order = input.Order;
                 dbCharacter.LastUpdateTime = currentTime;
@@ -848,35 +850,35 @@ namespace IqSoft.CP.BLL.Services
                 });
                 var order = input.Order;
                 int? compPoints = 0;
-				if (input.ParentId != null)
+                if (input.ParentId != null)
                 {
                     var childrenCount = Db.Characters.Where(x => x.ParentId == input.ParentId && x.PartnerId == input.PartnerId).ToList().Count();
                     order = childrenCount + 1;
                     compPoints = childrenCount == 0 ? compPoints : input.CompPoints;
-				}
-				dbCharacter.Order = order;
-				dbCharacter.CompPoints = compPoints;
-				dbCharacter.CreationTime = currentTime;
+                }
+                dbCharacter.Order = order;
+                dbCharacter.CompPoints = compPoints;
+                dbCharacter.CreationTime = currentTime;
                 dbCharacter.LastUpdateTime = currentTime;
                 Db.Characters.Add(dbCharacter);
-				Db.SaveChanges();
-				if (!string.IsNullOrEmpty(input.ImageData))
-					dbCharacter.ImageUrl = "/assets/images/characters/" + dbCharacter.Id.ToString() + extension + "?ver=1";
-				if (!string.IsNullOrEmpty(input.BackgroundImageData))
-					dbCharacter.BackgroundImageUrl = "/assets/images/characters/background/" + dbCharacter.Id.ToString() + extension + "?ver=1";
-				if (!string.IsNullOrEmpty(input.MobileBackgroundImageData))
-					dbCharacter.MobileBackgroundImageData = "/assets/images/characters/background/mobile/" + dbCharacter.Id.ToString() + extension + "?ver=1";
-				Db.SaveChanges();
-			}
-			if (!string.IsNullOrEmpty(input.ImageData) || !string.IsNullOrEmpty(input.BackgroundImageData) || !string.IsNullOrEmpty(input.MobileBackgroundImageData))
+                Db.SaveChanges();
+                if (!string.IsNullOrEmpty(input.ImageData))
+                    dbCharacter.ImageUrl = "/assets/images/characters/" + dbCharacter.Id.ToString() + extension + "?ver=1";
+                if (!string.IsNullOrEmpty(input.BackgroundImageData))
+                    dbCharacter.BackgroundImageUrl = "/assets/images/characters/background/" + dbCharacter.Id.ToString() + extension + "?ver=1";
+                if (!string.IsNullOrEmpty(input.MobileBackgroundImageData))
+                    dbCharacter.MobileBackgroundImageData = "/assets/images/characters/background/mobile/" + dbCharacter.Id.ToString() + extension + "?ver=1";
+                Db.SaveChanges();
+            }
+            if (!string.IsNullOrEmpty(input.ImageData) || !string.IsNullOrEmpty(input.BackgroundImageData) || !string.IsNullOrEmpty(input.MobileBackgroundImageData))
             {
                 var ftpModel = GetPartnerEnvironments(input.PartnerId)[environmentTypeId];
                 if (ftpModel == null)
                     throw BaseBll.CreateException(LanguageId, Constants.Errors.PartnerKeyNotFound);
                 try
-				{
-					var imgName = dbCharacter.Id.ToString() + extension;
-					if (!string.IsNullOrEmpty(input.ImageData))
+                {
+                    var imgName = dbCharacter.Id.ToString() + extension;
+                    if (!string.IsNullOrEmpty(input.ImageData))
                     {
                         var path = "/assets/images/characters/" + imgName;
                         byte[] bytes = Convert.FromBase64String(input.ImageData);
@@ -900,7 +902,7 @@ namespace IqSoft.CP.BLL.Services
                     Log.Error(e);
                 }
             }
-			Db.SaveChanges();
+            Db.SaveChanges();
             CacheManager.RemoveCharacters(input.PartnerId);
             return dbCharacter;
         }
@@ -908,9 +910,43 @@ namespace IqSoft.CP.BLL.Services
         public void DeleteCharacterById(Character input)
         {
             var dbCharacter = Db.Characters.FirstOrDefault(x => x.Id == input.Id);
-			Db.Characters.Remove(dbCharacter);
-			Db.SaveChanges();
+            Db.Characters.Remove(dbCharacter);
+            Db.SaveChanges();
             CacheManager.RemoveCharacters(input.PartnerId);
+        }
+
+        public static Common.Models.WebSiteModels.ApiRestrictionModel GetApiPartnerRestrictions(int partnerId, Constants.SystemModuleTypes systemModuleTypes)
+        {
+            var moduleName = Enum.GetName(typeof(SystemModuleTypes), systemModuleTypes);
+            var registrationLimitPerDay = CacheManager.GetConfigKey(partnerId, moduleName + Constants.PartnerKeys.RegistrationLimitPerDay);
+            return new Common.Models.WebSiteModels.ApiRestrictionModel
+            {
+                WhitelistedCountries = CacheManager.GetConfigParameters(partnerId, moduleName + Constants.PartnerKeys.WhitelistedCountries)
+                                       .Select(x => x.Value).ToList() ?? new List<string>(),
+                BlockedCountries = CacheManager.GetConfigParameters(partnerId, moduleName + Constants.PartnerKeys.BlockedCountries)
+                                  .Select(x => x.Value).ToList() ?? new List<string>(),
+                WhitelistedIps = CacheManager.GetConfigParameters(partnerId, moduleName + Constants.PartnerKeys.WhitelistedIps)
+                                .Select(x => x.Value).ToList() ?? new List<string>(),
+                BlockedIps = CacheManager.GetConfigParameters(partnerId, moduleName + Constants.PartnerKeys.BlockedIps)
+                            .Select(x => x.Value).ToList() ?? new List<string>(),
+                RegistrationLimitPerDay = int.TryParse(registrationLimitPerDay, out int limit) ? limit : (int?)null,
+                ConnectingIPHeader = CacheManager.GetConfigKey(partnerId, moduleName + Constants.PartnerKeys.ConnectingIPHeader),
+                IPCountryHeader = CacheManager.GetConfigKey(partnerId, moduleName + Constants.PartnerKeys.IPCountryHeader)
+            };
+        }
+
+        public static void CheckApiRestrictions(int partnerId, Constants.SystemModuleTypes systemModuleTypes)
+        {
+            var ipCountry = HttpContext.Current.Request.Headers.Get("CF-IPCountry") ?? string.Empty;
+            var ip = HttpContext.Current.Request.Headers.Get("CF-Connecting-IP");
+            if (string.IsNullOrEmpty(ip))
+                ip = "127.0.0.1";
+            var apiRestrictions = GetApiPartnerRestrictions(partnerId, systemModuleTypes);
+            if (apiRestrictions.BlockedIps.Contains(ip))
+                throw CreateException(string.Empty, Constants.Errors.DontHavePermission);
+            if (!apiRestrictions.WhitelistedIps.Any(x => x.IsIpEqual(ip)) &&
+                apiRestrictions.WhitelistedCountries.Any() && !apiRestrictions.WhitelistedCountries.Contains(ipCountry))
+                throw CreateException(string.Empty, Constants.Errors.DontHavePermission);
         }
     }
 }

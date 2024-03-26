@@ -61,6 +61,7 @@ namespace IqSoft.CP.WebSiteWebApi.Hubs
                     var balance = MasterCacheIntegration.SendMasterCacheRequest<ApiBalance>(client.PartnerId, 
                         "getclientbalance", new RequestBase { 
                         Token = token,
+                        Ip = ip,
                         ClientId = client.Id,
                         PartnerId = client.PartnerId,
                         RequestData = client.CurrencyId
@@ -68,7 +69,7 @@ namespace IqSoft.CP.WebSiteWebApi.Hubs
                     BroadcastService.BroadcastBalance(client.Id, balance);
                 }
             }
-            ConnectedClients.TryRemove(Context.ConnectionId, out ApiIdentity oldIdentity);
+            ConnectedClients.TryRemove(Context.ConnectionId, out _);
             ConnectedClients.TryAdd(Context.ConnectionId, apiIdentity);
         }
 

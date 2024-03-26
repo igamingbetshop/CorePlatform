@@ -630,7 +630,7 @@ namespace IqSoft.CP.BLL.Services
         {
             GetPermissionsToObject(new CheckPermissionInput
             {
-                Permission = Constants.Permissions.EditAdminTramslation
+                Permission = Constants.Permissions.EditAdminTranslation
             });
             var menu = Db.WebSiteMenus.Where(x => x.PartnerId == (int)Constants.MainPartnerId && x.Type == Constants.WebSiteConfiguration.Translations).First();
             webSiteMenuItem.MenuId = menu.Id;
@@ -741,7 +741,7 @@ namespace IqSoft.CP.BLL.Services
         {
             GetPermissionsToObject(new CheckPermissionInput
             {
-                Permission = Constants.Permissions.EditAdminTramslation
+                Permission = Constants.Permissions.EditAdminTranslation
             });
             var dbWebSiteSubMenuItem = Db.WebSiteSubMenuItems.Include(x => x.MenuItem).ThenInclude(x => x.Menu).FirstOrDefault(x => x.Id == webSiteSubMenuItem.Id);
 
@@ -803,7 +803,7 @@ namespace IqSoft.CP.BLL.Services
         {
             GetPermissionsToObject(new CheckPermissionInput
             {
-                Permission = Constants.Permissions.EditAdminTramslation
+                Permission = Constants.Permissions.EditAdminTranslation
             });
             var dbWebSiteMenuItem = Db.WebSiteMenuItems.Include(x => x.Menu).FirstOrDefault(x => x.Id == menuItemId);
             if (dbWebSiteMenuItem != null)
@@ -851,7 +851,7 @@ namespace IqSoft.CP.BLL.Services
         {
             GetPermissionsToObject(new CheckPermissionInput
             {
-                Permission = Constants.Permissions.EditAdminTramslation
+                Permission = Constants.Permissions.EditAdminTranslation
             });
 
             var dbWebSiteSubMenuItem = Db.WebSiteSubMenuItems.Include(x => x.MenuItem).ThenInclude(x => x.Menu)
@@ -912,7 +912,7 @@ namespace IqSoft.CP.BLL.Services
         {
             GetPermissionsToObject(new CheckPermissionInput
             {
-                Permission = Constants.Permissions.EditAdminTramslation
+                Permission = Constants.Permissions.EditAdminTranslation
             });
             var webSiteSubMenuItem = Db.WebSiteSubMenuItems.Include(x => x.MenuItem).ThenInclude(x => x.Menu).First(x => x.Id == subMenuItemId);
             var languages = Db.PartnerLanguageSettings.Include(x => x.Language).
@@ -1610,7 +1610,7 @@ namespace IqSoft.CP.BLL.Services
 
         public void GenerateAdminTranslations(FtpModel ftpInput)
         {
-            CheckPermission(Constants.Permissions.EditAdminTramslation);
+            CheckPermission(Constants.Permissions.EditAdminTranslation);
 
             var languages = Db.PartnerLanguageSettings.Where(x => x.PartnerId == Constants.MainPartnerId && x.State == (int)PartnerLanguageStates.Active).Select(x => x.LanguageId).ToList();
             foreach (var lang in languages)

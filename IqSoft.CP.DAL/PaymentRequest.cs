@@ -55,7 +55,6 @@ namespace IqSoft.CP.DAL
         public virtual Account Account { get; set; }
         public virtual BetShop BetShop { get; set; }
         public virtual CashDesk CashDesk { get; set; }
-        public virtual Client Client { get; set; }
         public virtual Currency Currency { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<JobTrigger> JobTriggers { get; set; }
@@ -69,5 +68,6 @@ namespace IqSoft.CP.DAL
         public virtual ICollection<PaymentRequestTransfer> PaymentRequestTransfers { get; set; }
         public virtual PartnerPaymentSetting PartnerPaymentSetting { get; set; }
         public virtual PaymentSystem PaymentSystem { get; set; }
+        public virtual Client Client { get; set; }
     }
 }

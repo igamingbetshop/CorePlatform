@@ -129,13 +129,12 @@ namespace IqSoft.CP.BLL.Services
                                     dbClient.AffiliateReferralId = affReferral.Id;
                             }
 
-                            VerifyClientFields(clientRegistrationInput.ClientData, partner, clientRegistrationInput.ReCaptcha, clientRegistrationInput.IsFromAdmin, clientRegistrationInput.IsQuickRegistration);
-                            var isWelcomeBonusOn = !clientRegistrationInput.IsQuickRegistration && IsBonusTypeAvailableForPartner(partner.Id, (int)BonusTypes.SignupRealBonus);
+                            VerifyClientFields(clientRegistrationInput.ClientData, partner, clientRegistrationInput.ReCaptcha, clientRegistrationInput.IsFromAdmin, clientRegistrationInput.RegistrationType, clientRegistrationInput.GeneratedUsername);
+                            var isWelcomeBonusOn = clientRegistrationInput.RegistrationType == (int)Constants.RegisterTypes.Full && 
+                                                  IsBonusTypeAvailableForPartner(partner.Id, (int)BonusTypes.SignupRealBonus);
 
                             if (clientRegistrationInput.ClientData.RegionId == 0)
-                            {
                                 clientRegistrationInput.ClientData.RegionId = Constants.DefaultRegionId;
-                            }
                             if (string.IsNullOrEmpty(clientRegistrationInput.ClientData.LanguageId))
                                 clientRegistrationInput.ClientData.LanguageId = LanguageId;
                             if (string.IsNullOrEmpty(clientRegistrationInput.ClientData.CurrencyId))
@@ -173,6 +172,8 @@ namespace IqSoft.CP.BLL.Services
                                             AffiliatePlatformId = promoCodePlatform.Id,
                                             AffiliateId = clientRegistrationInput.PromoCode,
                                             RefId = CommonFunctions.GetRandomString(20),
+                                            CreationTime = currentTime,
+                                            Status = (int)AffiliateReferralStatuses.Active,
                                             Type = (int)AffiliateReferralTypes.WebsiteInvitation,
                                             LastProcessedBonusTime = currentTime
                                         };
@@ -290,7 +291,7 @@ namespace IqSoft.CP.BLL.Services
                             };
                             SaveClientSetting(clientSettings);
                         }
-                        if (!clientRegistrationInput.IsQuickRegistration)
+                        if (clientRegistrationInput.RegistrationType == (int)Constants.RegisterTypes.Full)
                         {
                             SendRegistrationNotifications(dbClient, notificationBl);
                         }
@@ -304,7 +305,7 @@ namespace IqSoft.CP.BLL.Services
                             var items = partnerKey.Split(',');
                             foreach (var item in items)
                             {
-                                notificationBl.RegistrationNotification(dbClient.PartnerId, dbClient.Id, new AffiliatePlatform { Name = item }, null, null);
+                                notificationBl.RegistrationNotification(dbClient.PartnerId, dbClient.Id, new AffiliatePlatform { Name = item }, clientRegistrationInput?.ReferralData?.RefId, null);
                             }
                         }
                         AddClientJobTrigger(dbClient.Id, (int)JobTriggerTypes.ReconsiderSegments);
@@ -345,7 +346,7 @@ namespace IqSoft.CP.BLL.Services
                             dbAffiliate.PasswordHash = CommonFunctions.ComputeClientPasswordHash(clientRegistrationInput.ClientData.Password, salt);
                             dbAffiliate.Salt = salt;
                             dbAffiliate.PartnerId = clientRegistrationInput.ClientData.PartnerId;
-                            dbAffiliate.Gender = clientRegistrationInput.ClientData.Gender == 0 ? (int)Gender.Male : clientRegistrationInput.ClientData.Gender;
+                            dbAffiliate.Gender = clientRegistrationInput.ClientData.Gender ?? (int)Gender.Male;
                             dbAffiliate.RegionId = clientRegistrationInput.ClientData.RegionId;
                             dbAffiliate.State = (int)AffiliateStates.PendingForApproval;
                             dbAffiliate.LastUpdateTime = currentTime;
@@ -777,7 +778,7 @@ namespace IqSoft.CP.BLL.Services
                     ObjectTypeId = ObjectTypes.Client
                 });
 
-                var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
+                var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
                     ObjectTypeId = ObjectTypes.Partner
@@ -790,7 +791,7 @@ namespace IqSoft.CP.BLL.Services
                 });
 
                 if ((!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != id)) ||
-                     (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != client.PartnerId)) ||
+                     (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId)) ||
                      (!affiliateReferralAccess.HaveAccessForAllObjects &&
                      affiliateReferralAccess.AccessibleObjects.All(x => client.AffiliateReferralId.HasValue && x != client.AffiliateReferralId.Value))
                    )
@@ -1316,7 +1317,7 @@ namespace IqSoft.CP.BLL.Services
                     ObjectTypeId = ObjectTypes.Client
                 });
 
-                var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
+                var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
                     ObjectTypeId = ObjectTypes.Partner
@@ -1328,7 +1329,7 @@ namespace IqSoft.CP.BLL.Services
                     ObjectTypeId = ObjectTypes.AffiliateReferral
                 });
                 if ((!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != clientId)) ||
-                    (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != client.PartnerId)) ||
+                    (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId)) ||
                     (!affiliateReferralAccess.HaveAccessForAllObjects &&
                       affiliateReferralAccess.AccessibleObjects.All(x => client.AffiliateReferralId.HasValue && x != client.AffiliateReferralId.Value)))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -1349,7 +1350,7 @@ namespace IqSoft.CP.BLL.Services
                 ObjectTypeId = ObjectTypes.Client
             });
             var client = CacheManager.GetClientById((int)input.ObjectId);
-            var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
                 ObjectTypeId = ObjectTypes.Partner
@@ -1361,7 +1362,7 @@ namespace IqSoft.CP.BLL.Services
                 ObjectTypeId = ObjectTypes.AffiliateReferral
             });
             if ((!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != input.ObjectId)) ||
-                (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != client.PartnerId)) ||
+                (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId)) ||
                 (!affiliateReferralAccess.HaveAccessForAllObjects &&
                   affiliateReferralAccess.AccessibleObjects.All(x => client.AffiliateReferralId.HasValue && x != client.AffiliateReferralId.Value)))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -1563,13 +1564,13 @@ namespace IqSoft.CP.BLL.Services
                 ObjectTypeId = ObjectTypes.Client
             });
 
-            var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
                 ObjectTypeId = ObjectTypes.Partner
             });
             if ((!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != clientId)) ||
-                (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != client.PartnerId)))
+                (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId)))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             if (string.IsNullOrEmpty(client.Email))
                 throw BaseBll.CreateException(LanguageId, Constants.Errors.EmailCantBeEmpty);
@@ -2175,7 +2176,7 @@ namespace IqSoft.CP.BLL.Services
             {
                 ClientData = client,
                 ReCaptcha = quickRegistrationInput.ReCaptcha,
-                IsQuickRegistration = true,
+                RegistrationType = quickRegistrationInput.IsMobile ? (int)RegisterTypes.Mobile : (int)RegisterTypes.Email,
                 GeneratedUsername = quickRegistrationInput.GeneratedUsername,
                 PromoCode = quickRegistrationInput.PromoCode,
                 ReferralData = quickRegistrationInput.ReferralData
@@ -2321,7 +2322,7 @@ namespace IqSoft.CP.BLL.Services
                     ObjectTypeId = ObjectTypes.Client
                 });
 
-                var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
+                var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
                     ObjectTypeId = ObjectTypes.Partner
@@ -2333,7 +2334,7 @@ namespace IqSoft.CP.BLL.Services
                     ObjectTypeId = ObjectTypes.AffiliateReferral
                 });
                 if ((!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != clientId)) ||
-                    (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != client.PartnerId)) ||
+                    (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId)) ||
                     (!affiliateReferralAccess.HaveAccessForAllObjects &&
                       affiliateReferralAccess.AccessibleObjects.All(x => client.AffiliateReferralId.HasValue && x != client.AffiliateReferralId.Value))
                     )
@@ -2470,9 +2471,12 @@ namespace IqSoft.CP.BLL.Services
             }
         }
 
-        private void VerifyClientFields(Client client, BllPartner partner, string reCaptcha, bool isFromAdmin, bool clientRegistrationInput)
+        private void VerifyClientFields(Client client, BllPartner partner, string reCaptcha, bool isFromAdmin, int registrationType, bool idUsernameGenerated)
         {
-            VerifyClientFieldsByWebSettings(client, true, clientRegistrationInput);
+            if(client.Gender != null && !Enum.IsDefined(typeof(Gender), client.Gender))
+                throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
+
+            VerifyClientFieldsByWebSettings(client, registrationType, idUsernameGenerated);
             if (string.IsNullOrWhiteSpace(client.Email) && string.IsNullOrWhiteSpace(client.MobileNumber) && string.IsNullOrWhiteSpace(client.UserName))
                 throw CreateException(LanguageId, Constants.Errors.UserNameCantBeEmpty);
             var dbClient =
@@ -2527,24 +2531,30 @@ namespace IqSoft.CP.BLL.Services
                 CheckSiteCaptcha(partner.Id, reCaptcha);
         }
 
-        private void VerifyClientFieldsByWebSettings(Client client, bool isRegister, bool isQuickRegister)
+        private void VerifyClientFieldsByWebSettings(Client client, int? registerType, bool idUsernameGenerated)
         {
             Dictionary<string, ItemProperty> webSettings;
-            if (isRegister)
+            var isQuickRegister = registerType == (int)RegisterTypes.Email || registerType == (int)RegisterTypes.Mobile;
+            if (registerType.HasValue)
+            {
                 webSettings = Db.WebSiteSubMenuItems.Where(x => x.WebSiteMenuItem.WebSiteMenu.PartnerId == client.PartnerId &&
                                                                 x.WebSiteMenuItem.WebSiteMenu.Type == Constants.WebSiteConfiguration.Config &&
                                                               ((isQuickRegister && x.WebSiteMenuItem.Title  == Constants.WebSiteConfiguration.QuickRegister) ||
                                                               (!isQuickRegister && x.WebSiteMenuItem.Title  == Constants.WebSiteConfiguration.FullRegister)))
                                                        .Select(x => new { x.Title, x.Href }).ToList()
                                                        .ToDictionary(x => x.Title, x => JsonConvert.DeserializeObject<ItemProperty>(x.Href));
+                if (webSettings.ContainsKey("EmailCode") && !client.IsEmailVerified)
+                    throw CreateException(LanguageId, Constants.Errors.EmailNotVerified);
+                if (webSettings.ContainsKey("SMSCode") && !client.IsMobileNumberVerified)
+                    throw CreateException(LanguageId, Constants.Errors.MobileNumberNotVerified);
+            }
             else
                 webSettings = Db.WebSiteSubMenuItems.Where(x => x.WebSiteMenuItem.WebSiteMenu.PartnerId == client.PartnerId &&
                                                   x.WebSiteMenuItem.WebSiteMenu.Type == Constants.WebSiteConfiguration.AccountTabsList &&
                                                   x.WebSiteMenuItem.Title  == Constants.WebSiteConfiguration.ProfileDetails)
                                        .Select(x => new { x.Title, x.Href }).ToList()
                                        .ToDictionary(x => x.Title, x => JsonConvert.DeserializeObject<ItemProperty>(x.Href));
-
-
+            
             var properties = client.GetType().GetProperties().Where(x => webSettings.ContainsKey(x.Name));
             foreach (var field in properties)
             {
@@ -2556,7 +2566,7 @@ namespace IqSoft.CP.BLL.Services
                         isMandatory = p.Mandatory != "0";
                     if (isMandatory)
                     {
-                        if (value == null)
+                        if (value == null || string.IsNullOrEmpty(value.ToString()))
                             switch (field.Name)
                             {
                                 case nameof(client.FirstName):
@@ -2566,18 +2576,26 @@ namespace IqSoft.CP.BLL.Services
                                 case nameof(client.UserName):
                                     throw CreateException(LanguageId, Constants.Errors.UserNameCantBeEmpty);
                                 case nameof(client.Email):
-                                    throw CreateException(LanguageId, Constants.Errors.EmailCantBeEmpty);
+                                    if (registerType != (int)RegisterTypes.Mobile)
+                                        throw CreateException(LanguageId, Constants.Errors.EmailCantBeEmpty);
+                                    break;
                                 case nameof(client.MobileNumber):
-                                    throw CreateException(LanguageId, Constants.Errors.MobileNumberCantBeEmpty);
+                                    if (registerType != (int)RegisterTypes.Email)
+                                        throw CreateException(LanguageId, Constants.Errors.MobileNumberCantBeEmpty);
+                                    break;
                                 case nameof(client.Address):
                                     throw CreateException(LanguageId, Constants.Errors.AddressCantBeEmpty);
                                 case nameof(client.ZipCode):
                                     throw CreateException(LanguageId, Constants.Errors.ZipCodeCantBeEmpty);
+                                case nameof(client.CurrencyId):
+                                    throw CreateException(LanguageId, Constants.Errors.WrongCurrencyId);
                                 default:
                                     throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
                             }
-                        else if (field.Name == nameof(client.BirthDate) && (client.BirthDate== DateTime.MinValue ||  client.BirthDate== Constants.DefaultDateTime))
+                        else if (field.Name == nameof(client.BirthDate) && (client.BirthDate == DateTime.MinValue ||  client.BirthDate== Constants.DefaultDateTime))
                             throw CreateException(LanguageId, Constants.Errors.InvalidBirthDate);
+                        else if (field.Name == nameof(client.UserName) && idUsernameGenerated)
+                            throw CreateException(LanguageId, Constants.Errors.UserNameCantBeEmpty);                        
                     }
                 }
                 else if (!string.IsNullOrEmpty(p.Regex) && !Regex.IsMatch((string)value, p.Regex))
@@ -2743,9 +2761,9 @@ namespace IqSoft.CP.BLL.Services
                 },
                 new CheckPermissionOutput<Client>
                 {
-                    AccessibleObjects = partnerAccess.AccessibleObjects,
+                    AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                     HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                    Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                    Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                 },
                 new CheckPermissionOutput<Client>
                 {
@@ -2813,13 +2831,13 @@ namespace IqSoft.CP.BLL.Services
                 },
                 new CheckPermissionOutput<fnClient>
                 {
-                    AccessibleObjects = partnerAccess.AccessibleObjects,
+                    AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                     HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                    Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                    Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                 },
                 new CheckPermissionOutput<fnClient>
                 {
-                    AccessibleObjects = affiliateAccess.AccessibleObjects,
+                    AccessibleStringObjects = affiliateAccess.AccessibleStringObjects,
                     HaveAccessForAllObjects = affiliateAccess.HaveAccessForAllObjects,
                     Filter = x => !string.IsNullOrEmpty(x.AffiliateId) && affiliateAccess.AccessibleStringObjects.Contains(x.AffiliateId)
                 }
@@ -2854,7 +2872,7 @@ namespace IqSoft.CP.BLL.Services
                 ObjectTypeId = ObjectTypes.AffiliateReferral
             });
             if ((!clientAccess.HaveAccessForAllObjects && clientAccess.AccessibleObjects.All(x => x != clientId)) ||
-                (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != client.PartnerId)) || !noteAccess.HaveAccessForAllObjects ||
+                (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId)) || !noteAccess.HaveAccessForAllObjects ||
                 (!affiliateAccess.HaveAccessForAllObjects &&
                   affiliateAccess.AccessibleObjects.All(x => client.AffiliateReferralId.HasValue && x != client.AffiliateReferralId.Value))
                )
@@ -2904,7 +2922,7 @@ namespace IqSoft.CP.BLL.Services
                 ObjectTypeId = ObjectTypes.Client
             });
 
-            var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
                 ObjectTypeId = ObjectTypes.Partner
@@ -2916,7 +2934,7 @@ namespace IqSoft.CP.BLL.Services
                 ObjectTypeId = ObjectTypes.AffiliateReferral
             });
             if ((!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != filter.ClientId)) ||
-                (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != client.PartnerId)) ||
+                (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId)) ||
                 (!affiliateReferralAccess.HaveAccessForAllObjects &&
                   affiliateReferralAccess.AccessibleObjects.All(x => client.AffiliateReferralId.HasValue && x != client.AffiliateReferralId.Value)))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -3035,10 +3053,8 @@ namespace IqSoft.CP.BLL.Services
 
         public ClientIdentity SaveKYCDocument(ClientIdentity input, string documentName, byte[] imageData, bool checkPermission)
         {
-            var client = CacheManager.GetClientById(input.ClientId);
-            if (client == null)
+            var client = CacheManager.GetClientById(input.ClientId)??
                 throw CreateException(LanguageId, Constants.Errors.ClientNotFound);
-
             var docSavePath = string.Empty;
             if (checkPermission)
             {
@@ -3063,7 +3079,7 @@ namespace IqSoft.CP.BLL.Services
                     ObjectTypeId = ObjectTypes.AffiliateReferral
                 });
                 if ((!clientAccess.HaveAccessForAllObjects && clientAccess.AccessibleObjects.All(x => x != input.ClientId)) ||
-                    (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != client.PartnerId)) ||
+                    (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId)) ||
                     (!affiliateReferralAccess.HaveAccessForAllObjects &&
                       affiliateReferralAccess.AccessibleObjects.All(x => client.AffiliateReferralId.HasValue && x != client.AffiliateReferralId.Value)))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -3133,34 +3149,17 @@ namespace IqSoft.CP.BLL.Services
                     documentName = documentName.Replace(" ", string.Empty);
                     if (documentName.Length > 50)
                         documentName = documentName.Substring(0, 50);
-                    var currentPath = HttpContext.Current.Server.MapPath("~");
-                    var parentPath = Path.GetDirectoryName(currentPath);
-                    string[] paths = { Path.GetDirectoryName(parentPath), "AdminWebApi", "ClientDocuments" };
-                    var localPath = Path.Combine(paths);
-                    if (!Directory.Exists(localPath))
-                        Directory.CreateDirectory(localPath);
-                    var docName = string.Format("{0}_{1}_{2}", Guid.NewGuid().ToString(), input.ClientId.ToString(), documentName);
-                    docSavePath = Path.Combine(localPath, docName);
-                    try
+                    var ftpModel = new FtpModel
                     {
-                        Image clientDocImg;
-                        using (var ms = new MemoryStream(imageData, 0, imageData.Length))
-                        {
-                            var result = Image.FromStream(ms, true);
-                            clientDocImg = new Bitmap(result);
-                        }
-                        clientDocImg.Save(docSavePath);
-                    }
-                    catch
-                    {
-                        if (!docSavePath.Contains(".pdf"))
-                            docSavePath = docSavePath.Substring(0, docSavePath.LastIndexOf('.') + 1) + "pdf";
-                        if (!docName.Contains(".pdf"))
-                            docName = docName.Substring(0, docName.LastIndexOf('.') + 1) + "pdf";
-                        GeneratePDF(docSavePath, imageData);
-                    }
-                    dbClientIdentity.ImagePath = String.Format("ClientDocuments/{0}", docName);
-                    Db.SaveChanges();
+                        Url = CacheManager.GetPartnerSettingByKey(Constants.MainPartnerId, Constants.PartnerKeys.StatementFTPServer).StringValue,
+                        UserName = CacheManager.GetPartnerSettingByKey(Constants.MainPartnerId, Constants.PartnerKeys.StatementFTPUsername).StringValue,
+                        Password = CacheManager.GetPartnerSettingByKey(Constants.MainPartnerId, Constants.PartnerKeys.StatementFTPPassword).StringValue
+                    };
+                    var fileName = $"ClientDocuments/{Guid.NewGuid()}_{input.ClientId}_{documentName}";
+                    var path = $"ftp://{ftpModel.Url}/{fileName}";
+                    UploadFtpImage(imageData, ftpModel, path);
+                    dbClientIdentity.ImagePath = fileName;
+                    Db.SaveChanges();                   
                 }
                 transactionScope.Complete();
             }
@@ -3201,7 +3200,7 @@ namespace IqSoft.CP.BLL.Services
                     ObjectTypeId = ObjectTypes.AffiliateReferral
                 });
                 if ((!clientAccess.HaveAccessForAllObjects && clientAccess.AccessibleObjects.All(x => x != client.Id)) ||
-                    (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != client.PartnerId)) ||
+                    (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId)) ||
                     (!affiliateReferralAccess.HaveAccessForAllObjects &&
                       affiliateReferralAccess.AccessibleObjects.All(x => client.AffiliateReferralId.HasValue && x != client.AffiliateReferralId.Value)))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -3251,7 +3250,7 @@ namespace IqSoft.CP.BLL.Services
                     ObjectTypeId = ObjectTypes.AffiliateReferral
                 });
                 if ((!clientAccess.HaveAccessForAllObjects && clientAccess.AccessibleObjects.All(x => x != clientId)) ||
-                    (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != client.PartnerId)) ||
+                    (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId)) ||
                     (!affiliateAccess.HaveAccessForAllObjects &&
                       affiliateAccess.AccessibleObjects.All(x => client.AffiliateReferralId.HasValue && x != client.AffiliateReferralId.Value)))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -3288,7 +3287,7 @@ namespace IqSoft.CP.BLL.Services
                 });
                 CheckPermission(Constants.Permissions.EditPaymentSetting);
                 if ((!clientAccess.HaveAccessForAllObjects && clientAccess.AccessibleObjects.All(x => x != client.Id)) ||
-                      (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != client.PartnerId)) ||
+                      (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId)) ||
                       (!affiliateAccess.HaveAccessForAllObjects &&
                         affiliateAccess.AccessibleObjects.All(x => client.AffiliateReferralId.HasValue && x != client.AffiliateReferralId.Value)))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -3325,7 +3324,7 @@ namespace IqSoft.CP.BLL.Services
                 ObjectTypeId = ObjectTypes.Client
             });
 
-            var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
                 ObjectTypeId = ObjectTypes.Partner
@@ -3337,7 +3336,7 @@ namespace IqSoft.CP.BLL.Services
                 ObjectTypeId = ObjectTypes.AffiliateReferral
             });
             if ((!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != clientId)) ||
-                (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != client.PartnerId)) ||
+                (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId)) ||
                 (!affiliateAccess.HaveAccessForAllObjects &&
                   affiliateAccess.AccessibleObjects.All(x => client.AffiliateReferralId.HasValue && x != client.AffiliateReferralId.Value)))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -3408,7 +3407,7 @@ namespace IqSoft.CP.BLL.Services
         public void ChangeClientDetails(Client client, ClientAffiliateModel affInput, out bool isBonusAccepted, out bool isSessionExpired, int? referralType)
         {
             CheckPermission(Constants.Permissions.EditClient);
-            VerifyClientFieldsByWebSettings(client, false, false);
+            VerifyClientFieldsByWebSettings(client, null, false);
             using (var bonusBl = new BonusService(this))
             {
                 using (var documentBl = new DocumentBll(this))
@@ -3429,7 +3428,7 @@ namespace IqSoft.CP.BLL.Services
                                 if (user == null)
                                     throw CreateException(LanguageId, Constants.Errors.UserNotFound);
                                 if (oldClient.PartnerId != user.PartnerId || oldClient.CurrencyId != user.CurrencyId ||
-                                   (user.Type != (int)UserTypes.MasterAgent && user.Type != (int)UserTypes.Agent))
+                                   (user.Type != (int)UserTypes.CompanyAgent && user.Type != (int)UserTypes.DownlineAgent))
                                     throw CreateException(LanguageId, Constants.Errors.NotAllowed);
                             }
                             oldClient.UserId = client.UserId;
@@ -4353,7 +4352,7 @@ namespace IqSoft.CP.BLL.Services
                     ObjectTypeId = ObjectTypes.Client
                 });
 
-                var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
+                var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
                     ObjectTypeId = ObjectTypes.Partner
@@ -4366,7 +4365,7 @@ namespace IqSoft.CP.BLL.Services
                 });
 
                 if ((!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != clientId)) ||
-                    (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != client.PartnerId)) ||
+                    (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId)) ||
                     (!affiliateAccess.HaveAccessForAllObjects &&
                       affiliateAccess.AccessibleObjects.All(x => client.AffiliateReferralId.HasValue && x != client.AffiliateReferralId.Value)))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -4537,7 +4536,7 @@ namespace IqSoft.CP.BLL.Services
                     ObjectTypeId = ObjectTypes.Client
                 });
 
-                var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
+                var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
                     ObjectTypeId = ObjectTypes.Partner
@@ -4552,7 +4551,7 @@ namespace IqSoft.CP.BLL.Services
                 CheckPermission(Constants.Permissions.EditPaymentInfo);
 
                 if ((!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != client.Id)) ||
-                    (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != client.PartnerId)) ||
+                    (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId)) ||
                     (!affiliateAccess.HaveAccessForAllObjects &&
                       affiliateAccess.AccessibleObjects.All(x => client.AffiliateReferralId.HasValue && x != client.AffiliateReferralId.Value)))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -4613,7 +4612,7 @@ namespace IqSoft.CP.BLL.Services
                     ObjectTypeId = ObjectTypes.Client
                 });
 
-                var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
+                var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
                     ObjectTypeId = ObjectTypes.Partner
@@ -4625,7 +4624,7 @@ namespace IqSoft.CP.BLL.Services
                     ObjectTypeId = ObjectTypes.AffiliateReferral
                 });
                 if ((!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != clientId)) ||
-                    (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != client.PartnerId)) ||
+                    (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId)) ||
                      (!affiliateAccess.HaveAccessForAllObjects &&
                      affiliateAccess.AccessibleObjects.All(x => client.AffiliateReferralId.HasValue && x != client.AffiliateReferralId.Value)))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -4864,9 +4863,9 @@ namespace IqSoft.CP.BLL.Services
                     },
                     new CheckPermissionOutput<fnTicket>
                     {
-                        AccessibleObjects = partnerAccess.AccessibleObjects,
+                        AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                         HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                        Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                        Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                     },
                     new CheckPermissionOutput<fnTicket>
                     {
@@ -4876,7 +4875,7 @@ namespace IqSoft.CP.BLL.Services
                     },
                     new CheckPermissionOutput<fnTicket>
                     {
-                        AccessibleObjects = affiliateAccess.AccessibleObjects,
+                        AccessibleStringObjects = affiliateAccess.AccessibleStringObjects,
                         HaveAccessForAllObjects = affiliateAccess.HaveAccessForAllObjects,
                         Filter = x => !string.IsNullOrEmpty(x.AffiliateId) && affiliateAccess.AccessibleStringObjects.Contains(x.AffiliateId)
                     }
@@ -4928,13 +4927,13 @@ namespace IqSoft.CP.BLL.Services
                     },
                     new CheckPermissionOutput<fnClientMessage>
                     {
-                        AccessibleObjects = partnerAccess.AccessibleObjects,
+                        AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                         HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                        Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                        Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                     },
                     new CheckPermissionOutput<fnClientMessage>
                     {
-                        AccessibleObjects = affiliateAccess.AccessibleObjects,
+                        AccessibleStringObjects = affiliateAccess.AccessibleStringObjects,
                         HaveAccessForAllObjects = affiliateAccess.HaveAccessForAllObjects,
                         Filter = x => !string.IsNullOrEmpty(x.AffiliateId) && affiliateAccess.AccessibleStringObjects.Contains(x.AffiliateId)
                     }
@@ -5022,7 +5021,7 @@ namespace IqSoft.CP.BLL.Services
                 ObjectTypeId = ObjectTypes.Client
             });
 
-            var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
                 ObjectTypeId = ObjectTypes.Partner
@@ -5034,7 +5033,7 @@ namespace IqSoft.CP.BLL.Services
             });
 
             if ((!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != clientId)) ||
-                (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != client.PartnerId)) ||
+                (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId)) ||
                  (!affiliateAccess.HaveAccessForAllObjects &&
                      affiliateAccess.AccessibleObjects.All(x => client.AffiliateReferralId.HasValue && x != client.AffiliateReferralId.Value)))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -5042,107 +5041,6 @@ namespace IqSoft.CP.BLL.Services
             CheckPermission(Constants.Permissions.EditPaymentInfo);
             var currentDate = GetServerDate();
             Db.ClientBankInfoes.Where(x => x.ClientId == clientId).UpdateFromQuery(y => new ClientBankInfo { LastViewDate = currentDate.AddHours(-24) });
-        }
-
-        public void ChangeClientPaymentSettingState(int clientId, int partnerPaymentSettingId, int state)
-        {
-            var client = CacheManager.GetClientById(clientId);
-            if (client == null)
-                throw CreateException(LanguageId, Constants.Errors.ClientNotFound);
-            var checkClientPermission = GetPermissionsToObject(new CheckPermissionInput
-            {
-                Permission = Constants.Permissions.ViewClient,
-                ObjectTypeId = ObjectTypes.Client
-            });
-
-            var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
-            {
-                Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
-            });
-
-            var affiliateAccess = GetPermissionsToObject(new CheckPermissionInput
-            {
-                Permission = Constants.Permissions.ViewAffiliateReferral,
-                ObjectTypeId = ObjectTypes.AffiliateReferral
-            });
-
-            if ((!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != clientId)) ||
-                (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != client.PartnerId)) ||
-                (!affiliateAccess.HaveAccessForAllObjects &&
-                 affiliateAccess.AccessibleObjects.All(x => client.AffiliateReferralId.HasValue && x != client.AffiliateReferralId.Value)))
-                throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
-            CheckPermission(Constants.Permissions.EditClient);
-            if (!Enum.IsDefined(typeof(ClientPaymentStates), state))
-                throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
-
-            var clientPaymentSetting = Db.ClientPaymentSettings.FirstOrDefault(x => x.ClientId == clientId &&
-                                                                        x.PartnerPaymentSettingId == partnerPaymentSettingId);
-            if (state == (int)ClientPaymentStates.Active && clientPaymentSetting != null)
-            {
-                Db.ClientPaymentSettings.Where(x => x.Id == clientPaymentSetting.Id).DeleteFromQuery();
-                return;
-            }
-            if (clientPaymentSetting == null)
-            {
-                clientPaymentSetting = new ClientPaymentSetting
-                {
-                    ClientId = clientId,
-                    PartnerPaymentSettingId = partnerPaymentSettingId,
-                    State = state
-                };
-                Db.ClientPaymentSettings.Add(clientPaymentSetting);
-            }
-            else
-                clientPaymentSetting.State = state;
-            Db.SaveChanges();
-        }
-
-        public ClientPaymentSetting BlockClientPaymentSettingState(int clientId, int partnerPaymentSettingId) // should be deleted
-        {
-            var client = CacheManager.GetClientById(clientId);
-            if (client == null)
-                throw CreateException(LanguageId, Constants.Errors.ClientNotFound);
-            var checkClientPermission = GetPermissionsToObject(new CheckPermissionInput
-            {
-                Permission = Constants.Permissions.ViewClient,
-                ObjectTypeId = ObjectTypes.Client
-            });
-
-            var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
-            {
-                Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
-            });
-
-            var affiliateAccess = GetPermissionsToObject(new CheckPermissionInput
-            {
-                Permission = Constants.Permissions.ViewAffiliateReferral,
-                ObjectTypeId = ObjectTypes.AffiliateReferral
-            });
-            CheckPermission(Constants.Permissions.AddPaymentSetting);
-            if ((!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != clientId)) ||
-                (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != client.PartnerId)) ||
-                (!affiliateAccess.HaveAccessForAllObjects &&
-                 affiliateAccess.AccessibleObjects.All(x => client.AffiliateReferralId.HasValue && x != client.AffiliateReferralId.Value)))
-                throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
-            CheckPermission(Constants.Permissions.EditClient);
-
-            var response = Db.ClientPaymentSettings.FirstOrDefault(x => x.ClientId == clientId && x.State == (int)ClientPaymentStates.Blocked &&
-                                                                        x.PartnerPaymentSettingId == partnerPaymentSettingId);
-            if (response == null)
-            {
-                response = new ClientPaymentSetting
-                {
-                    ClientId = clientId,
-                    PartnerPaymentSettingId = partnerPaymentSettingId,
-                    State = (int)ClientPaymentStates.Blocked
-                };
-                Db.ClientPaymentSettings.Add(response);
-                Db.SaveChanges();
-            }
-            response.PartnerPaymentSetting = Db.PartnerPaymentSettings.Include(x => x.PaymentSystem).FirstOrDefault(x => x.Id == partnerPaymentSettingId);
-            return response;
         }
 
         public void AddClientJobTrigger(int clientId, int type, decimal? amount = null, long? paymentRequestId = null)
@@ -5160,19 +5058,70 @@ namespace IqSoft.CP.BLL.Services
                 Db.JobTriggers.Add(jobTrigger);
             Db.SaveChanges();
         }
-
-        public void ActivateClientPaymentSetting(int id)
+        public void SaveClientPaymentSetting(int clientId, int partnerPaymentSettingId, int state)
         {
-            CheckPermission(Constants.Permissions.EditClient);
-            CheckPermission(Constants.Permissions.RemovePaymentSetting);
-            Db.ClientPaymentSettings.Where(x => x.Id == id).DeleteFromQuery();
-            Db.SaveChanges();
+            var client = CacheManager.GetClientById(clientId) ??
+                throw CreateException(LanguageId, Constants.Errors.ClientNotFound);
+            var checkClientPermission = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewClient,
+                ObjectTypeId = ObjectTypes.Client
+            });
+
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewPartner,
+                ObjectTypeId = ObjectTypes.Partner
+            });
+
+            var affiliateAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewAffiliateReferral,
+                ObjectTypeId = ObjectTypes.AffiliateReferral
+            });
+            CheckPermission(Constants.Permissions.ViewPaymentSetting);
+            if ((!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != clientId)) ||
+                (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId)) ||
+                (!affiliateAccess.HaveAccessForAllObjects &&
+                 affiliateAccess.AccessibleObjects.All(x => client.AffiliateReferralId.HasValue && x != client.AffiliateReferralId.Value)))
+                throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
+
+            if (!Enum.IsDefined(typeof(ClientPaymentStates), state))
+                throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
+            var partnerPaymentSetting = Db.PartnerPaymentSettings.FirstOrDefault(x=> x.Id == partnerPaymentSettingId) ??
+                throw CreateException(LanguageId, Constants.Errors.PartnerPaymentSettingNotFound);
+
+            if (state == (int)ClientPaymentStates.Active)
+                Db.ClientPaymentSettings.Where(x => x.ClientId == clientId && x.PartnerPaymentSettingId == partnerPaymentSettingId).DeleteFromQuery();
+            else
+            {
+                var currentTime = DateTime.UtcNow;
+                var dbClientPaymentSetting = Db.ClientPaymentSettings.FirstOrDefault(x => x.ClientId == clientId &&
+                                                                                          x.PartnerPaymentSettingId == partnerPaymentSettingId);
+                if (dbClientPaymentSetting != null)
+                {
+                    dbClientPaymentSetting.State = state;
+                    dbClientPaymentSetting.LastUpdateTime = currentTime;
+                }
+                else
+                {
+                    Db.ClientPaymentSettings.Add(new ClientPaymentSetting
+                    {
+                        ClientId = clientId,
+                        PartnerPaymentSettingId = partnerPaymentSettingId,
+                        State = state,
+                        CreationTime = currentTime,
+                        LastUpdateTime = currentTime
+                    });
+                }
+                Db.SaveChanges();
+            }
+            CacheManager.RemoveFromCache(string.Format("{0}_{1}", Constants.CacheItems.ClientPaymentSetting, clientId));
         }
 
         public List<ClientPaymentSetting> GetClientPaymentSettings(int clientId, int? state, bool checkPermission)
         {
-            var client = CacheManager.GetClientById(clientId);
-            if (client == null)
+            var client = CacheManager.GetClientById(clientId) ?? 
                 throw CreateException(LanguageId, Constants.Errors.ClientNotFound);
             if (checkPermission)
             {
@@ -5189,11 +5138,15 @@ namespace IqSoft.CP.BLL.Services
                 });
                 CheckPermission(Constants.Permissions.ViewPaymentSetting);
                 if ((!clientAccess.HaveAccessForAllObjects && clientAccess.AccessibleObjects.All(x => x != clientId)) ||
-                    (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != client.PartnerId)))
+                    (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId)))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             }
-            var partnerPaymentSettings = Db.PartnerPaymentSettings.Where(x => x.PartnerId == client.PartnerId && x.CurrencyId == client.CurrencyId).ToList();
-            var clientPaymentSettings = Db.ClientPaymentSettings.Include(x => x.PartnerPaymentSetting.PaymentSystem).Where(x => x.ClientId == clientId).ToList();
+            var partnerPaymentSettings = Db.PartnerPaymentSettings.Where(x => x.PartnerId == client.PartnerId && 
+                                                                              x.CurrencyId == client.CurrencyId &&
+                                                                              x.State == (int)PartnerPaymentSettingStates.Active)
+                                                                  .ToList();
+            var clientPaymentSettings = Db.ClientPaymentSettings.Include(x => x.PartnerPaymentSetting.PaymentSystem)
+                                                                .Where(x => x.ClientId == clientId).ToList();
 
             partnerPaymentSettings.ForEach(x =>
             {
@@ -5203,7 +5156,9 @@ namespace IqSoft.CP.BLL.Services
                         ClientId = clientId,
                         PartnerPaymentSetting = x,
                         PartnerPaymentSettingId = x.Id,
-                        State = (int)ClientPaymentStates.Active
+                        State = (int)ClientPaymentStates.Active,
+                        CreationTime = x.CreationTime,
+                        LastUpdateTime = x.LastUpdateTime
                     });
             });
             if (state.HasValue)
@@ -5398,7 +5353,7 @@ namespace IqSoft.CP.BLL.Services
                                                 CreationTime = DateTime.UtcNow,
                                                 BetCount = (isBetTrigger || trigger.Type == (int)TriggerTypes.DailyDeposit) ? 1 : (int?)null,
                                                 WageringAmount = isBetTrigger && triggerMinAmount != null ? (triggerToFair.SourceAmount * (percent ?? 100)) / 100 :
-                                                    (trigger.Type == (int)TriggerTypes.DailyDeposit ? triggerMinAmount : null),
+                                                    (trigger.Type == (int)TriggerTypes.DailyDeposit ? Math.Floor((triggerMinAmount ?? 0) * 100) / 100m : (decimal?)null),
                                                 ReuseNumber = cb.ReuseNumber,
                                                 LastActionDate = DateTime.UtcNow
                                             };
@@ -5753,7 +5708,7 @@ namespace IqSoft.CP.BLL.Services
                 ObjectTypeId = ObjectTypes.Client
             });
             if ((!clientAccess.HaveAccessForAllObjects && clientAccess.AccessibleObjects.All(x => x != clientId)) ||
-                (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != client.PartnerId)))
+                (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId)))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
 
             if (!Enum.IsDefined(typeof(ClientBonusTriggerStatuses), status))
@@ -5843,7 +5798,7 @@ namespace IqSoft.CP.BLL.Services
                     ObjectTypeId = ObjectTypes.Client
                 });
                 if ((!clientAccess.HaveAccessForAllObjects && clientAccess.AccessibleObjects.All(x => x != clientId)) ||
-                    (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != client.PartnerId)))
+                    (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId)))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             }
             var partner = CacheManager.GetPartnerById(client.PartnerId);
@@ -5893,8 +5848,8 @@ namespace IqSoft.CP.BLL.Services
 
             foreach (var ts in triggerSettings)
             {
-                ts.MinAmount = ts.MinAmount.HasValue ? ConvertCurrency(partner.CurrencyId, client.CurrencyId, ts.MinAmount.Value) : (decimal?)null;
-                ts.MaxAmount = ts.MaxAmount.HasValue ? ConvertCurrency(partner.CurrencyId, client.CurrencyId, ts.MaxAmount.Value) : (decimal?)null;
+                ts.MinAmount = ts.MinAmount.HasValue ? Math.Floor(ConvertCurrency(partner.CurrencyId, client.CurrencyId, ts.MinAmount.Value) * 100) / 100m : (decimal?)null;
+                ts.MaxAmount = ts.MaxAmount.HasValue ? Math.Floor(ConvertCurrency(partner.CurrencyId, client.CurrencyId, ts.MaxAmount.Value) * 100) / 100m : (decimal?)null;
                 var clientBonusTrigger = clientBonusTriggers.FirstOrDefault(x => x.TriggerId == ts.Id);
                 if (clientBonusTrigger != null)
                 {
@@ -5961,9 +5916,9 @@ namespace IqSoft.CP.BLL.Services
             {
                 new CheckPermissionOutput<fnClientBonus>
                 {
-                    AccessibleObjects = partnerAccess.AccessibleObjects,
+                    AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                     HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                    Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                    Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                 },
                 new CheckPermissionOutput<fnClientBonus>
                 {
@@ -6085,7 +6040,7 @@ namespace IqSoft.CP.BLL.Services
                     Permission = Constants.Permissions.ViewPartner,
                     ObjectTypeId = ObjectTypes.Partner
                 });
-                if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != client.PartnerId))
+                if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             }
             fnClientBonus resp = null;
@@ -6182,7 +6137,7 @@ namespace IqSoft.CP.BLL.Services
                     Permission = Constants.Permissions.ViewPartner,
                     ObjectTypeId = ObjectTypes.Partner
                 });
-                if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != client.PartnerId))
+                if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
 
             }
@@ -6677,7 +6632,7 @@ namespace IqSoft.CP.BLL.Services
                 ObjectTypeId = ObjectTypes.Client
             });
             if ((!clientAccess.HaveAccessForAllObjects && clientAccess.AccessibleObjects.All(x => x != client.Id)) ||
-                (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != client.PartnerId)))
+                (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId)))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, paymentRequest.PaymentSystemId, client.CurrencyId, (int)PaymentRequestTypes.Withdraw);
             if (partnerPaymentSetting == null || partnerPaymentSetting.State == (int)PartnerPaymentSettingStates.Inactive)
@@ -6696,7 +6651,7 @@ namespace IqSoft.CP.BLL.Services
                 using (var scope = CommonFunctions.CreateTransactionScope())
                 {
                     ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Splitted, "Split", paymentRequest.CashDeskId,
-                                               null, false, string.Empty, documentBl, notificationBl);
+                                               null, false, paymentRequest.Parameters, documentBl, notificationBl);
                     var currentTime = DateTime.UtcNow;
                     var date = (long)currentTime.Year * 100000000 + (long)currentTime.Month * 1000000 +
                                (long)currentTime.Day * 10000 + (long)currentTime.Hour * 100 + currentTime.Minute;
@@ -6727,7 +6682,7 @@ namespace IqSoft.CP.BLL.Services
                             LastUpdateTime = currentTime,
                             CashCode = paymentRequest.CashCode,
                             Date = date,
-                            CommissionAmount = commissionAmount
+                            CommissionAmount = commissionAmount                            
                         };
                         Db.PaymentRequests.Add(newPaymentRequest);
                         Db.SaveChanges();
@@ -7178,7 +7133,8 @@ namespace IqSoft.CP.BLL.Services
                 Db.MerchantRequests.Add(mr);
                 Db.SaveChanges();
             }
-            notificationBl.WithdrawAffiliateNotification(client, resp.RequestAmount - resp.CommissionAmount, resp.RequestId);
+			var partnerKey = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.CRMPlarforms).StringValue;
+			notificationBl.WithdrawAffiliateNotification(client, resp.RequestAmount - resp.CommissionAmount, resp.RequestId, partnerKey);
             return document;
         }
 
@@ -7230,7 +7186,7 @@ namespace IqSoft.CP.BLL.Services
                 ObjectTypeId = ObjectTypes.Client
             });
 
-            var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
                 ObjectTypeId = ObjectTypes.Partner
@@ -7243,7 +7199,7 @@ namespace IqSoft.CP.BLL.Services
             });
 
             if ((!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != client.Id)) ||
-                 (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != client.PartnerId)) ||
+                 (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId)) ||
                  (!affiliateReferralAccess.HaveAccessForAllObjects &&
                  affiliateReferralAccess.AccessibleObjects.All(x => client.AffiliateReferralId.HasValue && x != client.AffiliateReferralId.Value))
                )
@@ -7252,13 +7208,16 @@ namespace IqSoft.CP.BLL.Services
             {
                 if (!string.IsNullOrEmpty(paymentForm))
                 {
-                    var currentPath = HttpContext.Current.Server.MapPath("~");
-                    var parentPath = Path.GetDirectoryName(currentPath);
-                    string[] paths = { Path.GetDirectoryName(parentPath), "AdminWebApi", "ClientPaymentForms" };
-                    var localPath = Path.Combine(paths);
-                    var imgName = CommonFunctions.UploadImage(paymentRequest.ClientId.Value, paymentForm, imageName, localPath, Log);
-                    var dic = new Dictionary<string, string>();
-                    dic.Add("PaymentForm", imgName);
+                    var ftpModel = new FtpModel
+                    {
+                        Url = CacheManager.GetPartnerSettingByKey(Constants.MainPartnerId, Constants.PartnerKeys.StatementFTPServer).StringValue,
+                        UserName = CacheManager.GetPartnerSettingByKey(Constants.MainPartnerId, Constants.PartnerKeys.StatementFTPUsername).StringValue,
+                        Password = CacheManager.GetPartnerSettingByKey(Constants.MainPartnerId, Constants.PartnerKeys.StatementFTPPassword).StringValue
+                    };
+                    var imgName = $"ClientPaymentForms/{Guid.NewGuid()}_{client.Id}_{imageName}";
+                    var path = $"ftp://{ftpModel.Url}/{imgName}";
+                    UploadFtpImage(Convert.FromBase64String(paymentForm), ftpModel, path);
+                    var dic = new Dictionary<string, string> { { "PaymentForm", imgName } };
                     paymentRequest.Parameters = JsonConvert.SerializeObject(dic);
                 }
                 return CreateDepositFromPaymentSystem(paymentRequest, out LimitInfo info);
@@ -7310,13 +7269,13 @@ namespace IqSoft.CP.BLL.Services
                 Permission = Constants.Permissions.ViewClient,
                 ObjectTypeId = ObjectTypes.Client
             });
-            var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
                 ObjectTypeId = ObjectTypes.Partner
             });
             if ((!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != client.Id)) ||
-                (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != client.PartnerId)))
+                (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId)))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
 
             if (client.State == (int)ClientStates.FullBlocked || client.State == (int)ClientStates.Disabled ||
@@ -8137,13 +8096,13 @@ namespace IqSoft.CP.BLL.Services
                     Permission = Constants.Permissions.ViewAffiliateReferral,
                     ObjectTypeId = ObjectTypes.AffiliateReferral
                 });
-                var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
+                var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
                     ObjectTypeId = ObjectTypes.Partner
                 });
                 if (!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != correction.ClientId) ||
-                     (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != client.PartnerId)) ||
+                     (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId)) ||
                      (!affiliateAccess.HaveAccessForAllObjects &&
                      affiliateAccess.AccessibleObjects.All(x => client.AffiliateReferralId.HasValue && x != client.AffiliateReferralId.Value)))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -8225,7 +8184,7 @@ namespace IqSoft.CP.BLL.Services
                     ObjectTypeId = ObjectTypes.Client
                 });
 
-                var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
+                var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
                     ObjectTypeId = ObjectTypes.Partner
@@ -8236,7 +8195,7 @@ namespace IqSoft.CP.BLL.Services
                     ObjectTypeId = ObjectTypes.AffiliateReferral
                 });
                 if (!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != correction.ClientId) ||
-                    (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != client.PartnerId)) ||
+                    (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId)) ||
                     (!affiliateAccess.HaveAccessForAllObjects &&
                       affiliateAccess.AccessibleObjects.All(x => client.AffiliateReferralId.HasValue && x != client.AffiliateReferralId.Value)))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -9052,7 +9011,7 @@ namespace IqSoft.CP.BLL.Services
                     for (int i = 1; i < userIds.Count; i++)
                     {
                         var user = CacheManager.GetUserById(Convert.ToInt32(userIds[i]));
-                        if (user.Type == (int)UserTypes.MasterAgent)
+                        if (user.Type == (int)UserTypes.CompanyAgent)
                         {
                             userId = user.Id;
                             break;
@@ -9139,7 +9098,7 @@ namespace IqSoft.CP.BLL.Services
                 });
                 CheckPermission(Constants.Permissions.ViewSetting);
                 if ((!clientAccess.HaveAccessForAllObjects && clientAccess.AccessibleObjects.All(x => x != clientId)) ||
-                    (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != client.PartnerId)))
+                    (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId)))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             }
             var clientSettings = Db.ClientSettings.Where(x => x.ClientId == clientId &&
@@ -9227,7 +9186,7 @@ namespace IqSoft.CP.BLL.Services
                 CheckPermission(Constants.Permissions.EditSetting);
 
                 if ((!clientAccess.HaveAccessForAllObjects && clientAccess.AccessibleObjects.All(x => x != apiClientSetting.ClientId)) ||
-                    (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != client.PartnerId)))
+                    (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId)))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             }
             var editableSettings = new List<string>
@@ -9676,13 +9635,13 @@ namespace IqSoft.CP.BLL.Services
                     Permission = Constants.Permissions.ViewClient,
                     ObjectTypeId = ObjectTypes.Client
                 });
-                var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
+                var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
                     ObjectTypeId = ObjectTypes.Partner
                 });
                 if ((!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != client.Id)) ||
-                    (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != client.PartnerId)))
+                    (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId)))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             }
 
@@ -9911,13 +9870,13 @@ namespace IqSoft.CP.BLL.Services
                     Permission = Constants.Permissions.ViewClient,
                     ObjectTypeId = ObjectTypes.Client
                 });
-                var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
+                var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
                     ObjectTypeId = ObjectTypes.Partner
                 });
                 if ((!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != client.Id)) ||
-                    (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != client.PartnerId)))
+                    (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId)))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             }
 
@@ -10132,14 +10091,14 @@ namespace IqSoft.CP.BLL.Services
                 Permission = Constants.Permissions.ViewClient,
                 ObjectTypeId = ObjectTypes.Client
             });
-            var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
                 ObjectTypeId = ObjectTypes.Partner
             });
             var client = CacheManager.GetClientById(clientId) ??  throw CreateException(LanguageId, Constants.Errors.ClientNotFound);
             if ((!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != client.Id)) ||
-                (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != client.PartnerId)))
+                (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId)))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             var oldLimitSettings = GetClientLimitSettings(clientId, false, true);
             var oldSettings = JsonConvert.SerializeObject(GetClientSettings(clientId, false));
@@ -10394,9 +10353,9 @@ namespace IqSoft.CP.BLL.Services
                 },
                 new CheckPermissionOutput<fnSegmentClient>
                 {
-                    AccessibleObjects = partnerAccess.AccessibleObjects,
+                    AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                     HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                    Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                    Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                 }
             };
             Func<IQueryable<fnSegmentClient>, IOrderedQueryable<fnSegmentClient>> orderBy;
@@ -10435,7 +10394,7 @@ namespace IqSoft.CP.BLL.Services
 
         public void GiveComplimentaryPoint(List<Bet> bets)
         {
-            var partnerGroupedList = bets.GroupBy(x => x.PartnerId);
+            var partnerGroupedList = bets.GroupBy(x => x.PartnerId ?? 0);
             foreach (var partnerBets in partnerGroupedList)
             {
                 var partnerConfig = CacheManager.GetConfigKey(partnerBets.Key, Constants.PartnerKeys.CheckComplimentaryPoints);
@@ -10463,7 +10422,7 @@ namespace IqSoft.CP.BLL.Services
 
         public void CancelComplimentaryPoint(List<Bet> deletedBets)
         {
-            var partnerGroupedList = deletedBets.GroupBy(x => x.PartnerId);
+            var partnerGroupedList = deletedBets.GroupBy(x => x.PartnerId ?? 0);
             foreach (var partnerBets in partnerGroupedList)
             {
                 var partnerConfig = CacheManager.GetConfigKey(partnerBets.Key, Constants.PartnerKeys.CheckComplimentaryPoints);

@@ -442,7 +442,7 @@ namespace IqSoft.CP.DataManager.Services
                 var startTime = DateTime.UtcNow.AddHours(-24);
                 using (var db = new IqSoftDataWarehouseEntities())
                 {
-                    var sqlString = "SELECT * FROM [AffiliateReferral] WHERE CreationTime > @startTime";
+                    var sqlString = "SELECT * FROM [AffiliateReferral] WHERE CreationTime > @startTime OR LastProcessedBonusTime > @startTime";
                     var context = new DbContext(CorePlatformDbConnectionString);
                     var result = context.Database.SqlQuery<AffiliateReferral>(sqlString, new SqlParameter("@startTime", startTime)).ToList();
                     if (result.Count > 0)

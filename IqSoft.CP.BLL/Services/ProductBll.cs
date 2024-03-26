@@ -324,12 +324,12 @@ namespace IqSoft.CP.BLL.Services
                 Permission = Constants.Permissions.ViewProduct,
                 ObjectTypeId = ObjectTypes.Product
             });
-            var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
                 ObjectTypeId = ObjectTypes.Partner
             });
-            if (!checkPartnerPermission.HaveAccessForAllObjects && !checkPartnerPermission.AccessibleObjects.Contains(partnerId))
+            if (!partnerAccess.HaveAccessForAllObjects && !partnerAccess.AccessibleIntegerObjects.Contains(partnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnProduct>>
             {
@@ -357,6 +357,7 @@ namespace IqSoft.CP.BLL.Services
             {
                 orderBy = products => products.OrderByDescending(x => x.Id);
             }
+            filter.IsProviderActive = true;
             var languageId = string.IsNullOrEmpty(LanguageId) ? Constants.DefaultLanguageId : LanguageId;
 
             var res = from p in Db.fn_Product(languageId)
@@ -365,7 +366,7 @@ namespace IqSoft.CP.BLL.Services
                       on p.Id equals pps.ProductId
                       into pp
                       from x in pp.DefaultIfEmpty()
-                      where x == null
+                      where x == null  
                       select p;
 
             return new PagedModel<fnProduct>
@@ -431,9 +432,9 @@ namespace IqSoft.CP.BLL.Services
                     },
                     new CheckPermissionOutput<PartnerProductSetting>
                     {
-                        AccessibleObjects = partnerAccess.AccessibleObjects,
+                        AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                         HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                        Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                        Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                     }
                 };
             return
@@ -466,9 +467,9 @@ namespace IqSoft.CP.BLL.Services
                     },
                     new CheckPermissionOutput<fnPartnerProductSetting>
                     {
-                        AccessibleObjects = partnerAccess.AccessibleObjects,
+                        AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                         HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                        Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                        Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                     }
                 };
             }
@@ -509,7 +510,7 @@ namespace IqSoft.CP.BLL.Services
                     ObjectTypeId = ObjectTypes.Partner
                 });
                 if (!checkPermissionResult.HaveAccessForAllObjects ||
-                    (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != apiPartnerProductSetting.PartnerId)))
+                    (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != apiPartnerProductSetting.PartnerId)))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             }
             if (apiPartnerProductSetting.Volatility.HasValue && !Enum.IsDefined(typeof(VolatilityTypes), apiPartnerProductSetting.Volatility.Value))
@@ -518,7 +519,9 @@ namespace IqSoft.CP.BLL.Services
             if (apiPartnerProductSetting.Rating < 0 || apiPartnerProductSetting.Percent < 0 || apiPartnerProductSetting.OpenMode <= 0 ||
                 apiPartnerProductSetting.CategoryIds.Any(x => !dbProductCategories.Contains(x)))
                 throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
-
+            if(apiPartnerProductSetting.State == (int)PartnerProductSettingStates.Active && 
+               Db.Products.Any(x=> apiPartnerProductSetting.ProductIds.Contains(x.Id) && (!x.GameProvider.IsActive || !x.GameProvider1.IsActive)))
+                throw CreateException(LanguageId, Constants.Errors.WrongProviderId);
             var currentDate = DateTime.UtcNow;
             foreach(var productId in apiPartnerProductSetting.ProductIds)
             {
@@ -600,7 +603,7 @@ namespace IqSoft.CP.BLL.Services
                 ObjectTypeId = ObjectTypes.Partner
             });
             if (!checkPermissionResult.HaveAccessForAllObjects ||
-               (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != apiPartnerProductSetting.PartnerId)))
+               (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != apiPartnerProductSetting.PartnerId)))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             Db.PartnerProductSettings.Where(x => apiPartnerProductSetting.ProductIds.Contains(x.ProductId) &&
                                                  x.PartnerId == apiPartnerProductSetting.PartnerId).DeleteFromQuery();
@@ -625,8 +628,8 @@ namespace IqSoft.CP.BLL.Services
                 ObjectTypeId = ObjectTypes.Partner
             });
             if (!checkEditPermission.HaveAccessForAllObjects || !checkViewPermission.HaveAccessForAllObjects ||
-               (!partnerAccess.HaveAccessForAllObjects && (!partnerAccess.AccessibleObjects.Contains(fromPartnerId) ||
-                !partnerAccess.AccessibleObjects.Contains(toPartnerId))))
+               (!partnerAccess.HaveAccessForAllObjects && (!partnerAccess.AccessibleIntegerObjects.Contains(fromPartnerId) ||
+                !partnerAccess.AccessibleIntegerObjects.Contains(toPartnerId))))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             var dbToPartnerProducts = Db.PartnerProductSettings.Where(x => x.PartnerId == toPartnerId).Select(x => x.ProductId).ToList();
             Db.PartnerProductSettings.Where(x => x.PartnerId == fromPartnerId && !dbToPartnerProducts.Contains(x.ProductId))
@@ -683,7 +686,7 @@ namespace IqSoft.CP.BLL.Services
                                             into pp
                                             from x in pp.DefaultIfEmpty()
                                             where x == null
-                                            select new[] { p.GameProvider, p.GameProvider1 }).SelectMany(x=>x)).Where(x=>x!=null).Distinct().ToList();
+                                            select new[] { p.GameProvider, p.GameProvider1 }).SelectMany(x=>x)).Where(x=>x!=null && x.IsActive).Distinct().ToList();
 
             return filter.FilterObjects(Db.GameProviders).Distinct().ToList();
         }
@@ -705,6 +708,13 @@ namespace IqSoft.CP.BLL.Services
             var dbGameProviders = new List<GameProvider>();
             if (!string.IsNullOrEmpty(apiGameProvider.Name))
                 apiGameProvider.Name = apiGameProvider.Name.Replace(" ", string.Empty);
+            var ids = apiGameProvider.Ids ?? new List<int> { apiGameProvider.Id ?? 0 };
+            if (!(apiGameProvider.IsActive ?? true) &&
+                Db.PartnerProductSettings.Any(x => x.State == (int)PartnerProductSettingStates.Active && 
+                ((x.Product.GameProviderId.HasValue && ids.Contains(x.Product.GameProviderId.Value)) || 
+                (x.Product.SubproviderId.HasValue && ids.Contains(x.Product.SubproviderId.Value))
+                )))
+                throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
             if (apiGameProvider.Ids == null || !apiGameProvider.Ids.Any())
             {
                 if (Db.GameProviders.Any(x => x.Name.ToLower() == apiGameProvider.Name.ToLower() && x.Id != apiGameProvider.Id))
@@ -903,7 +913,7 @@ namespace IqSoft.CP.BLL.Services
                 Permission = Constants.Permissions.ViewProduct,
                 ObjectTypeId = ObjectTypes.Product
             });
-            var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
                 ObjectTypeId = ObjectTypes.Partner
@@ -914,8 +924,8 @@ namespace IqSoft.CP.BLL.Services
                 ObjectTypeId = ObjectTypes.Client
             });
 
-            if (!checkPermissionResult.HaveAccessForAllObjects || (objectTypeId == (int)ObjectTypes.Partner && !checkPartnerPermission.HaveAccessForAllObjects &&
-                !checkPartnerPermission.AccessibleObjects.Contains(objectId)) ||
+            if (!checkPermissionResult.HaveAccessForAllObjects || (objectTypeId == (int)ObjectTypes.Partner && !partnerAccess.HaveAccessForAllObjects &&
+                !partnerAccess.AccessibleIntegerObjects.Contains(objectId)) ||
                  (objectTypeId == (int)ObjectTypes.Client && !checkClientPermission.HaveAccessForAllObjects &&
                 !checkClientPermission.AccessibleObjects.Contains(objectId)))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -948,7 +958,7 @@ namespace IqSoft.CP.BLL.Services
                         Permission = Constants.Permissions.EditClient,
                         ObjectTypeId = ObjectTypes.Client
                     });
-                    var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
+                    var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                     {
                         Permission = Constants.Permissions.ViewPartner,
                         ObjectTypeId = ObjectTypes.Partner
@@ -959,7 +969,7 @@ namespace IqSoft.CP.BLL.Services
                         ObjectTypeId = ObjectTypes.AffiliateReferral
                     });
                     if ((!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != client.Id)) ||
-                   (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != client.PartnerId)) ||
+                   (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId)) ||
                    (!affiliateAccess.HaveAccessForAllObjects &&
                      affiliateAccess.AccessibleObjects.All(x => client.AffiliateReferralId.HasValue && x != client.AffiliateReferralId.Value)))
                         throw CreateException(LanguageId, Constants.Errors.DontHavePermission);

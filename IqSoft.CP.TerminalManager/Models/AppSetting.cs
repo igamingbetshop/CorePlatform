@@ -4,6 +4,6 @@
     {
         public string Password { get; set; }
         public string Salt { get; set; }
-        public string HDDSerialNumber { get; set; }
+        public string SerialNumber { get; set; }
     }
 }

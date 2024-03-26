@@ -13,7 +13,7 @@ namespace IqSoft.CP.AdminWebApi.Models.CRM
         public bool IsEmailVerified { get; set; }
         public string CurrencyId { get; set; }
         public long BirthDate { get; set; }
-        public int Gender { get; set; }
+        public int? Gender { get; set; }
         public string MobileNumber { get; set; }
         public bool IsMobileNumberVerified { get; set; }
         public string AffiliateId { get; set; }

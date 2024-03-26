@@ -11,7 +11,7 @@ namespace IqSoft.CP.DAL.Models.Cache
         public string CurrencyId { get; set; }
         public string UserName { get; set; }
         public int PartnerId { get; set; }
-        public int Gender { get; set; }
+        public int? Gender { get; set; }
         public DateTime BirthDate { get; set; }
         public int State { get; set; }
         public int CategoryId { get; set; }

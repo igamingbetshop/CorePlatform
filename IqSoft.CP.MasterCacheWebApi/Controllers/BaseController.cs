@@ -176,7 +176,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                 return Integration.Products.Helpers.SoftLandHelpers.GetUrl(token, input.ClientId, input.PartnerId, input.ProductId, input.IsForDemo, clientSession, WebApiApplication.DbLogger);            
             else if (providerName == Constants.GameProviders.BGGames.ToLower())
                 return Integration.Products.Helpers.BGGamesHelpers.GetUrl(token, input.ClientId, input.PartnerId, input.ProductId, input.IsForDemo, clientSession, WebApiApplication.DbLogger);            
-            else if (providerName == Constants.GameProviders.TimelessTech.ToLower())
+            else if (providerName == Constants.GameProviders.TimelessTech.ToLower() || providerName == Constants.GameProviders.BCWGames.ToLower())
                 return Integration.Products.Helpers.TimelessTechHelpers.GetUrl(token, input.ClientId, input.PartnerId, input.ProductId, input.IsForDemo, clientSession, WebApiApplication.DbLogger);
             else
                 throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongProductId);

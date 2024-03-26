@@ -73,7 +73,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                     city = client.City,
                     address = client.Address,
                     addressTwo = client.Address,
-                    addressNumber = 1
+                    addressNumber = "1"
                 };
 
                 var httpRequestInput = new HttpRequestInput
@@ -122,7 +122,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                     amount = (int)amount,
                     state = region.NickName,
                     city = client.City,
-                    country = session.Country,
+                    country = paymentInfo.Country,
                     dateOfBirth = client.BirthDate.ToString("yyyy-MM-dd"),
                     walletAddress = paymentInfo.WalletNumber,
                     coinType = paymentInfo.AccountType.Replace("USDTERC20", "USDT"),

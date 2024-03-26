@@ -24,11 +24,11 @@ namespace IqSoft.CP.DAL
             this.PromotionLanguageSettings = new HashSet<PromotionLanguageSetting>();
             this.Affiliates = new HashSet<Affiliate>();
             this.UserSessions = new HashSet<UserSession>();
-            this.Clients = new HashSet<Client>();
             this.BannerLanguageSettings = new HashSet<BannerLanguageSetting>();
             this.PartnerLanguageSettings = new HashSet<PartnerLanguageSetting>();
             this.TranslationEntries = new HashSet<TranslationEntry>();
             this.NewsLanguageSettings = new HashSet<NewsLanguageSetting>();
+            this.Clients = new HashSet<Client>();
         }
     
         public string Id { get; set; }
@@ -49,8 +49,6 @@ namespace IqSoft.CP.DAL
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<UserSession> UserSessions { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Client> Clients { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<BannerLanguageSetting> BannerLanguageSettings { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PartnerLanguageSetting> PartnerLanguageSettings { get; set; }
@@ -58,5 +56,7 @@ namespace IqSoft.CP.DAL
         public virtual ICollection<TranslationEntry> TranslationEntries { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<NewsLanguageSetting> NewsLanguageSettings { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Client> Clients { get; set; }
     }
 }

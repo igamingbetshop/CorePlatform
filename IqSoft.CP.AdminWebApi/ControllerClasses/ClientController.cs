@@ -195,19 +195,9 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                         if (int.TryParse(request.RequestObject.ToString(), out int clientId))
                             return ResetClientBankInfo(clientId, identity, log);
                         throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.WrongClientId);
-                    }
-                case "BlockClientPaymentSystem":
-                    return BlockClientPaymentSystem(JsonConvert.DeserializeObject<ApiClientPaymentItem>(request.RequestData), identity, log);
-                case "ActivateClientPaymentSystem":
-                    return ActivateClientPaymentSystem(JsonConvert.DeserializeObject<ApiClientPaymentItem>(request.RequestData), identity, log);
-                case "GetClientBlockedPayments":
-                    {
-                        if (int.TryParse(request.RequestObject.ToString(), out int clientId))
-                            return GetClientBlockedPayments(clientId, identity, log);
-                        throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.WrongClientId);
-                    }
-                case "ChangeClientPaymentSettingState":
-                    return ChangeClientPaymentSettingState(JsonConvert.DeserializeObject<ApiClientPaymentItem>(request.RequestData), identity, log);
+                    }       
+                case "SaveClientPaymentSetting":
+                    return SaveClientPaymentSetting(JsonConvert.DeserializeObject<ApiClientPaymentItem>(request.RequestData), identity, log);
                 case "GetClientPaymentSettings":
                     {
                         if (int.TryParse(request.RequestObject.ToString(), out int clientId))
@@ -945,7 +935,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     var client = input.MapToClient();
                     client.RegistrationIp = ip;
                     clientBl.CheckPermission(Constants.Permissions.CreateClient);
-                    Client existingClient = null;
+                    DAL.Client existingClient = null;
                     var partnerSetting = CacheManager.GetConfigKey(client.PartnerId, Constants.PartnerKeys.FirstLastBirthUnique);
                     if (partnerSetting == "1")
                         existingClient = clientBl.GetClientByName(client.PartnerId, input.FirstName, input.LastName, client.BirthDate);
@@ -964,7 +954,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                         var clientRegistrationInput = new ClientRegistrationInput
                         {
                             ClientData = client,
-                            IsQuickRegistration = false,
+                            RegistrationType = (int)Constants.RegisterTypes.Full,
                             IsFromAdmin = true,
                             GeneratedUsername = string.IsNullOrEmpty(input.UserName),
                             BetShopId = client.BetShopId,
@@ -1048,69 +1038,16 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             }
         }
 
-        private static ApiResponseBase ChangeClientPaymentSettingState(ApiClientPaymentItem apiClientPaymentItem, SessionIdentity session, ILog log)
+        private static ApiResponseBase SaveClientPaymentSetting(ApiClientPaymentItem apiClientPaymentItem, SessionIdentity session, ILog log)
         {
             using (var clientBl = new ClientBll(session, log))
             {
-                clientBl.ChangeClientPaymentSettingState(apiClientPaymentItem.ClientId, apiClientPaymentItem.PartnerPaymentSettingId, apiClientPaymentItem.State);
+                clientBl.SaveClientPaymentSetting(apiClientPaymentItem.ClientId, apiClientPaymentItem.PartnerPaymentSettingId, apiClientPaymentItem.State);
+                Helpers.Helpers.InvokeMessage("RemoveFromCache", string.Format("{0}_{1}", Constants.CacheItems.ClientPaymentSetting, apiClientPaymentItem.ClientId));
                 return new ApiResponseBase();
             }
         }
-
-        // change to ChangeClientPaymentSettingState
-        private static ApiResponseBase BlockClientPaymentSystem(ApiClientPaymentItem apiChangeClientPaymentState, SessionIdentity session, ILog log)
-        {
-            using (var clientBl = new ClientBll(session, log))
-            {
-                var resp = clientBl.BlockClientPaymentSettingState(apiChangeClientPaymentState.ClientId, apiChangeClientPaymentState.PartnerPaymentSettingId);
-
-                return new ApiResponseBase
-                {
-                    ResponseObject = new ApiClientPaymentItem
-                    {
-                        Id = resp.Id,
-                        ClientId = apiChangeClientPaymentState.ClientId,
-                        PartnerPaymentSettingId = resp.PartnerPaymentSettingId,
-                        Type = resp.PartnerPaymentSetting.Type,
-                        PaymentSystem = resp.PartnerPaymentSetting.PaymentSystem.Name,
-                        CurrencyId = resp.PartnerPaymentSetting.CurrencyId
-                    }
-                };
-
-            }
-        }
-
-        // change to ChangeClientPaymentSettingState
-        private static ApiResponseBase ActivateClientPaymentSystem(ApiClientPaymentItem apiChangeClientPaymentState, SessionIdentity session, ILog log)
-        {
-            using (var clientBl = new ClientBll(session, log))
-            {
-                clientBl.ActivateClientPaymentSetting(apiChangeClientPaymentState.Id);
-                return new ApiResponseBase { ResponseObject = apiChangeClientPaymentState.Id };
-            }
-        }
-
-        //changed to GetClientPaymentSettings
-        private static ApiResponseBase GetClientBlockedPayments(int clientId, SessionIdentity session, ILog log)
-        {
-            using (var clientBl = new ClientBll(session, log))
-            {
-                var response = clientBl.GetClientPaymentSettings(clientId, (int)ClientPaymentStates.Blocked, true);
-                return new ApiResponseBase
-                {
-                    ResponseObject = response.Select(x => new ApiClientPaymentItem
-                    {
-                        Id = x.Id,
-                        ClientId = x.ClientId,
-                        PartnerPaymentSettingId = x.PartnerPaymentSettingId,
-                        Type = x.PartnerPaymentSetting.Type,
-                        PaymentSystem = x.PartnerPaymentSetting.PaymentSystem.Name,
-                        CurrencyId = x.PartnerPaymentSetting.CurrencyId
-                    }).ToList()
-                };
-            }
-        }
-
+      
         private static ApiResponseBase GetClientPaymentSettings(int clientId, SessionIdentity session, ILog log)
         {
             using (var clientBl = new ClientBll(session, log))
@@ -1126,7 +1063,9 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                         Type = x.PartnerPaymentSetting.Type,
                         PaymentSystem = x.PartnerPaymentSetting.PaymentSystem.Name,
                         CurrencyId = x.PartnerPaymentSetting.CurrencyId,
-                        State = x.State
+                        State = x.State,
+                        CreationTime = x.CreationTime,
+                        LastUpdateTime = x.LastUpdateTime
                     }).ToList()
                 };
             }
@@ -1622,7 +1561,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             {
                 using (var partnerBll = new PartnerBll(productBll))
                 {
-                    var checkPartnerPermission = partnerBll.GetPermissionsToObject(new CheckPermissionInput
+                    var partnerAccess = partnerBll.GetPermissionsToObject(new CheckPermissionInput
                     {
                         Permission = Constants.Permissions.ViewPartner,
                         ObjectTypeId = ObjectTypes.Partner
@@ -1637,7 +1576,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                         Permission = Constants.Permissions.EditClient,
                         ObjectTypeId = ObjectTypes.Client
                     });
-                    if (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != client.PartnerId) ||
+                    if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId) ||
                         !checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != client.Id) ||
                         !clientAccess.HaveAccessForAllObjects && clientAccess.AccessibleObjects.All(x => x != client.Id))
                         throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.DontHavePermission);
@@ -1674,7 +1613,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.ClientNotFound);
             using (var productBll = new ProductBll(identity, log))
             {
-                var checkPartnerPermission = productBll.GetPermissionsToObject(new CheckPermissionInput
+                var partnerAccess = productBll.GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
                     ObjectTypeId = ObjectTypes.Partner
@@ -1684,7 +1623,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     Permission = Constants.Permissions.ViewClient,
                     ObjectTypeId = ObjectTypes.Client
                 });
-                if (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != client.PartnerId) ||
+                if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId) ||
                     !checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != client.Id))
                     throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.DontHavePermission);
                 var clientProviderSettings = productBll.GetGameProviderSettings((int)ObjectTypes.Client, clientId).Select(x => new ApiGameProviderSetting

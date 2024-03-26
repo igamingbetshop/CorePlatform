@@ -1,4 +1,6 @@
-﻿namespace IqSoft.CP.DAL.Models.Affiliates
+﻿using System;
+
+namespace IqSoft.CP.DAL.Models.Affiliates
 {
     public class AffiliatePlatformModel
     {
@@ -6,6 +8,7 @@
         public int ClientId { get; set; }
         public string ClientName { get; set; }
         public int ClientStatus { get; set; }
+        public DateTime ClientLastUpdateTime { get; set; }
         public int AffiliateId { get; set; }
         public string AffiliateName { get; set; }
         public string ClickId { get; set; }

@@ -43,6 +43,8 @@ namespace IqSoft.CP.AdminWebApi.Models.ReportModels.Internet
         public decimal? OriginalWinAmount { get; set; }
         public decimal? BonusAmount { get; set; }
         public decimal? OriginalBonusAmount { get; set; }
+        public decimal? BonusWinAmount { get; set; }
+        public decimal? OriginalBonusWinAmount { get; set; }
         public int? BonusId { get; set; }
         public string CurrencyId { get; set; }
 

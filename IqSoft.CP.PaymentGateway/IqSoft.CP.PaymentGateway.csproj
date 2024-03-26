@@ -64,9 +64,6 @@
     <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>..\packages\EntityFramework.6.4.4\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
-    <Reference Include="JWT, Version=8.0.0.0, Culture=neutral, PublicKeyToken=6f98bca0f40f2ecf, processorArchitecture=MSIL">
-      <HintPath>..\packages\JWT.8.0.0\lib\net46\JWT.dll</HintPath>
-    </Reference>
     <Reference Include="log4net, Version=2.0.15.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <HintPath>..\packages\log4net.2.0.15\lib\net45\log4net.dll</HintPath>
     </Reference>
@@ -284,6 +281,7 @@
     <Compile Include="Controllers\JetonController.cs" />
     <Compile Include="Controllers\JetonHavaleController.cs" />
     <Compile Include="Controllers\JmitsolutionsController.cs" />
+    <Compile Include="Controllers\KralPayController.cs" />
     <Compile Include="Controllers\LuckyPayController.cs" />
     <Compile Include="Controllers\MaldoPayController.cs" />
     <Compile Include="Controllers\MaxPayController.cs" />
@@ -330,6 +328,7 @@
     <Compile Include="Controllers\PayBoxController.cs" />
     <Compile Include="Controllers\QiwiController.cs" />
     <Compile Include="Controllers\SkrillController.cs" />
+    <Compile Include="Controllers\YaspaController.cs" />
     <Compile Include="Controllers\ZippyController.cs" />
     <Compile Include="Helpers\ApcoHelpers.cs" />
     <Compile Include="Helpers\BaseHelpers.cs" />
@@ -399,6 +398,9 @@
     <Compile Include="Models\JazzCashier\PaymentInput.cs" />
     <Compile Include="Models\JetonHavale\PaymentInput.cs" />
     <Compile Include="Models\Jmitsolutions\PaymentInput.cs" />
+    <Compile Include="Models\KralPay\PaymentInput.cs" />
+    <Compile Include="Models\KralPay\PaymentInputBase.cs" />
+    <Compile Include="Models\KralPay\RequestOutput.cs" />
     <Compile Include="Models\MaldoPay\PaymentInput.cs" />
     <Compile Include="Models\MaxPay\PaymentInput.cs" />
     <Compile Include="Models\Mifinity\PayoutInput.cs" />
@@ -536,6 +538,7 @@
     <Compile Include="Models\Wooppay\WooppayTransactionInput.cs" />
     <Compile Include="Models\Wooppay\WooppayTransactionStatus.cs" />
     <Compile Include="Models\XcoinsPay\PaymentInput.cs" />
+    <Compile Include="Models\Yaspa\PaymentInput.cs" />
     <Compile Include="Models\Zippy\RequestResultInput.cs" />
     <Compile Include="Models\Zippy\ResultResponse.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

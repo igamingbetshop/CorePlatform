@@ -1,6 +1,6 @@
 ﻿namespace IqSoft.CP.BetShopGatewayWebApi.Models
 {
-    public class GetPaymentRequestsInput : ApiRequestBase
+    public class GetPaymentRequestsInput : RequestBase
     {
         public int? ClientId { get; set; }
         public string DocumentNumber { get; set; }

@@ -12,6 +12,7 @@ namespace IqSoft.CP.AdminWebApi.Models.ContentModels
         public int State { get; set; }
         public string ImageName { get; set; }
         public string ImageData { get; set; }
+        public string MobileImageName { get; set; }
         public string MobileImageData { get; set; }
         public long TranslationId { get; set; }
         public int Order { get; set; }

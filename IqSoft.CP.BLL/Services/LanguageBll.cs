@@ -63,7 +63,7 @@ namespace IqSoft.CP.BLL.Services
             });
             if (!checkPermissionResult.HaveAccessForAllObjects &&
                 !checkPermissionResult.AccessibleObjects.Contains(partnerLanguageSetting.Id) ||
-                (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != partnerLanguageSetting.PartnerId)))
+                (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != partnerLanguageSetting.PartnerId)))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             if (!Enum.IsDefined(typeof(PartnerLanguageStates), partnerLanguageSetting.State) ||
                 !Db.Languages.Any(x => x.Id == partnerLanguageSetting.LanguageId))

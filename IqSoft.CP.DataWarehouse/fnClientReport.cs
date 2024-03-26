@@ -13,7 +13,7 @@ namespace IqSoft.CP.DataWarehouse
     
     public partial class fnClientReport
     {
-        public Nullable<int> ClientId { get; set; }
+        public int ClientId { get; set; }
         public string UserName { get; set; }
         public int PartnerId { get; set; }
         public string CurrencyId { get; set; }
@@ -28,7 +28,8 @@ namespace IqSoft.CP.DataWarehouse
         public Nullable<decimal> TotalDepositAmount { get; set; }
         public Nullable<int> DepositsCount { get; set; }
         public Nullable<decimal> TotalBetAmount { get; set; }
-        public Nullable<int> BetsCount { get; set; }
+        public Nullable<int> TotalBetsCount { get; set; }
+        public Nullable<int> SportBetsCount { get; set; }
         public Nullable<decimal> TotalWinAmount { get; set; }
         public Nullable<int> WinsCount { get; set; }
         public Nullable<decimal> GGR { get; set; }

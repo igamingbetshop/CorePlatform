@@ -8,6 +8,5 @@ namespace IqSoft.CP.DataWarehouse
 {
     public partial class Bet
     {
-        public int PartnerId { get; set; }
     }
 }

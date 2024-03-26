@@ -1,4 +1,6 @@
-﻿namespace IqSoft.CP.AdminWebApi.Models.PaymentModels
+﻿using System;
+
+namespace IqSoft.CP.AdminWebApi.Models.PaymentModels
 {
 	public class ApiClientPaymentItem
 	{
@@ -14,5 +16,7 @@
 		public string PaymentSystem { get; set; }
 
 		public string CurrencyId { get; set; }
+		public DateTime CreationTime { get; set; }
+		public DateTime LastUpdateTime { get; set; }
 	}
 }

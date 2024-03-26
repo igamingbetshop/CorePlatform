@@ -27,6 +27,7 @@ namespace IqSoft.CP.AdminWebApi.Filters.PaymentRequests
         public ApiFiltersOperation BetShopIds { get; set; }
         public ApiFiltersOperation BetShopNames{ get; set; }
         public ApiFiltersOperation Amounts { get; set; }
+        public ApiFiltersOperation FinalAmounts { get; set; }
         public ApiFiltersOperation CreationTimes { get; set; }
         public ApiFiltersOperation LastUpdateTimes { get; set; }
 		public ApiFiltersOperation ExternalIds { get; set; }

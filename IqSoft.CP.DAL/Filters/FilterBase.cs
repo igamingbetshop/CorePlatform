@@ -21,12 +21,13 @@ namespace IqSoft.CP.DAL.Filters
         {
             if (CheckPermissionResuts != null)
             {
-                objects =
-                    CheckPermissionResuts.Where(
-                        checkPermissionResut =>
-                            checkPermissionResut != null && !checkPermissionResut.HaveAccessForAllObjects)
-                        .Aggregate(objects,
-                            (current, checkPermissionResut) => current.Where(checkPermissionResut.Filter));
+                foreach (var cpr in CheckPermissionResuts)
+                {
+                    if (cpr != null && !cpr.HaveAccessForAllObjects)
+                    {
+                        objects = objects.Where(cpr.Filter);
+                    }
+                }
             }
 
             if (orderBy != null)

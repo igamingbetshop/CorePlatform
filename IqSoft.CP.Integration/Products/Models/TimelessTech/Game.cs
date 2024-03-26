@@ -16,6 +16,7 @@ namespace IqSoft.CP.Integration.Products.Models.TimelessTech
 		public string subtype { get; set; }
 		public int enabled { get; set; }
 		public int fun_mode { get; set; }
+		public int? campaigns { get; set; }
 		public string vendor { get; set; }
 		public List<string> vendorGroups { get; set; }
 		public Details details { get; set; }

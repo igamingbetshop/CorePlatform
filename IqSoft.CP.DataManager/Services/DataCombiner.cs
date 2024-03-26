@@ -8,7 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using IqSoft.CP.DataWarehouse;
-using System.Diagnostics;
+using System.Web.UI.WebControls;
 
 namespace IqSoft.CP.DataManager.Services
 {
@@ -184,34 +184,9 @@ namespace IqSoft.CP.DataManager.Services
                     #region Bets
 
                     var currencies = db.Currencies.ToList().ToDictionary(x => x.Id, x => x.CurrentRate);
-                    var bets = (from b in db.Bets
-                                join c in db.Clients on b.ClientId equals c.Id
-                                where b.BetDate >= fDate && b.BetDate < tDate
-                                group b by new { c.PartnerId, c.CurrencyId, b.DeviceTypeId } into g
-                                select new
-                                {
-                                    PartnerId = g.Key.PartnerId,
-                                    CurrencyId = g.Key.CurrencyId,
-                                    DeviceTypeId = g.Key.DeviceTypeId,
-                                    MaxBet = g.Max(x => x.BetAmount),
-                                    MaxWin = g.Max(x => x.WinAmount),
-                                    TotalBet = g.Sum(x => x.BetAmount),
-                                    TotalBonusBet = g.Sum(x => x.BonusAmount),
-                                    TotalWin = g.Sum(x => x.WinAmount),
-                                    TotalBonusWin = g.Sum(x => x.BonusWinAmount),
-                                    CashoutAmount = g.Sum(x => x.State == (int)BetDocumentStates.Cashouted ? x.WinAmount : 0),
-                                    Count = g.Count()
-                                }).ToList();
-                    var playersCount = (from b in db.Bets
-                                        join c in db.Clients on b.ClientId equals c.Id
-                                        where b.BetDate >= fDate && b.BetDate < tDate
-                                        group b by new { c.PartnerId, b.DeviceTypeId } into g
-                                        select new
-                                        {
-                                            PartnerId = g.Key.PartnerId,
-                                            DeviceTypeId = g.Key.DeviceTypeId,
-                                            PlayersCount = g.Select(x => x.ClientId).Distinct().Count()
-                                        }).ToList();
+                    var bets = db.fn_PartnerDeviceBets(fDate, tDate).ToList();
+                    var playersCount = db.fn_DeviceClientsCount(fDate, tDate).ToList();
+                    var totalPlayersCount = db.fn_PartnerClientsCount(fDate, tDate).ToList();
 
                     var gBets = bets.GroupBy(x => x.PartnerId).Select(g => new
                     {
@@ -260,7 +235,7 @@ namespace IqSoft.CP.DataManager.Services
                         TerminalBetsCount = g.Where(x => x.DeviceTypeId == (int)DeviceTypes.Terminal).Sum(x => x.Count),
                         ApplicationBetsCount = g.Where(x => x.DeviceTypeId == (int)DeviceTypes.Application).Sum(x => x.Count),
 
-                        PlayersCount = playersCount.Where(x => x.PartnerId == g.Key).Sum(x => x.PlayersCount),
+                        PlayersCount = totalPlayersCount.FirstOrDefault(x => x.PartnerId == g.Key)?.PlayersCount ?? 0,
                         DesktopPlayersCount = playersCount.Where(x => x.PartnerId == g.Key && x.DeviceTypeId == (int)DeviceTypes.Desktop).Sum(x => x.PlayersCount),
                         MobilePlayersCount = playersCount.Where(x => x.PartnerId == g.Key && x.DeviceTypeId == (int)DeviceTypes.Mobile).Sum(x => x.PlayersCount),
                         TabletPlayersCount = playersCount.Where(x => x.PartnerId == g.Key && x.DeviceTypeId == (int)DeviceTypes.Tablet).Sum(x => x.PlayersCount),
@@ -283,25 +258,25 @@ namespace IqSoft.CP.DataManager.Services
                             db.Gtd_Dashboard_Info.Add(dayInfo);
                             db.SaveChanges();
                         }
-                        dayInfo.MaxBet = gBet.MaxBet;
-                        dayInfo.MaxWin = gBet.MaxWin;
-                        dayInfo.CashoutAmount = gBet.CashoutAmount;
+                        dayInfo.MaxBet = gBet.MaxBet ?? 0;
+                        dayInfo.MaxWin = gBet.MaxWin ?? 0;
+                        dayInfo.CashoutAmount = gBet.CashoutAmount ?? 0;
 
-                        dayInfo.BetAmount = gBet.BetAmount;
-                        dayInfo.DesktopBetAmount = gBet.DesktopBetAmount;
-                        dayInfo.MobileBetAmount = gBet.MobileBetAmount;
-                        dayInfo.TabletBetAmount = gBet.TabletBetAmount;
-                        dayInfo.BetShopBetAmount = gBet.BetShopBetAmount;
-                        dayInfo.TerminalBetAmount = gBet.TerminalBetAmount;
-                        dayInfo.ApplicationBetAmount = gBet.ApplicationBetAmount;
+                        dayInfo.BetAmount = gBet.BetAmount ?? 0;
+                        dayInfo.DesktopBetAmount = gBet.DesktopBetAmount ?? 0;
+                        dayInfo.MobileBetAmount = gBet.MobileBetAmount ?? 0;
+                        dayInfo.TabletBetAmount = gBet.TabletBetAmount ?? 0;
+                        dayInfo.BetShopBetAmount = gBet.BetShopBetAmount ?? 0;
+                        dayInfo.TerminalBetAmount = gBet.TerminalBetAmount ?? 0;
+                        dayInfo.ApplicationBetAmount = gBet.ApplicationBetAmount ?? 0;
 
-                        dayInfo.GGR = gBet.BetAmount - gBet.WinAmount;
-                        dayInfo.DesktopGGR = gBet.DesktopBetAmount - gBet.DesktopWinAmount;
-                        dayInfo.MobileGGR = gBet.MobileBetAmount - gBet.MobileWinAmount;
-                        dayInfo.TabletGGR = gBet.TabletBetAmount - gBet.TabletWinAmount;
-                        dayInfo.BetShopGGR = gBet.BetShopBetAmount - gBet.BetShopWinAmount;
-                        dayInfo.TerminalGGR = gBet.TerminalBetAmount - gBet.TerminalWinAmount;
-                        dayInfo.ApplicationGGR = gBet.ApplicationBetAmount - gBet.ApplicationWinAmount;
+                        dayInfo.GGR = (gBet.BetAmount - gBet.WinAmount) ?? 0;
+                        dayInfo.DesktopGGR = (gBet.DesktopBetAmount - gBet.DesktopWinAmount) ?? 0;
+                        dayInfo.MobileGGR = (gBet.MobileBetAmount - gBet.MobileWinAmount) ?? 0;
+                        dayInfo.TabletGGR = (gBet.TabletBetAmount - gBet.TabletWinAmount) ?? 0;
+                        dayInfo.BetShopGGR = (gBet.BetShopBetAmount - gBet.BetShopWinAmount) ?? 0;
+                        dayInfo.TerminalGGR = (gBet.TerminalBetAmount - gBet.TerminalWinAmount) ?? 0;
+                        dayInfo.ApplicationGGR = (gBet.ApplicationBetAmount - gBet.ApplicationWinAmount) ?? 0;
 
                         dayInfo.NGR = dayInfo.GGR + (gBet.BonusWinAmount - gBet.BonusBetAmount) ?? 0;
                         dayInfo.DesktopNGR = dayInfo.DesktopGGR + (gBet.DesktopBonusWinAmount - gBet.DesktopBonusBetAmount) ?? 0;
@@ -311,21 +286,21 @@ namespace IqSoft.CP.DataManager.Services
                         dayInfo.TerminalNGR = dayInfo.TerminalGGR + (gBet.TerminalBonusWinAmount - gBet.TerminalBonusBetAmount) ?? 0;
                         dayInfo.ApplicationNGR = dayInfo.ApplicationGGR + (gBet.ApplicationBonusWinAmount - gBet.ApplicationBonusBetAmount) ?? 0;
 
-                        dayInfo.BetsCount = gBet.BetsCount;
-                        dayInfo.DesktopBetsCount = gBet.DesktopBetsCount;
-                        dayInfo.MobileBetsCount = gBet.MobileBetsCount;
-                        dayInfo.TabletBetsCount = gBet.TabletBetsCount;
-                        dayInfo.BetShopBetsCount = gBet.BetShopBetsCount;
-                        dayInfo.TerminalBetsCount = gBet.TerminalBetsCount;
-                        dayInfo.ApplicationBetsCount = gBet.ApplicationBetsCount;
+                        dayInfo.BetsCount = gBet.BetsCount ?? 0;
+                        dayInfo.DesktopBetsCount = gBet.DesktopBetsCount ?? 0;
+                        dayInfo.MobileBetsCount = gBet.MobileBetsCount ?? 0;
+                        dayInfo.TabletBetsCount = gBet.TabletBetsCount ?? 0;
+                        dayInfo.BetShopBetsCount = gBet.BetShopBetsCount ?? 0;
+                        dayInfo.TerminalBetsCount = gBet.TerminalBetsCount ?? 0;
+                        dayInfo.ApplicationBetsCount = gBet.ApplicationBetsCount ?? 0;
 
                         dayInfo.PlayersCount = gBet.PlayersCount;
-                        dayInfo.DesktopPlayersCount = gBet.DesktopPlayersCount;
-                        dayInfo.MobilePlayersCount = gBet.MobilePlayersCount;
-                        dayInfo.TabletPlayersCount = gBet.TabletPlayersCount;
-                        dayInfo.BetShopPlayersCount = gBet.BetShopPlayersCount;
-                        dayInfo.TerminalPlayersCount = gBet.TerminalPlayersCount;
-                        dayInfo.ApplicationPlayersCount = gBet.ApplicationPlayersCount;
+                        dayInfo.DesktopPlayersCount = gBet.DesktopPlayersCount ?? 0;
+                        dayInfo.MobilePlayersCount = gBet.MobilePlayersCount ?? 0;
+                        dayInfo.TabletPlayersCount = gBet.TabletPlayersCount ?? 0;
+                        dayInfo.BetShopPlayersCount = gBet.BetShopPlayersCount ?? 0;
+                        dayInfo.TerminalPlayersCount = gBet.TerminalPlayersCount ?? 0;
+                        dayInfo.ApplicationPlayersCount = gBet.ApplicationPlayersCount ?? 0;
 
                         dayInfo.TotalPlayersCount = players.FirstOrDefault(x => x.PartnerId == gBet.PartnerId)?.Count ?? 0;
                     }
@@ -375,7 +350,7 @@ namespace IqSoft.CP.DataManager.Services
                     db.SaveChanges();
                     if (date == 0 && (currentTime - currentDay).TotalMinutes < 10)
                     {
-                        AddJobTrigger("CalculateDashboardInfo", yesterdayDate, db);
+                        AddJobTrigger("CalculateDashboardInfo", yesterdayDate, null, db);
                     }
                 }
             }
@@ -406,41 +381,13 @@ namespace IqSoft.CP.DataManager.Services
                     #region Bets
 
                     var currencies = db.Currencies.ToList().ToDictionary(x => x.Id, x => x.CurrentRate);
-                    var bets = (from b in db.Bets
-                                join c in db.Clients on b.ClientId equals c.Id
-                                join pr in db.Products on b.ProductId equals pr.Id
-                                where b.BetDate >= fDate && b.BetDate < tDate
-                                group b by new { c.PartnerId, c.CurrencyId, pr.GameProviderId, pr.SubproviderId } into g
-                                select new
-                                {
-                                    PartnerId = g.Key.PartnerId,
-                                    CurrencyId = g.Key.CurrencyId,
-                                    GameProviderId = g.Key.GameProviderId,
-                                    SubProviderId = g.Key.SubproviderId,
-                                    BetAmount = g.Sum(x => x.BetAmount),
-                                    BonusBetAmount = g.Sum(x => x.BonusAmount),
-                                    WinAmount = g.Sum(x => x.WinAmount),
-                                    BonusWinAmount = g.Sum(x => x.BonusWinAmount),
-                                    Count = g.Count()
-                                }).ToList();
-
-                    var playersCount = (from b in db.Bets
-                                        join c in db.Clients on b.ClientId equals c.Id
-                                        join pr in db.Products on b.ProductId equals pr.Id
-                                        where b.BetDate >= fDate && b.BetDate < tDate
-                                        group b by new { c.PartnerId, pr.GameProviderId, pr.SubproviderId } into g
-                                        select new {
-                                            PartnerId = g.Key.PartnerId,
-                                            GameProviderId = g.Key.GameProviderId,
-                                            SubProviderId = g.Key.SubproviderId,
-                                            PlayersCount = g.Select(x => x.ClientId).Distinct().Count() 
-                                        }).ToList();
-
-                    var gBets = bets.GroupBy(x => new { x.PartnerId, x.GameProviderId, x.SubProviderId }).Select(g => new
+                    var bets = db.fn_PartnerProviderBets(fDate, tDate).ToList();
+                    var playersCount = db.fn_ProviderClientsCount(fDate, tDate).ToList();
+                    var gBets = bets.GroupBy(x => new { x.PartnerId, x.GameProviderId, x.SubproviderId }).Select(g => new
                     {
                         PartnerId = g.Key.PartnerId,
                         GameProviderId = g.Key.GameProviderId,
-                        SubProviderId = g.Key.SubProviderId,
+                        SubProviderId = g.Key.SubproviderId,
                         BetAmount = g.Sum(x => x.BetAmount * currencies[x.CurrencyId]),
                         BonusBetAmount = g.Sum(x => x.BonusBetAmount * currencies[x.CurrencyId]),
                         WinAmount = g.Sum(x => x.WinAmount * currencies[x.CurrencyId]),
@@ -465,11 +412,11 @@ namespace IqSoft.CP.DataManager.Services
                             db.SaveChanges();
                         }
 
-                        dayInfo.BetAmount = gBet.BetAmount;
-                        dayInfo.WinAmount = gBet.WinAmount;
-                        dayInfo.GGR = gBet.BetAmount - gBet.WinAmount;
+                        dayInfo.BetAmount = gBet.BetAmount ?? 0;
+                        dayInfo.WinAmount = gBet.WinAmount ?? 0;
+                        dayInfo.GGR = (gBet.BetAmount - gBet.WinAmount) ?? 0;
                         dayInfo.NGR = dayInfo.GGR + (gBet.BonusWinAmount - gBet.BonusBetAmount) ?? 0;
-                        dayInfo.BetsCount = gBet.BetsCount;
+                        dayInfo.BetsCount = gBet.BetsCount ?? 0;
                         dayInfo.PlayersCount = playersCount.FirstOrDefault(x => x.PartnerId == gBet.PartnerId && 
                             x.GameProviderId == gBet.GameProviderId && x.SubProviderId == gBet.SubProviderId)?.PlayersCount ?? 0;
                     }
@@ -479,7 +426,7 @@ namespace IqSoft.CP.DataManager.Services
                     db.SaveChanges();
                     if (date == 0 && (currentTime - currentDay).TotalMinutes < 10)
                     {
-                        AddJobTrigger("CalculateProviderBets", yesterdayDate, db);
+                        AddJobTrigger("CalculateProviderBets", yesterdayDate, null, db);
                     }
                 }
             }
@@ -558,7 +505,6 @@ namespace IqSoft.CP.DataManager.Services
                                 };
                                 db.Gtd_Deposit_Info.Add(dayInfo);
                                 db.SaveChanges();
-                                AddJobTrigger("CalculatePaymentInfo", yesterdayDate, db);
                             }
                             dayInfo.TotalAmount = gRequest.TotalAmount;
                             dayInfo.RequestsCount = gRequest.TotalRequestsCount;
@@ -595,7 +541,188 @@ namespace IqSoft.CP.DataManager.Services
                     db.Gtd_Withdraw_Info.Where(x => x.Date == currentDate && !withdrawIds.Contains(x.Id)).DeleteFromQuery();
                     if (date == 0 && (currentTime - currentDay).TotalMinutes < 10)
                     {
-                        AddJobTrigger("CalculatePaymentInfo", yesterdayDate, db);
+                        AddJobTrigger("CalculatePaymentInfo", yesterdayDate, null, db);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                logger.Error(e);
+            }
+        }
+        public static void CalculateClientInfo(ILog logger, long date, int clientId)
+        {
+            try
+            {
+                var currentTime = DateTime.UtcNow;
+                var currentDate = date == 0 ? (long)currentTime.Year * 10000 + (long)currentTime.Month * 100 + (long)currentTime.Day : date;
+                var currentDay = date == 0 ? new DateTime(currentTime.Year, currentTime.Month, currentTime.Day) : new DateTime((int)(date / 10000), (int)((date % 10000) / 100), (int)(date % 100));
+                var yesterday = currentDay.AddDays(-1);
+                var yesterdayDate = (long)yesterday.Year * 10000 + (long)yesterday.Month * 100 + (long)yesterday.Day;
+                var toDay = currentDay.AddDays(1);
+                var fDate = (long)currentDay.Year * 1000000 + (long)currentDay.Month * 10000 + (long)currentDay.Day * 100 + (long)currentDay.Hour;
+                var tDate = (long)toDay.Year * 1000000 + (long)toDay.Month * 10000 + (long)toDay.Day * 100 + (long)toDay.Hour;
+
+                logger.Info("CalculateClientInfo_" + date + "_" + clientId + "_" + fDate + "_" + tDate);
+
+                using (var db = new IqSoftDataWarehouseEntities())
+                {
+                    db.Database.CommandTimeout = 300;
+
+                    #region Bets
+
+                    var bets = clientId > 0 ? db.fn_ClientBets(fDate, tDate).Where(x => x.ClientId == clientId).ToList() : db.fn_ClientBets(fDate, tDate).ToList();
+                    
+                    foreach (var bet in bets)
+                    {
+                        var dayInfo = db.Gtd_Client_Info.FirstOrDefault(x => x.Date == currentDate && x.ClientId == bet.ClientId);
+                        if (dayInfo == null)
+                        {
+                            dayInfo = new Gtd_Client_Info
+                            {
+                                Date = currentDate,
+                                ClientId = bet.ClientId.Value,
+                            };
+                            db.Gtd_Client_Info.Add(dayInfo);
+                            db.SaveChanges();
+                        }
+                        dayInfo.TotalBetAmount = bet.BetAmount ?? 0;
+                        dayInfo.TotalBetCount = bet.TotalBetsCount ?? 0;
+                        dayInfo.SportBetCount = bet.SportBetsCount ?? 0;
+                        dayInfo.TotalWinAmount = bet.WinAmount ?? 0;
+                        dayInfo.TotalWinCount = bet.WinCount ?? 0;
+                        dayInfo.GGR = dayInfo.TotalBetAmount - dayInfo.TotalWinAmount;
+                    }
+
+                    #endregion
+
+                    #region PaymentRequests
+
+                    var dQuery = db.PaymentRequests.Where(x => x.Date >= fDate * 100 && x.Date < tDate * 100 && x.ClientId != null &&
+                        (x.Type == (int)PaymentRequestTypes.Deposit || x.Type == (int)PaymentRequestTypes.ManualDeposit) &&
+                        (x.Status == (int)PaymentRequestStates.Approved || x.Status == (int)PaymentRequestStates.ApprovedManually));
+                    if (clientId > 0)
+                        dQuery = dQuery.Where(x => x.ClientId == clientId);
+                    var deposits = dQuery.GroupBy(x => new { ClientId = x.ClientId.Value }).Select(x => new { 
+                        ClientId = x.Key.ClientId,
+                        Amount = x.Sum(y => y.Amount),
+                        Count = x.Count()
+                    }).ToList();
+
+                    foreach (var d in deposits)
+                    {
+                        var dayInfo = db.Gtd_Client_Info.FirstOrDefault(x => x.Date == currentDate && x.ClientId == d.ClientId);
+                        if (dayInfo == null)
+                        {
+                            dayInfo = new Gtd_Client_Info
+                            {
+                                Date = currentDate,
+                                ClientId = d.ClientId,
+                            };
+                            db.Gtd_Client_Info.Add(dayInfo);
+                            db.SaveChanges();
+                        }
+
+                        dayInfo.TotalDepositAmount = d.Amount;
+                        dayInfo.TotalDepositCount = d.Count;
+                    }
+
+                    var wQuery = db.PaymentRequests.Where(x => x.Date >= fDate * 100 && x.Date < tDate * 100 && x.ClientId != null &&
+                        x.Type == (int)PaymentRequestTypes.Withdraw &&
+                        (x.Status == (int)PaymentRequestStates.Approved || x.Status == (int)PaymentRequestStates.ApprovedManually));
+                    if (clientId > 0)
+                        wQuery = wQuery.Where(x => x.ClientId == clientId);
+                    var withdraws = wQuery.GroupBy(x => new { ClientId = x.ClientId.Value }).Select(x => new {
+                        ClientId = x.Key.ClientId,
+                        Amount = x.Sum(y => y.Amount),
+                        Count = x.Count()
+                    }).ToList();
+
+                    foreach (var w in withdraws)
+                    {
+                        var dayInfo = db.Gtd_Client_Info.FirstOrDefault(x => x.Date == currentDate && x.ClientId == w.ClientId);
+                        if (dayInfo == null)
+                        {
+                            dayInfo = new Gtd_Client_Info
+                            {
+                                Date = currentDate,
+                                ClientId = w.ClientId,
+                            };
+                            db.Gtd_Client_Info.Add(dayInfo);
+                            db.SaveChanges();
+                        }
+
+                        dayInfo.TotalWithdrawalAmount = w.Amount;
+                        dayInfo.TotalWithdrawalCount = w.Count;
+                    }
+
+                    #endregion
+
+                    #region Corrections
+
+                    var dcQuery = db.Documents.Where(x => x.Date >= fDate && x.Date < tDate && x.OperationTypeId == (int)OperationTypes.DebitCorrectionOnClient && x.ClientId != null);
+
+                    if (clientId > 0)
+                        dcQuery = dcQuery.Where(x => x.ClientId == clientId);
+                    var dCorrections = dcQuery.GroupBy(x => new { ClientId = x.ClientId.Value }).Select(x => new {
+                        ClientId = x.Key.ClientId,
+                        Amount = x.Sum(y => y.Amount),
+                        Count = x.Count()
+                    }).ToList();
+
+                    foreach (var d in dCorrections)
+                    {
+                        var dayInfo = db.Gtd_Client_Info.FirstOrDefault(x => x.Date == currentDate && x.ClientId == d.ClientId);
+                        if (dayInfo == null)
+                        {
+                            dayInfo = new Gtd_Client_Info
+                            {
+                                Date = currentDate,
+                                ClientId = d.ClientId,
+                            };
+                            db.Gtd_Client_Info.Add(dayInfo);
+                            db.SaveChanges();
+                        }
+
+                        dayInfo.TotalDebitCorrectionAmount = d.Amount;
+                        dayInfo.TotalDebitCorrectionCount = d.Count;
+                    }
+
+
+                    var ccQuery = db.Documents.Where(x => x.Date >= fDate && x.Date < tDate && x.OperationTypeId == (int)OperationTypes.CreditCorrectionOnClient && x.ClientId != null);
+
+                    if (clientId > 0)
+                        ccQuery = ccQuery.Where(x => x.ClientId == clientId);
+                    var cCorrections = ccQuery.GroupBy(x => new { ClientId = x.ClientId.Value }).Select(x => new {
+                        ClientId = x.Key.ClientId,
+                        Amount = x.Sum(y => y.Amount),
+                        Count = x.Count()
+                    }).ToList();
+
+                    foreach (var d in cCorrections)
+                    {
+                        var dayInfo = db.Gtd_Client_Info.FirstOrDefault(x => x.Date == currentDate && x.ClientId == d.ClientId);
+                        if (dayInfo == null)
+                        {
+                            dayInfo = new Gtd_Client_Info
+                            {
+                                Date = currentDate,
+                                ClientId = d.ClientId,
+                            };
+                            db.Gtd_Client_Info.Add(dayInfo);
+                            db.SaveChanges();
+                        }
+
+                        dayInfo.TotalCreditCorrectionAmount = d.Amount;
+                        dayInfo.TotalCreditCorrectionCount = d.Count;
+                    }
+
+                    #endregion
+
+                    db.SaveChanges();
+                    if (date == 0)
+                    {
+                        AddJobTrigger("CalculateClientInfo", yesterdayDate, null, db);
                     }
                 }
             }
@@ -626,6 +753,9 @@ namespace IqSoft.CP.DataManager.Services
                             break;
                         case "CalculatePaymentInfo":
                             CalculatePaymentInfo(logger, jt.Date);
+                            break;
+                        case "CalculateClientInfo":
+                            CalculateClientInfo(logger, jt.Date, jt.ClientId ?? 0);
                             break;
                         default:
                             break;
@@ -852,12 +982,13 @@ namespace IqSoft.CP.DataManager.Services
             return newLast;
         }
 
-        private static void AddJobTrigger(string functionName, long date, IqSoftDataWarehouseEntities db)
+        private static void AddJobTrigger(string functionName, long date, int? clientId, IqSoftDataWarehouseEntities db)
         {
             db.JobTriggers.Add(new JobTrigger
             {
                 FunctionName = functionName,
-                Date = date
+                Date = date,
+                ClientId = clientId
             });
             db.SaveChanges();
         }

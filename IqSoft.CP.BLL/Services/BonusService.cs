@@ -61,7 +61,7 @@ namespace IqSoft.CP.BLL.Services
                 });
 
                 if (!bonusAccess.HaveAccessForAllObjects ||
-                    (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != bonus.PartnerId)))
+                    (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != bonus.PartnerId)))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
 
                 if ((bonus.Type == (int)BonusTypes.SignupRealBonus && !CheckBonusInfoValidity(bonus.Info)) ||
@@ -150,7 +150,7 @@ namespace IqSoft.CP.BLL.Services
                 });
 
                 if (!bonusAccess.HaveAccessForAllObjects ||
-                    (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != dbBonus.PartnerId)))
+                    (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != dbBonus.PartnerId)))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
                 var currentTime = DateTime.UtcNow;
                 if (dbBonus.Type == (int)BonusTypes.AggregatedFreeSpin && dbBonus.Status == (int)BonusStatuses.Active)
@@ -312,7 +312,7 @@ namespace IqSoft.CP.BLL.Services
             });
 
             if (!bonusAccess.HaveAccessForAllObjects ||
-                (partnerId.HasValue && !partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != partnerId.Value)))
+                (partnerId.HasValue && !partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != partnerId.Value)))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
 
             var query = Db.fn_Bonus(LanguageId).Where(x => x.Status != (int)BonusStatuses.Deleted);
@@ -343,7 +343,7 @@ namespace IqSoft.CP.BLL.Services
             });
 
             if (!bonusAccess.HaveAccessForAllObjects ||
-                (partnerId.HasValue && !partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != partnerId.Value)))
+                (partnerId.HasValue && !partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != partnerId.Value)))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
 
             return Db.Bonus.Include(x => x.BonusProducts).FirstOrDefault(x => x.Id == bonusId);
@@ -654,7 +654,7 @@ namespace IqSoft.CP.BLL.Services
                 Permission = Constants.Permissions.EditBonuses
             });
             if (!bonusAccess.HaveAccessForAllObjects ||
-               (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != triggerSetting.PartnerId)))
+               (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != triggerSetting.PartnerId)))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             if (!triggerSetting.Status.HasValue)
                 triggerSetting.Status = (int)TriggerStatuses.Active;
@@ -897,7 +897,7 @@ namespace IqSoft.CP.BLL.Services
                 Permission = Constants.Permissions.EditBonuses
             });
             if (!bonusAccess.HaveAccessForAllObjects ||
-               (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != dbTriggerSetting.PartnerId)))
+               (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != dbTriggerSetting.PartnerId)))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             var currentTime = DateTime.UtcNow;
             var name = dbTriggerSetting.Name + "_" + ((long)currentTime.Year * 10000000000 + (long)currentTime.Month * 100000000 +
@@ -966,7 +966,7 @@ namespace IqSoft.CP.BLL.Services
                 Permission = Constants.Permissions.EditBonuses
             });
             if (!bonusAccess.HaveAccessForAllObjects ||
-               (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != triggerSetting.PartnerId)))
+               (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != triggerSetting.PartnerId)))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
 
             var currentTime = DateTime.UtcNow;
@@ -998,7 +998,7 @@ namespace IqSoft.CP.BLL.Services
                 Permission = Constants.Permissions.EditBonuses
             });
             if (!bonusAccess.HaveAccessForAllObjects ||
-               (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != bonus.PartnerId)))
+               (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != bonus.PartnerId)))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
 
             var currentTime = DateTime.UtcNow;
@@ -1058,7 +1058,7 @@ namespace IqSoft.CP.BLL.Services
             if (partnerId.HasValue)
                 queryTriggers = queryTriggers.Where(x => x.PartnerId == partnerId.Value);
             else if (!partnerAccess.HaveAccessForAllObjects)
-                queryTriggers = queryTriggers.Where(x => partnerAccess.AccessibleObjects.Contains(x.PartnerId));
+                queryTriggers = queryTriggers.Where(x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId));
 
             if (id.HasValue)
                 queryTriggers = queryTriggers.Where(x => x.Id == id.Value);
@@ -1086,7 +1086,7 @@ namespace IqSoft.CP.BLL.Services
                 Permission = Constants.Permissions.EditBonuses
             });
             if (!bonusAccess.HaveAccessForAllObjects ||
-               (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != bonus.PartnerId)))
+               (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != bonus.PartnerId)))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             return Db.TriggerGroups.Where(x => x.BonusId == bonusId).Select(x => new TriggerGroupItem
             {
@@ -1131,7 +1131,7 @@ namespace IqSoft.CP.BLL.Services
                 Permission = Constants.Permissions.EditBonuses
             });
             if (!bonusAccess.HaveAccessForAllObjects ||
-               (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != bonus.PartnerId)))
+               (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != bonus.PartnerId)))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
 
             if (!Enum.IsDefined(typeof(TriggerGroupType), triggerGroup.Type))
@@ -1178,7 +1178,7 @@ namespace IqSoft.CP.BLL.Services
                 Permission = Constants.Permissions.EditBonuses
             });
             if (!bonusAccess.HaveAccessForAllObjects ||
-               (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != dbTriggerGroup.Bonu.PartnerId)))
+               (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != dbTriggerGroup.Bonu.PartnerId)))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
 
             var dbTriggerSetting = Db.TriggerSettings.FirstOrDefault(x => x.Id == triggerSettingId);
@@ -1230,7 +1230,7 @@ namespace IqSoft.CP.BLL.Services
                 Permission = Constants.Permissions.EditBonuses
             });
             if (!bonusAccess.HaveAccessForAllObjects ||
-               (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != dbTriggerGroup.Bonu.PartnerId)))
+               (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != dbTriggerGroup.Bonu.PartnerId)))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             var oldValue = new
             {
@@ -1270,7 +1270,7 @@ namespace IqSoft.CP.BLL.Services
                 Permission = Constants.Permissions.EditBonuses
             });
             if (!bonusAccess.HaveAccessForAllObjects ||
-               (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != setting.TriggerSetting.PartnerId)))
+               (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != setting.TriggerSetting.PartnerId)))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             var oldValue = new
             {
@@ -1562,7 +1562,6 @@ namespace IqSoft.CP.BLL.Services
 
                             using (var transactionScope = CommonFunctions.CreateTransactionScope(5))
                             {
-
                                 var bonusProduct = Db.BonusProducts.FirstOrDefault(x => x.ProductId == Constants.PlatformProductId && x.BonusId == bonus.Id);
                                 if (bonusProduct == null || bonusProduct.Percent == null || bonusProduct.Percent == 0)
                                     continue;
@@ -1895,7 +1894,7 @@ namespace IqSoft.CP.BLL.Services
                     Permission = Constants.Permissions.ViewPartner,
                     ObjectTypeId = ObjectTypes.Partner
                 });
-                if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != client.PartnerId))
+                if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             }
             var clientSegmentsIds = new List<int>();
@@ -1947,7 +1946,7 @@ namespace IqSoft.CP.BLL.Services
                     Permission = Constants.Permissions.ViewPartner,
                     ObjectTypeId = ObjectTypes.Partner
                 });
-                if ((!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != bonus.PartnerId)))
+                if ((!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != bonus.PartnerId)))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             }
             return bonus;
@@ -1971,7 +1970,7 @@ namespace IqSoft.CP.BLL.Services
                 });
 
                 if (!bonusAccess.HaveAccessForAllObjects ||
-                    (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != dbBonus.PartnerId)))
+                    (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != dbBonus.PartnerId)))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             }
             return dbBonus;
@@ -1992,7 +1991,7 @@ namespace IqSoft.CP.BLL.Services
                 Permission = Constants.Permissions.ViewPartner,
                 ObjectTypeId = ObjectTypes.Partner
             });
-            if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != complimentaryRate.PartnerId))
+            if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != complimentaryRate.PartnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             
             var dbComplimentaryRate = Db.ComplimentaryPointRates.FirstOrDefault(x => x.PartnerId == complimentaryRate.PartnerId &&
@@ -2030,7 +2029,7 @@ namespace IqSoft.CP.BLL.Services
                 Permission = Constants.Permissions.ViewPartner,
                 ObjectTypeId = ObjectTypes.Partner
             });
-            if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != partnerId))
+            if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != partnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             return Db.ComplimentaryPointRates.Where(x => x.PartnerId == partnerId && x.CurrencyId == currencyId).ToList();
         }
@@ -2045,7 +2044,7 @@ namespace IqSoft.CP.BLL.Services
                 ObjectTypeId = ObjectTypes.Partner
             });
             if (jackpot.PartnerId.HasValue && !partnerAccess.HaveAccessForAllObjects &&
-                 partnerAccess.AccessibleObjects.All(x => x != jackpot.PartnerId))
+                 partnerAccess.AccessibleIntegerObjects.All(x => x != jackpot.PartnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             if (jackpot.JackpotSettings != null && jackpot.JackpotSettings.Any(x => x.Percent < -1))
                 throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
@@ -2127,7 +2126,7 @@ namespace IqSoft.CP.BLL.Services
                 if (dbJackpot == null)
                     throw CreateException(LanguageId, Constants.Errors.BonusNotFound);
 
-                if (dbJackpot.PartnerId.HasValue && !partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != dbJackpot.PartnerId))
+                if (dbJackpot.PartnerId.HasValue && !partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != dbJackpot.PartnerId))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
                 return new List<Jackpot> { dbJackpot };
             }

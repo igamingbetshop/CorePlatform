@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-
-namespace IqSoft.CP.BetShopWebApi.Models.Common
+﻿namespace IqSoft.CP.BetShopWebApi.Models.Common
 {
-	public class GetCashDeskCurrentBalanceOutput : ClientRequestResponseBase
+	public class GetCashDeskCurrentBalanceOutput : ApiResponseBase
 	{
 		public decimal Balance { get; set; }
-
+		public decimal TerminalBalance { get; set; }
+		public decimal CashDeskBalance { get; set; }
 		public decimal CurrentLimit { get; set; }
 	}
 }

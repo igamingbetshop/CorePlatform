@@ -818,7 +818,7 @@ namespace IqSoft.CP.AgentWebApi.Helpers
             {
                 Entities = request.Entities.Select(x => x.MapToApiPaymentRequest(timeZone)).ToList(),
                 Count = request.Count,
-                TotalAmount = request.TotalAmount == null ? 0 : Math.Floor(request.TotalAmount.Value * 100) / 100,
+                TotalAmount = Math.Round(request.TotalAmount, 2),
                 TotalUniquePlayers = request.TotalUniquePlayers
             };
         }
@@ -1337,6 +1337,8 @@ namespace IqSoft.CP.AgentWebApi.Helpers
                 Type = input.Type,
                 State = input.State,
                 Message = input.Message,
+                NickName = input.NickName,
+                ReceiverType = input.ReceiverType,
                 CreationDate = input.CreationDate.GetGMTDateFromUTC(timeZone),
                 LastUpdateDate = input.LastUpdateDate.GetGMTDateFromUTC(timeZone)
             };

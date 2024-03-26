@@ -17,8 +17,10 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity.Validation;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
 using System.ServiceModel;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
 using System.Web.Http.Cors;
@@ -26,7 +28,7 @@ using Language = IqSoft.CP.AdminWebApi.Models.CommonModels.Language;
 
 namespace IqSoft.CP.AdminWebApi.Controllers
 {
-	[EnableCors(origins: "*", headers: "*", methods: "GET,POST")]
+    [EnableCors(origins: "*", headers: "*", methods: "GET,POST")]
     public class MainController : ApiController
     {
         [HttpPost]
@@ -47,7 +49,7 @@ namespace IqSoft.CP.AdminWebApi.Controllers
                 var ipCountry = HttpContext.Current?.Request?.Headers?.Get("CF-IPCountry") ?? string.Empty;
                 string ip = HttpContext.Current?.Request?.Headers?.Get("CF-Connecting-IP") ?? HttpContext.Current?.Request?.UserHostAddress;
                 var siteUrl = HttpContext.Current?.Request?.Headers?.Get("Origin");
-                if(!string.IsNullOrEmpty(siteUrl))
+                if (!string.IsNullOrEmpty(siteUrl))
                     siteUrl = siteUrl.Replace("http://", string.Empty).Replace("https://", string.Empty);
                 var userIp = string.IsNullOrEmpty(ip) ? "127.0.0.1" : ip;
                 var input = JsonConvert.DeserializeObject<LoginDetails>(CommonFunctions.RSADecrypt(inp.Data));
@@ -61,16 +63,9 @@ namespace IqSoft.CP.AdminWebApi.Controllers
                     {
                         using (var contentBl = new ContentBll(partnerBl))
                         {
-                            var partner = partnerBl.GetPartners(new FilterPartner { AdminSiteUrl = siteUrl }, false).FirstOrDefault();
-                            if (partner == null)
+                            var partner = partnerBl.GetPartners(new FilterPartner { AdminSiteUrl = siteUrl }, false).FirstOrDefault() ??
                                 throw BaseBll.CreateException(string.Empty, Constants.Errors.PartnerNotFound);
-                            var blockedIps = CacheManager.GetConfigParameters(partner.Id, "AdminBlockedIps").Select(x => x.Key).ToList();
-                            if (blockedIps.Contains(userIp))
-                                throw BaseBll.CreateException(string.Empty, Constants.Errors.DontHavePermission);
-                            var whitelistedIps = CacheManager.GetConfigParameters(partner.Id, "AdminWhitelistedIps").Select(x => x.Key).ToList();
-                            var whitelistedCountries = CacheManager.GetConfigParameters(partner.Id, "AdminWhitelistedCountries").Select(x => x.Key).ToList();
-                            if (!whitelistedIps.Any(x => x.IsIpEqual(userIp)) && !whitelistedCountries.Contains(ipCountry))
-                                throw BaseBll.CreateException(string.Empty, Constants.Errors.DontHavePermission);
+                            PartnerBll.CheckApiRestrictions(partner.Id, Constants.SystemModuleTypes.ManagementSystem);                           
                             var loginInput = new LoginUserInput
                             {
                                 PartnerId = partner.Id,
@@ -86,7 +81,7 @@ namespace IqSoft.CP.AdminWebApi.Controllers
                             loginResult.UserLogin = user.UserName;
                             loginResult.UserName = string.Format("{0} {1}", user.FirstName, user.LastName);
                             var userPermissions = CacheManager.GetUserPermissions(userIdentity.Id);
-                            loginResult.AdminMenu = contentBl.GetAdminMenus(userPermissions.Select(x => x.PermissionId).ToList(), userPermissions.Any(x => x.IsAdmin));
+                            loginResult.AdminMenu = contentBl.GetAdminMenus(userPermissions.Select(x => x.PermissionId).ToList(), userPermissions.Any(x => x.IsAdmin)).ToList();
                         }
                     }
                 }
@@ -147,6 +142,7 @@ namespace IqSoft.CP.AdminWebApi.Controllers
 
                 var user = CacheManager.GetUserById(input.UserId ?? 0) ??
                     throw BaseBll.CreateException(requestInfo.LanguageId, Constants.Errors.UserNotFound);
+                PartnerBll.CheckApiRestrictions(user.PartnerId, Constants.SystemModuleTypes.ManagementSystem);
                 using (var userBl = new UserBll(new SessionIdentity(), WebApiApplication.DbLogger))
                 {
                     userBl.CheckUserTwoFactorPin(user, input.Token, input.Pin);
@@ -198,7 +194,7 @@ namespace IqSoft.CP.AdminWebApi.Controllers
         }
 
         [HttpPost]
-        public ApiResponseBase ApiRequest([FromUri]RequestInfo requestInfo, [FromBody]RequestBase request)
+        public ApiResponseBase ApiRequest([FromUri] RequestInfo requestInfo, [FromBody] RequestBase request)
         {
             var startTime = DateTime.UtcNow;
             var actionLog = new DAL.ActionLog
@@ -227,20 +223,11 @@ namespace IqSoft.CP.AdminWebApi.Controllers
                 {
                     using (var partnerBl = new PartnerBll(new SessionIdentity(), WebApiApplication.DbLogger))
                     {
-                        var user = CacheManager.GetUserById(request.UserId.Value);
-                        if (user == null)
+                        var user = CacheManager.GetUserById(request.UserId.Value) ??
                             throw BaseBll.CreateException(string.Empty, Constants.Errors.UserNotFound);
-                        var partner = partnerBl.GetPartnerById(user.PartnerId);
-                        if (partner == null)
+                        var partner = partnerBl.GetPartnerById(user.PartnerId) ??
                             throw BaseBll.CreateException(string.Empty, Constants.Errors.PartnerNotFound);
-                        var blockedIps = CacheManager.GetConfigParameters(partner.Id, "AdminBlockedIps").Select(x => x.Key).ToList();
-                        if (blockedIps.Contains(actionLog.Ip))
-                            throw BaseBll.CreateException(string.Empty, Constants.Errors.DontHavePermission);
-                        var whitelistedIps = CacheManager.GetConfigParameters(partner.Id, "AdminWhitelistedIps").Select(x => x.Key).ToList();
-                        var whitelistedCountries = CacheManager.GetConfigParameters(partner.Id, "AdminWhitelistedCountries").Select(x => x.Key).ToList();
-                        if (!whitelistedIps.Any(x => x.IsIpEqual(actionLog.Ip)) &&
-                            !whitelistedCountries.Contains(actionLog.Country))
-                            throw BaseBll.CreateException(string.Empty, Constants.Errors.DontHavePermission);
+                        PartnerBll.CheckApiRestrictions(partner.Id, Constants.SystemModuleTypes.ManagementSystem);
                         identity = CheckApiAuthorization(request.UserId.Value, request.ApiKey, requestInfo.LanguageId, requestInfo.TimeZone);
                     }
                 }
@@ -284,7 +271,7 @@ namespace IqSoft.CP.AdminWebApi.Controllers
                         ResponseCode = Constants.Errors.GeneralException,
                         Description = ex.Message
                     };
-                if(response.ResponseCode == Constants.Errors.ActionNotFound)
+                if (response.ResponseCode == Constants.Errors.ActionNotFound)
                     WebApiApplication.DbLogger.Error("ActionNotFound: " + request?.Method);
 
                 WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(response) + "_" + JsonConvert.SerializeObject(request));
@@ -307,7 +294,7 @@ namespace IqSoft.CP.AdminWebApi.Controllers
                     actionLog.Info = (DateTime.UtcNow - startTime).TotalSeconds + "_" + actionLog.Info;
                     BaseBll.LogAction(actionLog);
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     WebApiApplication.DbLogger.Error("Action log: " + e.Message);
                 }
@@ -317,9 +304,9 @@ namespace IqSoft.CP.AdminWebApi.Controllers
 
         private SessionIdentity CheckApiAuthorization(int userId, string secureCode, string languageId, double timeZone)
         {
-            var user = CacheManager.GetUserById(userId);
-            if (user == null)
+            var user = CacheManager.GetUserById(userId) ??
                 throw BaseBll.CreateException(languageId, Constants.Errors.UserNotFound);
+            PartnerBll.CheckApiRestrictions(user.PartnerId, Constants.SystemModuleTypes.ManagementSystem);
             if (user.SecurityCode != secureCode)
                 throw BaseBll.CreateException(languageId, Constants.Errors.WrongApiCredentials);
 
@@ -451,7 +438,9 @@ namespace IqSoft.CP.AdminWebApi.Controllers
                 action.Country = ipCountry;
 
                 action.ActionId = CacheManager.GetAction(MethodBase.GetCurrentMethod().Name).Id;
-                action.SessionId = CheckToken(requestInfo, token).SessionId;
+                var session = CheckToken(requestInfo, token);
+                PartnerBll.CheckApiRestrictions(session.PartnerId, Constants.SystemModuleTypes.ManagementSystem);
+                action.SessionId = session.SessionId;
             }
             catch (FaultException<BllFnErrorType> e)
             {
@@ -473,7 +462,7 @@ namespace IqSoft.CP.AdminWebApi.Controllers
         }
 
         [HttpGet]
-        public ApiResponseBase GetUserBalance([FromUri]RequestInfo requestInfo, string token)
+        public ApiResponseBase GetUserBalance([FromUri] RequestInfo requestInfo, string token)
         {
             var result = new ApiResponseBase();
             DAL.ActionLog action = new DAL.ActionLog
@@ -495,6 +484,7 @@ namespace IqSoft.CP.AdminWebApi.Controllers
                 action.Country = ipCountry;
                 action.ActionId = CacheManager.GetAction(MethodBase.GetCurrentMethod().Name).Id;
                 var identity = CheckToken(requestInfo, token, false);
+                PartnerBll.CheckApiRestrictions(identity.PartnerId, Constants.SystemModuleTypes.ManagementSystem);
                 action.SessionId = identity.SessionId;
                 result = UserController.GetUserBalance(identity);
             }
@@ -523,7 +513,8 @@ namespace IqSoft.CP.AdminWebApi.Controllers
             {
                 var session = userBl.GetUserSession(token, extendSession: extend);
                 var user = userBl.GetUserById(session.UserId.Value);
-                if (user.Type >= (int)UserTypes.MasterAgent)
+                PartnerBll.CheckApiRestrictions(user.PartnerId, Constants.SystemModuleTypes.ManagementSystem);
+                if (user.Type >= (int)UserTypes.CompanyAgent)
                     throw BaseBll.CreateException(requestInfo.LanguageId, Constants.Errors.NotAllowed);
                 var userIdentity = new SessionIdentity
                 {
@@ -541,26 +532,26 @@ namespace IqSoft.CP.AdminWebApi.Controllers
             }
         }
 
-		[HttpGet]
-		public ApiResponseBase GetAffiliateReport([FromUri] GetAffiliateReportInput input)
-		{
-			var response = new ApiResponseBase();
+        [HttpGet]
+        public ApiResponseBase GetAffiliateReport([FromUri] GetAffiliateReportInput input)
+        {
+            var response = new ApiResponseBase();
             try
             {
                 using (var affiliateBl = new AffiliateService(new SessionIdentity(), WebApiApplication.DbLogger))
                 {
-					if(string.IsNullOrEmpty(input.ApiKey) || !input.UserId.HasValue)
+                    if (string.IsNullOrEmpty(input.ApiKey) || !input.UserId.HasValue)
                         throw BaseBll.CreateException(string.Empty, Constants.Errors.WrongApiCredentials);
-					var identity = CheckApiAuthorization(input.UserId.Value, input.ApiKey, input.LanguageId, input.TimeZone);
+                    var identity = CheckApiAuthorization(input.UserId.Value, input.ApiKey, input.LanguageId, input.TimeZone);
                     affiliateBl.GetPermissionsToObject(new CheckPermissionInput
                     {
                         UserId = input.UserId,
-						Permission = Constants.Permissions.GetAffiliateReport
+                        Permission = Constants.Permissions.GetAffiliateReport
                     });
                     var affiliatePlatforms = affiliateBl.GetAffiliatePlatforms().Where(x => Constants.ReportingAffiliates.Contains(x.Name)).Select(x => x.Id).ToList();
-                    if (affiliatePlatforms.Count <= 0)        
+                    if (affiliatePlatforms.Count <= 0)
                         return new ApiResponseBase();
-					var clientsByAffiliate = affiliateBl.GetClients(affiliatePlatforms, input.FromDate, input.ToDate)
+                    var clientsByAffiliate = affiliateBl.GetClients(affiliatePlatforms, input.FromDate, input.ToDate)
                                                            .Select(x => new DAL.Models.Affiliates.AffiliatePlatformModel
                                                            {
                                                                PartnerId = x.PartnerId,
@@ -608,26 +599,41 @@ namespace IqSoft.CP.AdminWebApi.Controllers
                     }
                 }
             }
-			catch (FaultException<BllFnErrorType> ex)
-			{
-				if (ex.Detail != null)
-					response = new ApiResponseBase
-					{
-						ResponseCode = ex.Detail.Id,
-						Description = ex.Detail.Message
-					};
-				else
-					response = new ApiResponseBase
-					{
-						ResponseCode = Constants.Errors.GeneralException,
-						Description = ex.Message
-					};
-			}
-			catch (Exception e)
+            catch (FaultException<BllFnErrorType> ex)
+            {
+                if (ex.Detail != null)
+                    response = new ApiResponseBase
+                    {
+                        ResponseCode = ex.Detail.Id,
+                        Description = ex.Detail.Message
+                    };
+                else
+                    response = new ApiResponseBase
+                    {
+                        ResponseCode = Constants.Errors.GeneralException,
+                        Description = ex.Message
+                    };
+            }
+            catch (Exception e)
             {
                 WebApiApplication.DbLogger.Error(e);
             }
-			return response;
-		}
-	}
+            return response;
+        }
+
+        [HttpGet]
+        [Route("Statement/{directory}/{fileName}/")]
+        public async Task<HttpResponseMessage> Statement([FromUri] string token, [FromUri] string directory, [FromUri] string fileName)
+        {
+            CheckToken(new RequestInfo { LanguageId = Constants.DefaultLanguageId }, token, false);
+            var statementPath = CacheManager.GetPartnerSettingByKey(Constants.MainPartnerId, Constants.PartnerKeys.StatementPath).StringValue;
+            using (var httpClient = new HttpClient())
+            {
+                httpClient.BaseAddress = new Uri(statementPath);
+                httpClient.DefaultRequestHeaders.Clear();
+                HttpContext.Current.Response.Headers.Add("Content-Disposition", $"attachment; filename={fileName}");
+                return await httpClient.GetAsync($"{statementPath}/{directory}/{fileName}");
+            }
+        }
+    }
 }

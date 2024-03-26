@@ -70,9 +70,9 @@ namespace IqSoft.CP.AgentWebApi.Controllers
 
                 using (var partnerBl = new PartnerBll(new SessionIdentity(), WebApiApplication.DbLogger))
                 {
-                    var partner = partnerBl.GetPartners(new FilterPartner { AdminSiteUrl = siteUrl }, false).FirstOrDefault();
-                    if (partner == null)
+                    var partner = partnerBl.GetPartners(new FilterPartner { AdminSiteUrl = siteUrl }, false).FirstOrDefault() ??
                         throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.PartnerNotFound);
+                    PartnerBll.CheckApiRestrictions(partner.Id, isAffiliate ? Constants.SystemModuleTypes.AffilliateSystem : Constants.SystemModuleTypes.AgentSystem);
                     var loginInput = new LoginUserInput
                     {
                         PartnerId = partner.Id,
@@ -80,24 +80,15 @@ namespace IqSoft.CP.AgentWebApi.Controllers
                         Password = input.Password,
                         Ip = ip,
                         LanguageId = requestInfo.LanguageId,
-                        UserType = (int)UserTypes.Agent,
+                        UserType = (int)UserTypes.DownlineAgent,
                         ReCaptcha = input.ReCaptcha
                     };
 
                     if (!isAffiliate)
                     {
+
                         using (var userBl = new UserBll(partnerBl))
-                        {
-                            var blockedIps = CacheManager.GetConfigParameters(partner.Id, "AgentBlockedIps").Select(x => x.Key).ToList();
-                            if (blockedIps.Contains(ip))
-                                throw BaseBll.CreateException(string.Empty, Constants.Errors.DontHavePermission);
-
-                            var whitelistedIps = CacheManager.GetConfigParameters(partner.Id, "AgentWhitelistedIps").Select(x => x.Key).ToList();
-                            var whitelistedCountries = CacheManager.GetConfigParameters(partner.Id, "AgentWhitelistedCountries").Select(x => x.Key).ToList();
-
-                            if (!whitelistedIps.Any(x => x.IsIpEqual(ip)) && (whitelistedCountries.Any() && !whitelistedCountries.Contains(ipCountry)))
-                                throw BaseBll.CreateException(string.Empty, Constants.Errors.DontHavePermission);
-
+                        {        
                             var userIdentity = userBl.LoginUser(loginInput, out string imageData);
                             var user = CacheManager.GetUserById(userIdentity.Id);
                             var parentLevel = user.ParentId.HasValue ? CacheManager.GetUserById(user.ParentId.Value)?.Level : 0;
@@ -176,6 +167,7 @@ namespace IqSoft.CP.AgentWebApi.Controllers
             }
             return loginResult;
         }
+
         [HttpPost]
         public ApiResponseBase ValidateTwoFactorPIN([FromUri] RequestInfo requestInfo, Api2FAInput input)
         {
@@ -277,6 +269,7 @@ namespace IqSoft.CP.AgentWebApi.Controllers
                 if (!identity.IsAffiliate)
                 {
                     var user = CacheManager.GetUserById(identity.Id);
+                    PartnerBll.CheckApiRestrictions(user.PartnerId, Constants.SystemModuleTypes.ManagementSystem);
                     var userState = CacheManager.GetUserSetting(user.Id)?.ParentState;
                     if (userState.HasValue && CustomHelper.Greater((UserStates)userState.Value, (UserStates)user.State))
                         user.State = userState.Value;
@@ -401,6 +394,7 @@ namespace IqSoft.CP.AgentWebApi.Controllers
                 if (!sessionIdentity.IsAffiliate)
                 {
                     var user = CacheManager.GetUserById(sessionIdentity.Id);
+                    PartnerBll.CheckApiRestrictions(user.PartnerId, Constants.SystemModuleTypes.AgentSystem);
                     var parentLevel = user.ParentId.HasValue ? CacheManager.GetUserById(user.ParentId.Value)?.Level : 0;
                     BllUserSetting userSetting;
                     if (user.Type == (int)UserTypes.AdminUser)
@@ -433,6 +427,7 @@ namespace IqSoft.CP.AgentWebApi.Controllers
                     using (var affiliateBl = new AffiliateService(sessionIdentity, WebApiApplication.DbLogger))
                     {
                         var affiliate = affiliateBl.GetAffiliateById(sessionIdentity.Id, false);
+                        PartnerBll.CheckApiRestrictions(affiliate.PartnerId, Constants.SystemModuleTypes.AffilliateSystem);
                         result.ResponseObject = new Session
                         {
                             AffiliateId = sessionIdentity.Id,
@@ -522,7 +517,6 @@ namespace IqSoft.CP.AgentWebApi.Controllers
                 return response;
             }
         }
-
 
         [HttpPost]
         public ApiResponseBase SendRecoveryToken(ApiSendRecoveryTokenInput input)
@@ -623,7 +617,7 @@ namespace IqSoft.CP.AgentWebApi.Controllers
                 if (session.UserId != null)
                 {
                     var user = userBl.GetUserById(session.UserId.Value);
-                    if (user.Type < (int)UserTypes.MasterAgent && user.Type != (int)UserTypes.AdminUser)
+                    if (user.Type < (int)UserTypes.CompanyAgent && user.Type != (int)UserTypes.AdminUser)
                         throw BaseBll.CreateException(requestInfo.LanguageId, Constants.Errors.NotAllowed);
                     userIdentity.PartnerId = user.PartnerId;
                     userIdentity.CurrencyId = user.CurrencyId;

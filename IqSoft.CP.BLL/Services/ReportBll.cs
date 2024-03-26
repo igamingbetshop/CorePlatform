@@ -83,18 +83,18 @@ namespace IqSoft.CP.BLL.Services
                 ObjectTypeId = ObjectTypes.ClientCategory
             });
 
-            var partnerIds = filter.PartnerId.HasValue ? new List<long> { filter.PartnerId.Value } : new List<long>();
+            var partnerIds = filter.PartnerId.HasValue ? new List<int> { filter.PartnerId.Value } : new List<int>();
             if (!partnerAccess.HaveAccessForAllObjects)
             {
-                if (filter.PartnerId != null && !partnerAccess.AccessibleObjects.Contains(filter.PartnerId.Value))
+                if (filter.PartnerId != null && !partnerAccess.AccessibleIntegerObjects.Contains(filter.PartnerId.Value))
                     throw CreateException(LanguageId, Errors.DontHavePermission);
 
                 if (!partnerIds.Any())
                 {
-                    if (partnerAccess.AccessibleObjects.Any())
-                        partnerIds = partnerAccess.AccessibleObjects.ToList();
+                    if (partnerAccess.AccessibleIntegerObjects.Any())
+                        partnerIds = partnerAccess.AccessibleIntegerObjects.ToList();
                     else
-                        partnerIds = new List<long> { -1 };
+                        partnerIds = new List<int> { -1 };
                 }
             }
             var q = Dwh.Gtd_Dashboard_Info.Where(x => x.Date >= filter.FromDay && x.Date < filter.ToDay);
@@ -177,18 +177,18 @@ namespace IqSoft.CP.BLL.Services
                 Permission = Constants.Permissions.ViewDashboard
             });
 
-            var partnerIds = filter.PartnerId.HasValue ? new List<long> { filter.PartnerId.Value } : new List<long>();
+            var partnerIds = filter.PartnerId.HasValue ? new List<int> { filter.PartnerId.Value } : new List<int>();
             if (!partnerAccess.HaveAccessForAllObjects)
             {
-                if (filter.PartnerId != null && !partnerAccess.AccessibleObjects.Contains(filter.PartnerId.Value))
+                if (filter.PartnerId != null && !partnerAccess.AccessibleIntegerObjects.Contains(filter.PartnerId.Value))
                     throw CreateException(LanguageId, Errors.DontHavePermission);
 
                 if (!partnerIds.Any())
                 {
-                    if (partnerAccess.AccessibleObjects.Any())
-                        partnerIds = partnerAccess.AccessibleObjects.ToList();
+                    if (partnerAccess.AccessibleIntegerObjects.Any())
+                        partnerIds = partnerAccess.AccessibleIntegerObjects.ToList();
                     else
-                        partnerIds = new List<long> { -1 };
+                        partnerIds = new List<int> { -1 };
                 }
             }
 
@@ -309,18 +309,18 @@ namespace IqSoft.CP.BLL.Services
                 ObjectTypeId = ObjectTypes.Partner
             });
 
-            var partnerIds = filter.PartnerId.HasValue ? new List<long> { filter.PartnerId.Value } : new List<long>();
+            var partnerIds = filter.PartnerId.HasValue ? new List<int> { filter.PartnerId.Value } : new List<int>();
             if (!partnerAccess.HaveAccessForAllObjects)
             {
-                if (filter.PartnerId != null && !partnerAccess.AccessibleObjects.Contains(filter.PartnerId.Value))
+                if (filter.PartnerId != null && !partnerAccess.AccessibleIntegerObjects.Contains(filter.PartnerId.Value))
                     throw CreateException(LanguageId, Errors.DontHavePermission);
 
                 if (!partnerIds.Any())
                 {
-                    if (partnerAccess.AccessibleObjects.Any())
-                        partnerIds = partnerAccess.AccessibleObjects.ToList();
+                    if (partnerAccess.AccessibleIntegerObjects.Any())
+                        partnerIds = partnerAccess.AccessibleIntegerObjects.ToList();
                     else
-                        partnerIds = new List<long> { -1 };
+                        partnerIds = new List<int> { -1 };
                 }
             }
 
@@ -421,18 +421,18 @@ namespace IqSoft.CP.BLL.Services
                 {
                     Permission = Constants.Permissions.ViewWithdrawalsTotals
                 });
-            var partnerIds = filter.PartnerId.HasValue ? new List<long> { filter.PartnerId.Value } : new List<long>();
+            var partnerIds = filter.PartnerId.HasValue ? new List<int> { filter.PartnerId.Value } : new List<int>();
             if (!partnerAccess.HaveAccessForAllObjects)
             {
-                if (filter.PartnerId != null && !partnerAccess.AccessibleObjects.Contains(filter.PartnerId.Value))
+                if (filter.PartnerId != null && !partnerAccess.AccessibleIntegerObjects.Contains(filter.PartnerId.Value))
                     throw CreateException(LanguageId, Errors.DontHavePermission);
 
                 if (!partnerIds.Any())
                 {
-                    if (partnerAccess.AccessibleObjects.Any())
-                        partnerIds = partnerAccess.AccessibleObjects.ToList();
+                    if (partnerAccess.AccessibleIntegerObjects.Any())
+                        partnerIds = partnerAccess.AccessibleIntegerObjects.ToList();
                     else
-                        partnerIds = new List<long> { -1 };
+                        partnerIds = new List<int> { -1 };
                 }
             }
 
@@ -591,9 +591,9 @@ namespace IqSoft.CP.BLL.Services
                     },
                      new CheckPermissionOutput<BllOnlineClient>
                     {
-                        AccessibleObjects = partnerAccess.AccessibleObjects,
+                        AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                         HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                        Filter =  x => input.PartnerId.HasValue && partnerAccess.AccessibleObjects.Contains(input.PartnerId.Value)
+                        Filter =  x => input.PartnerId.HasValue && partnerAccess.AccessibleIntegerObjects.Contains(input.PartnerId.Value)
                     }
                 };
 
@@ -683,53 +683,35 @@ namespace IqSoft.CP.BLL.Services
             {
                  new CheckPermissionOutput<fnClientReport>
                 {
-                    AccessibleObjects = partnerAccess.AccessibleObjects,
+                    AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                     HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                    Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                    Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                 },
                 new CheckPermissionOutput<fnClientReport>
                 {
                     AccessibleObjects = checkViewAccess.AccessibleObjects,
                     HaveAccessForAllObjects = checkViewAccess.HaveAccessForAllObjects,
-                    Filter = x => checkViewAccess.AccessibleObjects.Contains(x.ClientId.Value)
+                    Filter = x => checkViewAccess.AccessibleObjects.Contains(x.ClientId)
                 },
                 new CheckPermissionOutput<fnClientReport>
                 {
-                    AccessibleObjects = affiliateAccess.AccessibleObjects,
+                    AccessibleStringObjects = affiliateAccess.AccessibleStringObjects,
                     HaveAccessForAllObjects = affiliateAccess.HaveAccessForAllObjects,
                     Filter = x => string.IsNullOrEmpty(x.AffiliateId) && affiliateAccess.AccessibleStringObjects.Contains(x.AffiliateId)
                 }
             };
-
-            Func<IQueryable<fnClientReport>, IOrderedQueryable<fnClientReport>> orderBy;
-
-            if (filter.OrderBy.HasValue)
-            {
-                if (filter.OrderBy.Value)
-                {
-                    orderBy = QueryableUtilsHelper.OrderByFunc<fnClientReport>(filter.FieldNameToOrderBy, true);
-                }
-                else
-                {
-                    orderBy = QueryableUtilsHelper.OrderByFunc<fnClientReport>(filter.FieldNameToOrderBy, false);
-                }
-            }
-            else
-            {
-                orderBy = clientList => clientList.OrderByDescending(x => x.ClientId);
-            }
-            var fDate = (long)filter.FromDate.Year * 100000000 + (long)filter.FromDate.Month * 1000000 +
-                        (long)filter.FromDate.Day * 10000 + (long)filter.FromDate.Hour *100 + filter.FromDate.Minute;
-            var tDate = (long)filter.ToDate.Year * 100000000 + (long)filter.ToDate.Month * 1000000 +
-                        (long)filter.ToDate.Day * 10000 + (long)filter.ToDate.Hour*100 + filter.ToDate.Minute;
-            var dbClientReport = filter.FilterObjects(Dwh.fn_ClientReport(fDate, tDate)).ToList();
+            var fDate = (long)filter.FromDate.Year * 10000 + (long)filter.FromDate.Month * 100 + (long)filter.FromDate.Day;
+            var tDate = (long)filter.ToDate.Year * 10000 + (long)filter.ToDate.Month * 100 + (long)filter.ToDate.Day;
+            filter.FieldNameToOrderBy = "ClientId";
+            filter.OrderBy = true;
+            var dbClientReport = filter.FilterObjects(Dwh.fn_ClientReport(fDate, tDate), true).ToList();
             var entities = new List<ApiClientInfo>();
             dbClientReport.ForEach(x =>
             {
-                var balance = CacheManager.GetClientCurrentBalance(x.ClientId.Value);
+                var balance = CacheManager.GetClientCurrentBalance(x.ClientId);
                 entities.Add(new ApiClientInfo
                 {
-                    ClientId = x.ClientId.Value,
+                    ClientId = x.ClientId,
                     UserName = x.UserName,
                     PartnerId = x.PartnerId,
                     CurrencyId = x.CurrencyId,
@@ -744,7 +726,8 @@ namespace IqSoft.CP.BLL.Services
                     TotalWithdrawalAmount = x.TotalWithdrawalAmount ?? 0,
                     WithdrawalsCount = x.WithdrawalsCount ?? 0,
                     TotalBetAmount = x.TotalBetAmount ?? 0,
-                    BetsCount = x.BetsCount ?? 0,
+                    TotalBetsCount = x.TotalBetsCount ?? 0,
+                    SportBetsCount = x.SportBetsCount ?? 0,
                     TotalWinAmount = x.TotalWinAmount ?? 0,
                     WinsCount = x.WinsCount ?? 0,
                     TotalCreditCorrection = x.TotalCreditCorrection ?? 0,
@@ -752,12 +735,12 @@ namespace IqSoft.CP.BLL.Services
                     TotalDebitCorrection = x.TotalDebitCorrection ?? 0,
                     DebitCorrectionsCount = x.DebitCorrectionsCount ?? 0,
                     GGR = x.GGR ?? 0,
-                    NGR = (x.TotalDepositAmount ?? 0) + (x.TotalDebitCorrection?? 0) -
-                          (x.TotalWithdrawalAmount ?? 0) - (x.TotalCreditCorrection ?? 0) - balance.AvailableBalance,
+                    NGR = 0,
                     RealBalance = Math.Floor(balance.Balances.Where(y => y.TypeId != (int)AccountTypes.ClientCompBalance &&
                                                                     y.TypeId != (int)AccountTypes.ClientCoinBalance &&
                                                                     y.TypeId != (int)AccountTypes.ClientBonusBalance).Sum(y => y.Balance) * 100) / 100,
-                    BonusBalance = Math.Floor(balance.Balances.Where(y => y.TypeId == (int)AccountTypes.ClientBonusBalance).Sum(y => y.Balance) * 100) / 100
+                    BonusBalance = Math.Floor(balance.Balances.Where(y => y.TypeId == (int)AccountTypes.ClientBonusBalance).Sum(y => y.Balance) * 100) / 100,
+                    ComplimentaryBalance = Math.Floor(balance.Balances.Where(y => y.TypeId == (int)AccountTypes.ClientCoinBalance).Sum(y => y.Balance) * 100) / 100
                 });
             });
 
@@ -770,22 +753,11 @@ namespace IqSoft.CP.BLL.Services
 
         public ClientReport GetClientsInfoList(FilterfnClientDashboard filter)
         {
-            var clients = GetClientsInfo(filter);
+            var entities = GetClientsInfo(filter);
 
             return new ClientReport
             {
-                Clients = clients,
-                Totals = new ClientReportTotal
-                {
-                    TotalWithdrawalsAmount = clients.Entities.Sum(x => ConvertCurrency(x.CurrencyId, CurrencyId, x.TotalWithdrawalAmount)),
-                    TotalDepositsAmount=clients.Entities.Sum(x => ConvertCurrency(x.CurrencyId, CurrencyId, x.TotalDepositAmount)),
-                    TotalBetsAmount=clients.Entities.Sum(x => ConvertCurrency(x.CurrencyId, CurrencyId, x.TotalBetAmount)),
-                    TotalWinsAmount=clients.Entities.Sum(x => ConvertCurrency(x.CurrencyId, CurrencyId, x.TotalWinAmount)),
-                    TotalGGRs=clients.Entities.Sum(x => ConvertCurrency(x.CurrencyId, CurrencyId, x.GGR)),
-                    TotalNGRs=clients.Entities.Sum(x => ConvertCurrency(x.CurrencyId, CurrencyId, x.NGR)),
-                    TotalDebitCorrections=clients.Entities.Sum(x => ConvertCurrency(x.CurrencyId, CurrencyId, x.TotalDebitCorrection)),
-                    TotalCreditCorrections=clients.Entities.Sum(x => ConvertCurrency(x.CurrencyId, CurrencyId, x.TotalCreditCorrection)),
-                }
+                Clients = entities
             };
         }
 
@@ -830,24 +802,22 @@ namespace IqSoft.CP.BLL.Services
                 },
                 new CheckPermissionOutput<fnBetShopBet>
                 {
-                    AccessibleObjects = partnerAccess.AccessibleObjects,
+                    AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                     HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                    Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                    Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                 }
             };
             }
 
-            Func<IQueryable<fnBetShopBet>, IOrderedQueryable<fnBetShopBet>> orderBy = betShopBet => betShopBet.OrderByDescending(x => x.BetDocumentId);
-            if (filter.OrderBy.HasValue)
+            if (!string.IsNullOrEmpty(filter.FieldNameToOrderBy))
             {
-                if (filter.OrderBy.Value)
-                {
-                    orderBy = QueryableUtilsHelper.OrderByFunc<fnBetShopBet>(filter.FieldNameToOrderBy, true);
-                }
-                else
-                {
-                    orderBy = QueryableUtilsHelper.OrderByFunc<fnBetShopBet>(filter.FieldNameToOrderBy, false);
-                }
+                if (!filter.OrderBy.HasValue)
+                    filter.OrderBy = true;
+            }
+            else
+            {
+                filter.FieldNameToOrderBy = "BetDocumentId";
+                filter.OrderBy = true;
             }
             var groupedBets = (from b in filter.FilterObjectsTotals(Dwh.fn_BetShopBet())
                                group b by b.CurrencyId
@@ -861,7 +831,7 @@ namespace IqSoft.CP.BLL.Services
                                }).ToList();
             var totalCount = groupedBets.Sum(x => x.Count);
             filter.TakeCount = Math.Min(Math.Max(0, totalCount - filter.SkipCount * filter.TakeCount), filter.TakeCount);
-            var query = filter.FilterObjects(Dwh.fn_BetShopBet(), orderBy);
+            var query = filter.FilterObjects(Dwh.fn_BetShopBet(), true);
             var entries = query.ToList();
 
             var toCurrency = string.IsNullOrEmpty(currencyId) ? CurrencyId : currencyId;
@@ -922,9 +892,9 @@ namespace IqSoft.CP.BLL.Services
             {
                 new CheckPermissionOutput<fnReportByBetShopOperation>
                 {
-                    AccessibleObjects = partnerAccess.AccessibleObjects,
+                    AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                     HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                    Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                    Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                 },
                  new CheckPermissionOutput<fnReportByBetShopOperation>
                 {
@@ -1015,13 +985,13 @@ namespace IqSoft.CP.BLL.Services
                 },
                 new CheckPermissionOutput<fnBetShopBet>
                 {
-                    AccessibleObjects = partnerAccess.AccessibleObjects,
+                    AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                     HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                    Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                    Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                 }
             };
             var entities =
-                filter.FilterObjects(Dwh.fn_BetShopBet())
+                filter.FilterObjects(Dwh.fn_BetShopBet(), false)
                     .GroupBy(x => new { x.BetShopId, x.BetShopGroupId, x.BetShopName, x.BetShopCurrencyId })
                     .Select(
                         x =>
@@ -1074,14 +1044,13 @@ namespace IqSoft.CP.BLL.Services
                 },
                 new CheckPermissionOutput<fnBetShopBet>
                 {
-                    AccessibleObjects = partnerAccess.AccessibleObjects,
+                    AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                     HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                    Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                    Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                 }
             };
 
-            var entities =
-                filter.FilterObjects(Dwh.fn_BetShopBet())
+            var entities = filter.FilterObjects(Dwh.fn_BetShopBet(), false)
                     .GroupBy(x => new { x.ProductId, x.ProductName, x.BetShopCurrencyId })
                     .Select(
                         x =>
@@ -1130,7 +1099,6 @@ namespace IqSoft.CP.BLL.Services
                     filter.AgentId = user.ParentId;
                 }
             }
-
             if (checkPermission)
             {
                 var internetBetAccess = GetPermissionsToObject(new CheckPermissionInput
@@ -1169,9 +1137,9 @@ namespace IqSoft.CP.BLL.Services
                     },
                     new CheckPermissionOutput<fnInternetBet>
                     {
-                        AccessibleObjects = partnerAccess.AccessibleObjects,
+                        AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                         HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                        Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                        Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                     },
                     new CheckPermissionOutput<fnInternetBet>
                     {
@@ -1187,7 +1155,7 @@ namespace IqSoft.CP.BLL.Services
                     },
                     new CheckPermissionOutput<fnInternetBet>
                     {
-                        AccessibleObjects = affiliateAccess.AccessibleObjects,
+                        AccessibleStringObjects = affiliateAccess.AccessibleStringObjects,
                         HaveAccessForAllObjects = affiliateAccess.HaveAccessForAllObjects,
                         Filter = x => !string.IsNullOrEmpty(x.AffiliateId) && affiliateAccess.AccessibleStringObjects.Contains(x.AffiliateId)
                     }
@@ -1196,20 +1164,28 @@ namespace IqSoft.CP.BLL.Services
             else
                 filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnInternetBet>>();
 
-            Func<IQueryable<fnInternetBet>, IOrderedQueryable<fnInternetBet>> orderBy;
+            if(((filter.ToDate ?? DateTime.UtcNow) - filter.FromDate).TotalDays > 50)
+                throw CreateException(Constants.DefaultLanguageId, Constants.Errors.InvalidDataRange);
+
+            bool orderByDate = false;
             if (filter.OrderBy.HasValue)
             {
                 if (!string.IsNullOrEmpty(filter.FieldNameToOrderBy))
-                    orderBy = QueryableUtilsHelper.OrderByFunc<fnInternetBet>(filter.FieldNameToOrderBy, filter.OrderBy.Value);
+                {
+                    if (!filter.OrderBy.Value)
+                        orderByDate = true;
+                }
                 else
-                    orderBy = clients => clients.OrderByDescending(x => x.BetDocumentId);
+                    filter.FieldNameToOrderBy = "BetDocumentId";
             }
             else
-                orderBy = clients => clients.OrderByDescending(x => x.BetDocumentId);
-
+            {
+                filter.FieldNameToOrderBy = "BetDocumentId";
+                filter.OrderBy = true;
+            }
             var query = Dwh.fn_InternetBet();
-            filter.CreateQuery(ref query);
-            var totalBets = query.AsNoTracking().GroupBy(x => x.CurrencyId).Select(x => new TotalValues
+            filter.CreateQuery(ref query, false);
+            var totalBets = query.GroupBy(x => x.CurrencyId).Select(x => new TotalValues
             {
                 CurrencyId = x.Key,
                 TotalBetsAmount = x.Sum(b => b.BetAmount),
@@ -1218,17 +1194,19 @@ namespace IqSoft.CP.BLL.Services
                 TotalPossibleWinsAmount = x.Sum(b => b.PossibleWin)
             }).ToList();
             query = Dwh.fn_InternetBet();
-            filter.CreateQuery(ref query, orderBy);
-            var entries = query.AsNoTracking().ToList();
+            filter.CreateQuery(ref query, true, orderByDate);
+            var entries = query.ToList();
             var convertCurrency = !string.IsNullOrEmpty(currencyId) ? currencyId : CurrencyId;
             foreach (var entry in entries)
             {
                 entry.OriginalBetAmount = Math.Round(entry.BetAmount, 2);
                 entry.OriginalWinAmount = Math.Round(entry.WinAmount, 2);
                 entry.OriginalBonusAmount = Math.Round(entry.BonusAmount ?? 0, 2);
+                entry.OriginalBonusWinAmount = Math.Round(entry.BonusWinAmount ?? 0, 2);
                 entry.BetAmount = Math.Round(ConvertCurrency(entry.CurrencyId, convertCurrency, entry.BetAmount), 2);
                 entry.WinAmount = Math.Round(ConvertCurrency(entry.CurrencyId, convertCurrency, entry.WinAmount), 2);
                 entry.BonusAmount = Math.Round(ConvertCurrency(entry.CurrencyId, convertCurrency, entry.BonusAmount ?? 0), 2);
+                entry.BonusWinAmount = Math.Round(ConvertCurrency(entry.CurrencyId, convertCurrency, entry.BonusWinAmount ?? 0), 2);
                 entry.PossibleWin = Math.Round(ConvertCurrency(entry.CurrencyId, convertCurrency, entry.PossibleWin ?? 0), 2);
 
             }
@@ -1259,7 +1237,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerWinDisplayType = CacheManager.GetConfigKey(client.PartnerId, Constants.PartnerKeys.WinDisplayType);
             if (!string.IsNullOrEmpty(partnerWinDisplayType) && int.TryParse(partnerWinDisplayType, out int configValue) && Enum.IsDefined(typeof(WinDisplayTypes), configValue))
                 winDisplayType = Convert.ToInt32(partnerWinDisplayType);
-            var totalBets = (from ib in filter.FilterObjects(Dwh.fn_InternetBet())
+            var totalBets = (from ib in filter.FilterObjects(Dwh.fn_InternetBet(), false)
                              group ib by ib.ClientId into bets
                              select new
                              {
@@ -1270,7 +1248,9 @@ namespace IqSoft.CP.BLL.Services
                                  TotalPossibleWinsAmount = bets.Sum(b => b.PossibleWin)
                              }).FirstOrDefault();
 
-            var entries = filter.FilterObjects(Dwh.fn_InternetBet(), clients => clients.OrderByDescending(x => x.BetDocumentId)).ToList();
+            filter.FieldNameToOrderBy = "BetDocumentId";
+            filter.OrderBy = true;
+            var entries = filter.FilterObjects(Dwh.fn_InternetBet(), true).ToList();
             foreach (var entry in entries)
             {
                 entry.BetAmount = Math.Round(entry.BetAmount, 2);
@@ -1519,9 +1499,9 @@ namespace IqSoft.CP.BLL.Services
                 },
                 new CheckPermissionOutput<fnInternetGame>
                 {
-                    AccessibleObjects = partnerAccess.AccessibleObjects,
+                    AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                     HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                    Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                    Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                 },
                 /*new CheckPermissionOutput<fnInternetGame>
                 {
@@ -1542,7 +1522,7 @@ namespace IqSoft.CP.BLL.Services
                 else
                     orderBy = x => x.OrderByDescending(y => y.ProductId);
             }*/
-            var objects = filter.FilterObjects(Dwh.fn_InternetGame(fDate, tDate)).ToList();
+            var objects = filter.FilterObjects(Dwh.fn_InternetGame(fDate, tDate), false).ToList();
 
             var entities = new List<InternetGame>();
             foreach (var e in objects)
@@ -1617,15 +1597,15 @@ namespace IqSoft.CP.BLL.Services
                 },
                 new CheckPermissionOutput<fnCorrection>
                 {
-                    AccessibleObjects = affiliateAccess.AccessibleObjects,
+                    AccessibleStringObjects = affiliateAccess.AccessibleStringObjects,
                     HaveAccessForAllObjects = affiliateAccess.HaveAccessForAllObjects,
                     Filter = x => !string.IsNullOrEmpty(x.AffiliateId) && affiliateAccess.AccessibleStringObjects.Contains(x.AffiliateId)
                 },
                 new CheckPermissionOutput<fnCorrection>
                 {
-                    AccessibleObjects = partnerAccess.AccessibleObjects,
+                    AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                     HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                    Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId.Value)
+                    Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId.Value)
                 }
             };
 
@@ -1748,9 +1728,9 @@ namespace IqSoft.CP.BLL.Services
             {
                 new CheckPermissionOutput<fnReportByProvider>
                 {
-                    AccessibleObjects = partnerAccess.AccessibleObjects,
+                    AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                     HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                    Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId ?? 0)
+                    Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId ?? 0)
                 },
                 new CheckPermissionOutput<fnReportByProvider>
                 {
@@ -1760,14 +1740,14 @@ namespace IqSoft.CP.BLL.Services
                 },
                 new CheckPermissionOutput<fnReportByProvider>
                 {
-                    AccessibleObjects = affiliateAccess.AccessibleObjects,
+                    AccessibleStringObjects = affiliateAccess.AccessibleStringObjects,
                     HaveAccessForAllObjects = affiliateAccess.HaveAccessForAllObjects,
                     Filter = x => string.IsNullOrEmpty(x.AffiliateId) && affiliateAccess.AccessibleStringObjects.Contains(x.AffiliateId)
                 }
             };
             var fDate = filter.FromDate.Year * 1000000 + filter.FromDate.Month * 10000 + filter.FromDate.Day * 100 + filter.FromDate.Hour;
             var tDate = filter.ToDate.Year * 1000000 + filter.ToDate.Month * 10000 + filter.ToDate.Day * 100 + filter.ToDate.Hour;
-            var rep = filter.FilterObjects(Dwh.fn_ReportByProvider(fDate, tDate)).ToList();
+            var rep = filter.FilterObjects(Dwh.fn_ReportByProvider(fDate, tDate), false).ToList();
             var result = rep.GroupBy(x => new { x.ProviderName, x.Currency, x.PartnerId })
                 .Select(x => new ReportByProvidersElement
                 {
@@ -1832,9 +1812,9 @@ namespace IqSoft.CP.BLL.Services
             {
                 new CheckPermissionOutput<fnReportByProduct>
                 {
-                    AccessibleObjects = partnerAccess.AccessibleObjects,
+                    AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                     HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                    Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                    Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                 },
                 new CheckPermissionOutput<fnReportByProduct>
                 {
@@ -1850,7 +1830,7 @@ namespace IqSoft.CP.BLL.Services
                 },
                 new CheckPermissionOutput<fnReportByProduct>
                 {
-                    AccessibleObjects = affiliateAccess.AccessibleObjects,
+                    AccessibleStringObjects = affiliateAccess.AccessibleStringObjects,
                     HaveAccessForAllObjects = affiliateAccess.HaveAccessForAllObjects,
                     Filter = x => string.IsNullOrEmpty(x.AffiliateId) && affiliateAccess.AccessibleStringObjects.Contains(x.AffiliateId)
                 }
@@ -1871,7 +1851,7 @@ namespace IqSoft.CP.BLL.Services
             {
                 CheckPermission(Constants.Permissions.ViewReportByUserLog);
 
-                var checkP = GetPermissionsToObject(new CheckPermissionInput
+                var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
                     ObjectTypeId = ObjectTypes.Partner
@@ -1880,9 +1860,9 @@ namespace IqSoft.CP.BLL.Services
                 {
                     new CheckPermissionOutput<fnActionLog>
                     {
-                        AccessibleObjects = checkP.AccessibleObjects,
-                        HaveAccessForAllObjects = checkP.HaveAccessForAllObjects,
-                        Filter = x => checkP.AccessibleObjects.Contains(x.PartnerId)
+                        AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
+                        HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
+                        Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                     }
                 };
             }
@@ -1924,7 +1904,7 @@ namespace IqSoft.CP.BLL.Services
                 Permission = Constants.Permissions.ViewPartner,
                 ObjectTypeId = ObjectTypes.Partner
             });
-            if (!partnerAccess.HaveAccessForAllObjects && !partnerAccess.AccessibleObjects.Contains(filter.PartnerId))
+            if (!partnerAccess.HaveAccessForAllObjects && !partnerAccess.AccessibleIntegerObjects.Contains(filter.PartnerId))
                 filter.PartnerId = -1;
 
             GetPermissionsToObject(new CheckPermissionInput
@@ -2006,15 +1986,15 @@ namespace IqSoft.CP.BLL.Services
                     },
                     new CheckPermissionOutput<fnClientSession>
                     {
-                        AccessibleObjects = affiliateAccess.AccessibleObjects,
+                        AccessibleStringObjects = affiliateAccess.AccessibleStringObjects,
                         HaveAccessForAllObjects = affiliateAccess.HaveAccessForAllObjects,
                         Filter = x => !string.IsNullOrEmpty(x.AffiliateId) && affiliateAccess.AccessibleStringObjects.Contains(x.AffiliateId)
                     },
                     new CheckPermissionOutput<fnClientSession>
                     {
-                        AccessibleObjects = partnerAccess.AccessibleObjects,
+                        AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                         HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                        Filter = x =>partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                        Filter = x =>partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                     }
                 };
             if (onlyPlatform)
@@ -2068,7 +2048,7 @@ namespace IqSoft.CP.BLL.Services
                     },
                     new CheckPermissionOutput<fnCorrection>
                     {
-                        AccessibleObjects = affiliateAccess.AccessibleObjects,
+                        AccessibleStringObjects = affiliateAccess.AccessibleStringObjects,
                         HaveAccessForAllObjects = affiliateAccess.HaveAccessForAllObjects,
                         Filter = x => !string.IsNullOrEmpty(x.AffiliateId) && affiliateAccess.AccessibleStringObjects.Contains(x.AffiliateId)
                     }
@@ -2099,9 +2079,9 @@ namespace IqSoft.CP.BLL.Services
                 {
                     new CheckPermissionOutput<fnReportByClientExclusion>
                     {
-                        AccessibleObjects = partnerAccess.AccessibleObjects,
+                        AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                         HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                        Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId.Value)
+                        Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId.Value)
                     },
                     new CheckPermissionOutput<fnReportByClientExclusion>
                     {
@@ -2147,9 +2127,9 @@ namespace IqSoft.CP.BLL.Services
 			{
 				new CheckPermissionOutput<fnReportByClientGame>
 				{
-					AccessibleObjects = partnerAccess.AccessibleObjects,
+                    AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
 					HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-					Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+					Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
 				},
 				new CheckPermissionOutput<fnReportByClientGame>
 				{
@@ -2190,9 +2170,9 @@ namespace IqSoft.CP.BLL.Services
             {
                 new CheckPermissionOutput<fnDocument>
                 {
-                    AccessibleObjects = partnerAccess.AccessibleObjects,
+                    AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                     HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                    Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                    Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                 },
                 new CheckPermissionOutput<fnDocument>
                 {
@@ -2201,12 +2181,14 @@ namespace IqSoft.CP.BLL.Services
                     Filter = x => clientAccess.AccessibleObjects.Contains(x.ClientId.Value)
                 },
             };
-            var entities = filter.FilterObjects(Dwh.fn_Document(), documents => documents.OrderByDescending(y => y.Id)).ToList();
+            filter.FieldNameToOrderBy = "Id";
+            filter.OrderBy = true;
+            var entities = filter.FilterObjects(Dwh.fn_Document(), true).ToList();
             entities.ForEach(x => x.ConvertedAmount = ConvertCurrency(x.CurrencyId, CurrencyId, x.Amount));
             return new PagedModel<fnDocument>
             {
                 Entities = entities,
-                Count = filter.SelectedObjectsCount(Dwh.fn_Document())
+                Count = filter.SelectedObjectsCount(Dwh.fn_Document(), false)
             };
         }
         public List<fnDocument> ExportfnDocuments(FilterfnDocument filter)
@@ -2230,9 +2212,9 @@ namespace IqSoft.CP.BLL.Services
             {
                 new CheckPermissionOutput<fnReportByPaymentSystem>
                 {
-                    AccessibleObjects = partnerAccess.AccessibleObjects,
+                    AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                     HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                    Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                    Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                 }
             };
             Func<IQueryable<fnReportByPaymentSystem>, IOrderedQueryable<fnReportByPaymentSystem>> orderBy;
@@ -2287,9 +2269,9 @@ namespace IqSoft.CP.BLL.Services
                     },
                     new CheckPermissionOutput<fnUserSession>
                     {
-                        AccessibleObjects = partnerAccess.AccessibleObjects,
+                        AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                         HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                        Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                        Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                     }
             };
             Func<IQueryable<fnUserSession>, IOrderedQueryable<fnUserSession>> orderBy;
@@ -2337,9 +2319,9 @@ namespace IqSoft.CP.BLL.Services
             {
                 new CheckPermissionOutput<fnReportByUserTransaction>
                 {
-                    AccessibleObjects = partnerAccess.AccessibleObjects,
+                    AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                     HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                    Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                    Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                 },
                 new CheckPermissionOutput<fnReportByUserTransaction>
                 {
@@ -2394,9 +2376,9 @@ namespace IqSoft.CP.BLL.Services
             {
                 new CheckPermissionOutput<fnReportByAgentTransfer>
                 {
-                    AccessibleObjects = partnerAccess.AccessibleObjects,
+                    AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                     HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                    Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                    Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                 },
                 new CheckPermissionOutput<fnReportByAgentTransfer>
                 {
@@ -2445,31 +2427,26 @@ namespace IqSoft.CP.BLL.Services
             {
                 new CheckPermissionOutput<fnReportByPartner>
                 {
-                    AccessibleObjects = partnerAccess.AccessibleObjects,
+                    AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                     HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                    Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                    Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                 }
             };
             Func<IQueryable<fnReportByPartner>, IOrderedQueryable<fnReportByPartner>> orderBy;
 
-            if (filter.OrderBy.HasValue)
+            if (!string.IsNullOrEmpty(filter.FieldNameToOrderBy))
             {
-                if (filter.OrderBy.Value)
-                {
-                    orderBy = QueryableUtilsHelper.OrderByFunc<fnReportByPartner>(filter.FieldNameToOrderBy, true);
-                }
-                else
-                {
-                    orderBy = QueryableUtilsHelper.OrderByFunc<fnReportByPartner>(filter.FieldNameToOrderBy, false);
-                }
+                if (!filter.OrderBy.HasValue)
+                    filter.OrderBy = true;
             }
             else
             {
-                orderBy = agentTranfers => agentTranfers.OrderByDescending(x => x.PartnerId);
+                filter.FieldNameToOrderBy = "PartnerId";
+                filter.OrderBy = true;
             }
             var fDate = filter.FromDate.Year * 1000000 + filter.FromDate.Month * 10000 + filter.FromDate.Day * 100 + filter.FromDate.Hour;
             var tDate = filter.ToDate.Year * 1000000 + filter.ToDate.Month * 10000 + filter.ToDate.Day * 100 + filter.ToDate.Hour;
-            return filter.FilterObjects(Dwh.fn_ReportByPartner(fDate, tDate), orderBy).ToList();
+            return filter.FilterObjects(Dwh.fn_ReportByPartner(fDate, tDate), true).ToList();
         }
         public List<SegmentByPaymentSystem> GetReportBySegment(FilterReportBySegment input)
         {
@@ -2480,7 +2457,7 @@ namespace IqSoft.CP.BLL.Services
             });
             CheckPermission(Constants.Permissions.ViewPaymentRequests);
             CheckPermission(Constants.Permissions.ViewSegment);
-            if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != input.PartnerId))
+            if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != input.PartnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             var fDate = input.FromDate.Year * 1000000 + input.FromDate.Month * 10000 + input.FromDate.Day * 100 + input.FromDate.Hour;
             var tDate = input.ToDate.Year * 1000000 + input.ToDate.Month * 10000 + input.ToDate.Day * 100 + input.ToDate.Hour;
@@ -2602,9 +2579,9 @@ namespace IqSoft.CP.BLL.Services
                 },
                 new CheckPermissionOutput<fnBetShopReconing>
                 {
-                    AccessibleObjects = partnerAccess.AccessibleObjects,
+                    AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                     HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                    Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                    Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                 },
                 new CheckPermissionOutput<fnBetShopReconing>
                 {
@@ -2662,9 +2639,9 @@ namespace IqSoft.CP.BLL.Services
                 },
                 new CheckPermissionOutput<fnCashDeskTransaction>
                 {
-                    AccessibleObjects = partnerAccess.AccessibleObjects,
+                    AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                     HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                    Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                    Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                 }
             };
             if (string.IsNullOrEmpty(languageId))
@@ -2732,9 +2709,9 @@ namespace IqSoft.CP.BLL.Services
                 },
                 new CheckPermissionOutput<fnClientSession>
                 {
-                    AccessibleObjects = partnerAccess.AccessibleObjects,
+                    AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                     HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                    Filter = x =>partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                    Filter = x =>partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                 },
                 new CheckPermissionOutput<fnClientSession>
                 {
@@ -2789,9 +2766,9 @@ namespace IqSoft.CP.BLL.Services
                 },
                 new CheckPermissionOutput<fnInternetBet>
                 {
-                    AccessibleObjects = partnerAccess.AccessibleObjects,
+                    AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                     HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                    Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                    Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                 },
                 new CheckPermissionOutput<fnInternetBet>
                 {
@@ -2817,7 +2794,9 @@ namespace IqSoft.CP.BLL.Services
             filter.SkipCount = 0;
 
             var query = Dwh.fn_InternetBet();
-            filter.CreateQuery(ref query, d => d.OrderByDescending(x => x.BetDocumentId));
+            filter.FieldNameToOrderBy = "BetDocumentId";
+            filter.OrderBy = true;
+            filter.CreateQuery(ref query, true);
 
             var result = query.ToList();
             foreach (var r in result)
@@ -2861,9 +2840,9 @@ namespace IqSoft.CP.BLL.Services
                 {
                 new CheckPermissionOutput<fnReportByProduct>
                 {
-                    AccessibleObjects = partnerAccess.AccessibleObjects,
+                    AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                     HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                    Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                    Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                 },
                 new CheckPermissionOutput<fnReportByProduct>
                 {
@@ -2911,9 +2890,9 @@ namespace IqSoft.CP.BLL.Services
             {
                 new CheckPermissionOutput<fnBetShopBet>
                 {
-                    AccessibleObjects = partnerAccess.AccessibleObjects,
+                    AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                     HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                    Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                    Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                 },
                 new CheckPermissionOutput<fnBetShopBet>
                 {
@@ -2925,9 +2904,9 @@ namespace IqSoft.CP.BLL.Services
 
             filter.TakeCount = 0;
             filter.SkipCount = 0;
-
-            var entities =
-                filter.FilterObjects(Dwh.fn_BetShopBet(), d => d.OrderByDescending(x => x.BetDocumentId)).Select(x => new
+            filter.FieldNameToOrderBy = "BetDocumentId";
+            filter.OrderBy = true;
+            var entities = filter.FilterObjects(Dwh.fn_BetShopBet(), true).Select(x => new
                 {
                     x.BetShopId,
                     x.BetShopCurrencyId,
@@ -2961,7 +2940,7 @@ namespace IqSoft.CP.BLL.Services
             filter.SkipCount = 0;
             var fDate = filter.FromDate.Year * 1000000 + filter.FromDate.Month * 10000 + filter.FromDate.Day * 100 + filter.FromDate.Hour;
             var tDate = filter.ToDate.Year * 1000000 + filter.ToDate.Month * 10000 + filter.ToDate.Day * 100 + filter.ToDate.Hour;
-            var result = filter.FilterObjects(Dwh.fn_ReportByProvider(fDate, tDate))
+            var result = filter.FilterObjects(Dwh.fn_ReportByProvider(fDate, tDate), false)
                 .Select(x => new ReportByProvidersElement
                 {
                     ProviderName = x.ProviderName,
@@ -3015,9 +2994,9 @@ namespace IqSoft.CP.BLL.Services
 
             filter.CheckPermissionResuts.Add(new CheckPermissionOutput<fnBetShopReconing>
             {
-                AccessibleObjects = partnerAccess.AccessibleObjects,
+                AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                 HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
             });
 
             var exportAccess = GetPermissionsToObject(new CheckPermissionInput
@@ -3176,16 +3155,17 @@ namespace IqSoft.CP.BLL.Services
                 },
                 new CheckPermissionOutput<fnBetShopBet>
                 {
-                    AccessibleObjects = partnerAccess.AccessibleObjects,
+                    AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                     HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                    Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                    Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                 }
             };
 
             filter.TakeCount = 0;
             filter.SkipCount = 0;
-
-            var result = filter.FilterObjects(Dwh.fn_BetShopBet(), bets => bets.OrderByDescending(y => y.BetDocumentId)).ToList();
+            filter.FieldNameToOrderBy = "BetDocumentId";
+            filter.OrderBy = true;
+            var result = filter.FilterObjects(Dwh.fn_BetShopBet(), true).ToList();
             return result;
         }
 
@@ -3206,9 +3186,9 @@ namespace IqSoft.CP.BLL.Services
             {
                 new CheckPermissionOutput<fnReportByBetShopOperation>
                 {
-                    AccessibleObjects = partnerAccess.AccessibleObjects,
+                    AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                     HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                    Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                    Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                 },
                 new CheckPermissionOutput<fnReportByBetShopOperation>
                 {
@@ -3246,9 +3226,9 @@ namespace IqSoft.CP.BLL.Services
             {
                 new CheckPermissionOutput<fnActionLog>
                 {
-                    AccessibleObjects = partnerAccess.AccessibleObjects,
+                    AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                     HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                    Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                    Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                 }
             };
 
@@ -3307,9 +3287,9 @@ namespace IqSoft.CP.BLL.Services
                 },
                 new CheckPermissionOutput<fnCorrection>
                 {
-                    AccessibleObjects = partnerAccess.AccessibleObjects,
+                    AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                     HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                    Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId.Value)
+                    Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId.Value)
                 },
                 new CheckPermissionOutput<fnCorrection>
                 {
@@ -3530,9 +3510,9 @@ namespace IqSoft.CP.BLL.Services
             {
                 new CheckPermissionOutput<spObjectChangeHistory>
                 {
-                    AccessibleObjects = partnerAccess.AccessibleObjects,
+                    AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                     HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                    Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                    Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                 }
             };
             Func<IQueryable<spObjectChangeHistory>, IOrderedQueryable<spObjectChangeHistory>> orderBy;
@@ -3586,9 +3566,9 @@ namespace IqSoft.CP.BLL.Services
             {
                 new CheckPermissionOutput<ClientChangeHistoryModel>
                 {
-                    AccessibleObjects = partnerAccess.AccessibleObjects,
+                    AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                     HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                    Filter = x => partnerAccess.AccessibleObjects.Contains(x.ClientItem.PartnerId)
+                    Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.ClientItem.PartnerId)
                 },
                 new CheckPermissionOutput<ClientChangeHistoryModel>
                 {
@@ -3726,9 +3706,9 @@ namespace IqSoft.CP.BLL.Services
             {
                 new CheckPermissionOutput<fnClientBonus>
                 {
-                    AccessibleObjects = partnerAccess.AccessibleObjects,
+                    AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                     HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                    Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                    Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                 },
                 new CheckPermissionOutput<fnClientBonus>
                 {
@@ -3783,9 +3763,9 @@ namespace IqSoft.CP.BLL.Services
             {
                 new CheckPermissionOutput<fnClientBonus>
                 {
-                    AccessibleObjects = partnerAccess.AccessibleObjects,
+                    AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                     HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                    Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                    Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                 },
                 new CheckPermissionOutput<fnClientBonus>
                 {
@@ -3835,9 +3815,9 @@ namespace IqSoft.CP.BLL.Services
             {
                 new CheckPermissionOutput<fnClientIdentity>
                 {
-                    AccessibleObjects = partnerAccess.AccessibleObjects,
+                    AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                     HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                    Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                    Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                 },
                 new CheckPermissionOutput<fnClientIdentity>
                 {

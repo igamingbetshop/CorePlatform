@@ -32,8 +32,10 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                     amount = Math.Round(rate * input.Amount, 2);
                     var parameters = string.IsNullOrEmpty(input.Parameters) ? new Dictionary<string, string>() :
                                   JsonConvert.DeserializeObject<Dictionary<string, string>>(input.Parameters);
-                    parameters.Add("Currency", Constants.Currencies.Euro);
-                    parameters.Add("AppliedRate", rate.ToString("F"));
+					if (!parameters.ContainsKey("Currency"))
+						parameters.Add("Currency", Constants.Currencies.Euro);
+					if (!parameters.ContainsKey("AppliedRate"))
+						parameters.Add("AppliedRate", rate.ToString("F"));
                     input.Parameters = JsonConvert.SerializeObject(parameters);
                     paymentSystemBl.ChangePaymentRequestDetails(input);
                 }
@@ -91,8 +93,10 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                     amount = Math.Round(rate * paymentRequest.Amount, 2);
                     var parameters = string.IsNullOrEmpty(paymentRequest.Parameters) ? new Dictionary<string, string>() :
                                   JsonConvert.DeserializeObject<Dictionary<string, string>>(paymentRequest.Parameters);
-                    parameters.Add("Currency", Constants.Currencies.Euro);
-                    parameters.Add("AppliedRate", rate.ToString("F"));
+					if (!parameters.ContainsKey("Currency"))
+						parameters.Add("Currency", Constants.Currencies.Euro);
+					if (!parameters.ContainsKey("AppliedRate"))
+						parameters.Add("AppliedRate", rate.ToString("F"));
                     paymentRequest.Parameters = JsonConvert.SerializeObject(parameters);
                     paymentSystemBl.ChangePaymentRequestDetails(paymentRequest);
                 }

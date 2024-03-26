@@ -74,6 +74,8 @@ namespace IqSoft.CP.DataWarehouse.Filters
         public FiltersOperation Rakes { get; set; }
         public FiltersOperation BonusAmounts { get; set; }
         public FiltersOperation OriginalBonusAmounts { get; set; }
+        public FiltersOperation BonusWinAmounts { get; set; }
+        public FiltersOperation OriginalBonusWinAmounts { get; set; }
 
         public FiltersOperation Balances { get; set; }
 
@@ -93,8 +95,7 @@ namespace IqSoft.CP.DataWarehouse.Filters
 
         public FiltersOperation TotalWithdrawalsAmounts { get; set; }
 
-        public override void CreateQuery(ref IQueryable<fnInternetBet> objects, Func<IQueryable<fnInternetBet>, 
-            IOrderedQueryable<fnInternetBet>> orderBy = null)
+        public override void CreateQuery(ref IQueryable<fnInternetBet> objects, bool order, bool orderByDate = false)
         {
             if (PartnerId.HasValue)
                 objects = objects.Where(x => x.PartnerId == PartnerId.Value);
@@ -142,6 +143,8 @@ namespace IqSoft.CP.DataWarehouse.Filters
             FilterByValue(ref objects, Rakes, "Rake");
             FilterByValue(ref objects, BonusAmounts, "BonusAmount");
             FilterByValue(ref objects, OriginalBonusAmounts, "BonusAmount");
+            FilterByValue(ref objects, BonusWinAmounts, "BonusWinAmount");
+            FilterByValue(ref objects, OriginalBonusWinAmounts, "BonusWinAmount");
 
             if (BetDates != null && BetDates.OperationTypeList != null && BetDates.OperationTypeList.Any())
             {
@@ -154,10 +157,11 @@ namespace IqSoft.CP.DataWarehouse.Filters
             FilterByValue(ref objects, BetDates, "Date");
             FilterByValue(ref objects, WinDates, "WinDate");
 
-            base.FilteredObjects(ref objects, orderBy);
+            base.FilteredObjects(ref objects, order, orderByDate, "BetDocumentId");
         }
 
-        private IQueryable<InternetBetByClient> CreateQueryForResultObjects(IQueryable<InternetBetByClient> objects, Func<IQueryable<InternetBetByClient>, IOrderedQueryable<InternetBetByClient>> orderBy = null)
+        private IQueryable<InternetBetByClient> CreateQueryForResultObjects(IQueryable<InternetBetByClient> objects, 
+            Func<IQueryable<InternetBetByClient>, IOrderedQueryable<InternetBetByClient>> orderBy = null)
         {
             FilterByValue(ref objects, Balances, "Balance");
             FilterByValue(ref objects, TotalBetsCounts, "TotalBetsCount");
@@ -255,7 +259,7 @@ namespace IqSoft.CP.DataWarehouse.Filters
 
         public long SelectedObjectsCount(IQueryable<fnInternetBet> internetBets)
         {
-            CreateQuery(ref internetBets);
+            CreateQuery(ref internetBets, false);
             return internetBets.Count();
         }
 

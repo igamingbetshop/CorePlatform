@@ -19,9 +19,7 @@ using IqSoft.CP.Common.Models.CacheModels;
 using System.Text.RegularExpressions;
 using IqSoft.CP.PaymentGateway.Models.InternationalPSP;
 using IqSoft.CP.PaymentGateway.Helpers;
-using System.IO;
 using System.Net.Http.Headers;
-using System.Xml.Serialization;
 
 namespace IqSoft.CP.PaymentGateway.Controllers
 {
@@ -73,13 +71,13 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                     var autorizationInput = new
                     {
                         date = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"),
-                        journal = partnerPaymentSetting.UserName,
+                        journal = request.Id.ToString(),
                         type = "sale",
                         first_name = holderName[0],
                         last_name = holderName[1],
                         address_1 = input.Address,
                         city = input.City,
-                        region = input.Region,
+                        region = input.Country,
                         postal_code = input.Zip,
                         country = paymentInfo.Country,
                         email = client.Email,
@@ -98,9 +96,9 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                         card_exp_month = input.ExpiryMonth,
                         card_exp_year = input.ExpiryYear,
                         card_cvv = input.VerificationCode,
-
+                        save_token = "no"
                     };
-                    var authToken = Convert.ToBase64String(Encoding.Default.GetBytes(partnerPaymentSetting.Password));
+                    var authToken = Convert.ToBase64String(Encoding.Default.GetBytes($"{partnerPaymentSetting.UserName}:{partnerPaymentSetting.Password}"));
                     var httpRequestInput = new HttpRequestInput
                     {
                         ContentType = Constants.HttpContentTypes.ApplicationJson,
@@ -112,7 +110,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                     var authOutput = JsonConvert.DeserializeObject<AuthorizationOutput>(CommonFunctions.SendHttpRequest(httpRequestInput, out _));
                     request.ExternalTransactionId = authOutput.TransactionUuid;
                     paymentSystemBl.ChangePaymentRequestDetails(request);
-                    var sign = CommonFunctions.ComputeSha256($"{partnerPaymentSetting.Password.Split(':')[1]}{authOutput.TransactionUuid}{authOutput.OperationUuid}{authOutput.Status}");
+                    var sign = CommonFunctions.ComputeSha256($"{partnerPaymentSetting.Password}{authOutput.TransactionUuid}{authOutput.OperationUuid}{authOutput.Status}");
                     if (sign.ToLower() != authOutput.Signature.ToLower())
                         throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongHash);
                     if (!string.IsNullOrEmpty(authOutput.RedirectUrl))
@@ -121,18 +119,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                     {
                         using (var clientBl = new ClientBll(paymentSystemBl))
                         using (var notificationBl = new NotificationBll(paymentSystemBl))
-                            if (authOutput.Status.ToLower() == "approved")
-                            {
-                                if (request.Amount != authOutput.AmountCaptured)
-                                {
-                                    request.Amount = authOutput.AmountCaptured;
-                                    paymentSystemBl.ChangePaymentRequestDetails(request);
-                                }
-                                clientBl.ApproveDepositFromPaymentSystem(request, false);
-                                PaymentHelpers.RemoveClientBalanceFromCache(request.ClientId.Value);
-                                BaseHelpers.BroadcastBalance(request.ClientId.Value);
-                            }
-                            else if (authOutput.Status.ToLower() == "declined" || authOutput.Status.ToLower() == "rejected")
+                            if (authOutput.Status.ToLower() == "declined" || authOutput.Status.ToLower() == "rejected")
                                 clientBl.ChangeDepositRequestState(request.Id, PaymentRequestStates.Deleted, authOutput.Message, notificationBl);
                     }
                 }
@@ -163,10 +150,35 @@ namespace IqSoft.CP.PaymentGateway.Controllers
             var response = "SUCCESS";
             try
             {
-                //BaseBll.CheckIp(WhitelistedIps);
                 var inputString = httpRequestMessage.Content.ReadAsStringAsync().Result;
                 WebApiApplication.DbLogger.Info(inputString);
-
+                var input = JsonConvert.DeserializeObject<AuthorizationOutput>(inputString);
+                using (var paymentSystemBl = new PaymentSystemBll(new SessionIdentity(), WebApiApplication.DbLogger))
+                {
+                    var request = paymentSystemBl.GetPaymentRequestById(Convert.ToInt64(input.Journal)) ??
+                      throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.PaymentRequestNotFound);
+                    var client = CacheManager.GetClientById(request.ClientId.Value);
+                    var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId,
+                        request.PaymentSystemId, client.CurrencyId, (int)PaymentRequestTypes.Deposit);
+                    var sign = CommonFunctions.ComputeSha256($"{partnerPaymentSetting.Password}{input.TransactionUuid}{input.OperationUuid}{input.Status}");
+                    if (sign.ToLower() != input.Signature.ToLower())
+                        throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongHash);
+                    using (var clientBl = new ClientBll(paymentSystemBl))
+                    using (var notificationBl = new NotificationBll(paymentSystemBl))
+                        if (input.Status.ToLower() == "approved")
+                        {
+                            if (request.Amount != input.AmountCaptured)
+                            {
+                                request.Amount = input.AmountCaptured;
+                                paymentSystemBl.ChangePaymentRequestDetails(request);
+                            }
+                            clientBl.ApproveDepositFromPaymentSystem(request, false);
+                            PaymentHelpers.RemoveClientBalanceFromCache(request.ClientId.Value);
+                            BaseHelpers.BroadcastBalance(request.ClientId.Value);
+                        }
+                        else if (input.Status.ToLower() == "declined" || input.Status.ToLower() == "rejected")
+                            clientBl.ChangeDepositRequestState(request.Id, PaymentRequestStates.Deleted, input.Message, notificationBl);
+                }
             }
             catch (FaultException<BllFnErrorType> ex)
             {

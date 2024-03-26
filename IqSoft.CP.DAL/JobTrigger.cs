@@ -24,7 +24,7 @@ namespace IqSoft.CP.DAL
     
         public virtual Jackpot Jackpot { get; set; }
         public virtual Segment Segment { get; set; }
-        public virtual Client Client { get; set; }
         public virtual PaymentRequest PaymentRequest { get; set; }
+        public virtual Client Client { get; set; }
     }
 }

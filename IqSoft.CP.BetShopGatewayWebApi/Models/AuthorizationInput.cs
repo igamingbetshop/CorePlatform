@@ -6,8 +6,6 @@
 
         public string Password { get; set; }
 
-        public string Ip { get; set; }
-
         public string Hash { get; set; }
 
         public string HostName { get; set; }

@@ -26,6 +26,7 @@ namespace IqSoft.CP.DAL
         public int Order { get; set; }
         public Nullable<int> ParentId { get; set; }
         public string StyleType { get; set; }
+        public Nullable<int> DeviceType { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
         public string Content { get; set; }

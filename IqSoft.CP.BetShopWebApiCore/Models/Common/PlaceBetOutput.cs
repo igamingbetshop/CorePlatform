@@ -1,17 +1,14 @@
-﻿using IqSoft.CP.Common.Helpers;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Web;
 
 namespace IqSoft.CP.BetShopWebApi.Models.Common
 {
-	public class PlaceBetOutput : ClientRequestResponseBase
+    public class PlaceBetOutput : ApiResponseBase
 	{
 		public string Token;
+        public int CashierId;
 
-		public List<BetOutput> Bets { get; set; }
+        public List<BetOutput> Bets { get; set; }
 
 		private decimal _balance;
 		public decimal Balance
@@ -33,50 +30,40 @@ namespace IqSoft.CP.BetShopWebApi.Models.Common
 		}
 	}
 
-	public class BetOutput : ClientRequestResponseBase
+	public class BetOutput : ApiResponseBase
 	{
-		public string Token { get; set; }
-
-		public string TransactionId { get; set; }
-
+		public decimal BetAmount { get; set; }
+		public decimal AmountPerBet { get; set; }
 		public long Barcode { get; set; }
-
-		public string TicketNumber { get; set; }
-
-		public int GameId { get; set; }
-
-		public string GameName { get; set; }
-
-		public decimal Amount { get; set; }
-
-		public decimal WinAmount { get; set; }
-
-		public decimal PossibleBonus { get; set; }
-
-		public int? SystemOutCount { get; set; }
-
-		[JsonConverter(typeof(CustomDateTimeConverter))]
 		public DateTime BetDate { get; set; }
-
+		public string Token { get; set; }
+		public string TransactionId { get; set; }
+		public string TicketNumber { get; set; }
+		public int GameId { get; set; }
+		public string GameName { get; set; }
+		public decimal WinAmount { get; set; }
+		public decimal PossibleBonus { get; set; }
 		private decimal _balance;
-
 		public decimal Balance
 		{
 			get { return Math.Floor(_balance * 100) / 100; }
 			set { _balance = value; }
 		}
-
 		public decimal CurrentLimit { get; set; }
-
 		public decimal Coefficient { get; set; }
-
-		public int BetType { get; set; }
-
 		public string Info { get; set; }
-
 		public decimal JackpotAmount { get; set; }
-
 		public List<BllBetSelection> BetSelections { get; set; }
+		public int TypeId { get; set; }
+		public decimal MinPossibleWin { get; set; }
+		public int NumberOfBets { get; set; }
+		public int NumberOfMatches { get; set; }
+		public decimal CommissionFee { get; set; }
+		public decimal PossibleWin { get; set; }
+		public int Status { get; set; }
+		public List<int> SystemOutCounts { get; set; }
+		public decimal CashoutAmount { get; set; }
+		public bool BlockedForCashout { get; set; }
 	}
 
 	public class BllBetSelection
@@ -105,7 +92,6 @@ namespace IqSoft.CP.BetShopWebApi.Models.Common
 
 		public decimal Coefficient { get; set; }
 
-		[JsonConverter(typeof(CustomDateTimeConverter))]
 		public DateTime? EventDate { get; set; }
 
 		public string EventInfo { get; set; }
@@ -115,5 +101,17 @@ namespace IqSoft.CP.BetShopWebApi.Models.Common
 		public string Description { get; set; }
 
 		public int ProductId { get; set; }
+		
+		public bool ForcedChosen { get; set; }
+		
+		public int MatchId { get; set; }
+		
+		public string SelectionHeader { get; set; }
+		
+		public string StatusName { get; set; }
+
+		public string MatchState { get; set; }
+
+		public string MatchStatisticsInfo { get; set; }
 	}
 }

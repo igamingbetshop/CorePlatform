@@ -731,7 +731,8 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 HasDemo = input.fun_mode == 1,
                 RTP = input.details?.rtp,
                 Volatility = input.details?.volatility,
-                Lines = input.details?.tags != null ? string.Join(",", input.details?.tags) : null
+                Lines = input.details?.tags != null ? string.Join(",", input.details?.tags) : null,
+                FreeSpinSupport = (input.campaigns.HasValue && input.campaigns.Value == 1)
 			};
         }
 

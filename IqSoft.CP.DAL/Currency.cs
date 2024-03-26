@@ -29,7 +29,6 @@ namespace IqSoft.CP.DAL
             this.Documents = new HashSet<Document>();
             this.Partners = new HashSet<Partner>();
             this.AffiliateCommissions = new HashSet<AffiliateCommission>();
-            this.Clients = new HashSet<Client>();
             this.BetShops = new HashSet<BetShop>();
             this.PartnerBankInfoes = new HashSet<PartnerBankInfo>();
             this.AmountCurrencySettings = new HashSet<AmountCurrencySetting>();
@@ -37,6 +36,7 @@ namespace IqSoft.CP.DAL
             this.Accounts = new HashSet<Account>();
             this.PaymentRequests = new HashSet<PaymentRequest>();
             this.PartnerPaymentSettings = new HashSet<PartnerPaymentSetting>();
+            this.Clients = new HashSet<Client>();
         }
     
         public string Id { get; set; }
@@ -74,8 +74,6 @@ namespace IqSoft.CP.DAL
         public virtual ICollection<AffiliateCommission> AffiliateCommissions { get; set; }
         public virtual UserSession UserSession { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Client> Clients { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<BetShop> BetShops { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PartnerBankInfo> PartnerBankInfoes { get; set; }
@@ -89,5 +87,7 @@ namespace IqSoft.CP.DAL
         public virtual ICollection<PaymentRequest> PaymentRequests { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PartnerPaymentSetting> PartnerPaymentSettings { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Client> Clients { get; set; }
     }
 }

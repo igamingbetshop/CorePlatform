@@ -64,6 +64,11 @@ namespace IqSoft.CP.BLL.Services
             if (apiPaymentSystemModel.ContentType.HasValue && !Enum.IsDefined(typeof(OpenModes), apiPaymentSystemModel.ContentType) ||
                 ((apiPaymentSystemModel.Ids == null || !apiPaymentSystemModel.Ids.Any()) && apiPaymentSystemModel.Id.HasValue && apiPaymentSystemModel.Id <=0 ))
                 throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
+            var p = apiPaymentSystemModel.Ids ?? new List<int>();
+            if (!apiPaymentSystemModel.IsActive.Value &&
+               Db.PartnerPaymentSettings.Any(x => x.State == (int)PartnerPaymentSettingStates.Active &&
+                                                 (x.PaymentSystemId == apiPaymentSystemModel.Id || p.Contains(x.PaymentSystemId))))
+                throw CreateException(LanguageId, Constants.Errors.ImpermissiblePaymentSetting);
 
             var currentTime = DateTime.Now;
             if (apiPaymentSystemModel.Ids == null || !apiPaymentSystemModel.Ids.Any())
@@ -212,6 +217,10 @@ namespace IqSoft.CP.BLL.Services
                  partnerPaymentSetting.ApplyPercentAmount < 0)
                 throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
             var currentTime = GetServerDate();
+            var paymentSystem = CacheManager.GetPaymentSystemById(partnerPaymentSetting.PaymentSystemId);
+            if(paymentSystem == null || (!paymentSystem.IsActive && partnerPaymentSetting.State == (int)PartnerPaymentSettingStates.Active))
+                throw CreateException(LanguageId, Constants.Errors.PaymentSystemNotFound);
+
             var dbPartnerSetting = Db.PartnerPaymentSettings.Include(x => x.PartnerPaymentCountrySettings).FirstOrDefault(x => x.Id == partnerPaymentSetting.Id);
             partnerPaymentSetting.LastUpdateTime = currentTime;
             partnerPaymentSetting.SessionId = Identity.SessionId;
@@ -266,9 +275,9 @@ namespace IqSoft.CP.BLL.Services
                     },
                     new CheckPermissionOutput<fnPartnerPaymentSetting>
                     {
-                        AccessibleObjects = partnerAccess.AccessibleObjects,
+                        AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                         HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                        Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                        Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                     }
                 };
             }
@@ -321,9 +330,9 @@ namespace IqSoft.CP.BLL.Services
                 {
                     new CheckPermissionOutput<fnPaymentRequest>
                     {
-                        AccessibleObjects = partnerAccess.AccessibleObjects,
+                        AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                         HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                        Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId ?? 0)
+                        Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId ?? 0)
                     },
                     new CheckPermissionOutput<fnPaymentRequest>
                     {
@@ -411,9 +420,9 @@ namespace IqSoft.CP.BLL.Services
                 {
                     new CheckPermissionOutput<fnPaymentRequest>
                     {
-                        AccessibleObjects = partnerAccess.AccessibleObjects,
+                        AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                         HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                        Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId ?? 0)
+                        Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId ?? 0)
                     },
                     new CheckPermissionOutput<fnPaymentRequest>
                     {
@@ -435,7 +444,7 @@ namespace IqSoft.CP.BLL.Services
                     },
                     new CheckPermissionOutput<fnPaymentRequest>
                     {
-                        AccessibleObjects = affiliateAccess.AccessibleObjects,
+                        AccessibleStringObjects = affiliateAccess.AccessibleStringObjects,
                         HaveAccessForAllObjects = affiliateAccess.HaveAccessForAllObjects,
                         Filter = x => !string.IsNullOrEmpty(x.AffiliateId) && affiliateAccess.AccessibleStringObjects.Contains(x.AffiliateId)
                     },
@@ -462,6 +471,7 @@ namespace IqSoft.CP.BLL.Services
                                  {
                                      CurrencyId = requests.Key,
                                      TotalAmount = requests.Sum(b => b.Amount),
+                                     TotalFinalAmount = requests.Sum(b => b.FinalAmount),
                                      TotalRequestsCount = requests.Count(),
                                      TotalUniquePlayers = requests.Select(b => b.ClientId).Distinct().Count()
                                  }).ToList();
@@ -480,6 +490,7 @@ namespace IqSoft.CP.BLL.Services
                 Entities = entries,
                 Count = totalRequests.Sum(x => x.TotalRequestsCount),
                 TotalAmount = totalRequests.Sum(x => ConvertCurrency(x.CurrencyId, CurrencyId, x.TotalAmount)),
+                TotalFinalAmount = totalRequests.Sum(x => ConvertCurrency(x.CurrencyId, CurrencyId, x.TotalFinalAmount ?? 0)),
                 TotalUniquePlayers = totalRequests.Sum(x => x.TotalUniquePlayers)
             };
         }
@@ -578,9 +589,9 @@ namespace IqSoft.CP.BLL.Services
                 },
                 new CheckPermissionOutput<fnPaymentRequest>
                 {
-                    AccessibleObjects = partnerAccess.AccessibleObjects,
+                    AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                     HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                    Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId ?? 0)
+                    Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId ?? 0)
                 }
             };
             Func<IQueryable<fnPaymentRequest>, IOrderedQueryable<fnPaymentRequest>> orderBy;
@@ -660,12 +671,12 @@ namespace IqSoft.CP.BLL.Services
         {
             if (checkPermission)
             {
-                var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
+                var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
                     ObjectTypeId = ObjectTypes.Partner
                 });
-                if (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != partnerId))
+                if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != partnerId))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
 
                 return Db.fn_PartnerBankInfo(LanguageId).Where(x => x.PartnerId == partnerId).ToList();
@@ -712,7 +723,7 @@ namespace IqSoft.CP.BLL.Services
 
         public fnPartnerBankInfo UpdatePartnerBankInfo(PartnerBankInfo partnerBankInfo)
         {
-            var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
                 ObjectTypeId = ObjectTypes.Partner
@@ -722,7 +733,7 @@ namespace IqSoft.CP.BLL.Services
             {
                 Permission = Constants.Permissions.EditPartnerBank
             });
-            if (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != partnerBankInfo.PartnerId) ||
+            if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != partnerBankInfo.PartnerId) ||
                 !checkPartnerEditPermission.HaveAccessForAllObjects)
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             var currentTime = GetServerDate();

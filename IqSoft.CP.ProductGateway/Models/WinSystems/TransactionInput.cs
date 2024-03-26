@@ -8,6 +8,6 @@
         public string CreditTransactionId { get; set; }
         public string RollbackTransactionId { get; set; }
         public string RoundId { get; set; }
-        public string Amount { get; set; }
+        public decimal Amount { get; set; }
     }
 }

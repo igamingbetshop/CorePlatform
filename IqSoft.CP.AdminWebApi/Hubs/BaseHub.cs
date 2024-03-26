@@ -325,7 +325,7 @@ namespace IqSoft.CP.AdminWebApi.Hubs
 							Permission = Constants.Permissions.ViewClient,
 							ObjectTypeId = ObjectTypes.Client
 						});
-						if ((!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != result.PartnerId) ||
+						if ((!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != result.PartnerId) ||
 							(!clientAccess.HaveAccessForAllObjects && clientAccess.AccessibleObjects.All(x => x != result.ClientId))))
 							continue;
 

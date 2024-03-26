@@ -57,9 +57,9 @@ namespace IqSoft.CP.BLL.Services
                 {
                     new CheckPermissionOutput<fnAffiliate>
                     {
-                        AccessibleObjects = partnerAccess.AccessibleObjects,
+                        AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                         HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                        Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                        Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                     }
                 };
 
@@ -110,7 +110,7 @@ namespace IqSoft.CP.BLL.Services
                     Permission = Constants.Permissions.ViewPartner,
                     ObjectTypeId = ObjectTypes.Partner
                 });
-                if (!partnerAccess.HaveAccessForAllObjects && !partnerAccess.AccessibleObjects.Contains(affiliate.PartnerId))
+                if (!partnerAccess.HaveAccessForAllObjects && !partnerAccess.AccessibleIntegerObjects.Contains(affiliate.PartnerId))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             }
             var commissionPlan = Db.AffiliateCommissions.Where(x => x.AffiliateId == affiliate.Id).ToList();
@@ -136,7 +136,7 @@ namespace IqSoft.CP.BLL.Services
             var affiliate = Db.Affiliates.FirstOrDefault(x => x.Id == input.Id);
             if (affiliate == null)
                 throw CreateException(LanguageId, Constants.Errors.AffiliateNotFound);
-            if (!partnerAccess.HaveAccessForAllObjects && !partnerAccess.AccessibleObjects.Contains(affiliate.PartnerId))
+            if (!partnerAccess.HaveAccessForAllObjects && !partnerAccess.AccessibleIntegerObjects.Contains(affiliate.PartnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
 
             if (affiliate.State != (int)AffiliateStates.PendingForApproval && input.State == (int)AffiliateStates.PendingForApproval)
@@ -178,7 +178,7 @@ namespace IqSoft.CP.BLL.Services
 
             var affiliate = Db.Affiliates.FirstOrDefault(x => x.Id == input.AffiliateId) ??
                 throw CreateException(LanguageId, Constants.Errors.AffiliateNotFound);
-            if (!partnerAccess.HaveAccessForAllObjects && !partnerAccess.AccessibleObjects.Contains(affiliate.PartnerId))
+            if (!partnerAccess.HaveAccessForAllObjects && !partnerAccess.AccessibleIntegerObjects.Contains(affiliate.PartnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             var dbCommissions = Db.AffiliateCommissions.Where(x => x.AffiliateId == affiliate.Id).ToList();
             input.GetType().GetProperties().Where(x => !x.PropertyType.IsValueType && x.GetValue(input, null) != null).ToList()
@@ -901,6 +901,8 @@ namespace IqSoft.CP.BLL.Services
                         Disabled = client.ClientStatus != (int)ClientStates.Active,
                         SelfExcluded = excluded
                     };
+                    if ((affilkaActivityModel.Disabled || excluded) && client.ClientLastUpdateTime >= fromDate && client.ClientLastUpdateTime >= upToDate)
+                        addItem = true;
                     var transactions = Db.Documents.Where(x => x.ClientId == client.ClientId &&
                                               (x.OperationTypeId == (int)OperationTypes.BonusWin ||
                                                x.OperationTypeId == (int)OperationTypes.CreditCorrectionOnClient ||
@@ -991,6 +993,7 @@ namespace IqSoft.CP.BLL.Services
                 Items = affiliateClientActivies
             };
         }
+
         /* public AffilkaActivityModel GetAffiseClientActivity(List<AffiliatePlatformModel> affClients, DateTime fromDate, DateTime upToDate)
          {
              var affiliateClientActivies = new List<ActivityItem>();

@@ -9,11 +9,8 @@ using IqSoft.CP.DAL.Models;
 using log4net;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using IqSoft.CP.Integration.Payments.Models.Changelly;
 using System.Security.Cryptography;
 using System.Text;
-using Org.BouncyCastle.Ocsp;
 
 namespace IqSoft.CP.Integration.Payments.Helpers
 {
@@ -27,7 +24,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId,
                     input.PaymentSystemId, input.CurrencyId, (int)PaymentRequestTypes.Deposit);
                 var paymentInfo = JsonConvert.DeserializeObject<PaymentInfo>(input.Info);
-                var receiptWallet = NOWPayHelpers.GetTransactionWalletNumber(input.Id, client.Id, input.Amount, paymentInfo.Info, log);
+                var receiptWallet = NOWPayHelpers.GetTransactionWalletNumber(input.Id, client.Id, input.Amount, paymentInfo.AccountType, log);
                 var distributionUrlKey = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.DistributionUrl);
                 if (distributionUrlKey == null || distributionUrlKey.Id == 0)
                     distributionUrlKey = CacheManager.GetPartnerSettingByKey(null, Constants.PartnerKeys.DistributionUrl);
@@ -37,7 +34,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 {
                     from = client.CurrencyId,
                     fromDefault = client.CurrencyId,
-                    to = paymentInfo.Info,
+                    to = paymentInfo.AccountType,
                     toDefault = paymentInfo.Info,
                     amount = input.Amount.ToString("F"),
                     address = receiptWallet,

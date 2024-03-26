@@ -282,8 +282,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         private static ApiResponseBase GetUserTypesEnum(SessionIdentity identity)
         {
             var resp = BaseBll.GetEnumerations(Constants.EnumerationTypes.UserTypes, identity.LanguageId)
-                              .Where(x => x.Value == (int)UserTypes.AdminUser || x.Value == (int)UserTypes.MasterAgent ||
-                                          x.Value == (int)UserTypes.Cashier)
+                              .Where(x => x.Value == (int)UserTypes.AdminUser || x.Value == (int)UserTypes.Cashier)
                               .Select(x => new EnumerationModel<int>
                               {
                                   Id = x.Value,

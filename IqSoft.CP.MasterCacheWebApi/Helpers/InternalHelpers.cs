@@ -24,8 +24,13 @@ namespace IqSoft.CP.MasterCacheWebApi.Helpers
 					return string.IsNullOrEmpty(token) ? string.Empty : string.Format("https://comparisonwebsite.{0}/#/home?partnerid={1}&languageid={2}&token={3}&timezone={4}", domain,
 						partner.Id, input.LanguageId, token, input.TimeZone);
 				}
+                else if (product.Id == 1101) //pool betting
+                {
+                    return string.IsNullOrEmpty(token) ? string.Empty : string.Format("https://poolbetting.{0}?partnerid={1}&languageid={2}&token={3}&timezone={4}", domain,
+                        partner.Id, input.LanguageId, token, input.TimeZone);
+                }
 
-				var resp = string.Format((env == "production" ? "https://sportsbookwebsite.{0}" : "http://10.50.17.10:13001") + 
+                var resp = string.Format((env == "production" ? "https://sportsbookwebsite.{0}" : "http://10.50.17.10:13001") + 
 					"/{1}/{2}?partnerid={3}&languageid={4}&token={5}&timezone={6}", domain,
 					(input.Position == "asianweb" ? "asianweb" : "website"),
 					(input.Position == "asianweb" ? "prematch" : input.Position),

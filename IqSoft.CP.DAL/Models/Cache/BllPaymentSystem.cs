@@ -15,5 +15,6 @@ namespace IqSoft.CP.DAL.Models.Cache
         public int Type { get; set; }
         public long TranslationId { get; set; }
         public int ContentType { get; set; }
+        public bool IsActive { get; set; }
     }
 }

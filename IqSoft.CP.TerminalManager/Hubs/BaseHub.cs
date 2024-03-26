@@ -16,6 +16,7 @@ namespace IqSoft.CP.TerminalManager.Hubs
         {
             CurrentContext = hubContext;
         }
+
         public override async Task OnConnectedAsync()
         {
             try
@@ -35,11 +36,16 @@ namespace IqSoft.CP.TerminalManager.Hubs
             {
                 PartnerId = Program.AppSetting.PartnerId,
                 CashDeskId = Program.AppSetting.CashDeskId,
-                MacAddress = Program.AppSetting.HDDSerialNumber
+                MacAddress = Program.AppSetting.SerialNumber
             };
             var encryption = new RijndaelEncrypt(Program.AppSetting.Password, Program.AppSetting.Salt, $"{Program.AppSetting.Password}{Program.AppSetting.Salt}");
-            configurationModel.Hash = encryption.Encrypt("{\"MacAddress\":\"" + Program.AppSetting.HDDSerialNumber + "\"}");
+            configurationModel.Hash = encryption.Encrypt("{\"MacAddress\":\"" + Program.AppSetting.SerialNumber + "\"}");
             return configurationModel;
+        }
+
+        public string GetMacAddress()
+        {
+            return CommonHelpers.GetMotherBoardID();
         }
 
         public void PrintBetReceipt(BetReceiptModel receiptObject)

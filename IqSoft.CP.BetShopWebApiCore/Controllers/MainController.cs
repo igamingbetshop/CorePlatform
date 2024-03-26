@@ -3,7 +3,6 @@ using IqSoft.CP.BetShopWebApi.Hubs;
 using IqSoft.CP.BetShopWebApi.Models;
 using IqSoft.CP.BetShopWebApi.Models.Common;
 using IqSoft.CP.BetShopWebApi.Models.Reports;
-using IqSoft.CP.BetShopWebApiCore;
 using IqSoft.CP.Common;
 using IqSoft.CP.Common.Enums;
 using IqSoft.CP.Common.Helpers;
@@ -11,304 +10,173 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace IqSoft.CP.BetShopWebApi.Controllers
 {
-	[Route("api/[controller]/[action]")]
-	[ApiController]
-	public class MainController : ControllerBase
-	{
+    [Route("[controller]/[action]")]
+    [ApiController]
+    public class MainController : ControllerBase    {
 
 		[HttpPost]
-		public ActionResult CardReaderAuthorization([FromQuery]RequestInfo info, AuthorizationInput request)
+		public IActionResult Authorization(AuthorizationInput request)
 		{
-			try
-			{
-				var ip = string.Empty;
-				if (Request.Headers.TryGetValue("CF-Connecting-IP", out StringValues header))
-					ip = header.ToString();
-				var ipCountry = string.Empty;
-				if (Request.Headers.TryGetValue("CF-IPCountry", out header))
-					ipCountry = header.ToString();
-				if (Program.AppSetting.BlockedIps.Contains(ip))
-					throw new Exception(Constants.Errors.DontHavePermission.ToString());
-				if (!Program.AppSetting.WhitelistedIps.Contains(ip) && !Program.AppSetting.WhitelistedCountries.Contains(ipCountry))
-					throw new Exception(Constants.Errors.DontHavePermission.ToString());
-
-				request.Ip = ip;
-				request.PartnerId = info.PartnerId;
-				request.LanguageId = info.LanguageId;
-				request.TimeZone = info.TimeZone;
-				var response = PlatformIntegration.CardReaderAuthorization(request);
-
-				var resp = new
-				{
-					ResponseCode = response.ResponseCode.ToString(),
-					Description = response.Description,
-					Token = response.Token
-				};
+            var requestInfo = CheckRequest(request.PartnerId);
+            request.Ip = requestInfo.Ip;
+            var resp = SendPlatformRequest(request, MethodBase.GetCurrentMethod().Name);
+			if (resp.ResponseCode != 0)
 				return Ok(resp);
-			}
-			catch (Exception ex)
-			{
-				Program.LogWriter.Error(ex);
-				var response = new
-				{
-					ResponseCode = Constants.Errors.GeneralException.ToString(),
-					Description = ex.Message
-				};
-				return Ok(response);
-			}
+			return Ok(JsonConvert.DeserializeObject<AuthorizationOutput>(JsonConvert.SerializeObject(resp.ResponseObject)));
+		}
+
+        [HttpPost]
+        public IActionResult CardReaderAuthorization(AuthorizationInput request)
+        {
+            var requestInfo = CheckRequest(request.PartnerId);
+            request.Ip = requestInfo.Ip;
+            var resp = SendPlatformRequest(request, MethodBase.GetCurrentMethod().Name);
+            if (resp.ResponseCode != 0)
+                return Ok(resp);
+            return Ok(JsonConvert.DeserializeObject<ApiLoginResponse>(JsonConvert.SerializeObject(resp.ResponseObject)));
+        }
+
+        [HttpPost]
+		public IActionResult Login(AuthorizationInput request)
+		{
+            var requestInfo = CheckRequest(request.PartnerId);
+            request.Ip = requestInfo.Ip;
+			request.Country = requestInfo.Country;
+            var resp = SendPlatformRequest(request, MethodBase.GetCurrentMethod().Name);
+			if (resp.ResponseCode != 0)
+				return Ok(resp);
+			return Ok(JsonConvert.DeserializeObject<AuthorizationOutput>(JsonConvert.SerializeObject(resp.ResponseObject)));
 		}
 
 		[HttpPost]
-		public AuthorizationOutput Authorization(AuthorizationInput request)
+		public ApiResponseBase ApiRequest(RequestBase requestInput)
 		{
-			try
-			{
-				var ip = string.Empty;
-				if (Request.Headers.TryGetValue("CF-Connecting-IP", out StringValues header))
-					ip = header.ToString();
-				var ipCountry = string.Empty;
-				if (Request.Headers.TryGetValue("CF-IPCountry", out header))
-					ipCountry = header.ToString();
-				if (Program.AppSetting.BlockedIps.Contains(ip))
-					throw new Exception(Constants.Errors.DontHavePermission.ToString());
-				if (!Program.AppSetting.WhitelistedIps.Contains(ip) && !Program.AppSetting.WhitelistedCountries.Contains(ipCountry))
-					throw new Exception(Constants.Errors.DontHavePermission.ToString());
-
-				request.Ip = ip;
-				var response = PlatformIntegration.Authorization(request);
-				return response;
-			}
-			catch (Exception ex)
-			{
-				Program.LogWriter.Error(ex);
-				var response = new AuthorizationOutput
+			var response = new ApiResponseBase();
+            try
+            {
+                var requestInfo = CheckRequest(requestInput.PartnerId);
+                var client = BaseHub.ConnectedClients.FirstOrDefault(x => x.Key == requestInput.Token);
+				switch (requestInput.Method)
 				{
-					ResponseCode = Constants.Errors.GeneralException,
-					Description = ex.Message
-				};
-				return response;
-			}
-		}
-
-		[HttpPost]
-		public ClientRequestResponseBase ApiRequest(RequestBase request)
-		{
-			var response = new ClientRequestResponseBase { };
-
-			try
-			{
-				var ip = string.Empty;
-				if (Request.Headers.TryGetValue("CF-Connecting-IP", out StringValues header))
-					ip = header.ToString();
-				var ipCountry = string.Empty;
-				if (Request.Headers.TryGetValue("CF-IPCountry", out header))
-					ipCountry = header.ToString();
-				if (Program.AppSetting.BlockedIps.Contains(ip))
-					throw new Exception(Constants.Errors.DontHavePermission.ToString());
-				if (!Program.AppSetting.WhitelistedIps.Contains(ip) && !Program.AppSetting.WhitelistedCountries.Contains(ipCountry))
-					throw new Exception(Constants.Errors.DontHavePermission.ToString());
-
-				var client = Program.Clients.FirstOrDefault(x => x.Key == request.Token);
-				if (client.Equals(default(KeyValuePair<string, CashierIdentity>)))
-					throw new Exception(Constants.Errors.SessionNotFound.ToString());
-				Program.LogWriter.Info(client.Key + " " + client.Value.CashierId + " " + client.Value.CashDeskId + " " + request.Method);
-				switch (request.Method)
-				{
-					case ClientCallMethods.LogoutUser:
-						response.ResponseObject = LogoutUser(request.Token);
+					case ApiMethods.PlaceBet:// To Be Deleted
+						if (client.Equals(default(KeyValuePair<string, CashierIdentity>)))
+							throw new Exception(Constants.Errors.SessionNotFound.ToString());
+						var placeBetInput = JsonConvert.DeserializeObject<PlaceBetInput>(requestInput.RequestObject);
+						response.ResponseObject = PlaceBet(requestInput.Token, placeBetInput, client.Value);
 						break;
-					case ClientCallMethods.ChangeCashierPassword:
-						response.ResponseObject = ChangeCashierPassword(JsonConvert.DeserializeObject<ChangePasswordInput>(request.RequestObject));
+					case ApiMethods.Cashout: // To Be Deleted
+						if (client.Equals(default(KeyValuePair<string, CashierIdentity>)))
+							throw new Exception(Constants.Errors.SessionNotFound.ToString());
+						var cashoutInput = JsonConvert.DeserializeObject<ApiCashoutInput>(requestInput.RequestObject);
+						cashoutInput.Token = requestInput.Token;
+						response.ResponseObject = Cashout(requestInput.Token, cashoutInput, client.Value);
 						break;
-					case ClientCallMethods.GetProductSession:
-						var getProductSessionInput =
-							JsonConvert.DeserializeObject<GetProductSessionInput>(request.RequestObject);
-						getProductSessionInput.Token = request.Token;
-						response.ResponseObject = GetProductSession(getProductSessionInput);
+					case ApiMethods.GetBetShopBets:
+						response = PlatformIntegration.SendRequestToPlatform(requestInput, ApiMethods.GetBetShopBets);
+						if (response.ResponseCode == Constants.SuccessResponseCode)
+						{
+							var betShopBetsOutput = JsonConvert.DeserializeObject<GetBetShopBetsOutput>(JsonConvert.SerializeObject(response.ResponseObject));
+							betShopBetsOutput.Bets.Select(x => { x.Barcode = null; return x; });
+							response.ResponseObject = betShopBetsOutput;
+						}
 						break;
-					case ClientCallMethods.PlaceBet:
-						var placeBetInput = JsonConvert.DeserializeObject<PlaceBetInput>(request.RequestObject);
-						response.ResponseObject = PlaceBet(request.Token, placeBetInput, client.Value);
+					case ApiMethods.GetAvailableProducts:
 						break;
-					case ClientCallMethods.GetBookedBet:
-						var bookedBetInput = JsonConvert.DeserializeObject<GetTicketInfoInput>(request.RequestObject);
-						bookedBetInput.Token = request.Token;
-						response.ResponseObject = ProductsIntegration.GetBookedBet(bookedBetInput);
+                    case ApiMethods.GetBetByBarcode:
+                        var resp = PlatformIntegration.SendRequestToPlatform(requestInput, ApiMethods.GetBetByBarcode);
+                        if (resp.ResponseCode != Constants.SuccessResponseCode)
+                            response.ResponseObject = resp;
+                        var getBetByBarcodeInput =
+                            JsonConvert.DeserializeObject<GetBetByBarcodeInput>(requestInput.RequestObject);
+                        getBetByBarcodeInput.Token = requestInput.Token;
+                        getBetByBarcodeInput.CashDeskId = requestInput.CashDeskId;
+                        getBetByBarcodeInput.LanguageId = requestInput.LanguageId;
+                        getBetByBarcodeInput.PartnerId = requestInput.PartnerId;
+                        getBetByBarcodeInput.TimeZone = requestInput.TimeZone;
+                        response.ResponseObject = GetBetByBarcode(getBetByBarcodeInput, JsonConvert.DeserializeObject<GetBetShopBetsOutput>(JsonConvert.SerializeObject(resp.ResponseObject)));
+                        break;
+                    case ApiMethods.PlaceBetByBarcode: 
+						var placeBetByBarcodeInput = JsonConvert.DeserializeObject<GetBetByBarcodeInput>(requestInput.RequestObject);
+                        placeBetByBarcodeInput.Token = requestInput.Token;
+                        placeBetByBarcodeInput.CashDeskId = requestInput.CashDeskId;
+                        placeBetByBarcodeInput.LanguageId = requestInput.LanguageId;
+                        placeBetByBarcodeInput.PartnerId = requestInput.PartnerId;
+                        placeBetByBarcodeInput.TimeZone = requestInput.TimeZone;
+                        response.ResponseObject = PlaceBetByBarcode(placeBetByBarcodeInput);
 						break;
-					case ClientCallMethods.GetClient:
-						var getClientInput = JsonConvert.DeserializeObject<GetClientInput>(request.RequestObject);
-						getClientInput.Token = request.Token;
-						response.ResponseObject = GetClient(getClientInput);
+					case ApiMethods.GetTicketInfo:
+						var getTicketInfoInput = JsonConvert.DeserializeObject<GetTicketInfoInput>(requestInput.RequestObject);
+                        getTicketInfoInput.Token = requestInput.Token;
+                       getTicketInfoInput.CashDeskId = requestInput.CashDeskId;
+                       getTicketInfoInput.LanguageId = requestInput.LanguageId;
+                       getTicketInfoInput.PartnerId = requestInput.PartnerId;
+                       getTicketInfoInput.TimeZone = requestInput.TimeZone;
+                        response.ResponseObject = GetTicketInfo(getTicketInfoInput);
 						break;
-					case ClientCallMethods.RegisterClient:
-						var clientInput = JsonConvert.DeserializeObject<ClientModel>(request.RequestObject);
-						clientInput.Token = request.Token;
-						response.ResponseObject = RegisterClient(clientInput);
+					case ApiMethods.GetBetInfo:
+						var getBetInfoInput = JsonConvert.DeserializeObject<GetTicketInfoInput>(requestInput.RequestObject);
+                        getBetInfoInput.Token = requestInput.Token;
+                        getBetInfoInput.CashDeskId = requestInput.CashDeskId;
+                        getBetInfoInput.LanguageId = requestInput.LanguageId;
+                        getBetInfoInput.PartnerId = requestInput.PartnerId;
+                        getBetInfoInput.TimeZone = requestInput.TimeZone;
+                        response.ResponseObject = GetBetInfo(getBetInfoInput);
 						break;
-					case ClientCallMethods.DepositToInternetClient:
-						var depositToInternetClientInput =
-							JsonConvert.DeserializeObject<DepositToInternetClientInput>(request.RequestObject);
-						depositToInternetClientInput.Token = request.Token;
-						response.ResponseObject = DepositToInternetClient(depositToInternetClientInput);
-						break;
-					case ClientCallMethods.GetPaymentRequests:
-						var getPaymentRequestsInput =
-							JsonConvert.DeserializeObject<GetPaymentRequestsInput>(request.RequestObject);
-						getPaymentRequestsInput.Token = request.Token;
-						response.ResponseObject = GetPaymentRequests(getPaymentRequestsInput);
-						break;
-					case ClientCallMethods.PayPaymentRequest:
-						var payPaymentRequestInput =
-							JsonConvert.DeserializeObject<PayPaymentRequestInput>(request.RequestObject);
-						payPaymentRequestInput.Token = request.Token;
-						response.ResponseObject = PayPaymentRequest(payPaymentRequestInput);
-						break;
-					case ClientCallMethods.GetBetShopBets:
-						var getBetShopBetsInput =
-							JsonConvert.DeserializeObject<GetBetShopBetsInput>(request.RequestObject);
-						getBetShopBetsInput.Token = request.Token;
-						response.ResponseObject = GetBetShopBets(getBetShopBetsInput);
-						break;
-					case ClientCallMethods.GetBetShopOperations:
-						var getOperationsInput = JsonConvert.DeserializeObject<GetOperationsInput>(request.RequestObject);
-						getOperationsInput.Token = request.Token;
-						response.ResponseObject = GetOperations(getOperationsInput);
-						break;
-					case ClientCallMethods.PayWin:
-						var payWinInput = JsonConvert.DeserializeObject<PayWinInput>(request.RequestObject);
-						payWinInput.Token = request.Token;
-						response.ResponseObject = PayWin(payWinInput);
-						break;
-					case ClientCallMethods.GetBetByBarcode:
-						var getBetByBarcodeInput =
-							JsonConvert.DeserializeObject<GetBetByBarcodeInput>(request.RequestObject);
-						getBetByBarcodeInput.Token = request.Token;
-						response.ResponseObject = GetBetByBarcode(getBetByBarcodeInput);
-						break;
-					case ClientCallMethods.PlaceBetByBarcode:
-						var placeBetByBarcodeInput =
-							JsonConvert.DeserializeObject<GetBetByBarcodeInput>(request.RequestObject);
-						placeBetByBarcodeInput.Token = request.Token;
-						response.ResponseObject = PlaceBetByBarcode(placeBetByBarcodeInput);
-						break;
-					case ClientCallMethods.GetTicketInfo:
-						var getTicketInfoInput = JsonConvert.DeserializeObject<GetTicketInfoInput>(request.RequestObject);
-						getTicketInfoInput.Token = request.Token;
-						response.ResponseObject = GetTicketInfo(getTicketInfoInput);
-						break;
-					case ClientCallMethods.GetBetInfo:
-						var getBetInfoInput = JsonConvert.DeserializeObject<GetTicketInfoInput>(request.RequestObject);
-						getBetInfoInput.Token = request.Token;
-						response.ResponseObject = GetBetInfo(getBetInfoInput);
-						break;
-					case ClientCallMethods.CancelBetSelection:
+					case ApiMethods.CancelBetSelection: //To Be Deleted
+						if (client.Equals(default(KeyValuePair<string, CashierIdentity>)))
+							throw new Exception(Constants.Errors.SessionNotFound.ToString());
 						var platformCancelBetSelectionInput =
-							JsonConvert.DeserializeObject<PlatformCancelBetSelectionInput>(request.RequestObject);
+							JsonConvert.DeserializeObject<PlatformCancelBetSelectionInput>(requestInput.RequestObject);
 						response.ResponseObject = CancelBetSelection(platformCancelBetSelectionInput, client.Value);
 						break;
-					case ClientCallMethods.GetCashDeskInfo:
-						var getCashDeskInfoInput =
-							JsonConvert.DeserializeObject<GetCashDeskInfoInput>(request.RequestObject);
-						getCashDeskInfoInput.Token = request.Token;
-						response.ResponseObject = GetCashDeskInfo(getCashDeskInfoInput);
-						break;
-					case ClientCallMethods.GetShiftReport:
-						var getShiftReportInput =
-							JsonConvert.DeserializeObject<GetShiftReportInput>(request.RequestObject);
-						getShiftReportInput.Token = request.Token;
-						response.ResponseObject = GetShiftReport(getShiftReportInput);
-						break;
-					case ClientCallMethods.GetCashDeskOperations:
-						var getCashDeskOperationsInput =
-							JsonConvert.DeserializeObject<GetCashDeskOperationsInput>(request.RequestObject);
-						getCashDeskOperationsInput.Token = request.Token;
-						response.ResponseObject = GetCashDeskOperations(getCashDeskOperationsInput);
-						break;
-					case ClientCallMethods.CloseShift:
-						response.ResponseObject = CloseShift(request.Token);
-						break;
-					case ClientCallMethods.GetAvailableProducts:
-						response.ResponseObject = GetAvailableProducts(request.Token);
-						break;
-					case ClientCallMethods.GetBalance:
-						response.ResponseObject = GetBalance(request.Token);
-						break;
-					case ClientCallMethods.GetResultsReport:
-						var getResultsReportInput =
-							JsonConvert.DeserializeObject<GetResultsReportInput>(request.RequestObject);
-						getResultsReportInput.Token = request.Token;
-						response.ResponseObject = GetResultsReport(getResultsReportInput);
-						break;
-					case ClientCallMethods.GetUnitResult:
-						var getUnitResultInput = new GetUnitResultInput { Id = Convert.ToInt32(request.RequestObject), Token = request.Token };
-						response.ResponseObject = GetUnitResult(getUnitResultInput);
-						break;
-					default:
-						response.ResponseObject = new ClientRequestResponseBase
+					case ApiMethods.GetCashDeskOperations:
+						response = PlatformIntegration.SendRequestToPlatform(requestInput, ApiMethods.GetCashDeskOperations);
+						if (response.ResponseCode == Constants.SuccessResponseCode)
 						{
-							ResponseCode = Constants.Errors.MethodNotFound
-						};
-						break;
+							var res = JsonConvert.DeserializeObject<GetCashDeskOperationsOutput>(JsonConvert.SerializeObject(response.ResponseObject));
+							foreach (var op in res.Operations)
+							{
+								op.Id = op.TicketNumber ?? 0;
+							}
+							response.ResponseObject = res; 
+						}
+						break;                        
+                    case ApiMethods.GetResultsReport:
+                        var getResultsReportInput =
+                            JsonConvert.DeserializeObject<GetResultsReportInput>(requestInput.RequestObject);
+						getResultsReportInput.Token = requestInput.Token;
+						getResultsReportInput.LanguageId = requestInput.LanguageId;
+						getResultsReportInput.PartnerId = requestInput.PartnerId;
+						getResultsReportInput.TimeZone = requestInput.TimeZone;
+						response.ResponseObject = GetResultsReport(getResultsReportInput);
+                        break;
+                    case ApiMethods.GetUnitResult:
+                        var getUnitResultInput = new GetUnitResultInput { Id = Convert.ToInt32(requestInput.RequestObject), Token = requestInput.Token };
+                        response.ResponseObject = GetUnitResult(getUnitResultInput);
+                        break;
+                    default:
+						return PlatformIntegration.SendRequestToPlatform(requestInput, requestInput.Method);
 				}
-				var rsp = (ClientRequestResponseBase)response.ResponseObject;
-				response.ResponseCode = rsp.ResponseCode;
-				response.Description = rsp.Description;
 			}
-			catch (Exception e)
-			{
-				Program.LogWriter.Error(e);
-				response.ResponseCode = Constants.Errors.GeneralException;
-				response.Description = e.Message;
-			}
-			return response;
-		}
+            catch (Exception e)
+            {
+                Log.Error(e.Message + "_" + e.StackTrace);
+                response.ResponseCode = Constants.Errors.GeneralException;
+                response.Description = e.Message;
+            }
+            return response;
+        }
 
-		private ClientRequestResponseBase GetProductSession(GetProductSessionInput input)
-		{
-			var identity = Program.Clients[input.Token];
-
-			input.TimeZone = identity.TimeZone;
-			input.LanguageId = identity.LanguageId;
-			input.PartnerId = identity.PartnerId;
-			input.CashDeskId = identity.CashDeskId;
-			var response = PlatformIntegration.GetProductSession(input);
-			return response;
-		}
-
-		private ClientRequestResponseBase LogoutUser(string token)
-		{
-			var identity = Program.Clients[token];
-			var input = new CloseSessionInput
-			{
-				TimeZone = identity.TimeZone,
-				LanguageId = identity.LanguageId,
-				PartnerId = identity.PartnerId,
-				Id = identity.CashierId,
-				Token = token,
-				CashDeskId = identity.CashDeskId
-			};
-			return PlatformIntegration.LogoutUser(input);
-		}
-		private ClientRequestResponseBase ChangeCashierPassword(ChangePasswordInput changePasswordInput)
-		{
-			var identity = Program.Clients[changePasswordInput.Token];
-
-			changePasswordInput.TimeZone = identity.TimeZone;
-			changePasswordInput.LanguageId = identity.LanguageId;
-			changePasswordInput.PartnerId = identity.PartnerId;
-			changePasswordInput.CashDeskId = identity.CashDeskId;
-		
-			return PlatformIntegration.ChangeCashierPassword(changePasswordInput);
-		}
-
-		private ClientRequestResponseBase PlaceBet(string token, PlaceBetInput input, CashierIdentity identity)
+		private static ApiResponseBase PlaceBet(string token, PlaceBetInput input, CashierIdentity identity)
 		{
 			var lockObject = new Object();
 			var response = new PlaceBetOutput();
@@ -316,11 +184,12 @@ namespace IqSoft.CP.BetShopWebApi.Controllers
 			{
 				var gameBetInput = new DoBetInput
 				{
+					PartnerId = identity.PartnerId,
 					BetType = input.BetType,
 					GameId = Constants.GamesExternalIds.First(x => x.Key == betInput.GameId).Value,
 					ClientId = input.CashierId,
 					CashDeskId = input.CashDeskId,
-					Token = betInput.Token,
+					Token = token,
 					Amount = input.Amount,
 					AcceptType = input.AcceptType,
 					Info = input.Type.ToString(),
@@ -377,27 +246,86 @@ namespace IqSoft.CP.BetShopWebApi.Controllers
 
 			try
 			{
-				var balance = GetBalance(token) as GetCashDeskCurrentBalanceOutput;
-
+				var inp = new PlatformRequestBase
+                {
+					CashDeskId = identity.CashDeskId,
+					Token = token,
+					TimeZone = identity.TimeZone,
+					LanguageId = identity.LanguageId,
+					PartnerId = identity.PartnerId
+				};
+                var r = PlatformIntegration.SendRequestToPlatform(inp, ApiMethods.GetCashDeskCurrentBalance);
+				if (r.ResponseCode != Constants.SuccessResponseCode)
+					throw new Exception(JsonConvert.SerializeObject(r));
+				var balance = JsonConvert.DeserializeObject<GetCashDeskCurrentBalanceOutput>(JsonConvert.SerializeObject(r.ResponseObject));
 				response.Balance = balance == null ? 0 : balance.Balance;
 				response.CurrentLimit = balance == null ? 0 : balance.CurrentLimit;
 			}
 			catch (Exception e)
 			{
-				Program.LogWriter.Error(e);
-			}
+                Log.Error(e.Message + "_" + e.StackTrace);
+            }
+
+			var notAcceptedBet = response.Bets.FirstOrDefault(x => x.ResponseCode > 0);
+			if(notAcceptedBet != null)
+            {
+				response.ResponseCode = notAcceptedBet.ResponseCode;
+				response.Description = notAcceptedBet.Description;
+            }
+
 			return response;
 		}
-
-		private ClientRequestResponseBase PlaceBetByBarcode(GetBetByBarcodeInput input)
+		private static ApiResponseBase Cashout(string token, ApiCashoutInput input, CashierIdentity identity)
 		{
-			var response = new PlaceBetOutput();
-			var identity = Program.Clients[input.Token];
-			input.TimeZone = identity.TimeZone;
-			input.LanguageId = identity.LanguageId;
-			input.PartnerId = identity.PartnerId;
-			input.CashDeskId = identity.CashDeskId;
-			var bet = PlatformIntegration.GetBetByBarcode(input);
+			var requestInput = new GetBetByDocumentIdInput
+			{
+				DocumentId = input.BetDocumentId,
+				LanguageId = identity.LanguageId,
+				PartnerId = identity.PartnerId,
+				TimeZone = identity.TimeZone,
+				CashDeskId = identity.CashDeskId,
+				Token = token,
+				IsForPrint = false
+			};
+			var r = PlatformIntegration.SendRequestToPlatform(requestInput, ApiMethods.GetBetByDocumentId);
+			if (r.ResponseCode != Constants.SuccessResponseCode)
+				throw new Exception(JsonConvert.SerializeObject(r));
+			var document = JsonConvert.DeserializeObject<GetBetByDocumentIdOutput>(JsonConvert.SerializeObject(r.ResponseObject));
+
+			if (Int64.TryParse(document.ExternalId, out long betId))
+				input.BetId = betId;
+
+			var response = new PlaceBetOutput { ResponseObject = ProductsIntegration.Cashout(input) };
+			try
+			{
+				var inp = new PlatformRequestBase
+                {
+					CashDeskId = identity.CashDeskId,
+					Token = token,
+					TimeZone = identity.TimeZone,
+					LanguageId = identity.LanguageId,
+					PartnerId = identity.PartnerId
+				};
+				r = PlatformIntegration.SendRequestToPlatform(inp, ApiMethods.GetCashDeskCurrentBalance);
+				if (r.ResponseCode != Constants.SuccessResponseCode)
+					throw new Exception(JsonConvert.SerializeObject(r));
+				var balance = JsonConvert.DeserializeObject<GetCashDeskCurrentBalanceOutput>(JsonConvert.SerializeObject(r.ResponseObject));
+				response.Balance = balance == null ? 0 : balance.Balance;
+				response.CurrentLimit = balance == null ? 0 : balance.CurrentLimit;
+			}
+			catch (Exception e)
+			{
+                Log.Error(e.Message + "_" + e.StackTrace);
+            }
+			return response;
+		}
+		private static ApiResponseBase PlaceBetByBarcode(GetBetByBarcodeInput input)
+		{
+            var r = PlatformIntegration.SendRequestToPlatform(input, ApiMethods.GetBetByBarcode);
+			if (r.ResponseCode != Constants.SuccessResponseCode)
+				throw new Exception(JsonConvert.SerializeObject(r));
+			var bet = JsonConvert.DeserializeObject<GetBetShopBetsOutput>(JsonConvert.SerializeObject(r.ResponseObject));
+
 			if (bet.Bets == null || !bet.Bets.Any())
 				throw new Exception(Constants.Errors.TicketNotFound.ToString());
 			if (bet.Bets[0].State != (int)BetDocumentStates.Uncalculated)
@@ -406,19 +334,19 @@ namespace IqSoft.CP.BetShopWebApi.Controllers
 			var ticket = ProductsIntegration.GetTicketInfo(new GetTicketInfoInput
 			{
 				Token = input.Token,
-				TimeZone = identity.TimeZone,
-				LanguageId = identity.LanguageId,
-				PartnerId = identity.PartnerId,
+				TimeZone = input.TimeZone,
+				LanguageId = input.LanguageId,
+				PartnerId = input.PartnerId,
 				TicketId = bet.Bets[0].BetDocumentId.ToString()
 			}, bet.Bets[0].ProductId);
 			var gameId = bet.Bets[0].ProductId;
 			var placeBetInput = new PlaceBetInput
 			{
-				CashierId = identity.CashierId,
-				CashDeskId = identity.CashDeskId,
-				Amount = ticket.Amount,
-				AcceptType = (int)Constants.BetAcceptTypes.None,
-				BetType = ticket.BetType,
+				CashierId = input.CashierId,
+				CashDeskId = input.CashDeskId,
+				Amount = ticket.BetAmount,
+				AcceptType = Enum.IsDefined(typeof(Constants.BetAcceptTypes), input.AcceptType) ? input.AcceptType : (int)Constants.BetAcceptTypes.None,
+				BetType = ticket.TypeId,
 				Type = Convert.ToInt32(ticket.Info),
 				Bets = new List<PlaceBetInputItem>
 				{
@@ -439,162 +367,125 @@ namespace IqSoft.CP.BetShopWebApi.Controllers
 					}
 				}
 			};
-			return PlaceBet(input.Token, placeBetInput, identity);
+			return PlaceBet(input.Token, placeBetInput, new CashierIdentity
+			{
+				TimeZone = input.TimeZone ?? 0,
+				LanguageId = input.LanguageId,
+				PartnerId = input.PartnerId,
+				CashierId = input.CashierId,
+				CashDeskId = input.CashDeskId
+			});
 		}
-		private ClientRequestResponseBase GetTicketInfo(GetTicketInfoInput input)
+        private static ApiResponseBase GetTicketInfo(GetTicketInfoInput input)
 		{
-			var identity = Program.Clients[input.Token];
-			input.LanguageId = identity.LanguageId;
-			input.PartnerId = identity.PartnerId;
-
-			var now = DateTime.UtcNow;
-			var bet =
-				PlatformIntegration.GetBetByDocumentId(new GetBetByDocumentIdInput
-				{
-					DocumentId = Convert.ToInt64(input.TicketId),
-					LanguageId = identity.LanguageId,
-					PartnerId = identity.PartnerId,
-					TimeZone = identity.TimeZone,
-					CashDeskId = identity.CashDeskId,
-					Token = input.Token,
-					IsForPrint = true
-				});
+            var requestInput = new GetBetByDocumentIdInput
+            {
+                DocumentId = Convert.ToInt64(input.TicketId),
+                LanguageId = input.LanguageId,
+                PartnerId = input.PartnerId,
+                TimeZone = input.TimeZone,
+                CashDeskId = input.CashDeskId,
+                Token = input.Token,
+                IsForPrint = true
+            };
+            var r = PlatformIntegration.SendRequestToPlatform(requestInput, ApiMethods.GetBetByDocumentId);
+            if (r.ResponseCode != Constants.SuccessResponseCode)
+                throw new Exception(JsonConvert.SerializeObject(r));
+            var bet = JsonConvert.DeserializeObject<GetBetByDocumentIdOutput>(JsonConvert.SerializeObject(r.ResponseObject));
 			if (bet == null || bet.Id == 0)
-				return new ClientRequestResponseBase { Description = Constants.Errors.TicketNotFound.ToString(), ResponseCode = Constants.Errors.TicketNotFound };
-			if (bet.NumberOfPrints > 3 || (now - bet.CreationTime).TotalMinutes > 30)
-				return new ClientRequestResponseBase { Description = Constants.Errors.CanNotPrintTicket.ToString(), ResponseCode = Constants.Errors.CanNotPrintTicket };
+				return new ApiResponseBase { Description = PlatformIntegration.GetErrorById(new GetErrorInput 
+					{ ErrorId = Constants.Errors.TicketNotFound, LanguageId = input.LanguageId }), ResponseCode = Constants.Errors.TicketNotFound };
+            var now = DateTime.UtcNow;
+            if (bet.NumberOfPrints > 3 || (now - bet.CreationTime).TotalMinutes > 30)
+				return new ApiResponseBase { Description = PlatformIntegration.GetErrorById(new GetErrorInput
+					{ ErrorId = Constants.Errors.CanNotPrintTicket, LanguageId = input.LanguageId }), ResponseCode = Constants.Errors.CanNotPrintTicket };
 
 			var response = ProductsIntegration.GetTicketInfo(input, bet.GameId);
 			if (response == null) return null;
 
-			response.BetDate = response.BetDate.GetGMTDateFromUTC(identity.TimeZone);
-			foreach (var bs in response.BetSelections)
+			response.BetDate = response.BetDate.GetGMTDateFromUTC(input.TimeZone ?? 0);
+			if (response.BetSelections != null)
 			{
-				bs.EventDate = bs.EventDate.GetGMTDateFromUTC(identity.TimeZone);
+				foreach (var bs in response.BetSelections)
+				{
+					bs.EventDate = bs.EventDate.GetGMTDateFromUTC(input.TimeZone ?? 0);
+				}
 			}
 			return response;
 		}
-		private ClientRequestResponseBase GetBetByBarcode(GetBetByBarcodeInput input)
+		private static object GetBetByBarcode(GetBetByBarcodeInput input, GetBetShopBetsOutput betShopBetsOutput)
 		{
-			var identity = Program.Clients[input.Token];
-			input.TimeZone = identity.TimeZone;
-			input.LanguageId = identity.LanguageId;
-			input.PartnerId = identity.PartnerId;
-			input.CashDeskId = identity.CashDeskId;
-			var clientRequestResponse = PlatformIntegration.GetBetByBarcode(input);
-			if (clientRequestResponse.Bets == null || !clientRequestResponse.Bets.Any())
-				throw new Exception(Constants.Errors.TicketNotFound.ToString());
+			if (betShopBetsOutput.Bets == null || !betShopBetsOutput.Bets.Any())
+				throw new Exception($"Code: {Constants.Errors.TicketNotFound}, Description: {nameof(Constants.Errors.TicketNotFound)}");
 
 			var response = ProductsIntegration.GetTicketInfo(new GetTicketInfoInput
 			{
 				Token = input.Token,
-				TimeZone = identity.TimeZone,
-				LanguageId = identity.LanguageId,
-				PartnerId = identity.PartnerId,
-				TicketId = clientRequestResponse.Bets[0].BetDocumentId.ToString()
-			}, clientRequestResponse.Bets[0].ProductId);
+				TimeZone = input.TimeZone,
+				LanguageId = input.LanguageId,
+				PartnerId = input.PartnerId,
+				TicketId = betShopBetsOutput.Bets[0].BetDocumentId.ToString()
+			}, betShopBetsOutput.Bets[0].ProductId);
 
 			if (response != null)
 			{
-				response.BetDate = response.BetDate.GetGMTDateFromUTC(identity.TimeZone);
-				foreach (var bs in response.BetSelections)
+				response.BetDate = response.BetDate.GetGMTDateFromUTC(input.TimeZone ?? 0);
+				if (response.BetSelections != null)
 				{
-					bs.EventDate = bs.EventDate.GetGMTDateFromUTC(identity.TimeZone);
+					foreach (var bs in response.BetSelections)
+					{
+						bs.EventDate = bs.EventDate.GetGMTDateFromUTC(input.TimeZone ?? 0);
+					}
 				}
-				clientRequestResponse.Bets[0].Coefficient = response.Coefficient;
-				clientRequestResponse.Bets[0].BetSelections = response.BetSelections;
+				betShopBetsOutput.Bets[0].Coefficient = response.Coefficient;
+				betShopBetsOutput.Bets[0].BetSelections = response.BetSelections;
+				betShopBetsOutput.Bets[0].NumberOfMatches = response.NumberOfMatches;
+				betShopBetsOutput.Bets[0].NumberOfBets = response.NumberOfBets;
+				betShopBetsOutput.Bets[0].AmountPerBet = response.AmountPerBet;
+				betShopBetsOutput.Bets[0].CommissionFee = response.CommissionFee;
+				betShopBetsOutput.Bets[0].PossibleWin = response.PossibleWin;
+				betShopBetsOutput.Bets[0].Barcode = input.Barcode;
+				betShopBetsOutput.Bets[0].SystemOutCounts = response.SystemOutCounts;
+				betShopBetsOutput.Bets[0].CashoutAmount = response.CashoutAmount;
+				betShopBetsOutput.Bets[0].BlockedForCashout = response.BlockedForCashout;
 			}
-			return clientRequestResponse;
+			return betShopBetsOutput.Bets[0];
 		}
-		private ClientRequestResponseBase GetBetInfo(GetTicketInfoInput input)
+		private static ApiResponseBase GetBetInfo(GetTicketInfoInput input)
 		{
-			var identity = Program.Clients[input.Token];
-			input.TimeZone = identity.TimeZone;
-			input.LanguageId = identity.LanguageId;
-			input.PartnerId = identity.PartnerId;
-
-			var bet = PlatformIntegration.GetBetByDocumentId(new GetBetByDocumentIdInput
-				{
-					Token = input.Token,
-					DocumentId = Convert.ToInt64(input.TicketId),
-					TimeZone = identity.TimeZone,
-					LanguageId = identity.LanguageId,
-					PartnerId = identity.PartnerId,
-					CashDeskId = identity.CashDeskId,
-					IsForPrint = false
-				});
+            var requestInput = new GetBetByDocumentIdInput
+            {
+                Token = input.Token,
+                DocumentId = Convert.ToInt64(input.TicketId),
+                TimeZone = input.TimeZone,
+                LanguageId = input.LanguageId,
+                PartnerId = input.PartnerId,
+                CashDeskId = input.CashDeskId,
+                IsForPrint = false
+            };
+            var r = PlatformIntegration.SendRequestToPlatform(requestInput, ApiMethods.GetBetByDocumentId);
+            if (r.ResponseCode != Constants.SuccessResponseCode)
+                throw new Exception(JsonConvert.SerializeObject(r));
+            var bet = JsonConvert.DeserializeObject<GetBetByDocumentIdOutput>(JsonConvert.SerializeObject(r.ResponseObject));
 			if (bet == null || bet.Id == 0)
 				throw new Exception(Constants.Errors.TicketNotFound.ToString());
-
 			var response = ProductsIntegration.GetTicketInfo(input, bet.GameId);
 			if (response == null) return null;
-			response.BetDate = response.BetDate.GetGMTDateFromUTC(identity.TimeZone);
+
+			Log.Information(JsonConvert.SerializeObject(response));
+			response.BetDate = response.BetDate.GetGMTDateFromUTC(input.TimeZone ?? 0);
 			response.Barcode = 0;
-			foreach (var bs in response.BetSelections)
+			if (response.BetSelections != null)
 			{
-				bs.EventDate = bs.EventDate.GetGMTDateFromUTC(identity.TimeZone);
+				foreach (var bs in response.BetSelections)
+				{
+					bs.EventDate = bs.EventDate.GetGMTDateFromUTC(input.TimeZone ?? 0);
+				}
 			}
+
 			return response;
 		}
-		private ClientRequestResponseBase GetClient(GetClientInput input)
-		{
-			var identity = Program.Clients[input.Token];
-			input.TimeZone = identity.TimeZone;
-			input.LanguageId = identity.LanguageId;
-			input.PartnerId = identity.PartnerId;
-			input.CashDeskId = identity.CashDeskId;
-			return PlatformIntegration.GetClient(input);
-		}
-		private ClientRequestResponseBase RegisterClient(ClientModel input)
-		{
-			var identity = Program.Clients[input.Token];
-			input.TimeZone = identity.TimeZone;
-			input.LanguageId = identity.LanguageId;
-			input.PartnerId = identity.PartnerId;
-			input.CashDeskId = identity.CashDeskId;
-			return PlatformIntegration.RegisterClient(input);
-		}
-		private ClientRequestResponseBase DepositToInternetClient(DepositToInternetClientInput input)
-		{
-			var identity = Program.Clients[input.Token];
-			input.TimeZone = identity.TimeZone;
-			input.CashierId = identity.CashierId;
-			input.LanguageId = identity.LanguageId;
-			input.PartnerId = identity.PartnerId;
-			var clientRequestResponse = PlatformIntegration.DepositToInternetClient(input);
-
-			return clientRequestResponse;
-		}
-		private ClientRequestResponseBase GetPaymentRequests(GetPaymentRequestsInput input)
-		{
-			var identity = Program.Clients[input.Token];
-			input.TimeZone = identity.TimeZone;
-			input.LanguageId = identity.LanguageId;
-			input.PartnerId = identity.PartnerId;
-			var clientRequestResponse = PlatformIntegration.GetPaymentRequests(input);
-			return clientRequestResponse;
-		}
-		private ClientRequestResponseBase PayPaymentRequest(PayPaymentRequestInput input)
-		{
-			var identity = Program.Clients[input.Token];
-			input.TimeZone = identity.TimeZone;
-			input.LanguageId = identity.LanguageId;
-			input.PartnerId = identity.PartnerId;
-			input.CashierId = identity.CashierId;
-			var clientRequestResponse = PlatformIntegration.PayPaymentRequest(input);
-			return clientRequestResponse;
-		}
-		private ClientRequestResponseBase PayWin(PayWinInput input)
-		{
-			var identity = Program.Clients[input.Token];
-			input.TimeZone = identity.TimeZone;
-			input.LanguageId = identity.LanguageId;
-			input.PartnerId = identity.PartnerId;
-			input.CashierId = identity.CashierId;
-			var clientRequestResponse = PlatformIntegration.PayWin(input);
-			return clientRequestResponse;
-		}
-		private ClientRequestResponseBase CancelBetSelection(PlatformCancelBetSelectionInput input, CashierIdentity identity)
+		private static ApiResponseBase CancelBetSelection(PlatformCancelBetSelectionInput input, CashierIdentity identity)
 		{
 			var cancelInput = new CancelBetSelectionInput
 			{
@@ -617,131 +508,78 @@ namespace IqSoft.CP.BetShopWebApi.Controllers
 			cancelResponse.Token = input.Token;
 			cancelResponse.GameId = input.GameId;
 			cancelResponse.GameUnitId = input.GameUnitId;
-			BaseHub.CurrentContext.Clients.Clients(identity.ConnectionIds).SendAsync("onCancelBetSelections",
-				new
+			foreach (var cId in identity.ConnectionIds)
+				BaseHub.CurrentContext.Clients.Client(cId).SendAsync("onCancelBetSelections", new
 				{
 					Token = input.Token,
 					BetSelections = new List<object>
+				{
+					new
 					{
-						new
-						{
-							ProductId = input.GameId,
-							SelectionTypeId = input.SelectionTypeId,
-							SelectionId = input.SelectionId,
-							GameUnitId = input.GameUnitId
-						}
+						ProductId = input.GameId,
+						SelectionTypeId = input.SelectionTypeId,
+						SelectionId = input.SelectionId,
+						GameUnitId = input.GameUnitId
 					}
+				}
 				});
 
 			return cancelResponse;
 		}
-		private ClientRequestResponseBase GetCashDeskInfo(GetCashDeskInfoInput input)
-		{
-			var identity = Program.Clients[input.Token];
-			input.TimeZone = identity.TimeZone;
-			input.LanguageId = identity.LanguageId;
-			input.PartnerId = identity.PartnerId;
-			var clientRequestResponse = PlatformIntegration.GetCashDeskInfo(input);
-			return clientRequestResponse;
-		}
-		private ClientRequestResponseBase CloseShift(string token)
-		{
-			var identity = Program.Clients[token];
-			var resp = PlatformIntegration.CloseShift(new CloseShiftInput
-			{
-				Token = token,
-				TimeZone = identity.TimeZone,
-				CashDeskId = identity.CashDeskId,
-				CashierId = identity.CashierId
-			});
 
-			return resp;
-		}
-		private ClientRequestResponseBase GetAvailableProducts(string token)
+		private RequestInfo CheckRequest(int partnerId)
 		{
-			return new ClientRequestResponseBase();
-		}
-		private ClientRequestResponseBase GetBalance(string token)
-		{
-			var identity = Program.Clients[token];
-			var input = new GetCashDeskCurrentBalanceIntput
-			{
-				CashDeskId = identity.CashDeskId,
-				Token = token,
-				TimeZone = identity.TimeZone,
-				LanguageId = identity.LanguageId,
-				PartnerId = identity.PartnerId
-			};
-			return PlatformIntegration.GetCashDeskCurrentBalance(input);
+			var requestInfo = new RequestInfo();
+			var ip = Constants.DefaultIp;
+			if (Request.Headers.TryGetValue("CF-Connecting-IP", out StringValues header))
+				ip = header.ToString();
+			if (ip == Constants.DefaultIp && !string.IsNullOrEmpty(Request.HttpContext.Connection.RemoteIpAddress?.ToString()))
+				ip = Request.HttpContext.Connection.RemoteIpAddress?.ToString();
+			requestInfo.Ip = ip;
+			if (Request.Headers.TryGetValue("CF-IPCountry", out header))
+				requestInfo.Country = header.ToString();
+			requestInfo.PartnerId = partnerId;
+			var resp = SendPlatformRequest(requestInfo, ApiMethods.GetApiRestrictions);
+			if (resp.ResponseCode != 0)
+				throw new Exception(JsonConvert.SerializeObject(resp));
+			var apiRestrictions = JsonConvert.DeserializeObject<CP.Common.Models.WebSiteModels.ApiRestrictionModel>(JsonConvert.SerializeObject(resp.ResponseObject));
+			if (apiRestrictions.BlockedIps.Contains(requestInfo.Ip))
+				throw new Exception(Constants.Errors.DontHavePermission.ToString());
+			if (!apiRestrictions.WhitelistedIps.Any(x => x.IsIpEqual(ip)) &&
+		   apiRestrictions.WhitelistedCountries.Any() && !apiRestrictions.WhitelistedCountries.Contains(requestInfo.Country))
+				throw new Exception(Constants.Errors.DontHavePermission.ToString());
+			return requestInfo;
 		}
 
-		#region Reports
-
-		private ClientRequestResponseBase GetBetShopBets(GetBetShopBetsInput input)
-		{
-			var identity = Program.Clients[input.Token];
-			if (input.CashierId != identity.CashierId)
-				throw new Exception(Constants.Errors.WrongParameters.ToString());
-
-			input.TimeZone = identity.TimeZone;
-			input.LanguageId = identity.LanguageId;
-			input.PartnerId = identity.PartnerId;
-			input.CashDeskId = identity.CashDeskId;
-			var clientRequestResponse = PlatformIntegration.GetBetShopBets(input);
-			return clientRequestResponse;
-		}
-		private ClientRequestResponseBase GetOperations(GetOperationsInput input)
-		{
-			var identity = Program.Clients[input.Token];
-			input.TimeZone = identity.TimeZone;
-			input.LanguageId = identity.LanguageId;
-			input.PartnerId = identity.PartnerId;
-			var clientRequestResponse = PlatformIntegration.GetBetShopOperations(input);
-			return clientRequestResponse;
-		}
-		private ClientRequestResponseBase GetCashDeskOperations(GetCashDeskOperationsInput input)
-		{
-			var identity = Program.Clients[input.Token];
-			input.TimeZone = identity.TimeZone;
-			input.LanguageId = identity.LanguageId;
-			input.PartnerId = identity.PartnerId;
-			input.CashDeskId = identity.CashDeskId;
-			var response = (GetCashDeskOperationsOutput)PlatformIntegration.GetCashDeskOperations(input);
-			foreach (var op in response.Operations)
-			{
-				op.Id = op.TicketNumber ?? 0;
-			}
-			return response;
-		}
-		private ClientRequestResponseBase GetShiftReport(GetShiftReportInput input)
-		{
-			var identity = Program.Clients[input.Token];
-
-			input.TimeZone = identity.TimeZone;
-			input.LanguageId = identity.LanguageId;
-			input.PartnerId = identity.PartnerId;
-
-			return PlatformIntegration.GetShiftReport(input);
-		}
-        private ClientRequestResponseBase GetResultsReport(GetResultsReportInput input)
+        private static ApiResponseBase SendPlatformRequest<T>(T requestInput, string method)
         {
-            var identity = Program.Clients[input.Token];
+            try
+            {
+                return PlatformIntegration.SendRequestToPlatform(requestInput, method);
+            }
+            catch (Exception ex)
+            {
+				Log.Error(ex.Message+ex.StackTrace);
+                return new ApiResponseBase
+                {
+                    ResponseCode = Constants.Errors.GeneralException,
+                    Description = ex.Message
+                };
+            }
+        }
 
-            input.TimeZone = identity.TimeZone;
-            input.LanguageId = identity.LanguageId;
-            input.PartnerId = identity.PartnerId;
+        #region Reports
+
+        private static ApiResponseBase GetResultsReport(GetResultsReportInput input)
+        {
             input.GameId = Convert.ToInt32(Constants.GamesExternalIds.First(x => x.Key == input.GameId).Value);
             return ProductsIntegration.GetResultsReport(input);
         }
-        private ClientRequestResponseBase GetUnitResult(GetUnitResultInput input)
+        private static ApiResponseBase GetUnitResult(GetUnitResultInput input)
         {
-            var identity = Program.Clients[input.Token];
-            input.TimeZone = identity.TimeZone;
-            input.LanguageId = identity.LanguageId;
-            input.PartnerId = identity.PartnerId;
             return ProductsIntegration.GetUnitResult(input);
-        }
-
+        }	
+		
         #endregion
     }
 }

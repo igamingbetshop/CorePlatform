@@ -8,7 +8,6 @@
         public string CurrencyId { get; set; }
         public string UserName { get; set; }
         public string Password { get; set; }
-        public int? Country { get; set; }
         public int? City { get; set; }
         public string CityName { get; set; }
         public int Gender { get; set; }
@@ -27,7 +26,6 @@
         public string MobileNumber { get; set; }
         public string PromoCode { get; set; }
         public string RegistrationIp { get; set; }
-        public string Token { get; set; }
         public string EmailOrMobile { get; set; }
         public bool SendMail { get; set; }
         public bool SendSms { get; set; }

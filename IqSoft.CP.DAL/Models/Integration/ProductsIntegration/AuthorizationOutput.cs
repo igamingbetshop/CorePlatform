@@ -19,7 +19,7 @@ namespace IqSoft.CP.DAL.Models.Integration.ProductsIntegration
 		public string UserName { get; set; }
 		public string FirstName { get; set; }
         public string LastName { get; set; }
-        public int Gender { get; set; }
+        public int? Gender { get; set; }
         public decimal AvailableBalance { get; set; }
         public DateTime BirthDate { get; set; }
         public int? BetShopId { get; set; }

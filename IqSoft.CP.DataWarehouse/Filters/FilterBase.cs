@@ -17,21 +17,28 @@ namespace IqSoft.CP.DataWarehouse.Filters
 
         public List<CheckPermissionOutput<T>> CheckPermissionResuts { get; set; }
 
-        protected void FilteredObjects(ref IQueryable<T> objects, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null)
+        protected void FilteredObjects(ref IQueryable<T> objects, bool ordering, bool orderingForIndexing, string uniqueFieldName)
         {
             if (CheckPermissionResuts != null)
             {
-                objects =
-                    CheckPermissionResuts.Where(
-                        checkPermissionResut =>
-                            checkPermissionResut != null && !checkPermissionResut.HaveAccessForAllObjects)
-                        .Aggregate(objects,
-                            (current, checkPermissionResut) => current.Where(checkPermissionResut.Filter));
+                foreach (var cpr in CheckPermissionResuts)
+                {
+                    if (cpr != null && !cpr.HaveAccessForAllObjects)
+                    {
+                        objects = objects.Where(cpr.Filter);
+                    }
+                }
             }
 
-            if (orderBy != null)
+            if (ordering)
             {
-                objects = orderBy(objects);
+                if (orderingForIndexing)
+                    objects = string.IsNullOrEmpty(uniqueFieldName) ? OrderingHelper(OrderingHelper(objects, "Date", OrderBy.Value, false), FieldNameToOrderBy, OrderBy.Value, true):
+                        OrderingHelper(OrderingHelper(OrderingHelper(objects, "Date", OrderBy.Value, false), FieldNameToOrderBy, OrderBy.Value, true), uniqueFieldName, OrderBy.Value, true);
+                else
+                    objects = string.IsNullOrEmpty(uniqueFieldName) ? OrderingHelper(objects, FieldNameToOrderBy, OrderBy.Value, false) : 
+                        OrderingHelper(OrderingHelper(objects, FieldNameToOrderBy, OrderBy.Value, false), uniqueFieldName, OrderBy.Value, true);
+
                 if (TakeCount != 0)
                 {
                     TakeCount = Math.Min(TakeCount, 100000);
@@ -40,7 +47,7 @@ namespace IqSoft.CP.DataWarehouse.Filters
             }
         }
 
-        public abstract void CreateQuery(ref IQueryable<T> objects, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null);
+        public abstract void CreateQuery(ref IQueryable<T> objects, bool ordering, bool orderingForIndexing = false);
 
         public bool? OrderBy { get; set; }
 
@@ -180,6 +187,16 @@ namespace IqSoft.CP.DataWarehouse.Filters
                     finalExpression = Expression.OrElse(finalExpression, expression);
             }
             return Expression.Lambda<Func<T1, bool>>(finalExpression, parameter);
+        }
+
+        private IOrderedQueryable<T> OrderingHelper(IQueryable source, string propertyName, bool descending, bool anotherLevel)
+        {
+            var param = Expression.Parameter(typeof(T), string.Empty);
+            var property = Expression.PropertyOrField(param, propertyName);
+            var sort = Expression.Lambda(property, param);
+            var call = Expression.Call(typeof(Queryable), (!anotherLevel ? "OrderBy" : "ThenBy") + (descending ? "Descending" : string.Empty),
+                new[] { typeof(T), property.Type }, source.Expression, Expression.Quote(sort));
+            return (IOrderedQueryable<T>)source.Provider.CreateQuery<T>(call);
         }
     }
 }

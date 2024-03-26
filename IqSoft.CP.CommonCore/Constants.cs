@@ -275,7 +275,7 @@ namespace IqSoft.CP.Common
 
         public static class PaymentSystems
         {
-            public const string BetShop = "Cash"; 
+            public const string BetShop = "Cash";
             public const string MoneyPayVisaMaster = "MoneyPayVisaMaster";
             public const string MoneyPayAmericanExpress = "MoneyPayAmericanExpress";
 
@@ -641,6 +641,7 @@ namespace IqSoft.CP.Common
         public class Games
         {
             public const int Sportsbook = 6;
+            public const int IqSoftSportsbook = 1000;
             public const int Keno = 1004;
             public const int BetOnPoker = 1005;
             public const int BetOnRacing = 1006;
@@ -711,7 +712,7 @@ namespace IqSoft.CP.Common
             public const string AccountTypes = "AccountTypes";
             public const string DateDiff = "DateDiff";
             public const string fnErrorTypes = "fnErrorTypes";
-            public const string ClientClasifications = "ClientClasifications";
+            public const string ClientClassifications = "ClientClassifications";
             public const string ClientCounts = "ClientCounts";
             public const string ClientSessions = "ClientSessions";
             public const string ClientInactiveSessions = "ClientInactiveSessions";
@@ -990,7 +991,7 @@ namespace IqSoft.CP.Common
             public const string ViewAdminTranslations = "ViewAdminTranslations";
             public const string EditWebSiteMenu = "EditWebSiteMenu";
             public const string EditWebSiteMenuTranslationEntry = "EditWebSiteMenuTranslationEntry";
-            public const string EditAdminTramslation = "EditAdminTramslation";
+            public const string EditAdminTranslation = "EditAdminTrasslation";
 
             public const string CreateDebitCorrectionOnUser = "CreateDebitCorrectionOnUser";
             public const string CreateCreditCorrectionOnUser = "CreateCreditCorrectionOnUser";
@@ -1043,7 +1044,7 @@ namespace IqSoft.CP.Common
             public const int CheckInactiveClients = 30;
             public const int NotifyIdentityExpiration = 31;
             public const int InactivateImpossiblBonuses = 32;
-            public const int UpdateJackpotFeed = 34; 
+            public const int UpdateJackpotFeed = 34;
             public const int ReconsiderDynamicSegments = 35;
             public const int CheckInactiveUsers = 36;
             public const int SendPartnerDailyReport = 37;
@@ -1865,6 +1866,14 @@ namespace IqSoft.CP.Common
             None = 1,
             HigherOdds = 2,
             AnyOdds = 3
+        }
+        public enum SystemModuleTypes
+        {
+            ManagementSystem = 1,
+            AgentSystem = 2,
+            WebSite = 3,
+            BetShop = 4,
+            AffilliateSystem = 5,
         }
     }
 }

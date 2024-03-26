@@ -29,6 +29,7 @@ namespace IqSoft.CP.DAL
         public string Path { get; set; }
         public string ApiRequest { get; set; }
         public string PermissionId { get; set; }
+        public Nullable<int> Priority { get; set; }
     
         public virtual AdminMenu AdminMenu1 { get; set; }
         public virtual AdminMenu AdminMenu2 { get; set; }

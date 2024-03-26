@@ -32,7 +32,7 @@ namespace IqSoft.CP.DAL
         public Nullable<int> State { get; set; }
         public Nullable<int> BankAccountType { get; set; }
     
-        public virtual Client Client { get; set; }
         public virtual PartnerPaymentSetting PartnerPaymentSetting { get; set; }
+        public virtual Client Client { get; set; }
     }
 }

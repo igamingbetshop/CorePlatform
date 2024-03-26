@@ -113,11 +113,11 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                 case "GetAvailableLevels":
                     return GetAvailableLevels(identity, log);
                 case "FindAgentAvailableUserName":
-                    return FindAvailableUserName((int)UserTypes.Agent, JsonConvert.DeserializeObject<UserNameModel>(request.RequestData), identity, log);
+                    return FindAvailableUserName((int)UserTypes.DownlineAgent, JsonConvert.DeserializeObject<UserNameModel>(request.RequestData), identity, log);
                 case "FindSubAccountAvailableUserName":
                     return FindAvailableUserName((int)UserTypes.AgentEmployee, new UserNameModel { Level = 0, StartsWith = '\0' }, identity, log);
                 case "GenerateUserNamePrefix":
-                    return GenerateUserNamePrefix((int)UserTypes.Agent, Convert.ToInt32(request.RequestData), identity, log);
+                    return GenerateUserNamePrefix((int)UserTypes.DownlineAgent, Convert.ToInt32(request.RequestData), identity, log);
                 case "GenerateSubAccountUserNamePrefix":
                     return GenerateUserNamePrefix((int)UserTypes.AgentEmployee, 0, identity, log);
                 case "UploadProfileImage":
@@ -391,7 +391,7 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
             //if (request.LevelLimits.Any(x => x.Limit > request.MaxCredit))
             //    throw BaseBll.CreateException(languageId, Constants.Errors.WrongInputParameters); should be clarified
 
-            var existingAgentCount = userBl.GetSubAgents(user.Id, request.Level, request.Level == (int)AgentLevels.Company ? (int)UserTypes.MasterAgent : (int)UserTypes.Agent, true, string.Empty).Count;
+            var existingAgentCount = userBl.GetSubAgents(user.Id, request.Level, request.Level == (int)AgentLevels.Company ? (int)UserTypes.CompanyAgent : (int)UserTypes.DownlineAgent, true, string.Empty).Count;
             var requestedAgentsCount = !request.Count.HasValue || request.Count.Value == 0 ? 1 : request.Count.Value;
             if (isNew && countLimitByLevel != -1 && existingAgentCount + requestedAgentsCount > countLimitByLevel)
                 throw BaseBll.CreateException(languageId, Constants.Errors.MaxLimitExceeded);
@@ -429,7 +429,7 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                     {
                         if (string.IsNullOrEmpty(request.CurrencyId))
                             throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.WrongInputParameters);
-                        input.Type = (int)UserTypes.MasterAgent;
+                        input.Type = (int)UserTypes.CompanyAgent;
                         input.CurrencyId = request.CurrencyId;
                         request.Count = 1;
                         request.CalculationPeriod = null;
@@ -441,7 +441,7 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                             throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.LowBalance);
                     }
                     if (input.Type != (int)UserTypes.AgentEmployee)
-                        input.Type = (int)UserTypes.Agent;
+                        input.Type = (int)UserTypes.DownlineAgent;
                     if(request.LevelLimits != null)
                     {
                         for (int i = 1; i < request.LevelLimits.Count; i++)
@@ -973,7 +973,7 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                 input.Type = (int)UserTypes.AgentEmployee;
                 var partnerSetting = CacheManager.GetPartnerSettingByKey(user.PartnerId, Constants.PartnerKeys.SubAccountLimits);
 
-                if (partnerSetting != null)
+                if (partnerSetting != null && partnerSetting.Id > 0)
                 {
                     var limits = JsonConvert.DeserializeObject<List<CountLimit>>(partnerSetting.StringValue);
                     var limit = limits.FirstOrDefault(x => x.Level == user.Level.Value);
@@ -1030,7 +1030,7 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                     var userState = CacheManager.GetUserSetting(user.Id)?.ParentState;
                     if (userState.HasValue && CustomHelper.Greater((UserStates)userState.Value, (UserStates)user.State))
                         user.State = userState.Value;
-                    if (user == null || user.Type != (int)UserTypes.Agent || user.ParentId != identity.Id || user.State != (int)UserStates.Active)
+                    if (user == null || user.Type != (int)UserTypes.DownlineAgent || user.ParentId != identity.Id || user.State != (int)UserStates.Active)
                         throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.NotAllowed);
 
                     return new ApiResponseBase
@@ -1176,7 +1176,7 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                     var userState = CacheManager.GetUserSetting(user.Id)?.ParentState;
                     if (userState.HasValue && CustomHelper.Greater((UserStates)userState.Value, (UserStates)user.State))
                         user.State = userState.Value;
-                    if (user == null || user.Type != (int)UserTypes.Agent || user.ParentId != identity.Id || user.State != (int)UserStates.Active)
+                    if (user == null || user.Type != (int)UserTypes.DownlineAgent || user.ParentId != identity.Id || user.State != (int)UserStates.Active)
                         throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.NotAllowed);
 
                     return new ApiResponseBase
@@ -1199,7 +1199,7 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                     userBl.CheckPermission(Constants.Permissions.ViewReportByCorrection);
 
                 var subUser = CacheManager.GetUserById(filter.UserId ?? 0);
-                if (subUser == null || subUser.Type != (int)UserTypes.Agent || subUser.ParentId != (isAgentEmploye ? user.ParentId.Value : identity.Id))
+                if (subUser == null || subUser.Type != (int)UserTypes.DownlineAgent || subUser.ParentId != (isAgentEmploye ? user.ParentId.Value : identity.Id))
                     return new ApiResponseBase();
 
                 return new ApiResponseBase
@@ -1276,29 +1276,12 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
             }
             return new ApiResponseBase
             {
-                ResponseObject = CacheManager.GetPartnerTicker(partnerId, identity.LanguageId)
+                ResponseObject = CacheManager.GetPartnerTicker(partnerId,(int)AnnouncementReceiverTypes.Agent, identity.LanguageId)
             };
         }
 
         public static ApiResponseBase GetAnnouncements(ApiFilterAnnouncement apiAnnouncement, SessionIdentity identity, ILog log)
         {
-            var filterOperation = new ApiFiltersOperationType
-            {
-                OperationTypeId = (int)FilterOperations.IsNotEqualTo,
-                IntValue = (int)AnnouncementTypes.Ticker
-            };
-            if (apiAnnouncement.Types == null)
-                apiAnnouncement.Types = new ApiFiltersOperation
-                {
-                    ApiOperationTypeList = new List<ApiFiltersOperationType> { filterOperation }
-                };
-            else if (apiAnnouncement.Types.ApiOperationTypeList == null)
-                apiAnnouncement.Types.ApiOperationTypeList = new List<ApiFiltersOperationType> { filterOperation };
-            else
-            {
-                apiAnnouncement.Types.IsAnd = true;
-                apiAnnouncement.Types.ApiOperationTypeList.Add(filterOperation);
-            }
             var filter = apiAnnouncement.MapToFilterAnnouncement();
             //if (apiAnnouncement.Type == (int)AnnouncementTypes.Personal)
             //    filter.ReceiverId = identity.Id;
@@ -1346,6 +1329,8 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                     user = CacheManager.GetUserById(user.ParentId.Value);
                 }
                 apiAnnouncement.PartnerId = user.PartnerId;
+                if (apiAnnouncement.ReceiverType != (int)AnnouncementReceiverTypes.Client &&apiAnnouncement.ReceiverType != (int)AnnouncementReceiverTypes.Agent)
+                    throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.WrongInputParameters);
                 using (var contentBl = new ContentBll(identity, log))
                 {
                     var announcement = contentBl.SaveAnnouncement(apiAnnouncement, false, user);
@@ -1358,11 +1343,11 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                         SessionId = identity.SessionId,
                         Text = apiAnnouncement.Message
                     } };
-                    contentBl.SaveTranslationEntries(translations, false, out _);  ;
+                    contentBl.SaveTranslationEntries(translations, false, out _); ;
 
                     if (apiAnnouncement.Type == (int)AnnouncementTypes.Ticker)
                     {
-                        CacheManager.RemovePartnerTickerFromCache(apiAnnouncement.PartnerId, identity.LanguageId);// to check with transaltion 
+                        CacheManager.RemovePartnerTickerFromCache(apiAnnouncement.PartnerId, announcement.ReceiverType, identity.LanguageId);// to check with transaltion 
                         Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}", Constants.CacheItems.Ticker, apiAnnouncement.PartnerId));
                     }
                     return new ApiResponseBase();
@@ -1536,7 +1521,7 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                 var user = CacheManager.GetUserById(identity.Id);
                 if (user.Type == (int)UserTypes.AdminUser)
                 {
-                    type = (int)UserTypes.MasterAgent;
+                    type = (int)UserTypes.CompanyAgent;
                     if (input.Level != (int)AgentLevels.Company)
                         throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.NotAllowed);
                 }
@@ -1558,7 +1543,7 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                 var agent = CacheManager.GetUserById(identity.Id);
                 if (agent.Type == (int)UserTypes.AdminUser)
                 {
-                    type = (int)UserTypes.MasterAgent;
+                    type = (int)UserTypes.CompanyAgent;
                     if (level != (int)AgentLevels.Company)
                         throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.NotAllowed);
                 }

@@ -24,7 +24,8 @@ namespace IqSoft.CP.DataWarehouse.Filters
         public FiltersOperation TotalDepositAmounts { get; set; }
         public FiltersOperation DepositsCounts { get; set; }
         public FiltersOperation TotalBetAmounts { get; set; }
-        public FiltersOperation BetsCounts { get; set; }
+        public FiltersOperation TotalBetsCounts { get; set; }
+        public FiltersOperation SportBetsCounts { get; set; }
         public FiltersOperation TotalWinAmounts { get; set; }
         public FiltersOperation WinsCounts { get; set; }
         public FiltersOperation GGRs { get; set; }
@@ -33,7 +34,7 @@ namespace IqSoft.CP.DataWarehouse.Filters
         public FiltersOperation TotalCreditCorrections { get; set; }
         public FiltersOperation CreditCorrectionsCounts { get; set; }
 
-        public override void CreateQuery(ref IQueryable<fnClientReport> objects, Func<IQueryable<fnClientReport>, IOrderedQueryable<fnClientReport>> orderBy = null)
+        public override void CreateQuery(ref IQueryable<fnClientReport> objects, bool ordering, bool orderByDate = false)
         {
             if (PartnerId.HasValue)
                 objects = objects.Where(x => x.PartnerId == PartnerId.Value);
@@ -54,7 +55,8 @@ namespace IqSoft.CP.DataWarehouse.Filters
             FilterByValue(ref objects, TotalDepositAmounts, "TotalDepositAmount");
             FilterByValue(ref objects, DepositsCounts, "DepositsCount");
             FilterByValue(ref objects, TotalBetAmounts, "TotalBetAmount");
-            FilterByValue(ref objects, BetsCounts, "BetsCount");
+            FilterByValue(ref objects, TotalBetsCounts, "TotalBetsCount");
+            FilterByValue(ref objects, SportBetsCounts, "SportBetsCount");
             FilterByValue(ref objects, TotalWinAmounts, "TotalWinAmount");
             FilterByValue(ref objects, WinsCounts, "WinsCount");
             FilterByValue(ref objects, GGRs, "GGR");
@@ -62,18 +64,17 @@ namespace IqSoft.CP.DataWarehouse.Filters
             FilterByValue(ref objects, CreditCorrectionsCounts, "CreditCorrectionsCount");
             FilterByValue(ref objects, TotalCreditCorrections, "TotalCreditCorrection");
             FilterByValue(ref objects, DebitCorrectionsCounts, "DebitCorrectionsCount");
-            base.FilteredObjects(ref objects, orderBy);
+            base.FilteredObjects(ref objects, ordering, orderByDate, null);
         }
 
-        public IQueryable<fnClientReport> FilterObjects(IQueryable<fnClientReport> clients, Func<IQueryable<fnClientReport>,
-            IOrderedQueryable<fnClientReport>> orderBy = null)
+        public IQueryable<fnClientReport> FilterObjects(IQueryable<fnClientReport> clients, bool ordering)
         {
-            CreateQuery(ref clients, orderBy);
+            CreateQuery(ref clients, ordering);
             return clients;
         }
         public long SelectedObjectsCount(IQueryable<fnClientReport> objects)
         {
-            CreateQuery(ref objects);
+            CreateQuery(ref objects, false);
             return objects.Count();
         }             
     }

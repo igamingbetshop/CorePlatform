@@ -1927,7 +1927,7 @@ namespace IqSoft.CP.BLL.Caching
 
         public static List<BllClientClasification> GetClientClasifications(int clientId)
         {
-            var key = string.Format("{0}_{1}", Constants.CacheItems.ClientClasifications, clientId);
+            var key = string.Format("{0}_{1}", Constants.CacheItems.ClientClassifications, clientId);
             var oldValue = MemcachedCache.Get<List<BllClientClasification>>(key);
             if (oldValue != null) return oldValue ;
             var newValue = GetClientClasificationsFromDb(clientId);

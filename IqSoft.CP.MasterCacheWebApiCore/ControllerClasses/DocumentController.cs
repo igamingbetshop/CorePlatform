@@ -650,7 +650,6 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                         throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.ProductNotFound);
 
                     var provider = CacheManager.GetGameProviderById(product.GameProviderId.Value);
-                    Document doc = null;
                     switch (provider.Name)
                     {
                         case Constants.GameProviders.GlobalSlots:

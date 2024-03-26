@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Web;
 
 namespace IqSoft.CP.BetShopWebApi.Models.Common
 {
 	public class DoBetInput
 	{
+		public int PartnerId { get; set; }
+
 		public int BetType { get; set; }
 
 		public string GameId { get; set; }

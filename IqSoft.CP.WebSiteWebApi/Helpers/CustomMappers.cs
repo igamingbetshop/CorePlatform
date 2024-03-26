@@ -17,14 +17,15 @@ namespace IqSoft.CP.WebSiteWebApi.Helpers
                 return osType;
             //if (source.Contains("Linux")) //check
             //    osType = (int)OSTypes.Linux;
-            if (source.Contains("Mac OS"))
-                osType = (int)OSTypes.Mac;
-            else if (source.Contains("iPhone")) 
+            if (source.Contains("iPhone"))
                 osType = (int)OSTypes.IPhone;
             else if (source.Contains("iPad"))
                 osType = (int)OSTypes.IPad;
             else if (source.Contains("Android"))
                 osType = (int)OSTypes.Android;
+            else if (source.Contains("Mac OS"))
+                osType = (int)OSTypes.Mac;
+
             return osType;
         }
 

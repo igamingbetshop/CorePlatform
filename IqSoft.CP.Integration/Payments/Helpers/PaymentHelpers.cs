@@ -515,6 +515,12 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 case Constants.PaymentSystems.CoinsPaidUSDC:
                     response = CoinsPaidHelpers.PayoutRequest(paymentRequest, session, log);
                     break;
+                case Constants.PaymentSystems.KralPayPapara:
+                case Constants.PaymentSystems.KralPayMefete:
+                case Constants.PaymentSystems.KralPayCrypto:
+                case Constants.PaymentSystems.KralPayBankTransfer:
+                    response = KralPayHelpers.CreatePayoutRequest(paymentRequest, session, log);
+                    break;
                 case Constants.PaymentSystems.BRPay:
                     response = BRPayHelpers.PayoutRequest(paymentRequest, session, log);
                     break;
@@ -1051,6 +1057,12 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 case Constants.PaymentSystems.InternationalPSP:
                     paymentResponse.Url = InternationalPSPHelpers.CallPSPApi(paymentRequest, cashierPageUrl, session, log);
                     break;
+                case Constants.PaymentSystems.KralPayPapara:
+                case Constants.PaymentSystems.KralPayMefete:
+                case Constants.PaymentSystems.KralPayCrypto:
+                case Constants.PaymentSystems.KralPayBankTransfer:
+                    paymentResponse.Url = KralPayHelpers.CallKralPayApi(paymentRequest, cashierPageUrl, session, log);
+                    break;
                 case Constants.PaymentSystems.MoneyPayVisaMaster:
                 case Constants.PaymentSystems.MoneyPayAmericanExpress:
                     paymentResponse.Url = MoneyPayHelpers.CallMoneyPayApi(paymentRequest, cashierPageUrl, session, log);
@@ -1163,6 +1175,9 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                     break;  
                 case Constants.PaymentSystems.Jmitsolutions:
                     paymentResponse.Url = JmitsolutionsHelpers.PaymentRequest(paymentRequest, cashierPageUrl, session, log);
+                    break;
+                case Constants.PaymentSystems.Yaspa:
+                    paymentResponse.Url = YaspaHelpers.PaymentRequest(paymentRequest, cashierPageUrl, log);
                     break;
                 default:
                     throw BaseBll.CreateException(session.LanguageId, Constants.Errors.PaymentSystemNotFound);

@@ -38,6 +38,7 @@ namespace IqSoft.CP.DAL
         public int Order { get; set; }
         public Nullable<int> ParentId { get; set; }
         public string StyleType { get; set; }
+        public Nullable<int> DeviceType { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PromotionSegmentSetting> PromotionSegmentSettings { get; set; }

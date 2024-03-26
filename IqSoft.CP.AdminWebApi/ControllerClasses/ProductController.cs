@@ -106,6 +106,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                         var bonus = CacheManager.GetBonusById(apiFilter.BonusId.Value);
                         if (bonus != null)
                         {
+                            filter.IsProviderActive = true;
                             switch (bonus.Type)
                             {
                                 case (int)BonusTypes.CampaignFreeSpin:
@@ -147,8 +148,8 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                                         StringValue = string.Join(",", productIds)
                                     } }
                             };
-                        var games = productsBl.GetFnProducts(filter, !(user.Type == (int)UserTypes.MasterAgent ||
-                        user.Type == (int)UserTypes.Agent || user.Type == (int)UserTypes.AgentEmployee)).Entities
+                        var games = productsBl.GetFnProducts(filter, !(user.Type == (int)UserTypes.CompanyAgent ||
+                        user.Type == (int)UserTypes.DownlineAgent || user.Type == (int)UserTypes.AgentEmployee)).Entities
                         .Where(x => parentId == null || x.Path.Contains("/" + parentId.Value + "/")).ToList();
 
                         productIds = games.Select(x => x.Id).ToList();
@@ -185,8 +186,8 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                         }
                     }
 
-                    var products = productsBl.GetFnProducts(filter, !(user.Type == (int)UserTypes.MasterAgent ||
-                        user.Type == (int)UserTypes.Agent || user.Type == (int)UserTypes.AgentEmployee));
+                    var products = productsBl.GetFnProducts(filter, !(user.Type == (int)UserTypes.CompanyAgent ||
+                        user.Type == (int)UserTypes.DownlineAgent || user.Type == (int)UserTypes.AgentEmployee));
 
                     if (products.Entities.All(x => x.GameProviderId == null))
                         products.Entities = products.Entities.OrderBy(x => x.Name).ToList();
@@ -331,7 +332,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         private static ApiResponseBase SaveProductsCountrySetting(ApiProduct product, SessionIdentity identity, ILog log)
         {
             if (product.Countries != null && product.Countries.Ids!= null && product.Countries.Ids.Any() &&
-               (!product.Countries.Type.HasValue || !Enum.IsDefined(typeof(BonusSettingConditionTypes), product.Countries.Type)))
+               (!product.Countries.Type.HasValue || !Enum.IsDefined(typeof(ProductCountrySettingTypes), product.Countries.Type)))
                 throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.WrongInputParameters);
             using (var productsBl = new ProductBll(identity, log))
             {
@@ -342,6 +343,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 }).ToList(), product.State, out List<int> partners);
                 CacheManager.RemoveKeysFromCache(string.Format("{0}_", Constants.CacheItems.ProductCountrySetting));
                 CacheManager.RemoveKeysFromCache(string.Format("{0}_", Constants.CacheItems.PartnerProductSettings));
+                
                 Helpers.Helpers.InvokeMessage("RemoveKeysFromCache", string.Format("{0}_", Constants.CacheItems.ProductCountrySetting));
                 Helpers.Helpers.InvokeMessage("RemoveKeysFromCache", string.Format("{0}_", Constants.CacheItems.PartnerProductSettings));
                 foreach (var id in product.Ids)
@@ -897,7 +899,17 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                                 { "hilo", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
                                 { "andarbahar", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "livegames").Id },
                                 { "keno", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
-                                { "setteemezzo", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "tablegames").Id }
+                                { "setteemezzo", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "tablegames").Id },
+                                { "crash", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "crash").Id },
+                                { "instantwin", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
+                                { "wheel", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
+                                { "heads&tails", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
+                                { "ladders", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "slots").Id },
+                                { "mine", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
+                                { "hilo", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
+                                { "dice", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
+                                { "shooting", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
+                                { "plinko", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id }
                             };
                             providerGames = Integration.Products.Helpers.AleaPlayHelpers.GetGames(Constants.MainPartnerId).AsParallel()
                                             .Select(x => x.ToFnProduct(gameProviderId, dbCategories, aleaPlayGamesList, providers)).ToList();
@@ -970,10 +982,11 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
 								{ "Virtual", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id }
                             };
                             providerGames = new List<fnProduct>();
-                            providerGames = Integration.Products.Helpers.BGGamesHelpers.GetGames(1, log).AsParallel()
+                            providerGames = Integration.Products.Helpers.BGGamesHelpers.GetGames(Constants.MainPartnerId, log).AsParallel()
                                 .Select(x => x.ToFnProduct(gameProviderId, dbCategories, betgamesList, providers)).ToList();
                             break;
                         case Constants.GameProviders.TimelessTech:
+                        case Constants.GameProviders.BCWGames:
                             var tltgamesList = new Dictionary<string, int>
                             {
                                 { "casino", productCategories.First(x => x.NickName.ToLower() == "slots").Id },
@@ -981,7 +994,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                                 { "virtual-games", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id }
                             };
                             providerGames = new List<fnProduct>();
-                            providerGames = Integration.Products.Helpers.TimelessTechHelpers.GetGames(1).AsParallel()
+                            providerGames = Integration.Products.Helpers.TimelessTechHelpers.GetGames(Constants.MainPartnerId, gameProvider.Id).AsParallel()
                                 .Select(x => x.ToFnProduct(gameProviderId, dbCategories, tltgamesList, providers)).ToList();
                             break;
                         default:

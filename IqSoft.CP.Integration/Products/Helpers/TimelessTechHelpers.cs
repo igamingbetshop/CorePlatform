@@ -5,9 +5,7 @@ using IqSoft.CP.Common.Enums;
 using IqSoft.CP.Common.Helpers;
 using IqSoft.CP.Common.Models;
 using IqSoft.CP.Common.Models.Bonus;
-using IqSoft.CP.Common.Models.CacheModels;
 using IqSoft.CP.DAL.Models;
-using IqSoft.CP.Integration.Platforms.Models.OASIS;
 using IqSoft.CP.Integration.Products.Models.TimelessTech;
 using log4net;
 using Newtonsoft.Json;
@@ -19,30 +17,35 @@ namespace IqSoft.CP.Integration.Products.Helpers
 {
 	public class TimelessTechHelpers
 	{
-		private readonly static BllGameProvider Provider = CacheManager.GetGameProviderByName(Constants.GameProviders.TimelessTech);
-		public static string GetUrl(string token, int clientId, int partnerId, int productId, bool isForDemo, SessionIdentity session, log4net.ILog log)
+		public static string GetUrl(string token, int clientId, int partnerId, int productId, bool isForDemo, SessionIdentity session, ILog log)
 		{
 			var product = CacheManager.GetProductById(productId);
+			var provider = CacheManager.GetGameProviderById(product.GameProviderId.Value);
+			if (provider == null || provider.Name != Constants.GameProviders.TimelessTech && provider.Name != Constants.GameProviders.BCWGames)
+				throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongProviderId);
+
 			var client = CacheManager.GetClientById(clientId);
-			var operatorID = CacheManager.GetGameProviderValueByKey(partnerId, Provider.Id, Constants.PartnerKeys.TimelessTechOperatorID);
+			var operatorID = CacheManager.GetGameProviderValueByKey(partnerId, provider.Id, Constants.PartnerKeys.TimelessTechOperatorID);
 			var device = session.DeviceType == (int)DeviceTypes.Desktop ? "desktop" : "mobile";
 			var mode = isForDemo ? "fun" : "real";
-			var pragmaticLaunchUrl = CacheManager.GetGameProviderValueByKey(partnerId, Provider.Id, Constants.PartnerKeys.TimelessTechPragmaticLaunchUrl);
-			var isPragmatic = product.SubProviderId == CacheManager.GetGameProviderByName(Constants.GameProviders.PragmaticPlay).Id;
-			var launchUrl = isPragmatic ? pragmaticLaunchUrl : Provider.GameLaunchUrl;
-			var gameId = product.ExternalId.Contains("lobby") ? $"lobby_id={product.ExternalId.Split('_')[1]}" : $"game_id={product.ExternalId}";
+			var launchUrl = CacheManager.GetGameProviderValueByKey(partnerId, product.SubProviderId ?? product.GameProviderId.Value, Constants.PartnerKeys.TimelessTechLaunchUrl);
+			if (string.IsNullOrEmpty(launchUrl))
+				launchUrl = provider.GameLaunchUrl;
+			var gameId = product.ExternalId.Contains("lobby") ? $"lobby_id={product.ExternalId.Split(new string[] { "lobby_" }, StringSplitOptions.None)[1]}" : $"game_id={product.ExternalId}";
 			var url = $"{launchUrl}/?mode={mode}&{gameId}&language={session.LanguageId}&operator_id={operatorID}&device={device}";
 			if (isForDemo)
 				return url;
-			else
-			   return $"{url}&currency={client.CurrencyId}&token={token}";
+			return $"{url}&currency={client.CurrencyId}&token={token}";
 		}
 
-		public static List<Game> GetGames(int partnerId)
+		public static List<Game> GetGames(int partnerId, int providerId)
 		{
-			var sectetKey = CacheManager.GetGameProviderValueByKey(partnerId, Provider.Id, Constants.PartnerKeys.TimelessTechSecretkey);
-			var operatorID = CacheManager.GetGameProviderValueByKey(partnerId, Provider.Id, Constants.PartnerKeys.TimelessTechOperatorID);
-			var url = CacheManager.GetGameProviderValueByKey(partnerId, Provider.Id, Constants.PartnerKeys.TimelessTechUrl);
+			var provider = CacheManager.GetGameProviderById(providerId);
+            if (provider == null || provider.Name != Constants.GameProviders.TimelessTech && provider.Name != Constants.GameProviders.BCWGames)
+                throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongProviderId);
+            var sectetKey = CacheManager.GetGameProviderValueByKey(partnerId, providerId, Constants.PartnerKeys.TimelessTechSecretkey);
+			var operatorID = CacheManager.GetGameProviderValueByKey(partnerId, providerId, Constants.PartnerKeys.TimelessTechOperatorID);
+			var url = CacheManager.GetGameProviderValueByKey(partnerId, providerId, Constants.PartnerKeys.TimelessTechUrl);
 			var authorization = CommonFunctions.ComputeSha1($"games{operatorID}{sectetKey}");
 			var headers = new Dictionary<string, string> {
 				 { "X-Authorization", authorization } ,
@@ -57,16 +60,16 @@ namespace IqSoft.CP.Integration.Products.Helpers
 			var res = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
 			var games = JsonConvert.DeserializeObject<Data>(res);
 			var list = games.games.GroupBy(x => x.vendor).Select(y => y.Key);
-			var lobbies = GetLobbies(partnerId);
+			var lobbies = GetLobbies(partnerId, providerId);
 			games.games.AddRange(lobbies);
 			return games.games;
 		}
 
-		public static List<Game> GetLobbies(int partnerId)
+		public static List<Game> GetLobbies(int partnerId, int providerId)
 		{
-			var sectetKey = CacheManager.GetGameProviderValueByKey(partnerId, Provider.Id, Constants.PartnerKeys.TimelessTechSecretkey);
-			var operatorID = CacheManager.GetGameProviderValueByKey(partnerId, Provider.Id, Constants.PartnerKeys.TimelessTechOperatorID);
-			var url = CacheManager.GetGameProviderValueByKey(partnerId, Provider.Id, Constants.PartnerKeys.TimelessTechUrl);
+			var sectetKey = CacheManager.GetGameProviderValueByKey(partnerId, providerId, Constants.PartnerKeys.TimelessTechSecretkey);
+			var operatorID = CacheManager.GetGameProviderValueByKey(partnerId, providerId, Constants.PartnerKeys.TimelessTechOperatorID);
+			var url = CacheManager.GetGameProviderValueByKey(partnerId, providerId, Constants.PartnerKeys.TimelessTechUrl);
 			var authorization = CommonFunctions.ComputeSha1($"lobbies{operatorID}{sectetKey}");
 			var headers = new Dictionary<string, string> {
 				 { "X-Authorization", authorization } ,
@@ -96,20 +99,24 @@ namespace IqSoft.CP.Integration.Products.Helpers
 			return games;
 		}
 
-		public static string GetSignature(int partnerId, string timestamp, int clientId, string clientCurrencyId)
+		public static string GetSignature(int partnerId, int providerId, string timestamp, int clientId, string clientCurrencyId)
 		{
-			var sectetKey = CacheManager.GetGameProviderValueByKey(partnerId, Provider.Id, Constants.PartnerKeys.TimelessTechSecretkey);
+			var sectetKey = CacheManager.GetGameProviderValueByKey(partnerId, providerId, Constants.PartnerKeys.TimelessTechSecretkey);
 			var signature = clientId == 0 ? CommonFunctions.ComputeSha1($"relayer{timestamp}{sectetKey}")
 												  : CommonFunctions.ComputeSha1($"relayer{clientId}{clientCurrencyId}{timestamp}{sectetKey}");
 			return signature;
 		}
 
-		public static void CreateCampaign(FreeSpinModel freespinModel, ILog log)
+		public static void CreateCampaign(FreeSpinModel freespinModel, string providerName, ILog log)
 		{
+            if (providerName != Constants.GameProviders.TimelessTech && providerName != Constants.GameProviders.BCWGames)
+                throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongProviderId);
+            var provider = CacheManager.GetGameProviderByName(providerName);
+
 			var client = CacheManager.GetClientById(freespinModel.ClientId);
-			var sectetKey = CacheManager.GetGameProviderValueByKey(client.PartnerId, Provider.Id, Constants.PartnerKeys.TimelessTechSecretkey);
-			var operatorID = CacheManager.GetGameProviderValueByKey(client.PartnerId, Provider.Id, Constants.PartnerKeys.TimelessTechOperatorID);
-			var url = CacheManager.GetGameProviderValueByKey(client.PartnerId, Provider.Id, Constants.PartnerKeys.TimelessTechUrl);
+			var sectetKey = CacheManager.GetGameProviderValueByKey(client.PartnerId, provider.Id, Constants.PartnerKeys.TimelessTechSecretkey);
+			var operatorID = CacheManager.GetGameProviderValueByKey(client.PartnerId, provider.Id, Constants.PartnerKeys.TimelessTechOperatorID);
+			var url = CacheManager.GetGameProviderValueByKey(client.PartnerId, provider.Id, Constants.PartnerKeys.TimelessTechUrl);
 			var authorization = CommonFunctions.ComputeSha1($"campaigns{operatorID}{sectetKey}");
 			var headers = new Dictionary<string, string> {
 				 { "X-Authorization", authorization } ,
@@ -123,7 +130,7 @@ namespace IqSoft.CP.Integration.Products.Helpers
 			};
 			var res = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
 			var vendors = JsonConvert.DeserializeObject<Vendor>(res);
-			var product = CacheManager.GetProductByExternalId(Provider.Id, freespinModel.ProductExternalId);
+			var product = CacheManager.GetProductByExternalId(provider.Id, freespinModel.ProductExternalId);
 			if (!product.SubProviderId.HasValue)
 				throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongProviderId);
 			var subProvider = CacheManager.GetGameProviderById(product.SubProviderId.Value).Name;
@@ -161,12 +168,12 @@ namespace IqSoft.CP.Integration.Products.Helpers
 			};
 			res = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
 		}
-
-		public static void CancelCampaign(int partnerId)
+		/*
+		public static void CancelCampaign(int partnerId, int providerId)
 		{
-			var sectetKey = CacheManager.GetGameProviderValueByKey(partnerId, Provider.Id, Constants.PartnerKeys.TimelessTechSecretkey);
-			var operatorID = CacheManager.GetGameProviderValueByKey(partnerId, Provider.Id, Constants.PartnerKeys.TimelessTechOperatorID);
-			var url = CacheManager.GetGameProviderValueByKey(partnerId, Provider.Id, Constants.PartnerKeys.TimelessTechUrl);
+			var sectetKey = CacheManager.GetGameProviderValueByKey(partnerId, providerId, Constants.PartnerKeys.TimelessTechSecretkey);
+			var operatorID = CacheManager.GetGameProviderValueByKey(partnerId, providerId, Constants.PartnerKeys.TimelessTechOperatorID);
+			var url = CacheManager.GetGameProviderValueByKey(partnerId, providerId, Constants.PartnerKeys.TimelessTechUrl);
 			var authorization = CommonFunctions.ComputeSha1($"campaigns{operatorID}{sectetKey}");
 			var headers = new Dictionary<string, string> {
 				 { "X-Authorization", authorization } ,
@@ -187,11 +194,11 @@ namespace IqSoft.CP.Integration.Products.Helpers
 			var res = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
 		}
 
-		public static void AddPlayersToCampaign(int partnerId)
+		public static void AddPlayersToCampaign(int partnerId, int providerId)
 		{
-			var sectetKey = CacheManager.GetGameProviderValueByKey(partnerId, Provider.Id, Constants.PartnerKeys.TimelessTechSecretkey);
-			var operatorID = CacheManager.GetGameProviderValueByKey(partnerId, Provider.Id, Constants.PartnerKeys.TimelessTechOperatorID);
-			var url = CacheManager.GetGameProviderValueByKey(partnerId, Provider.Id, Constants.PartnerKeys.TimelessTechUrl);
+			var sectetKey = CacheManager.GetGameProviderValueByKey(partnerId, providerId, Constants.PartnerKeys.TimelessTechSecretkey);
+			var operatorID = CacheManager.GetGameProviderValueByKey(partnerId, providerId, Constants.PartnerKeys.TimelessTechOperatorID);
+			var url = CacheManager.GetGameProviderValueByKey(partnerId, providerId, Constants.PartnerKeys.TimelessTechUrl);
 			var authorization = CommonFunctions.ComputeSha1($"campaigns{operatorID}{sectetKey}");
 			var headers = new Dictionary<string, string> {
 				 { "X-Authorization", authorization } ,
@@ -237,6 +244,6 @@ namespace IqSoft.CP.Integration.Products.Helpers
 				PostData = JsonConvert.SerializeObject(data)
 			};
 			var res = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
-		}
+		}*/
 	}
 }

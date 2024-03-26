@@ -15,8 +15,9 @@ namespace IqSoft.CP.BLL.Models
 		public string Path { get; set; }
 		public int? ParentId { get; set; }
 		public int Level { get; set; }
-		
-		[JsonIgnore]
+        public int Priority { get; set; }
+
+        [JsonIgnore]
 		public string PermissionId { get; set; }
 		public List<ApiAdminMenu> Pages { get; set; }
 	}

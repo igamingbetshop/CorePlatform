@@ -619,7 +619,7 @@ namespace IqSoft.CP.BLL.Services
             return Db.fn_OperationType(LanguageId).ToList();
         }
 
-        public string ExportToCSV<T>(string fileName, List<T> exportList, DateTime? fromDate, DateTime? endDate, double timeZone, int? adminMenuId = null, int? adminMenuGridIndex = null)
+       /* public string ExportToCSV<T>(string fileName, List<T> exportList, DateTime? fromDate, DateTime? endDate, double timeZone, int? adminMenuId = null, int? adminMenuGridIndex = null)
         {
             List<UserMenuState> userMenuColumns = null;
             if (adminMenuId.HasValue)
@@ -729,6 +729,39 @@ namespace IqSoft.CP.BLL.Services
             }
 
             return fileAbsPath;
+        }*/
+        public string ExportToCSV<T>(string fileName, List<T> exportList, DateTime? fromDate, DateTime? endDate, double timeZone, int? adminMenuId = null, int? adminMenuGridIndex = null)
+        {
+            List<UserMenuState> userMenuColumns = null;
+            if (adminMenuId.HasValue)
+            {
+                using (var db = new IqSoftCorePlatformEntities())
+                {
+                    var state = db.UserStates.FirstOrDefault(x => x.UserId == Identity.Id && x.AdminMenuId == adminMenuId)?.State;
+                    if (state != null)
+                    {
+                        var adminMenu = JsonConvert.DeserializeObject<List<List<UserMenuState>>>(state);
+                        if (adminMenuGridIndex.HasValue)
+                            userMenuColumns = adminMenu[adminMenuGridIndex.Value];
+                        else
+                            userMenuColumns = adminMenu[0];
+                    }
+                }
+            }
+            DateTime currentDate = Convert.ToDateTime(GetServerDate().ToString("yyyy/MM/dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture));
+            fileName= $"{Guid.NewGuid()}_{fileName}";
+            if (fromDate != null && endDate != null)
+                fileName = $"/ExportExcelFiles/{fromDate.Value.GetGMTDateFromUTC(timeZone):dd_MM_yyyy_HH_mm_ss}_{endDate.Value.GetGMTDateFromUTC(timeZone):dd_MM_yyyy_HH_mm_ss}_{fileName}";
+            var lines = ExportExcelHelper.SaveToCSV<T>(exportList, fromDate, endDate, currentDate, timeZone, fileName, userMenuColumns);
+
+            var ftpModel = new FtpModel
+            {
+                Url = CacheManager.GetPartnerSettingByKey(Constants.MainPartnerId, Constants.PartnerKeys.StatementFTPServer).StringValue,
+                UserName = CacheManager.GetPartnerSettingByKey(Constants.MainPartnerId, Constants.PartnerKeys.StatementFTPUsername).StringValue,
+                Password = CacheManager.GetPartnerSettingByKey(Constants.MainPartnerId, Constants.PartnerKeys.StatementFTPPassword).StringValue
+            };
+            UploadFile(string.Join(Environment.NewLine, lines), fileName, ftpModel);
+            return fileName;
         }
 
         protected static IqSoftCorePlatformEntities CreateEntities()

@@ -22,7 +22,8 @@ namespace IqSoft.CP.AdminWebApi.Filters
         public ApiFiltersOperation TotalDepositAmounts { get; set; }
         public ApiFiltersOperation DepositsCounts { get; set; }
         public ApiFiltersOperation TotalBetAmounts { get; set; }
-        public ApiFiltersOperation BetsCounts { get; set; }
+        public ApiFiltersOperation TotalBetsCounts { get; set; }
+        public ApiFiltersOperation SportBetsCounts { get; set; }
         public ApiFiltersOperation TotalWinAmounts { get; set; }
         public ApiFiltersOperation WinsCounts { get; set; }
         public ApiFiltersOperation GGRs { get; set; }

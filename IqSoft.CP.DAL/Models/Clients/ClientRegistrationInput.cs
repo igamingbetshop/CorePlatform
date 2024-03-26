@@ -9,7 +9,7 @@ namespace IqSoft.CP.DAL.Models.Clients
         public int? ReferralType { get; set; }
         public int? BetShopId { get; set; }
         public AffiliateReferral ReferralData { get; set; }
-        public bool IsQuickRegistration { get; set; }
+        public int RegistrationType { get; set; }
         public bool GeneratedUsername { get; set; }
         public bool IsFromAdmin { get; set; }
         public string ReCaptcha { get; set; }

@@ -34,12 +34,12 @@ namespace IqSoft.CP.DAL
             this.UserSessions = new HashSet<UserSession>();
             this.UserStates = new HashSet<UserState>();
             this.ClientSettings = new HashSet<ClientSetting>();
-            this.Clients = new HashSet<Client>();
             this.BetShops = new HashSet<BetShop>();
             this.UserConfigurations = new HashSet<UserConfiguration>();
             this.UserConfigurations1 = new HashSet<UserConfiguration>();
             this.PaymentRequests = new HashSet<PaymentRequest>();
             this.Announcements = new HashSet<Announcement>();
+            this.Clients = new HashSet<Client>();
         }
     
         public int Id { get; set; }
@@ -111,8 +111,6 @@ namespace IqSoft.CP.DAL
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ClientSetting> ClientSettings { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Client> Clients { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<BetShop> BetShops { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<UserConfiguration> UserConfigurations { get; set; }
@@ -122,5 +120,7 @@ namespace IqSoft.CP.DAL
         public virtual ICollection<PaymentRequest> PaymentRequests { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Announcement> Announcements { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Client> Clients { get; set; }
     }
 }

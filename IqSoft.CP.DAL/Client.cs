@@ -19,6 +19,8 @@ namespace IqSoft.CP.DAL
         {
             this.AgentCommissions = new HashSet<AgentCommission>();
             this.AgentProfits = new HashSet<AgentProfit>();
+            this.ClientBonus = new HashSet<ClientBonu>();
+            this.ClientBonusTriggers = new HashSet<ClientBonusTrigger>();
             this.ClientClassifications = new HashSet<ClientClassification>();
             this.ClientClosedPeriods = new HashSet<ClientClosedPeriod>();
             this.ClientFavoriteProducts = new HashSet<ClientFavoriteProduct>();
@@ -26,20 +28,18 @@ namespace IqSoft.CP.DAL
             this.ClientInfoes = new HashSet<ClientInfo>();
             this.ClientLogs = new HashSet<ClientLog>();
             this.ClientMessages = new HashSet<ClientMessage>();
+            this.ClientMessageStates = new HashSet<ClientMessageState>();
             this.ClientPaymentInfoes = new HashSet<ClientPaymentInfo>();
-            this.ClientPaymentSettings = new HashSet<ClientPaymentSetting>();
             this.ClientSecurityAnswers = new HashSet<ClientSecurityAnswer>();
             this.ClientSessions = new HashSet<ClientSession>();
             this.ClientSettings = new HashSet<ClientSetting>();
             this.Documents = new HashSet<Document>();
             this.JobTriggers = new HashSet<JobTrigger>();
             this.PaymentLimits = new HashSet<PaymentLimit>();
+            this.PaymentRequests = new HashSet<PaymentRequest>();
             this.Tickets = new HashSet<Ticket>();
             this.TicketMessageStates = new HashSet<TicketMessageState>();
-            this.ClientBonus = new HashSet<ClientBonu>();
-            this.ClientBonusTriggers = new HashSet<ClientBonusTrigger>();
-            this.PaymentRequests = new HashSet<PaymentRequest>();
-            this.ClientMessageStates = new HashSet<ClientMessageState>();
+            this.ClientPaymentSettings = new HashSet<ClientPaymentSetting>();
         }
     
         public int Id { get; set; }
@@ -50,7 +50,7 @@ namespace IqSoft.CP.DAL
         public string PasswordHash { get; set; }
         public int Salt { get; set; }
         public int PartnerId { get; set; }
-        public int Gender { get; set; }
+        public Nullable<int> Gender { get; set; }
         public System.DateTime BirthDate { get; set; }
         public bool SendMail { get; set; }
         public bool SendSms { get; set; }
@@ -103,6 +103,7 @@ namespace IqSoft.CP.DAL
         public virtual ICollection<AgentCommission> AgentCommissions { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<AgentProfit> AgentProfits { get; set; }
+        public virtual Character Character { get; set; }
         public virtual ClientSession ClientSession { get; set; }
         public virtual Currency Currency { get; set; }
         public virtual JobArea JobArea1 { get; set; }
@@ -112,6 +113,10 @@ namespace IqSoft.CP.DAL
         public virtual Region Region1 { get; set; }
         public virtual User User { get; set; }
         public virtual ClientBankInfo ClientBankInfo { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<ClientBonu> ClientBonus { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<ClientBonusTrigger> ClientBonusTriggers { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ClientClassification> ClientClassifications { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
@@ -127,9 +132,9 @@ namespace IqSoft.CP.DAL
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ClientMessage> ClientMessages { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<ClientPaymentInfo> ClientPaymentInfoes { get; set; }
+        public virtual ICollection<ClientMessageState> ClientMessageStates { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<ClientPaymentSetting> ClientPaymentSettings { get; set; }
+        public virtual ICollection<ClientPaymentInfo> ClientPaymentInfoes { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ClientSecurityAnswer> ClientSecurityAnswers { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
@@ -143,17 +148,12 @@ namespace IqSoft.CP.DAL
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PaymentLimit> PaymentLimits { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PaymentRequest> PaymentRequests { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Ticket> Tickets { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<TicketMessageState> TicketMessageStates { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<ClientBonu> ClientBonus { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<ClientBonusTrigger> ClientBonusTriggers { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PaymentRequest> PaymentRequests { get; set; }
-        public virtual Character Character { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<ClientMessageState> ClientMessageStates { get; set; }
+        public virtual ICollection<ClientPaymentSetting> ClientPaymentSettings { get; set; }
     }
 }

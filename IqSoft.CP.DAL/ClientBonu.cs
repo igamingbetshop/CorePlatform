@@ -31,7 +31,7 @@ namespace IqSoft.CP.DAL
         public Nullable<bool> Considered { get; set; }
     
         public virtual Bonu Bonu { get; set; }
-        public virtual Client Client { get; set; }
         public virtual TriggerSetting TriggerSetting { get; set; }
+        public virtual Client Client { get; set; }
     }
 }

@@ -644,6 +644,11 @@ namespace IqSoft.CP.Common
             public const string ChangellyCard = "ChangellyCard";
             public const string ChangellyBankTransfer = "ChangellyBankTransfer";
             public const string InternationalPSP = "InternationalPSP";
+            public const string KralPay = "KralPay";
+            public const string KralPayPapara = "KralPayPapara";
+            public const string KralPayMefete = "KralPayMefete";
+            public const string KralPayBankTransfer = "KralPayBankTransfer";
+            public const string KralPayCrypto = "KralPayCrypto";
 
 
             public const string MoneyPayVisaMaster = "MoneyPayVisaMaster";
@@ -728,6 +733,8 @@ namespace IqSoft.CP.Common
             public const string Telebirr = "Telebirr";
 
             public const string Jmitsolutions = "Jmitsolutions";
+
+            public const string Yaspa = "Yaspa";
         }
 
         public static List<string> VoucherPaymentSystems { get; private set; } = new List<string>
@@ -814,28 +821,6 @@ namespace IqSoft.CP.Common
             public const string BCWGames = "BCWGames"; 
             public const string Fiverscool = "Fiverscool"; 
 		}
-
-        public static class InternalOperationType
-        {
-            public const string Request = "Request";
-            public const string Response = "Response";
-        }
-
-        public static class InternalOperationSource
-        {
-            public const int FromGameProvider = 1;
-            public const int FromPaymentSystem = 2;
-            public const int FromBetShopGateway = 3;
-            public const int FromAdminWebApi = 4;
-            public const int FromWebSiteWebApi = 5;
-        }
-
-        public static class PartnerStates
-        {
-            public const int Active = 1;
-            public const int Blocked = 2;
-        }
-
         public static class CashDeskStates
         {
             public const int Active = 1;
@@ -843,15 +828,6 @@ namespace IqSoft.CP.Common
             public const int BlockedForDeposit = 3;
             public const int Blocked = 4;
         }
-
-        public static class BetShopTypes
-        {
-            public const int Regular = 1;
-            public const int WithDeposit = 2;
-            public const int WithWithdraw = 3;
-            public const int WithDepositAndWithdraw = 4;
-        }
-
         public static class BetShopGroupStates
         {
             public const int Active = 1;
@@ -881,15 +857,6 @@ namespace IqSoft.CP.Common
 			{Games.Colors, "106"},
 			{Games.Bingo48, "107"}
 		};
-
-		public static class PaymentSystemDepositStates
-        {
-            public const int Made = 1;
-            public const int InProcess = 2;
-            public const int Payed = 3;
-            public const int Cancelled = 4;
-        }
-
         public static class HttpRequestMethods
         {
             public const string Post = "POST";
@@ -963,6 +930,7 @@ namespace IqSoft.CP.Common
             public const string ClientLastSportBet = "ClientLastSportBet";
             public const string ClientBalance = "ClientBalance";
             public const string ClientSettings = "ClientSettings";
+            public const string ClientPaymentSetting = "ClientPaymentSetting";
             public const string AccountBalances = "AccountBalances";
             public const string AccountTypePriorities = "AccountTypePriorities";
             public const string Accounts = "Accounts";
@@ -1249,11 +1217,11 @@ namespace IqSoft.CP.Common
             public const string RemovePromotions = "RemovePromotions";
             public const string RemoveNews = "RemoveNews";
             public const string ViewWebSiteMenu = "ViewWebSiteMenu";
-            public const string ViewAdminTranslations = "ViewAdminTranslations";
+            public const string ViewInterfaceTranslations = "ViewInterfaceTranslations";
             public const string ViewDocumentation = "ViewDocumentation";
             public const string EditWebSiteMenu = "EditWebSiteMenu";
             public const string EditWebSiteMenuTranslationEntry = "EditWebSiteMenuTranslationEntry";
-            public const string EditAdminTranslation = "EditAdminTranslation";
+            public const string EditInterfaceTranslation = "EditInterfaceTranslation";
 
             public const string CreateDebitCorrectionOnUser = "CreateDebitCorrectionOnUser";
             public const string CreateCreditCorrectionOnUser = "CreateCreditCorrectionOnUser";
@@ -1560,6 +1528,10 @@ namespace IqSoft.CP.Common
             public const string IgnoreSessionDomain = "IgnoreSessionDomain";
             public const string BetCommissionPercent = "BetCommissionPercent";
             public const string CRMPlarforms = "CRMPlarforms";
+            public const string StatementFTPServer = "StatementFTPServer";
+            public const string StatementFTPUsername = "StatementFTPUsername";
+            public const string StatementFTPPassword = "StatementFTPPassword";
+            public const string StatementPath = "StatementPath";
 
             #region Services
 
@@ -1619,11 +1591,14 @@ namespace IqSoft.CP.Common
             public const string CustomerIoApiKey = "CustomerIoApiKey";
             public const string CustomerIoUrl = "CustomerIoUrl";
 
-            #endregion
+            public const string SmarticoUrl = "SmarticoUrl";
+			public const string SmarticoToken = "SmarticoToken";
 
-            #region Products
+			#endregion
 
-            public const string EvolutionAuthToken = "EvolutionAuthToken";
+			#region Products
+
+			public const string EvolutionAuthToken = "EvolutionAuthToken";
             public const string PartnerWebSiteWebApiSecretKey = "PartnerWebSiteWebApiSecretKey";
             public const string PartnerMicroGamingLogin = "PartnerMicroGamingLogin";
             public const string PartnerMicroGamingPass = "PartnerMicroGamingPassword";
@@ -1865,7 +1840,7 @@ namespace IqSoft.CP.Common
             public const string TimelessTechOperatorID = "TimelessTechOperatorID";
             public const string TimelessTechSecretkey = "TimelessTechSecretkey";
             public const string TimelessTechUrl = "TimelessTechUrl";
-            public const string TimelessTechPragmaticLaunchUrl = "TimelessTechPragmaticLaunchUrl";
+            public const string TimelessTechLaunchUrl = "TimelessTechLaunchUrl";
 
 			public const string FiverscoolAgentCode = "FiverscoolAgentCode";
 			public const string FiverscoolAgentToken = "FiverscoolAgentToken";
@@ -1995,6 +1970,8 @@ namespace IqSoft.CP.Common
             public const string XcoinsPayApiPrivateKey = "XcoinsPayApiPrivateKey";
             public const string XcoinsPayRedirectUrl = "XcoinsPayRedirectUrl";
             public const string InternationalPSPApiUrl = "InternationalPSPApiUrl";
+            public const string KralPayApiUrl = "KralPayApiUrl";
+            public const string KralPayPayoutApiUrl = "KralPayPayoutApiUrl";
 
             public const string LuckyPayWithdrawUrl = "LuckyPayWithdrawUrl";
             public const string LuckyPayDepositUrl = "LuckyPayDepositUrl";
@@ -2063,6 +2040,9 @@ namespace IqSoft.CP.Common
 
 			public const string JmitsolutionsUrl = "JmitsolutionsUrl";
 
+			public const string YaspaUrl = "YaspaUrl";
+			public const string YaspaPublicKey = "YaspaPublicKey";
+
 			#endregion
 
 			#region Config
@@ -2097,10 +2077,6 @@ namespace IqSoft.CP.Common
             public const string GetClientsInfo = "GetClientsInfo";
         }
 
-        public static class PublishKeys
-        {
-            public const string ClientMessage = "ClientMessage";
-        }
 
 		public static class ClientSettings
 		{
@@ -2293,18 +2269,6 @@ namespace IqSoft.CP.Common
             AffiliatePlatforms.IncomeAccess,
             AffiliatePlatforms.Scaleo
         };
-        public static class InternalGames
-		{
-			public const int Poker = 24;
-			public const int Sportsbook = 1000;
-		}
-
-		public enum BetAcceptTypes
-		{
-			None = 1,
-			HigherOdds = 2,
-			AnyOdds = 3
-		}
 
         public enum ProiductCategories
         {
@@ -2315,6 +2279,22 @@ namespace IqSoft.CP.Common
             Slots = 19,
             Lottery = 22,
             VirtualGames = 23
+        }
+
+        public enum RegisterTypes
+        {
+            Full = 1,
+            Mobile = 2,
+            Email = 3
+        }
+
+        public enum SystemModuleTypes
+        {
+            ManagementSystem = 1,
+            AgentSystem = 2,
+            WebSite = 3,
+            BetShop = 4,
+            AffilliateSystem = 5,
         }
     }
 }

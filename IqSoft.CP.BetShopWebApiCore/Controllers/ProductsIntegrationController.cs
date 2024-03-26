@@ -2,65 +2,80 @@
 using IqSoft.CP.BetShopWebApi.Hubs;
 using IqSoft.CP.BetShopWebApi.Models;
 using IqSoft.CP.BetShopWebApi.Models.Common;
-using IqSoft.CP.BetShopWebApiCore;
 using IqSoft.CP.Common;
 using IqSoft.CP.Common.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
+using Newtonsoft.Json;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace IqSoft.CP.BetShopWebApi.Controllers
 {
-	[Route("api/[controller]/[action]")]
+	[Route("ProductsIntegration/[action]")]
 	[ApiController]
 	public class ProductsIntegrationController : ControllerBase
 	{
-
 		[HttpPost]
-		public SelectedNumbersOutput SendBetSelections(SendBetSelections betSelections)
+		public ApiResponseBase SendBetSelections(SendBetSelections betSelections)
 		{
 			try
 			{
-				var session = PlatformIntegration.GetCashierSessionByProductId(new GetCashierSessionInput
+				var requestInput = new PlatformRequestBase
 				{
 					TimeZone = 0,
 					LanguageId = Constants.DefaultLanguageId,
 					PartnerId = Constants.MainPartnerId,
-					SessionToken = betSelections.Token
-				});
-				if (session.ResponseCode != Constants.SuccessResponseCode)
-					return new SelectedNumbersOutput { Description = Constants.Errors.SessionNotFound.ToString(), ResponseCode = Constants.Errors.SessionNotFound };
+					Token = betSelections.Token
+				};
+				var resp = PlatformIntegration.SendRequestToPlatform(requestInput, ApiMethods.GetCashierSessionByToken);
 
-				var cashier = Program.Clients.FirstOrDefault(x => x.Key == session.Token);
+				if (resp.ResponseCode != Constants.SuccessResponseCode)
+					throw new Exception($"Code: {resp.ResponseCode}, Description: {resp.Description}");
+				var session = JsonConvert.DeserializeObject<AuthorizationOutput>(JsonConvert.SerializeObject(resp.ResponseObject));
+
+				if (session.ResponseCode != Constants.SuccessResponseCode)
+					return new ApiResponseBase
+					{
+						Description = PlatformIntegration.GetErrorById(new GetErrorInput
+						{ ErrorId = Constants.Errors.SessionNotFound, LanguageId = requestInput.LanguageId }),
+						ResponseCode = Constants.Errors.SessionNotFound
+					};
+
+				var cashier = BaseHub.ConnectedClients.FirstOrDefault(x => x.Key == session.Token);
 				if (string.IsNullOrEmpty(session.Token) ||
 					cashier.Equals(default(KeyValuePair<string, CashierIdentity>)))
 				{
-					Program.LogWriter.Error("SocketNotFound " + betSelections.Token);
-					return new SelectedNumbersOutput
+					return new ApiResponseBase
 					{
 						ResponseCode = Constants.Errors.SessionNotFound
 					};
 				}
 
-				CashierIdentity identity;
-				Program.Clients.TryGetValue(session.Token, out identity);
+				BaseHub.ConnectedClients.TryGetValue(session.Token, out CashierIdentity identity);
 				if (identity == null)
-					return new SelectedNumbersOutput { Description = Constants.Errors.SessionNotFound.ToString(), ResponseCode = Constants.Errors.SessionNotFound };
+					return new ApiResponseBase
+					{
+						Description = PlatformIntegration.GetErrorById(new GetErrorInput
+						{ ErrorId = Constants.Errors.SessionNotFound, LanguageId = requestInput.LanguageId }),
+						ResponseCode = Constants.Errors.SessionNotFound
+					};
 
 				foreach (var selection in betSelections.BetSelections)
 				{
 					selection.ProductId = Constants.GamesExternalIds.First(x => x.Value == selection.ProductId.ToString()).Key;
 				}
 
-				var response = BaseHub.CurrentContext.Clients.Clients(cashier.Value.ConnectionIds).SendAsync("onSendBetSelections", betSelections);
-				return new SelectedNumbersOutput();
+				foreach (var cId in cashier.Value.ConnectionIds)
+					BaseHub.CurrentContext.Clients.Client(cId).SendAsync("onSendBetSelections", betSelections);
+				return new ApiResponseBase();
 			}
 			catch (Exception ex)
 			{
-				Program.LogWriter.Error(ex);
-				var response = new SelectedNumbersOutput
+				Log.Error(ex.Message + ex.StackTrace);
+				var response = new ApiResponseBase
 				{
 					Description = ex.Message,
 					ResponseCode = Constants.Errors.GeneralException
@@ -70,48 +85,53 @@ namespace IqSoft.CP.BetShopWebApi.Controllers
 		}
 
 		[HttpPost]
-		public SelectedNumbersOutput CancelBetSelections(SendBetSelections betSelections)
+		public ApiResponseBase CancelBetSelections(SendBetSelections betSelections)
 		{
 			try
 			{
-				var session = PlatformIntegration.GetCashierSessionByProductId(new GetCashierSessionInput
+				var requestInput = new PlatformRequestBase
 				{
 					TimeZone = 0,
 					LanguageId = Constants.DefaultLanguageId,
 					PartnerId = Constants.MainPartnerId,
-					SessionToken = betSelections.Token
-				});
-				if (session.ResponseCode != Constants.SuccessResponseCode)
-					return new SelectedNumbersOutput { Description = Constants.Errors.SessionNotFound.ToString(), ResponseCode = Constants.Errors.SessionNotFound };
+					Token = betSelections.Token
+				};
+				var resp = PlatformIntegration.SendRequestToPlatform(requestInput, ApiMethods.GetCashierSessionByToken);
 
-				var cashier = Program.Clients.FirstOrDefault(x => x.Key == session.Token);
+				if (resp.ResponseCode != Constants.SuccessResponseCode)
+					throw new Exception($"Code: {resp.ResponseCode}, Description: {resp.Description}");
+				var session = JsonConvert.DeserializeObject<AuthorizationOutput>(JsonConvert.SerializeObject(resp.ResponseObject));
+				var cashier = BaseHub.ConnectedClients.FirstOrDefault(x => x.Key == session.Token);
 				if (string.IsNullOrEmpty(session.Token) ||
 					cashier.Equals(default(KeyValuePair<string, CashierIdentity>)))
 				{
-					Program.LogWriter.Error("SocketNotFound " + betSelections.Token);
-					return new SelectedNumbersOutput
+					Log.Error("SocketNotFound " + betSelections.Token);
+					return new ApiResponseBase
 					{
 						ResponseCode = Constants.Errors.SessionNotFound
 					};
 				}
-
-				CashierIdentity identity;
-				Program.Clients.TryGetValue(session.Token, out identity);
-				if (identity == null)
-					return new SelectedNumbersOutput { Description = Constants.Errors.SessionNotFound.ToString(), ResponseCode = Constants.Errors.SessionNotFound };
+				if (!BaseHub.ConnectedClients.TryGetValue(session.Token, out CashierIdentity identity) || identity == null)
+					return new ApiResponseBase
+					{
+						Description = PlatformIntegration.GetErrorById(new GetErrorInput
+						{ ErrorId = Constants.Errors.SessionNotFound, LanguageId = Constants.DefaultLanguageId }),
+						ResponseCode = Constants.Errors.SessionNotFound
+					};
 
 				foreach (var selection in betSelections.BetSelections)
 				{
 					selection.ProductId = Constants.GamesExternalIds.First(x => x.Value == selection.ProductId.ToString()).Key;
 				}
 
-				BaseHub.CurrentContext.Clients.Clients(cashier.Value.ConnectionIds).SendAsync("onCancelBetSelections", betSelections);
-				return new SelectedNumbersOutput();
+				foreach (var cId in cashier.Value.ConnectionIds)
+					BaseHub.CurrentContext.Clients.Client(cId).SendAsync("onCancelBetSelections", betSelections);
+				return new ApiResponseBase();
 			}
 			catch (Exception ex)
 			{
-				Program.LogWriter.Error(ex);
-				var response = new SelectedNumbersOutput
+				Log.Error(ex.Message + ex.StackTrace);
+				var response = new ApiResponseBase
 				{
 					Description = ex.Message,
 					ResponseCode = Constants.Errors.GeneralException
@@ -121,41 +141,41 @@ namespace IqSoft.CP.BetShopWebApi.Controllers
 		}
 
 		[HttpPost]
-		public void PrintExternalProductTicket(PlaceBetOutput betOutput)
+		public void PrintExternalProductTicket([FromQuery] RequestInfo info, PlaceBetOutput betOutput)
 		{
 			try
 			{
-				var session = PlatformIntegration.GetCashierSessionByProductId(new GetCashierSessionInput
+				var requestInput = new PlatformRequestBase
 				{
 					TimeZone = 0,
 					LanguageId = Constants.DefaultLanguageId,
 					PartnerId = Constants.MainPartnerId,
-					SessionToken = betOutput.Token
-				});
+					Token = betOutput.Token
+				};
+				var resp = PlatformIntegration.SendRequestToPlatform(requestInput, ApiMethods.GetCashierSessionByToken);
 
-				if (session.ResponseCode != Constants.SuccessResponseCode)
-					throw new Exception(Constants.Errors.SessionNotFound.ToString());
-
-				var cashier = Program.Clients.FirstOrDefault(x => x.Key == session.Token);
+				if (resp.ResponseCode != Constants.SuccessResponseCode)
+					throw new Exception($"Code: {resp.ResponseCode}, Description: {resp.Description}");
+				var session = JsonConvert.DeserializeObject<AuthorizationOutput>(JsonConvert.SerializeObject(resp.ResponseObject));
+				var cashier = BaseHub.ConnectedClients.FirstOrDefault(x => x.Key == session.Token);
 				if (string.IsNullOrEmpty(session.Token) ||
 					cashier.Equals(default(KeyValuePair<string, CashierIdentity>)))
 				{
-					Program.LogWriter.Error("SocketNotFound " + betOutput.Token);
+					Log.Error("SocketNotFound " + betOutput.Token);
 					throw new Exception(Constants.Errors.SessionNotFound.ToString());
 				}
-				CashierIdentity identity;
-				Program.Clients.TryGetValue(session.Token, out identity);
-				if (identity == null)
+				if (!BaseHub.ConnectedClients.TryGetValue(session.Token, out CashierIdentity identity) || identity == null)
 					throw new Exception(Constants.Errors.SessionNotFound.ToString());
 				betOutput.Bets[0].BetDate = betOutput.Bets[0].BetDate.GetGMTDateFromUTC(identity.TimeZone);
 				foreach (BllBetSelection selection in betOutput.Bets[0].BetSelections)
 					selection.EventDate = selection.EventDate.GetGMTDateFromUTC(identity.TimeZone);
-				BaseHub.CurrentContext.Clients.Clients(cashier.Value.ConnectionIds).SendAsync("onPrintExternalProductTicket",
-					new ClientRequestResponseBase { ResponseObject = betOutput });
+				foreach (var cId in cashier.Value.ConnectionIds)
+					BaseHub.CurrentContext.Clients.Client(cId).SendAsync("onPrintExternalProductTicket", new ApiResponseBase { ResponseObject = betOutput });
+
 			}
 			catch (Exception ex)
 			{
-				Program.LogWriter.Error(ex);
+				Log.Error(ex.Message + ex.StackTrace);
 			}
 		}
 	}

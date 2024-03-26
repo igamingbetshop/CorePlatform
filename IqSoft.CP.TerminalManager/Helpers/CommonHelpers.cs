@@ -1,4 +1,6 @@
-﻿using System.Net.NetworkInformation;
+﻿using System.Management;
+using System.Net.NetworkInformation;
+using System.Runtime.Versioning;
 
 namespace IqSoft.CP.TerminalManager.Helpers
 {
@@ -16,6 +18,27 @@ namespace IqSoft.CP.TerminalManager.Helpers
                 }
             }
             return null;
+        }
+
+        [SupportedOSPlatform("windows")]
+        public static string GetMotherBoardID()
+        {
+            try
+            {
+                var mos = new ManagementObjectSearcher("SELECT SerialNumber FROM Win32_BaseBoard");
+                ManagementObjectCollection moc = mos.Get();
+                var serial = string.Empty;
+
+                foreach (ManagementObject mo in moc)
+                {
+                    serial = mo["SerialNumber"].ToString();
+                }
+                return serial;
+            }
+            catch (Exception)
+            {
+                return string.Empty;
+            }
         }
     }
 }

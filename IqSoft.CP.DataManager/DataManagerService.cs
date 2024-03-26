@@ -27,6 +27,7 @@ namespace IqSoft.CP.DataManager
         private readonly Timer _dashboardInfoTimer;
         private readonly Timer _providerBetsTimer;
         private readonly Timer _paymentRequestsTimer;
+        private readonly Timer _clientInfoTimer;
         private readonly Timer _executeInfoTimer;
 
         public DataManagerService()
@@ -53,6 +54,7 @@ namespace IqSoft.CP.DataManager
             _dashboardInfoTimer = new Timer(CalculateDashboardInfo, null, Timeout.Infinite, Timeout.Infinite);
             _providerBetsTimer = new Timer(CalculateProviderBets, null, Timeout.Infinite, Timeout.Infinite);
             _paymentRequestsTimer = new Timer(CalculatePaymentInfo, null, Timeout.Infinite, Timeout.Infinite);
+            _clientInfoTimer = new Timer(CalculateClientInfo, null, Timeout.Infinite, Timeout.Infinite);
             _executeInfoTimer = new Timer(ExecuteInfoFunctions, null, Timeout.Infinite, Timeout.Infinite);
         }
 
@@ -77,6 +79,7 @@ namespace IqSoft.CP.DataManager
             _dashboardInfoTimer.Change(60000, 60000);
             _providerBetsTimer.Change(60000, 60000);
             _paymentRequestsTimer.Change(60000, 60000);
+            _clientInfoTimer.Change(60000, 60000);
             _executeInfoTimer.Change(60000, 60000);
         }
 
@@ -101,6 +104,7 @@ namespace IqSoft.CP.DataManager
             _dashboardInfoTimer.Change(Timeout.Infinite, Timeout.Infinite);
             _providerBetsTimer.Change(Timeout.Infinite, Timeout.Infinite);
             _paymentRequestsTimer.Change(Timeout.Infinite, Timeout.Infinite);
+            _clientInfoTimer.Change(Timeout.Infinite, Timeout.Infinite);
             _executeInfoTimer.Change(Timeout.Infinite, Timeout.Infinite);
         }
 
@@ -223,6 +227,12 @@ namespace IqSoft.CP.DataManager
             _paymentRequestsTimer.Change(Timeout.Infinite, Timeout.Infinite);
             DataCombiner.CalculatePaymentInfo(Program.DbLogger, 0);
             _paymentRequestsTimer.Change(60000, 60000);
+        }
+        public void CalculateClientInfo(Object sender)
+        {
+            _clientInfoTimer.Change(Timeout.Infinite, Timeout.Infinite);
+            DataCombiner.CalculateClientInfo(Program.DbLogger, 0, 0);
+            _clientInfoTimer.Change(60000, 60000);
         }
 
         public void ExecuteInfoFunctions(Object sender)

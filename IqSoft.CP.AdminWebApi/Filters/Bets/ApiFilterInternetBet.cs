@@ -71,6 +71,8 @@ namespace IqSoft.CP.AdminWebApi.Filters.Bets
         public ApiFiltersOperation Rakes { get; set; }
         public ApiFiltersOperation BonusAmounts { get; set; }
         public ApiFiltersOperation OriginalBonusAmounts { get; set; }
+        public ApiFiltersOperation BonusWinAmounts { get; set; }
+        public ApiFiltersOperation OriginalBonusWinAmounts { get; set; }
 
         public ApiFiltersOperation Balances { get; set; }
 

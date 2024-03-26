@@ -45,5 +45,6 @@ namespace IqSoft.CP.DataWarehouse
         public Nullable<decimal> BonusAmount { get; set; }
         public Nullable<long> AccountId { get; set; }
         public Nullable<decimal> BonusWinAmount { get; set; }
+        public Nullable<int> PartnerId { get; set; }
     }
 }

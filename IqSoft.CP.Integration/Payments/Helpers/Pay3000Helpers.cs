@@ -4,6 +4,8 @@ using IqSoft.CP.Common;
 using IqSoft.CP.Common.Enums;
 using IqSoft.CP.Common.Helpers;
 using IqSoft.CP.Common.Models;
+using IqSoft.CP.Common.Models.CacheModels;
+using IqSoft.CP.Common.Models.WebSiteModels;
 using IqSoft.CP.Common.Models.WebSiteModels.Clients;
 using IqSoft.CP.DAL;
 using IqSoft.CP.DAL.Models;
@@ -16,6 +18,7 @@ using System;
 using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
+using System.ServiceModel;
 
 namespace IqSoft.CP.Integration.Payments.Helpers
 {
@@ -25,41 +28,32 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 
 		public static ClientPaymentInfo RegisterConsent(ClientPaymentInfo input, int partnerId, SessionIdentity session, ILog log)
 		{
-			var client = CacheManager.GetClientById(input.ClientId);
-			var baseUrl = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.Pay3000Url).StringValue;
-			var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, PaymentSystem.Id,
-																			   client.CurrencyId, (int)PaymentRequestTypes.Deposit);
-			var cashierPageUrl = CacheManager.GetPartnerSettingByKey(partnerId, Constants.PartnerKeys.CashierPageUrl).StringValue;
-			if (string.IsNullOrEmpty(cashierPageUrl))
-				cashierPageUrl = string.Format("https://{0}/user/1/deposit/", session.Domain);
-			else
-				cashierPageUrl = string.Format(cashierPageUrl, session.Domain);
-			var postData = JsonConvert.SerializeObject(new
+			var info = new ClientPaymentInfo();
+			using (var clientBl = new ClientBll(new SessionIdentity(), log))
 			{
-				acceptUrl = cashierPageUrl,
-				rejectUrl = cashierPageUrl,
-				failureUrl = cashierPageUrl
-			});
-			var headers = new Dictionary<string, string>
+				try
+				{
+					var paymentInfo = clientBl.GetClientPaymentAccountDetails(input.WalletNumber, PaymentSystem.Id, new List<int> { (int)ClientPaymentInfoTypes.Wallet });
+					if (paymentInfo.Any())
+						throw BaseBll.CreateException(session.LanguageId, Constants.Errors.ClientPaymentInfoAlreadyExists);
+					var client = CacheManager.GetClientById(input.ClientId);
+					var baseUrl = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.Pay3000Url).StringValue;
+					var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, PaymentSystem.Id,
+																					   client.CurrencyId, (int)PaymentRequestTypes.Deposit);
+					var headers = new Dictionary<string, string>
 					{
 						{ "Authorization", $"Bearer {partnerPaymentSetting.Password}"}
 					};
-			var httpRequestInput = new HttpRequestInput
-			{
-				ContentType = Constants.HttpContentTypes.ApplicationJson,
-				RequestMethod = Constants.HttpRequestMethods.Post,
-				RequestHeaders = headers,
-				Url = $"{baseUrl}ecommerce/register-consent?ownerAccountNumber={input.WalletNumber}",
-				PostData = postData
-			};
-			var info = new ClientPaymentInfo();
-			try
-			{
+					var httpRequestInput = new HttpRequestInput
+					{
+						ContentType = Constants.HttpContentTypes.ApplicationJson,
+						RequestMethod = Constants.HttpRequestMethods.Post,
+						RequestHeaders = headers,
+						Url = $"{baseUrl}ecommerce/register-consent?ownerAccountNumber={input.WalletNumber}"
+					};
 
-				var res = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
-				var output = JsonConvert.DeserializeObject<ConsentOutput>(res);
-				using (var clientBl = new ClientBll(new SessionIdentity(), log))
-				{
+					var res = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
+					var output = JsonConvert.DeserializeObject<ConsentOutput>(res);
 					info = clientBl.GetClientPaymentAccountDetails(client.Id, PaymentSystem.Id, new List<int> { (int)ClientPaymentInfoTypes.Wallet }, false)
 												.FirstOrDefault(x => x.WalletNumber == output.ConsentId);
 					if (info == null)
@@ -76,27 +70,30 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 							State = (int)ClientPaymentInfoStates.Pending
 						}, log);
 					}
-					info.State = (int)ClientPaymentInfoStates.Pending;
 				}
-			}
-			catch (Exception ex)
-			{
-				var error = JsonConvert.DeserializeObject<ConsentErrorOutput>(ex.Message);
-				if (error.ErrorCode == "EC01")
-					throw new Exception("Customer not found!");
+				catch (FaultException<BllFnErrorType> ex)
+				{
+					throw BaseBll.CreateException(string.Empty, ex.Detail == null ? Constants.Errors.GeneralException : ex.Detail.Id);
+				}
+				catch (Exception ex)
+				{
+					var error = JsonConvert.DeserializeObject<ConsentErrorOutput>(ex.Message);
+					if (error.ErrorCode == "EC01")
+						throw new Exception("Customer not found!");
+				}
 			}
 			return info;
 		}
 
-		public static void PaymentRequest(PaymentRequest input, string cashierPageUrl, SessionIdentity session, ILog log)
+		public static string PaymentRequest(PaymentRequest input, string cashierPageUrl, SessionIdentity session, ILog log)
 		{
-			var client = CacheManager.GetClientById(input.ClientId);
-			InitiatePayment(input, cashierPageUrl, "DEBIT_CUSTOMER", client, session, log);
+			var client = CacheManager.GetClientById(input.ClientId.Value);
+			return InitiatePayment(input, cashierPageUrl, "DEBIT_CUSTOMER", client, session, log);
 		}
 
 		public static PaymentResponse PayoutRequest(PaymentRequest input, SessionIdentity session, ILog log)
 		{
-			var client = CacheManager.GetClientById(input.ClientId);
+			var client = CacheManager.GetClientById(input.ClientId.Value);
 			var cashierPageUrl = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.CashierPageUrl).StringValue;
 			if (string.IsNullOrEmpty(cashierPageUrl))
 				cashierPageUrl = string.Format("https://{0}/user/1/deposit/", session.Domain);
@@ -109,7 +106,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 			};
 		}
 
-		public static void InitiatePayment(PaymentRequest input, string cashierPageUrl, string type, BllClient client, SessionIdentity session, ILog log)
+		public static string InitiatePayment(PaymentRequest input, string cashierPageUrl, string type, BllClient client, SessionIdentity session, ILog log)
 		{
 			using (var paymentSystemBl = new PaymentSystemBll(session, log))
 			{
@@ -123,12 +120,6 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 												.FirstOrDefault();
 					if (clientWalletInfo == null)
 						throw BaseBll.CreateException(session.LanguageId, Constants.Errors.WrongPaymentRequest);
-					var postData = JsonConvert.SerializeObject(new
-					{
-						acceptUrl = cashierPageUrl,
-						rejectUrl = cashierPageUrl,
-						failureUrl = cashierPageUrl
-					});
 					var headers = new Dictionary<string, string>
 					{
 						{ "Authorization", $"Bearer {partnerPaymentSetting.Password}"},
@@ -139,8 +130,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 						ContentType = Constants.HttpContentTypes.ApplicationJson,
 						RequestMethod = Constants.HttpRequestMethods.Post,
 						RequestHeaders = headers,
-						Url = $"{baseUrl}ecommerce/initiate-payment?amount={input.Amount}&type={type}",
-						PostData = postData
+						Url = $"{baseUrl}ecommerce/initiate-payment?amount={input.Amount}&type={type}"
 					};
 					var res = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
 					if (res.Contains("error"))
@@ -152,6 +142,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 					{
 						clientBl.ChangeDepositRequestState(input.Id, PaymentRequestStates.PayPanding, string.Empty, notificationBl);
 					}
+					return "ConfirmationCode";
 				}
 			}
 		}
@@ -192,7 +183,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 
 		public static string OKTOKYCProcess(PaymentRequest input, string cashierPageUrl, SessionIdentity session, ILog log)
 		{
-			var client = CacheManager.GetClientById(input.ClientId);
+			var client = CacheManager.GetClientById(input.ClientId.Value);
 			var baseUrl = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.Pay3000Url).StringValue;
 			var postData = JsonConvert.SerializeObject(new
 			{

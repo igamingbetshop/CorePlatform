@@ -11,5 +11,7 @@
         public string Token { get; set; }
 
         public int? ProductId { get; set; }
+        
+        public bool KeepOldToken { get; set; }
     }
 }

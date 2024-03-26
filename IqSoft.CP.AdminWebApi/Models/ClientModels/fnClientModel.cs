@@ -24,7 +24,7 @@ namespace IqSoft.CP.AdminWebApi.ClientModels.Models
         [NotExcelProperty]
         public string SecondSurname { get; set; }
         [NotExcelProperty]
-        public int Gender { get; set; }
+        public int? Gender { get; set; }
         [JsonProperty(PropertyName = "Gender"), JsonIgnore]
         public string GenderName { get; set; }
         public string MobileNumber { get; set; }

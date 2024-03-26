@@ -18,6 +18,8 @@ namespace IqSoft.CP.DAL
         public int ClientId { get; set; }
         public int PartnerPaymentSettingId { get; set; }
         public int State { get; set; }
+        public System.DateTime CreationTime { get; set; }
+        public System.DateTime LastUpdateTime { get; set; }
     
         public virtual Client Client { get; set; }
         public virtual PartnerPaymentSetting PartnerPaymentSetting { get; set; }

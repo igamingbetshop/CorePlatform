@@ -85,11 +85,11 @@ namespace IqSoft.CP.ProductGateway.Controllers
 						responseData = Changebalance(transactiontData, clientSession, client, providerId.Value);
 						break;
 					case TimelessTechHelpers.Methods.FinishRound:
-                        var finishRound = JsonConvert.DeserializeObject<RoundInput>(JsonConvert.SerializeObject(input.DataInput));
+                        var finishRound = JsonConvert.DeserializeObject<FinishRoundInput>(JsonConvert.SerializeObject(input.DataInput));
                         client = CacheManager.GetClientById(Convert.ToInt32(finishRound.UserId)) ??
                             throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.ClientNotFound);
-
-                        break;
+						responseData = FinishRound(finishRound, client, providerId.Value);
+						break;
 
                     case TimelessTechHelpers.Methods.Cancel:
 						var cancelData = JsonConvert.DeserializeObject<RoundInput>(JsonConvert.SerializeObject(input.DataInput));
@@ -145,7 +145,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
 			}
 			catch (Exception ex)
 			{
-				WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(input) + "_" + ex.Message);
+				WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(input) + "_" + ex);
 				response = JsonConvert.SerializeObject(new BaseOutput()
 				{
 					Request = request,
@@ -278,6 +278,29 @@ namespace IqSoft.CP.ProductGateway.Controllers
 				documentBl.RollbackProductTransactions(operationsFromProduct);
 				BaseHelpers.RemoveClientBalanceFromeCache(client.Id);
 			}
+		}
+
+
+		private static object FinishRound(FinishRoundInput input, BllClient client, int providerId)
+		{
+			var product = CacheManager.GetProductByExternalId(providerId, input.GameId.ToString()) ??
+				throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongProductId);
+			var partnerProductSetting = CacheManager.GetPartnerProductSettingByProductId(client.PartnerId, product.Id) ??
+				throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.ProductNotAllowedForThisPartner);
+			var transactioninput = new TransactionInput()
+			{
+				GameId = input.GameId,
+				RoundId = input.RoundId,
+				TransactionId = input.RoundId,
+				Amount = 0
+			};
+			DoWin(transactioninput, new SessionIdentity(), client, partnerProductSetting.Id, product, providerId);
+			return new
+			{
+				user_id = client.Id.ToString(),
+				round_id = input.RoundId,
+				game_id = input.GameId
+			};
 		}
 
 		private static void DoBet(TransactionInput input, SessionIdentity session, BllClient client, int partnerProductSettingId, int productId, int providerId)

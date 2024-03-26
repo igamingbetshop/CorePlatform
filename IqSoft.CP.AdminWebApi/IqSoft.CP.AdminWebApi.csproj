@@ -412,6 +412,7 @@
     <Compile Include="Models\ContentModels\ApiNews.cs" />
     <Compile Include="Models\ContentModels\ApiPopup.cs" />
     <Compile Include="Models\ContentModels\ApiPromotion.cs" />
+    <Compile Include="Models\ContentModels\ApiTranslationMenu.cs" />
     <Compile Include="Models\NotificationModels\EmailModel.cs" />
     <Compile Include="Models\PartnerModels\ApiCharacter.cs" />
     <Compile Include="Models\PartnerModels\ApiCharacterRelations.cs" />

@@ -55,6 +55,7 @@ namespace IqSoft.CP.DataWarehouse
         public Nullable<int> SelectionsCount { get; set; }
         public Nullable<decimal> Rake { get; set; }
         public Nullable<decimal> BonusAmount { get; set; }
+        public Nullable<decimal> BonusWinAmount { get; set; }
         public string AffiliateId { get; set; }
         public Nullable<long> AccountId { get; set; }
     }

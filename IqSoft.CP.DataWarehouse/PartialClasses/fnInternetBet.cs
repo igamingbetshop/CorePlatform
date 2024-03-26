@@ -21,5 +21,6 @@ namespace IqSoft.CP.DataWarehouse
         public decimal OriginalBetAmount { get; set; }
         public decimal OriginalWinAmount { get; set; }
         public decimal OriginalBonusAmount { get; set; }
+        public decimal OriginalBonusWinAmount { get; set; }
     }
 }

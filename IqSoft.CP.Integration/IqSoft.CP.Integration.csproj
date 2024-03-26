@@ -347,6 +347,7 @@
     <Compile Include="Payments\Helpers\JetonHavaleHelpers.cs" />
     <Compile Include="Payments\Helpers\JetonHelpers.cs" />
     <Compile Include="Payments\Helpers\JmitsolutionsHelpers.cs" />
+    <Compile Include="Payments\Helpers\KralPayHelpers.cs" />
     <Compile Include="Payments\Helpers\MaldoPayHelpers.cs" />
     <Compile Include="Payments\Helpers\MaxPayHelpers.cs" />
     <Compile Include="Payments\Helpers\NgineHelpers.cs" />
@@ -400,6 +401,7 @@
     <Compile Include="Payments\Helpers\TronLinkHelpers.cs" />
     <Compile Include="Payments\Helpers\VevoPayHelpers.cs" />
     <Compile Include="Payments\Helpers\XcoinsPayHelpers.cs" />
+    <Compile Include="Payments\Helpers\YaspaHelpers.cs" />
     <Compile Include="Payments\Helpers\ZippyHelpers.cs" />
     <Compile Include="Payments\Models\ApcoPay\PaymentInput.cs" />
     <Compile Include="Payments\Models\ApcoPay\PaymentOutput.cs" />
@@ -466,6 +468,7 @@
     <Compile Include="Payments\Models\Jeton\VoucherOutput.cs" />
     <Compile Include="Payments\Models\Jmitsolutions\PaymentOutput.cs" />
     <Compile Include="Payments\Models\Jmitsolutions\PayoutOutput.cs" />
+    <Compile Include="Payments\Models\KralPay\PayoutOutput.cs" />
     <Compile Include="Payments\Models\MaldoPay\PayoutInput.cs" />
     <Compile Include="Payments\Models\MaldoPay\PaymentOutput.cs" />
     <Compile Include="Payments\Models\MaxPay\PaymentOutput.cs" />
@@ -591,6 +594,7 @@
     <Compile Include="Payments\Models\VevoPay\PaymentOutput.cs" />
     <Compile Include="Payments\Models\VevoPay\PayoutOutput.cs" />
     <Compile Include="Payments\Models\XcoinsPay\PaymentOutput.cs" />
+    <Compile Include="Payments\Models\Yaspa\PaymentOutput.cs" />
     <Compile Include="Payments\Models\Zippy\PaymentRequestOutput.cs" />
     <Compile Include="Payments\Models\Zippy\PayoutGeneratorOutput.cs" />
     <Compile Include="Payments\Models\Zippy\PayoutOutput.cs" />

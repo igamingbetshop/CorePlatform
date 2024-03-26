@@ -54,6 +54,7 @@ namespace IqSoft.CP.DAL.Filters.PaymentRequests
         public FiltersOperation BetShopNames { get; set; }
 
         public FiltersOperation Amounts { get; set; }
+        public FiltersOperation FinalAmounts { get; set; }
 
         public FiltersOperation CreationTimes { get; set; }
 
@@ -127,6 +128,7 @@ namespace IqSoft.CP.DAL.Filters.PaymentRequests
             FilterByValue(ref objects, BetShopIds, "BetShopId");
             FilterByValue(ref objects, BetShopNames, "BetShopName");
             FilterByValue(ref objects, Amounts, "Amount");
+            FilterByValue(ref objects, FinalAmounts, "FinalAmount");
             FilterByValue(ref objects, CreationTimes, "CreationTime");
             FilterByValue(ref objects, LastUpdateTimes, "LastUpdateTime");
             FilterByValue(ref objects, ExternalTransactionIds, "ExternalTransactionId");

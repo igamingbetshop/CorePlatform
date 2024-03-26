@@ -1,9 +1,5 @@
-﻿using IqSoft.CP.Common.Helpers;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Web;
 
 namespace IqSoft.CP.BetShopWebApi.Models.Common
 {
@@ -35,17 +31,23 @@ namespace IqSoft.CP.BetShopWebApi.Models.Common
 
 		public decimal Coefficient { get; set; }
 
-		[JsonConverter(typeof(CustomDateTimeConverter))]
 		public DateTime BetDate { get; set; }
 
-		[JsonConverter(typeof(CustomDateTimeConverter))]
 		public DateTime? WinDate { get; set; }
 
-		[JsonConverter(typeof(CustomDateTimeConverter))]
 		public DateTime? PayDate { get; set; }
 
 		public bool IsLive { get; set; }
 
 		public List<BllBetSelection> BetSelections { get; set; }
+		public int NumberOfBets { get; set; }
+		public int NumberOfMatches { get; set; }
+		public decimal AmountPerBet { get; set; }
+		public decimal CommissionFee { get; set; }
+		public decimal PossibleWin { get; set; }
+		public List<int> SystemOutCounts { get; set; }
+		public decimal CashoutAmount { get; set; }
+
+		public bool BlockedForCashout { get; set; }
 	}
 }

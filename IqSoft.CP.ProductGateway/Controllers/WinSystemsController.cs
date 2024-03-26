@@ -20,6 +20,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.ServiceModel;
 using System.Text;
+using System.Web;
 using System.Web.Http;
 
 namespace IqSoft.CP.ProductGateway.Controllers
@@ -27,8 +28,13 @@ namespace IqSoft.CP.ProductGateway.Controllers
     public class WinSystemsController : ApiController
     {
         private static readonly int ProviderId = CacheManager.GetGameProviderByName(Constants.GameProviders.WinSystems).Id;
-        public static List<string> WhitelistedIps = CacheManager.GetProviderWhitelistedIps(Constants.GameProviders.WinSystems);
-       
+
+        private static readonly List<string> WhitelistedIps = new List<string>
+        {
+            "10.1.12.197",
+            "10.1.12.192"
+        };
+
         [HttpPost]
         [Route("{partnerId}/api/WinSystems/GetPlayerInfo")]
         public HttpResponseMessage GetPlayerInfo(PlayerInfoInput input, [FromUri] int partnerId)
@@ -554,11 +560,11 @@ namespace IqSoft.CP.ProductGateway.Controllers
                     {
                         PartnerId = client.PartnerId,
                         ClientId = client.Id,
-                        MobileOrEmail = type == ClientMessageTypes.Email ? client.Email : client.MobileNumber,
+                        MobileOrEmail = type == ClientMessageTypes.Email  ? client.Email : client.MobileNumber,
                         ClientInfoType = input.Type,
                         MessageText = input.Message,
                         MessageType = (int)type
-                    }, out int responseCode);
+                    });
                 else
                     notificationBll.SendInternalTicket(client.Id, input.Type, input.Message);
             }

@@ -93,6 +93,9 @@ namespace IqSoft.CP.BetShopWebApi.Controllers
 					case ApiMethods.GetAvailableProducts:
 						break;
                     case ApiMethods.GetBetByBarcode:
+                        var resp = PlatformIntegration.SendRequestToPlatform(requestInput, ApiMethods.GetBetByBarcode);
+                        if (resp.ResponseCode != Constants.SuccessResponseCode)
+                            response.ResponseObject = resp;
                         var getBetByBarcodeInput =
                             JsonConvert.DeserializeObject<GetBetByBarcodeInput>(requestInput.RequestObject);
                         getBetByBarcodeInput.Token = requestInput.Token;
@@ -100,7 +103,7 @@ namespace IqSoft.CP.BetShopWebApi.Controllers
                         getBetByBarcodeInput.LanguageId = requestInput.LanguageId;
                         getBetByBarcodeInput.PartnerId = requestInput.PartnerId;
                         getBetByBarcodeInput.TimeZone = requestInput.TimeZone;
-                        response.ResponseObject = GetBetByBarcode(getBetByBarcodeInput);
+                        response.ResponseObject = GetBetByBarcode(getBetByBarcodeInput, JsonConvert.DeserializeObject<GetBetShopBetsOutput>(JsonConvert.SerializeObject(resp.ResponseObject)));
                         break;
                     case ApiMethods.PlaceBetByBarcode: 
 						var placeBetByBarcodeInput = JsonConvert.DeserializeObject<GetBetByBarcodeInput>(requestInput.RequestObject);
@@ -411,15 +414,10 @@ namespace IqSoft.CP.BetShopWebApi.Controllers
 			}
 			return response;
 		}
-		private object GetBetByBarcode(GetBetByBarcodeInput input)
+		private object GetBetByBarcode(GetBetByBarcodeInput input, GetBetShopBetsOutput betShopBetsOutput)
 		{
-           var resp = PlatformIntegration.SendRequestToPlatform(input, ApiMethods.GetBetByBarcode);
-			if (resp.ResponseCode != Constants.SuccessResponseCode)
-				return resp;
-			
-				var betShopBetsOutput = JsonConvert.DeserializeObject<GetBetShopBetsOutput>(JsonConvert.SerializeObject(resp.ResponseObject));
-				if (betShopBetsOutput.Bets == null || !betShopBetsOutput.Bets.Any())
-					throw new Exception($"Code: {Constants.Errors.TicketNotFound}, Description: {nameof(Constants.Errors.TicketNotFound)}");
+			if (betShopBetsOutput.Bets == null || !betShopBetsOutput.Bets.Any())
+				throw new Exception($"Code: {Constants.Errors.TicketNotFound}, Description: {nameof(Constants.Errors.TicketNotFound)}");
 
 			var response = ProductsIntegration.GetTicketInfo(new GetTicketInfoInput
 			{
@@ -429,7 +427,7 @@ namespace IqSoft.CP.BetShopWebApi.Controllers
 				PartnerId = input.PartnerId,
 				TicketId = betShopBetsOutput.Bets[0].BetDocumentId.ToString()
 			}, betShopBetsOutput.Bets[0].ProductId);
-			
+
 			if (response != null)
 			{
 				response.BetDate = response.BetDate.GetGMTDateFromUTC(input.TimeZone ?? 0);
@@ -440,7 +438,7 @@ namespace IqSoft.CP.BetShopWebApi.Controllers
 						bs.EventDate = bs.EventDate.GetGMTDateFromUTC(input.TimeZone ?? 0);
 					}
 				}
-                betShopBetsOutput.Bets[0].Coefficient = response.Coefficient;
+				betShopBetsOutput.Bets[0].Coefficient = response.Coefficient;
 				betShopBetsOutput.Bets[0].BetSelections = response.BetSelections;
 				betShopBetsOutput.Bets[0].NumberOfMatches = response.NumberOfMatches;
 				betShopBetsOutput.Bets[0].NumberOfBets = response.NumberOfBets;

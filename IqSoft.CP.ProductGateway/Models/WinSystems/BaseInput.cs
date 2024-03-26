@@ -4,6 +4,5 @@
     {
         public string Token { get; set; }
         public string ProductId { get; set; }
-        public string Signature { get; set; }
     }
 }

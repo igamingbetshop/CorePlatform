@@ -147,22 +147,22 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     return DeleteSegment(JsonConvert.DeserializeObject<ApiBaseFilter>(request.RequestData).Id.Value, identity, log);
                 case "GetSegments":
                     return GetSegments(JsonConvert.DeserializeObject<ApiBaseFilter>(request.RequestData), identity, log);
-                case "GetAdminTranslations":
-                    return GetAdminTranslations(identity, log);
-                case "SaveAdminTranslation":
-                    return SaveAdminTranslation(JsonConvert.DeserializeObject<ApiWebSiteMenuItem>(request.RequestData), identity, log);
-                case "GetAdminTranslationItems":
-                    return GetAdminTranslationItems(Convert.ToInt32(request.RequestData), identity, log);
-                case "SaveAdminTranslationItem":
-                    return SaveAdminTranslationItem(JsonConvert.DeserializeObject<ApiWebSiteSubMenuItem>(request.RequestData), identity, log);
-                case "RemoveAdminTranslation":
-                    return RemoveAdminTranslation(Convert.ToInt32(request.RequestData), identity, log);
-                case "RemoveAdminTranslationItem":
-                    return RemoveAdminTranslationItem(Convert.ToInt32(request.RequestData), identity, log);
-                case "GetAdminItemTranslations":
-                    return GetAdminItemTranslations(Convert.ToInt32(request.RequestData), identity, log);
-                case "UploadAdminTranslations":
-                    return UploadAdminTranslations(identity, log);
+                case "GetInterfaceTranslations":
+                    return GetInterfaceTranslations(Convert.ToInt32(request.RequestData), identity, log);
+                case "SaveInterfaceTranslation":
+                    return SaveInterfaceTranslation(JsonConvert.DeserializeObject<ApiWebSiteMenuItem>(request.RequestData), identity, log);
+                case "GetInterfaceTranslationItems":
+                    return GetInterfaceTranslationItems(Convert.ToInt32(request.RequestData), identity, log);
+                case "SaveInterfaceTranslationItem":
+                    return SaveInterfaceTranslationItem(JsonConvert.DeserializeObject<ApiWebSiteMenuItem>(request.RequestData), identity, log);
+                case "RemoveInterfaceTranslation":
+                    return RemoveInterfaceTranslation(Convert.ToInt32(request.RequestData), identity, log);
+                case "RemoveInterfaceTranslationItem":
+                    return RemoveInterfaceTranslationItem(Convert.ToInt32(request.RequestData), identity, log);
+                case "GetInterfaceItemTranslations":
+                    return GetInterfaceItemTranslations(Convert.ToInt32(request.RequestData), identity, log);
+                case "UploadInterfaceTranslations":
+                    return UploadInterfaceTranslations(Convert.ToInt32(request.RequestData), identity, log);
             }
             throw BaseBll.CreateException(string.Empty, Constants.Errors.MethodNotFound);
         }
@@ -431,7 +431,8 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                                 Type = dbPromotion.PromotionLanguageSettings.First().Type,
                                 Names = dbPromotion.PromotionLanguageSettings.Select(x => x.LanguageId).ToList()
                             } : new ApiSetting { Type = (int)BonusSettingConditionTypes.InSet, Names = new List<string>() },
-                            StyleType = dbPromotion.StyleType
+                            StyleType = dbPromotion.StyleType,
+                            DeviceType = dbPromotion.DeviceType
                         }
                     };
                 }
@@ -715,7 +716,8 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                         LastUpdateTime = x.LastUpdateTime,
                         Order = x.Order,
                         ParentId = x.ParentId,
-                        StyleType = x.StyleType
+                        StyleType = x.StyleType,
+                        DeviceType = x.DeviceType
                     }).ToList()
                 };
             }
@@ -1087,23 +1089,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 }
             }
             return new ApiResponseBase();
-        }
-
-        private static ApiResponseBase UploadAdminTranslations(SessionIdentity identity, ILog log)
-        {
-            using (var partnerBl = new PartnerBll(identity, log))
-            {
-                using (var contentBl = new ContentBll(partnerBl))
-                {
-                    var ftpModel = partnerBl.GetPartnerEnvironments(Constants.MainPartnerId).FirstOrDefault();
-                    if (ftpModel.Value == null)
-                        throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.PartnerKeyNotFound);
-
-                    contentBl.GenerateAdminTranslations(ftpModel.Value);
-                }
-            }
-            return new ApiResponseBase();
-        }
+        }       
 
         private static ApiResponseBase UploadWebSitePromotions(FileUploadInput input, SessionIdentity identity, ILog log)
         {
@@ -1318,82 +1304,107 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             }
         }
 
-        private static ApiResponseBase GetAdminTranslations(SessionIdentity identity, ILog log)
+        private static ApiResponseBase GetInterfaceTranslations(int interfaceType, SessionIdentity identity, ILog log)
         {
             using (var contentBl = new ContentBll(identity, log))
             {
                 return new ApiResponseBase
                 {
-                    ResponseObject = contentBl.GetAdminTranslations().Select(x => x.MapToApiWebSiteMenuItem()).ToList()
+                    ResponseObject = contentBl.GetInterfaceTranslations(interfaceType).Select(x => x.MapToApiWebSiteMenuItem()).ToList()
                 };
             }
         }
 
-        private static ApiResponseBase GetAdminTranslationItems(int menuItemId, SessionIdentity identity, ILog log)
+        private static ApiResponseBase GetInterfaceTranslationItems(int menuItemId, SessionIdentity identity, ILog log)
         {
             using (var contentBl = new ContentBll(identity, log))
             {
                 return new ApiResponseBase
                 {
-                    ResponseObject = contentBl.GetAdminTranslationItems(menuItemId).MapToApiWebSiteSubMenuItems()
+                    ResponseObject = contentBl.GetInterfaceTranslationItems(menuItemId).MapToApiWebSiteSubMenuItems()
                 };
             }
         }
 
-        private static ApiResponseBase SaveAdminTranslation(ApiWebSiteMenuItem apiWebSiteMenuItem, SessionIdentity identity, ILog log)
+        private static ApiResponseBase SaveInterfaceTranslation(ApiMenuTranslation apiMenuTranslation, SessionIdentity identity, ILog log)
         {
             using (var contentBl = new ContentBll(identity, log))
             {
-                var res = contentBl.SaveAdminTramslation(apiWebSiteMenuItem.MapToWebSiteMenuItem()).MapToApiWebSiteMenuItem();
-                
+                var webSiteMenuItem = new WebSiteMenuItem
+                {
+                    Id = apiMenuTranslation.Id ?? 0,
+                    Title = apiMenuTranslation.Title,
+                    Order = apiMenuTranslation.Order
+                };
                 return new ApiResponseBase
                 {
-                    ResponseObject = res
+                    ResponseObject = contentBl.SaveInterfaceTranslation(webSiteMenuItem, apiMenuTranslation.InterfaceType).MapToApiWebSiteMenuItem()
                 };
             }
         }
 
-        private static ApiResponseBase SaveAdminTranslationItem(ApiWebSiteSubMenuItem apiWebSiteSubMenuItem, SessionIdentity identity, ILog log)
+        private static ApiResponseBase SaveInterfaceTranslationItem(ApiMenuTranslation apiMenuTranslation, SessionIdentity identity, ILog log)
         {
             using (var contentBl = new ContentBll(identity, log))
             {
-                var input = apiWebSiteSubMenuItem.MapToWebSiteSubMenuItem();
-                var output = contentBl.SaveAdminTranslationItem(input);
-               
+                var webSiteSubMenuItem = new WebSiteSubMenuItem
+                {
+                    Id = apiMenuTranslation.Id ?? 0,
+                    Title = apiMenuTranslation.Title,
+                    Order = apiMenuTranslation.Order,
+                    MenuItemId = apiMenuTranslation.MenuItemId
+                };
                 return new ApiResponseBase
                 {
-                    ResponseObject = output.MapToApiWebSiteSubMenuItem()
+                    ResponseObject = contentBl.SaveIterfaceTranslationItem(webSiteSubMenuItem).MapToApiWebSiteSubMenuItem()
                 };
             }
         }
 
-        private static ApiResponseBase RemoveAdminTranslation(int menuItemId, SessionIdentity identity, ILog log)
+
+        private static ApiResponseBase RemoveInterfaceTranslation(int menuItemId, SessionIdentity identity, ILog log)
         {
             using (var contentBl = new ContentBll(identity, log))
             {
-                contentBl.RemoveAdminTranslation(menuItemId);
+                contentBl.RemoveInterfaceTranslation(menuItemId);
                 return new ApiResponseBase();
             }
         }
 
-        private static ApiResponseBase RemoveAdminTranslationItem(int subMenuItemId, SessionIdentity identity, ILog log)
+        private static ApiResponseBase RemoveInterfaceTranslationItem(int subMenuItemId, SessionIdentity identity, ILog log)
         {
             using (var contentBl = new ContentBll(identity, log))
             {
-                contentBl.RemoveAdminTranslationItem(subMenuItemId);
+                contentBl.RemoveInterfaceTranslationItem(subMenuItemId);
                 return new ApiResponseBase();
             }
         }
 
-        private static ApiResponseBase GetAdminItemTranslations(int subMenuItemId, SessionIdentity identity, ILog log)
+        private static ApiResponseBase GetInterfaceItemTranslations(int subMenuItemId, SessionIdentity identity, ILog log)
         {
             using (var contentBl = new ContentBll(identity, log))
             {
                 return new ApiResponseBase
                 {
-                    ResponseObject = contentBl.GetAdminTranslations(subMenuItemId)
+                    ResponseObject = contentBl.GetInterfaceItemTranslations(subMenuItemId)
                 };
             }
+        }
+
+        private static ApiResponseBase UploadInterfaceTranslations(int interfaceType, SessionIdentity identity, ILog log)
+        {
+            using (var partnerBl = new PartnerBll(identity, log))
+            {
+                using (var contentBl = new ContentBll(partnerBl))
+                {
+                    var ftpModel = partnerBl.GetPartnerEnvironments(Constants.MainPartnerId).FirstOrDefault();
+                    if (ftpModel.Value == null)
+                        throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.PartnerKeyNotFound);
+
+                    contentBl.GenerateInterfaceTranslations(ftpModel.Value, interfaceType);
+                }
+            }
+            return new ApiResponseBase();
         }
     }
 }

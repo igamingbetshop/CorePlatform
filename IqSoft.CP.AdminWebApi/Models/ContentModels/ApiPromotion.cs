@@ -26,5 +26,6 @@ namespace IqSoft.CP.AdminWebApi.Models.ContentModels
         public int? ParentId { get; set; }
         public string StyleType { get; set; }
 		public string SiteUrl { get; set; }
-	}
+        public int? DeviceType { get; set; }
+    }
 }

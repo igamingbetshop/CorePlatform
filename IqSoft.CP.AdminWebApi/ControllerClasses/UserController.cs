@@ -32,6 +32,8 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     return Logout(request.Token, identity, log);
                 case "GetUsers":
                     return GetUsers(JsonConvert.DeserializeObject<ApiFilterUser>(request.RequestData), identity, log);
+                case "GetAgents":
+                    return GetAgents(JsonConvert.DeserializeObject<ApiFilterUser>(request.RequestData), identity, log);
                 case "SaveUser":
                     return SaveUser(JsonConvert.DeserializeObject<UserModel>(request.RequestData), identity, log);
                 case "IsUserNameExists":
@@ -81,6 +83,8 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     return EnableTwoFactor(JsonConvert.DeserializeObject<ApiQRCodeInput>(request.RequestData), identity, log);
                 case "DisableTwoFactor":
                     return DisableTwoFactor(JsonConvert.DeserializeObject<ApiQRCodeInput>(request.RequestData), identity, log);
+                case "GetExistingLevels":
+                    return GetAgentDownline(Convert.ToInt32(request.RequestData), identity, log);
             }
             throw BaseBll.CreateException(string.Empty, Constants.Errors.MethodNotFound);
         }
@@ -103,13 +107,13 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             {
                 var defaultRegex = @"\w*";
                 var availableUsername = string.Empty;
-                if (input.Type == (int)UserTypes.MasterAgent)
+                if (input.Type == (int)UserTypes.CompanyAgent)
                 {
                     var partnerSetting = CacheManager.GetPartnerSettingByKey(input.PartnerId, Constants.PartnerKeys.IsUserNameGeneratable);
                     if (partnerSetting != null && partnerSetting.NumericValue.HasValue && partnerSetting.NumericValue != 0)
                     {
                         defaultRegex = "^C[0-9]{3}$";
-                        availableUsername = new string(userBl.FindAvailableUserName((int)UserTypes.MasterAgent, (int)AgentLevels.Company, input.StartWith).ToArray());
+                        availableUsername = new string(userBl.FindAvailableUserName((int)UserTypes.CompanyAgent, (int)AgentLevels.Company, input.StartWith).ToArray());
                     }
                 }
                 return new ApiResponseBase
@@ -208,12 +212,113 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             {
                 var input = request.MaptToFilterfnUser();
                 input.IdentityId = identity.Id;
+                input.Types = new List<int> { (int)UserTypes.AdminUser, (int)UserTypes.Cashier };
                 var users = userBl.GetUsersPagedModel(input, true);
                 var response = new ApiResponseBase
                 {
                     ResponseObject = new { users.Count, Entities = users.Entities.MapToUserModels(userBl.GetUserIdentity().TimeZone) }
                 };
                 return response;
+            }
+        }
+
+        private static ApiResponseBase GetAgents(ApiFilterUser input, SessionIdentity identity, ILog log)
+        {
+            using (var userBl = new UserBll(identity, log))
+            {
+                using (var clientBl = new ClientBll(userBl))
+                {
+                    if (input.Type == (int)UserTypes.CompanyAgent)
+                    {
+                        var request = input.MaptToFilterfnUser();
+                        request.IdentityId = identity.Id;
+                        request.Types = new List<int> { (int)UserTypes.CompanyAgent };
+                        var users = userBl.GetUsersPagedModel(request, true);
+                        return new ApiResponseBase
+                        {
+                            ResponseObject = new { users.Count, Entities = users.Entities.MapToUserModels(userBl.GetUserIdentity().TimeZone) }
+                        };
+                    }
+
+                    else
+                    {
+                        var resp = userBl.GetSubAgents(input.ParentId ?? identity.Id, input?.Level, input?.Type, !input.WithDownlines, 
+                            input.AgentIdentifier, input.Id, input.IsFromSuspend);
+                        if (input.State.HasValue)
+                        {
+                            var states = new List<int>();
+                            if (input.State == (int)UserStates.ForceBlock || input.State == (int)UserStates.ForceBlockBySecurityCode)
+                            {
+                                states.Add((int)UserStates.ForceBlock);
+                                states.Add((int)UserStates.ForceBlockBySecurityCode);
+                            }
+                            else
+                                states.Add(input.State.Value);
+
+                            resp = resp.Where(x => states.Contains(x.State)).ToList();
+                        }
+                        if (input.AllowDoubleCommission.HasValue)
+                            resp = resp.Where(x => x.AllowDoubleCommission == input.AllowDoubleCommission).ToList();
+                        var commissions = userBl.GetAgentCommissions(resp.Select(x => x.Id).ToList());
+                        var agents = resp.Select(x => x.MapToUserModel(identity.TimeZone, commissions, identity.Id, log)).ToList();
+                        if (input.IsFromSuspend.HasValue && (!input.Level.HasValue || input.Level.Value == (int)AgentLevels.Member))
+                        {
+                            var clients = clientBl.GetAgentClients(new DAL.Filters.FilterClientModel(), input.ParentId.Value, !input.WithDownlines, null);
+                            foreach (var c in clients)
+                            {
+
+                                var clientSetting = CacheManager.GetClientSettingByName(c.Id, "ParentState");
+                                if (clientSetting != null && clientSetting.NumericValue.HasValue)
+                                {
+                                    var parents = c.User.Path.Split('/');
+                                    foreach (var sPId in parents)
+                                    {
+                                        if (int.TryParse(sPId, out int pId) && pId != input.ParentId)
+                                        {
+                                            var p = CacheManager.GetUserById(Convert.ToInt32(pId));
+                                            var st = CustomHelper.MapUserStateToClient[p.State];
+                                            if (CustomHelper.Greater((ClientStates)st, (ClientStates)clientSetting.NumericValue))
+                                                c.State = st;
+                                        }
+                                    }
+                                }
+
+                                if ((input.IsFromSuspend.Value && clientSetting != null && clientSetting.NumericValue == (int)ClientStates.Suspended && c.State != (int)ClientStates.Suspended &&
+                                     CustomHelper.Greater((ClientStates)clientSetting.NumericValue, (ClientStates)c.State)) ||
+                                    (!input.IsFromSuspend.Value && (clientSetting == null || (clientSetting.NumericValue != (int)ClientStates.Suspended || c.State == (int)ClientStates.Suspended))))
+                                {
+                                    var clientState = c.State;
+                                    if (clientSetting != null && clientSetting.NumericValue.HasValue && CustomHelper.Greater((ClientStates)clientSetting.NumericValue.Value, (ClientStates)clientState))
+                                        clientState = Convert.ToInt32(clientSetting.NumericValue.Value);
+
+                                    agents.Add(new UserModel
+                                    {
+
+                                        Id = c.Id,
+                                        UserName = c.UserName,
+                                        NickName = c.NickName,
+                                        State = CustomHelper.MapUserStateToClient.First(x => x.Value == clientState).Key,
+                                        FirstName = c.FirstName,
+                                        LastName = c.LastName,
+                                        CreationTime = c.CreationTime,
+                                        Level = (int)AgentLevels.Member
+                                        //AllowDoubleCommission = Convert.ToBoolean(adc == null || adc.Id == 0 ? 0 : (adc.NumericValue ?? 0)),
+                                        //AllowOutright = Convert.ToBoolean(ao == null || ao.Id == 0 ? 0 : (ao.NumericValue ?? 0)),
+                                    });
+                                }
+                            }
+                        }
+                        return new ApiResponseBase
+                        {
+                            ResponseObject = new
+                            {
+                                agents.Count,
+                                Entities = agents.OrderBy(x => x.State == (int)UserStates.Disabled).ThenBy(x => x.Level).ThenByDescending(x => x.UserName).
+                                    Skip(input.SkipCount * input.TakeCount).Take(input.TakeCount).ToList()
+                            }
+                        };
+                    }
+                }
             }
         }
 
@@ -228,7 +333,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 var timeZone = userBl.GetUserIdentity().TimeZone;
                 var input = request.MapToUser(timeZone);
                 input.IsTwoFactorEnabled = false;
-                if (input.Type == (int)UserTypes.MasterAgent)
+                if (input.Type == (int)UserTypes.CompanyAgent)
                     input.Level = (int)AgentLevels.Company;
                 else input.Level = 0;
                 UserModel user;
@@ -491,6 +596,31 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 CacheManager.RemoveUserFromCache(identity.Id);
                 Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}", Constants.CacheItems.User, identity.Id));
                 return new ApiResponseBase();
+            }
+        }
+
+        private static ApiResponseBase GetAgentDownline(int userId, SessionIdentity identity, ILog log)
+        {
+            using (var userBl = new UserBll(identity, log))
+            {
+                var user = CacheManager.GetUserById(identity.Id);
+                var isAgentEmploye = user.Type == (int)UserTypes.AgentEmployee;
+                if (isAgentEmploye)
+                    userBl.CheckPermission(Constants.Permissions.ViewUser);
+                var agent = CacheManager.GetUserById(userId);
+                if (agent == null)
+                    throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.UserNotFound);
+                var levEnums = BaseBll.GetEnumerations(Constants.EnumerationTypes.AgentLevels, identity.LanguageId);
+                var result = userBl.GetAgentDownline(userId, true, true);
+                return new ApiResponseBase
+                {
+                    ResponseObject = result.Select(x => new
+                    {
+                        Id = x.Level,
+                        Name = levEnums.First(y => y.Value == x.Level).Text,
+                        Count = x.Count
+                    })
+                };
             }
         }
     }

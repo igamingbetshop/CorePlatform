@@ -38,7 +38,6 @@ namespace IqSoft.CP.DAL
             this.AffiliatePlatforms = new HashSet<AffiliatePlatform>();
             this.MessageTemplates = new HashSet<MessageTemplate>();
             this.PartnerProductSettings = new HashSet<PartnerProductSetting>();
-            this.Clients = new HashSet<Client>();
             this.PartnerKeys = new HashSet<PartnerKey>();
             this.Bonus = new HashSet<Bonu>();
             this.Emails = new HashSet<Email>();
@@ -54,6 +53,7 @@ namespace IqSoft.CP.DAL
             this.PartnerPaymentSettings = new HashSet<PartnerPaymentSetting>();
             this.News = new HashSet<News>();
             this.Popups = new HashSet<Popup>();
+            this.Clients = new HashSet<Client>();
         }
     
         public int Id { get; set; }
@@ -125,8 +125,6 @@ namespace IqSoft.CP.DAL
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PartnerProductSetting> PartnerProductSettings { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Client> Clients { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PartnerKey> PartnerKeys { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Bonu> Bonus { get; set; }
@@ -156,5 +154,7 @@ namespace IqSoft.CP.DAL
         public virtual ICollection<News> News { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Popup> Popups { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Client> Clients { get; set; }
     }
 }

@@ -170,7 +170,7 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                         {
                             client.UserName = userNamePrefix + new string(userBl.FindAvailableUserName(user.Type, (int)AgentLevels.Member, '\0').ToArray());
                             client.MobileNumber = null;
-                            var clientItem = RegisterClient(identity, new ClientRegistrationInput { ClientData = client, IsQuickRegistration = false }, log);
+                            var clientItem = RegisterClient(identity, new ClientRegistrationInput { ClientData = client, RegistrationType = (int)Constants.RegisterTypes.Full }, log);
                             resultList.Add(clientItem.MapTofnClientModel(identity.TimeZone));
                             var commissionPlan = new AgentCommission
                             {
@@ -190,7 +190,7 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                     {
                         client.UserName = userNamePrefix + client.UserName;
                         log.Info(JsonConvert.SerializeObject(client));
-                        client = RegisterClient(identity, new ClientRegistrationInput { ClientData = client, IsQuickRegistration = false }, log);
+                        client = RegisterClient(identity, new ClientRegistrationInput { ClientData = client, RegistrationType = (int)Constants.RegisterTypes.Full }, log);
                         resultList.Add(client.MapTofnClientModel(identity.TimeZone));
                         var commissionPlan = new AgentCommission
                         {
@@ -304,7 +304,7 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                         {
                             client.UserName = userNamePrefix + new string(userBl.FindAvailableUserName(user.Type, (int)AgentLevels.Member, '\0').ToArray());
                             client.MobileNumber = null;
-                            var clientItem = RegisterClient(identity, new ClientRegistrationInput { ClientData = client, IsQuickRegistration = false }, log);
+                            var clientItem = RegisterClient(identity, new ClientRegistrationInput { ClientData = client, RegistrationType = (int)Constants.RegisterTypes.Full }, log);
                             resultList.Add(clientItem.MapTofnClientModel(identity.TimeZone));
                             var commissionPlan = new AgentCommission
                             {
@@ -323,7 +323,7 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                     else
                     {
                         client.UserName = userNamePrefix + client.UserName;
-                        client = RegisterClient(identity, new ClientRegistrationInput { ClientData = client, IsQuickRegistration = false }, log);
+                        client = RegisterClient(identity, new ClientRegistrationInput { ClientData = client, RegistrationType = (int)Constants.RegisterTypes.Full }, log);
                         resultList.Add(client.MapTofnClientModel(identity.TimeZone));
                         var commissionPlan = new AgentCommission
                         {
@@ -831,7 +831,7 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                         {
                             ResponseObject = false
                         };
-                    input.Username = UserBll.GenerateUserNamePrefix(user, (int)AgentLevels.Member, (int)UserTypes.MasterAgent) + input.Username;
+                    input.Username = UserBll.GenerateUserNamePrefix(user, (int)AgentLevels.Member, (int)UserTypes.CompanyAgent) + input.Username;
                 }
                 return new ApiResponseBase
                 {

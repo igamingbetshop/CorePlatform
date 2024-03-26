@@ -18,7 +18,7 @@ namespace IqSoft.CP.DAL
         public int BankInfoId { get; set; }
         public System.DateTime LastViewDate { get; set; }
     
-        public virtual Client Client { get; set; }
         public virtual PartnerBankInfo PartnerBankInfo { get; set; }
+        public virtual Client Client { get; set; }
     }
 }

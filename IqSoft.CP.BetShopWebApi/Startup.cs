@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
 using IqSoft.CP.BetShopWebApi.Infrastructure;
 using Microsoft.AspNet.SignalR;
 using Microsoft.Owin;

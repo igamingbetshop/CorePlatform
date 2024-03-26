@@ -245,12 +245,12 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                             switch (integrationType)
                             {
                                 case PayoutCancelationTypes.ExternallyWithCallback:
-                                    clientBl.ChangeWithdrawRequestState(input.RequestId, PaymentRequestStates.CancelPending, string.Empty, null, null, false, 
+                                    clientBl.ChangeWithdrawRequestState(input.RequestId, PaymentRequestStates.CancelPending, request.Parameters, null, null, false, 
                                     request.Parameters, documentBl, notificationBl);
                                     PaymentHelpers.CancelPayoutRequest(paymentSystem, request, session, log);
                                     break;
                                 default:
-                                    clientBl.ChangeWithdrawRequestState(input.RequestId, PaymentRequestStates.CanceledByClient, string.Empty, null, null, false, 
+                                    clientBl.ChangeWithdrawRequestState(input.RequestId, PaymentRequestStates.CanceledByClient, request.Parameters, null, null, false, 
                                                                 request.Parameters, documentBl, notificationBl);
                                     break;
                             }
@@ -350,14 +350,14 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                             WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(exc.Detail));
                             clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Failed,
                                                                 exc.Detail != null ? exc.Detail.Message : exc.Message, null, null, false,
-                                                                string.Empty, documentBl, notificationBl);
+                                                                request.Parameters, documentBl, notificationBl);
                             throw;
                         }
                         catch (Exception exc)
                         {
                             WebApiApplication.DbLogger.Error(exc);
                             clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Failed,
-                                                                exc.Message, null, null, false, string.Empty, documentBl, notificationBl);
+                                                                exc.Message, null, null, false, request.Parameters, documentBl, notificationBl);
                             throw;
                         }
                         Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}", Constants.CacheItems.ActiveBonusId, client.Id));
@@ -371,7 +371,7 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                         if ((partnerAutoConfirmWithdrawMaxAmount > request.Amount && (client.IsDocumentVerified || requireDocument != "1")) || client.Email == Constants.CardReaderClientEmail ||
                             paymentSystem.Name.ToLower() == Constants.PaymentSystems.IqWallet.ToLower())
                         {
-                            clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Confirmed, "", request.CashDeskId, null, false, string.Empty, documentBl, notificationBl);
+                            clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Confirmed, "", request.CashDeskId, null, false, request.Parameters, documentBl, notificationBl);
                         }
                         var response = request.MapToPaymentRequestModel();
                         response.Url = initializeUrl;
@@ -503,11 +503,15 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                             };
                             if (!string.IsNullOrEmpty(input.PaymentForm))
                             {
-                                var currentPath = HttpContext.Current.Server.MapPath("~");
-                                var parentPath = Path.GetDirectoryName(currentPath);
-                                string[] paths = { Path.GetDirectoryName(parentPath), "AdminWebApi", "ClientPaymentForms" };
-                                var localPath = Path.Combine(paths);
-                                var imgName = CommonFunctions.UploadImage(input.ClientId, input.PaymentForm, input.ImageName, localPath, log);
+                                var ftpModel = new FtpModel
+                                {
+                                    Url = CacheManager.GetPartnerSettingByKey(Constants.MainPartnerId, Constants.PartnerKeys.StatementFTPServer).StringValue,
+                                    UserName = CacheManager.GetPartnerSettingByKey(Constants.MainPartnerId, Constants.PartnerKeys.StatementFTPUsername).StringValue,
+                                    Password = CacheManager.GetPartnerSettingByKey(Constants.MainPartnerId, Constants.PartnerKeys.StatementFTPPassword).StringValue
+                                };
+                                var imgName = $"ClientPaymentForms/{Guid.NewGuid()}_{client.Id}_{input.ImageName}";
+                                var path = $"ftp://{ftpModel.Url}/{imgName}";
+                                clientBl.UploadFtpImage(Convert.FromBase64String(input.PaymentForm), ftpModel, path);
                                 var dic = new Dictionary<string, string> { { "PaymentForm", imgName } };
                                 paymentRequest.Parameters = JsonConvert.SerializeObject(dic);
                             }
@@ -800,7 +804,6 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                         throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.ProductNotFound);
 
                     var provider = CacheManager.GetGameProviderById(product.GameProviderId.Value);
-                    Document doc = null;
                     switch (provider.Name)
                     {
                         case Constants.GameProviders.GlobalSlots:

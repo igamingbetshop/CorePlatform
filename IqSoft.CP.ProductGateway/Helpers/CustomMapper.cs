@@ -5,6 +5,7 @@ using IqSoft.CP.Common.Models.WebSiteModels;
 using IqSoft.CP.DAL;
 using IqSoft.CP.DAL.Models.Cache;
 using IqSoft.CP.DAL.Models.Integration.ProductsIntegration;
+using IqSoft.CP.Integration.EcopayzServiceReference;
 using IqSoft.CP.ProductGateway.Models.EveryMatrix;
 using System;
 using System.Linq;
@@ -25,7 +26,7 @@ namespace IqSoft.CP.ProductGateway.Helpers
 				UserName = client.UserName,
                 FirstName = client.FirstName,
                 LastName = client.LastName,
-                Gender = client.Gender,
+                Gender = client.Gender ?? (int)GenderType.Male,
                 BirthDate = client.BirthDate,
                 CategoryId = client.CategoryId,
                 CategoryName = client.CategoryName,

@@ -123,6 +123,7 @@
           <Property Name="ParentId" Type="int" />
           <Property Name="Path" Type="varchar" MaxLength="50" Nullable="false" />
           <Property Name="PermissionId" Type="varchar" MaxLength="50" />
+          <Property Name="Priority" Type="int" />
         </EntityType>
         <EntityType Name="Affiliate">
           <Key>
@@ -567,7 +568,7 @@
           <Property Name="PasswordHash" Type="varchar" MaxLength="150" Nullable="false" />
           <Property Name="Salt" Type="int" Nullable="false" />
           <Property Name="PartnerId" Type="int" Nullable="false" />
-          <Property Name="Gender" Type="int" Nullable="false" />
+          <Property Name="Gender" Type="int" />
           <Property Name="BirthDate" Type="date" Nullable="false" />
           <Property Name="SendMail" Type="bit" Nullable="false" />
           <Property Name="SendSms" Type="bit" Nullable="false" />
@@ -805,6 +806,8 @@
           <Property Name="ClientId" Type="int" Nullable="false" />
           <Property Name="PartnerPaymentSettingId" Type="int" Nullable="false" />
           <Property Name="State" Type="int" Nullable="false" />
+          <Property Name="CreationTime" Type="datetime2" Precision="3" Nullable="false" />
+          <Property Name="LastUpdateTime" Type="datetime2" Precision="3" Nullable="false" />
         </EntityType>
         <EntityType Name="ClientSecurityAnswer">
           <Key>
@@ -1649,6 +1652,7 @@
           <Property Name="Order" Type="int" Nullable="false" />
           <Property Name="ParentId" Type="int" />
           <Property Name="StyleType" Type="varchar" MaxLength="500" />
+          <Property Name="DeviceType" Type="int" />
         </EntityType>
         <EntityType Name="PromotionLanguageSetting">
           <Key>
@@ -6340,7 +6344,7 @@
                 <Property Name="PasswordHash" Type="varchar" MaxLength="150" Nullable="false" />
                 <Property Name="Salt" Type="int" Nullable="false" />
                 <Property Name="PartnerId" Type="int" Nullable="false" />
-                <Property Name="Gender" Type="int" Nullable="false" />
+                <Property Name="Gender" Type="int" />
                 <Property Name="BirthDate" Type="date" Nullable="false" />
                 <Property Name="Age" Type="int" />
                 <Property Name="SendMail" Type="bit" Nullable="false" />
@@ -7018,6 +7022,7 @@
                 <Property Name="ClientId" Type="int" />
                 <Property Name="Amount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
                 <Property Name="CommissionAmount" Type="decimal" Precision="18" Scale="4" />
+                <Property Name="FinalAmount" Type="decimal" Precision="19" Scale="4" />
                 <Property Name="CurrencyId" Type="varchar" MaxLength="5" Nullable="false" />
                 <Property Name="Status" Type="int" Nullable="false" />
                 <Property Name="PartnerPaymentSettingId" Type="int" />
@@ -7163,6 +7168,7 @@
                 <Property Name="Order" Type="int" Nullable="false" />
                 <Property Name="ParentId" Type="int" />
                 <Property Name="StyleType" Type="varchar" MaxLength="500" />
+                <Property Name="DeviceType" Type="int" />
                 <Property Name="Title" Type="nvarchar(max)" Nullable="false" />
                 <Property Name="Description" Type="nvarchar(max)" Nullable="false" />
                 <Property Name="Content" Type="nvarchar(max)" />
@@ -9233,7 +9239,6 @@
 					<EntitySet Name="ClientFavoriteProducts" EntityType="IqSoftCorePlatformModel.ClientFavoriteProduct" />
 					<EntitySet Name="ClientIdentities" EntityType="IqSoftCorePlatformModel.ClientIdentity" />
 					<EntitySet Name="ClientLogs" EntityType="IqSoftCorePlatformModel.ClientLog" />
-					<EntitySet Name="ClientPaymentSettings" EntityType="IqSoftCorePlatformModel.ClientPaymentSetting" />
 					<EntitySet Name="ClientSessions" EntityType="IqSoftCorePlatformModel.ClientSession" />
 					<EntitySet Name="ComplimentaryPointRates" EntityType="IqSoftCorePlatformModel.ComplimentaryPointRate" />
 					<EntitySet Name="CRMSettings" EntityType="IqSoftCorePlatformModel.CRMSetting" />
@@ -9984,123 +9989,6 @@
             <Parameter Name="ToDate" Mode="In" Type="Int64" />
           </FunctionImport>
 					<FunctionImport Name="fn_ClientSession" IsComposable="true" ReturnType="Collection(IqSoftCorePlatformModel.fnClientSession)" />
-					<EntitySet Name="Clients" EntityType="IqSoftCorePlatformModel.Client" />
-					<AssociationSet Name="FK_Client_AffiliateReferral" Association="IqSoftCorePlatformModel.FK_Client_AffiliateReferral">
-						<End Role="AffiliateReferral" EntitySet="AffiliateReferrals" />
-						<End Role="Client" EntitySet="Clients" />
-					</AssociationSet>
-					<AssociationSet Name="FK_AgentCommission_Client" Association="IqSoftCorePlatformModel.FK_AgentCommission_Client">
-						<End Role="Client" EntitySet="Clients" />
-						<End Role="AgentCommission" EntitySet="AgentCommissions" />
-					</AssociationSet>
-					<AssociationSet Name="FK_AgentProfit_Client" Association="IqSoftCorePlatformModel.FK_AgentProfit_Client">
-						<End Role="Client" EntitySet="Clients" />
-						<End Role="AgentProfit" EntitySet="AgentProfits" />
-					</AssociationSet>
-					<AssociationSet Name="FK_Client_ClientSession" Association="IqSoftCorePlatformModel.FK_Client_ClientSession">
-						<End Role="ClientSession" EntitySet="ClientSessions" />
-						<End Role="Client" EntitySet="Clients" />
-					</AssociationSet>
-					<AssociationSet Name="FK_Client_Currency" Association="IqSoftCorePlatformModel.FK_Client_Currency">
-						<End Role="Currency" EntitySet="Currencies" />
-						<End Role="Client" EntitySet="Clients" />
-					</AssociationSet>
-					<AssociationSet Name="FK_Client_JobArea" Association="IqSoftCorePlatformModel.FK_Client_JobArea">
-						<End Role="JobArea" EntitySet="JobAreas" />
-						<End Role="Client" EntitySet="Clients" />
-					</AssociationSet>
-					<AssociationSet Name="FK_Client_Language" Association="IqSoftCorePlatformModel.FK_Client_Language">
-						<End Role="Language" EntitySet="Languages" />
-						<End Role="Client" EntitySet="Clients" />
-					</AssociationSet>
-					<AssociationSet Name="FK_Client_Partner" Association="IqSoftCorePlatformModel.FK_Client_Partner">
-						<End Role="Partner" EntitySet="Partners" />
-						<End Role="Client" EntitySet="Clients" />
-					</AssociationSet>
-					<AssociationSet Name="FK_Client_Region" Association="IqSoftCorePlatformModel.FK_Client_Region">
-						<End Role="Region" EntitySet="Regions" />
-						<End Role="Client" EntitySet="Clients" />
-					</AssociationSet>
-					<AssociationSet Name="FK_Client_Region1" Association="IqSoftCorePlatformModel.FK_Client_Region1">
-						<End Role="Region" EntitySet="Regions" />
-						<End Role="Client" EntitySet="Clients" />
-					</AssociationSet>
-					<AssociationSet Name="FK_Client_User" Association="IqSoftCorePlatformModel.FK_Client_User">
-						<End Role="User" EntitySet="Users" />
-						<End Role="Client" EntitySet="Clients" />
-					</AssociationSet>
-					<AssociationSet Name="FK_ClientBankInfo_Client" Association="IqSoftCorePlatformModel.FK_ClientBankInfo_Client">
-						<End Role="Client" EntitySet="Clients" />
-						<End Role="ClientBankInfo" EntitySet="ClientBankInfoes" />
-					</AssociationSet>
-					<AssociationSet Name="FK_ClientClassification_Client" Association="IqSoftCorePlatformModel.FK_ClientClassification_Client">
-						<End Role="Client" EntitySet="Clients" />
-						<End Role="ClientClassification" EntitySet="ClientClassifications" />
-					</AssociationSet>
-					<AssociationSet Name="FK_ClientClosedPeriod_Client" Association="IqSoftCorePlatformModel.FK_ClientClosedPeriod_Client">
-						<End Role="Client" EntitySet="Clients" />
-						<End Role="ClientClosedPeriod" EntitySet="ClientClosedPeriods" />
-					</AssociationSet>
-					<AssociationSet Name="FK_ClientFavoriteProduct_Client" Association="IqSoftCorePlatformModel.FK_ClientFavoriteProduct_Client">
-						<End Role="Client" EntitySet="Clients" />
-						<End Role="ClientFavoriteProduct" EntitySet="ClientFavoriteProducts" />
-					</AssociationSet>
-					<AssociationSet Name="FK_ClientIdentity_Client" Association="IqSoftCorePlatformModel.FK_ClientIdentity_Client">
-						<End Role="Client" EntitySet="Clients" />
-						<End Role="ClientIdentity" EntitySet="ClientIdentities" />
-					</AssociationSet>
-					<AssociationSet Name="FK_ClientInfo_Client" Association="IqSoftCorePlatformModel.FK_ClientInfo_Client">
-						<End Role="Client" EntitySet="Clients" />
-						<End Role="ClientInfo" EntitySet="ClientInfoes" />
-					</AssociationSet>
-					<AssociationSet Name="FK_ClientLog_Client" Association="IqSoftCorePlatformModel.FK_ClientLog_Client">
-						<End Role="Client" EntitySet="Clients" />
-						<End Role="ClientLog" EntitySet="ClientLogs" />
-					</AssociationSet>
-					<AssociationSet Name="FK_ClientMessage_Client" Association="IqSoftCorePlatformModel.FK_ClientMessage_Client">
-						<End Role="Client" EntitySet="Clients" />
-						<End Role="ClientMessage" EntitySet="ClientMessages" />
-					</AssociationSet>
-					<AssociationSet Name="FK_ClientPaymentInfo_Client" Association="IqSoftCorePlatformModel.FK_ClientPaymentInfo_Client">
-						<End Role="Client" EntitySet="Clients" />
-						<End Role="ClientPaymentInfo" EntitySet="ClientPaymentInfoes" />
-					</AssociationSet>
-					<AssociationSet Name="FK_ClientPaymentSetting_Client" Association="IqSoftCorePlatformModel.FK_ClientPaymentSetting_Client">
-						<End Role="Client" EntitySet="Clients" />
-						<End Role="ClientPaymentSetting" EntitySet="ClientPaymentSettings" />
-					</AssociationSet>
-					<AssociationSet Name="FK_ClientSecurityAnswer_Client" Association="IqSoftCorePlatformModel.FK_ClientSecurityAnswer_Client">
-						<End Role="Client" EntitySet="Clients" />
-						<End Role="ClientSecurityAnswer" EntitySet="ClientSecurityAnswers" />
-					</AssociationSet>
-					<AssociationSet Name="FK_ClientSession_Client" Association="IqSoftCorePlatformModel.FK_ClientSession_Client">
-						<End Role="Client" EntitySet="Clients" />
-						<End Role="ClientSession" EntitySet="ClientSessions" />
-					</AssociationSet>
-					<AssociationSet Name="FK_ClientSetting_Client" Association="IqSoftCorePlatformModel.FK_ClientSetting_Client">
-						<End Role="Client" EntitySet="Clients" />
-						<End Role="ClientSetting" EntitySet="ClientSettings" />
-					</AssociationSet>
-					<AssociationSet Name="FK_Document_Client" Association="IqSoftCorePlatformModel.FK_Document_Client">
-						<End Role="Client" EntitySet="Clients" />
-						<End Role="Document" EntitySet="Documents" />
-					</AssociationSet>
-					<AssociationSet Name="FK_JobTrigger_Client" Association="IqSoftCorePlatformModel.FK_JobTrigger_Client">
-						<End Role="Client" EntitySet="Clients" />
-						<End Role="JobTrigger" EntitySet="JobTriggers" />
-					</AssociationSet>
-					<AssociationSet Name="FK_PaymentLimit_Client" Association="IqSoftCorePlatformModel.FK_PaymentLimit_Client">
-						<End Role="Client" EntitySet="Clients" />
-						<End Role="PaymentLimit" EntitySet="PaymentLimits" />
-					</AssociationSet>
-					<AssociationSet Name="FK_Ticket_Client" Association="IqSoftCorePlatformModel.FK_Ticket_Client">
-						<End Role="Client" EntitySet="Clients" />
-						<End Role="Ticket" EntitySet="Tickets" />
-					</AssociationSet>
-					<AssociationSet Name="FK_TicketMessageState_Client" Association="IqSoftCorePlatformModel.FK_TicketMessageState_Client">
-						<End Role="Client" EntitySet="Clients" />
-						<End Role="TicketMessageState" EntitySet="TicketMessageStates" />
-					</AssociationSet>
 					<EntitySet Name="BonusProducts" EntityType="IqSoftCorePlatformModel.BonusProduct" />
           <FunctionImport Name="fn_CashDesksBalances" IsComposable="true" ReturnType="Collection(IqSoftCorePlatformModel.fnCashDesksBalances)">
             <Parameter Name="betShopId" Mode="In" Type="Int32" />
@@ -10249,7 +10137,6 @@
           <FunctionImport Name="fn_ShopWalletClient" IsComposable="true" ReturnType="Collection(IqSoftCorePlatformModel.fnShopWalletClient)">
           <Parameter Name="betShopId" Mode="In" Type="Int32" />
           </FunctionImport>
-          <FunctionImport Name="fn_Client" IsComposable="true" ReturnType="Collection(IqSoftCorePlatformModel.fnClient)" />
           <EntitySet Name="PartnerBankInfoes" EntityType="IqSoftCorePlatformModel.PartnerBankInfo" />
           <AssociationSet Name="FK_ClientBankInfo_BankInfo" Association="IqSoftCorePlatformModel.FK_ClientBankInfo_BankInfo">
             <End Role="PartnerBankInfo" EntitySet="PartnerBankInfoes" />
@@ -10461,14 +10348,6 @@
             <End Role="Bonu" EntitySet="Bonus" />
             <End Role="ClientBonusTrigger" EntitySet="ClientBonusTriggers" />
           </AssociationSet>
-          <AssociationSet Name="FK_ClientBonus_Client" Association="IqSoftCorePlatformModel.FK_ClientBonus_Client">
-            <End Role="Client" EntitySet="Clients" />
-            <End Role="ClientBonu" EntitySet="ClientBonus" />
-          </AssociationSet>
-          <AssociationSet Name="FK_ClientBonusTrigger_Client" Association="IqSoftCorePlatformModel.FK_ClientBonusTrigger_Client">
-            <End Role="Client" EntitySet="Clients" />
-            <End Role="ClientBonusTrigger" EntitySet="ClientBonusTriggers" />
-          </AssociationSet>
           <AssociationSet Name="FK_ClientBonus_TriggerSetting" Association="IqSoftCorePlatformModel.FK_ClientBonus_TriggerSetting">
             <End Role="TriggerSetting" EntitySet="TriggerSettings" />
             <End Role="ClientBonu" EntitySet="ClientBonus" />
@@ -10488,10 +10367,6 @@
           </AssociationSet>
           <AssociationSet Name="FK_PaymentRequest_CashDesk" Association="IqSoftCorePlatformModel.FK_PaymentRequest_CashDesk">
             <End Role="CashDesk" EntitySet="CashDesks" />
-            <End Role="PaymentRequest" EntitySet="PaymentRequests" />
-          </AssociationSet>
-          <AssociationSet Name="FK_PaymentRequest_Client" Association="IqSoftCorePlatformModel.FK_PaymentRequest_Client">
-            <End Role="Client" EntitySet="Clients" />
             <End Role="PaymentRequest" EntitySet="PaymentRequests" />
           </AssociationSet>
           <AssociationSet Name="FK_PaymentRequest_Currency" Association="IqSoftCorePlatformModel.FK_PaymentRequest_Currency">
@@ -10524,10 +10399,6 @@
             <End Role="Promotion" EntitySet="Promotions" />
             <End Role="Promotion1" EntitySet="Promotions" />
           </AssociationSet>
-          <FunctionImport Name="fn_Promotion" IsComposable="true" ReturnType="Collection(IqSoftCorePlatformModel.fnPromotion)">
-            <Parameter Name="languageId" Mode="In" Type="String" />
-            <Parameter Name="withContent" Mode="In" Type="Boolean" />
-          </FunctionImport>
           <EntitySet Name="AnnouncementSettings" EntityType="IqSoftCorePlatformModel.AnnouncementSetting" />
           <AssociationSet Name="FK_AnnouncementSetting_ObjectType" Association="IqSoftCorePlatformModel.FK_AnnouncementSetting_ObjectType">
             <End Role="ObjectType" EntitySet="ObjectTypes" />
@@ -10553,7 +10424,6 @@
           <FunctionImport Name="fn_Announcement" IsComposable="true" ReturnType="Collection(IqSoftCorePlatformModel.fnAnnouncement)">
           <Parameter Name="LanguageId" Mode="In" Type="String" />
           </FunctionImport>
-          <FunctionImport Name="fn_PaymentRequest" IsComposable="true" ReturnType="Collection(IqSoftCorePlatformModel.fnPaymentRequest)" />
           <FunctionImport Name="fn_UserSession" IsComposable="true" ReturnType="Collection(IqSoftCorePlatformModel.fnUserSession)" />
           <EntitySet Name="Characters" EntityType="IqSoftCorePlatformModel.Character" />
           <AssociationSet Name="FK_Character_Character" Association="IqSoftCorePlatformModel.FK_Character_Character">
@@ -10572,10 +10442,6 @@
             <End Role="Translation" EntitySet="Translations" />
             <End Role="Character" EntitySet="Characters" />
           </AssociationSet>
-          <AssociationSet Name="FK_Client_Character" Association="IqSoftCorePlatformModel.FK_Client_Character">
-            <End Role="Character" EntitySet="Characters" />
-            <End Role="Client" EntitySet="Clients" />
-          </AssociationSet>
           <FunctionImport Name="fn_Character" IsComposable="true" ReturnType="Collection(IqSoftCorePlatformModel.fnCharacter)">
           <Parameter Name="languageId" Mode="In" Type="String" />
           </FunctionImport>
@@ -10583,10 +10449,6 @@
           <AssociationSet Name="FK_ClientPaymentInfo_PartnerPaymentSetting" Association="IqSoftCorePlatformModel.FK_ClientPaymentInfo_PartnerPaymentSetting">
             <End Role="PartnerPaymentSetting" EntitySet="PartnerPaymentSettings" />
             <End Role="ClientPaymentInfo" EntitySet="ClientPaymentInfoes" />
-          </AssociationSet>
-          <AssociationSet Name="FK_ClientBlockedPaymentSetting_PartnerPaymentSetting" Association="IqSoftCorePlatformModel.FK_ClientBlockedPaymentSetting_PartnerPaymentSetting">
-            <End Role="PartnerPaymentSetting" EntitySet="PartnerPaymentSettings" />
-            <End Role="ClientPaymentSetting" EntitySet="ClientPaymentSettings" />
           </AssociationSet>
           <AssociationSet Name="FK_PartnerPaymentSetting_Currency" Association="IqSoftCorePlatformModel.FK_PartnerPaymentSetting_Currency">
             <End Role="Currency" EntitySet="Currencies" />
@@ -10821,10 +10683,6 @@
           <Parameter Name="LanguageId" Mode="In" Type="String" />
           </FunctionImport>
           <EntitySet Name="ClientMessageStates" EntityType="IqSoftCorePlatformModel.ClientMessageState" />
-          <AssociationSet Name="FK_ClientMessageState_Client" Association="IqSoftCorePlatformModel.FK_ClientMessageState_Client">
-            <End Role="Client" EntitySet="Clients" />
-            <End Role="ClientMessageState" EntitySet="ClientMessageStates" />
-          </AssociationSet>
           <AssociationSet Name="FK_ClientMessageState_ClientMessage" Association="IqSoftCorePlatformModel.FK_ClientMessageState_ClientMessage">
             <End Role="ClientMessage" EntitySet="ClientMessages" />
             <End Role="ClientMessageState" EntitySet="ClientMessageStates" />
@@ -10832,6 +10690,154 @@
           <AssociationSet Name="FK_ClientMessageState_Popup" Association="IqSoftCorePlatformModel.FK_ClientMessageState_Popup">
             <End Role="Popup" EntitySet="Popups" />
             <End Role="ClientMessageState" EntitySet="ClientMessageStates" />
+          </AssociationSet>
+          <FunctionImport Name="fn_Promotion" IsComposable="true" ReturnType="Collection(IqSoftCorePlatformModel.fnPromotion)">
+            <Parameter Name="languageId" Mode="In" Type="String" />
+            <Parameter Name="withContent" Mode="In" Type="Boolean" />
+          </FunctionImport>
+          <EntitySet Name="Clients" EntityType="IqSoftCorePlatformModel.Client" />
+          <AssociationSet Name="FK_Client_AffiliateReferral" Association="IqSoftCorePlatformModel.FK_Client_AffiliateReferral">
+            <End Role="AffiliateReferral" EntitySet="AffiliateReferrals" />
+            <End Role="Client" EntitySet="Clients" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AgentCommission_Client" Association="IqSoftCorePlatformModel.FK_AgentCommission_Client">
+            <End Role="Client" EntitySet="Clients" />
+            <End Role="AgentCommission" EntitySet="AgentCommissions" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AgentProfit_Client" Association="IqSoftCorePlatformModel.FK_AgentProfit_Client">
+            <End Role="Client" EntitySet="Clients" />
+            <End Role="AgentProfit" EntitySet="AgentProfits" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Client_Character" Association="IqSoftCorePlatformModel.FK_Client_Character">
+            <End Role="Character" EntitySet="Characters" />
+            <End Role="Client" EntitySet="Clients" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Client_ClientSession" Association="IqSoftCorePlatformModel.FK_Client_ClientSession">
+            <End Role="ClientSession" EntitySet="ClientSessions" />
+            <End Role="Client" EntitySet="Clients" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Client_Currency" Association="IqSoftCorePlatformModel.FK_Client_Currency">
+            <End Role="Currency" EntitySet="Currencies" />
+            <End Role="Client" EntitySet="Clients" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Client_JobArea" Association="IqSoftCorePlatformModel.FK_Client_JobArea">
+            <End Role="JobArea" EntitySet="JobAreas" />
+            <End Role="Client" EntitySet="Clients" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Client_Language" Association="IqSoftCorePlatformModel.FK_Client_Language">
+            <End Role="Language" EntitySet="Languages" />
+            <End Role="Client" EntitySet="Clients" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Client_Partner" Association="IqSoftCorePlatformModel.FK_Client_Partner">
+            <End Role="Partner" EntitySet="Partners" />
+            <End Role="Client" EntitySet="Clients" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Client_Region" Association="IqSoftCorePlatformModel.FK_Client_Region">
+            <End Role="Region" EntitySet="Regions" />
+            <End Role="Client" EntitySet="Clients" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Client_Region1" Association="IqSoftCorePlatformModel.FK_Client_Region1">
+            <End Role="Region" EntitySet="Regions" />
+            <End Role="Client" EntitySet="Clients" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Client_User" Association="IqSoftCorePlatformModel.FK_Client_User">
+            <End Role="User" EntitySet="Users" />
+            <End Role="Client" EntitySet="Clients" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ClientBankInfo_Client" Association="IqSoftCorePlatformModel.FK_ClientBankInfo_Client">
+            <End Role="Client" EntitySet="Clients" />
+            <End Role="ClientBankInfo" EntitySet="ClientBankInfoes" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ClientBonus_Client" Association="IqSoftCorePlatformModel.FK_ClientBonus_Client">
+            <End Role="Client" EntitySet="Clients" />
+            <End Role="ClientBonu" EntitySet="ClientBonus" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ClientBonusTrigger_Client" Association="IqSoftCorePlatformModel.FK_ClientBonusTrigger_Client">
+            <End Role="Client" EntitySet="Clients" />
+            <End Role="ClientBonusTrigger" EntitySet="ClientBonusTriggers" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ClientClassification_Client" Association="IqSoftCorePlatformModel.FK_ClientClassification_Client">
+            <End Role="Client" EntitySet="Clients" />
+            <End Role="ClientClassification" EntitySet="ClientClassifications" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ClientClosedPeriod_Client" Association="IqSoftCorePlatformModel.FK_ClientClosedPeriod_Client">
+            <End Role="Client" EntitySet="Clients" />
+            <End Role="ClientClosedPeriod" EntitySet="ClientClosedPeriods" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ClientFavoriteProduct_Client" Association="IqSoftCorePlatformModel.FK_ClientFavoriteProduct_Client">
+            <End Role="Client" EntitySet="Clients" />
+            <End Role="ClientFavoriteProduct" EntitySet="ClientFavoriteProducts" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ClientIdentity_Client" Association="IqSoftCorePlatformModel.FK_ClientIdentity_Client">
+            <End Role="Client" EntitySet="Clients" />
+            <End Role="ClientIdentity" EntitySet="ClientIdentities" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ClientInfo_Client" Association="IqSoftCorePlatformModel.FK_ClientInfo_Client">
+            <End Role="Client" EntitySet="Clients" />
+            <End Role="ClientInfo" EntitySet="ClientInfoes" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ClientLog_Client" Association="IqSoftCorePlatformModel.FK_ClientLog_Client">
+            <End Role="Client" EntitySet="Clients" />
+            <End Role="ClientLog" EntitySet="ClientLogs" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ClientMessage_Client" Association="IqSoftCorePlatformModel.FK_ClientMessage_Client">
+            <End Role="Client" EntitySet="Clients" />
+            <End Role="ClientMessage" EntitySet="ClientMessages" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ClientMessageState_Client" Association="IqSoftCorePlatformModel.FK_ClientMessageState_Client">
+            <End Role="Client" EntitySet="Clients" />
+            <End Role="ClientMessageState" EntitySet="ClientMessageStates" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ClientPaymentInfo_Client" Association="IqSoftCorePlatformModel.FK_ClientPaymentInfo_Client">
+            <End Role="Client" EntitySet="Clients" />
+            <End Role="ClientPaymentInfo" EntitySet="ClientPaymentInfoes" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ClientSecurityAnswer_Client" Association="IqSoftCorePlatformModel.FK_ClientSecurityAnswer_Client">
+            <End Role="Client" EntitySet="Clients" />
+            <End Role="ClientSecurityAnswer" EntitySet="ClientSecurityAnswers" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ClientSession_Client" Association="IqSoftCorePlatformModel.FK_ClientSession_Client">
+            <End Role="Client" EntitySet="Clients" />
+            <End Role="ClientSession" EntitySet="ClientSessions" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ClientSetting_Client" Association="IqSoftCorePlatformModel.FK_ClientSetting_Client">
+            <End Role="Client" EntitySet="Clients" />
+            <End Role="ClientSetting" EntitySet="ClientSettings" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Document_Client" Association="IqSoftCorePlatformModel.FK_Document_Client">
+            <End Role="Client" EntitySet="Clients" />
+            <End Role="Document" EntitySet="Documents" />
+          </AssociationSet>
+          <AssociationSet Name="FK_JobTrigger_Client" Association="IqSoftCorePlatformModel.FK_JobTrigger_Client">
+            <End Role="Client" EntitySet="Clients" />
+            <End Role="JobTrigger" EntitySet="JobTriggers" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PaymentLimit_Client" Association="IqSoftCorePlatformModel.FK_PaymentLimit_Client">
+            <End Role="Client" EntitySet="Clients" />
+            <End Role="PaymentLimit" EntitySet="PaymentLimits" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PaymentRequest_Client" Association="IqSoftCorePlatformModel.FK_PaymentRequest_Client">
+            <End Role="Client" EntitySet="Clients" />
+            <End Role="PaymentRequest" EntitySet="PaymentRequests" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Ticket_Client" Association="IqSoftCorePlatformModel.FK_Ticket_Client">
+            <End Role="Client" EntitySet="Clients" />
+            <End Role="Ticket" EntitySet="Tickets" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TicketMessageState_Client" Association="IqSoftCorePlatformModel.FK_TicketMessageState_Client">
+            <End Role="Client" EntitySet="Clients" />
+            <End Role="TicketMessageState" EntitySet="TicketMessageStates" />
+          </AssociationSet>
+          <FunctionImport Name="fn_Client" IsComposable="true" ReturnType="Collection(IqSoftCorePlatformModel.fnClient)" />
+          <FunctionImport Name="fn_PaymentRequest" IsComposable="true" ReturnType="Collection(IqSoftCorePlatformModel.fnPaymentRequest)" />
+          <EntitySet Name="ClientPaymentSettings" EntityType="IqSoftCorePlatformModel.ClientPaymentSetting" />
+          <AssociationSet Name="FK_ClientPaymentSetting_Client" Association="IqSoftCorePlatformModel.FK_ClientPaymentSetting_Client">
+            <End Role="Client" EntitySet="Clients" />
+            <End Role="ClientPaymentSetting" EntitySet="ClientPaymentSettings" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ClientBlockedPaymentSetting_PartnerPaymentSetting" Association="IqSoftCorePlatformModel.FK_ClientBlockedPaymentSetting_PartnerPaymentSetting">
+            <End Role="PartnerPaymentSetting" EntitySet="PartnerPaymentSettings" />
+            <End Role="ClientPaymentSetting" EntitySet="ClientPaymentSettings" />
           </AssociationSet>
           </EntityContainer>
 				<ComplexType Name="spObjectChangeHistory">
@@ -10958,8 +10964,8 @@
 					<Property Name="TurnoverPercent" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
 					<Property Name="ClientId" Type="Int32" />
 					<NavigationProperty Name="User" Relationship="IqSoftCorePlatformModel.FK_AgentCommission_User" FromRole="AgentCommission" ToRole="User" />
-					<NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_AgentCommission_Client" FromRole="AgentCommission" ToRole="Client" />
           <NavigationProperty Name="Product" Relationship="IqSoftCorePlatformModel.FK_AgentCommission_Product" FromRole="AgentCommission" ToRole="Product" />
+          <NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_AgentCommission_Client" FromRole="AgentCommission" ToRole="Client" />
 				</EntityType>
 				<EntityType Name="BannerSegmentSetting">
 					<Key>
@@ -11127,8 +11133,8 @@
 					<Property Name="ClientId" Type="Int32" Nullable="false" />
 					<Property Name="BankInfoId" Type="Int32" Nullable="false" />
 					<Property Name="LastViewDate" Type="DateTime" Nullable="false" Precision="3" />
-					<NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_ClientBankInfo_Client" FromRole="ClientBankInfo" ToRole="Client" />
           <NavigationProperty Name="PartnerBankInfo" Relationship="IqSoftCorePlatformModel.FK_ClientBankInfo_BankInfo" FromRole="ClientBankInfo" ToRole="PartnerBankInfo" />
+          <NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_ClientBankInfo_Client" FromRole="ClientBankInfo" ToRole="Client" />
 				</EntityType>
 				<EntityType Name="ClientCategory">
 					<Key>
@@ -11155,8 +11161,8 @@
 					<Property Name="SegmentId" Type="Int32" />
 					<NavigationProperty Name="ClientCategory" Relationship="IqSoftCorePlatformModel.FK_ClientClassification_ClientCategory" FromRole="ClientClassification" ToRole="ClientCategory" />
 					<NavigationProperty Name="Segment" Relationship="IqSoftCorePlatformModel.FK_ClientClassification_Segment" FromRole="ClientClassification" ToRole="Segment" />
-					<NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_ClientClassification_Client" FromRole="ClientClassification" ToRole="Client" />
           <NavigationProperty Name="Product" Relationship="IqSoftCorePlatformModel.FK_ClientClassification_Product" FromRole="ClientClassification" ToRole="Product" />
+          <NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_ClientClassification_Client" FromRole="ClientClassification" ToRole="Client" />
 				</EntityType>
 				<EntityType Name="ClientClosedPeriod">
 					<Key>
@@ -11173,7 +11179,7 @@
 					<Property Name="TotalWithdrawAmount" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
 					<Property Name="TotalCreditCorrection" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
 					<Property Name="TotalDebitCorrection" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
-					<NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_ClientClosedPeriod_Client" FromRole="ClientClosedPeriod" ToRole="Client" />
+          <NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_ClientClosedPeriod_Client" FromRole="ClientClosedPeriod" ToRole="Client" />
 				</EntityType>
 				<EntityType Name="ClientFavoriteProduct">
 					<Key>
@@ -11182,8 +11188,8 @@
 					<Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
 					<Property Name="ClientId" Type="Int32" Nullable="false" />
 					<Property Name="ProductId" Type="Int32" Nullable="false" />
-					<NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_ClientFavoriteProduct_Client" FromRole="ClientFavoriteProduct" ToRole="Client" />
           <NavigationProperty Name="Product" Relationship="IqSoftCorePlatformModel.FK_ClientFavoriteProduct_Product" FromRole="ClientFavoriteProduct" ToRole="Product" />
+          <NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_ClientFavoriteProduct_Client" FromRole="ClientFavoriteProduct" ToRole="Client" />
 				</EntityType>
 				<EntityType Name="ClientIdentity">
 					<Key>
@@ -11200,7 +11206,7 @@
 					<Property Name="ExpirationTime" Type="DateTime" Precision="3" />
 					<Property Name="ExpirationDate" Type="Int64" />
 					<NavigationProperty Name="User" Relationship="IqSoftCorePlatformModel.FK_ClientIdentity_User" FromRole="ClientIdentity" ToRole="User" />
-					<NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_ClientIdentity_Client" FromRole="ClientIdentity" ToRole="Client" />
+          <NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_ClientIdentity_Client" FromRole="ClientIdentity" ToRole="Client" />
 				</EntityType>
 				<EntityType Name="ClientLog">
 					<Key>
@@ -11215,18 +11221,7 @@
 					<Property Name="CreationTime" Type="DateTime" Nullable="false" Precision="3" />
 					<Property Name="ClientSessionId" Type="Int64" />
 					<NavigationProperty Name="ClientSession" Relationship="IqSoftCorePlatformModel.FK_ClientLog_ClientSession" FromRole="ClientLog" ToRole="ClientSession" />
-					<NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_ClientLog_Client" FromRole="ClientLog" ToRole="Client" />
-				</EntityType>
-				<EntityType Name="ClientPaymentSetting">
-					<Key>
-						<PropertyRef Name="Id" />
-					</Key>
-					<Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-					<Property Name="ClientId" Type="Int32" Nullable="false" />
-					<Property Name="PartnerPaymentSettingId" Type="Int32" Nullable="false" />
-					<Property Name="State" Type="Int32" Nullable="false" />
-					<NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_ClientPaymentSetting_Client" FromRole="ClientPaymentSetting" ToRole="Client" />
-          <NavigationProperty Name="PartnerPaymentSetting" Relationship="IqSoftCorePlatformModel.FK_ClientBlockedPaymentSetting_PartnerPaymentSetting" FromRole="ClientPaymentSetting" ToRole="PartnerPaymentSetting" />
+          <NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_ClientLog_Client" FromRole="ClientLog" ToRole="Client" />
 				</EntityType>
 				<EntityType Name="ClientSession">
 					<Key>
@@ -11253,12 +11248,12 @@
 					<NavigationProperty Name="ClientSession1" Relationship="IqSoftCorePlatformModel.FK_ClientSession_ClientSession" FromRole="ClientSession" ToRole="ClientSession1" />
 					<NavigationProperty Name="ClientSession2" Relationship="IqSoftCorePlatformModel.FK_ClientSession_ClientSession" FromRole="ClientSession1" ToRole="ClientSession" />
 					<NavigationProperty Name="Language" Relationship="IqSoftCorePlatformModel.FK_ClientSession_Language" FromRole="ClientSession" ToRole="Language" />
-					<NavigationProperty Name="Clients" Relationship="IqSoftCorePlatformModel.FK_Client_ClientSession" FromRole="ClientSession" ToRole="Client" />
-					<NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_ClientSession_Client" FromRole="ClientSession" ToRole="Client" />
-          <Property Name="Type" Type="Int32" />
+					<Property Name="Type" Type="Int32" />
           <Property Name="AccountId" Type="Int64" />
           <NavigationProperty Name="Account" Relationship="IqSoftCorePlatformModel.FK_ClientSession_Account" FromRole="ClientSession" ToRole="Account" />
           <NavigationProperty Name="Product" Relationship="IqSoftCorePlatformModel.FK_ClientSession_Product" FromRole="ClientSession" ToRole="Product" />
+          <NavigationProperty Name="Clients" Relationship="IqSoftCorePlatformModel.FK_Client_ClientSession" FromRole="ClientSession" ToRole="Client" />
+          <NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_ClientSession_Client" FromRole="ClientSession" ToRole="Client" />
 				</EntityType>
 				<EntityType Name="ComplimentaryPointRate">
 					<Key>
@@ -11315,7 +11310,6 @@
 					<NavigationProperty Name="Partners" Relationship="IqSoftCorePlatformModel.FK_Partner_Currency" FromRole="Currency" ToRole="Partner" />
 					<NavigationProperty Name="AffiliateCommissions" Relationship="IqSoftCorePlatformModel.FK_AffiliateCommission_Currency" FromRole="Currency" ToRole="AffiliateCommission" />
 					<NavigationProperty Name="UserSession" Relationship="IqSoftCorePlatformModel.FK_Currency_UserSession" FromRole="Currency" ToRole="UserSession" />
-					<NavigationProperty Name="Clients" Relationship="IqSoftCorePlatformModel.FK_Client_Currency" FromRole="Currency" ToRole="Client" />
           <NavigationProperty Name="BetShops" Relationship="IqSoftCorePlatformModel.FK_BetShop_Currency" FromRole="Currency" ToRole="BetShop" />
           <NavigationProperty Name="PartnerBankInfoes" Relationship="IqSoftCorePlatformModel.FK_PartnerBankInfo_Currency" FromRole="Currency" ToRole="PartnerBankInfo" />
           <NavigationProperty Name="AmountCurrencySettings" Relationship="IqSoftCorePlatformModel.FK_AmountCurrencySetting_Currency" FromRole="Currency" ToRole="AmountCurrencySetting" />
@@ -11323,6 +11317,7 @@
           <NavigationProperty Name="Accounts" Relationship="IqSoftCorePlatformModel.FK_Account_Currency" FromRole="Currency" ToRole="Account" />
           <NavigationProperty Name="PaymentRequests" Relationship="IqSoftCorePlatformModel.FK_PaymentRequest_Currency" FromRole="Currency" ToRole="PaymentRequest" />
           <NavigationProperty Name="PartnerPaymentSettings" Relationship="IqSoftCorePlatformModel.FK_PartnerPaymentSetting_Currency" FromRole="Currency" ToRole="PartnerPaymentSetting" />
+          <NavigationProperty Name="Clients" Relationship="IqSoftCorePlatformModel.FK_Client_Currency" FromRole="Currency" ToRole="Client" />
 				</EntityType>
 				<EntityType Name="CurrencyRate">
 					<Key>
@@ -11425,8 +11420,8 @@
 					<Property Name="NickName" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
 					<Property Name="TranslationId" Type="Int64" Nullable="false" />
 					<Property Name="Info" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-					<NavigationProperty Name="Clients" Relationship="IqSoftCorePlatformModel.FK_Client_JobArea" FromRole="JobArea" ToRole="Client" />
           <NavigationProperty Name="Translation" Relationship="IqSoftCorePlatformModel.FK_JobArea_Translation" FromRole="JobArea" ToRole="Translation" />
+          <NavigationProperty Name="Clients" Relationship="IqSoftCorePlatformModel.FK_Client_JobArea" FromRole="JobArea" ToRole="Client" />
 				</EntityType>
 				<EntityType Name="JobResult">
 					<Key>
@@ -11452,11 +11447,11 @@
 					<NavigationProperty Name="PromotionLanguageSettings" Relationship="IqSoftCorePlatformModel.FK_PromotionLanguageSetting_Language" FromRole="Language" ToRole="PromotionLanguageSetting" />
 					<NavigationProperty Name="Affiliates" Relationship="IqSoftCorePlatformModel.FK_Affiliate_Language" FromRole="Language" ToRole="Affiliate" />
 					<NavigationProperty Name="UserSessions" Relationship="IqSoftCorePlatformModel.FK_UserSession_Language" FromRole="Language" ToRole="UserSession" />
-					<NavigationProperty Name="Clients" Relationship="IqSoftCorePlatformModel.FK_Client_Language" FromRole="Language" ToRole="Client" />
           <NavigationProperty Name="BannerLanguageSettings" Relationship="IqSoftCorePlatformModel.FK_BannerLanguageSetting_Language" FromRole="Language" ToRole="BannerLanguageSetting" />
           <NavigationProperty Name="PartnerLanguageSettings" Relationship="IqSoftCorePlatformModel.FK_PartnerLanguageSetting_Language" FromRole="Language" ToRole="PartnerLanguageSetting" />
           <NavigationProperty Name="TranslationEntries" Relationship="IqSoftCorePlatformModel.FK_TranslationEntry_Language" FromRole="Language" ToRole="TranslationEntry" />
           <NavigationProperty Name="NewsLanguageSettings" Relationship="IqSoftCorePlatformModel.FK_NewsLanguageSetting_Language" FromRole="Language" ToRole="NewsLanguageSetting" />
+          <NavigationProperty Name="Clients" Relationship="IqSoftCorePlatformModel.FK_Client_Language" FromRole="Language" ToRole="Client" />
 				</EntityType>
 				<EntityType Name="LimitType">
 					<Key>
@@ -11639,7 +11634,7 @@
 					<Property Name="EndTime" Type="DateTime" Precision="3" />
 					<Property Name="LimitTypeId" Type="Int32" />
 					<Property Name="RowState" Type="Int32" />
-					<NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_PaymentLimit_Client" FromRole="PaymentLimit" ToRole="Client" />
+          <NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_PaymentLimit_Client" FromRole="PaymentLimit" ToRole="Client" />
 				</EntityType>
 				<EntityType Name="PaymentRequestHistory">
 					<Key>
@@ -11756,6 +11751,7 @@
           <Property Name="StyleType" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
           <NavigationProperty Name="Promotion1" Relationship="IqSoftCorePlatformModel.FK_Promotion_Promotion" FromRole="Promotion" ToRole="Promotion1" />
           <NavigationProperty Name="Promotion2" Relationship="IqSoftCorePlatformModel.FK_Promotion_Promotion" FromRole="Promotion1" ToRole="Promotion" />
+          <Property Name="DeviceType" Type="Int32" />
 				</EntityType>
 				<EntityType Name="PromotionSegmentSetting">
 					<Key>
@@ -11792,9 +11788,9 @@
 					<NavigationProperty Name="PartnerPaymentCountrySettings" Relationship="IqSoftCorePlatformModel.FK_PartnerPaymentCountrySettings_Region" FromRole="Region" ToRole="PartnerPaymentCountrySetting" />
 					<NavigationProperty Name="Region1" Relationship="IqSoftCorePlatformModel.FK_Region_Region" FromRole="Region" ToRole="Region1" />
 					<NavigationProperty Name="Region2" Relationship="IqSoftCorePlatformModel.FK_Region_Region" FromRole="Region1" ToRole="Region" />
-					<NavigationProperty Name="Clients" Relationship="IqSoftCorePlatformModel.FK_Client_Region" FromRole="Region" ToRole="Client" />
-					<NavigationProperty Name="Clients1" Relationship="IqSoftCorePlatformModel.FK_Client_Region1" FromRole="Region" ToRole="Client" />
-          <NavigationProperty Name="Translation" Relationship="IqSoftCorePlatformModel.FK_Region_Translation" FromRole="Region" ToRole="Translation" />
+					<NavigationProperty Name="Translation" Relationship="IqSoftCorePlatformModel.FK_Region_Translation" FromRole="Region" ToRole="Translation" />
+          <NavigationProperty Name="Clients" Relationship="IqSoftCorePlatformModel.FK_Client_Region" FromRole="Region" ToRole="Client" />
+          <NavigationProperty Name="Clients1" Relationship="IqSoftCorePlatformModel.FK_Client_Region1" FromRole="Region" ToRole="Client" />
 				</EntityType>
 				<EntityType Name="Role">
 					<Key>
@@ -11902,7 +11898,7 @@
 					<NavigationProperty Name="User" Relationship="IqSoftCorePlatformModel.FK_Ticket_User" FromRole="Ticket" ToRole="User" />
 					<NavigationProperty Name="TicketMessages" Relationship="IqSoftCorePlatformModel.FK_TicketMessage_Ticket" FromRole="Ticket" ToRole="TicketMessage" />
 					<NavigationProperty Name="Partner" Relationship="IqSoftCorePlatformModel.FK_Ticket_Partner" FromRole="Ticket" ToRole="Partner" />
-					<NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_Ticket_Client" FromRole="Ticket" ToRole="Client" />
+          <NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_Ticket_Client" FromRole="Ticket" ToRole="Client" />
 				</EntityType>
 				<EntityType Name="TicketMessage">
 					<Key>
@@ -11930,7 +11926,7 @@
 					<Property Name="UserId" Type="Int32" />
 					<NavigationProperty Name="TicketMessage" Relationship="IqSoftCorePlatformModel.FK_TicketMessageState_TicketMessage" FromRole="TicketMessageState" ToRole="TicketMessage" />
 					<NavigationProperty Name="User" Relationship="IqSoftCorePlatformModel.FK_TicketMessageState_User" FromRole="TicketMessageState" ToRole="User" />
-					<NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_TicketMessageState_Client" FromRole="TicketMessageState" ToRole="Client" />
+          <NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_TicketMessageState_Client" FromRole="TicketMessageState" ToRole="Client" />
 				</EntityType>
 				<EntityType Name="Transaction">
 					<Key>
@@ -12069,12 +12065,12 @@
 					<NavigationProperty Name="UserSessions" Relationship="IqSoftCorePlatformModel.FK_UserSession_User" FromRole="User" ToRole="UserSession" />
 					<NavigationProperty Name="UserStates" Relationship="IqSoftCorePlatformModel.FK_UserState_User" FromRole="User" ToRole="UserState" />
 					<NavigationProperty Name="ClientSettings" Relationship="IqSoftCorePlatformModel.FK_ClientSetting_User" FromRole="User" ToRole="ClientSetting" />
-					<NavigationProperty Name="Clients" Relationship="IqSoftCorePlatformModel.FK_Client_User" FromRole="User" ToRole="Client" />
           <NavigationProperty Name="BetShops" Relationship="IqSoftCorePlatformModel.FK_BetShop_User" FromRole="User" ToRole="BetShop" />
           <NavigationProperty Name="UserConfigurations" Relationship="IqSoftCorePlatformModel.FK_UserConfiguration_User" FromRole="User" ToRole="UserConfiguration" />
           <NavigationProperty Name="UserConfigurations1" Relationship="IqSoftCorePlatformModel.FK_UserConfiguration_User1" FromRole="User" ToRole="UserConfiguration" />
           <NavigationProperty Name="PaymentRequests" Relationship="IqSoftCorePlatformModel.FK_PaymentRequest_User" FromRole="User" ToRole="PaymentRequest" />
           <NavigationProperty Name="Announcements" Relationship="IqSoftCorePlatformModel.FK_Announcement_User" FromRole="User" ToRole="Announcement" />
+          <NavigationProperty Name="Clients" Relationship="IqSoftCorePlatformModel.FK_Client_User" FromRole="User" ToRole="Client" />
           </EntityType>
 				<EntityType Name="UserLog">
 					<Key>
@@ -13424,10 +13420,10 @@
 					<NavigationProperty Name="Document2" Relationship="IqSoftCorePlatformModel.FK_Document_Document" FromRole="Document1" ToRole="Document" />
 					<NavigationProperty Name="OperationType" Relationship="IqSoftCorePlatformModel.FK_Document_OperationType" FromRole="Document" ToRole="OperationType" />
 					<NavigationProperty Name="Transactions" Relationship="IqSoftCorePlatformModel.FK_Transaction_Document" FromRole="Document" ToRole="Transaction" />
-					<NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_Document_Client" FromRole="Document" ToRole="Client" />
           <NavigationProperty Name="PartnerPaymentSetting" Relationship="IqSoftCorePlatformModel.FK_Document_PartnerPaymentSetting" FromRole="Document" ToRole="PartnerPaymentSetting" />
           <NavigationProperty Name="GameProvider" Relationship="IqSoftCorePlatformModel.FK_Document_GameProvider" FromRole="Document" ToRole="GameProvider" />
           <NavigationProperty Name="Product" Relationship="IqSoftCorePlatformModel.FK_Document_Product" FromRole="Document" ToRole="Product" />
+          <NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_Document_Client" FromRole="Document" ToRole="Client" />
 				</EntityType>
 				<Association Name="FK_Document_CashDesk">
 					<End Type="IqSoftCorePlatformModel.CashDesk" Role="CashDesk" Multiplicity="0..1" />
@@ -13539,7 +13535,6 @@
 					<NavigationProperty Name="AffiliatePlatforms" Relationship="IqSoftCorePlatformModel.FK_AffiliatePlatform_Partner" FromRole="Partner" ToRole="AffiliatePlatform" />
 					<NavigationProperty Name="MessageTemplates" Relationship="IqSoftCorePlatformModel.FK_MessageTemplate_Partner" FromRole="Partner" ToRole="MessageTemplate" />
 					<NavigationProperty Name="PartnerProductSettings" Relationship="IqSoftCorePlatformModel.FK_PartnerProduct_Partner" FromRole="Partner" ToRole="PartnerProductSetting" />
-					<NavigationProperty Name="Clients" Relationship="IqSoftCorePlatformModel.FK_Client_Partner" FromRole="Partner" ToRole="Client" />
           <NavigationProperty Name="PartnerKeys" Relationship="IqSoftCorePlatformModel.FK_PartnerKey_Partner" FromRole="Partner" ToRole="PartnerKey" />
           <NavigationProperty Name="Bonus" Relationship="IqSoftCorePlatformModel.FK_Bonus_Partner" FromRole="Partner" ToRole="Bonu" />
           <NavigationProperty Name="Emails" Relationship="IqSoftCorePlatformModel.FK_Email_Partner" FromRole="Partner" ToRole="Email" />
@@ -13555,6 +13550,7 @@
           <NavigationProperty Name="PartnerPaymentSettings" Relationship="IqSoftCorePlatformModel.FK_PartnerPaymentSetting_Partner" FromRole="Partner" ToRole="PartnerPaymentSetting" />
           <NavigationProperty Name="News" Relationship="IqSoftCorePlatformModel.FK_News_Partner" FromRole="Partner" ToRole="News" />
           <NavigationProperty Name="Popups" Relationship="IqSoftCorePlatformModel.FK_Popup_Partner" FromRole="Partner" ToRole="Popup" />
+          <NavigationProperty Name="Clients" Relationship="IqSoftCorePlatformModel.FK_Client_Partner" FromRole="Partner" ToRole="Client" />
 				</EntityType>
 				<Association Name="FK_Category_Partner">
 					<End Type="IqSoftCorePlatformModel.Partner" Role="Partner" Multiplicity="0..1" />
@@ -13752,7 +13748,7 @@
 					<NavigationProperty Name="Partner" Relationship="IqSoftCorePlatformModel.FK_ClientInfo_Partner" FromRole="ClientInfo" ToRole="Partner" />
 					<Property Name="AffiliateId" Type="Int32" />
 					<NavigationProperty Name="Affiliate" Relationship="IqSoftCorePlatformModel.FK_ClientInfo_Affiliate" FromRole="ClientInfo" ToRole="Affiliate" />
-					<NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_ClientInfo_Client" FromRole="ClientInfo" ToRole="Client" />
+          <NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_ClientInfo_Client" FromRole="ClientInfo" ToRole="Client" />
 				</EntityType>
 				<Association Name="FK_ClientInfo_Partner">
 					<End Type="IqSoftCorePlatformModel.Partner" Role="Partner" Multiplicity="0..1" />
@@ -13812,7 +13808,7 @@
 					<Property Name="SecurityQuestionId" Type="Int32" Nullable="false" />
 					<Property Name="Answer" Type="String" Nullable="false" MaxLength="255" FixedLength="false" Unicode="true" />
 					<NavigationProperty Name="SecurityQuestion" Relationship="IqSoftCorePlatformModel.FK_ClientSecurityAnswer_SecurityQuestion" FromRole="ClientSecurityAnswer" ToRole="SecurityQuestion" />
-					<NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_ClientSecurityAnswer_Client" FromRole="ClientSecurityAnswer" ToRole="Client" />
+          <NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_ClientSecurityAnswer_Client" FromRole="ClientSecurityAnswer" ToRole="Client" />
 				</EntityType>
 				<Association Name="FK_ClientSecurityAnswer_SecurityQuestion">
 					<End Type="IqSoftCorePlatformModel.SecurityQuestion" Role="SecurityQuestion" Multiplicity="1" />
@@ -13924,9 +13920,9 @@
 					<Property Name="ProductId" Type="Int32" Nullable="false" />
 					<NavigationProperty Name="User" Relationship="IqSoftCorePlatformModel.FK_AgentProfit_User" FromRole="AgentProfit" ToRole="User" />
 					<NavigationProperty Name="User1" Relationship="IqSoftCorePlatformModel.FK_AgentProfit_User1" FromRole="AgentProfit" ToRole="User" />
-					<NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_AgentProfit_Client" FromRole="AgentProfit" ToRole="Client" />
           <NavigationProperty Name="Product" Relationship="IqSoftCorePlatformModel.FK_AgentProfit_Product" FromRole="AgentProfit" ToRole="Product" />
           <NavigationProperty Name="Product1" Relationship="IqSoftCorePlatformModel.FK_AgentProfit_Product1" FromRole="AgentProfit" ToRole="Product" />
+          <NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_AgentProfit_Client" FromRole="AgentProfit" ToRole="Client" />
 				</EntityType>
 				<Association Name="FK_AgentProfit_User">
 					<End Type="IqSoftCorePlatformModel.User" Role="User" Multiplicity="0..1" />
@@ -14035,8 +14031,8 @@
 					<Property Name="PartnerPaymentSystemId" Type="Int32" />
 					<Property Name="State" Type="Int32" />
 					<Property Name="BankAccountType" Type="Int32" />
-					<NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_ClientPaymentInfo_Client" FromRole="ClientPaymentInfo" ToRole="Client" />
           <NavigationProperty Name="PartnerPaymentSetting" Relationship="IqSoftCorePlatformModel.FK_ClientPaymentInfo_PartnerPaymentSetting" FromRole="ClientPaymentInfo" ToRole="PartnerPaymentSetting" />
+          <NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_ClientPaymentInfo_Client" FromRole="ClientPaymentInfo" ToRole="Client" />
 				</EntityType>
 				<EntityType Name="Affiliate">
 					<Key>
@@ -14349,7 +14345,7 @@
 					<Property Name="Status" Type="Int32" Nullable="false" />
 					<Property Name="LastProcessedBonusTime" Type="DateTime" Precision="3" />
 					<NavigationProperty Name="AffiliatePlatform" Relationship="IqSoftCorePlatformModel.FK_AffiliateReferal_AffiliatePlatform" FromRole="AffiliateReferral" ToRole="AffiliatePlatform" />
-					<NavigationProperty Name="Clients" Relationship="IqSoftCorePlatformModel.FK_Client_AffiliateReferral" FromRole="AffiliateReferral" ToRole="Client" />
+          <NavigationProperty Name="Clients" Relationship="IqSoftCorePlatformModel.FK_Client_AffiliateReferral" FromRole="AffiliateReferral" ToRole="Client" />
 				</EntityType>
 				<ComplexType Name="fnReportByClientExclusion">
 					<Property Type="Int32" Name="ClientId" Nullable="false" />
@@ -14394,9 +14390,9 @@
 					<NavigationProperty Name="UserSession" Relationship="IqSoftCorePlatformModel.FK_ClientMessage_UserSession" FromRole="ClientMessage" ToRole="UserSession" />
 					<Property Name="AffiliateId" Type="Int32" />
 					<NavigationProperty Name="Affiliate" Relationship="IqSoftCorePlatformModel.FK_ClientMessage_Affiliate" FromRole="ClientMessage" ToRole="Affiliate" />
-					<NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_ClientMessage_Client" FromRole="ClientMessage" ToRole="Client" />
           <NavigationProperty Name="Email" Relationship="IqSoftCorePlatformModel.FK_ClientMessage_ClientMessage" FromRole="ClientMessage" ToRole="Email" />
           <NavigationProperty Name="ClientMessageStates" Relationship="IqSoftCorePlatformModel.FK_ClientMessageState_ClientMessage" FromRole="ClientMessage" ToRole="ClientMessageState" />
+          <NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_ClientMessage_Client" FromRole="ClientMessage" ToRole="Client" />
 				</EntityType>
 				<Association Name="FK_BonusCountrySettings_Region">
 					<End Type="IqSoftCorePlatformModel.Region" Role="Region" Multiplicity="1" />
@@ -14538,6 +14534,7 @@
 					<Property Name="PermissionId" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
 					<NavigationProperty Name="Permission" Relationship="IqSoftCorePlatformModel.FK_AdminMenu_Permission" FromRole="AdminMenu" ToRole="Permission" />
 					<NavigationProperty Name="UserStates" Relationship="IqSoftCorePlatformModel.FK_UserState_AdminMenu" FromRole="AdminMenu" ToRole="UserState" />
+          <Property Name="Priority" Type="Int32" />
 				</EntityType>
 				<Association Name="FK_AdminMenu_AdminMenu">
 					<End Type="IqSoftCorePlatformModel.AdminMenu" Role="AdminMenu" Multiplicity="1" />
@@ -14636,8 +14633,8 @@
 					<Property Name="PaymentRequestId" Type="Int64" />
 					<NavigationProperty Name="Jackpot" Relationship="IqSoftCorePlatformModel.FK_JobTrigger_Jackpot" FromRole="JobTrigger" ToRole="Jackpot" />
 					<NavigationProperty Name="Segment" Relationship="IqSoftCorePlatformModel.FK_JobTrigger_Segment" FromRole="JobTrigger" ToRole="Segment" />
-					<NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_JobTrigger_Client" FromRole="JobTrigger" ToRole="Client" />
           <NavigationProperty Name="PaymentRequest" Relationship="IqSoftCorePlatformModel.FK_JobTrigger_PaymentRequest" FromRole="JobTrigger" ToRole="PaymentRequest" />
+          <NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_JobTrigger_Client" FromRole="JobTrigger" ToRole="Client" />
 				</EntityType>
 				<Association Name="FK_JobTrigger_Jackpot">
 					<End Type="IqSoftCorePlatformModel.Jackpot" Role="Jackpot" Multiplicity="0..1" />
@@ -14677,7 +14674,7 @@
 					<Property Name="CreationTime" Type="DateTime" Precision="3" />
 					<Property Name="LastUpdateTime" Type="DateTime" Precision="3" />
 					<NavigationProperty Name="User" Relationship="IqSoftCorePlatformModel.FK_ClientSetting_User" FromRole="ClientSetting" ToRole="User" />
-					<NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_ClientSetting_Client" FromRole="ClientSetting" ToRole="Client" />
+          <NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_ClientSetting_Client" FromRole="ClientSetting" ToRole="Client" />
 				</EntityType>
 				<Association Name="FK_ClientSetting_User">
 					<End Type="IqSoftCorePlatformModel.User" Role="User" Multiplicity="0..1" />
@@ -14865,448 +14862,6 @@
 					<Property Type="String" Name="UserName" Nullable="false" MaxLength="50" />
 					<Property Type="String" Name="AffiliateId" Nullable="true" MaxLength="50" />
 				</ComplexType>
-				<EntityType Name="Client">
-					<Key>
-						<PropertyRef Name="Id" />
-					</Key>
-					<Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-					<Property Name="Email" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
-					<Property Name="IsEmailVerified" Type="Boolean" Nullable="false" />
-					<Property Name="CurrencyId" Type="String" Nullable="false" MaxLength="5" FixedLength="false" Unicode="false" />
-					<Property Name="UserName" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
-					<Property Name="PasswordHash" Type="String" Nullable="false" MaxLength="150" FixedLength="false" Unicode="false" />
-					<Property Name="Salt" Type="Int32" Nullable="false" />
-					<Property Name="PartnerId" Type="Int32" Nullable="false" />
-					<Property Name="Gender" Type="Int32" Nullable="false" />
-					<Property Name="BirthDate" Type="DateTime" Nullable="false" Precision="0" />
-					<Property Name="SendMail" Type="Boolean" Nullable="false" />
-					<Property Name="SendSms" Type="Boolean" Nullable="false" />
-					<Property Name="CallToPhone" Type="Boolean" Nullable="false" />
-					<Property Name="SendPromotions" Type="Boolean" Nullable="false" />
-					<Property Name="State" Type="Int32" Nullable="false" />
-					<Property Name="CategoryId" Type="Int32" Nullable="false" />
-					<Property Name="FirstName" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
-					<Property Name="LastName" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
-					<Property Name="RegionId" Type="Int32" Nullable="false" />
-					<Property Name="Info" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
-					<Property Name="ZipCode" Type="String" MaxLength="10" FixedLength="true" Unicode="true" />
-					<Property Name="RegistrationIp" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-					<Property Name="DocumentType" Type="Int32" />
-					<Property Name="DocumentNumber" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-					<Property Name="DocumentIssuedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-					<Property Name="IsDocumentVerified" Type="Boolean" Nullable="false" />
-					<Property Name="Address" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
-					<Property Name="MobileNumber" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-					<Property Name="PhoneNumber" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-					<Property Name="IsMobileNumberVerified" Type="Boolean" Nullable="false" />
-					<Property Name="HasNote" Type="Boolean" Nullable="false" />
-					<Property Name="LanguageId" Type="String" MaxLength="2" FixedLength="true" Unicode="false" />
-					<Property Name="CreationTime" Type="DateTime" Nullable="false" Precision="3" />
-					<Property Name="LastUpdateTime" Type="DateTime" Nullable="false" Precision="3" />
-					<Property Name="FirstDepositDate" Type="DateTime" Precision="3" />
-					<Property Name="LastDepositDate" Type="DateTime" Precision="3" />
-					<Property Name="LastDepositAmount" Type="Decimal" Precision="18" Scale="4" />
-					<Property Name="BetShopId" Type="Int32" />
-					<Property Name="UserId" Type="Int32" />
-					<Property Name="AffiliateReferralId" Type="Int32" />
-					<Property Name="LastSessionId" Type="Int64" />
-					<Property Name="Citizenship" Type="Int32" />
-					<Property Name="JobArea" Type="Int32" />
-					<Property Name="SecondName" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
-					<Property Name="SecondSurname" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
-					<Property Name="BuildingNumber" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-					<Property Name="Apartment" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-					<Property Name="NickName" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
-					<Property Name="City" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
-					<Property Name="USSDPin" Type="String" MaxLength="150" FixedLength="false" Unicode="false" />
-					<Property Name="Title" Type="Int32" />
-					<Property Name="IsTwoFactorEnabled" Type="Boolean" />
-					<Property Name="QRCode" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-					<Property Name="CountryId" Type="Int32" />
-					<NavigationProperty Name="AffiliateReferral" Relationship="IqSoftCorePlatformModel.FK_Client_AffiliateReferral" FromRole="Client" ToRole="AffiliateReferral" />
-					<NavigationProperty Name="AgentCommissions" Relationship="IqSoftCorePlatformModel.FK_AgentCommission_Client" FromRole="Client" ToRole="AgentCommission" />
-					<NavigationProperty Name="AgentProfits" Relationship="IqSoftCorePlatformModel.FK_AgentProfit_Client" FromRole="Client" ToRole="AgentProfit" />
-					<NavigationProperty Name="ClientSession" Relationship="IqSoftCorePlatformModel.FK_Client_ClientSession" FromRole="Client" ToRole="ClientSession" />
-					<NavigationProperty Name="Currency" Relationship="IqSoftCorePlatformModel.FK_Client_Currency" FromRole="Client" ToRole="Currency" />
-					<NavigationProperty Name="JobArea1" Relationship="IqSoftCorePlatformModel.FK_Client_JobArea" FromRole="Client" ToRole="JobArea" />
-					<NavigationProperty Name="Language" Relationship="IqSoftCorePlatformModel.FK_Client_Language" FromRole="Client" ToRole="Language" />
-					<NavigationProperty Name="Partner" Relationship="IqSoftCorePlatformModel.FK_Client_Partner" FromRole="Client" ToRole="Partner" />
-					<NavigationProperty Name="Region" Relationship="IqSoftCorePlatformModel.FK_Client_Region" FromRole="Client" ToRole="Region" />
-					<NavigationProperty Name="Region1" Relationship="IqSoftCorePlatformModel.FK_Client_Region1" FromRole="Client" ToRole="Region" />
-					<NavigationProperty Name="User" Relationship="IqSoftCorePlatformModel.FK_Client_User" FromRole="Client" ToRole="User" />
-					<NavigationProperty Name="ClientBankInfo" Relationship="IqSoftCorePlatformModel.FK_ClientBankInfo_Client" FromRole="Client" ToRole="ClientBankInfo" />
-					<NavigationProperty Name="ClientClassifications" Relationship="IqSoftCorePlatformModel.FK_ClientClassification_Client" FromRole="Client" ToRole="ClientClassification" />
-					<NavigationProperty Name="ClientClosedPeriods" Relationship="IqSoftCorePlatformModel.FK_ClientClosedPeriod_Client" FromRole="Client" ToRole="ClientClosedPeriod" />
-					<NavigationProperty Name="ClientFavoriteProducts" Relationship="IqSoftCorePlatformModel.FK_ClientFavoriteProduct_Client" FromRole="Client" ToRole="ClientFavoriteProduct" />
-					<NavigationProperty Name="ClientIdentities" Relationship="IqSoftCorePlatformModel.FK_ClientIdentity_Client" FromRole="Client" ToRole="ClientIdentity" />
-					<NavigationProperty Name="ClientInfoes" Relationship="IqSoftCorePlatformModel.FK_ClientInfo_Client" FromRole="Client" ToRole="ClientInfo" />
-					<NavigationProperty Name="ClientLogs" Relationship="IqSoftCorePlatformModel.FK_ClientLog_Client" FromRole="Client" ToRole="ClientLog" />
-					<NavigationProperty Name="ClientMessages" Relationship="IqSoftCorePlatformModel.FK_ClientMessage_Client" FromRole="Client" ToRole="ClientMessage" />
-					<NavigationProperty Name="ClientPaymentInfoes" Relationship="IqSoftCorePlatformModel.FK_ClientPaymentInfo_Client" FromRole="Client" ToRole="ClientPaymentInfo" />
-					<NavigationProperty Name="ClientPaymentSettings" Relationship="IqSoftCorePlatformModel.FK_ClientPaymentSetting_Client" FromRole="Client" ToRole="ClientPaymentSetting" />
-					<NavigationProperty Name="ClientSecurityAnswers" Relationship="IqSoftCorePlatformModel.FK_ClientSecurityAnswer_Client" FromRole="Client" ToRole="ClientSecurityAnswer" />
-					<NavigationProperty Name="ClientSessions" Relationship="IqSoftCorePlatformModel.FK_ClientSession_Client" FromRole="Client" ToRole="ClientSession" />
-					<NavigationProperty Name="ClientSettings" Relationship="IqSoftCorePlatformModel.FK_ClientSetting_Client" FromRole="Client" ToRole="ClientSetting" />
-					<NavigationProperty Name="Documents" Relationship="IqSoftCorePlatformModel.FK_Document_Client" FromRole="Client" ToRole="Document" />
-					<NavigationProperty Name="JobTriggers" Relationship="IqSoftCorePlatformModel.FK_JobTrigger_Client" FromRole="Client" ToRole="JobTrigger" />
-					<NavigationProperty Name="PaymentLimits" Relationship="IqSoftCorePlatformModel.FK_PaymentLimit_Client" FromRole="Client" ToRole="PaymentLimit" />
-					<NavigationProperty Name="Tickets" Relationship="IqSoftCorePlatformModel.FK_Ticket_Client" FromRole="Client" ToRole="Ticket" />
-					<NavigationProperty Name="TicketMessageStates" Relationship="IqSoftCorePlatformModel.FK_TicketMessageState_Client" FromRole="Client" ToRole="TicketMessageState" />
-          <Property Name="CharacterId" Type="Int32" />
-          <NavigationProperty Name="ClientBonus" Relationship="IqSoftCorePlatformModel.FK_ClientBonus_Client" FromRole="Client" ToRole="ClientBonu" />
-          <NavigationProperty Name="ClientBonusTriggers" Relationship="IqSoftCorePlatformModel.FK_ClientBonusTrigger_Client" FromRole="Client" ToRole="ClientBonusTrigger" />
-          <NavigationProperty Name="PaymentRequests" Relationship="IqSoftCorePlatformModel.FK_PaymentRequest_Client" FromRole="Client" ToRole="PaymentRequest" />
-          <NavigationProperty Name="Character" Relationship="IqSoftCorePlatformModel.FK_Client_Character" FromRole="Client" ToRole="Character" />
-          <NavigationProperty Name="ClientMessageStates" Relationship="IqSoftCorePlatformModel.FK_ClientMessageState_Client" FromRole="Client" ToRole="ClientMessageState" />
-				</EntityType>
-				<Association Name="FK_Client_AffiliateReferral">
-					<End Type="IqSoftCorePlatformModel.AffiliateReferral" Role="AffiliateReferral" Multiplicity="0..1" />
-					<End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="*" />
-					<ReferentialConstraint>
-						<Principal Role="AffiliateReferral">
-							<PropertyRef Name="Id" />
-						</Principal>
-						<Dependent Role="Client">
-							<PropertyRef Name="AffiliateReferralId" />
-						</Dependent>
-					</ReferentialConstraint>
-				</Association>
-				<Association Name="FK_AgentCommission_Client">
-					<End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="0..1" />
-					<End Type="IqSoftCorePlatformModel.AgentCommission" Role="AgentCommission" Multiplicity="*" />
-					<ReferentialConstraint>
-						<Principal Role="Client">
-							<PropertyRef Name="Id" />
-						</Principal>
-						<Dependent Role="AgentCommission">
-							<PropertyRef Name="ClientId" />
-						</Dependent>
-					</ReferentialConstraint>
-				</Association>
-				<Association Name="FK_AgentProfit_Client">
-					<End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="0..1" />
-					<End Type="IqSoftCorePlatformModel.AgentProfit" Role="AgentProfit" Multiplicity="*" />
-					<ReferentialConstraint>
-						<Principal Role="Client">
-							<PropertyRef Name="Id" />
-						</Principal>
-						<Dependent Role="AgentProfit">
-							<PropertyRef Name="ClientId" />
-						</Dependent>
-					</ReferentialConstraint>
-				</Association>
-				<Association Name="FK_Client_ClientSession">
-					<End Type="IqSoftCorePlatformModel.ClientSession" Role="ClientSession" Multiplicity="0..1" />
-					<End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="*" />
-					<ReferentialConstraint>
-						<Principal Role="ClientSession">
-							<PropertyRef Name="Id" />
-						</Principal>
-						<Dependent Role="Client">
-							<PropertyRef Name="LastSessionId" />
-						</Dependent>
-					</ReferentialConstraint>
-				</Association>
-				<Association Name="FK_Client_Currency">
-					<End Type="IqSoftCorePlatformModel.Currency" Role="Currency" Multiplicity="1" />
-					<End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="*" />
-					<ReferentialConstraint>
-						<Principal Role="Currency">
-							<PropertyRef Name="Id" />
-						</Principal>
-						<Dependent Role="Client">
-							<PropertyRef Name="CurrencyId" />
-						</Dependent>
-					</ReferentialConstraint>
-				</Association>
-				<Association Name="FK_Client_JobArea">
-					<End Type="IqSoftCorePlatformModel.JobArea" Role="JobArea" Multiplicity="0..1" />
-					<End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="*" />
-					<ReferentialConstraint>
-						<Principal Role="JobArea">
-							<PropertyRef Name="Id" />
-						</Principal>
-						<Dependent Role="Client">
-							<PropertyRef Name="JobArea" />
-						</Dependent>
-					</ReferentialConstraint>
-				</Association>
-				<Association Name="FK_Client_Language">
-					<End Type="IqSoftCorePlatformModel.Language" Role="Language" Multiplicity="0..1" />
-					<End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="*" />
-					<ReferentialConstraint>
-						<Principal Role="Language">
-							<PropertyRef Name="Id" />
-						</Principal>
-						<Dependent Role="Client">
-							<PropertyRef Name="LanguageId" />
-						</Dependent>
-					</ReferentialConstraint>
-				</Association>
-				<Association Name="FK_Client_Partner">
-					<End Type="IqSoftCorePlatformModel.Partner" Role="Partner" Multiplicity="1" />
-					<End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="*" />
-					<ReferentialConstraint>
-						<Principal Role="Partner">
-							<PropertyRef Name="Id" />
-						</Principal>
-						<Dependent Role="Client">
-							<PropertyRef Name="PartnerId" />
-						</Dependent>
-					</ReferentialConstraint>
-				</Association>
-				<Association Name="FK_Client_Region">
-					<End Type="IqSoftCorePlatformModel.Region" Role="Region" Multiplicity="1" />
-					<End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="*" />
-					<ReferentialConstraint>
-						<Principal Role="Region">
-							<PropertyRef Name="Id" />
-						</Principal>
-						<Dependent Role="Client">
-							<PropertyRef Name="RegionId" />
-						</Dependent>
-					</ReferentialConstraint>
-				</Association>
-				<Association Name="FK_Client_Region1">
-					<End Type="IqSoftCorePlatformModel.Region" Role="Region" Multiplicity="0..1" />
-					<End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="*" />
-					<ReferentialConstraint>
-						<Principal Role="Region">
-							<PropertyRef Name="Id" />
-						</Principal>
-						<Dependent Role="Client">
-							<PropertyRef Name="CountryId" />
-						</Dependent>
-					</ReferentialConstraint>
-				</Association>
-				<Association Name="FK_Client_User">
-					<End Type="IqSoftCorePlatformModel.User" Role="User" Multiplicity="0..1" />
-					<End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="*" />
-					<ReferentialConstraint>
-						<Principal Role="User">
-							<PropertyRef Name="Id" />
-						</Principal>
-						<Dependent Role="Client">
-							<PropertyRef Name="UserId" />
-						</Dependent>
-					</ReferentialConstraint>
-				</Association>
-				<Association Name="FK_ClientBankInfo_Client">
-					<End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="1" />
-					<End Type="IqSoftCorePlatformModel.ClientBankInfo" Role="ClientBankInfo" Multiplicity="0..1" />
-					<ReferentialConstraint>
-						<Principal Role="Client">
-							<PropertyRef Name="Id" />
-						</Principal>
-						<Dependent Role="ClientBankInfo">
-							<PropertyRef Name="ClientId" />
-						</Dependent>
-					</ReferentialConstraint>
-				</Association>
-				<Association Name="FK_ClientClassification_Client">
-					<End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="1" />
-					<End Type="IqSoftCorePlatformModel.ClientClassification" Role="ClientClassification" Multiplicity="*" />
-					<ReferentialConstraint>
-						<Principal Role="Client">
-							<PropertyRef Name="Id" />
-						</Principal>
-						<Dependent Role="ClientClassification">
-							<PropertyRef Name="ClientId" />
-						</Dependent>
-					</ReferentialConstraint>
-				</Association>
-				<Association Name="FK_ClientClosedPeriod_Client">
-					<End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="1" />
-					<End Type="IqSoftCorePlatformModel.ClientClosedPeriod" Role="ClientClosedPeriod" Multiplicity="*" />
-					<ReferentialConstraint>
-						<Principal Role="Client">
-							<PropertyRef Name="Id" />
-						</Principal>
-						<Dependent Role="ClientClosedPeriod">
-							<PropertyRef Name="ClientId" />
-						</Dependent>
-					</ReferentialConstraint>
-				</Association>
-				<Association Name="FK_ClientFavoriteProduct_Client">
-					<End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="1" />
-					<End Type="IqSoftCorePlatformModel.ClientFavoriteProduct" Role="ClientFavoriteProduct" Multiplicity="*" />
-					<ReferentialConstraint>
-						<Principal Role="Client">
-							<PropertyRef Name="Id" />
-						</Principal>
-						<Dependent Role="ClientFavoriteProduct">
-							<PropertyRef Name="ClientId" />
-						</Dependent>
-					</ReferentialConstraint>
-				</Association>
-				<Association Name="FK_ClientIdentity_Client">
-					<End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="1" />
-					<End Type="IqSoftCorePlatformModel.ClientIdentity" Role="ClientIdentity" Multiplicity="*" />
-					<ReferentialConstraint>
-						<Principal Role="Client">
-							<PropertyRef Name="Id" />
-						</Principal>
-						<Dependent Role="ClientIdentity">
-							<PropertyRef Name="ClientId" />
-						</Dependent>
-					</ReferentialConstraint>
-				</Association>
-				<Association Name="FK_ClientInfo_Client">
-					<End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="0..1" />
-					<End Type="IqSoftCorePlatformModel.ClientInfo" Role="ClientInfo" Multiplicity="*" />
-					<ReferentialConstraint>
-						<Principal Role="Client">
-							<PropertyRef Name="Id" />
-						</Principal>
-						<Dependent Role="ClientInfo">
-							<PropertyRef Name="ClientId" />
-						</Dependent>
-					</ReferentialConstraint>
-				</Association>
-				<Association Name="FK_ClientLog_Client">
-					<End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="1" />
-					<End Type="IqSoftCorePlatformModel.ClientLog" Role="ClientLog" Multiplicity="*" />
-					<ReferentialConstraint>
-						<Principal Role="Client">
-							<PropertyRef Name="Id" />
-						</Principal>
-						<Dependent Role="ClientLog">
-							<PropertyRef Name="ClientId" />
-						</Dependent>
-					</ReferentialConstraint>
-				</Association>
-				<Association Name="FK_ClientMessage_Client">
-					<End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="0..1" />
-					<End Type="IqSoftCorePlatformModel.ClientMessage" Role="ClientMessage" Multiplicity="*" />
-					<ReferentialConstraint>
-						<Principal Role="Client">
-							<PropertyRef Name="Id" />
-						</Principal>
-						<Dependent Role="ClientMessage">
-							<PropertyRef Name="ClientId" />
-						</Dependent>
-					</ReferentialConstraint>
-				</Association>
-				<Association Name="FK_ClientPaymentInfo_Client">
-					<End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="1" />
-					<End Type="IqSoftCorePlatformModel.ClientPaymentInfo" Role="ClientPaymentInfo" Multiplicity="*" />
-					<ReferentialConstraint>
-						<Principal Role="Client">
-							<PropertyRef Name="Id" />
-						</Principal>
-						<Dependent Role="ClientPaymentInfo">
-							<PropertyRef Name="ClientId" />
-						</Dependent>
-					</ReferentialConstraint>
-				</Association>
-				<Association Name="FK_ClientPaymentSetting_Client">
-					<End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="1" />
-					<End Type="IqSoftCorePlatformModel.ClientPaymentSetting" Role="ClientPaymentSetting" Multiplicity="*" />
-					<ReferentialConstraint>
-						<Principal Role="Client">
-							<PropertyRef Name="Id" />
-						</Principal>
-						<Dependent Role="ClientPaymentSetting">
-							<PropertyRef Name="ClientId" />
-						</Dependent>
-					</ReferentialConstraint>
-				</Association>
-				<Association Name="FK_ClientSecurityAnswer_Client">
-					<End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="1" />
-					<End Type="IqSoftCorePlatformModel.ClientSecurityAnswer" Role="ClientSecurityAnswer" Multiplicity="*" />
-					<ReferentialConstraint>
-						<Principal Role="Client">
-							<PropertyRef Name="Id" />
-						</Principal>
-						<Dependent Role="ClientSecurityAnswer">
-							<PropertyRef Name="ClientId" />
-						</Dependent>
-					</ReferentialConstraint>
-				</Association>
-				<Association Name="FK_ClientSession_Client">
-					<End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="1" />
-					<End Type="IqSoftCorePlatformModel.ClientSession" Role="ClientSession" Multiplicity="*" />
-					<ReferentialConstraint>
-						<Principal Role="Client">
-							<PropertyRef Name="Id" />
-						</Principal>
-						<Dependent Role="ClientSession">
-							<PropertyRef Name="ClientId" />
-						</Dependent>
-					</ReferentialConstraint>
-				</Association>
-				<Association Name="FK_ClientSetting_Client">
-					<End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="1" />
-					<End Type="IqSoftCorePlatformModel.ClientSetting" Role="ClientSetting" Multiplicity="*" />
-					<ReferentialConstraint>
-						<Principal Role="Client">
-							<PropertyRef Name="Id" />
-						</Principal>
-						<Dependent Role="ClientSetting">
-							<PropertyRef Name="ClientId" />
-						</Dependent>
-					</ReferentialConstraint>
-				</Association>
-				<Association Name="FK_Document_Client">
-					<End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="0..1" />
-					<End Type="IqSoftCorePlatformModel.Document" Role="Document" Multiplicity="*" />
-					<ReferentialConstraint>
-						<Principal Role="Client">
-							<PropertyRef Name="Id" />
-						</Principal>
-						<Dependent Role="Document">
-							<PropertyRef Name="ClientId" />
-						</Dependent>
-					</ReferentialConstraint>
-				</Association>
-				<Association Name="FK_JobTrigger_Client">
-					<End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="1" />
-					<End Type="IqSoftCorePlatformModel.JobTrigger" Role="JobTrigger" Multiplicity="*" />
-					<ReferentialConstraint>
-						<Principal Role="Client">
-							<PropertyRef Name="Id" />
-						</Principal>
-						<Dependent Role="JobTrigger">
-							<PropertyRef Name="ClientId" />
-						</Dependent>
-					</ReferentialConstraint>
-				</Association>
-				<Association Name="FK_PaymentLimit_Client">
-					<End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="1" />
-					<End Type="IqSoftCorePlatformModel.PaymentLimit" Role="PaymentLimit" Multiplicity="*" />
-					<ReferentialConstraint>
-						<Principal Role="Client">
-							<PropertyRef Name="Id" />
-						</Principal>
-						<Dependent Role="PaymentLimit">
-							<PropertyRef Name="ClientId" />
-						</Dependent>
-					</ReferentialConstraint>
-				</Association>
-				<Association Name="FK_Ticket_Client">
-					<End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="0..1" />
-					<End Type="IqSoftCorePlatformModel.Ticket" Role="Ticket" Multiplicity="*" />
-					<ReferentialConstraint>
-						<Principal Role="Client">
-							<PropertyRef Name="Id" />
-						</Principal>
-						<Dependent Role="Ticket">
-							<PropertyRef Name="ClientId" />
-						</Dependent>
-					</ReferentialConstraint>
-				</Association>
-				<Association Name="FK_TicketMessageState_Client">
-					<End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="0..1" />
-					<End Type="IqSoftCorePlatformModel.TicketMessageState" Role="TicketMessageState" Multiplicity="*" />
-					<ReferentialConstraint>
-						<Principal Role="Client">
-							<PropertyRef Name="Id" />
-						</Principal>
-						<Dependent Role="TicketMessageState">
-							<PropertyRef Name="ClientId" />
-						</Dependent>
-					</ReferentialConstraint>
-				</Association>
 				<EntityType Name="BonusProduct">
 					<Key>
 						<PropertyRef Name="Id" />
@@ -16040,65 +15595,6 @@
           <Property Type="String" Name="SecondSurname" Nullable="true" MaxLength="255" />
           <Property Type="String" Name="BuildingNumber" Nullable="true" MaxLength="50" />
           <Property Type="Int32" Name="Citizenship" Nullable="true" />
-        </ComplexType>
-        <ComplexType Name="fnClient">
-          <Property Type="Int32" Name="Id" Nullable="false" />
-          <Property Type="String" Name="Email" Nullable="false" MaxLength="50" />
-          <Property Type="Boolean" Name="IsEmailVerified" Nullable="false" />
-          <Property Type="String" Name="CurrencyId" Nullable="false" MaxLength="5" />
-          <Property Type="String" Name="UserName" Nullable="false" MaxLength="50" />
-          <Property Type="String" Name="NickName" Nullable="true" MaxLength="250" />
-          <Property Type="String" Name="PasswordHash" Nullable="false" MaxLength="150" />
-          <Property Type="Int32" Name="Salt" Nullable="false" />
-          <Property Type="Int32" Name="PartnerId" Nullable="false" />
-          <Property Type="Int32" Name="Gender" Nullable="false" />
-          <Property Type="DateTime" Name="BirthDate" Nullable="false" Precision="10" />
-          <Property Type="Int32" Name="Age" Nullable="true" />
-          <Property Type="Boolean" Name="SendMail" Nullable="false" />
-          <Property Type="Boolean" Name="SendSms" Nullable="false" />
-          <Property Type="Boolean" Name="CallToPhone" Nullable="false" />
-          <Property Type="Boolean" Name="SendPromotions" Nullable="false" />
-          <Property Type="Int32" Name="State" Nullable="false" />
-          <Property Type="String" Name="FirstName" Nullable="true" MaxLength="255" />
-          <Property Type="String" Name="LastName" Nullable="true" MaxLength="255" />
-          <Property Type="String" Name="RegionIsoCode" Nullable="true" MaxLength="50" />
-          <Property Type="Int32" Name="RegionId" Nullable="false" />
-          <Property Type="Int32" Name="CountryId" Nullable="true" />
-          <Property Type="String" Name="Info" Nullable="true" MaxLength="500" />
-          <Property Type="String" Name="ZipCode" Nullable="true" MaxLength="10" />
-          <Property Type="String" Name="RegistrationIp" Nullable="true" MaxLength="50" />
-          <Property Type="String" Name="DocumentNumber" Nullable="true" MaxLength="50" />
-          <Property Type="String" Name="DocumentIssuedBy" Nullable="true" MaxLength="50" />
-          <Property Type="Boolean" Name="IsDocumentVerified" Nullable="false" />
-          <Property Type="String" Name="Address" Nullable="true" MaxLength="255" />
-          <Property Type="String" Name="MobileNumber" Nullable="true" MaxLength="50" />
-          <Property Type="String" Name="PhoneNumber" Nullable="true" MaxLength="50" />
-          <Property Type="Boolean" Name="IsMobileNumberVerified" Nullable="false" />
-          <Property Type="Boolean" Name="HasNote" Nullable="false" />
-          <Property Type="String" Name="LanguageId" Nullable="true" MaxLength="2" />
-          <Property Type="String" Name="City" Nullable="true" MaxLength="100" />
-          <Property Type="DateTime" Name="CreationTime" Nullable="false" Precision="23" />
-          <Property Type="DateTime" Name="LastUpdateTime" Nullable="false" Precision="23" />
-          <Property Type="DateTime" Name="FirstDepositDate" Nullable="true" Precision="23" />
-          <Property Type="DateTime" Name="LastDepositDate" Nullable="true" Precision="23" />
-          <Property Type="Decimal" Name="LastDepositAmount" Nullable="true" Precision="18" Scale="4" />
-          <Property Type="Int32" Name="CategoryId" Nullable="false" />
-          <Property Type="Int32" Name="DocumentType" Nullable="true" />
-          <Property Type="Int32" Name="AffiliatePlatformId" Nullable="true" />
-          <Property Type="String" Name="AffiliateId" Nullable="true" MaxLength="50" />
-          <Property Type="String" Name="AffiliateReferralId" Nullable="true" MaxLength="50" />
-          <Property Type="DateTime" Name="LastSessionDate" Nullable="true" Precision="23" />
-          <Property Type="Int64" Name="LastSessionId" Nullable="true" />
-          <Property Type="String" Name="SecondName" Nullable="true" MaxLength="255" />
-          <Property Type="String" Name="SecondSurname" Nullable="true" MaxLength="255" />
-          <Property Type="String" Name="UnderMonitoringTypes" Nullable="true" MaxLength="250" />
-          <Property Type="Decimal" Name="BonusBalance" Nullable="true" Precision="38" Scale="4" />
-          <Property Type="Decimal" Name="RealBalance" Nullable="true" Precision="38" Scale="4" />
-          <Property Type="Int32" Name="GGR" Nullable="false" />
-          <Property Type="Int32" Name="NETGaming" Nullable="false" />
-          <Property Type="String" Name="UserPath" Nullable="true" MaxLength="50" />
-          <Property Type="Int32" Name="UserId" Nullable="true" />
-          <Property Type="Int32" Name="Title" Nullable="true" />
         </ComplexType>
         <EntityType Name="PartnerBankInfo">
           <Key>
@@ -16936,8 +16432,8 @@
           <Property Name="ReuseNumber" Type="Int64" />
           <Property Name="Considered" Type="Boolean" />
           <NavigationProperty Name="Bonu" Relationship="IqSoftCorePlatformModel.FK_ClientBonus_Bonus" FromRole="ClientBonu" ToRole="Bonu" />
-          <NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_ClientBonus_Client" FromRole="ClientBonu" ToRole="Client" />
           <NavigationProperty Name="TriggerSetting" Relationship="IqSoftCorePlatformModel.FK_ClientBonus_TriggerSetting" FromRole="ClientBonu" ToRole="TriggerSetting" />
+          <NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_ClientBonus_Client" FromRole="ClientBonu" ToRole="Client" />
         </EntityType>
         <EntityType Name="ClientBonusTrigger">
           <Key>
@@ -16953,9 +16449,9 @@
           <Property Name="WageringAmount" Type="Decimal" Precision="18" Scale="4" />
           <Property Name="ReuseNumber" Type="Int64" />
           <NavigationProperty Name="Bonu" Relationship="IqSoftCorePlatformModel.FK_ClientBonusTrigger_Bonus" FromRole="ClientBonusTrigger" ToRole="Bonu" />
-          <NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_ClientBonusTrigger_Client" FromRole="ClientBonusTrigger" ToRole="Client" />
           <NavigationProperty Name="TriggerSetting" Relationship="IqSoftCorePlatformModel.FK_ClientBonusTrigger_TriggerSetting" FromRole="ClientBonusTrigger" ToRole="TriggerSetting" />
           <Property Name="LastActionDate" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_ClientBonusTrigger_Client" FromRole="ClientBonusTrigger" ToRole="Client" />
         </EntityType>
         <Association Name="FK_ClientBonus_Bonus">
           <End Type="IqSoftCorePlatformModel.Bonu" Role="Bonu" Multiplicity="1" />
@@ -16978,30 +16474,6 @@
             </Principal>
             <Dependent Role="ClientBonusTrigger">
               <PropertyRef Name="BonusId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_ClientBonus_Client">
-          <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="1" />
-          <End Type="IqSoftCorePlatformModel.ClientBonu" Role="ClientBonu" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Client">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="ClientBonu">
-              <PropertyRef Name="ClientId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_ClientBonusTrigger_Client">
-          <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="0..1" />
-          <End Type="IqSoftCorePlatformModel.ClientBonusTrigger" Role="ClientBonusTrigger" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Client">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="ClientBonusTrigger">
-              <PropertyRef Name="ClientId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -17064,7 +16536,6 @@
           <NavigationProperty Name="Account" Relationship="IqSoftCorePlatformModel.FK_PaymentRequest_Account" FromRole="PaymentRequest" ToRole="Account" />
           <NavigationProperty Name="BetShop" Relationship="IqSoftCorePlatformModel.FK_PaymentRequest_BetShop" FromRole="PaymentRequest" ToRole="BetShop" />
           <NavigationProperty Name="CashDesk" Relationship="IqSoftCorePlatformModel.FK_PaymentRequest_CashDesk" FromRole="PaymentRequest" ToRole="CashDesk" />
-          <NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_PaymentRequest_Client" FromRole="PaymentRequest" ToRole="Client" />
           <NavigationProperty Name="Currency" Relationship="IqSoftCorePlatformModel.FK_PaymentRequest_Currency" FromRole="PaymentRequest" ToRole="Currency" />
           <NavigationProperty Name="JobTriggers" Relationship="IqSoftCorePlatformModel.FK_JobTrigger_PaymentRequest" FromRole="PaymentRequest" ToRole="JobTrigger" />
           <NavigationProperty Name="PaymentRequest1" Relationship="IqSoftCorePlatformModel.FK_PaymentRequest_PaymentRequest" FromRole="PaymentRequest" ToRole="PaymentRequest1" />
@@ -17074,6 +16545,7 @@
           <NavigationProperty Name="PaymentRequestTransfers" Relationship="IqSoftCorePlatformModel.FK_PaymentRequestTransfer_PaymentRequest" FromRole="PaymentRequest" ToRole="PaymentRequestTransfer" />
           <NavigationProperty Name="PartnerPaymentSetting" Relationship="IqSoftCorePlatformModel.FK_PaymentRequest_PartnerPaymentSetting" FromRole="PaymentRequest" ToRole="PartnerPaymentSetting" />
           <NavigationProperty Name="PaymentSystem" Relationship="IqSoftCorePlatformModel.FK_PaymentRequest_PaymentSystem" FromRole="PaymentRequest" ToRole="PaymentSystem" />
+          <NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_PaymentRequest_Client" FromRole="PaymentRequest" ToRole="Client" />
         </EntityType>
         <Association Name="FK_PaymentRequest_Account">
           <End Type="IqSoftCorePlatformModel.Account" Role="Account" Multiplicity="0..1" />
@@ -17108,18 +16580,6 @@
             </Principal>
             <Dependent Role="PaymentRequest">
               <PropertyRef Name="CashDeskId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_PaymentRequest_Client">
-          <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="0..1" />
-          <End Type="IqSoftCorePlatformModel.PaymentRequest" Role="PaymentRequest" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Client">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="PaymentRequest">
-              <PropertyRef Name="ClientId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -17269,24 +16729,6 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <ComplexType Name="fnPromotion">
-          <Property Type="Int32" Name="Id" Nullable="false" />
-          <Property Type="Int32" Name="PartnerId" Nullable="false" />
-          <Property Type="String" Name="NickName" Nullable="false" MaxLength="100" />
-          <Property Type="Int32" Name="Type" Nullable="false" />
-          <Property Type="String" Name="ImageName" Nullable="false" MaxLength="50" />
-          <Property Type="Int32" Name="State" Nullable="false" />
-          <Property Type="DateTime" Name="CreationTime" Nullable="false" Precision="23" />
-          <Property Type="DateTime" Name="LastUpdateTime" Nullable="false" Precision="23" />
-          <Property Type="DateTime" Name="StartDate" Nullable="false" Precision="23" />
-          <Property Type="DateTime" Name="FinishDate" Nullable="false" Precision="23" />
-          <Property Type="Int32" Name="Order" Nullable="false" />
-          <Property Type="Int32" Name="ParentId" Nullable="true" />
-          <Property Type="String" Name="StyleType" Nullable="true" MaxLength="500" />
-          <Property Type="String" Name="Title" Nullable="false" />
-          <Property Type="String" Name="Description" Nullable="false" />
-          <Property Type="String" Name="Content" Nullable="true" />
-        </ComplexType>
         <EntityType Name="AnnouncementSetting">
           <Key>
             <PropertyRef Name="Id" />
@@ -17392,56 +16834,6 @@
           <Property Type="Int32" Name="ReceiverType" Nullable="false" />
           <Property Type="String" Name="Message" Nullable="false" />
         </ComplexType>
-        <ComplexType Name="fnPaymentRequest">
-          <Property Type="Int64" Name="Id" Nullable="false" />
-          <Property Type="Int32" Name="PartnerId" Nullable="true" />
-          <Property Type="Int32" Name="ClientId" Nullable="true" />
-          <Property Type="Decimal" Name="Amount" Nullable="false" Precision="18" Scale="4" />
-          <Property Type="Decimal" Name="CommissionAmount" Nullable="true" Precision="18" Scale="4" />
-          <Property Type="String" Name="CurrencyId" Nullable="false" MaxLength="5" />
-          <Property Type="Int32" Name="Status" Nullable="false" />
-          <Property Type="Int32" Name="PartnerPaymentSettingId" Nullable="true" />
-          <Property Type="Int32" Name="BetShopId" Nullable="true" />
-          <Property Type="Int32" Name="PaymentSystemId" Nullable="false" />
-          <Property Type="String" Name="PaymentSystemName" Nullable="false" MaxLength="50" />
-          <Property Type="String" Name="BetShopName" Nullable="true" MaxLength="50" />
-          <Property Type="String" Name="BetShopAddress" Nullable="true" MaxLength="250" />
-          <Property Type="String" Name="Info" Nullable="true" />
-          <Property Type="Int64" Name="SessionId" Nullable="true" />
-          <Property Type="DateTime" Name="CreationTime" Nullable="false" Precision="23" />
-          <Property Type="DateTime" Name="LastUpdateTime" Nullable="false" Precision="23" />
-          <Property Type="Int32" Name="Type" Nullable="false" />
-          <Property Type="String" Name="Parameters" Nullable="true" MaxLength="2000" />
-          <Property Type="Int32" Name="CashierId" Nullable="true" />
-          <Property Type="Int32" Name="CashDeskId" Nullable="true" />
-          <Property Type="String" Name="ExternalTransactionId" Nullable="true" MaxLength="100" />
-          <Property Type="String" Name="CashCode" Nullable="true" MaxLength="150" />
-          <Property Type="Int32" Name="UserId" Nullable="true" />
-          <Property Type="Int64" Name="Date" Nullable="true" />
-          <Property Type="String" Name="CardNumber" Nullable="true" MaxLength="20" />
-          <Property Type="String" Name="CountryCode" Nullable="true" MaxLength="5" />
-          <Property Type="Int32" Name="SegmentId" Nullable="true" />
-          <Property Type="Int32" Name="DepositCount" Nullable="true" />
-          <Property Type="String" Name="SegmentName" Nullable="true" MaxLength="100" />
-          <Property Type="String" Name="UserFirstName" Nullable="true" MaxLength="50" />
-          <Property Type="String" Name="UserLastName" Nullable="true" MaxLength="50" />
-          <Property Type="String" Name="UserName" Nullable="true" MaxLength="50" />
-          <Property Type="String" Name="FirstName" Nullable="true" MaxLength="255" />
-          <Property Type="String" Name="LastName" Nullable="true" MaxLength="255" />
-          <Property Type="String" Name="ClientDocumentNumber" Nullable="true" MaxLength="50" />
-          <Property Type="Boolean" Name="ClientHasNote" Nullable="true" />
-          <Property Type="Int32" Name="CategoryId" Nullable="true" />
-          <Property Type="String" Name="Email" Nullable="true" MaxLength="50" />
-          <Property Type="Int32" Name="AffiliatePlatformId" Nullable="true" />
-          <Property Type="String" Name="AffiliateId" Nullable="true" MaxLength="50" />
-          <Property Type="Int32" Name="AffiliateReferralId" Nullable="true" />
-          <Property Type="Int32" Name="ActivatedBonusType" Nullable="true" />
-          <Property Type="Int64" Name="AccountId" Nullable="true" />
-          <Property Type="Int64" Name="ParentId" Nullable="true" />
-          <Property Type="Int32" Name="HasNote" Nullable="false" />
-          <Property Type="String" Name="Users" Nullable="true" />
-          <Property Type="String" Name="UserPath" Nullable="true" MaxLength="50" />
-        </ComplexType>
         <ComplexType Name="fnUserSession">
           <Property Type="Int64" Name="Id" Nullable="false" />
           <Property Type="Int32" Name="UserId" Nullable="true" />
@@ -17530,18 +16922,6 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_Client_Character">
-          <End Type="IqSoftCorePlatformModel.Character" Role="Character" Multiplicity="0..1" />
-          <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Character">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="Client">
-              <PropertyRef Name="CharacterId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <ComplexType Name="fnCharacter">
           <Property Type="Int32" Name="Id" Nullable="false" />
           <Property Type="Int32" Name="PartnerId" Nullable="false" />
@@ -17584,7 +16964,6 @@
           <Property Name="OSTypes" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <Property Name="ApplyPercentAmount" Type="Decimal" Precision="18" Scale="4" />
           <NavigationProperty Name="ClientPaymentInfoes" Relationship="IqSoftCorePlatformModel.FK_ClientPaymentInfo_PartnerPaymentSetting" FromRole="PartnerPaymentSetting" ToRole="ClientPaymentInfo" />
-          <NavigationProperty Name="ClientPaymentSettings" Relationship="IqSoftCorePlatformModel.FK_ClientBlockedPaymentSetting_PartnerPaymentSetting" FromRole="PartnerPaymentSetting" ToRole="ClientPaymentSetting" />
           <NavigationProperty Name="Currency" Relationship="IqSoftCorePlatformModel.FK_PartnerPaymentSetting_Currency" FromRole="PartnerPaymentSetting" ToRole="Currency" />
           <NavigationProperty Name="Documents" Relationship="IqSoftCorePlatformModel.FK_Document_PartnerPaymentSetting" FromRole="PartnerPaymentSetting" ToRole="Document" />
           <NavigationProperty Name="Partner" Relationship="IqSoftCorePlatformModel.FK_PartnerPaymentSetting_Partner" FromRole="PartnerPaymentSetting" ToRole="Partner" />
@@ -17593,6 +16972,7 @@
           <NavigationProperty Name="UserSession" Relationship="IqSoftCorePlatformModel.FK_PartnerPaymentSetting_UserSession" FromRole="PartnerPaymentSetting" ToRole="UserSession" />
           <NavigationProperty Name="PaymentRequests" Relationship="IqSoftCorePlatformModel.FK_PaymentRequest_PartnerPaymentSetting" FromRole="PartnerPaymentSetting" ToRole="PaymentRequest" />
           <NavigationProperty Name="PaymentSystem" Relationship="IqSoftCorePlatformModel.FK_PartnerPaymentSetting_PaymentSystem" FromRole="PartnerPaymentSetting" ToRole="PaymentSystem" />
+          <NavigationProperty Name="ClientPaymentSettings" Relationship="IqSoftCorePlatformModel.FK_ClientBlockedPaymentSetting_PartnerPaymentSetting" FromRole="PartnerPaymentSetting" ToRole="ClientPaymentSetting" />
         </EntityType>
         <Association Name="FK_ClientPaymentInfo_PartnerPaymentSetting">
           <End Type="IqSoftCorePlatformModel.PartnerPaymentSetting" Role="PartnerPaymentSetting" Multiplicity="0..1" />
@@ -17603,18 +16983,6 @@
             </Principal>
             <Dependent Role="ClientPaymentInfo">
               <PropertyRef Name="PartnerPaymentSystemId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_ClientBlockedPaymentSetting_PartnerPaymentSetting">
-          <End Type="IqSoftCorePlatformModel.PartnerPaymentSetting" Role="PartnerPaymentSetting" Multiplicity="1" />
-          <End Type="IqSoftCorePlatformModel.ClientPaymentSetting" Role="ClientPaymentSetting" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="PartnerPaymentSetting">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="ClientPaymentSetting">
-              <PropertyRef Name="PartnerPaymentSettingId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -18593,22 +17961,10 @@
           <Property Name="State" Type="Int32" Nullable="false" />
           <Property Name="LastUpdateTime" Type="DateTime" Nullable="false" Precision="3" />
           <Property Name="PopupId" Type="Int32" />
-          <NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_ClientMessageState_Client" FromRole="ClientMessageState" ToRole="Client" />
           <NavigationProperty Name="ClientMessage" Relationship="IqSoftCorePlatformModel.FK_ClientMessageState_ClientMessage" FromRole="ClientMessageState" ToRole="ClientMessage" />
           <NavigationProperty Name="Popup" Relationship="IqSoftCorePlatformModel.FK_ClientMessageState_Popup" FromRole="ClientMessageState" ToRole="Popup" />
+          <NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_ClientMessageState_Client" FromRole="ClientMessageState" ToRole="Client" />
         </EntityType>
-        <Association Name="FK_ClientMessageState_Client">
-          <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="1" />
-          <End Type="IqSoftCorePlatformModel.ClientMessageState" Role="ClientMessageState" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Client">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="ClientMessageState">
-              <PropertyRef Name="ClientId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_ClientMessageState_ClientMessage">
           <End Type="IqSoftCorePlatformModel.ClientMessage" Role="ClientMessage" Multiplicity="0..1" />
           <End Type="IqSoftCorePlatformModel.ClientMessageState" Role="ClientMessageState" Multiplicity="*" />
@@ -18630,6 +17986,662 @@
             </Principal>
             <Dependent Role="ClientMessageState">
               <PropertyRef Name="PopupId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <ComplexType Name="fnPromotion">
+          <Property Type="Int32" Name="Id" Nullable="false" />
+          <Property Type="Int32" Name="PartnerId" Nullable="false" />
+          <Property Type="String" Name="NickName" Nullable="false" MaxLength="100" />
+          <Property Type="Int32" Name="Type" Nullable="false" />
+          <Property Type="String" Name="ImageName" Nullable="false" MaxLength="50" />
+          <Property Type="Int32" Name="State" Nullable="false" />
+          <Property Type="DateTime" Name="CreationTime" Nullable="false" Precision="23" />
+          <Property Type="DateTime" Name="LastUpdateTime" Nullable="false" Precision="23" />
+          <Property Type="DateTime" Name="StartDate" Nullable="false" Precision="23" />
+          <Property Type="DateTime" Name="FinishDate" Nullable="false" Precision="23" />
+          <Property Type="Int32" Name="Order" Nullable="false" />
+          <Property Type="Int32" Name="ParentId" Nullable="true" />
+          <Property Type="String" Name="StyleType" Nullable="true" MaxLength="500" />
+          <Property Type="Int32" Name="DeviceType" Nullable="true" />
+          <Property Type="String" Name="Title" Nullable="false" />
+          <Property Type="String" Name="Description" Nullable="false" />
+          <Property Type="String" Name="Content" Nullable="true" />
+        </ComplexType>
+        <EntityType Name="Client">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Email" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="IsEmailVerified" Type="Boolean" Nullable="false" />
+          <Property Name="CurrencyId" Type="String" Nullable="false" MaxLength="5" FixedLength="false" Unicode="false" />
+          <Property Name="UserName" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="PasswordHash" Type="String" Nullable="false" MaxLength="150" FixedLength="false" Unicode="false" />
+          <Property Name="Salt" Type="Int32" Nullable="false" />
+          <Property Name="PartnerId" Type="Int32" Nullable="false" />
+          <Property Name="Gender" Type="Int32" />
+          <Property Name="BirthDate" Type="DateTime" Nullable="false" Precision="0" />
+          <Property Name="SendMail" Type="Boolean" Nullable="false" />
+          <Property Name="SendSms" Type="Boolean" Nullable="false" />
+          <Property Name="CallToPhone" Type="Boolean" Nullable="false" />
+          <Property Name="SendPromotions" Type="Boolean" Nullable="false" />
+          <Property Name="State" Type="Int32" Nullable="false" />
+          <Property Name="CategoryId" Type="Int32" Nullable="false" />
+          <Property Name="FirstName" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="LastName" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="RegionId" Type="Int32" Nullable="false" />
+          <Property Name="Info" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="ZipCode" Type="String" MaxLength="10" FixedLength="true" Unicode="true" />
+          <Property Name="RegistrationIp" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="DocumentType" Type="Int32" />
+          <Property Name="DocumentNumber" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="DocumentIssuedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="IsDocumentVerified" Type="Boolean" Nullable="false" />
+          <Property Name="Address" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="MobileNumber" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="PhoneNumber" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="IsMobileNumberVerified" Type="Boolean" Nullable="false" />
+          <Property Name="HasNote" Type="Boolean" Nullable="false" />
+          <Property Name="LanguageId" Type="String" MaxLength="2" FixedLength="true" Unicode="false" />
+          <Property Name="CreationTime" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="LastUpdateTime" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="FirstDepositDate" Type="DateTime" Precision="3" />
+          <Property Name="LastDepositDate" Type="DateTime" Precision="3" />
+          <Property Name="LastDepositAmount" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="BetShopId" Type="Int32" />
+          <Property Name="UserId" Type="Int32" />
+          <Property Name="AffiliateReferralId" Type="Int32" />
+          <Property Name="LastSessionId" Type="Int64" />
+          <Property Name="Citizenship" Type="Int32" />
+          <Property Name="JobArea" Type="Int32" />
+          <Property Name="SecondName" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="SecondSurname" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="BuildingNumber" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Apartment" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="NickName" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
+          <Property Name="City" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="USSDPin" Type="String" MaxLength="150" FixedLength="false" Unicode="false" />
+          <Property Name="Title" Type="Int32" />
+          <Property Name="IsTwoFactorEnabled" Type="Boolean" />
+          <Property Name="QRCode" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="CountryId" Type="Int32" />
+          <Property Name="CharacterId" Type="Int32" />
+          <NavigationProperty Name="AffiliateReferral" Relationship="IqSoftCorePlatformModel.FK_Client_AffiliateReferral" FromRole="Client" ToRole="AffiliateReferral" />
+          <NavigationProperty Name="AgentCommissions" Relationship="IqSoftCorePlatformModel.FK_AgentCommission_Client" FromRole="Client" ToRole="AgentCommission" />
+          <NavigationProperty Name="AgentProfits" Relationship="IqSoftCorePlatformModel.FK_AgentProfit_Client" FromRole="Client" ToRole="AgentProfit" />
+          <NavigationProperty Name="Character" Relationship="IqSoftCorePlatformModel.FK_Client_Character" FromRole="Client" ToRole="Character" />
+          <NavigationProperty Name="ClientSession" Relationship="IqSoftCorePlatformModel.FK_Client_ClientSession" FromRole="Client" ToRole="ClientSession" />
+          <NavigationProperty Name="Currency" Relationship="IqSoftCorePlatformModel.FK_Client_Currency" FromRole="Client" ToRole="Currency" />
+          <NavigationProperty Name="JobArea1" Relationship="IqSoftCorePlatformModel.FK_Client_JobArea" FromRole="Client" ToRole="JobArea" />
+          <NavigationProperty Name="Language" Relationship="IqSoftCorePlatformModel.FK_Client_Language" FromRole="Client" ToRole="Language" />
+          <NavigationProperty Name="Partner" Relationship="IqSoftCorePlatformModel.FK_Client_Partner" FromRole="Client" ToRole="Partner" />
+          <NavigationProperty Name="Region" Relationship="IqSoftCorePlatformModel.FK_Client_Region" FromRole="Client" ToRole="Region" />
+          <NavigationProperty Name="Region1" Relationship="IqSoftCorePlatformModel.FK_Client_Region1" FromRole="Client" ToRole="Region" />
+          <NavigationProperty Name="User" Relationship="IqSoftCorePlatformModel.FK_Client_User" FromRole="Client" ToRole="User" />
+          <NavigationProperty Name="ClientBankInfo" Relationship="IqSoftCorePlatformModel.FK_ClientBankInfo_Client" FromRole="Client" ToRole="ClientBankInfo" />
+          <NavigationProperty Name="ClientBonus" Relationship="IqSoftCorePlatformModel.FK_ClientBonus_Client" FromRole="Client" ToRole="ClientBonu" />
+          <NavigationProperty Name="ClientBonusTriggers" Relationship="IqSoftCorePlatformModel.FK_ClientBonusTrigger_Client" FromRole="Client" ToRole="ClientBonusTrigger" />
+          <NavigationProperty Name="ClientClassifications" Relationship="IqSoftCorePlatformModel.FK_ClientClassification_Client" FromRole="Client" ToRole="ClientClassification" />
+          <NavigationProperty Name="ClientClosedPeriods" Relationship="IqSoftCorePlatformModel.FK_ClientClosedPeriod_Client" FromRole="Client" ToRole="ClientClosedPeriod" />
+          <NavigationProperty Name="ClientFavoriteProducts" Relationship="IqSoftCorePlatformModel.FK_ClientFavoriteProduct_Client" FromRole="Client" ToRole="ClientFavoriteProduct" />
+          <NavigationProperty Name="ClientIdentities" Relationship="IqSoftCorePlatformModel.FK_ClientIdentity_Client" FromRole="Client" ToRole="ClientIdentity" />
+          <NavigationProperty Name="ClientInfoes" Relationship="IqSoftCorePlatformModel.FK_ClientInfo_Client" FromRole="Client" ToRole="ClientInfo" />
+          <NavigationProperty Name="ClientLogs" Relationship="IqSoftCorePlatformModel.FK_ClientLog_Client" FromRole="Client" ToRole="ClientLog" />
+          <NavigationProperty Name="ClientMessages" Relationship="IqSoftCorePlatformModel.FK_ClientMessage_Client" FromRole="Client" ToRole="ClientMessage" />
+          <NavigationProperty Name="ClientMessageStates" Relationship="IqSoftCorePlatformModel.FK_ClientMessageState_Client" FromRole="Client" ToRole="ClientMessageState" />
+          <NavigationProperty Name="ClientPaymentInfoes" Relationship="IqSoftCorePlatformModel.FK_ClientPaymentInfo_Client" FromRole="Client" ToRole="ClientPaymentInfo" />
+          <NavigationProperty Name="ClientSecurityAnswers" Relationship="IqSoftCorePlatformModel.FK_ClientSecurityAnswer_Client" FromRole="Client" ToRole="ClientSecurityAnswer" />
+          <NavigationProperty Name="ClientSessions" Relationship="IqSoftCorePlatformModel.FK_ClientSession_Client" FromRole="Client" ToRole="ClientSession" />
+          <NavigationProperty Name="ClientSettings" Relationship="IqSoftCorePlatformModel.FK_ClientSetting_Client" FromRole="Client" ToRole="ClientSetting" />
+          <NavigationProperty Name="Documents" Relationship="IqSoftCorePlatformModel.FK_Document_Client" FromRole="Client" ToRole="Document" />
+          <NavigationProperty Name="JobTriggers" Relationship="IqSoftCorePlatformModel.FK_JobTrigger_Client" FromRole="Client" ToRole="JobTrigger" />
+          <NavigationProperty Name="PaymentLimits" Relationship="IqSoftCorePlatformModel.FK_PaymentLimit_Client" FromRole="Client" ToRole="PaymentLimit" />
+          <NavigationProperty Name="PaymentRequests" Relationship="IqSoftCorePlatformModel.FK_PaymentRequest_Client" FromRole="Client" ToRole="PaymentRequest" />
+          <NavigationProperty Name="Tickets" Relationship="IqSoftCorePlatformModel.FK_Ticket_Client" FromRole="Client" ToRole="Ticket" />
+          <NavigationProperty Name="TicketMessageStates" Relationship="IqSoftCorePlatformModel.FK_TicketMessageState_Client" FromRole="Client" ToRole="TicketMessageState" />
+          <NavigationProperty Name="ClientPaymentSettings" Relationship="IqSoftCorePlatformModel.FK_ClientPaymentSetting_Client" FromRole="Client" ToRole="ClientPaymentSetting" />
+        </EntityType>
+        <Association Name="FK_Client_AffiliateReferral">
+          <End Type="IqSoftCorePlatformModel.AffiliateReferral" Role="AffiliateReferral" Multiplicity="0..1" />
+          <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AffiliateReferral">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Client">
+              <PropertyRef Name="AffiliateReferralId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AgentCommission_Client">
+          <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="0..1" />
+          <End Type="IqSoftCorePlatformModel.AgentCommission" Role="AgentCommission" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Client">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AgentCommission">
+              <PropertyRef Name="ClientId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AgentProfit_Client">
+          <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="0..1" />
+          <End Type="IqSoftCorePlatformModel.AgentProfit" Role="AgentProfit" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Client">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AgentProfit">
+              <PropertyRef Name="ClientId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Client_Character">
+          <End Type="IqSoftCorePlatformModel.Character" Role="Character" Multiplicity="0..1" />
+          <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Character">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Client">
+              <PropertyRef Name="CharacterId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Client_ClientSession">
+          <End Type="IqSoftCorePlatformModel.ClientSession" Role="ClientSession" Multiplicity="0..1" />
+          <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ClientSession">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Client">
+              <PropertyRef Name="LastSessionId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Client_Currency">
+          <End Type="IqSoftCorePlatformModel.Currency" Role="Currency" Multiplicity="1" />
+          <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Currency">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Client">
+              <PropertyRef Name="CurrencyId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Client_JobArea">
+          <End Type="IqSoftCorePlatformModel.JobArea" Role="JobArea" Multiplicity="0..1" />
+          <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="JobArea">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Client">
+              <PropertyRef Name="JobArea" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Client_Language">
+          <End Type="IqSoftCorePlatformModel.Language" Role="Language" Multiplicity="0..1" />
+          <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Language">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Client">
+              <PropertyRef Name="LanguageId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Client_Partner">
+          <End Type="IqSoftCorePlatformModel.Partner" Role="Partner" Multiplicity="1" />
+          <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Partner">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Client">
+              <PropertyRef Name="PartnerId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Client_Region">
+          <End Type="IqSoftCorePlatformModel.Region" Role="Region" Multiplicity="1" />
+          <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Region">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Client">
+              <PropertyRef Name="RegionId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Client_Region1">
+          <End Type="IqSoftCorePlatformModel.Region" Role="Region" Multiplicity="0..1" />
+          <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Region">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Client">
+              <PropertyRef Name="CountryId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Client_User">
+          <End Type="IqSoftCorePlatformModel.User" Role="User" Multiplicity="0..1" />
+          <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="User">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Client">
+              <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ClientBankInfo_Client">
+          <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="1" />
+          <End Type="IqSoftCorePlatformModel.ClientBankInfo" Role="ClientBankInfo" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="Client">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClientBankInfo">
+              <PropertyRef Name="ClientId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ClientBonus_Client">
+          <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="1" />
+          <End Type="IqSoftCorePlatformModel.ClientBonu" Role="ClientBonu" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Client">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClientBonu">
+              <PropertyRef Name="ClientId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ClientBonusTrigger_Client">
+          <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="0..1" />
+          <End Type="IqSoftCorePlatformModel.ClientBonusTrigger" Role="ClientBonusTrigger" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Client">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClientBonusTrigger">
+              <PropertyRef Name="ClientId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ClientClassification_Client">
+          <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="1" />
+          <End Type="IqSoftCorePlatformModel.ClientClassification" Role="ClientClassification" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Client">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClientClassification">
+              <PropertyRef Name="ClientId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ClientClosedPeriod_Client">
+          <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="1" />
+          <End Type="IqSoftCorePlatformModel.ClientClosedPeriod" Role="ClientClosedPeriod" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Client">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClientClosedPeriod">
+              <PropertyRef Name="ClientId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ClientFavoriteProduct_Client">
+          <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="1" />
+          <End Type="IqSoftCorePlatformModel.ClientFavoriteProduct" Role="ClientFavoriteProduct" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Client">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClientFavoriteProduct">
+              <PropertyRef Name="ClientId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ClientIdentity_Client">
+          <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="1" />
+          <End Type="IqSoftCorePlatformModel.ClientIdentity" Role="ClientIdentity" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Client">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClientIdentity">
+              <PropertyRef Name="ClientId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ClientInfo_Client">
+          <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="0..1" />
+          <End Type="IqSoftCorePlatformModel.ClientInfo" Role="ClientInfo" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Client">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClientInfo">
+              <PropertyRef Name="ClientId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ClientLog_Client">
+          <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="1" />
+          <End Type="IqSoftCorePlatformModel.ClientLog" Role="ClientLog" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Client">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClientLog">
+              <PropertyRef Name="ClientId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ClientMessage_Client">
+          <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="0..1" />
+          <End Type="IqSoftCorePlatformModel.ClientMessage" Role="ClientMessage" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Client">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClientMessage">
+              <PropertyRef Name="ClientId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ClientMessageState_Client">
+          <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="1" />
+          <End Type="IqSoftCorePlatformModel.ClientMessageState" Role="ClientMessageState" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Client">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClientMessageState">
+              <PropertyRef Name="ClientId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ClientPaymentInfo_Client">
+          <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="1" />
+          <End Type="IqSoftCorePlatformModel.ClientPaymentInfo" Role="ClientPaymentInfo" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Client">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClientPaymentInfo">
+              <PropertyRef Name="ClientId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ClientSecurityAnswer_Client">
+          <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="1" />
+          <End Type="IqSoftCorePlatformModel.ClientSecurityAnswer" Role="ClientSecurityAnswer" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Client">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClientSecurityAnswer">
+              <PropertyRef Name="ClientId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ClientSession_Client">
+          <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="1" />
+          <End Type="IqSoftCorePlatformModel.ClientSession" Role="ClientSession" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Client">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClientSession">
+              <PropertyRef Name="ClientId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ClientSetting_Client">
+          <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="1" />
+          <End Type="IqSoftCorePlatformModel.ClientSetting" Role="ClientSetting" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Client">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClientSetting">
+              <PropertyRef Name="ClientId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Document_Client">
+          <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="0..1" />
+          <End Type="IqSoftCorePlatformModel.Document" Role="Document" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Client">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Document">
+              <PropertyRef Name="ClientId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_JobTrigger_Client">
+          <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="1" />
+          <End Type="IqSoftCorePlatformModel.JobTrigger" Role="JobTrigger" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Client">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="JobTrigger">
+              <PropertyRef Name="ClientId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PaymentLimit_Client">
+          <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="1" />
+          <End Type="IqSoftCorePlatformModel.PaymentLimit" Role="PaymentLimit" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Client">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="PaymentLimit">
+              <PropertyRef Name="ClientId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PaymentRequest_Client">
+          <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="0..1" />
+          <End Type="IqSoftCorePlatformModel.PaymentRequest" Role="PaymentRequest" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Client">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="PaymentRequest">
+              <PropertyRef Name="ClientId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Ticket_Client">
+          <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="0..1" />
+          <End Type="IqSoftCorePlatformModel.Ticket" Role="Ticket" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Client">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Ticket">
+              <PropertyRef Name="ClientId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TicketMessageState_Client">
+          <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="0..1" />
+          <End Type="IqSoftCorePlatformModel.TicketMessageState" Role="TicketMessageState" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Client">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TicketMessageState">
+              <PropertyRef Name="ClientId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <ComplexType Name="fnClient">
+          <Property Type="Int32" Name="Id" Nullable="false" />
+          <Property Type="String" Name="Email" Nullable="false" MaxLength="50" />
+          <Property Type="Boolean" Name="IsEmailVerified" Nullable="false" />
+          <Property Type="String" Name="CurrencyId" Nullable="false" MaxLength="5" />
+          <Property Type="String" Name="UserName" Nullable="false" MaxLength="50" />
+          <Property Type="String" Name="NickName" Nullable="true" MaxLength="250" />
+          <Property Type="String" Name="PasswordHash" Nullable="false" MaxLength="150" />
+          <Property Type="Int32" Name="Salt" Nullable="false" />
+          <Property Type="Int32" Name="PartnerId" Nullable="false" />
+          <Property Type="Int32" Name="Gender" Nullable="true" />
+          <Property Type="DateTime" Name="BirthDate" Nullable="false" Precision="10" />
+          <Property Type="Int32" Name="Age" Nullable="true" />
+          <Property Type="Boolean" Name="SendMail" Nullable="false" />
+          <Property Type="Boolean" Name="SendSms" Nullable="false" />
+          <Property Type="Boolean" Name="CallToPhone" Nullable="false" />
+          <Property Type="Boolean" Name="SendPromotions" Nullable="false" />
+          <Property Type="Int32" Name="State" Nullable="false" />
+          <Property Type="String" Name="FirstName" Nullable="true" MaxLength="255" />
+          <Property Type="String" Name="LastName" Nullable="true" MaxLength="255" />
+          <Property Type="String" Name="RegionIsoCode" Nullable="true" MaxLength="50" />
+          <Property Type="Int32" Name="RegionId" Nullable="false" />
+          <Property Type="Int32" Name="CountryId" Nullable="true" />
+          <Property Type="String" Name="Info" Nullable="true" MaxLength="500" />
+          <Property Type="String" Name="ZipCode" Nullable="true" MaxLength="10" />
+          <Property Type="String" Name="RegistrationIp" Nullable="true" MaxLength="50" />
+          <Property Type="String" Name="DocumentNumber" Nullable="true" MaxLength="50" />
+          <Property Type="String" Name="DocumentIssuedBy" Nullable="true" MaxLength="50" />
+          <Property Type="Boolean" Name="IsDocumentVerified" Nullable="false" />
+          <Property Type="String" Name="Address" Nullable="true" MaxLength="255" />
+          <Property Type="String" Name="MobileNumber" Nullable="true" MaxLength="50" />
+          <Property Type="String" Name="PhoneNumber" Nullable="true" MaxLength="50" />
+          <Property Type="Boolean" Name="IsMobileNumberVerified" Nullable="false" />
+          <Property Type="Boolean" Name="HasNote" Nullable="false" />
+          <Property Type="String" Name="LanguageId" Nullable="true" MaxLength="2" />
+          <Property Type="String" Name="City" Nullable="true" MaxLength="100" />
+          <Property Type="DateTime" Name="CreationTime" Nullable="false" Precision="23" />
+          <Property Type="DateTime" Name="LastUpdateTime" Nullable="false" Precision="23" />
+          <Property Type="DateTime" Name="FirstDepositDate" Nullable="true" Precision="23" />
+          <Property Type="DateTime" Name="LastDepositDate" Nullable="true" Precision="23" />
+          <Property Type="Decimal" Name="LastDepositAmount" Nullable="true" Precision="18" Scale="4" />
+          <Property Type="Int32" Name="CategoryId" Nullable="false" />
+          <Property Type="Int32" Name="DocumentType" Nullable="true" />
+          <Property Type="Int32" Name="AffiliatePlatformId" Nullable="true" />
+          <Property Type="String" Name="AffiliateId" Nullable="true" MaxLength="50" />
+          <Property Type="String" Name="AffiliateReferralId" Nullable="true" MaxLength="50" />
+          <Property Type="DateTime" Name="LastSessionDate" Nullable="true" Precision="23" />
+          <Property Type="Int64" Name="LastSessionId" Nullable="true" />
+          <Property Type="String" Name="SecondName" Nullable="true" MaxLength="255" />
+          <Property Type="String" Name="SecondSurname" Nullable="true" MaxLength="255" />
+          <Property Type="String" Name="UnderMonitoringTypes" Nullable="true" MaxLength="250" />
+          <Property Type="Decimal" Name="BonusBalance" Nullable="true" Precision="38" Scale="4" />
+          <Property Type="Decimal" Name="RealBalance" Nullable="true" Precision="38" Scale="4" />
+          <Property Type="Int32" Name="GGR" Nullable="false" />
+          <Property Type="Int32" Name="NETGaming" Nullable="false" />
+          <Property Type="String" Name="UserPath" Nullable="true" MaxLength="50" />
+          <Property Type="Int32" Name="UserId" Nullable="true" />
+          <Property Type="Int32" Name="Title" Nullable="true" />
+        </ComplexType>
+        <ComplexType Name="fnPaymentRequest">
+          <Property Type="Int64" Name="Id" Nullable="false" />
+          <Property Type="Int32" Name="PartnerId" Nullable="true" />
+          <Property Type="Int32" Name="ClientId" Nullable="true" />
+          <Property Type="Decimal" Name="Amount" Nullable="false" Precision="18" Scale="4" />
+          <Property Type="Decimal" Name="CommissionAmount" Nullable="true" Precision="18" Scale="4" />
+          <Property Type="Decimal" Name="FinalAmount" Nullable="true" Precision="19" Scale="4" />
+          <Property Type="String" Name="CurrencyId" Nullable="false" MaxLength="5" />
+          <Property Type="Int32" Name="Status" Nullable="false" />
+          <Property Type="Int32" Name="PartnerPaymentSettingId" Nullable="true" />
+          <Property Type="Int32" Name="BetShopId" Nullable="true" />
+          <Property Type="Int32" Name="PaymentSystemId" Nullable="false" />
+          <Property Type="String" Name="PaymentSystemName" Nullable="false" MaxLength="50" />
+          <Property Type="String" Name="BetShopName" Nullable="true" MaxLength="50" />
+          <Property Type="String" Name="BetShopAddress" Nullable="true" MaxLength="250" />
+          <Property Type="String" Name="Info" Nullable="true" />
+          <Property Type="Int64" Name="SessionId" Nullable="true" />
+          <Property Type="DateTime" Name="CreationTime" Nullable="false" Precision="23" />
+          <Property Type="DateTime" Name="LastUpdateTime" Nullable="false" Precision="23" />
+          <Property Type="Int32" Name="Type" Nullable="false" />
+          <Property Type="String" Name="Parameters" Nullable="true" MaxLength="2000" />
+          <Property Type="Int32" Name="CashierId" Nullable="true" />
+          <Property Type="Int32" Name="CashDeskId" Nullable="true" />
+          <Property Type="String" Name="ExternalTransactionId" Nullable="true" MaxLength="100" />
+          <Property Type="String" Name="CashCode" Nullable="true" MaxLength="150" />
+          <Property Type="Int32" Name="UserId" Nullable="true" />
+          <Property Type="Int64" Name="Date" Nullable="true" />
+          <Property Type="String" Name="CardNumber" Nullable="true" MaxLength="20" />
+          <Property Type="String" Name="CountryCode" Nullable="true" MaxLength="5" />
+          <Property Type="Int32" Name="SegmentId" Nullable="true" />
+          <Property Type="Int32" Name="DepositCount" Nullable="true" />
+          <Property Type="String" Name="SegmentName" Nullable="true" MaxLength="100" />
+          <Property Type="String" Name="UserFirstName" Nullable="true" MaxLength="50" />
+          <Property Type="String" Name="UserLastName" Nullable="true" MaxLength="50" />
+          <Property Type="String" Name="UserName" Nullable="true" MaxLength="50" />
+          <Property Type="String" Name="FirstName" Nullable="true" MaxLength="255" />
+          <Property Type="String" Name="LastName" Nullable="true" MaxLength="255" />
+          <Property Type="String" Name="ClientDocumentNumber" Nullable="true" MaxLength="50" />
+          <Property Type="Boolean" Name="ClientHasNote" Nullable="true" />
+          <Property Type="Int32" Name="CategoryId" Nullable="true" />
+          <Property Type="String" Name="Email" Nullable="true" MaxLength="50" />
+          <Property Type="Int32" Name="AffiliatePlatformId" Nullable="true" />
+          <Property Type="String" Name="AffiliateId" Nullable="true" MaxLength="50" />
+          <Property Type="Int32" Name="AffiliateReferralId" Nullable="true" />
+          <Property Type="Int32" Name="ActivatedBonusType" Nullable="true" />
+          <Property Type="Int64" Name="AccountId" Nullable="true" />
+          <Property Type="Int64" Name="ParentId" Nullable="true" />
+          <Property Type="Int32" Name="HasNote" Nullable="false" />
+          <Property Type="String" Name="Users" Nullable="true" />
+          <Property Type="String" Name="UserPath" Nullable="true" MaxLength="50" />
+        </ComplexType>
+        <EntityType Name="ClientPaymentSetting">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="ClientId" Type="Int32" Nullable="false" />
+          <Property Name="PartnerPaymentSettingId" Type="Int32" Nullable="false" />
+          <Property Name="State" Type="Int32" Nullable="false" />
+          <Property Name="CreationTime" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="LastUpdateTime" Type="DateTime" Nullable="false" Precision="3" />
+          <NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_ClientPaymentSetting_Client" FromRole="ClientPaymentSetting" ToRole="Client" />
+          <NavigationProperty Name="PartnerPaymentSetting" Relationship="IqSoftCorePlatformModel.FK_ClientBlockedPaymentSetting_PartnerPaymentSetting" FromRole="ClientPaymentSetting" ToRole="PartnerPaymentSetting" />
+        </EntityType>
+        <Association Name="FK_ClientPaymentSetting_Client">
+          <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="1" />
+          <End Type="IqSoftCorePlatformModel.ClientPaymentSetting" Role="ClientPaymentSetting" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Client">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClientPaymentSetting">
+              <PropertyRef Name="ClientId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ClientBlockedPaymentSetting_PartnerPaymentSetting">
+          <End Type="IqSoftCorePlatformModel.PartnerPaymentSetting" Role="PartnerPaymentSetting" Multiplicity="1" />
+          <End Type="IqSoftCorePlatformModel.ClientPaymentSetting" Role="ClientPaymentSetting" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PartnerPaymentSetting">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClientPaymentSetting">
+              <PropertyRef Name="PartnerPaymentSettingId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -19007,16 +19019,6 @@
 								<ScalarProperty Name="UserId" ColumnName="UserId" />
 								<ScalarProperty Name="ClientId" ColumnName="ClientId" />
 								<ScalarProperty Name="Action" ColumnName="Action" />
-								<ScalarProperty Name="Id" ColumnName="Id" />
-							</MappingFragment>
-						</EntityTypeMapping>
-					</EntitySetMapping>
-					<EntitySetMapping Name="ClientPaymentSettings">
-						<EntityTypeMapping TypeName="IqSoftCorePlatformModel.ClientPaymentSetting">
-							<MappingFragment StoreEntitySet="ClientPaymentSetting">
-								<ScalarProperty Name="State" ColumnName="State" />
-								<ScalarProperty Name="PartnerPaymentSettingId" ColumnName="PartnerPaymentSettingId" />
-								<ScalarProperty Name="ClientId" ColumnName="ClientId" />
 								<ScalarProperty Name="Id" ColumnName="Id" />
 							</MappingFragment>
 						</EntityTypeMapping>
@@ -19455,7 +19457,8 @@
 					<EntitySetMapping Name="Promotions">
 						<EntityTypeMapping TypeName="IqSoftCorePlatformModel.Promotion">
 							<MappingFragment StoreEntitySet="Promotion">
-								<ScalarProperty Name="StyleType" ColumnName="StyleType" />
+								<ScalarProperty Name="DeviceType" ColumnName="DeviceType" />
+                <ScalarProperty Name="StyleType" ColumnName="StyleType" />
                 <ScalarProperty Name="ParentId" ColumnName="ParentId" />
                 <ScalarProperty Name="Order" ColumnName="Order" />
 								<ScalarProperty Name="FinishDate" ColumnName="FinishDate" />
@@ -20900,7 +20903,8 @@
 					<EntitySetMapping Name="AdminMenus">
 						<EntityTypeMapping TypeName="IqSoftCorePlatformModel.AdminMenu">
 							<MappingFragment StoreEntitySet="AdminMenu">
-								<ScalarProperty Name="PermissionId" ColumnName="PermissionId" />
+								<ScalarProperty Name="Priority" ColumnName="Priority" />
+                <ScalarProperty Name="PermissionId" ColumnName="PermissionId" />
 								<ScalarProperty Name="ApiRequest" ColumnName="ApiRequest" />
 								<ScalarProperty Name="Path" ColumnName="Path" />
 								<ScalarProperty Name="ParentId" ColumnName="ParentId" />
@@ -21121,67 +21125,6 @@
 							</ComplexTypeMapping>
 						</ResultMapping>
 					</FunctionImportMapping>
-					<EntitySetMapping Name="Clients">
-						<EntityTypeMapping TypeName="IqSoftCorePlatformModel.Client">
-							<MappingFragment StoreEntitySet="Client">
-								<ScalarProperty Name="CharacterId" ColumnName="CharacterId" />
-                <ScalarProperty Name="CountryId" ColumnName="CountryId" />
-								<ScalarProperty Name="QRCode" ColumnName="QRCode" />
-								<ScalarProperty Name="IsTwoFactorEnabled" ColumnName="IsTwoFactorEnabled" />
-								<ScalarProperty Name="Title" ColumnName="Title" />
-								<ScalarProperty Name="USSDPin" ColumnName="USSDPin" />
-								<ScalarProperty Name="City" ColumnName="City" />
-								<ScalarProperty Name="NickName" ColumnName="NickName" />
-								<ScalarProperty Name="Apartment" ColumnName="Apartment" />
-								<ScalarProperty Name="BuildingNumber" ColumnName="BuildingNumber" />
-								<ScalarProperty Name="SecondSurname" ColumnName="SecondSurname" />
-								<ScalarProperty Name="SecondName" ColumnName="SecondName" />
-								<ScalarProperty Name="JobArea" ColumnName="JobArea" />
-								<ScalarProperty Name="Citizenship" ColumnName="Citizenship" />
-								<ScalarProperty Name="LastSessionId" ColumnName="LastSessionId" />
-								<ScalarProperty Name="AffiliateReferralId" ColumnName="AffiliateReferralId" />
-								<ScalarProperty Name="UserId" ColumnName="UserId" />
-								<ScalarProperty Name="BetShopId" ColumnName="BetShopId" />
-								<ScalarProperty Name="LastDepositAmount" ColumnName="LastDepositAmount" />
-								<ScalarProperty Name="LastDepositDate" ColumnName="LastDepositDate" />
-								<ScalarProperty Name="FirstDepositDate" ColumnName="FirstDepositDate" />
-								<ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
-								<ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
-								<ScalarProperty Name="LanguageId" ColumnName="LanguageId" />
-								<ScalarProperty Name="HasNote" ColumnName="HasNote" />
-								<ScalarProperty Name="IsMobileNumberVerified" ColumnName="IsMobileNumberVerified" />
-								<ScalarProperty Name="PhoneNumber" ColumnName="PhoneNumber" />
-								<ScalarProperty Name="MobileNumber" ColumnName="MobileNumber" />
-								<ScalarProperty Name="Address" ColumnName="Address" />
-								<ScalarProperty Name="IsDocumentVerified" ColumnName="IsDocumentVerified" />
-								<ScalarProperty Name="DocumentIssuedBy" ColumnName="DocumentIssuedBy" />
-								<ScalarProperty Name="DocumentNumber" ColumnName="DocumentNumber" />
-								<ScalarProperty Name="DocumentType" ColumnName="DocumentType" />
-								<ScalarProperty Name="RegistrationIp" ColumnName="RegistrationIp" />
-								<ScalarProperty Name="ZipCode" ColumnName="ZipCode" />
-								<ScalarProperty Name="Info" ColumnName="Info" />
-								<ScalarProperty Name="RegionId" ColumnName="RegionId" />
-								<ScalarProperty Name="LastName" ColumnName="LastName" />
-								<ScalarProperty Name="FirstName" ColumnName="FirstName" />
-								<ScalarProperty Name="CategoryId" ColumnName="CategoryId" />
-								<ScalarProperty Name="State" ColumnName="State" />
-								<ScalarProperty Name="SendPromotions" ColumnName="SendPromotions" />
-								<ScalarProperty Name="CallToPhone" ColumnName="CallToPhone" />
-								<ScalarProperty Name="SendSms" ColumnName="SendSms" />
-								<ScalarProperty Name="SendMail" ColumnName="SendMail" />
-								<ScalarProperty Name="BirthDate" ColumnName="BirthDate" />
-								<ScalarProperty Name="Gender" ColumnName="Gender" />
-								<ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
-								<ScalarProperty Name="Salt" ColumnName="Salt" />
-								<ScalarProperty Name="PasswordHash" ColumnName="PasswordHash" />
-								<ScalarProperty Name="UserName" ColumnName="UserName" />
-								<ScalarProperty Name="CurrencyId" ColumnName="CurrencyId" />
-								<ScalarProperty Name="IsEmailVerified" ColumnName="IsEmailVerified" />
-								<ScalarProperty Name="Email" ColumnName="Email" />
-								<ScalarProperty Name="Id" ColumnName="Id" />
-							</MappingFragment>
-						</EntityTypeMapping>
-					</EntitySetMapping>
 					<EntitySetMapping Name="BonusProducts">
 						<EntityTypeMapping TypeName="IqSoftCorePlatformModel.BonusProduct">
 							<MappingFragment StoreEntitySet="BonusProduct">
@@ -21528,69 +21471,6 @@
                 <ScalarProperty Name="SecondSurname" ColumnName="SecondSurname" />
                 <ScalarProperty Name="BuildingNumber" ColumnName="BuildingNumber" />
                 <ScalarProperty Name="Citizenship" ColumnName="Citizenship" />
-              </ComplexTypeMapping>
-            </ResultMapping>
-          </FunctionImportMapping>
-          <FunctionImportMapping FunctionImportName="fn_Client" FunctionName="IqSoftCorePlatformModel.Store.fn_Client">
-            <ResultMapping>
-              <ComplexTypeMapping TypeName="IqSoftCorePlatformModel.fnClient">
-                <ScalarProperty Name="Id" ColumnName="Id" />
-                <ScalarProperty Name="Email" ColumnName="Email" />
-                <ScalarProperty Name="IsEmailVerified" ColumnName="IsEmailVerified" />
-                <ScalarProperty Name="CurrencyId" ColumnName="CurrencyId" />
-                <ScalarProperty Name="UserName" ColumnName="UserName" />
-                <ScalarProperty Name="NickName" ColumnName="NickName" />
-                <ScalarProperty Name="PasswordHash" ColumnName="PasswordHash" />
-                <ScalarProperty Name="Salt" ColumnName="Salt" />
-                <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
-                <ScalarProperty Name="Gender" ColumnName="Gender" />
-                <ScalarProperty Name="BirthDate" ColumnName="BirthDate" />
-                <ScalarProperty Name="Age" ColumnName="Age" />
-                <ScalarProperty Name="SendMail" ColumnName="SendMail" />
-                <ScalarProperty Name="SendSms" ColumnName="SendSms" />
-                <ScalarProperty Name="CallToPhone" ColumnName="CallToPhone" />
-                <ScalarProperty Name="SendPromotions" ColumnName="SendPromotions" />
-                <ScalarProperty Name="State" ColumnName="State" />
-                <ScalarProperty Name="FirstName" ColumnName="FirstName" />
-                <ScalarProperty Name="LastName" ColumnName="LastName" />
-                <ScalarProperty Name="RegionIsoCode" ColumnName="RegionIsoCode" />
-                <ScalarProperty Name="RegionId" ColumnName="RegionId" />
-                <ScalarProperty Name="CountryId" ColumnName="CountryId" />
-                <ScalarProperty Name="Info" ColumnName="Info" />
-                <ScalarProperty Name="ZipCode" ColumnName="ZipCode" />
-                <ScalarProperty Name="RegistrationIp" ColumnName="RegistrationIp" />
-                <ScalarProperty Name="DocumentNumber" ColumnName="DocumentNumber" />
-                <ScalarProperty Name="DocumentIssuedBy" ColumnName="DocumentIssuedBy" />
-                <ScalarProperty Name="IsDocumentVerified" ColumnName="IsDocumentVerified" />
-                <ScalarProperty Name="Address" ColumnName="Address" />
-                <ScalarProperty Name="MobileNumber" ColumnName="MobileNumber" />
-                <ScalarProperty Name="PhoneNumber" ColumnName="PhoneNumber" />
-                <ScalarProperty Name="IsMobileNumberVerified" ColumnName="IsMobileNumberVerified" />
-                <ScalarProperty Name="HasNote" ColumnName="HasNote" />
-                <ScalarProperty Name="LanguageId" ColumnName="LanguageId" />
-                <ScalarProperty Name="City" ColumnName="City" />
-                <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
-                <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
-                <ScalarProperty Name="FirstDepositDate" ColumnName="FirstDepositDate" />
-                <ScalarProperty Name="LastDepositDate" ColumnName="LastDepositDate" />
-                <ScalarProperty Name="LastDepositAmount" ColumnName="LastDepositAmount" />
-                <ScalarProperty Name="CategoryId" ColumnName="CategoryId" />
-                <ScalarProperty Name="DocumentType" ColumnName="DocumentType" />
-                <ScalarProperty Name="AffiliatePlatformId" ColumnName="AffiliatePlatformId" />
-                <ScalarProperty Name="AffiliateId" ColumnName="AffiliateId" />
-                <ScalarProperty Name="AffiliateReferralId" ColumnName="AffiliateReferralId" />
-                <ScalarProperty Name="LastSessionDate" ColumnName="LastSessionDate" />
-                <ScalarProperty Name="LastSessionId" ColumnName="LastSessionId" />
-                <ScalarProperty Name="SecondName" ColumnName="SecondName" />
-                <ScalarProperty Name="SecondSurname" ColumnName="SecondSurname" />
-                <ScalarProperty Name="UnderMonitoringTypes" ColumnName="UnderMonitoringTypes" />
-                <ScalarProperty Name="BonusBalance" ColumnName="BonusBalance" />
-                <ScalarProperty Name="RealBalance" ColumnName="RealBalance" />
-                <ScalarProperty Name="GGR" ColumnName="GGR" />
-                <ScalarProperty Name="NETGaming" ColumnName="NETGaming" />
-                <ScalarProperty Name="UserPath" ColumnName="UserPath" />
-                <ScalarProperty Name="UserId" ColumnName="UserId" />
-                <ScalarProperty Name="Title" ColumnName="Title" />
               </ComplexTypeMapping>
             </ResultMapping>
           </FunctionImportMapping>
@@ -21980,28 +21860,6 @@
               </ComplexTypeMapping>
             </ResultMapping>
           </FunctionImportMapping>
-          <FunctionImportMapping FunctionImportName="fn_Promotion" FunctionName="IqSoftCorePlatformModel.Store.fn_Promotion">
-            <ResultMapping>
-              <ComplexTypeMapping TypeName="IqSoftCorePlatformModel.fnPromotion">
-                <ScalarProperty Name="Id" ColumnName="Id" />
-                <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
-                <ScalarProperty Name="NickName" ColumnName="NickName" />
-                <ScalarProperty Name="Type" ColumnName="Type" />
-                <ScalarProperty Name="ImageName" ColumnName="ImageName" />
-                <ScalarProperty Name="State" ColumnName="State" />
-                <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
-                <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
-                <ScalarProperty Name="StartDate" ColumnName="StartDate" />
-                <ScalarProperty Name="FinishDate" ColumnName="FinishDate" />
-                <ScalarProperty Name="Order" ColumnName="Order" />
-                <ScalarProperty Name="ParentId" ColumnName="ParentId" />
-                <ScalarProperty Name="StyleType" ColumnName="StyleType" />
-                <ScalarProperty Name="Title" ColumnName="Title" />
-                <ScalarProperty Name="Description" ColumnName="Description" />
-                <ScalarProperty Name="Content" ColumnName="Content" />
-              </ComplexTypeMapping>
-            </ResultMapping>
-          </FunctionImportMapping>
           <EntitySetMapping Name="AnnouncementSettings">
             <EntityTypeMapping TypeName="IqSoftCorePlatformModel.AnnouncementSetting">
               <MappingFragment StoreEntitySet="AnnouncementSetting">
@@ -22044,60 +21902,6 @@
                 <ScalarProperty Name="UserType" ColumnName="UserType" />
                 <ScalarProperty Name="ReceiverType" ColumnName="ReceiverType" />
                 <ScalarProperty Name="Message" ColumnName="Message" />
-              </ComplexTypeMapping>
-            </ResultMapping>
-          </FunctionImportMapping>
-          <FunctionImportMapping FunctionImportName="fn_PaymentRequest" FunctionName="IqSoftCorePlatformModel.Store.fn_PaymentRequest">
-            <ResultMapping>
-              <ComplexTypeMapping TypeName="IqSoftCorePlatformModel.fnPaymentRequest">
-                <ScalarProperty Name="Id" ColumnName="Id" />
-                <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
-                <ScalarProperty Name="ClientId" ColumnName="ClientId" />
-                <ScalarProperty Name="Amount" ColumnName="Amount" />
-                <ScalarProperty Name="CommissionAmount" ColumnName="CommissionAmount" />
-                <ScalarProperty Name="CurrencyId" ColumnName="CurrencyId" />
-                <ScalarProperty Name="Status" ColumnName="Status" />
-                <ScalarProperty Name="PartnerPaymentSettingId" ColumnName="PartnerPaymentSettingId" />
-                <ScalarProperty Name="BetShopId" ColumnName="BetShopId" />
-                <ScalarProperty Name="PaymentSystemId" ColumnName="PaymentSystemId" />
-                <ScalarProperty Name="PaymentSystemName" ColumnName="PaymentSystemName" />
-                <ScalarProperty Name="BetShopName" ColumnName="BetShopName" />
-                <ScalarProperty Name="BetShopAddress" ColumnName="BetShopAddress" />
-                <ScalarProperty Name="Info" ColumnName="Info" />
-                <ScalarProperty Name="SessionId" ColumnName="SessionId" />
-                <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
-                <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
-                <ScalarProperty Name="Type" ColumnName="Type" />
-                <ScalarProperty Name="Parameters" ColumnName="Parameters" />
-                <ScalarProperty Name="CashierId" ColumnName="CashierId" />
-                <ScalarProperty Name="CashDeskId" ColumnName="CashDeskId" />
-                <ScalarProperty Name="ExternalTransactionId" ColumnName="ExternalTransactionId" />
-                <ScalarProperty Name="CashCode" ColumnName="CashCode" />
-                <ScalarProperty Name="UserId" ColumnName="UserId" />
-                <ScalarProperty Name="Date" ColumnName="Date" />
-                <ScalarProperty Name="CardNumber" ColumnName="CardNumber" />
-                <ScalarProperty Name="CountryCode" ColumnName="CountryCode" />
-                <ScalarProperty Name="SegmentId" ColumnName="SegmentId" />
-                <ScalarProperty Name="DepositCount" ColumnName="DepositCount" />
-                <ScalarProperty Name="SegmentName" ColumnName="SegmentName" />
-                <ScalarProperty Name="UserFirstName" ColumnName="UserFirstName" />
-                <ScalarProperty Name="UserLastName" ColumnName="UserLastName" />
-                <ScalarProperty Name="UserName" ColumnName="UserName" />
-                <ScalarProperty Name="FirstName" ColumnName="FirstName" />
-                <ScalarProperty Name="LastName" ColumnName="LastName" />
-                <ScalarProperty Name="ClientDocumentNumber" ColumnName="ClientDocumentNumber" />
-                <ScalarProperty Name="ClientHasNote" ColumnName="ClientHasNote" />
-                <ScalarProperty Name="CategoryId" ColumnName="CategoryId" />
-                <ScalarProperty Name="Email" ColumnName="Email" />
-                <ScalarProperty Name="AffiliatePlatformId" ColumnName="AffiliatePlatformId" />
-                <ScalarProperty Name="AffiliateId" ColumnName="AffiliateId" />
-                <ScalarProperty Name="AffiliateReferralId" ColumnName="AffiliateReferralId" />
-                <ScalarProperty Name="ActivatedBonusType" ColumnName="ActivatedBonusType" />
-                <ScalarProperty Name="AccountId" ColumnName="AccountId" />
-                <ScalarProperty Name="ParentId" ColumnName="ParentId" />
-                <ScalarProperty Name="HasNote" ColumnName="HasNote" />
-                <ScalarProperty Name="Users" ColumnName="Users" />
-                <ScalarProperty Name="UserPath" ColumnName="UserPath" />
               </ComplexTypeMapping>
             </ResultMapping>
           </FunctionImportMapping>
@@ -22510,6 +22314,220 @@
                 <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
                 <ScalarProperty Name="State" ColumnName="State" />
                 <ScalarProperty Name="MessageId" ColumnName="MessageId" />
+                <ScalarProperty Name="ClientId" ColumnName="ClientId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <FunctionImportMapping FunctionImportName="fn_Promotion" FunctionName="IqSoftCorePlatformModel.Store.fn_Promotion">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="IqSoftCorePlatformModel.fnPromotion">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+                <ScalarProperty Name="NickName" ColumnName="NickName" />
+                <ScalarProperty Name="Type" ColumnName="Type" />
+                <ScalarProperty Name="ImageName" ColumnName="ImageName" />
+                <ScalarProperty Name="State" ColumnName="State" />
+                <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
+                <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
+                <ScalarProperty Name="StartDate" ColumnName="StartDate" />
+                <ScalarProperty Name="FinishDate" ColumnName="FinishDate" />
+                <ScalarProperty Name="Order" ColumnName="Order" />
+                <ScalarProperty Name="ParentId" ColumnName="ParentId" />
+                <ScalarProperty Name="StyleType" ColumnName="StyleType" />
+                <ScalarProperty Name="DeviceType" ColumnName="DeviceType" />
+                <ScalarProperty Name="Title" ColumnName="Title" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="Content" ColumnName="Content" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <EntitySetMapping Name="Clients">
+            <EntityTypeMapping TypeName="IqSoftCorePlatformModel.Client">
+              <MappingFragment StoreEntitySet="Client">
+                <ScalarProperty Name="CharacterId" ColumnName="CharacterId" />
+                <ScalarProperty Name="CountryId" ColumnName="CountryId" />
+                <ScalarProperty Name="QRCode" ColumnName="QRCode" />
+                <ScalarProperty Name="IsTwoFactorEnabled" ColumnName="IsTwoFactorEnabled" />
+                <ScalarProperty Name="Title" ColumnName="Title" />
+                <ScalarProperty Name="USSDPin" ColumnName="USSDPin" />
+                <ScalarProperty Name="City" ColumnName="City" />
+                <ScalarProperty Name="NickName" ColumnName="NickName" />
+                <ScalarProperty Name="Apartment" ColumnName="Apartment" />
+                <ScalarProperty Name="BuildingNumber" ColumnName="BuildingNumber" />
+                <ScalarProperty Name="SecondSurname" ColumnName="SecondSurname" />
+                <ScalarProperty Name="SecondName" ColumnName="SecondName" />
+                <ScalarProperty Name="JobArea" ColumnName="JobArea" />
+                <ScalarProperty Name="Citizenship" ColumnName="Citizenship" />
+                <ScalarProperty Name="LastSessionId" ColumnName="LastSessionId" />
+                <ScalarProperty Name="AffiliateReferralId" ColumnName="AffiliateReferralId" />
+                <ScalarProperty Name="UserId" ColumnName="UserId" />
+                <ScalarProperty Name="BetShopId" ColumnName="BetShopId" />
+                <ScalarProperty Name="LastDepositAmount" ColumnName="LastDepositAmount" />
+                <ScalarProperty Name="LastDepositDate" ColumnName="LastDepositDate" />
+                <ScalarProperty Name="FirstDepositDate" ColumnName="FirstDepositDate" />
+                <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
+                <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
+                <ScalarProperty Name="LanguageId" ColumnName="LanguageId" />
+                <ScalarProperty Name="HasNote" ColumnName="HasNote" />
+                <ScalarProperty Name="IsMobileNumberVerified" ColumnName="IsMobileNumberVerified" />
+                <ScalarProperty Name="PhoneNumber" ColumnName="PhoneNumber" />
+                <ScalarProperty Name="MobileNumber" ColumnName="MobileNumber" />
+                <ScalarProperty Name="Address" ColumnName="Address" />
+                <ScalarProperty Name="IsDocumentVerified" ColumnName="IsDocumentVerified" />
+                <ScalarProperty Name="DocumentIssuedBy" ColumnName="DocumentIssuedBy" />
+                <ScalarProperty Name="DocumentNumber" ColumnName="DocumentNumber" />
+                <ScalarProperty Name="DocumentType" ColumnName="DocumentType" />
+                <ScalarProperty Name="RegistrationIp" ColumnName="RegistrationIp" />
+                <ScalarProperty Name="ZipCode" ColumnName="ZipCode" />
+                <ScalarProperty Name="Info" ColumnName="Info" />
+                <ScalarProperty Name="RegionId" ColumnName="RegionId" />
+                <ScalarProperty Name="LastName" ColumnName="LastName" />
+                <ScalarProperty Name="FirstName" ColumnName="FirstName" />
+                <ScalarProperty Name="CategoryId" ColumnName="CategoryId" />
+                <ScalarProperty Name="State" ColumnName="State" />
+                <ScalarProperty Name="SendPromotions" ColumnName="SendPromotions" />
+                <ScalarProperty Name="CallToPhone" ColumnName="CallToPhone" />
+                <ScalarProperty Name="SendSms" ColumnName="SendSms" />
+                <ScalarProperty Name="SendMail" ColumnName="SendMail" />
+                <ScalarProperty Name="BirthDate" ColumnName="BirthDate" />
+                <ScalarProperty Name="Gender" ColumnName="Gender" />
+                <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+                <ScalarProperty Name="Salt" ColumnName="Salt" />
+                <ScalarProperty Name="PasswordHash" ColumnName="PasswordHash" />
+                <ScalarProperty Name="UserName" ColumnName="UserName" />
+                <ScalarProperty Name="CurrencyId" ColumnName="CurrencyId" />
+                <ScalarProperty Name="IsEmailVerified" ColumnName="IsEmailVerified" />
+                <ScalarProperty Name="Email" ColumnName="Email" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <FunctionImportMapping FunctionImportName="fn_Client" FunctionName="IqSoftCorePlatformModel.Store.fn_Client">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="IqSoftCorePlatformModel.fnClient">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="Email" ColumnName="Email" />
+                <ScalarProperty Name="IsEmailVerified" ColumnName="IsEmailVerified" />
+                <ScalarProperty Name="CurrencyId" ColumnName="CurrencyId" />
+                <ScalarProperty Name="UserName" ColumnName="UserName" />
+                <ScalarProperty Name="NickName" ColumnName="NickName" />
+                <ScalarProperty Name="PasswordHash" ColumnName="PasswordHash" />
+                <ScalarProperty Name="Salt" ColumnName="Salt" />
+                <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+                <ScalarProperty Name="Gender" ColumnName="Gender" />
+                <ScalarProperty Name="BirthDate" ColumnName="BirthDate" />
+                <ScalarProperty Name="Age" ColumnName="Age" />
+                <ScalarProperty Name="SendMail" ColumnName="SendMail" />
+                <ScalarProperty Name="SendSms" ColumnName="SendSms" />
+                <ScalarProperty Name="CallToPhone" ColumnName="CallToPhone" />
+                <ScalarProperty Name="SendPromotions" ColumnName="SendPromotions" />
+                <ScalarProperty Name="State" ColumnName="State" />
+                <ScalarProperty Name="FirstName" ColumnName="FirstName" />
+                <ScalarProperty Name="LastName" ColumnName="LastName" />
+                <ScalarProperty Name="RegionIsoCode" ColumnName="RegionIsoCode" />
+                <ScalarProperty Name="RegionId" ColumnName="RegionId" />
+                <ScalarProperty Name="CountryId" ColumnName="CountryId" />
+                <ScalarProperty Name="Info" ColumnName="Info" />
+                <ScalarProperty Name="ZipCode" ColumnName="ZipCode" />
+                <ScalarProperty Name="RegistrationIp" ColumnName="RegistrationIp" />
+                <ScalarProperty Name="DocumentNumber" ColumnName="DocumentNumber" />
+                <ScalarProperty Name="DocumentIssuedBy" ColumnName="DocumentIssuedBy" />
+                <ScalarProperty Name="IsDocumentVerified" ColumnName="IsDocumentVerified" />
+                <ScalarProperty Name="Address" ColumnName="Address" />
+                <ScalarProperty Name="MobileNumber" ColumnName="MobileNumber" />
+                <ScalarProperty Name="PhoneNumber" ColumnName="PhoneNumber" />
+                <ScalarProperty Name="IsMobileNumberVerified" ColumnName="IsMobileNumberVerified" />
+                <ScalarProperty Name="HasNote" ColumnName="HasNote" />
+                <ScalarProperty Name="LanguageId" ColumnName="LanguageId" />
+                <ScalarProperty Name="City" ColumnName="City" />
+                <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
+                <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
+                <ScalarProperty Name="FirstDepositDate" ColumnName="FirstDepositDate" />
+                <ScalarProperty Name="LastDepositDate" ColumnName="LastDepositDate" />
+                <ScalarProperty Name="LastDepositAmount" ColumnName="LastDepositAmount" />
+                <ScalarProperty Name="CategoryId" ColumnName="CategoryId" />
+                <ScalarProperty Name="DocumentType" ColumnName="DocumentType" />
+                <ScalarProperty Name="AffiliatePlatformId" ColumnName="AffiliatePlatformId" />
+                <ScalarProperty Name="AffiliateId" ColumnName="AffiliateId" />
+                <ScalarProperty Name="AffiliateReferralId" ColumnName="AffiliateReferralId" />
+                <ScalarProperty Name="LastSessionDate" ColumnName="LastSessionDate" />
+                <ScalarProperty Name="LastSessionId" ColumnName="LastSessionId" />
+                <ScalarProperty Name="SecondName" ColumnName="SecondName" />
+                <ScalarProperty Name="SecondSurname" ColumnName="SecondSurname" />
+                <ScalarProperty Name="UnderMonitoringTypes" ColumnName="UnderMonitoringTypes" />
+                <ScalarProperty Name="BonusBalance" ColumnName="BonusBalance" />
+                <ScalarProperty Name="RealBalance" ColumnName="RealBalance" />
+                <ScalarProperty Name="GGR" ColumnName="GGR" />
+                <ScalarProperty Name="NETGaming" ColumnName="NETGaming" />
+                <ScalarProperty Name="UserPath" ColumnName="UserPath" />
+                <ScalarProperty Name="UserId" ColumnName="UserId" />
+                <ScalarProperty Name="Title" ColumnName="Title" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <FunctionImportMapping FunctionImportName="fn_PaymentRequest" FunctionName="IqSoftCorePlatformModel.Store.fn_PaymentRequest">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="IqSoftCorePlatformModel.fnPaymentRequest">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+                <ScalarProperty Name="ClientId" ColumnName="ClientId" />
+                <ScalarProperty Name="Amount" ColumnName="Amount" />
+                <ScalarProperty Name="CommissionAmount" ColumnName="CommissionAmount" />
+                <ScalarProperty Name="FinalAmount" ColumnName="FinalAmount" />
+                <ScalarProperty Name="CurrencyId" ColumnName="CurrencyId" />
+                <ScalarProperty Name="Status" ColumnName="Status" />
+                <ScalarProperty Name="PartnerPaymentSettingId" ColumnName="PartnerPaymentSettingId" />
+                <ScalarProperty Name="BetShopId" ColumnName="BetShopId" />
+                <ScalarProperty Name="PaymentSystemId" ColumnName="PaymentSystemId" />
+                <ScalarProperty Name="PaymentSystemName" ColumnName="PaymentSystemName" />
+                <ScalarProperty Name="BetShopName" ColumnName="BetShopName" />
+                <ScalarProperty Name="BetShopAddress" ColumnName="BetShopAddress" />
+                <ScalarProperty Name="Info" ColumnName="Info" />
+                <ScalarProperty Name="SessionId" ColumnName="SessionId" />
+                <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
+                <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
+                <ScalarProperty Name="Type" ColumnName="Type" />
+                <ScalarProperty Name="Parameters" ColumnName="Parameters" />
+                <ScalarProperty Name="CashierId" ColumnName="CashierId" />
+                <ScalarProperty Name="CashDeskId" ColumnName="CashDeskId" />
+                <ScalarProperty Name="ExternalTransactionId" ColumnName="ExternalTransactionId" />
+                <ScalarProperty Name="CashCode" ColumnName="CashCode" />
+                <ScalarProperty Name="UserId" ColumnName="UserId" />
+                <ScalarProperty Name="Date" ColumnName="Date" />
+                <ScalarProperty Name="CardNumber" ColumnName="CardNumber" />
+                <ScalarProperty Name="CountryCode" ColumnName="CountryCode" />
+                <ScalarProperty Name="SegmentId" ColumnName="SegmentId" />
+                <ScalarProperty Name="DepositCount" ColumnName="DepositCount" />
+                <ScalarProperty Name="SegmentName" ColumnName="SegmentName" />
+                <ScalarProperty Name="UserFirstName" ColumnName="UserFirstName" />
+                <ScalarProperty Name="UserLastName" ColumnName="UserLastName" />
+                <ScalarProperty Name="UserName" ColumnName="UserName" />
+                <ScalarProperty Name="FirstName" ColumnName="FirstName" />
+                <ScalarProperty Name="LastName" ColumnName="LastName" />
+                <ScalarProperty Name="ClientDocumentNumber" ColumnName="ClientDocumentNumber" />
+                <ScalarProperty Name="ClientHasNote" ColumnName="ClientHasNote" />
+                <ScalarProperty Name="CategoryId" ColumnName="CategoryId" />
+                <ScalarProperty Name="Email" ColumnName="Email" />
+                <ScalarProperty Name="AffiliatePlatformId" ColumnName="AffiliatePlatformId" />
+                <ScalarProperty Name="AffiliateId" ColumnName="AffiliateId" />
+                <ScalarProperty Name="AffiliateReferralId" ColumnName="AffiliateReferralId" />
+                <ScalarProperty Name="ActivatedBonusType" ColumnName="ActivatedBonusType" />
+                <ScalarProperty Name="AccountId" ColumnName="AccountId" />
+                <ScalarProperty Name="ParentId" ColumnName="ParentId" />
+                <ScalarProperty Name="HasNote" ColumnName="HasNote" />
+                <ScalarProperty Name="Users" ColumnName="Users" />
+                <ScalarProperty Name="UserPath" ColumnName="UserPath" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <EntitySetMapping Name="ClientPaymentSettings">
+            <EntityTypeMapping TypeName="IqSoftCorePlatformModel.ClientPaymentSetting">
+              <MappingFragment StoreEntitySet="ClientPaymentSetting">
+                <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
+                <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
+                <ScalarProperty Name="State" ColumnName="State" />
+                <ScalarProperty Name="PartnerPaymentSettingId" ColumnName="PartnerPaymentSettingId" />
                 <ScalarProperty Name="ClientId" ColumnName="ClientId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>

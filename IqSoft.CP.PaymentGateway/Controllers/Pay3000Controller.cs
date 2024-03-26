@@ -32,10 +32,9 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 		[HttpPost]
 		[Route("api/Pay3000/ApiRequest")]
 		public HttpResponseMessage ApiRequest(JObject obj)
+		
 		{
 			WebApiApplication.DbLogger.Info(JsonConvert.SerializeObject(obj));
-			ConsentInput consentInput = new ConsentInput();
-			PaymentInput paymentInput = new PaymentInput();
 			var response = string.Empty;
 			var httpResponseMessage = new HttpResponseMessage
 			{
@@ -52,7 +51,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 							var inputString = JsonConvert.SerializeObject(obj);
 							if (inputString.Contains("consentId"))
 							{
-								consentInput = JsonConvert.DeserializeObject<ConsentInput>(inputString);
+								var consentInput = JsonConvert.DeserializeObject<ConsentInput>(inputString);
 								var info = clientBl.GetClientPaymentInfoesByWalletNumber(consentInput.ConsentId);
 								if (info == null)
 									throw BaseBll.CreateException(string.Empty, Constants.Errors.WrongPaymentRequest);
@@ -67,14 +66,14 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 							}
 							else
 							{
-								paymentInput = JsonConvert.DeserializeObject<PaymentInput>(inputString);
+								var paymentInput = JsonConvert.DeserializeObject<PaymentInput>(inputString);
 								var paymentRequest = paymentSystemBl.GetPaymentRequestByExternalId(paymentInput.PaymentRequestId, PaymentSystem.Id);
 								if (paymentRequest == null && paymentInput.Status != "PENDING")
 									throw BaseBll.CreateException(string.Empty, Constants.Errors.PaymentRequestNotFound);
-								if (paymentInput.Status == "PENDING" && paymentInput.Type == "BET_TOPUP")
-								{
-									var paymentInfo = clientBl.GetClientPaymentAccountDetails(paymentInput.CustomerAliasId, PaymentSystem.Id, new List<int> { (int)ClientPaymentInfoTypes.Wallet })
+								var paymentInfo = clientBl.GetClientPaymentAccountDetails(paymentInput.CustomerAliasId, PaymentSystem.Id, new List<int> { (int)ClientPaymentInfoTypes.Wallet })
 											.FirstOrDefault();
+								if (paymentInput.Status == "PENDING" && paymentInput.Type == "BET_TOPUP")
+								{									
 									if (paymentInfo == null)
 										throw BaseBll.CreateException(string.Empty, Constants.Errors.WrongPaymentRequest);
 									var client = CacheManager.GetClientById(paymentInfo.ClientId);
@@ -107,14 +106,14 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 								}
 								else
 								{
-									var client = CacheManager.GetClientById(paymentRequest.ClientId);
+									var client = CacheManager.GetClientById(paymentRequest.ClientId.Value);
 									var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId,
 																paymentRequest.PaymentSystemId, client.CurrencyId, paymentRequest.Type);
 
 									if (paymentRequest.Type == (int)PaymentRequestTypes.Deposit)
 									{
 										if (paymentInput.Status == "EXECUTED")
-											clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
+											clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, info: paymentInfo);
 									}
 									else if (paymentRequest.Type == (int)PaymentRequestTypes.Withdraw)
 									{
@@ -128,8 +127,8 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 											}
 										}
 									}
-									PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId);
-									BaseHelpers.BroadcastBalance(paymentRequest.ClientId);
+									PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
+									BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);
 								}
 
 							}

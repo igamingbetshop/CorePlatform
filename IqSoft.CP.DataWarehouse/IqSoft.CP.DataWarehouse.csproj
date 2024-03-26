@@ -108,7 +108,13 @@
     <Compile Include="fnBetShopBet.cs">
       <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
     </Compile>
+    <Compile Include="fnClientBets.cs">
+      <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
+    </Compile>
     <Compile Include="fnClientReport.cs">
+      <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnDeviceClientsCount.cs">
       <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
     </Compile>
     <Compile Include="fnDocument.cs">
@@ -120,10 +126,22 @@
     <Compile Include="fnInternetGame.cs">
       <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
     </Compile>
+    <Compile Include="fnPartnerClientsCount.cs">
+      <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnPartnerDeviceBets.cs">
+      <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnPartnerProviderBets.cs">
+      <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
+    </Compile>
     <Compile Include="fnProfitByAgent.cs">
       <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
     </Compile>
     <Compile Include="fnProfitByClientProduct.cs">
+      <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnProviderClientsCount.cs">
       <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
     </Compile>
     <Compile Include="fnReportByPartner.cs">
@@ -133,6 +151,9 @@
       <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
     </Compile>
     <Compile Include="GameProvider.cs">
+      <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Gtd_Client_Info.cs">
       <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
     </Compile>
     <Compile Include="Gtd_Dashboard_Info.cs">

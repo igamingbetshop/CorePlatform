@@ -18,19 +18,52 @@ using IqSoft.CP.BetShopGatewayWebApi.Models.Reports;
 using Newtonsoft.Json;
 using IqSoft.CP.Common.Models.UserModels;
 using IqSoft.CP.DAL.Models.Clients;
-using System.Web;
 using IqSoft.CP.Common.Models.CacheModels;
 using System.Threading;
 using IqSoft.CP.Integration.Platforms.Helpers;
 using IqSoft.CP.DAL.Models.Payments;
 using IqSoft.CP.Common.Models;
-using System.Data.Entity.Validation;
+using static IqSoft.CP.Common.Constants;
 
 namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
 {
     [EnableCors(origins: "*", headers: "*", methods: "POST")]
     public class MainController : ApiController
     {
+        [HttpPost]
+        public ApiResponseBase GetApiRestrictions(ApiRequestBase input)
+        {
+            try
+            {
+                var partner = CacheManager.GetPartnerById(input.PartnerId) ??
+                    throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.PartnerNotFound);
+                return new ApiResponseBase
+                {
+                    ResponseObject = PartnerBll.GetApiPartnerRestrictions(partner.Id, SystemModuleTypes.BetShop)
+                };
+            }
+            catch (FaultException<BllFnErrorType> ex)
+            {
+                var response = new ApiResponseBase
+                {
+                    ResponseCode = ex.Detail.Id,
+                    Description = ex.Detail.Message
+                };
+                WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(response));
+                return response;
+            }
+            catch (Exception ex)
+            {
+                WebApiApplication.DbLogger.Error(ex);
+                var response = new ApiResponseBase
+                {
+                    ResponseCode = Constants.Errors.GeneralException,
+                    Description = ex.Message
+                };
+                return response;
+            }
+        }
+
         [HttpPost]
         public IHttpActionResult CardReaderAuthorization(AuthorizationInput input)
         {
@@ -551,7 +584,7 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                         var clientRegistrationInput = new ClientRegistrationInput
                         {
                             ClientData = input.MapToClient(),
-                            IsQuickRegistration = false,
+                            RegistrationType = (int)Constants.RegisterTypes.Full,
                             IsFromAdmin = true,
                             GeneratedUsername = generatedUsername,
                             BetShopId = identity.BetShopId,

@@ -270,12 +270,12 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             using (var partnerBll = new PartnerBll(identity, log))
             {
                 partnerBll.CheckPermission(Constants.Permissions.EditCloudflare);
-                var checkPartnerPermission = partnerBll.GetPermissionsToObject(new CheckPermissionInput
+                var partnerAccess = partnerBll.GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
                     ObjectTypeId = ObjectTypes.Partner
                 });
-                if (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != partnerId))
+                if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != partnerId))
                     throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.DontHavePermission);
                 return new ApiResponseBase
                 {
@@ -293,12 +293,12 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     partnerBll.CheckPermission(Constants.Permissions.EditCloudflare);
                     var item = contentBll.GetWebSiteSubMenuItem(rowId);
 
-                    var checkPartnerPermission = partnerBll.GetPermissionsToObject(new CheckPermissionInput
+                    var partnerAccess = partnerBll.GetPermissionsToObject(new CheckPermissionInput
                     {
                         Permission = Constants.Permissions.ViewPartner,
                         ObjectTypeId = ObjectTypes.Partner
                     });
-                    if (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != item.WebSiteMenuItem.WebSiteMenu.PartnerId))
+                    if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != item.WebSiteMenuItem.WebSiteMenu.PartnerId))
                         throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.DontHavePermission);
 
                     return new ApiResponseBase
@@ -318,12 +318,12 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     partnerBll.CheckPermission(Constants.Permissions.EditCloudflare);
                     var item = contentBll.GetWebSiteSubMenuItem(Convert.ToInt32(input.RowId));
 
-                    var checkPartnerPermission = partnerBll.GetPermissionsToObject(new CheckPermissionInput
+                    var partnerAccess = partnerBll.GetPermissionsToObject(new CheckPermissionInput
                     {
                         Permission = Constants.Permissions.ViewPartner,
                         ObjectTypeId = ObjectTypes.Partner
                     });
-                    if (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != item.WebSiteMenuItem.WebSiteMenu.PartnerId))
+                    if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != item.WebSiteMenuItem.WebSiteMenu.PartnerId))
                         throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.DontHavePermission);
 
                     return new ApiResponseBase
@@ -343,12 +343,12 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     partnerBll.CheckPermission(Constants.Permissions.EditCloudflare);
                     var item = contentBll.GetWebSiteSubMenuItem(Convert.ToInt32(input.RowId));
 
-                    var checkPartnerPermission = partnerBll.GetPermissionsToObject(new CheckPermissionInput
+                    var partnerAccess = partnerBll.GetPermissionsToObject(new CheckPermissionInput
                     {
                         Permission = Constants.Permissions.ViewPartner,
                         ObjectTypeId = ObjectTypes.Partner
                     });
-                    if (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != item.WebSiteMenuItem.WebSiteMenu.PartnerId))
+                    if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != item.WebSiteMenuItem.WebSiteMenu.PartnerId))
                         throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.DontHavePermission);
 
                     return new ApiResponseBase
@@ -585,12 +585,12 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             {
                 using (var partnerBll = new PartnerBll(productBll))
                 {
-                    var checkPartnerPermission = partnerBll.GetPermissionsToObject(new CheckPermissionInput
+                    var partnerAccess = partnerBll.GetPermissionsToObject(new CheckPermissionInput
                     {
                         Permission = Constants.Permissions.ViewPartner,
                         ObjectTypeId = ObjectTypes.Partner
                     });
-                    if (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != partner.Id))
+                    if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != partner.Id))
                         throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.DontHavePermission);
                     var result = productBll.SaveGameProviderSetting(new GameProviderSetting
                     {
@@ -625,12 +625,12 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.ClientNotFound);
             using (var productBll = new ProductBll(identity, log))
             {
-                var checkPartnerPermission = productBll.GetPermissionsToObject(new CheckPermissionInput
+                var partnerAccess = productBll.GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
                     ObjectTypeId = ObjectTypes.Partner
                 });
-                if (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != partnerId))
+                if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != partnerId))
                     throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.DontHavePermission);
                 var partnerProviderSettings = productBll.GetGameProviderSettings((int)ObjectTypes.Partner, partnerId).Select(x => new ApiGameProviderSetting
                 {

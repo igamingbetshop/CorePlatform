@@ -56,7 +56,7 @@ namespace IqSoft.CP.BLL.Services
             var currentTime = GetServerDate();
             var user = Db.Users.FirstOrDefault(x => ((x.UserName == loginInput.UserName && ((x.LoginByNickName.HasValue && !x.LoginByNickName.Value) || !x.LoginByNickName.HasValue)) ||
             (x.LoginByNickName.HasValue && x.LoginByNickName.Value && x.NickName == loginInput.UserName)) && x.PartnerId == loginInput.PartnerId &&
-            (x.Type == loginInput.UserType || (loginInput.UserType == (int)UserTypes.Agent && (x.Type == (int)UserTypes.MasterAgent ||
+            (x.Type == loginInput.UserType || (loginInput.UserType == (int)UserTypes.DownlineAgent && (x.Type == (int)UserTypes.CompanyAgent ||
             x.Type == (int)UserTypes.AgentEmployee || x.Type == (int)UserTypes.AdminUser))));
             if (user == null)
                 throw CreateException(loginInput.LanguageId, Constants.Errors.WrongLoginParameters);
@@ -444,9 +444,9 @@ namespace IqSoft.CP.BLL.Services
             var userSalt = new Random().Next();
             var parentUser = CacheManager.GetUserById(Identity.Id);
             user.ParentId = Identity.Id;
-            if (user.Type >= (int)UserTypes.MasterAgent)
+            if (user.Type >= (int)UserTypes.CompanyAgent)
             {
-                var parentLevel = user.Type == (int)UserTypes.MasterAgent ? 0 : parentUser.Level;
+                var parentLevel = user.Type == (int)UserTypes.CompanyAgent ? 0 : parentUser.Level;
                 if (user.Type != (int)UserTypes.AgentEmployee && (parentLevel >= user.Level || parentLevel >= (int)AgentLevels.Agent))
                     throw CreateException(LanguageId, Constants.Errors.NotAllowed);
                 var partnerSetting = CacheManager.GetPartnerSettingByKey(user.PartnerId, Constants.PartnerKeys.IsUserNameGeneratable);
@@ -479,7 +479,7 @@ namespace IqSoft.CP.BLL.Services
             user.PasswordChangedDate = currentTime;
             Db.Users.Add(user);
             Db.SaveChanges();
-            if (user.Type >= (int)UserTypes.MasterAgent)
+            if (user.Type >= (int)UserTypes.CompanyAgent)
                 user.Path = string.IsNullOrEmpty(parentUser.Path) ? ("/" + user.Id + "/") : (parentUser.Path + user.Id + "/");
             else
                 user.Path = "/" + user.Id + "/";
@@ -579,9 +579,9 @@ namespace IqSoft.CP.BLL.Services
                         });
                     }
                     break;
-                case (int)UserTypes.MasterAgent:
-                case (int)UserTypes.Agent:
-                    role = GetRoleByName(UserTypes.Agent.ToString());
+                case (int)UserTypes.CompanyAgent:
+                case (int)UserTypes.DownlineAgent:
+                    role = GetRoleByName(UserTypes.DownlineAgent.ToString());
                     if (role != null)
                     {
                         Db.UserRoles.Add(new UserRole
@@ -782,7 +782,7 @@ namespace IqSoft.CP.BLL.Services
         public List<char> FindAvailableUserName(int type, int level, char startsWith)
         {
             var parentUser = CacheManager.GetUserById(Identity.Id);
-            var parentLevel = type == (int)UserTypes.MasterAgent ? 0 : parentUser.Level;
+            var parentLevel = type == (int)UserTypes.CompanyAgent ? 0 : parentUser.Level;
             var subPerfix = type == (int)UserTypes.AgentEmployee ? "Sub" : string.Empty;
             var len = 2;
             if (level == (int)AgentLevels.Company || level == (int)AgentLevels.SMA || level == (int)AgentLevels.Member ||
@@ -944,7 +944,7 @@ namespace IqSoft.CP.BLL.Services
             var dbUser = Db.Users.FirstOrDefault(x => x.Id == user.Id);
             if (dbUser == null)
                 throw CreateException(LanguageId, Constants.Errors.UserNotFound);
-            if (dbUser.Type == (int)UserTypes.MasterAgent || dbUser.Type == (int)UserTypes.AgentEmployee)
+            if (dbUser.Type == (int)UserTypes.CompanyAgent || dbUser.Type == (int)UserTypes.AgentEmployee)
             {
                 if (dbUser.CurrencyId != user.CurrencyId)
                     throw CreateException(LanguageId, Constants.Errors.WrongCurrencyId);
@@ -1159,13 +1159,6 @@ namespace IqSoft.CP.BLL.Services
             if (checkPermission)
             {
                 CheckPermission(Constants.Permissions.CreateApiKey);
-                var checkUser = GetPermissionsToObject(new CheckPermissionInput
-                {
-                    Permission = Constants.Permissions.CreateUser,
-                    ObjectTypeId = ObjectTypes.User
-                });
-                if (!checkUser.HaveAccessForAllObjects && checkUser.AccessibleObjects.All(x => x != userId))
-                    throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             }
             var dbUser = Db.Users.FirstOrDefault(x => x.Id == userId);
             if (dbUser == null)
@@ -1205,7 +1198,7 @@ namespace IqSoft.CP.BLL.Services
                     Permission = Constants.Permissions.ViewPartner,
                     ObjectTypeId = ObjectTypes.Partner
                 });
-                if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != partnerId))
+                if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != partnerId))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
                 CheckPermission(Constants.Permissions.ViewUser);
             }
@@ -1216,7 +1209,7 @@ namespace IqSoft.CP.BLL.Services
             if (!Enum.IsDefined(typeof(UserTypes), userType))
                 throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
             string passwordRegex;
-            if (userType == (int)UserTypes.MasterAgent || userType == (int)UserTypes.Agent || userType == (int)UserTypes.AgentEmployee)
+            if (userType == (int)UserTypes.CompanyAgent || userType == (int)UserTypes.DownlineAgent || userType == (int)UserTypes.AgentEmployee)
                 passwordRegex = CacheManager.GetConfigKey(partnerId, Constants.PartnerKeys.AgentPasswordRegex);
             else
                 passwordRegex = CacheManager.GetConfigKey(partnerId, Constants.PartnerKeys.UserPasswordRegex);
@@ -1265,7 +1258,7 @@ namespace IqSoft.CP.BLL.Services
                 try
                 {
                     CheckGeneratableUsername(parentUser, level.Value, (startWith != '\0' ? startWith.ToString() : string.Empty) + userName);
-                    userName = (startWith != '\0' ? startWith.ToString() : string.Empty) + GenerateUserNamePrefix(parentUser, level ?? 0, (int)UserTypes.MasterAgent) + userName;
+                    userName = (startWith != '\0' ? startWith.ToString() : string.Empty) + GenerateUserNamePrefix(parentUser, level ?? 0, (int)UserTypes.CompanyAgent) + userName;
                 }
                 catch
                 {
@@ -1281,7 +1274,7 @@ namespace IqSoft.CP.BLL.Services
             if (otherUser != null)
                 throw CreateException(LanguageId, Constants.Errors.UserNameExists);
             var passwordRegex = string.Empty;
-            if (user.Type == (int)UserTypes.MasterAgent || user.Type == (int)UserTypes.Agent)
+            if (user.Type == (int)UserTypes.CompanyAgent || user.Type == (int)UserTypes.DownlineAgent)
             {
                 if (user.ParentId == null)
                     throw CreateException(LanguageId, Constants.Errors.WrongUserId);
@@ -1333,9 +1326,9 @@ namespace IqSoft.CP.BLL.Services
                 },
                 new CheckPermissionOutput<fnUser>
                 {
-                    AccessibleObjects = partnerAccess.AccessibleObjects,
+                    AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                     HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                    Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                    Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                 }
             };
         }
@@ -1407,7 +1400,8 @@ namespace IqSoft.CP.BLL.Services
             Db.SaveChanges();
         }
 
-        public List<fnAgent> GetSubAgents(int agentId, int? level, int? type, bool onlyDirectDownline, string agentIdentifier, int? id = null, bool? isFromSuspended = null)
+        public List<fnAgent> GetSubAgents(int agentId, int? level, int? type, bool onlyDirectDownline, 
+            string agentIdentifier, int? id = null, bool? isFromSuspended = null)
         {
             var query = Db.fn_Agent(agentId).Where(x => x.Id != agentId);
             if (level.HasValue)
@@ -1658,13 +1652,13 @@ namespace IqSoft.CP.BLL.Services
                 ObjectTypeId = ObjectTypes.User
             });
 
-            var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
                 ObjectTypeId = ObjectTypes.Partner
             });
             if ((!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != filter.UserId)) ||
-                (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != user.PartnerId)))
+                (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != user.PartnerId)))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
 
             var accountTypeKinds = GetEnumerations(Constants.EnumerationTypes.AccountTypeKinds, LanguageId).Select(x => new
@@ -1735,7 +1729,7 @@ namespace IqSoft.CP.BLL.Services
             if (creator.Type == (int)UserTypes.AdminUser)
             {
                 CheckPermission(Constants.Permissions.CreateDebitCorrectionOnUser);
-                var checkP = GetPermissionsToObject(new CheckPermissionInput
+                var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
                     ObjectTypeId = ObjectTypes.Partner
@@ -1745,15 +1739,15 @@ namespace IqSoft.CP.BLL.Services
                     Permission = Constants.Permissions.ViewUser,
                     ObjectTypeId = ObjectTypes.User
                 });
-                if (!checkP.HaveAccessForAllObjects && checkP.AccessibleObjects.All(x => x != user.PartnerId))
+                if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != user.PartnerId))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
                 if (!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != transferInput.UserId))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
                 if (string.IsNullOrEmpty(transferInput.CurrencyId))
                     transferInput.CurrencyId = user.CurrencyId;
             }
-            if ((user.Type == (int)UserTypes.MasterAgent && user.CurrencyId != transferInput.CurrencyId) ||
-                (creator.Type == (int)UserTypes.AdminUser && user.Type == (int)UserTypes.Agent))
+            if ((user.Type == (int)UserTypes.CompanyAgent && user.CurrencyId != transferInput.CurrencyId) ||
+                (creator.Type == (int)UserTypes.AdminUser && user.Type == (int)UserTypes.DownlineAgent))
                 throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
             var userPermissions = CacheManager.GetUserPermissions(creatorId);
             var permission = userPermissions.FirstOrDefault(x => x.PermissionId == Constants.Permissions.EditPartnerAccounts || x.IsAdmin);
@@ -1823,8 +1817,8 @@ namespace IqSoft.CP.BLL.Services
                 if (string.IsNullOrEmpty(transferInput.CurrencyId))
                     transferInput.CurrencyId = user.CurrencyId;
             }
-            if ((user.Type == (int)UserTypes.MasterAgent && user.CurrencyId != transferInput.CurrencyId) || 
-                (creator.Type == (int)UserTypes.AdminUser && user.Type == (int)UserTypes.Agent))
+            if ((user.Type == (int)UserTypes.CompanyAgent && user.CurrencyId != transferInput.CurrencyId) || 
+                (creator.Type == (int)UserTypes.AdminUser && user.Type == (int)UserTypes.DownlineAgent))
                 throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
 
             var userPermissions = CacheManager.GetUserPermissions(creatorId);
@@ -2039,9 +2033,9 @@ namespace IqSoft.CP.BLL.Services
                 },
                 new CheckPermissionOutput<User>
                 {
-                    AccessibleObjects = partnerAccess.AccessibleObjects,
+                    AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                     HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                    Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                    Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                 },
                 new CheckPermissionOutput<User>
                 {
@@ -2088,13 +2082,13 @@ namespace IqSoft.CP.BLL.Services
             if (checkPermission)
             {
                 CheckPermission(Constants.Permissions.ViewUser);
-                var checkClientPermission = GetPermissionsToObject(new CheckPermissionInput
+                var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
                     ObjectTypeId = ObjectTypes.Partner
                 });
 
-                if (!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != partnerId))
+                if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != partnerId))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             }
             var query = Db.AgentCommissions.AsQueryable();
@@ -2198,7 +2192,7 @@ namespace IqSoft.CP.BLL.Services
                     ca.TurnoverPercent = JsonConvert.SerializeObject(cp);
                 }
             }
-            else if (subAgent != null && subAgent.ParentId.HasValue && subAgent.Type != (int)UserTypes.MasterAgent)
+            else if (subAgent != null && subAgent.ParentId.HasValue && subAgent.Type != (int)UserTypes.CompanyAgent)
             {
                 var parentCommission = Db.fn_ProductCommission(agentCommissionInput.ProductId, subAgent.ParentId).FirstOrDefault();
                 if (parentCommission == null)
@@ -2669,13 +2663,13 @@ namespace IqSoft.CP.BLL.Services
         public BllUserSetting GetUserSettings(int userId)
         {
             CheckPermission(Constants.Permissions.ViewUser); 
-            var checkClientPermission = GetPermissionsToObject(new CheckPermissionInput
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
                 ObjectTypeId = ObjectTypes.Partner
             });
             var user = CacheManager.GetUserById(userId);
-            if (!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != user.PartnerId))
+            if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != user.PartnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
 
             return CacheManager.GetUserSetting(userId);
@@ -2684,13 +2678,13 @@ namespace IqSoft.CP.BLL.Services
         public void UpdateUserSettings(int userId, List<CountLimit> countLimits)
         {
             CheckPermission(Constants.Permissions.ViewUser);
-            var checkClientPermission = GetPermissionsToObject(new CheckPermissionInput
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
                 ObjectTypeId = ObjectTypes.Partner
             });
             var user = CacheManager.GetUserById(userId);
-            if (!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != user.PartnerId))
+            if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != user.PartnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             var currentTime = DateTime.UtcNow;
             var us = Db.UserSettings.FirstOrDefault(x => x.UserId == userId);
@@ -2713,6 +2707,6 @@ namespace IqSoft.CP.BLL.Services
             CacheManager.RemoveUserSetting(userId);
         }
 
-        #endregion
-    }
+		#endregion
+	}
 }

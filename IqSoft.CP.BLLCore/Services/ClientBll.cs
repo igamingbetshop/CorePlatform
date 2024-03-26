@@ -325,7 +325,7 @@ namespace IqSoft.CP.BLL.Services
             target.PasswordHash = CommonFunctions.ComputeClientPasswordHash(source.Password, salt);
             target.Salt = salt;
             target.PartnerId = source.PartnerId;
-            target.Gender = source.Gender == 0 ? (int)Gender.Male : source.Gender;
+            target.Gender = source.Gender ?? (int)Gender.Male;
             target.RegionId = source.RegionId;
             target.State = Enum.IsDefined(typeof(ClientStates), source.State) ? source.State : (int)ClientStates.Active;
             target.LastUpdateTime = currentTime;

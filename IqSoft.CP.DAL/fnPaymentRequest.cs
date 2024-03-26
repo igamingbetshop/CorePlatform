@@ -18,6 +18,7 @@ namespace IqSoft.CP.DAL
         public Nullable<int> ClientId { get; set; }
         public decimal Amount { get; set; }
         public Nullable<decimal> CommissionAmount { get; set; }
+        public Nullable<decimal> FinalAmount { get; set; }
         public string CurrencyId { get; set; }
         public int Status { get; set; }
         public Nullable<int> PartnerPaymentSettingId { get; set; }

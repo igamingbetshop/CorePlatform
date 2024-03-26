@@ -4,8 +4,8 @@
     {
         AdminUser = 1,
         Cashier = 2,
-        MasterAgent = 4,
-        Agent = 5,
+        CompanyAgent = 4,
+        DownlineAgent = 5,
         AgentEmployee = 6
     }
 }

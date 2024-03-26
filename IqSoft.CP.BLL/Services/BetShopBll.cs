@@ -514,9 +514,9 @@ namespace IqSoft.CP.BLL.Services
 
                 filter.CheckPermissionResuts.Add(new CheckPermissionOutput<BetShop>
                 {
-                    AccessibleObjects = partnerAccess.AccessibleObjects,
+                    AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                     HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                    Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                    Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                 });
             }
         }
@@ -545,9 +545,9 @@ namespace IqSoft.CP.BLL.Services
 
             filter.CheckPermissionResuts.Add(new CheckPermissionOutput<fnBetShops>
             {
-                AccessibleObjects = partnerAccess.AccessibleObjects,
+                AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                 HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
             });
         }
 
@@ -615,9 +615,9 @@ namespace IqSoft.CP.BLL.Services
 
             filter.CheckPermissionResuts.Add(new CheckPermissionOutput<BetShopGroup>
             {
-                AccessibleObjects = partnerAccess.AccessibleObjects,
+                AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                 HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
             });
         }
 
@@ -796,7 +796,7 @@ namespace IqSoft.CP.BLL.Services
                 Permission = Constants.Permissions.ViewPartner,
                 ObjectTypeId = ObjectTypes.Partner
             });
-            if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != betShop.PartnerId))
+            if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != betShop.PartnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
 
             var betShopPermission = GetPermissionsToObject(new CheckPermissionInput
@@ -1019,9 +1019,9 @@ namespace IqSoft.CP.BLL.Services
 
             filter.CheckPermissionResuts.Add(new CheckPermissionOutput<fnAdminShiftReport>
             {
-                AccessibleObjects = partnerAccess.AccessibleObjects,
+                AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                 HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
             });
 
             GetPermissionsToObject(new CheckPermissionInput
@@ -1103,9 +1103,9 @@ namespace IqSoft.CP.BLL.Services
 
             filter.CheckPermissionResuts.Add(new CheckPermissionOutput<fnAdminShiftReport>
             {
-                AccessibleObjects = partnerAccess.AccessibleObjects,
+                AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                 HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
             });
 
             GetPermissionsToObject(new CheckPermissionInput

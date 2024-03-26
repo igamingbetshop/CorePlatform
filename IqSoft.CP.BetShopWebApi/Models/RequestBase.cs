@@ -9,7 +9,6 @@ namespace IqSoft.CP.BetShopWebApi.Models
 		public string Method { get; set; }
 		public string Token { get; set; }
 		public int CashDeskId { get; set; }
-		public int PartnerId { get; set; }
 		public string RequestObject { get; set; }
 	}
 }

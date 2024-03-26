@@ -49,7 +49,7 @@ namespace IqSoft.CP.DAL.Filters
             if (HasImages.HasValue)
                 objects = objects.Where(x => x.HasImages == HasImages.Value);
             if (IsProviderActive.HasValue)
-                objects = objects.Where(x => x.IsProviderActive == IsProviderActive.Value);
+                objects = objects.Where(x => x.IsProviderActive == null || x.IsProviderActive == IsProviderActive.Value );
 
             if (FreeSpinSupport.HasValue)
                 objects = objects.Where(x => x.GameProviderId == null || x.FreeSpinSupport == FreeSpinSupport.Value);

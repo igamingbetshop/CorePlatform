@@ -48,7 +48,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                     WebApiApplication.DbLogger.Info($"InputString: {bodyStream.ReadToEnd()}");
                     try
                     {
-                        client = clientBl.ProductsAuthorization(input.Token, out newToken, out productId, out languageId, true);
+                        client = clientBl.ProductsAuthorization(input.Token, out newToken, out productId, out languageId, !input.KeepOldToken);
                     }
                     catch(FaultException<BllFnErrorType> ex)
                     {

@@ -4,21 +4,17 @@ using IqSoft.CP.BetShopWebApi.Models.Common;
 using log4net;
 using Microsoft.AspNet.SignalR.Client;
 using Newtonsoft.Json;
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Configuration;
-using System.Linq;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
-using System.Web.Routing;
 
 namespace IqSoft.CP.BetShopWebApi
 {
-	public class WebApiApplication : HttpApplication
+    public class WebApiApplication : HttpApplication
 	{
 		public static ILog LogWriter;
 

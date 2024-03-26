@@ -35,8 +35,8 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                     var user = userBl.GetUserById(identity.Id);
                     if (user == null)
                         throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.UserNotFound);
-                    var products = productsBl.GetFnProducts(filter.MapToFilterfnProduct(), !(user.Type == (int)UserTypes.MasterAgent ||
-                        user.Type == (int)UserTypes.Agent || user.Type == (int)UserTypes.AgentEmployee));
+                    var products = productsBl.GetFnProducts(filter.MapToFilterfnProduct(), !(user.Type == (int)UserTypes.CompanyAgent ||
+                        user.Type == (int)UserTypes.DownlineAgent || user.Type == (int)UserTypes.AgentEmployee));
 
                     return new ApiResponseBase
                     {
@@ -55,8 +55,8 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                     var user = userBl.GetUserById(identity.Id);
                     if (user == null)
                         throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.UserNotFound);
-                    var providers = productsBl.GetGameProviders(filter.MapToFilterGameProvider(), !(user.Type == (int)UserTypes.MasterAgent ||
-                            user.Type == (int)UserTypes.Agent || user.Type == (int)UserTypes.AgentEmployee));
+                    var providers = productsBl.GetGameProviders(filter.MapToFilterGameProvider(), !(user.Type == (int)UserTypes.CompanyAgent ||
+                            user.Type == (int)UserTypes.DownlineAgent || user.Type == (int)UserTypes.AgentEmployee));
                     var result = new ApiResponseBase
                     {
                         ResponseObject = providers.Select(x => new ApiGameProvider

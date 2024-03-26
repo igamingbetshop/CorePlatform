@@ -60,6 +60,17 @@ namespace IqSoft.CP.ProductGateway.Models.TimelessTech
 		public long RoundId { get; set; }
 	}
 
+	public class FinishRoundInput : DataBaseInput
+    {		
+		[JsonProperty(PropertyName = "round_id")]
+		public long RoundId { get; set; }
+
+		[JsonProperty(PropertyName = "round_ts")]
+		public string RoundTransaction { get; set; }
+
+		[JsonProperty(PropertyName = "game_id")]
+		public int GameId { get; set; }
+	}
 	public class TransactionInput : DataBaseInput
     {
 		[JsonProperty(PropertyName = "transaction_type")]

@@ -4,16 +4,13 @@ using IqSoft.CP.Common.Models.WebSiteModels;
 using IqSoft.CP.CommonCore.Models.WebSiteModels;
 using IqSoft.CP.WebSiteWebApi.Hubs;
 using Microsoft.AspNetCore.SignalR;
-using Newtonsoft.Json;
-using Serilog;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
 namespace IqSoft.CP.WebSiteWebApi.Common
 {
-	public class BroadcastService
+    public class BroadcastService
 	{
 		public static void BroadcastWin(ApiWin win, object message)
 		{

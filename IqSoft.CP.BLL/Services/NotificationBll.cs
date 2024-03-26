@@ -557,7 +557,7 @@ namespace IqSoft.CP.BLL.Services
             NotifyAffiliator(partnerId, clientId, affiliatePlatform, clieckId, string.Empty, null, null, false);
         }
 
-        public void DepositAffiliateNotification(BllClient client, decimal depositAmount, long transactionId, int depositCount, string crmPlatforms)
+       public void DepositAffiliateNotification(BllClient client, decimal depositAmount, DateTime paymentDate, long transactionId, int depositCount, string crmPlatforms)
         {
             var ar = Db.AffiliateReferrals.Include(x => x.AffiliatePlatform).FirstOrDefault(x => x.Id == client.AffiliateReferralId);
             if (ar != null)
@@ -567,19 +567,27 @@ namespace IqSoft.CP.BLL.Services
                 var items = crmPlatforms.Split(',');
                 foreach (var crmPlatform in items)
                 {
-					NotifyAffiliator(client.PartnerId, client.Id, new AffiliatePlatform { Name = crmPlatform }, null, client.CurrencyId, depositAmount, transactionId, false, depositCount);
+					NotifyAffiliator(client.PartnerId, client.Id, new AffiliatePlatform { Name = crmPlatform }, null, client.CurrencyId, depositAmount, transactionId, false, depositCount, paymentDate);
 				}
             }				
 		}
 
-        public void WithdrawAffiliateNotification(BllClient client, decimal withdrawAmount, long transactionId)
+        public void WithdrawAffiliateNotification(BllClient client, decimal withdrawAmount, long transactionId, string crmPlatforms)
         {
             if (client.AffiliateReferralId != null)
             {
                 var ar = Db.AffiliateReferrals.Include(x => x.AffiliatePlatform).FirstOrDefault(x => x.Id == client.AffiliateReferralId);
                 if (ar != null)
                     NotifyAffiliator(client.PartnerId, client.Id, ar.AffiliatePlatform, ar.RefId, client.CurrencyId, withdrawAmount, transactionId, true, null);
-            }
+				if (!string.IsNullOrWhiteSpace(crmPlatforms))
+				{
+					var items = crmPlatforms.Split(',');
+					foreach (var crmPlatform in items)
+					{
+						NotifyAffiliator(client.PartnerId, client.Id, ar.AffiliatePlatform, ar.RefId, client.CurrencyId, withdrawAmount, transactionId, true);
+					}
+				}
+			}
         }
 
 
@@ -716,7 +724,8 @@ namespace IqSoft.CP.BLL.Services
             return ClientMessageTypes.Sms;
         }
 
-        private void NotifyAffiliator(int partnerId, int clientId, AffiliatePlatform affiliatePlatform, string clickId, string currency, decimal? amount, long? transactionId, bool isWithdraw, int? depositCount = 0)
+        private void NotifyAffiliator(int partnerId, int clientId, AffiliatePlatform affiliatePlatform, string clickId, string currency, 
+                                             decimal? amount, long? transactionId, bool isWithdraw, int? depositCount = 0, DateTime? depositDate = null)
         {
             try
             {
@@ -902,21 +911,71 @@ namespace IqSoft.CP.BLL.Services
                     case AffiliatePlatforms.CustomerIo:
                         var customer = CacheManager.GetClientById(clientId);
                         url = CacheManager.GetPartnerSettingByKey(partnerId, Constants.PartnerKeys.CustomerIoUrl).StringValue;
+                        var partnerName = CacheManager.GetPartnerById(customer.PartnerId).Name;
+                        var reqList = new List<string>();
 						if (amount.HasValue)
                         {
-                            postData = JsonConvert.SerializeObject(new
+                            if(isWithdraw) 
                             {
-                                userId = customer.Id.ToString(),
-                                type = "track",
-                                @event = "Deposit",
-                                properties = new
-                                {
-                                    amount,
-                                    transactionId,
-                                    currency = customer.CurrencyId,
-                                    depositCount 
-                                }
-                            });
+								postData = JsonConvert.SerializeObject(new
+								{
+									userId = customer.Id.ToString(),
+									type = "track",
+									@event = "Withdraw",
+									properties = new
+									{
+										amount,
+										transactionId,
+										currency = customer.CurrencyId
+									}
+								});
+								reqList.Add(postData);
+								postData = JsonConvert.SerializeObject(new
+								{
+									userId = customer.Id.ToString(),
+									type = "track",
+									@event = "Update Profile",
+									properties = new
+									{
+										userId = customer.Id.ToString(),
+										realBalance = Math.Floor(BaseBll.GetObjectBalance((int)ObjectTypes.Client, customer.Id).Balances.Where(y => y.TypeId != (int)AccountTypes.ClientCompBalance &&
+																		y.TypeId != (int)AccountTypes.ClientCoinBalance &&
+																		y.TypeId != (int)AccountTypes.ClientBonusBalance).Sum(y => y.Balance) * 100) / 100
+									}
+								});
+								reqList.Add(postData);
+							}
+                            else
+                            {
+								postData = JsonConvert.SerializeObject(new
+								{
+									userId = customer.Id.ToString(),
+									type = "track",
+									@event = "Deposit",
+									properties = new
+									{
+										amount,
+										transactionId,
+										currency = customer.CurrencyId,
+                                        depositCount
+									}
+								});
+								reqList.Add(postData);
+								postData = JsonConvert.SerializeObject(new
+								{
+									userId = customer.Id.ToString(),
+									type = "track",
+									@event = "Update Profile",
+									properties = new
+									{
+										realBalance = Math.Floor(BaseBll.GetObjectBalance((int)ObjectTypes.Client, customer.Id).Balances.Where(y => y.TypeId != (int)AccountTypes.ClientCompBalance &&
+																		y.TypeId != (int)AccountTypes.ClientCoinBalance &&
+																		y.TypeId != (int)AccountTypes.ClientBonusBalance).Sum(y => y.Balance) * 100) / 100,
+										lastDepositDate = depositDate?.ToString("yyyy-MM-dd HH:mm:ss")
+									}
+								});
+								reqList.Add(postData);
+							}                            
 							url = $"{url}/track";
 						}
                         else
@@ -935,36 +994,118 @@ namespace IqSoft.CP.BLL.Services
                                     gender = customer.Gender,
                                     mobileNumber = customer.MobileNumber,
                                     zipCode = customer.ZipCode,
-                                    birthDate = customer.BirthDate,
+                                    birthDate = customer.BirthDate.ToString("yyyy-MM-dd HH:mm:ss"),
                                     regionId = customer.RegionId,
                                     categoryId = customer.CategoryId,
-                                    state = customer.State,
-                                    countryId = customer.CountryId,
+                                    brandName = partnerName,
+                                    state = Enum.GetName(typeof(ClientStates), customer.State),
+                                    countryId = CacheManager.GetRegionById(customer.CountryId.Value, customer.LanguageId).IsoCode3,
                                     city = customer.City,
                                     languageId = customer.LanguageId,
                                     isDocumentVerified = customer.IsDocumentVerified,
                                     documentNumber = customer.DocumentNumber,
                                     documentIssuedBy = customer.DocumentIssuedBy,
                                     sendPromotions = customer.SendPromotions,
-                                    affiliateReferralId = customer.AffiliateReferralId,
-                                    creationTime = customer.CreationTime,
+                                    affiliateReferralId = clickId, 
+                                    creationTime = customer.CreationTime.ToString("yyyy-MM-dd HH:mm:ss"),
                                     address = customer.Address
                                 }
 
                             });
-                            url = $"{url}/identify";
+                            reqList.Add(postData);
+							url = $"{url}/identify";
+                        }
+                        var apikey = CacheManager.GetPartnerSettingByKey(partnerId, Constants.PartnerKeys.CustomerIoApiKey).StringValue;
+                        foreach (var item in reqList)
+						{
+							var httpRequest = new HttpRequestInput
+							{
+								RequestMethod = Constants.HttpRequestMethods.Post,
+								ContentType = Constants.HttpContentTypes.ApplicationJson,
+								Url = url,
+								RequestHeaders = new Dictionary<string, string> { { "Authorization", "Basic " + Convert.ToBase64String(Encoding.Default.GetBytes($"{apikey}:")) } },
+								PostData = item
+							};
+							Log.Info(JsonConvert.SerializeObject(httpRequest));
+							var am = CommonFunctions.SendHttpRequest(httpRequest, out _);
 						}
-						var apikey = CacheManager.GetPartnerSettingByKey(partnerId, Constants.PartnerKeys.CustomerIoApiKey).StringValue;
-						var httpRequest = new HttpRequestInput
+						break;
+                    case AffiliatePlatforms.Smartico:
+                        var user = CacheManager.GetClientById(clientId);
+                        var currentDate = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeMilliseconds();
+                        if (amount.HasValue)
+                        {
+                            if (isWithdraw)
+                            {
+								postData = JsonConvert.SerializeObject(new
+								{
+									eid = $"{user.Id}{currentDate}",
+									event_date = ((DateTimeOffset)user.CreationTime).ToUnixTimeMilliseconds(),
+									user_ext_id = user.Id.ToString(),
+									event_type = "acc_withdrawal_approve",
+									payload =
+								    new
+								    {
+								    	acc_last_transaction_id = transactionId,
+								    	acc_last_withdrawal_amount = amount,
+								    	acc_last_withdrawal_date = ((DateTimeOffset)DateTime.UtcNow.AddMinutes(-10)).ToUnixTimeMilliseconds()
+									}
+								});
+							}
+                            else
+                            {
+                                postData = JsonConvert.SerializeObject(new
+                                {
+                                    eid = $"{user.Id}{currentDate}",
+                                    event_date = ((DateTimeOffset)user.CreationTime).ToUnixTimeMilliseconds(),
+                                    user_ext_id = user.Id.ToString(),
+                                    event_type = "acc_deposit_approve",
+                                    payload =
+                                    new
+                                    {
+                                        acc_last_deposit_amount = amount,
+                                        acc_last_deposit_date = depositDate,
+                                        acc_last_transaction_id = transactionId
+                                    }
+                                 });
+                            }
+                        }
+                        else
+                        {
+                            postData = JsonConvert.SerializeObject(new
+                            {
+                                eid = $"{user.Id}{currentDate}",
+                                event_date = ((DateTimeOffset)user.CreationTime).ToUnixTimeMilliseconds(),
+                                user_ext_id = user.Id.ToString(),
+                                event_type = "update_profile",
+                                payload =
+                                new
+                                {
+                                    core_registration_date = user.CreationTime,
+                                    core_user_gender = user.Gender,
+                                    core_user_language = user.LanguageId.ToUpper(),
+                                    core_username = user.UserName,
+                                    core_wallet_currency = user.CurrencyId,
+                                    user_country = user.CountryId,
+                                    core_email = user.Email,
+                                    uer_first_name = user.FirstName,
+                                    uer_last_name = user.LastName,
+                                    user_phone = user.MobileNumber
+                                }
+                            });
+                        }
+						url = CacheManager.GetPartnerSettingByKey(partnerId, Constants.PartnerKeys.SmarticoUrl).StringValue;
+						var token = CacheManager.GetPartnerSettingByKey(partnerId, Constants.PartnerKeys.SmarticoToken).StringValue;
+						var request = new HttpRequestInput
 						{
 							RequestMethod = Constants.HttpRequestMethods.Post,
 							ContentType = Constants.HttpContentTypes.ApplicationJson,
 							Url = url,
-							RequestHeaders = new Dictionary<string, string> { { "Authorization", "Basic " + Convert.ToBase64String(Encoding.Default.GetBytes($"{apikey}:")) } },
+							RequestHeaders = new Dictionary<string, string> { { "Authorization", token } },
 							PostData = postData
 						};
-						Log.Info(JsonConvert.SerializeObject(httpRequest));
-						CommonFunctions.SendHttpRequest(httpRequest, out _);
+						Log.Info(JsonConvert.SerializeObject(request));
+						CommonFunctions.SendHttpRequest(request, out _);
 						break;
                     default:
                         break;

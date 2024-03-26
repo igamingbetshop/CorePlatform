@@ -7,7 +7,7 @@ namespace IqSoft.CP.AdminWebApi.Models.DashboardModels
     {
         public int Status { get; set; }
 
-        public int TotalPlayersCount { get; set; }
+        public int? TotalPlayersCount { get; set; }
 
         public decimal TotalAmount { get; set; }
 
@@ -39,6 +39,6 @@ namespace IqSoft.CP.AdminWebApi.Models.DashboardModels
 
         public int TotalRequestsCount { get; set; }
 
-        public int TotalPlayersCount { get; set; }
+        public int? TotalPlayersCount { get; set; }
     }
 }

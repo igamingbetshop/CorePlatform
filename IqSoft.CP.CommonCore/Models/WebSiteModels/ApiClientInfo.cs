@@ -24,7 +24,7 @@ namespace IqSoft.CP.Common.Models.WebSiteModels
         public int DistrictId { get; set; }
         public int CountryId { get; set; }
         public int TownId { get; set; }
-        public int Gender { get; set; }
+        public int? Gender { get; set; }
 
         public DateTime BirthDate { get; set; }
 

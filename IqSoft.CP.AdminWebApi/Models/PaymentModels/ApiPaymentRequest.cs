@@ -76,6 +76,7 @@ namespace IqSoft.CP.AdminWebApi.Models.PaymentModels
         public int? ActivatedBonusType { get; set; }
         public decimal? CommissionPercent { get; set; }
         public decimal? CommissionAmount { get; set; }
+        public decimal FinalAmount { get; set; }
         [NotExcelProperty]
         public string PaymentForm { get; set; }
         public string SegmentName { get; set; }

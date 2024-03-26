@@ -32,7 +32,6 @@
         <EntityTypeShape EntityType="IqSoftCorePlatformModel.ClientFavoriteProduct" Width="1.5" PointX="23.75" PointY="5.625" />
         <EntityTypeShape EntityType="IqSoftCorePlatformModel.ClientIdentity" Width="1.5" PointX="17.75" PointY="19.75" />
         <EntityTypeShape EntityType="IqSoftCorePlatformModel.ClientLog" Width="1.5" PointX="20.625" PointY="7" />
-        <EntityTypeShape EntityType="IqSoftCorePlatformModel.ClientPaymentSetting" Width="1.5" PointX="30.75" PointY="11.5" />
         <EntityTypeShape EntityType="IqSoftCorePlatformModel.ClientSession" Width="1.5" PointX="20.625" PointY="13.125" />
         <EntityTypeShape EntityType="IqSoftCorePlatformModel.ComplimentaryPointRate" Width="1.5" PointX="30.5" PointY="49.75" />
         <EntityTypeShape EntityType="IqSoftCorePlatformModel.CRMSetting" Width="1.5" PointX="30.5" PointY="7.875" />
@@ -237,36 +236,6 @@
         <AssociationConnector Association="IqSoftCorePlatformModel.FK_WebSiteSubMenuItem_WebSiteMenuItem" />
         <EntityTypeShape EntityType="IqSoftCorePlatformModel.PartnerProductSetting" Width="1.5" PointX="35.875" PointY="7.125" />
         <AssociationConnector Association="IqSoftCorePlatformModel.FK_PartnerProduct_Partner" />
-        <EntityTypeShape EntityType="IqSoftCorePlatformModel.Client" Width="1.5" PointX="18.625" PointY="0.5" />
-        <AssociationConnector Association="IqSoftCorePlatformModel.FK_Client_AffiliateReferral" />
-        <AssociationConnector Association="IqSoftCorePlatformModel.FK_AgentCommission_Client" />
-        <AssociationConnector Association="IqSoftCorePlatformModel.FK_AgentProfit_Client" />
-        <AssociationConnector Association="IqSoftCorePlatformModel.FK_Client_ClientSession" />
-        <AssociationConnector Association="IqSoftCorePlatformModel.FK_Client_Currency" />
-        <AssociationConnector Association="IqSoftCorePlatformModel.FK_Client_JobArea" />
-        <AssociationConnector Association="IqSoftCorePlatformModel.FK_Client_Language" />
-        <AssociationConnector Association="IqSoftCorePlatformModel.FK_Client_Partner" />
-        <AssociationConnector Association="IqSoftCorePlatformModel.FK_Client_Region" />
-        <AssociationConnector Association="IqSoftCorePlatformModel.FK_Client_Region1" />
-        <AssociationConnector Association="IqSoftCorePlatformModel.FK_Client_User" />
-        <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientBankInfo_Client" />
-        <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientClassification_Client" />
-        <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientClosedPeriod_Client" />
-        <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientFavoriteProduct_Client" />
-        <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientIdentity_Client" />
-        <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientInfo_Client" />
-        <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientLog_Client" />
-        <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientMessage_Client" />
-        <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientPaymentInfo_Client" />
-        <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientPaymentSetting_Client" />
-        <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientSecurityAnswer_Client" />
-        <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientSession_Client" />
-        <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientSetting_Client" />
-        <AssociationConnector Association="IqSoftCorePlatformModel.FK_Document_Client" />
-        <AssociationConnector Association="IqSoftCorePlatformModel.FK_JobTrigger_Client" />
-        <AssociationConnector Association="IqSoftCorePlatformModel.FK_PaymentLimit_Client" />
-        <AssociationConnector Association="IqSoftCorePlatformModel.FK_Ticket_Client" />
-        <AssociationConnector Association="IqSoftCorePlatformModel.FK_TicketMessageState_Client" />
         <EntityTypeShape EntityType="IqSoftCorePlatformModel.BonusProduct" Width="1.5" PointX="16.75" PointY="0.5" />
         <EntityTypeShape EntityType="IqSoftCorePlatformModel.PartnerKey" Width="1.5" PointX="32.625" PointY="0.75" />
         <AssociationConnector Association="IqSoftCorePlatformModel.FK_PartnerKey_Partner" />
@@ -364,15 +333,12 @@
         <EntityTypeShape EntityType="IqSoftCorePlatformModel.ClientBonusTrigger" Width="1.5" PointX="23.625" PointY="25" />
         <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientBonus_Bonus" />
         <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientBonusTrigger_Bonus" />
-        <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientBonus_Client" />
-        <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientBonusTrigger_Client" />
         <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientBonus_TriggerSetting" />
         <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientBonusTrigger_TriggerSetting" />
         <EntityTypeShape EntityType="IqSoftCorePlatformModel.PaymentRequest" Width="1.5" PointX="52.25" PointY="25.625" />
         <AssociationConnector Association="IqSoftCorePlatformModel.FK_PaymentRequest_Account" />
         <AssociationConnector Association="IqSoftCorePlatformModel.FK_PaymentRequest_BetShop" />
         <AssociationConnector Association="IqSoftCorePlatformModel.FK_PaymentRequest_CashDesk" />
-        <AssociationConnector Association="IqSoftCorePlatformModel.FK_PaymentRequest_Client" />
         <AssociationConnector Association="IqSoftCorePlatformModel.FK_PaymentRequest_Currency" />
         <AssociationConnector Association="IqSoftCorePlatformModel.FK_JobTrigger_PaymentRequest" />
         <AssociationConnector Association="IqSoftCorePlatformModel.FK_PaymentRequest_PaymentRequest" />
@@ -392,10 +358,8 @@
         <AssociationConnector Association="IqSoftCorePlatformModel.FK_Character_Partner" />
         <AssociationConnector Association="IqSoftCorePlatformModel.FK_CharacterDescription_Translation" />
         <AssociationConnector Association="IqSoftCorePlatformModel.FK_CharacterTitle_Translation" />
-        <AssociationConnector Association="IqSoftCorePlatformModel.FK_Client_Character" />
         <EntityTypeShape EntityType="IqSoftCorePlatformModel.PartnerPaymentSetting" Width="1.5" PointX="49.875" PointY="33.375" />
         <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientPaymentInfo_PartnerPaymentSetting" />
-        <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientBlockedPaymentSetting_PartnerPaymentSetting" />
         <AssociationConnector Association="IqSoftCorePlatformModel.FK_PartnerPaymentSetting_Currency" />
         <AssociationConnector Association="IqSoftCorePlatformModel.FK_Document_PartnerPaymentSetting" />
         <AssociationConnector Association="IqSoftCorePlatformModel.FK_PartnerPaymentSetting_Partner" />
@@ -457,9 +421,45 @@
         <AssociationConnector Association="IqSoftCorePlatformModel.FK_ProductLimit_Product" />
         <AssociationConnector Association="IqSoftCorePlatformModel.FK_TriggerProductSetting_Product" />
         <EntityTypeShape EntityType="IqSoftCorePlatformModel.ClientMessageState" Width="1.5" PointX="46.25" PointY="13.875" />
-        <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientMessageState_Client" />
         <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientMessageState_ClientMessage" />
         <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientMessageState_Popup" />
+        <EntityTypeShape EntityType="IqSoftCorePlatformModel.Client" Width="1.5" PointX="42.25" PointY="2.875" />
+        <AssociationConnector Association="IqSoftCorePlatformModel.FK_Client_AffiliateReferral" />
+        <AssociationConnector Association="IqSoftCorePlatformModel.FK_AgentCommission_Client" />
+        <AssociationConnector Association="IqSoftCorePlatformModel.FK_AgentProfit_Client" />
+        <AssociationConnector Association="IqSoftCorePlatformModel.FK_Client_Character" />
+        <AssociationConnector Association="IqSoftCorePlatformModel.FK_Client_ClientSession" />
+        <AssociationConnector Association="IqSoftCorePlatformModel.FK_Client_Currency" />
+        <AssociationConnector Association="IqSoftCorePlatformModel.FK_Client_JobArea" />
+        <AssociationConnector Association="IqSoftCorePlatformModel.FK_Client_Language" />
+        <AssociationConnector Association="IqSoftCorePlatformModel.FK_Client_Partner" />
+        <AssociationConnector Association="IqSoftCorePlatformModel.FK_Client_Region" />
+        <AssociationConnector Association="IqSoftCorePlatformModel.FK_Client_Region1" />
+        <AssociationConnector Association="IqSoftCorePlatformModel.FK_Client_User" />
+        <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientBankInfo_Client" />
+        <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientBonus_Client" />
+        <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientBonusTrigger_Client" />
+        <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientClassification_Client" />
+        <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientClosedPeriod_Client" />
+        <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientFavoriteProduct_Client" />
+        <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientIdentity_Client" />
+        <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientInfo_Client" />
+        <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientLog_Client" />
+        <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientMessage_Client" />
+        <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientMessageState_Client" />
+        <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientPaymentInfo_Client" />
+        <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientSecurityAnswer_Client" />
+        <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientSession_Client" />
+        <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientSetting_Client" />
+        <AssociationConnector Association="IqSoftCorePlatformModel.FK_Document_Client" />
+        <AssociationConnector Association="IqSoftCorePlatformModel.FK_JobTrigger_Client" />
+        <AssociationConnector Association="IqSoftCorePlatformModel.FK_PaymentLimit_Client" />
+        <AssociationConnector Association="IqSoftCorePlatformModel.FK_PaymentRequest_Client" />
+        <AssociationConnector Association="IqSoftCorePlatformModel.FK_Ticket_Client" />
+        <AssociationConnector Association="IqSoftCorePlatformModel.FK_TicketMessageState_Client" />
+        <EntityTypeShape EntityType="IqSoftCorePlatformModel.ClientPaymentSetting" Width="1.5" PointX="52.125" PointY="20.375" />
+        <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientPaymentSetting_Client" />
+        <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientBlockedPaymentSetting_PartnerPaymentSetting" />
         </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

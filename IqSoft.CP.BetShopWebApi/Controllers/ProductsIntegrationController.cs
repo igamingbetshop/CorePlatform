@@ -53,8 +53,7 @@ namespace IqSoft.CP.BetShopWebApi.Controllers
 					};
 				}
 
-				CashierIdentity identity;
-				WebApiApplication.Clients.TryGetValue(session.Token, out identity);
+				WebApiApplication.Clients.TryGetValue(session.Token, out CashierIdentity identity);
 				if (identity == null)
 					return new ApiResponseBase
                     {

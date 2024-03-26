@@ -22,7 +22,7 @@ namespace IqSoft.CP.DataWarehouse
         public string PasswordHash { get; set; }
         public int Salt { get; set; }
         public int PartnerId { get; set; }
-        public int Gender { get; set; }
+        public Nullable<int> Gender { get; set; }
         public System.DateTime BirthDate { get; set; }
         public bool SendMail { get; set; }
         public bool SendSms { get; set; }

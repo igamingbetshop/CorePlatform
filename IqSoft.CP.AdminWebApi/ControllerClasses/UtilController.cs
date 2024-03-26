@@ -47,8 +47,6 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     using (var userBl = new UserBll(identity, log))
                     {
                         clientbl.SaveNote(note);
-                        CacheManager.RemoveClientFromCache((int)note.ObjectId);
-                        Helpers.Helpers.InvokeMessage("RemoveClient", (int)note.ObjectId);
                         return new ApiResponseBase
                         {
                             ResponseObject = note

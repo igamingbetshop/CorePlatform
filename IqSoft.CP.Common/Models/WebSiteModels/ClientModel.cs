@@ -14,7 +14,7 @@ namespace IqSoft.CP.Common.Models.WebSiteModels
         public int? City { get; set; }
         public string CityName { get; set; }
         public int? Town { get; set; }
-        public int Gender { get; set; }
+        public int? Gender { get; set; }
         public int? BirthYear { get; set; }
         public int? BirthMonth { get; set; }
         public int? BirthDay { get; set; }

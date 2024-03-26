@@ -23,5 +23,6 @@ namespace IqSoft.CP.Common.Models.CacheModels
         public int Order { get; set; }
         public int? ParentId { get; set; }
         public string StyleType { get; set; }
+        public int? DeviceType { get; set; }
     }
 }

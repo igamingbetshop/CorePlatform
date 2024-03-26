@@ -1,12 +1,13 @@
-﻿using System.Collections.Generic;
-
-namespace IqSoft.CP.BetShopWebApiCore.Models
+﻿namespace IqSoft.CP.BetShopWebApiCore.Models
 {
     public class AppConfigurationModel
     {
-        public  string BetShopConnectionUrl;
-        public  List<string> WhitelistedCountries { get; private set; }
-        public  List<string> BlockedIps { get; private set; }
-        public  List<string> WhitelistedIps { get; private set; }
+        public string PlatformBetShopClientGatewayUrl { get; set; }
+        public string VirtualGamesBetShopWebApiUrl { get; set; }
+        public string SportsbookBetShopWebApiUrl { get; set; }
+        public string BetShopConnectionUrl { get; set; }
+        public string ProductGatewayHostAddress { get; set; }
+        public string IqSoftBrandId { get; set; }
+        public string BetShopCredentials { get; set; }
     }
 }

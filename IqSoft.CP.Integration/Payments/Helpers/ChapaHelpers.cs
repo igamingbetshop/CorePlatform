@@ -176,12 +176,23 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 				{
 					var output = JsonConvert.DeserializeObject<BaseOutput>(ex.Message);
 					var message = JsonConvert.DeserializeObject<BaseOutput>(output.Message);
-					if (message.Status == "failed" && message.Message == "The reference number should be unique.")
+					if (message.Status == "failed")
 					{
-						return new PaymentResponse
+						if(message.Message == "The reference number should be unique.")
 						{
-							Status = PaymentRequestStates.PayPanding,
-						};
+							return new PaymentResponse
+							{
+								Status = PaymentRequestStates.PayPanding,
+							};
+						}
+						else if (message.Message == "Invalid account number for the selected bank or mobile wallet type.")
+						{
+							using (var clientBl = new ClientBll(paymentSystemBl))
+							using (var documentBl = new DocumentBll(paymentSystemBl))
+							using (var notificationBl = new NotificationBll(paymentSystemBl))
+								clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed, message.Message,
+																	null, null, false, paymentRequest.Parameters, documentBl, notificationBl);
+						}
 						throw new Exception($"Error: {message.Status} {message.Message}");
 					}
 					throw;

@@ -12,7 +12,7 @@ namespace IqSoft.CP.DAL
         public int PartnerId { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
-        public int Gender { get; set; }
+        public int? Gender { get; set; }
         public int RegionId { get; set; }
         public string LanguageId { get; set; }
         public string NickName { get; set; }

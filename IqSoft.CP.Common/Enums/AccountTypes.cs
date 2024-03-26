@@ -16,8 +16,8 @@
         CashDeskBalance = 13,
         UserBalance = 14,
         AffiliateManagerBalance = 15,
-        ClientCompBalance = 16,
-        ClientCoinBalance = 17,
+        ClientCompBalance = 16, //CanBeDecreased
+        ClientCoinBalance = 17, //AlwaysIncreases
         BonusWin = 18,
         TerminalBalance = 19
     }

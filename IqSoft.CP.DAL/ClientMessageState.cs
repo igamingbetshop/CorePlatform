@@ -21,8 +21,8 @@ namespace IqSoft.CP.DAL
         public System.DateTime LastUpdateTime { get; set; }
         public Nullable<int> PopupId { get; set; }
     
-        public virtual Client Client { get; set; }
         public virtual ClientMessage ClientMessage { get; set; }
         public virtual Popup Popup { get; set; }
+        public virtual Client Client { get; set; }
     }
 }

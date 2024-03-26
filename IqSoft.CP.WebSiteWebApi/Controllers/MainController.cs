@@ -626,11 +626,14 @@ namespace IqSoft.CP.WebSiteWebApi.Controllers
             if (resp.ResponseCode != Constants.SuccessResponseCode)
                 return resp;
 
-            var promotions = SlaveCache.GetPromotionsFromCache(partnerId, request)?.Where(x => x.Languages == null ||
+            var deviceType = (int)DeviceTypes.Desktop;
+            if (request.OSType == (int)OSTypes.IPad || request.OSType == (int)OSTypes.IPhone || request.OSType == (int)OSTypes.Android)
+                deviceType = (int)DeviceTypes.Mobile;
+            var promotions = SlaveCache.GetPromotionsFromCache(partnerId, request)?.Where(x => (x.Languages == null ||
                 x.Languages.Names == null || x.Languages.Names.Count == 0 ||
                 (x.Languages.Type == (int)BonusSettingConditionTypes.InSet && x.Languages.Names.Contains(request.LanguageId)) ||
-                (x.Languages.Type == (int)BonusSettingConditionTypes.OutOfSet && !x.Languages.Names.Contains(request.LanguageId))).
-                GroupBy(x => x.ParentId ?? 0).ToList();
+                (x.Languages.Type == (int)BonusSettingConditionTypes.OutOfSet && !x.Languages.Names.Contains(request.LanguageId))) && 
+                (x.DeviceType == null || x.DeviceType == deviceType)).GroupBy(x => x.ParentId ?? 0).ToList();
 
             var parents = promotions?.FirstOrDefault(x => x.Key == 0).ToList();
             var output = new List<ApiPromotionGroup>();
@@ -641,31 +644,34 @@ namespace IqSoft.CP.WebSiteWebApi.Controllers
                 {
                     if (p.Key != 0)
                     {
-                        var parent = parents.First(x => x.Id == p.Key);
-                        var item = output.FirstOrDefault(x => x.Id == parent.Id);
-                        if(item == null)
+                        var parent = parents.FirstOrDefault(x => x.Id == p.Key);
+                        if (parent != null)
                         {
-                            item = new ApiPromotionGroup
+                            var item = output.FirstOrDefault(x => x.Id == parent.Id);
+                            if (item == null)
                             {
-                                Id = parent.Id,
-                                Title = parent.Title,
-                                ImageName = parent.ImageName,
-                                Order = parent.Order,
-                                StyleType = parent.StyleType,
-                                Promotions = new List<ApiPromotion>()
-                            };
-                            output.Add(item);
+                                item = new ApiPromotionGroup
+                                {
+                                    Id = parent.Id,
+                                    Title = parent.Title,
+                                    ImageName = parent.ImageName,
+                                    Order = parent.Order,
+                                    StyleType = parent.StyleType,
+                                    Promotions = new List<ApiPromotion>()
+                                };
+                                output.Add(item);
+                            }
+                            item.Promotions.AddRange(p.Select(x => new ApiPromotion
+                            {
+                                Id = x.Id,
+                                Title = x.Title,
+                                Description = x.Description,
+                                Type = x.Type,
+                                ImageName = x.ImageName,
+                                Order = x.Order,
+                                StyleType = x.StyleType
+                            }).OrderBy(x => x.Order).ToList());
                         }
-                        item.Promotions.AddRange(p.Select(x => new ApiPromotion
-                        {
-                            Id = x.Id,
-                            Title = x.Title,
-                            Description = x.Description,
-                            Type = x.Type,
-                            ImageName = x.ImageName,
-                            Order = x.Order,
-                            StyleType = x.StyleType
-                        }).OrderBy(x => x.Order).ToList());
                     }
                 }
             }

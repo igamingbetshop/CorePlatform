@@ -85,10 +85,9 @@ namespace IqSoft.CP.Common.Helpers
             }
         }
 
-        public static void SaveToCSV<T>(List<T> list, DateTime? fromDate, DateTime? endDate, DateTime currentDate, double timeZone, 
+        public static List<string> SaveToCSV<T>(List<T> list, DateTime? fromDate, DateTime? endDate, DateTime currentDate, double timeZone, 
                                         string filePath, List<UserMenuState> menuColumns)
         {
-            File.Create(filePath).Close();
             var lines = new List<string>
             {
                 "DATE:," + string.Format("{0:dd.MM.yyyy HH:mm:ss}", currentDate.GetGMTDateFromUTC(timeZone)),
@@ -97,7 +96,7 @@ namespace IqSoft.CP.Common.Helpers
                 "TimeZone:, GMT +" + timeZone.ToString()
             };
             AddObjectToLine(list, menuColumns, lines, false,  false);
-            File.WriteAllLines(filePath, lines.ToArray());
+            return lines;
         }
     }
 }

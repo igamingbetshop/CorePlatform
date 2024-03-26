@@ -17,5 +17,6 @@ namespace IqSoft.CP.DataWarehouse
         public long Id { get; set; }
         public string FunctionName { get; set; }
         public long Date { get; set; }
+        public Nullable<int> ClientId { get; set; }
     }
 }

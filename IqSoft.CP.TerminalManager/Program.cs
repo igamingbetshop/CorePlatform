@@ -28,7 +28,7 @@ namespace IqSoft.CP.TerminalManager
             ReadConfigFile();
             CreateHostBuilder(args).Build().Run();
 
-        }
+        }       
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
@@ -54,9 +54,10 @@ namespace IqSoft.CP.TerminalManager
         {
             var configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("AppSetting");
             AppSetting = configuration.Get<AppSetting>() ?? new AppSetting();
-            AppSetting.HDDSerialNumber = CommonHelpers.GetMacAddress()?.ToString() ?? string.Empty;
+            AppSetting.SerialNumber = CommonHelpers.GetMotherBoardID();
+
         }
 
-       
+
     }
 }

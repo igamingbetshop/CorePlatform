@@ -25,8 +25,8 @@ namespace IqSoft.CP.DAL
         public long TranslationId { get; set; }
         public string Info { get; set; }
     
+        public virtual Translation Translation { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Client> Clients { get; set; }
-        public virtual Translation Translation { get; set; }
     }
 }

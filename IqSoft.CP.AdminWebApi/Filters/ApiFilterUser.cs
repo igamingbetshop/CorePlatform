@@ -2,6 +2,18 @@
 {
     public class ApiFilterUser: ApiFilterBase
     {
+        public int? Id { get; set; }
+        public string AgentIdentifier { get; set; }
+        public int? ParentId { get; set; }
+        public int? Level { get; set; }
+        public int? Type { get; set; }
+        public int? State { get; set; }
+        public bool? AllowDoubleCommission { get; set; }
+        public bool? WithClients { get; set; }
+        public bool? IsFromSuspend { get; set; }
+        public string CurrencyId { get; set; }
+        public bool WithDownlines { get; set; }
+
         public int? PartnerId { get; set; }
 
         public ApiFiltersOperation Ids { get; set; }

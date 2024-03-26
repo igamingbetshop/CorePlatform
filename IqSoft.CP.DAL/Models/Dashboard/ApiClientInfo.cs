@@ -1,4 +1,6 @@
-﻿namespace IqSoft.CP.DAL.Models.PlayersDashboard
+﻿using System;
+
+namespace IqSoft.CP.DAL.Models.PlayersDashboard
 {
     public class ApiClientInfo
     {
@@ -17,7 +19,8 @@
         public decimal TotalDepositAmount { get; set; }
         public decimal DepositsCount { get; set; }
         public decimal TotalBetAmount { get; set; }
-        public decimal BetsCount { get; set; }
+        public int TotalBetsCount { get; set; }
+        public int SportBetsCount { get; set; }
         public decimal TotalWinAmount { get; set; }
         public decimal WinsCount { get; set; }
         public decimal GGR { get; set; }
@@ -28,5 +31,6 @@
         public decimal CreditCorrectionsCount { get; set; }
         public decimal RealBalance { get; set; }
         public decimal BonusBalance { get; set; }
+        public decimal ComplimentaryBalance { get; set; }
     }
 }

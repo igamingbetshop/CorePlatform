@@ -7,7 +7,7 @@ namespace IqSoft.CP.DataWarehouse
     {
         public long ObjectId
         {
-            get { return ClientId.Value; }
+            get { return ClientId; }
         }
 
         public int ObjectTypeId
