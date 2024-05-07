@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace IqSoft.CP.AdminWebApi.Filters.Messages
 {
@@ -26,7 +25,7 @@ namespace IqSoft.CP.AdminWebApi.Filters.Messages
 
         public ApiFiltersOperation Statuses { get; set; }
 
-        public List<int> Types { get; set; }
+        public ApiFiltersOperation Types { get; set; }
 
         public int? State { get; set; }
         

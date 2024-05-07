@@ -46,8 +46,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             switch (request.Method)
             {
                 case "GetClients":
-                    return GetfnClientsPagedModel(
-                        JsonConvert.DeserializeObject<ApiFilterfnClient>(request.RequestData), identity, log);
+                    return GetClients(JsonConvert.DeserializeObject<ApiFilterfnClient>(request.RequestData), identity, log);
                 case "GetClientById":
                     {
                         if (int.TryParse(request.RequestObject.ToString(), out int clientId))
@@ -267,11 +266,15 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     return GetClientDocuments(JsonConvert.DeserializeObject<ApiFilterfnDocument>(request.RequestData), identity, log);
                 case "ExportClientDocuments":
                     return ExportClientDocuments(JsonConvert.DeserializeObject<ApiFilterfnDocument>(request.RequestData), identity, log);
+                case "StakeNFT":
+                    return StakeNFT(JsonConvert.DeserializeObject<ApiNFTInfo>(request.RequestData), identity, log);
+                case "PledgeNFT":
+                    return PledgeNFT(JsonConvert.DeserializeObject<ApiNFTInfo>(request.RequestData), identity, log);
             }
             throw BaseBll.CreateException(string.Empty, Constants.Errors.MethodNotFound);
         }
 
-        private static ApiResponseBase GetfnClientsPagedModel(ApiFilterfnClient filter, SessionIdentity identity, ILog log)
+        private static ApiResponseBase GetClients(ApiFilterfnClient filter, SessionIdentity identity, ILog log)
         {
             using (var clientBl = new ClientBll(identity, log))
             {
@@ -975,7 +978,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                         }
                         return new ApiResponseBase { ResponseObject = client.MapTofnClientModel() };
                     }
-                    clientBl.RegisterClientAccounts(existingClient, client.BetShopId, input.BetShopPaymentSystems);
+                    clientBl.RegisterClientAccounts(existingClient.Id, existingClient.CurrencyId, client.BetShopId, input.BetShopPaymentSystems);
 
                     return new ApiResponseBase { ResponseObject = existingClient.MapTofnClientModel() };
                 }
@@ -1450,7 +1453,8 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     notificationBll.SendNotificationMessage(new NotificationModel
                     {
                         PartnerId = client.PartnerId,
-                        ClientId = client.Id,
+                        ObjectId = client.Id,
+                        ObjectTypeId = (int)ObjectTypes.Client,
                         MobileOrEmail =client.Email,
                         ClientInfoType = (int)ClientInfoTypes.SystemExclusionApplied,
                         Parameters = String.Format("todate:{0}", toDate.ToString("yyyy-MM-dd")),
@@ -1717,6 +1721,24 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                         ExportedFilePath = fileAbsPath
                     }
                 };
+            }
+        }
+
+        private static ApiResponseBase StakeNFT(ApiNFTInfo input, SessionIdentity session, ILog log)
+        {
+            using (var clientBl = new ClientBll(session, log))
+            {
+                clientBl.StakeNFT(input);
+                return new ApiResponseBase();
+            }
+        }
+
+        private static ApiResponseBase PledgeNFT(ApiNFTInfo input, SessionIdentity session, ILog log)
+        {
+            using (var clientBl = new ClientBll(session, log))
+            {
+                clientBl.PledgeNFT(input);
+                return new ApiResponseBase();
             }
         }
     }

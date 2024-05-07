@@ -7,6 +7,7 @@ namespace IqSoft.CP.Common.Models
 {
     public class RegExProperty
     {
+        private readonly static string PossibleSymbols = "(){}[]|`¬¦!\"£$%^&*'<>:;#~_-+=,@/\\]";
         public int? PartnerId { get; set; }
         public bool Numeric { get; set; }
         public bool Lowercase { get; set; }
@@ -20,24 +21,24 @@ namespace IqSoft.CP.Common.Models
         public int MaxLength { get; set; }
         public RegExProperty() { }
         public RegExProperty(string regEx)
-        {            
+        {
             if (regEx.Contains("(?=.*[0-9])"))
                 IsDigitRequired = true;
             if (regEx.Contains("(?=.*[a-z])"))
                 IsLowercaseRequired = true;
             if (regEx.Contains("(?=.*[A-Z])"))
                 IsUppercaseRequired = true;
-            if (regEx.Contains("(?=.*[!@#$%^&*./'\":`;()])"))
+            if (regEx.Contains("(?=.*[" + PossibleSymbols + "])"))
                 IsSymbolRequired = true;
             regEx= regEx.Replace("(?=.*[0-9])", string.Empty).Replace("(?=.*[a-z])", string.Empty)
-                        .Replace("(?=.*[A-Z])", string.Empty).Replace("(?=.*[!@#$%^&*./'\":`;()])", string.Empty);
+                        .Replace("(?=.*[A-Z])", string.Empty).Replace("(?=.*["+ PossibleSymbols +"])", string.Empty);
             if (regEx.Contains("a-z") || IsLowercaseRequired)
                 Lowercase = true;
             if (regEx.Contains("A-Z") || IsUppercaseRequired)
                 Uppercase = true;
             if (regEx.Contains("0-9") || IsDigitRequired)
                 Numeric = true;
-            if (!regEx.Contains("(?!.*[!@#$%^&*./'\":`;()])"))
+            if (!regEx.Contains("(?!.*[" + PossibleSymbols + "])"))
                 Symbol = true;
             var lenghtRegEx = new Regex(@"\(\?=\^\.{(.*),(.*)}\$\)");
             MinLength = Convert.ToInt32(lenghtRegEx.Matches(regEx)[0].Groups[1].Value);
@@ -55,6 +56,8 @@ namespace IqSoft.CP.Common.Models
                     expression.Append("A-Z");
                 if (Numeric && !IsDigitRequired)
                     expression.Append("0-9");
+                if (Symbol && !IsSymbolRequired)
+                    expression.Append(PossibleSymbols);
                 expression.Append(']');
             }
             if (IsLowercaseRequired)
@@ -64,9 +67,9 @@ namespace IqSoft.CP.Common.Models
             if (IsDigitRequired)
                 expression.Append("(?=.*[0-9])");
             if (IsSymbolRequired)
-                expression.Append("(?=.*[!@#$%^&*./'\":`;()])");
+                expression.Append("(?=.*[" + PossibleSymbols + "])");
             else if (!Symbol)
-                expression.Append("(?!.*[!@#$%^&*./'\":`;()])");
+                expression.Append("(?!.*[" + PossibleSymbols + "])");
 
             return expression.ToString();
         }
@@ -76,7 +79,6 @@ namespace IqSoft.CP.Common.Models
             var lowercases = "abcdefghijkmnopqrstuvwxyz";
             var uppercases = "ABCDEFGHJKLMNOPQRSTUVWXYZ";
             var digits = "0123456789";
-            var symbols = "!@#$%^&*()";
             var possibleCharacters = string.Empty;
             if (pattern.Contains("a-z"))
                 possibleCharacters = lowercases;
@@ -84,8 +86,8 @@ namespace IqSoft.CP.Common.Models
                 possibleCharacters += uppercases;
             if (pattern.Contains("0-9"))
                 possibleCharacters += digits;
-            if (!pattern.Contains("(?!.*[!@#$%^&*./'\":`;()])"))
-                possibleCharacters += symbols;
+            if (!pattern.Contains("(?!.*[" + PossibleSymbols + "])"))
+                possibleCharacters += PossibleSymbols;
             var commaInd = pattern.IndexOf(",");
             var minLength = Convert.ToInt32(pattern.Substring(6, commaInd - 6));
             var maxLenght = Convert.ToInt32(pattern.Substring(commaInd + 1, pattern.IndexOf("}$)") - commaInd - 1));
@@ -105,6 +107,6 @@ namespace IqSoft.CP.Common.Models
                           .ToArray());
             }
             return result;
-        }       
+        }
     }
 }

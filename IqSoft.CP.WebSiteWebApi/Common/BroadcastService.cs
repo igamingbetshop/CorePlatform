@@ -53,12 +53,12 @@ namespace IqSoft.CP.WebSiteWebApi.Common
 
 		public static void BroadcastPopup(ApiPopup popup)
 		{
-
+			var deviceType = popup.DeviceType.HasValue ? $"_{popup.DeviceType}" : string.Empty;
 			if (popup.ClientIds != null && popup.ClientIds.Any())
 				foreach (int clientId in popup.ClientIds)
-					BaseHub.CurrentContext.Clients.Group($"Client_{clientId}").SendAsync("onPopup", popup);
+					BaseHub.CurrentContext.Clients.Group($"Client_{clientId}{deviceType}").SendAsync("onPopup", popup);			
 			else
-				BaseHub.CurrentContext.Clients.Group($"Partner_{popup.PartnerId}").SendAsync("onPopup", popup);
+				BaseHub.CurrentContext.Clients.Group($"Partner_{popup.PartnerId}{deviceType}").SendAsync("onPopup", popup);
 		}
     }
 }

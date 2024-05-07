@@ -23,6 +23,8 @@ namespace IqSoft.CP.DataManager
         private readonly Timer _partnerMigrationTimer;
         private readonly Timer _affiliatePlatformMigrationTimer;
         private readonly Timer _affiliateReferralMigrationTimer;
+        private readonly Timer _agentCommissionMigrationTimer;
+        private readonly Timer _accountBalancesMigrationTimer;
 
         private readonly Timer _dashboardInfoTimer;
         private readonly Timer _providerBetsTimer;
@@ -50,6 +52,8 @@ namespace IqSoft.CP.DataManager
             _partnerMigrationTimer = new Timer(MigratePartners, null, Timeout.Infinite, Timeout.Infinite);
             _affiliatePlatformMigrationTimer = new Timer(MigrateAffiliatePlatform, null, Timeout.Infinite, Timeout.Infinite);
             _affiliateReferralMigrationTimer = new Timer(MigrateAffiliateReferral, null, Timeout.Infinite, Timeout.Infinite);
+            _agentCommissionMigrationTimer = new Timer(MigrateAgentCommission, null, Timeout.Infinite, Timeout.Infinite);
+            _accountBalancesMigrationTimer = new Timer(MigrateAccountBalances, null, Timeout.Infinite, Timeout.Infinite);
 
             _dashboardInfoTimer = new Timer(CalculateDashboardInfo, null, Timeout.Infinite, Timeout.Infinite);
             _providerBetsTimer = new Timer(CalculateProviderBets, null, Timeout.Infinite, Timeout.Infinite);
@@ -75,6 +79,8 @@ namespace IqSoft.CP.DataManager
             _partnerMigrationTimer.Change(60000, 60000);
             _affiliatePlatformMigrationTimer.Change(60000, 60000);
             _affiliateReferralMigrationTimer.Change(60000, 60000);
+            _agentCommissionMigrationTimer.Change(60000, 60000);
+            _accountBalancesMigrationTimer.Change(60000, 60000);
 
             _dashboardInfoTimer.Change(60000, 60000);
             _providerBetsTimer.Change(60000, 60000);
@@ -100,6 +106,8 @@ namespace IqSoft.CP.DataManager
             _partnerMigrationTimer.Change(Timeout.Infinite, Timeout.Infinite);
             _affiliatePlatformMigrationTimer.Change(Timeout.Infinite, Timeout.Infinite);
             _affiliateReferralMigrationTimer.Change(Timeout.Infinite, Timeout.Infinite);
+            _agentCommissionMigrationTimer.Change(Timeout.Infinite, Timeout.Infinite);
+            _accountBalancesMigrationTimer.Change(Timeout.Infinite, Timeout.Infinite);
 
             _dashboardInfoTimer.Change(Timeout.Infinite, Timeout.Infinite);
             _providerBetsTimer.Change(Timeout.Infinite, Timeout.Infinite);
@@ -209,6 +217,22 @@ namespace IqSoft.CP.DataManager
             DataCollector.MigrateAffiliateReferral();
             _affiliateReferralMigrationTimer.Change(60000, 60000);
         }
+        public void MigrateAgentCommission(Object sender)
+        {
+            _agentCommissionMigrationTimer.Change(Timeout.Infinite, Timeout.Infinite);
+            DataCollector.MigrateAgentCommission();
+            _agentCommissionMigrationTimer.Change(60000, 60000);
+        }
+        public void MigrateAccountBalances(Object sender)
+        {
+            _accountBalancesMigrationTimer.Change(Timeout.Infinite, Timeout.Infinite);
+            var result = DataCollector.MigrateAccountBalances();
+            if(result > 0)
+                _accountBalancesMigrationTimer.Change(1000, 1000);
+            else
+                _accountBalancesMigrationTimer.Change(60000, 60000);
+        }
+
 
         public void CalculateDashboardInfo(Object sender)
         {
@@ -238,8 +262,11 @@ namespace IqSoft.CP.DataManager
         public void ExecuteInfoFunctions(Object sender)
         {
             _executeInfoTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            DataCombiner.ExecuteInfoFunctions(Program.DbLogger);
-            _executeInfoTimer.Change(60000, 60000);
+            bool exists = DataCombiner.ExecuteInfoFunctions(Program.DbLogger);
+            if(exists)
+                _executeInfoTimer.Change(100, 100);
+            else
+                _executeInfoTimer.Change(60000, 60000);
         }
     }
 }

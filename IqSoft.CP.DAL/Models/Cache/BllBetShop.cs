@@ -18,6 +18,7 @@ namespace IqSoft.CP.DAL.Models.Cache
         public int RegionId { get; set; }
         public int State { get; set; }
         public decimal DefaultLimit { get; set; }
+        public decimal CurrentLimit { get; set; }
         public decimal? BonusPercent { get; set; }
         public int? UserId { get; set; }
         public int? MaxCopyCount { get; set; }

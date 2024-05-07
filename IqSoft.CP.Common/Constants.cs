@@ -16,6 +16,7 @@ namespace IqSoft.CP.Common
         public const int SuccessResponseCode = 0;
         public const string CardReaderClientEmail = "CR@CR.com";
         public const string ExternalClientPrefix = "external_";
+        public const string FreeSpinPrefix = "FreeSpin_";
 
 		public const int OwnVersionSecurityQuestionId = 1;
         public const int PlatformProductId = 1;
@@ -78,6 +79,7 @@ namespace IqSoft.CP.Common
             public const string QuickRegister = "QuickRegister";
             public const string ProfileDetails = "ProfileDetails";
             public const string Documentation = "Documentation";
+            public const string Root = "root";
 
             public const string Fonts = "Fonts";
         }
@@ -475,8 +477,7 @@ namespace IqSoft.CP.Common
             public const string Capital = "Capital";
             public const string Sofort = "Sofort";
             public const string Praxis = "Praxis";
-            public const string PraxisCard = "PraxisCard";
-            public const string PraxisWallet = "PraxisWallet";
+            public const string PraxisFiat = "PraxisFiat";
             public const string PaymentAsia = "PaymentAsia";
             public const string PaymentIQ = "PaymentIQ";
             public const string PaymentIQLuxon = "PaymentIQLuxon";
@@ -579,6 +580,7 @@ namespace IqSoft.CP.Common
             public const string CorefyMefete = "CorefyMefete";
             public const string CorefyParazula = "CorefyParazula";
             public const string CorefyPapara = "CorefyPapara";
+            public const string CorefyIPague = "CorefyIPague";
             public const string CorefyMaldoCrypto = "CorefyMaldoCrypto";
             public const string CorefyMaldoCryptoBTC = "CorefyMaldoCryptoBTC";
             public const string CorefyMaldoCryptoETH = "CorefyMaldoCryptoETH";
@@ -735,6 +737,9 @@ namespace IqSoft.CP.Common
             public const string Jmitsolutions = "Jmitsolutions";
 
             public const string Yaspa = "Yaspa";
+
+            public const string QuikiPay = "QuikiPay";
+            public const string QuikiPayCrypto = "QuikiPayCrypto";
         }
 
         public static List<string> VoucherPaymentSystems { get; private set; } = new List<string>
@@ -820,6 +825,8 @@ namespace IqSoft.CP.Common
             public const string TimelessTech = "TimelessTech"; 
             public const string BCWGames = "BCWGames"; 
             public const string Fiverscool = "Fiverscool"; 
+            public const string RiseUp = "RiseUp"; 
+            public const string LuckyStreak = "LuckyStreak"; 
 		}
         public static class CashDeskStates
         {
@@ -1271,6 +1278,8 @@ namespace IqSoft.CP.Common
 			public const string DeleteCharacter = "DeleteCharacter";
             public const string ViewUserSetting = "ViewUserSetting";
             public const string EditUserSetting = "EditUserSetting";
+
+            public const string ViewReportByAgents = "ViewReportByAgents";
         }
 
         public static class Jobs
@@ -1296,7 +1305,7 @@ namespace IqSoft.CP.Common
             public const int SendActiveMerchantRequests = 19;
             public const int ApproveIqWalletConfirmedRequests = 20;
             public const int SendAffiliateReport = 21;
-            public const int CalculateAgentsProfit = 22;
+            public const int CalculateAgentsGGRProfit = 22;
             public const int CalculateAgentsTurnoverProfit = 23;
             public const int TriggerCRM = 24;
             public const int CheckClientBlockedSessions = 25;
@@ -1329,6 +1338,7 @@ namespace IqSoft.CP.Common
             public const int RestrictUnverifiedClients = 52;
             public const int GiveAffiliateCommission = 53;
             public const int ExpireClientVerificationStatus = 54;
+            public const int CheckDuplicateClients = 55;
 
         }
 
@@ -1593,6 +1603,7 @@ namespace IqSoft.CP.Common
 
             public const string SmarticoUrl = "SmarticoUrl";
 			public const string SmarticoToken = "SmarticoToken";
+			public const string SmarticoBrandId= "SmarticoBrandId";
 
 			#endregion
 
@@ -1846,6 +1857,17 @@ namespace IqSoft.CP.Common
 			public const string FiverscoolAgentToken = "FiverscoolAgentToken";
 			public const string FiverscoolAgentSecret = "FiverscoolAgentSecret";
 
+			public const string RiseUpUrl = "RiseUpUrl";
+			public const string RiseUpOperatorId = "RiseUpOperatorId";
+			public const string RiseUpApiKey = "RiseUpApiKey";
+			public const string RiseUp = "RiseUp";
+
+			public const string LuckyStreakOperatorId = "LuckyStreakOperatorId";
+			public const string LuckyStreakOperatorName = "LuckyStreakOperatorName";
+			public const string LuckyStreakOperatorClientName = "LuckyStreakOperatorClientName";
+			public const string LuckyStreakOperatorClientSecret = "LuckyStreakOperatorClientSecret";
+			public const string LuckyStreakTokenUrl = "LuckyStreakTokenUrl";
+
 			#endregion
 
 			#region PaymentSystems
@@ -1927,6 +1949,7 @@ namespace IqSoft.CP.Common
             public const string Pay4FunApiUrl = "Pay4FunApiUrl";              
             public const string CapitalApiUrl = "CapitalApiUrl";
             public const string PraxisApiUrl = "PraxisApiUrl";
+            public const string PraxisApplicationKey = "PraxisApplicationKey";
             public const string PaymentAsiaApiUrl = "PaymentAsiaApiUrl";
             public const string PaymentAsiaPayoutApiUrl = "PaymentAsiaPayoutApiUrl";
             public const string PaymentIQEnvironment = "PaymentIQEnvironment";
@@ -1994,6 +2017,7 @@ namespace IqSoft.CP.Common
             public const string CoinsPaidTerminalUrl = "CoinsPaidTerminalUrl";
             public const string CoinsPaidUrl = "CoinsPaidUrl";
             public const string CoinsPaidId = "CoinsPaidId";
+            public const string CoinsPaidConvertCurrency = "CoinsPaidConvertCurrency";
 
             public const string BRPayUrl = "BRPayUrl";
             public const string BRPayPaymentSystem = "BRPayPaymentSystem";
@@ -2042,12 +2066,16 @@ namespace IqSoft.CP.Common
 
 			public const string YaspaUrl = "YaspaUrl";
 			public const string YaspaPublicKey = "YaspaPublicKey";
+			public const string YaspaPrivateKey = "YaspaPrivateKey";
+
+			public const string QuikiPayUrl = "QuikiPayUrl";
 
 			#endregion
 
 			#region Config
 
 			public const string RestrictEmailChanges = "RestrictEmailChanges";
+			public const string RestrictMobileNumberChanges = "RestrictMobileNumberChanges";
             public const string RestrictNameChanges = "RestrictNameChanges";
             public const string RestrictBirthdayChanges = "RestrictBirthdayChanges";
             public const string VerificationCodeForWithdraw = "VerificationCodeForWithdraw";
@@ -2075,6 +2103,11 @@ namespace IqSoft.CP.Common
             public const string ExportClientsInfoList = "ExportClientsInfoList";
             public const string GetPaymentsInfo = "GetPaymentsInfo";
             public const string GetClientsInfo = "GetClientsInfo";
+            public const string GetTopRegistrationCountries = "GetTopRegistrationCountries";
+            public const string GetTopVisitorCountries = "GetTopVisitorCountries";
+            public const string GetTopTurnoverClients = "GetTopTurnoverClients";
+            public const string GetTopProfitableClients = "GetTopProfitableClients";
+            public const string GetTopDamagingClients = "GetTopDamagingClients";
         }
 
 
@@ -2114,6 +2147,7 @@ namespace IqSoft.CP.Common
             public const string AffiliateCommissionGranted = "AffiliateCommissionGranted";
             public const string LimitConfirmed = "LimitConfirmed";
             public const string PinCode = "PinCode";
+            public const string NFTInfo = "NFTInfo";
         }
         public static class UserConfigurations
         {
@@ -2247,6 +2281,14 @@ namespace IqSoft.CP.Common
             (int)TriggerTypes.SignupCode,
             (int)TriggerTypes.NthDeposit,
             (int)TriggerTypes.AnyDeposit
+        };
+
+        public static List<int> BetTriggers = new List<int>
+        {
+            (int)TriggerTypes.BetPlacement,
+            (int)TriggerTypes.BetSettlement,
+            (int)TriggerTypes.BetPlacementAndSettlement,
+            (int)TriggerTypes.CrossProductBetPlacement
         };
 
         public static List<string> FormPayments = new List<string>

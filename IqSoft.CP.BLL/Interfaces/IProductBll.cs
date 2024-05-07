@@ -8,7 +8,7 @@ namespace IqSoft.CP.BLL.Interfaces
 {
     public interface IProductBll : IBaseBll
     {
-        Product SaveProduct(fnProduct product, string comment, FtpModel model, out List<int> partners);
+        Product SaveProduct(fnProduct product, string comment, FtpModel model);
 
         fnProduct GetfnProductById(int id, bool checkPermission, string languageId = null);
 

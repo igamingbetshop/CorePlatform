@@ -27,6 +27,7 @@ using IqSoft.CP.Integration.Platforms.Helpers;
 using System.Collections.Generic;
 using System.ServiceModel;
 using IqSoft.CP.Common.Models.CacheModels;
+using IqSoft.CP.AdminWebApi.Filters.Clients;
 
 namespace IqSoft.CP.AdminWebApi.ControllerClasses
 {
@@ -171,10 +172,6 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     return GetReportByPartners(JsonConvert.DeserializeObject<ApiFilterReportByPartner>(request.RequestData), identity, log);
                 case "ExportReportByPartners":
                     return ExportReportByPartners(JsonConvert.DeserializeObject<ApiFilterReportByPartner>(request.RequestData), identity, log);
-                case "GetReportByAgentTransfers":
-                    return GetReportByAgentTransfers(JsonConvert.DeserializeObject<ApiFilterReportByAgentTranfer>(request.RequestData), identity, log);
-                case "ExportReportByAgentTransfers":
-                    return ExportReportByAgentTransfers(JsonConvert.DeserializeObject<ApiFilterReportByAgentTranfer>(request.RequestData), identity, log);
                 case "GetReportByUserTransactions":
                     return GetReportByUserTransactions(JsonConvert.DeserializeObject<ApiFilterReportByUserTransaction>(request.RequestData), identity, log);
                 case "ExportReportByUserTransactions":
@@ -206,6 +203,8 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 case "GetReportByClientsGamesPaging":
                     return
                         GetReportByClientsGamesPaging(JsonConvert.DeserializeObject<ApiFilterClientGame>(request.RequestData), identity, log);
+                case "GetDuplicateClients":
+                    return GetDuplicateClients(JsonConvert.DeserializeObject<ApiFilterfnDuplicateClient>(request.RequestData), identity, log);
             }
             throw BaseBll.CreateException(string.Empty, Errors.MethodNotFound);
         }
@@ -497,41 +496,6 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             }
         }
 
-        private static ApiResponseBase GetReportByAgentTransfers(ApiFilterReportByAgentTranfer filter, SessionIdentity identity, ILog log)
-        {
-            using (var reportBl = new ReportBll(identity, log))
-            {
-                var result = reportBl.GetReportByAgentTransfers(filter.MapToFilterReportByAgentTranfer());
-
-                return new ApiResponseBase
-                {
-                    ResponseObject = new
-                    {
-                        result.Count,
-                        Entities = result.Entities.Select(x => x.MapToFilterReportByAgentTranfer()).ToList()
-                    }
-                };
-            }
-        }
-
-        private static ApiResponseBase ExportReportByAgentTransfers(ApiFilterReportByAgentTranfer filter, SessionIdentity identity, ILog log)
-        {
-            using (var reportBl = new ReportBll(identity, log))
-            {
-                var result = reportBl.ExportReportByAgentTransfers(filter.MapToFilterReportByAgentTranfer()).Entities.ToList();
-                var fileName = "ExportReportByAgentTranfers.csv";
-                var fileAbsPath = reportBl.ExportToCSV(fileName, result, filter.FromDate, filter.ToDate, identity.TimeZone, filter.AdminMenuId);
-
-                return new ApiResponseBase
-                {
-                    ResponseObject = new
-                    {
-                        ExportedFilePath = fileAbsPath
-                    }
-                };
-            }
-        }
-
         private static ApiResponseBase GetReportByUserTransactions(ApiFilterReportByUserTransaction filter, SessionIdentity identity, ILog log)
         {
             using (var reportBl = new ReportBll(identity, log))
@@ -693,6 +657,10 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                             ExternalId = document.ExternalTransactionId
                         };
                         break;
+                    case GameProviders.BGGames:
+						var bgGamesResult = Integration.Products.Helpers.BGGamesHelpers.BetHistory(partnerId, document.ClientId.Value, document.ExternalTransactionId);
+                        response.ResponseObject = bgGamesResult;
+						break;
                     default:
                         break;
                 }
@@ -1262,6 +1230,30 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 return new ApiResponseBase
                 {
                     ResponseObject = games
+                };
+            }
+        }
+
+        private static ApiResponseBase GetDuplicateClients(ApiFilterfnDuplicateClient input, SessionIdentity identity, ILog log)
+        {
+            using (var reportBl = new ReportBll(identity, log, 120))
+            {
+                var pageModel = reportBl.GetDuplicateClients(input.MapToFilterDuplicateClient());
+
+                return new ApiResponseBase
+                {
+                    ResponseObject = new
+                    {
+                        pageModel.Count,
+                        Entities = pageModel.Entities.Select(x=> new
+                        {
+                            x.PartnerId,
+                            x.ClientId,
+                            x.MatchedClientId,
+                            x.MatchedData,
+                            MatchDate = x.MatchDate.GetGMTDateFromUTC(identity.TimeZone)
+                        }).ToList()
+                    }
                 };
             }
         }

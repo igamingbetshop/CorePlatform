@@ -40,7 +40,9 @@ using Client = IqSoft.CP.DAL.Client;
 using Document = IqSoft.CP.DAL.Document;
 using User = IqSoft.CP.DAL.User;
 using AffiliateReferral = IqSoft.CP.DAL.AffiliateReferral;
+using AgentCommission = IqSoft.CP.DAL.AgentCommission;
 using IqSoft.CP.Common.Models.CacheModels;
+using IqSoft.CP.DAL.Models.Agents;
 
 namespace IqSoft.CP.AgentWebApi.Helpers
 {
@@ -205,6 +207,7 @@ namespace IqSoft.CP.AgentWebApi.Helpers
                 ClientId = agentCommission.ClientId
             };
         }
+
         public static ApiUserCorrections MapToApiUserCorrections(this PagedModel<fnUserCorrection> input, double timeZone)
         {
             return new ApiUserCorrections
@@ -235,6 +238,66 @@ namespace IqSoft.CP.AgentWebApi.Helpers
                 ClientFirstName = input.ClientFirstName,
                 ClientLastName = input.ClientLastName,
                 HasNote = input.HasNote ?? false
+            };
+        }
+
+        public static FilterfnUser ToFilterfnUser(this ApiFilterfnAgent filter)
+        {
+            if (!string.IsNullOrEmpty(filter.FieldNameToOrderBy))
+            {
+                var orderBy = filter.FieldNameToOrderBy;
+                switch (orderBy)
+                {
+                    case "UserType":
+                        filter.FieldNameToOrderBy = "Type";
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            return new FilterfnUser
+            {
+                FromDate = filter.FromDate,
+                ToDate = filter.ToDate,
+                PartnerId = filter.PartnerId,
+                ParentId = filter.ParentId,
+                Ids = filter.Ids == null ? new FiltersOperation() : filter.Ids.MapToFiltersOperation(),
+                FirstNames = filter.FirstNames == null ? new FiltersOperation() : filter.FirstNames.MapToFiltersOperation(),
+                LastNames = filter.LastNames == null ? new FiltersOperation() : filter.LastNames.MapToFiltersOperation(),
+                UserNames = filter.UserNames == null ? new FiltersOperation() : filter.UserNames.MapToFiltersOperation(),
+                Emails = filter.Emails == null ? new FiltersOperation() : filter.Emails.MapToFiltersOperation(),
+                Genders = filter.Genders == null ? new FiltersOperation() : filter.Genders.MapToFiltersOperation(),
+                Currencies = filter.Currencies == null ? new FiltersOperation() : filter.Currencies.MapToFiltersOperation(),
+                LanguageIds = filter.LanguageIds == null ? new FiltersOperation() : filter.LanguageIds.MapToFiltersOperation(),
+                SkipCount = filter.SkipCount,
+                TakeCount = filter.TakeCount,
+                OrderBy = filter.OrderBy,
+                FieldNameToOrderBy = filter.FieldNameToOrderBy
+            };
+        }
+
+        public static ApiAgentReportItem ToApiAgentReportItem(this AgentReportItem input, double timeZone)
+        {
+            return new ApiAgentReportItem
+            {
+                AgentId = input.AgentId,
+                AgentFirstName = input.AgentFirstName,
+                AgentLastName = input.AgentLastName,
+                AgentUserName = input.AgentUserName,
+                TotalDepositCount = input.TotalDepositCount,
+                TotalWithdrawCount = input.TotalWithdrawCount,
+                TotalDepositAmount = input.TotalDepositAmount,
+                TotalWithdrawAmount = input.TotalWithdrawAmount,
+                TotalBetsCount = input.TotalBetsCount,
+                TotalUnsettledBetsCount = input.TotalUnsettledBetsCount,
+                TotalDeletedBetsCount = input.TotalDeletedBetsCount,
+                TotalBetAmount = input.TotalBetAmount,
+                TotalWinAmount = input.TotalWinAmount,
+                TotalProfit = input.TotalProfit,
+                TotalProfitPercent = input.TotalProfitPercent,
+                TotalGGRCommission = input.TotalGGRCommission,
+                TotalTurnoverCommission = input.TotalTurnoverCommission
             };
         }
 
@@ -303,13 +366,14 @@ namespace IqSoft.CP.AgentWebApi.Helpers
                 MobileNumber = string.IsNullOrWhiteSpace(input.MobileNumber) ? string.Empty : (input.MobileNumber.StartsWith("+") ? input.MobileNumber : "+" + input.MobileNumber),
                 PhoneNumber = string.Format("{0}/{1}", input.Phone, input.Fax),
                 LanguageId = input.LanguageId,
-                SendMail = input.SendMail,
-                SendSms = input.SendSms,
+                SendMail = input.SendMail ?? false,
+                SendSms = input.SendSms ?? false,
                 Gender = input.Gender ?? (int)Gender.Male,
-                RegionId = input.RegionId,
-                BirthDate = input.BirthDate,
+                CountryId = input.Country,
+                BirthDate = (input.BirthYear.HasValue && input.BirthMonth.HasValue && input.BirthDay.HasValue) ?
+                    new DateTime(input.BirthYear.Value, input.BirthMonth.Value, input.BirthDay.Value) : Constants.DefaultDateTime,
                 State = (input.Closed.HasValue && input.Closed.Value) ? (int)ClientStates.FullBlocked : (int)ClientStates.Active,
-                CategoryId = agentCategories.Contains(input.Group) ? input.Group : (int)ClientCategories.A
+                CategoryId = agentCategories.Contains(input.Group) ? input.Group : (int)ClientCategories.New,                
             };
         }
 
@@ -711,7 +775,8 @@ namespace IqSoft.CP.AgentWebApi.Helpers
                 TypeId = account.TypeId,
                 Balance = account.Balance,
                 CurrencyId = account.CurrencyId,
-                AccountTypeName = account.AccountTypeName
+                AccountTypeName =  account.PaymentSystemId != null ? account.PaymentSystemName + " Wallet - " + account.BetShopName :
+                    account.BetShopId != null ? "Shop Wallet - " + account.BetShopName : account.AccountTypeName,
             };
         }
 
@@ -1059,27 +1124,7 @@ namespace IqSoft.CP.AgentWebApi.Helpers
                 BonusId = fnInternetBet.BonusId
             };
         }
-        public static FilterfnAgent MaptToFilterfnAgent(this ApiFilterfnAgent filterAgent)
-        {
-            return new FilterfnAgent
-            {
-                CreatedFrom = filterAgent.CreatedFrom,
-                CreatedBefore = filterAgent.CreatedBefore,
-                Ids = filterAgent.Ids == null ? new FiltersOperation() : filterAgent.Ids.MapToFiltersOperation(),
-                FirstNames = filterAgent.FirstNames == null ? new FiltersOperation() : filterAgent.FirstNames.MapToFiltersOperation(),
-                LastNames = filterAgent.LastNames == null ? new FiltersOperation() : filterAgent.LastNames.MapToFiltersOperation(),
-                UserNames = filterAgent.UserNames == null ? new FiltersOperation() : filterAgent.UserNames.MapToFiltersOperation(),
-                Emails = filterAgent.Emails == null ? new FiltersOperation() : filterAgent.Emails.MapToFiltersOperation(),
-                Genders = filterAgent.Genders == null ? new FiltersOperation() : filterAgent.Genders.MapToFiltersOperation(),
-                UserStates = filterAgent.UserStates == null ? new FiltersOperation() : filterAgent.UserStates.MapToFiltersOperation(),
-                ClientCounts = filterAgent.ClientCounts == null ? new FiltersOperation() : filterAgent.ClientCounts.MapToFiltersOperation(),
-                Balances = filterAgent.Balances == null ? new FiltersOperation() : filterAgent.Balances.MapToFiltersOperation(),
-                SkipCount = filterAgent.SkipCount,
-                TakeCount = filterAgent.TakeCount,
-                OrderBy = filterAgent.OrderBy,
-                FieldNameToOrderBy = filterAgent.FieldNameToOrderBy
-            };
-        }
+
         public static FilterfnAgentTransaction MapToFilterfnAgentTransaction(this ApiFilterfnAgentTransaction apiFilterfnAgentTransaction)
         {
             var currentDate = DateTime.UtcNow;
@@ -1141,26 +1186,26 @@ namespace IqSoft.CP.AgentWebApi.Helpers
             };
         }
 
-        public static ApifnAgentTransaction MapToApifnAgentTransaction(this fnAgentTransaction transactions, double timeZone)
+        public static ApifnAgentTransaction MapToApifnAgentTransaction(this fnAgentTransaction input, double timeZone)
         {
             return new ApifnAgentTransaction
             {
-                Id = transactions.Id,
-                ExternalTransactionId = transactions.ExternalTransactionId,
-                Amount = transactions.Amount,
-                CurrencyId = transactions.CurrencyId,
-                State = transactions.State,
-                OperationTypeId = transactions.OperationTypeId,
-                ProductId = transactions.ProductId,
-                ProductName = transactions.ProductName,
-                TransactionType = transactions.TransactionType.ToString(),
-                FromUserId = transactions.FromUserId,
-                UserId = transactions.UserId,
-                UserName = transactions.UserName,
-                FirstName = transactions.FirstName,
-                LastName = transactions.LastName,
-                CreationTime = transactions.CreationTime.GetGMTDateFromUTC(timeZone),
-                LastUpdateTime = transactions.LastUpdateTime.GetGMTDateFromUTC(timeZone)
+                Id = input.Id,
+                ExternalTransactionId = input.ExternalTransactionId,
+                Amount = input.Amount,
+                CurrencyId = input.CurrencyId,
+                State = input.State,
+                OperationTypeId = input.OperationTypeId,
+                ProductId = input.ProductId,
+                ProductName = input.ProductName,
+                TransactionType = input.TransactionType.ToString(),
+                FromUserId = input.FromUserId,
+                UserId = input.UserId,
+                UserName = input.UserName,
+                FirstName = input.FirstName,
+                LastName = input.LastName,
+                CreationTime = input.CreationTime.GetGMTDateFromUTC(timeZone),
+                LastUpdateTime = input.LastUpdateTime.GetGMTDateFromUTC(timeZone)
             };
         }
 
@@ -1378,7 +1423,9 @@ namespace IqSoft.CP.AgentWebApi.Helpers
                 UserFirstNames = filterTicket.UserFirstNames == null ? new FiltersOperation() : filterTicket.UserFirstNames.MapToFiltersOperation(),
                 UserLastNames = filterTicket.UserLastNames == null ? new FiltersOperation() : filterTicket.UserLastNames.MapToFiltersOperation(),
                 Statuses = filterTicket.Statuses == null ? new FiltersOperation() : filterTicket.Statuses.MapToFiltersOperation(),
-                Types = filterTicket.Types,
+                Types = filterTicket.Types == null ? new FiltersOperation() : filterTicket.Types.MapToFiltersOperation(),
+                CreationTimes = filterTicket.CreationTimes == null ? new FiltersOperation() : filterTicket.CreationTimes.MapToFiltersOperation(),
+                LastMessageTimes = filterTicket.LastMessageTimes == null ? new FiltersOperation() : filterTicket.LastMessageTimes.MapToFiltersOperation(),
                 State = filterTicket.State,
                 UnreadsOnly = filterTicket.UnreadsOnly,
                 CreatedBefore = filterTicket.CreatedBefore,

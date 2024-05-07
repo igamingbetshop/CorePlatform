@@ -729,10 +729,41 @@ namespace IqSoft.CP.AdminWebApi.Helpers
 				IsForDesktop = true,
                 IsForMobile = true,
                 HasDemo = input.fun_mode == 1,
+                BetValues = input.betValue,
                 RTP = input.details?.rtp,
                 Volatility = input.details?.volatility,
                 Lines = input.details?.tags != null ? string.Join(",", input.details?.tags) : null,
                 FreeSpinSupport = (input.campaigns.HasValue && input.campaigns.Value == 1)
+			};
+        }
+
+        public static fnProduct ToFnProduct(this Integration.Products.Models.RiseUp.Product input, int gameProviderId,
+                                         List<KeyValuePair<int, int?>> dbCategories, Dictionary<string, int> categoryList, List<GameProvider> providers)
+        {
+            var category = categoryList.FirstOrDefault(x => x.Key == input.type);
+            var parent = dbCategories.FirstOrDefault(y => y.Value == category.Value);
+            var subProvider = providers.FirstOrDefault(p => p.Name.ToLower().Replace("gaming", string.Empty).Replace("games", string.Empty)
+                                                                            .Replace("game", string.Empty).Replace("direct", string.Empty) == 
+                                                    input.provider.ToLower().Replace(" ", "").Replace("gaming", string.Empty).Replace("games", string.Empty)
+													                        .Replace("slots", string.Empty).Replace("casinotechnology", "technology")
+                                                                            .Replace("pragmaticplaylive", "pragmaticlive").Replace("'", string.Empty));      
+            var nickName = input.name;
+            if (nickName.Length > 50)
+                nickName = nickName.Substring(0, 48);
+			return new fnProduct
+            {
+                GameProviderId = gameProviderId,
+                ParentId = parent.Equals(new KeyValuePair<int, int?>()) ? (int?)null : parent.Key,
+                NickName = nickName,
+                SubproviderId = subProvider?.Id,
+                Name = input.name,
+                ExternalId = $"{input.id},{input.provider.Replace(" ", "/")}",
+                State = (int)ProductStates.Active,
+                WebImageUrl = input.webImageUrl,
+				MobileImageUrl = input.mobileImgUrl,
+				IsForDesktop = true,
+                IsForMobile = true,
+                HasDemo = input.type == "Premium Slots"
 			};
         }
 
@@ -760,6 +791,34 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 IsForDesktop = true,
                 IsForMobile = true,
                 HasDemo = input.HasDemoMode
+            };
+        }
+
+
+        public static fnProduct ToFnProduct(this Integration.Products.Models.LuckyStreak.Product input, int gameProviderId,
+                                         List<KeyValuePair<int, int?>> dbCategories, Dictionary<string, int> categoryList, List<GameProvider> providers)
+        {
+            var category = categoryList.FirstOrDefault(x => x.Key == input.type);
+            var parent = dbCategories.FirstOrDefault(y => y.Value == category.Value);
+            
+            var subProvider =  providers.FirstOrDefault(p => p.Name == input.provider);
+            var nickName = input.name;
+            if (nickName.Length > 50)
+                nickName = nickName.Substring(0, 48);
+			return new fnProduct
+            {
+                GameProviderId = gameProviderId,
+                ParentId = parent.Equals(new KeyValuePair<int, int?>()) ? (int?)null : parent.Key,
+                NickName = nickName,
+                SubproviderId = subProvider?.Id,
+                Name = input.name,
+                ExternalId = input.externalId,
+                State = (int)ProductStates.Active,
+                WebImageUrl = input.imageUrl,
+                MobileImageUrl = input.imageUrl,
+                IsForDesktop = true,
+                IsForMobile = true,
+                HasDemo = input.demoUrl != null
             };
         }
     }

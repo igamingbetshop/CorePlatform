@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace IqSoft.CP.ProductGateway.Models.AleaPartners
 {
@@ -36,5 +37,21 @@ namespace IqSoft.CP.ProductGateway.Models.AleaPartners
 
         [JsonProperty(PropertyName = "ticketDetails")]
         public string TicketDetails { get; set; }
+    }
+
+    public class TicketItem
+    {
+        [JsonProperty(PropertyName = "ID")]
+        public string Id { get; set; }
+        public string Event { get; set; }
+        public string Type { get; set; }
+
+        [JsonProperty(PropertyName = "GameID")]
+        public string GameId { get; set; }
+        public string Value { get; set; }
+        public string BetValue { get; set; }
+        public decimal FutureCoefficient { get; set; }
+        public decimal MaximumPayoutAfterTax { get; set; }
+
     }
 }

@@ -5,8 +5,8 @@ namespace IqSoft.CP.DAL.Models.Notification
     public class NotificationModel
     {
         public int PartnerId { get; set; }
-        public int? ClientId { get; set; }
-        public int? AffiliateId { get; set; }
+        public int ObjectId { get; set; }
+        public int ObjectTypeId { get; set; }
         public string MobileOrEmail { get; set; }
         public int? ClientInfoType { get; set; }
         public string VerificationCode { get; set; }

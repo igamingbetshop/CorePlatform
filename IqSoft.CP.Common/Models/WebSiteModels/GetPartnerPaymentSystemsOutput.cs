@@ -28,6 +28,7 @@ namespace IqSoft.CP.Common.Models.WebSiteModels
         public string Info { get; set; }
         public string Address { get; set; }
         public string DestinationTag { get; set; }
+        public string ImageExtension { get; set; }
         public decimal MinAmount { get; set; }
         public decimal MaxAmount { get; set; }
     }

@@ -12,5 +12,6 @@
         public string Credentials { get; set; }
         public string CountryCode { get; set; }
         public string Callback { get; set; }
+        public string Ip { get; set; }
     }
 }

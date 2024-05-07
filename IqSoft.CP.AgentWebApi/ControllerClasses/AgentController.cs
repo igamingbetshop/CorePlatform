@@ -72,7 +72,7 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                 case "GetSubAgents":
                     return GetSubAgents(identity, log);
                 case "GetSubAccounts":
-                    return GetSubAccounts(identity, log);
+                    return GetSubAccounts(Convert.ToInt32(request.RequestData), identity, log);
                 case "SaveSubAccount":
                     return SaveSubAccount(JsonConvert.DeserializeObject<UserModel>(request.RequestData), identity, log);
                 case "IsUserNameAvailable":
@@ -107,7 +107,7 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                 case "GetTicker":
                     return GetTicker(identity);
                 case "GetExistingLevels":
-                    return GetAgentDownline(identity.Id, identity, log);
+                    return GetAgentDownline(Convert.ToInt32(request.RequestData), identity, log);
                 case "GetAgentStatusesInfo":
                     return GetAgentStatusesInfo(Convert.ToInt32(request.RequestData), identity, log);
                 case "GetAvailableLevels":
@@ -146,6 +146,10 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                     return GetNotes(JsonConvert.DeserializeObject<ApiFilterNote>(request.RequestData), identity, log);
                 case "GetAgentStates":
                     return GetAgentStates(identity, log);
+                case "UpdateUserState":
+                    return UpdateUserState(JsonConvert.DeserializeObject<ApiUserState>(request.RequestData), identity, log);
+                case "GetUserState":
+                    return GetUserState(JsonConvert.DeserializeObject<ApiUserState>(request.RequestData), identity, log);
             }
             throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.MethodNotFound);
         }
@@ -837,7 +841,8 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                         userBl.CheckPermission(Constants.Permissions.ViewUser);
                         user = CacheManager.GetUserById(identity.Id);
                     }
-                    var resp = userBl.GetSubAgents(input.ParentId ?? user.Id, input?.Level, input?.Type, !input.WithDownlines, input.AgentIdentifier, input.Id, input.IsFromSuspend );
+                    var resp = userBl.GetSubAgents(input.ParentId ?? user.Id, input?.Level, input?.Type, !input.WithDownlines, 
+                        input.AgentIdentifier, input.Id, input.IsFromSuspend );
                     if (input.State.HasValue)
                     {
                         var states = new List<int>();
@@ -938,17 +943,21 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
             }
         }
 
-        public static ApiResponseBase GetSubAccounts(SessionIdentity identity, ILog log)
+        public static ApiResponseBase GetSubAccounts(int parentId, SessionIdentity identity, ILog log)
         {
             using (var userBl = new UserBll(identity, log))
             {
+                var parent = CacheManager.GetUserById(parentId);
                 var user = CacheManager.GetUserById(identity.Id);
+                if (!parent.Path.Contains("/" + identity.Id + "/"))
+                    throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.WrongInputParameters);
+
                 var isAgentEmploye = user.Type == (int)UserTypes.AgentEmployee;
                 if (isAgentEmploye)
                     return new ApiResponseBase();
                 return new ApiResponseBase
                 {
-                    ResponseObject = userBl.GetSubAccounts(identity.Id)
+                    ResponseObject = userBl.GetSubAccounts(parentId)
                 };
             }
         }
@@ -1376,14 +1385,18 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                 if (agent == null)
                     throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.UserNotFound);
                 var levEnums = BaseBll.GetEnumerations(Constants.EnumerationTypes.AgentLevels, identity.LanguageId);
-                var result = userBl.GetAgentDownline(userId, true, true);
+
+                var direct = userBl.GetAgentDownline(userId, true, true);
+                var all = userBl.GetAgentDownline(userId, true, false);
+                
                 return new ApiResponseBase
                 {
-                    ResponseObject = result.Select(x => new
+                    ResponseObject = direct.Select(x => new
                     {
                         Id = x.Level,
                         Name = levEnums.First(y => y.Value == x.Level).Text,
-                        Count = x.Count
+                        Count = x.Count,
+                        TotalCount = all.FirstOrDefault(y => y.Level == x.Level)?.Count ?? 0
                     })
                 };
             }
@@ -1982,6 +1995,27 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                     };
                     return response;
                 }
+            }
+        }
+
+        private static ApiResponseBase UpdateUserState(ApiUserState userState, SessionIdentity identity, ILog log)
+        {
+            using (var userBl = new UserBll(identity, log))
+            {
+                userBl.UpdateUserState(userState.AdminMenuId, userState.GridIndex, userState.State);
+                return new ApiResponseBase();
+            }
+        }
+
+        private static ApiResponseBase GetUserState(ApiUserState userState, SessionIdentity identity, ILog log)
+        {
+            using (var userBl = new UserBll(identity, log))
+            {
+                var state = userBl.GetUserState(userState.AdminMenuId, userState.GridIndex);
+                return new ApiResponseBase
+                {
+                    ResponseObject = state
+                };
             }
         }
     }

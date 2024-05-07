@@ -133,6 +133,15 @@ namespace IqSoft.CP.BLL.Services
             return betShopList ?? new List<BetShop>();
         }
 
+        public List<BetShop> GetBetShopsByPartnerId(int partnerId, string currencyId)
+        {
+            var query = Db.BetShops.Where(x => x.PartnerId == partnerId);
+            if (!string.IsNullOrEmpty(currencyId))
+                query = query.Where(x => x.CurrencyId == currencyId);
+
+            return query.ToList();
+        }
+
         public PagedModel<fnCashDesks> GetCashDesksPagedModel(FilterfnCashDesk filter, bool checkPermission = true)
         {
 			if (checkPermission)
@@ -687,8 +696,7 @@ namespace IqSoft.CP.BLL.Services
             }
         }
 
-        private void CreateDocumentForCloseShift(IDocumentBll documentBl, decimal balance, decimal bonusAmount,
-            BetShop betShop, int cashDeskId, int cashierId)
+        private void CreateDocumentForCloseShift(IDocumentBll documentBl, decimal balance, decimal bonusAmount, BetShop betShop, int cashDeskId, int cashierId)
         {
             var operation = new Operation
             {
@@ -1242,83 +1250,88 @@ namespace IqSoft.CP.BLL.Services
             }
         }
 
-		public BetShopFinOperationsOutput CreateBetsFromBetShop(ListOfOperationsFromApi transactions, DocumentBll documentBl)
-		{
-			CheckPermission(Constants.Permissions.MakeBetFromBetShop);
-			var response = new BetShopFinOperationsOutput { Documents = new List<BetShopFinOperationDocument>() };
-			var operationTypeId = transactions.OperationTypeId ?? (int)OperationTypes.Bet;
-			var product = CacheManager.GetProductByExternalId(transactions.GameProviderId, transactions.ExternalProductId);
-			if (product == null)
-				throw CreateException(LanguageId, Constants.Errors.ProductNotFound);
+        public BetShopFinOperationsOutput CreateBetsFromBetShop(ListOfOperationsFromApi transactions, DocumentBll documentBl)
+        {
+            CheckPermission(Constants.Permissions.MakeBetFromBetShop);
+            var response = new BetShopFinOperationsOutput { Documents = new List<BetShopFinOperationDocument>() };
+            var operationTypeId = transactions.OperationTypeId ?? (int)OperationTypes.Bet;
+            var product = CacheManager.GetProductByExternalId(transactions.GameProviderId, transactions.ExternalProductId);
+            if (product == null)
+                throw CreateException(LanguageId, Constants.Errors.ProductNotFound);
 
-			if (documentBl.GetExistingDocumentId(transactions.GameProviderId, transactions.TransactionId, operationTypeId, product.Id) > 0)
-				throw CreateException(LanguageId, Constants.Errors.TransactionAlreadyExists);
-			using (var scope = CommonFunctions.CreateTransactionScope())
-			{
-				foreach (var operationItemFromProduct in transactions.OperationItems)
-				{
-					var cashDesk = CacheManager.GetCashDeskById(operationItemFromProduct.CashDeskId);
-					if (cashDesk == null)
-						throw CreateException(LanguageId, Constants.Errors.CashDeskNotFound);
-					Db.sp_GetBetShopLock(cashDesk.BetShopId);
-					var betShop = Db.BetShops.FirstOrDefault(x => x.Id == cashDesk.BetShopId);
-					if (betShop == null)
-						throw CreateException(LanguageId, Constants.Errors.BetShopNotFound);
-					if (betShop.CurrentLimit < operationItemFromProduct.Amount)
-						throw CreateException(LanguageId, Constants.Errors.BetShopLimitExceeded);
-					if (betShop.State == Constants.CashDeskStates.Blocked)
-						throw CreateException(LanguageId, Constants.Errors.BetShopBlocked);
-					if (cashDesk.State == Constants.CashDeskStates.Blocked ||
-						cashDesk.State == Constants.CashDeskStates.BlockedForWithdraw)
-						throw CreateException(LanguageId, Constants.Errors.CashDeskBlocked);
+            if (documentBl.GetExistingDocumentId(transactions.GameProviderId, transactions.TransactionId, operationTypeId, product.Id) > 0)
+                throw CreateException(LanguageId, Constants.Errors.TransactionAlreadyExists);
+            var betshopIds = new List<int>();
+            using (var scope = CommonFunctions.CreateTransactionScope())
+            {
+                foreach (var operationItemFromProduct in transactions.OperationItems)
+                {
+                    var cashDesk = CacheManager.GetCashDeskById(operationItemFromProduct.CashDeskId);
+                    if (cashDesk == null)
+                        throw CreateException(LanguageId, Constants.Errors.CashDeskNotFound);
+                    Db.sp_GetBetShopLock(cashDesk.BetShopId);
+                    var betShop = Db.BetShops.FirstOrDefault(x => x.Id == cashDesk.BetShopId);
+                    if (betShop == null)
+                        throw CreateException(LanguageId, Constants.Errors.BetShopNotFound);
+                    if (betShop.CurrentLimit < operationItemFromProduct.Amount)
+                        throw CreateException(LanguageId, Constants.Errors.BetShopLimitExceeded);
+                    if (betShop.State == Constants.CashDeskStates.Blocked)
+                        throw CreateException(LanguageId, Constants.Errors.BetShopBlocked);
+                    if (cashDesk.State == Constants.CashDeskStates.Blocked ||
+                        cashDesk.State == Constants.CashDeskStates.BlockedForWithdraw)
+                        throw CreateException(LanguageId, Constants.Errors.CashDeskBlocked);
                     var partnerProductSetting = CacheManager.GetPartnerProductSettingByProductId(betShop.PartnerId, product.Id);
-					if (partnerProductSetting == null)
-						throw CreateException(LanguageId, Constants.Errors.ProductNotAllowedForThisPartner);
-					if (partnerProductSetting.State == (int)PartnerProductSettingStates.Blocked)
-						throw CreateException(LanguageId, Constants.Errors.ProductBlockedForThisPartner);
-                    
+                    if (partnerProductSetting == null)
+                        throw CreateException(LanguageId, Constants.Errors.ProductNotAllowedForThisPartner);
+                    if (partnerProductSetting.State == (int)PartnerProductSettingStates.Blocked)
+                        throw CreateException(LanguageId, Constants.Errors.ProductBlockedForThisPartner);
+
                     var partner = CacheManager.GetPartnerById(betShop.PartnerId);
                     ClientBll.CheckPartnerProductLimit(product.Id, partner, betShop.CurrencyId,
-						operationItemFromProduct.Amount, LanguageId);
+                        operationItemFromProduct.Amount, LanguageId);
                     var clientOperation = new ClientOperation
-					{
-						GameProviderId = transactions.GameProviderId,
-						Amount = operationItemFromProduct.Amount,
-						CurrencyId = betShop.CurrencyId,
-						ClientId = operationItemFromProduct.CashierId,
-						CashDeskId = operationItemFromProduct.CashDeskId,
-						PartnerProductId = partnerProductSetting.Id,
-						ProductId = product.Id,
-						RoundId = transactions.RoundId,
-						PossibleWin = operationItemFromProduct.PossibleWin,
-						TypeId = transactions.TypeId,
-						ExternalTransactionId = transactions.TransactionId,
-						ExternalOperationId = transactions.ExternalOperationId,
-						Info = transactions.Info,
-						OperationTypeId = operationTypeId
-					};
-					var withdrawResponse = PlaceBetFromBetShop(clientOperation, documentBl).MapToBetShopFinOperationDocument();
+                    {
+                        GameProviderId = transactions.GameProviderId,
+                        Amount = operationItemFromProduct.Amount,
+                        CurrencyId = betShop.CurrencyId,
+                        ClientId = operationItemFromProduct.CashierId,
+                        CashDeskId = operationItemFromProduct.CashDeskId,
+                        PartnerProductId = partnerProductSetting.Id,
+                        ProductId = product.Id,
+                        RoundId = transactions.RoundId,
+                        PossibleWin = operationItemFromProduct.PossibleWin,
+                        TypeId = transactions.TypeId,
+                        ExternalTransactionId = transactions.TransactionId,
+                        ExternalOperationId = transactions.ExternalOperationId,
+                        Info = transactions.Info,
+                        OperationTypeId = operationTypeId
+                    };
+                    var withdrawResponse = PlaceBetFromBetShop(clientOperation, documentBl).MapToBetShopFinOperationDocument();
                     withdrawResponse.Type = operationItemFromProduct.Type;
-					response.Documents.Add(withdrawResponse);
-					var currentTime = DateTime.UtcNow;
-					var bet = new BetShopTicket
-					{
-						DocumentId = withdrawResponse.Id,
-						GameId = product.Id,
-						BarCode = CommonFunctions.CalculateBarcode(withdrawResponse.Id),
-						NumberOfPrints = 1,
-						CreationTime = currentTime,
-						LastPrintTime = currentTime
-					};
+                    response.Documents.Add(withdrawResponse);
+                    var currentTime = DateTime.UtcNow;
+                    var bet = new BetShopTicket
+                    {
+                        DocumentId = withdrawResponse.Id,
+                        GameId = product.Id,
+                        BarCode = CommonFunctions.CalculateBarcode(withdrawResponse.Id),
+                        NumberOfPrints = 1,
+                        CreationTime = currentTime,
+                        LastPrintTime = currentTime
+                    };
 
-					Db.BetShopTickets.Add(bet);
-					Db.SaveChanges();
+                    Db.BetShopTickets.Add(bet);
+                    Db.SaveChanges();
                     withdrawResponse.Barcode = bet.BarCode;
+                    betshopIds.Add(betShop.Id);
                 }
-				scope.Complete();
-			}
-			return response;
-		}
+                scope.Complete();
+            }
+            betshopIds = betshopIds.Distinct().ToList();
+            foreach (var b in betshopIds)
+                CacheManager.UpdateBetShopById(b);
+            return response;
+        }
 
 		private BetShopFinOperationDocument PlaceBetFromBetShop(ClientOperation transaction, DocumentBll documentBl)
 		{
@@ -1558,8 +1571,9 @@ namespace IqSoft.CP.BLL.Services
 				throw CreateException(LanguageId, Constants.Errors.ProductNotFound);
 			if (documentBl.GetExistingDocumentId(transactions.GameProviderId, transactions.TransactionId, operationTypeId, product.Id) > 0)
 				throw CreateException(LanguageId, Constants.Errors.TransactionAlreadyExists);
+            var betshopIds = new List<int>();
 
-			using (var scope = CommonFunctions.CreateTransactionScope())
+            using (var scope = CommonFunctions.CreateTransactionScope())
 			{
 				foreach (var operationItemFromProduct in transactions.OperationItems)
 				{
@@ -1612,10 +1626,14 @@ namespace IqSoft.CP.BLL.Services
 						Info = transactions.Info
 					};
 					response.Documents.Add(CreateWinToBetShop(clientOperation, documentBl));
-				}
-				scope.Complete();
-			}
-			return response;
+                    betshopIds.Add(betShop.Id);
+                }
+				scope.Complete();              
+            }
+            betshopIds = betshopIds.Distinct().ToList();
+            foreach (var b in betshopIds)
+                CacheManager.UpdateBetShopById(b);
+            return response;
 		}
 
 		private BetShopFinOperationDocument CreateWinToBetShop(ClientOperation transaction, DocumentBll documentBl)

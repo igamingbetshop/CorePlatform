@@ -30,6 +30,14 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 var parameters = string.IsNullOrEmpty(input.Parameters) ? new Dictionary<string, string>() :
                               JsonConvert.DeserializeObject<Dictionary<string, string>>(input.Parameters);
                 parameters.Add("Domain", session.Domain);
+                var amount = input.Amount;
+                if (input.CurrencyId != Constants.Currencies.USADollar)
+                {
+                    var rate = BaseBll.GetCurrenciesDifference(client.CurrencyId, Constants.Currencies.USADollar);
+                    amount = Math.Round(rate * input.Amount, 2);
+                    parameters.Add("Currency", Constants.Currencies.USADollar);
+                    parameters.Add("AppliedRate", rate.ToString("F"));
+                }
                 input.Parameters = JsonConvert.SerializeObject(parameters);
                 paymentSystemBl.ChangePaymentRequestDetails(input);
                 var distributionUrlKey = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.DistributionUrl);
@@ -41,8 +49,8 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                     RedirectUrl = cashierPageUrl,
                     ResponseUrl = string.Format("{0}/api/InternationalPSP/ProcessPaymentRequest", paymentGatewayUrl),
                     CancelUrl = string.Format("{0}/api/InternationalPSP/CancelPaymentRequest", paymentGatewayUrl),
-                    input.Amount,
-                    Currency = input.CurrencyId,
+                    Amount = amount,
+                    Currency = Constants.Currencies.USADollar,
                     BillingAddress = client.Address?.Trim(),
                     HolderName = string.Format("{0} {1}", client.FirstName, client.LastName),
                     PartnerDomain = session.Domain,

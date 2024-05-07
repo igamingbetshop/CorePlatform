@@ -19,6 +19,8 @@ using System.IO;
 using System.Web;
 using IqSoft.CP.DAL;
 using System.Net.Http.Headers;
+using IqSoft.CP.ProductGateway.Models.Common;
+using System.Linq;
 
 namespace IqSoft.CP.ProductGateway.Controllers
 {
@@ -41,14 +43,12 @@ namespace IqSoft.CP.ProductGateway.Controllers
                     var userSession = userBl.CheckCashierSession(input.Token);
                     var user = CacheManager.GetUserById(userSession.Id);
                     var betShop = CacheManager.GetBetShopById(userSession.BetShopId.Value);
-                    var cashierBalance = userBl.GetObjectBalanceWithConvertion((int)ObjectTypes.CashDesk, userSession.CashDeskId, betShop.CurrencyId).AvailableBalance;
-
                     baseOutput.Result = new AuthenticationOutput
                     {
-                        Username = user.Id.ToString(),
+                        Username = user.UserName.ToString(),
                         UserId = userSession.CashDeskId.ToString(),
                         UserUuid = user.Id.ToString(),
-                        Balance = (int)cashierBalance * 100,
+                        Balance = (int)betShop.CurrentLimit * 100,
                         CurrencyId = betShop.CurrencyId,
                         Language = userSession.LanguageId,
                         FirstName = user.FirstName,
@@ -57,6 +57,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                         Email = user.Email,
                         LotCode1 = betShop.Id.ToString(),
                     };
+                    WebApiApplication.DbLogger.Info(JsonConvert.SerializeObject(baseOutput));
                 }
             }
             catch (FaultException<BllFnErrorType> fex)
@@ -89,7 +90,8 @@ namespace IqSoft.CP.ProductGateway.Controllers
             var baseOutput = new BaseOutput();
             try
             {
-               // BaseBll.CheckIp(WhitelistedIps);
+                // BaseBll.CheckIp(WhitelistedIps);
+                WebApiApplication.DbLogger.Info(JsonConvert.SerializeObject(input));
                 using (var userBl = new UserBll(new SessionIdentity(), WebApiApplication.DbLogger))
                 {
                     var userSession = userBl.CheckCashierSession(input.Token);
@@ -101,13 +103,40 @@ namespace IqSoft.CP.ProductGateway.Controllers
                         throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.ClientNotFound);
                     var product = CacheManager.GetProductByExternalId(ProviderId, input.GameId) ??
                        throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.ProductNotFound);
-                    DoBet(input.TransactionId, input.Amount/100, betShop.CurrencyId, user, product, userSession);
-                    var cashierBalance = userBl.GetObjectBalanceWithConvertion((int)ObjectTypes.CashDesk, userSession.CashDeskId, betShop.CurrencyId).AvailableBalance;
-
+                    var betResult = DoBet(input.TransactionId, input.Amount/100, betShop.CurrencyId, user, product, userSession);
+                    BaseHelpers.RemoveBetshopFromeCache(betShop.Id);
+                    var ticketDetails = JsonConvert.DeserializeObject<List<TicketItem>>(input.TicketDetails);
+                    var placeBetOutput = new PlaceBetOutput
+                    {
+                        CashierId = betResult.Documents[0].UserId.Value,
+                        Bets = betResult.Documents.Select(x => new BetOutput
+                        {
+                            Id = x.Id,
+                            BetAmount=  x.Amount,
+                            Barcode = x.Barcode,
+                            BetDate = x.CreationTime,
+                            TicketNumber = x.TicketNumber??0,
+                            GameId = x.ProductId.Value,
+                            GameName = CacheManager.GetProductById(x.ProductId.Value).Name,
+                            TypeId = x.TypeId ?? 0,
+                            NumberOfBets = 1,
+                            BetSelections = ticketDetails?.Select(y => new BllBetSelection
+                            {
+                                EventDate = Convert.ToDateTime(input.ReceivedDate),
+                                EventInfo = y.Value,
+                                RoundId = y.Event,
+                                Coefficient = y.FutureCoefficient,
+                                SelectionName = CacheManager.GetProductById(x.ProductId.Value).Name
+                            }).ToList()
+                        }).ToList()
+                    };
+                    WebApiApplication.DbLogger.Info(JsonConvert.SerializeObject(placeBetOutput));
+                    BaseHelpers.BroadcastBetShopBet(placeBetOutput);
                     baseOutput.Result = new TransactionResult
                     {
-                        Balance = (int)cashierBalance*100
+                        Balance = (int)betShop.CurrentLimit*100
                     };
+                    WebApiApplication.DbLogger.Info(JsonConvert.SerializeObject(baseOutput));
                 }
             }
             catch (FaultException<BllFnErrorType> fex)
@@ -159,13 +188,38 @@ namespace IqSoft.CP.ProductGateway.Controllers
                         product = CacheManager.GetProductByExternalId(ProviderId, transaction.GameId) ??
                            throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.ProductNotFound);
 
-                        DoBet(transaction.TransactionId, transaction.Amount/100, betShop.CurrencyId, user, product, userSession);
+                        var betResult = DoBet(transaction.TransactionId, transaction.Amount/100, betShop.CurrencyId, user, product, userSession);
+                        BaseHelpers.RemoveBetshopFromeCache(betShop.Id);
+                        var ticketDetails = JsonConvert.DeserializeObject<List<TicketItem>>(transaction.TicketDetails);
+                        var placeBetOutput = new PlaceBetOutput
+                        {
+                            CashierId = betResult.Documents[0].UserId.Value,
+                            Bets = betResult.Documents.Select(x => new BetOutput
+                            {
+                                Id = x.Id,
+                                BetAmount=  x.Amount,
+                                Barcode = x.Barcode,
+                                BetDate = x.CreationTime,
+                                TicketNumber = x.TicketNumber??0,
+                                GameId = x.ProductId.Value,
+                                GameName = CacheManager.GetProductById(x.ProductId.Value).Name,
+                                TypeId = x.TypeId ?? 0,
+                                NumberOfBets = 1,
+                                BetSelections = ticketDetails?.Select(y => new BllBetSelection
+                                {
+                                    EventInfo = y.Value,
+                                    RoundId = y.Event,
+                                    Coefficient = y.FutureCoefficient,
+                                    SelectionName = CacheManager.GetProductById(x.ProductId.Value).Name
+                                }).ToList()
+                            }).ToList()
+                        };
+                        WebApiApplication.DbLogger.Info(JsonConvert.SerializeObject(placeBetOutput));
+                        BaseHelpers.BroadcastBetShopBet(placeBetOutput);
                     }
-                    var cashierBalance = userBl.GetObjectBalanceWithConvertion((int)ObjectTypes.CashDesk, userSession.CashDeskId, betShop.CurrencyId).AvailableBalance;
-
                     baseOutput.Result = new TransactionResult
                     {
-                        Balance = (int)cashierBalance*100
+                        Balance = (int)betShop.CurrentLimit*100
                     };
                 }
             }
@@ -212,10 +266,10 @@ namespace IqSoft.CP.ProductGateway.Controllers
                     var product = CacheManager.GetProductByExternalId(ProviderId, input.GameId) ??
                        throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.ProductNotFound);
                     DoWin(input.TransactionId, input.Amount/100, betShop.CurrencyId, user, userSession.CashDeskId, product);
-                    var cashierBalance = userBl.GetObjectBalanceWithConvertion((int)ObjectTypes.CashDesk, userSession.CashDeskId, betShop.CurrencyId).AvailableBalance;
+                    BaseHelpers.RemoveBetshopFromeCache(betShop.Id);
                     baseOutput.Result = new TransactionResult
                     {
-                        Balance = (int)cashierBalance*100
+                        Balance = (int)betShop.CurrentLimit*100
                     };
                 }
             }
@@ -250,8 +304,8 @@ namespace IqSoft.CP.ProductGateway.Controllers
             try
             {
               //  BaseBll.CheckIp(WhitelistedIps);
-                var user = CacheManager.GetUserById(Convert.ToInt32(input.UserId));
-
+                var user = CacheManager.GetUserById(Convert.ToInt32(input.UserId)) ??
+                         throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.UserNotFound);  
                 var product = CacheManager.GetProductByExternalId(ProviderId, input.GameId) ??
                    throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.ProductNotFound);
 
@@ -266,11 +320,12 @@ namespace IqSoft.CP.ProductGateway.Controllers
                         OperationTypeId = input.RollbackType == "WIN" ? (int)OperationTypes.Win : (int)OperationTypes.Bet
                     };
                     var doc = documentBl.RollbackProductTransactions(operationsFromProduct)[0];
-
-                    var cashierBalance = userBl.GetObjectBalanceWithConvertion((int)ObjectTypes.CashDesk, doc.CashDeskId.Value, doc.CurrencyId).AvailableBalance;
+                    var cashDesk = CacheManager.GetCashDeskById(doc.CashDeskId.Value);
+                    var betShop = CacheManager.GetBetShopById(cashDesk.BetShopId);
+                    BaseHelpers.RemoveBetshopFromeCache(betShop.Id);
                     baseOutput.Result = new TransactionResult
                     {
-                        Balance = (int)cashierBalance*100
+                        Balance = (int)betShop.CurrentLimit*100
                     };
                 }
             }
@@ -297,7 +352,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
             return httpResponseMessage;
         }
 
-        private Document DoBet(string transactionId, decimal amount, string currencyId, BllUser user, BllProduct product, SessionIdentity userSession)
+        private BetShopFinOperationsOutput DoBet(string transactionId, decimal amount, string currencyId, BllUser user, BllProduct product, SessionIdentity userSession)
         {
             using (var betShopBl = new BetShopBll(userSession, WebApiApplication.DbLogger))
             {
@@ -319,6 +374,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                         ProductId = product.Id,
                         RoundId = transactionId,
                         TransactionId = transactionId,
+                        TypeId = (int)CreditDocumentTypes.Single,
                         OperationItems = new List<OperationItemFromProduct>
                         {
                             new OperationItemFromProduct
@@ -329,7 +385,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                             }
                         }
                     };
-                    return betShopBl.CreateBetsFromBetShop(operationsFromProduct, documentBl).Documents[0];
+                    return betShopBl.CreateBetsFromBetShop(operationsFromProduct, documentBl);
                 }
             }
         }

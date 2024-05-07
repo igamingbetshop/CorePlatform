@@ -328,7 +328,6 @@
     <Compile Include="Filters\FilterUser.cs" />
     <Compile Include="Filters\Reporting\FilterAdminShift.cs" />
     <Compile Include="Filters\Reporting\FilterPartnerPaymentsSummary.cs" />
-    <Compile Include="Filters\Reporting\FilterReportByAgentTranfer.cs" />
     <Compile Include="Filters\Reporting\FilterReportByBetShopLimitChanges.cs" />
     <Compile Include="Filters\Reporting\FilterReportByBetShopPayment.cs" />
     <Compile Include="Filters\Reporting\FilterReportByActionLog.cs" />
@@ -362,9 +361,6 @@
       <DependentUpon>IqSoftCP.tt</DependentUpon>
     </Compile>
     <Compile Include="fnAgent.cs">
-      <DependentUpon>IqSoftCP.tt</DependentUpon>
-    </Compile>
-    <Compile Include="fnAgentProfit.cs">
       <DependentUpon>IqSoftCP.tt</DependentUpon>
     </Compile>
     <Compile Include="fnAgentProfitReport.cs">
@@ -508,9 +504,6 @@
     <Compile Include="fnRegionPath.cs">
       <DependentUpon>IqSoftCP.tt</DependentUpon>
     </Compile>
-    <Compile Include="fnReportByAgentTransfer.cs">
-      <DependentUpon>IqSoftCP.tt</DependentUpon>
-    </Compile>
     <Compile Include="fnReportByBetShopOperation.cs">
       <DependentUpon>IqSoftCP.tt</DependentUpon>
     </Compile>
@@ -636,6 +629,7 @@
     <Compile Include="Models\Affiliates\MyAffiliateClientActivityModel.cs" />
     <Compile Include="Models\Affiliates\NetreferActivityModel.cs" />
     <Compile Include="Models\Affiliates\RegistrationActivityModel.cs" />
+    <Compile Include="Models\Agents\AgentReportItem.cs" />
     <Compile Include="Models\BetShopReconingOutput.cs" />
     <Compile Include="Models\Cache\BllClientPaymentSetting.cs" />
     <Compile Include="Models\Cache\BllObjectSetting.cs" />
@@ -708,7 +702,8 @@
     <Compile Include="Models\Clients\ClientPaymentSegment.cs" />
     <Compile Include="Models\Clients\ClientTriggerInput.cs" />
     <Compile Include="Models\Clients\LimitInfo.cs" />
-    <Compile Include="Models\Dashboard\ApiClientInfo.cs" />
+    <Compile Include="Models\Dashboard\DashboardClientInfo.cs" />
+    <Compile Include="Models\Dashboard\CountryClientsInfo.cs" />
     <Compile Include="Models\Integration\ProductsIntegration\ApiBonus.cs" />
     <Compile Include="Models\Integration\ProductsIntegration\ApiLanguage.cs" />
     <Compile Include="Models\Integration\ProductsIntegration\GetSessionInfoOutput.cs" />
@@ -765,7 +760,7 @@
     <Compile Include="Models\CreateWithdrawFromBetShopOutput.cs" />
     <Compile Include="Models\Dashboard\BetsInfo.cs" />
     <Compile Include="Models\Dashboard\PaymentRequestsInfo.cs" />
-    <Compile Include="Models\Dashboard\PlayersInfo.cs" />
+    <Compile Include="Models\Dashboard\ClientsInfo.cs" />
     <Compile Include="Models\Dashboard\ProvidersBetsInfo.cs" />
     <Compile Include="Models\GroupedOperation.cs" />
     <Compile Include="Models\Integration\ControlSystem\ControlSystemResponseBase.cs" />
@@ -835,6 +830,7 @@
     <Compile Include="OperationType.cs">
       <DependentUpon>IqSoftCP.tt</DependentUpon>
     </Compile>
+    <Compile Include="PartialClasses\Affiliate.cs" />
     <Compile Include="PartialClasses\BetShopTicket.cs" />
     <Compile Include="PartialClasses\BonusProduct.cs" />
     <Compile Include="PartialClasses\Character.cs" />
@@ -859,7 +855,6 @@
     <Compile Include="PartialClasses\Promotion.cs" />
     <Compile Include="PartialClasses\fnBanner.cs" />
     <Compile Include="PartialClasses\fnUserCorrection.cs" />
-    <Compile Include="PartialClasses\fnReportByAgentTranfer.cs" />
     <Compile Include="PartialClasses\fnReportByPaymentSystem.cs" />
     <Compile Include="PartialClasses\ClientSetting.cs" />
     <Compile Include="PartialClasses\fnActionLog.cs" />

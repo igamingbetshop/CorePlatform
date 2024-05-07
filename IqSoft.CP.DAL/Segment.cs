@@ -22,9 +22,9 @@ namespace IqSoft.CP.DAL
             this.ClientClassifications = new HashSet<ClientClassification>();
             this.PromotionSegmentSettings = new HashSet<PromotionSegmentSetting>();
             this.SegmentSettings = new HashSet<SegmentSetting>();
-            this.TriggerSettings = new HashSet<TriggerSetting>();
             this.JobTriggers = new HashSet<JobTrigger>();
             this.NewsSegmentSettings = new HashSet<NewsSegmentSetting>();
+            this.TriggerSettings = new HashSet<TriggerSetting>();
         }
     
         public int Id { get; set; }
@@ -72,12 +72,12 @@ namespace IqSoft.CP.DAL
         public virtual ICollection<PromotionSegmentSetting> PromotionSegmentSettings { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<SegmentSetting> SegmentSettings { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<TriggerSetting> TriggerSettings { get; set; }
         public virtual Partner Partner { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<JobTrigger> JobTriggers { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<NewsSegmentSetting> NewsSegmentSettings { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TriggerSetting> TriggerSettings { get; set; }
     }
 }

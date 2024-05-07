@@ -14,6 +14,12 @@ namespace IqSoft.CP.DataWarehouse
     
     public partial class Client
     {
+        public Client()
+        {
+            this.DuplicatedClients = new HashSet<DuplicatedClient>();
+            this.DuplicatedClients1 = new HashSet<DuplicatedClient>();
+        }
+    
         public int Id { get; set; }
         public string Email { get; set; }
         public bool IsEmailVerified { get; set; }
@@ -69,5 +75,8 @@ namespace IqSoft.CP.DataWarehouse
         public string QRCode { get; set; }
         public Nullable<int> CountryId { get; set; }
         public Nullable<int> CharacterId { get; set; }
+    
+        public virtual ICollection<DuplicatedClient> DuplicatedClients { get; set; }
+        public virtual ICollection<DuplicatedClient> DuplicatedClients1 { get; set; }
     }
 }

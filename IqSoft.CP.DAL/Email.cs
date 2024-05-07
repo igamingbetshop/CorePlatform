@@ -31,9 +31,10 @@ namespace IqSoft.CP.DAL
         public Nullable<long> ObjectId { get; set; }
         public Nullable<int> ObjectTypeId { get; set; }
     
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<ClientMessage> ClientMessages { get; set; }
         public virtual MessageTemplate MessageTemplate { get; set; }
         public virtual Partner Partner { get; set; }
+        public virtual ObjectType ObjectType { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<ClientMessage> ClientMessages { get; set; }
     }
 }

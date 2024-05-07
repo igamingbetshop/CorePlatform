@@ -329,6 +329,10 @@ namespace IqSoft.CP.ProductGateway.Controllers
                     {
                         if (winTransfer.IsBonus || winTransfer.JpWin)
                         {
+                            if (winTransfer.IsBonus)
+                                winTransfer.TransferId = $"{Constants.FreeSpinPrefix}{winTransfer.TransferId}";
+                            else
+                                winTransfer.TransferId = $"JeckpotWin_{winTransfer.TransferId}";   
                             var listOfOperationsFromApi = new ListOfOperationsFromApi
                             {
                                 SessionId = clientSession.SessionId,
@@ -337,7 +341,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                                 ExternalProductId = product.ExternalId,
                                 GameProviderId = ProviderId,
                                 ProductId = product.Id,
-                                TransactionId = string.Format("bonus_{0}", winTransfer.TransferId),
+                                TransactionId = $"Bet_{winTransfer.TransferId}",
                                 OperationItems = new List<OperationItemFromProduct>()
                             };
                             listOfOperationsFromApi.OperationItems.Add(new OperationItemFromProduct
@@ -361,7 +365,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                                 var listOfOperationsFromApi = new ListOfOperationsFromApi
                                 {
                                     SessionId = clientSession.SessionId,
-                                    State = (winTransfer.Amount > 0 ? (int)BetDocumentStates.Won : (int)BetDocumentStates.Lost),
+                                    State = winTransfer.Amount > 0 ? (int)BetDocumentStates.Won : (int)BetDocumentStates.Lost,
                                     CurrencyId = client.CurrencyId,
                                     RoundId = winTransfer.TransferId,
                                     GameProviderId = ProviderId,

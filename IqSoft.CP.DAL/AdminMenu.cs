@@ -23,13 +23,14 @@ namespace IqSoft.CP.DAL
         public int Id { get; set; }
         public string Name { get; set; }
         public string Icon { get; set; }
-        public string Color { get; set; }
         public string Route { get; set; }
+        public string Color { get; set; }
+        public string ApiRequest { get; set; }
         public Nullable<int> ParentId { get; set; }
         public string Path { get; set; }
-        public string ApiRequest { get; set; }
         public string PermissionId { get; set; }
         public Nullable<int> Priority { get; set; }
+        public int InterfaceId { get; set; }
     
         public virtual AdminMenu AdminMenu1 { get; set; }
         public virtual AdminMenu AdminMenu2 { get; set; }

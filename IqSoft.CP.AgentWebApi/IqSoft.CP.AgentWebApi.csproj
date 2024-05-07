@@ -193,12 +193,12 @@
     <Compile Include="ControllerClasses\AffiliateController.cs" />
     <Compile Include="ControllerClasses\BetShopController.cs" />
     <Compile Include="Filter\ApiFilterBetShopGroup.cs" />
-    <Compile Include="Models\Affiliate\AffiliatePasswordRecovery.cs" />
+    <Compile Include="Models\PasswordRecovery.cs" />
     <Compile Include="Models\Affiliate\ApiFilterfnAffiliateClientInfo.cs" />
     <Compile Include="Models\Affiliate\ApiFnAffiliateModel.cs" />
     <Compile Include="Models\Affiliate\ApiNotificationInput.cs" />
     <Compile Include="Models\Affiliate\ApiReferralLink.cs" />
-    <Compile Include="Models\Affiliate\ApiSendRecoveryTokenInput.cs" />
+    <Compile Include="Models\RecoveryTokenInput.cs" />
     <Compile Include="Models\Affiliate\RecoverPasswordOutput.cs" />
     <Compile Include="Models\ApiAgentStatesOutput.cs" />
     <Compile Include="Filter\ApiFilterBetShopBet.cs" />
@@ -210,6 +210,7 @@
     <Compile Include="Models\BetShop\CashDeskModel.cs" />
     <Compile Include="Models\ClientModels\ApiAffiliateClient.cs" />
     <Compile Include="Models\User\Api2FAInput.cs" />
+    <Compile Include="Models\User\ApiUserState.cs" />
     <Compile Include="Startup.cs" />
     <Content Include="Global.asax" />
     <Compile Include="ControllerClasses\DashboardController.cs" />
@@ -269,7 +270,6 @@
     <Compile Include="Filter\ApiFiltersOperationType.cs" />
     <Compile Include="Filter\ApiFilterUser.cs" />
     <Compile Include="Filter\ApiFilterUserCorrection.cs" />
-    <Compile Include="Filter\ApifnAgentTransaction.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>

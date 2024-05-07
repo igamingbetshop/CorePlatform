@@ -239,6 +239,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                                 betDocument = documentBl.GetDocumentByRoundId((int)OperationTypes.Bet, input.roundId, ProviderId, client.Id, (int)BetDocumentStates.Uncalculated);
                             else if (input.type == 1 && input.real > 0) //freebet
                             {
+                                input.transactionId = $"{Constants.FreeSpinPrefix}{input.transactionId}";
                                 var listOfOperationsFromApi = new ListOfOperationsFromApi
                                 {
                                     SessionId = clientSession.SessionId,
@@ -247,7 +248,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                                     ExternalProductId = product.ExternalId,
                                     GameProviderId = ProviderId,
                                     ProductId = product.Id,
-                                    TransactionId = input.transactionId,
+                                    TransactionId = $"Bet_{input.transactionId}",
                                     OperationItems = new List<OperationItemFromProduct>()
                                 };
                                 listOfOperationsFromApi.OperationItems.Add(new OperationItemFromProduct

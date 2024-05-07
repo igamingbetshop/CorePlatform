@@ -271,7 +271,8 @@ namespace IqSoft.CP.ProductGateway.Controllers
 									          : documentBl.GetDocumentByRoundId((int)OperationTypes.Bet, transaction.RoundID, ProviderId, client.Id) ??
 							                               throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.CanNotConnectCreditAndDebit);
 					}
-					var winDocument = documentBl.GetDocumentByExternalId($"{transaction.TransID}_{transaction.GameID}", Convert.ToInt32(transaction.UserID), ProviderId,
+					var transactionId = isSport ? transaction.BetID : $"{transaction.TransID}_{transaction.GameID}";
+					var winDocument = documentBl.GetDocumentByExternalId(transactionId, Convert.ToInt32(transaction.UserID), ProviderId,
 																		 partnerProductSettingId, (int)OperationTypes.Win);
 					if (winDocument == null)
 					{
@@ -285,7 +286,6 @@ namespace IqSoft.CP.ProductGateway.Controllers
 						else
 							state = Convert.ToDecimal(transaction.WinAmount) > 0 ? (int)BetDocumentStates.Won : (int)BetDocumentStates.Lost;
 						betDocument.State = state;
-						var transactionId = isSport ? transaction.BetID : $"{transaction.TransID}_{transaction.GameID}";
 						var operationsFromProduct = new ListOfOperationsFromApi
 						{
 							SessionId = clientSession?.SessionId,

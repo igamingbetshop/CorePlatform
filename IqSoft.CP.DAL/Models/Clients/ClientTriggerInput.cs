@@ -16,5 +16,6 @@ namespace IqSoft.CP.DAL.Models.Clients
         public string TicketInfo { get; set; }
         public string WinInfo { get; set; }
         public int? SegmentId { get; set; }
+        public int? BonusId { get; set; }
     }
 }

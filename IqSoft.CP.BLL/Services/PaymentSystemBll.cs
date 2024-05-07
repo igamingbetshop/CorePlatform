@@ -212,7 +212,10 @@ namespace IqSoft.CP.BLL.Services
             if (!checkPermissionResult.HaveAccessForAllObjects &&
                 !checkPermissionResult.AccessibleObjects.Contains(partnerPaymentSetting.Id))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
-            if ((partnerPaymentSetting.OpenMode.HasValue && !Enum.IsDefined(typeof(OpenModes), partnerPaymentSetting.OpenMode.Value)) ||
+
+            if ((partnerPaymentSetting.OpenMode.HasValue && (
+                !Enum.IsDefined(typeof(OpenModes), partnerPaymentSetting.OpenMode.Value / 10) || 
+                !Enum.IsDefined(typeof(OpenModes), partnerPaymentSetting.OpenMode.Value  % 10))) ||
                  partnerPaymentSetting.Commission < 0 || partnerPaymentSetting.Commission >=100 || partnerPaymentSetting.FixedFee < 0 ||
                  partnerPaymentSetting.ApplyPercentAmount < 0)
                 throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
@@ -227,6 +230,7 @@ namespace IqSoft.CP.BLL.Services
             if (dbPartnerSetting == null)
             {
                 partnerPaymentSetting.CreationTime = currentTime;
+                partnerPaymentSetting.LastUpdateTime = currentTime;
                 Db.PartnerPaymentSettings.Add(partnerPaymentSetting);
             }
             else

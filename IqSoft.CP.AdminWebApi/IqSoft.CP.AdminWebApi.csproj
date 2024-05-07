@@ -338,6 +338,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="ControllerClasses\AgentController.cs" />
     <Compile Include="ControllerClasses\BaseController.cs" />
     <Compile Include="ControllerClasses\BetShopController.cs" />
     <Compile Include="ControllerClasses\BonusController.cs" />
@@ -353,6 +354,7 @@
     <Compile Include="ControllerClasses\RegionController.cs" />
     <Compile Include="ControllerClasses\UtilController.cs" />
     <Compile Include="Filters\Affiliate\ApiFilterfnAffiliate.cs" />
+    <Compile Include="Filters\Agent\ApiFilterfnAgent.cs" />
     <Compile Include="Filters\ApiFilterAnnouncement.cs" />
     <Compile Include="Filters\ApiFilterBanner.cs" />
     <Compile Include="Filters\ApiFilterCharacter.cs" />
@@ -364,6 +366,7 @@
     <Compile Include="Filters\ApiFilterClientLog.cs" />
     <Compile Include="Filters\ApiFilterClientMessage.cs" />
     <Compile Include="Filters\ApiFilterEmail.cs" />
+    <Compile Include="Filters\Agent\ApiFilterFnAgentTransaction.cs" />
     <Compile Include="Filters\ApiFilterPaymentSystem.cs" />
     <Compile Include="Filters\ApiFilterPopup.cs" />
     <Compile Include="Filters\ApiFilterReportByLog.cs" />
@@ -372,10 +375,10 @@
     <Compile Include="Filters\ApiFilterPartnerProductSetting.cs" />
     <Compile Include="Filters\ApiFiltersOperation.cs" />
     <Compile Include="Filters\ApiFilterUserCorrection.cs" />
+    <Compile Include="Filters\Clients\ApiFilterfnDuplicateClient.cs" />
     <Compile Include="Filters\Reporting\ApiFilterClientGame.cs" />
     <Compile Include="Filters\Reporting\ApiFilterfnDocument.cs" />
     <Compile Include="Filters\Clients\ApiFilterfnSegmentClient.cs" />
-    <Compile Include="Filters\Reporting\ApiFilterReportByAgentTranfer.cs" />
     <Compile Include="Filters\Reporting\ApiFilterReportByClientExclusion.cs" />
     <Compile Include="Filters\Reporting\ApiFilterReportByClientIdentity.cs" />
     <Compile Include="Filters\Reporting\ApiFilterReportByBonus.cs" />
@@ -430,7 +433,6 @@
     <Compile Include="Models\ProductModels\ApiProductCategory.cs" />
     <Compile Include="Filters\PaymentRequests\ApiFilterReportByPaymentSystem.cs" />
     <Compile Include="Models\ReportModels\ApiDocument.cs" />
-    <Compile Include="Models\ReportModels\ApiReportByAgentTranfer.cs" />
     <Compile Include="Models\ReportModels\ApiReportByBonus.cs" />
     <Compile Include="Models\ReportModels\ApiReportByObjectChangeHistory.cs" />
     <Compile Include="Models\ReportModels\ApiReportByPartner.cs" />

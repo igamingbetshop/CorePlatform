@@ -27,6 +27,9 @@ namespace IqSoft.CP.DAL
             this.Accounts = new HashSet<Account>();
             this.AnnouncementSettings = new HashSet<AnnouncementSetting>();
             this.PopupSettings = new HashSet<PopupSetting>();
+            this.Emails = new HashSet<Email>();
+            this.ClientInfoes = new HashSet<ClientInfo>();
+            this.ClientMessages = new HashSet<ClientMessage>();
         }
     
         public int Id { get; set; }
@@ -54,5 +57,11 @@ namespace IqSoft.CP.DAL
         public virtual ICollection<AnnouncementSetting> AnnouncementSettings { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PopupSetting> PopupSettings { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Email> Emails { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<ClientInfo> ClientInfoes { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<ClientMessage> ClientMessages { get; set; }
     }
 }

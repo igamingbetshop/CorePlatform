@@ -53,7 +53,7 @@ namespace IqSoft.CP.TerminalManager.Hubs
             try
             {
                 var printReceip = new PrintTicket(receiptObject, Enum.TicketTypes.Bet);
-                printReceip.PrintReceipt();
+                printReceip.PrintReceipt(receiptObject.PrinterName);
             }
             catch(Exception e)
             {
@@ -65,11 +65,28 @@ namespace IqSoft.CP.TerminalManager.Hubs
             try
             {
                 var printReceip = new PrintTicket(receiptObject, Enum.TicketTypes.Withdraw);
-                printReceip.PrintReceipt();
+                printReceip.PrintReceipt(receiptObject.PrinterName);
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
+            }
+        }
+
+        public List<string> GetAvailablePrinters()
+        {
+            try
+            {
+                var printers = new List<string>();
+                foreach (string p in System.Drawing.Printing.PrinterSettings.InstalledPrinters)
+                    printers.Add(p);
+
+                return printers;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                throw;
             }
         }
 

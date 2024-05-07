@@ -7,6 +7,7 @@
         JackpotWin = 3,
         AddComplimentaryPoint = 4,
         RemoveComplimentaryPoint = 5,
-        Deposit = 6
+        Deposit = 6,
+        CheckDuplicates = 7
     }
 }

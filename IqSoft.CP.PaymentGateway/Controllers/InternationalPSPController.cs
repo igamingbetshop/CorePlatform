@@ -67,6 +67,13 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                     var partner = CacheManager.GetPartnerById(client.PartnerId);
                     var url = CacheManager.GetPartnerPaymentSystemByKey(client.PartnerId, request.PaymentSystemId, Constants.PartnerKeys.InternationalPSPApiUrl);
                     var paymentGateway = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.PaymentGateway).StringValue;
+                    var amount = request.Amount;
+                    if (client.CurrencyId != Constants.Currencies.USADollar)
+                    {
+                        var parameters = string.IsNullOrEmpty(request.Parameters) ? new Dictionary<string, string>() :
+                                         JsonConvert.DeserializeObject<Dictionary<string, string>>(request.Parameters);
+                        amount = Math.Round(Convert.ToDecimal(parameters["AppliedRate"]) * request.Amount, 2);
+                    }
 
                     var autorizationInput = new
                     {
@@ -88,8 +95,8 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                         custom_postback_url = $"{paymentGateway}/api/InternationalPSP/ApiRequest",
                         browser_ip = paymentInfo.TransactionIp,
                         description = partner.Name,
-                        currency = client.CurrencyId,
-                        amount = request.Amount,
+                        currency = Constants.Currencies.USADollar,
+                        amount,
                         tax = 0,
                         cardholder_name = input.HolderName,
                         card_number = input.CardNumber,
@@ -167,11 +174,11 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                     using (var notificationBl = new NotificationBll(paymentSystemBl))
                         if (input.Status.ToLower() == "approved")
                         {
-                            if (request.Amount != input.AmountCaptured)
-                            {
-                                request.Amount = input.AmountCaptured;
-                                paymentSystemBl.ChangePaymentRequestDetails(request);
-                            }
+                            //if ( request.Amount != input.AmountCaptured)
+                            //{
+                            //    request.Amount = input.AmountCaptured;
+                            //    paymentSystemBl.ChangePaymentRequestDetails(request);
+                            //}
                             clientBl.ApproveDepositFromPaymentSystem(request, false);
                             PaymentHelpers.RemoveClientBalanceFromCache(request.ClientId.Value);
                             BaseHelpers.BroadcastBalance(request.ClientId.Value);

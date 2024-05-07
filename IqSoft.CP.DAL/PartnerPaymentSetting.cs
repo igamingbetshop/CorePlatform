@@ -18,11 +18,11 @@ namespace IqSoft.CP.DAL
         public PartnerPaymentSetting()
         {
             this.ClientPaymentInfoes = new HashSet<ClientPaymentInfo>();
+            this.ClientPaymentSettings = new HashSet<ClientPaymentSetting>();
             this.Documents = new HashSet<Document>();
             this.PartnerPaymentCountrySettings = new HashSet<PartnerPaymentCountrySetting>();
             this.PartnerPaymentCurrencyRates = new HashSet<PartnerPaymentCurrencyRate>();
             this.PaymentRequests = new HashSet<PaymentRequest>();
-            this.ClientPaymentSettings = new HashSet<ClientPaymentSetting>();
         }
     
         public int Id { get; set; }
@@ -47,22 +47,20 @@ namespace IqSoft.CP.DAL
         public Nullable<int> OpenMode { get; set; }
         public string OSTypes { get; set; }
         public Nullable<decimal> ApplyPercentAmount { get; set; }
+        public string ImageExtension { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ClientPaymentInfo> ClientPaymentInfoes { get; set; }
-        public virtual Currency Currency { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<ClientPaymentSetting> ClientPaymentSettings { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Document> Documents { get; set; }
-        public virtual Partner Partner { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PartnerPaymentCountrySetting> PartnerPaymentCountrySettings { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PartnerPaymentCurrencyRate> PartnerPaymentCurrencyRates { get; set; }
-        public virtual UserSession UserSession { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PaymentRequest> PaymentRequests { get; set; }
         public virtual PaymentSystem PaymentSystem { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<ClientPaymentSetting> ClientPaymentSettings { get; set; }
+        public virtual ICollection<PaymentRequest> PaymentRequests { get; set; }
     }
 }

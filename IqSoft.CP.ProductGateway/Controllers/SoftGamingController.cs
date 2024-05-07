@@ -354,6 +354,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
 
                     if (betDocument == null)
                     {
+                        input.tid = $"{Constants.FreeSpinPrefix}{input.tid}";
                         var operationsFromProduct = new ListOfOperationsFromApi
                         {
                             SessionId = clientSession?.SessionId,
@@ -361,7 +362,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                             GameProviderId = ProviderId,
                             ProductId = product.Id,
                             RoundId = input.i_gameid,
-                            TransactionId = string.Format("FREEROUNDS_{0}", input.tid),
+                            TransactionId = $"Bet_{input.tid}",
                             OperationItems = new List<OperationItemFromProduct>()
                         };
                         operationsFromProduct.OperationItems.Add(new OperationItemFromProduct
@@ -386,9 +387,13 @@ namespace IqSoft.CP.ProductGateway.Controllers
                     }
                     else
                         winDocument = documentBl.GetDocumentOnlyByExternalId(input.tid, ProviderId, client.Id, (int)OperationTypes.Win);
-
                     if (winDocument == null)
                     {
+                        winDocument = documentBl.GetDocumentOnlyByExternalId($"{Constants.FreeSpinPrefix}{input.tid}", ProviderId, client.Id, (int)OperationTypes.Win);
+                    }
+
+                    if (winDocument == null)
+                    {      
                         var amount = Convert.ToDecimal(input.amount);
                         var state = (amount > 0 ? (int)BetDocumentStates.Won : (int)BetDocumentStates.Lost);
                         betDocument.State = state;

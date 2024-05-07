@@ -25,9 +25,7 @@ namespace IqSoft.CP.DAL
             this.ClientClosedPeriods = new HashSet<ClientClosedPeriod>();
             this.ClientFavoriteProducts = new HashSet<ClientFavoriteProduct>();
             this.ClientIdentities = new HashSet<ClientIdentity>();
-            this.ClientInfoes = new HashSet<ClientInfo>();
             this.ClientLogs = new HashSet<ClientLog>();
-            this.ClientMessages = new HashSet<ClientMessage>();
             this.ClientMessageStates = new HashSet<ClientMessageState>();
             this.ClientPaymentInfoes = new HashSet<ClientPaymentInfo>();
             this.ClientSecurityAnswers = new HashSet<ClientSecurityAnswer>();
@@ -126,11 +124,7 @@ namespace IqSoft.CP.DAL
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ClientIdentity> ClientIdentities { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<ClientInfo> ClientInfoes { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ClientLog> ClientLogs { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<ClientMessage> ClientMessages { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ClientMessageState> ClientMessageStates { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]

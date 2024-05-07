@@ -13,11 +13,14 @@ using IqSoft.CP.Common.Enums;
 using IqSoft.CP.Common.Helpers;
 using IqSoft.CP.Common.Models;
 using IqSoft.CP.Common.Models.Report;
+using IqSoft.CP.Common.Models.WebSiteModels;
 using IqSoft.CP.DAL;
 using IqSoft.CP.DAL.Filters;
+using IqSoft.CP.DAL.Filters.Agent;
 using IqSoft.CP.DAL.Filters.Clients;
 using IqSoft.CP.DAL.Filters.Reporting;
 using IqSoft.CP.DAL.Models;
+using IqSoft.CP.DAL.Models.Agents;
 using IqSoft.CP.DAL.Models.Cache;
 using IqSoft.CP.DAL.Models.Dashboard;
 using IqSoft.CP.DAL.Models.PlayersDashboard;
@@ -28,6 +31,7 @@ using IqSoft.CP.DataWarehouse.Filters;
 using log4net;
 using Newtonsoft.Json;
 using static IqSoft.CP.Common.Constants;
+using fnClientSession = IqSoft.CP.DAL.fnClientSession;
 using PaymentRequest = IqSoft.CP.DAL.PaymentRequest;
 
 namespace IqSoft.CP.BLL.Services
@@ -64,7 +68,7 @@ namespace IqSoft.CP.BLL.Services
 
         #region Dashboard And RealTime
 
-        public PlayersInfo GetPlayersInfoForDashboard(FilterDashboard filter)
+        public ClientsInfo GetPlayersInfoForDashboard(FilterDashboard filter)
         {
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
@@ -101,7 +105,7 @@ namespace IqSoft.CP.BLL.Services
             if (partnerIds.Any())
                 q = q.Where(x => partnerIds.Contains(x.PartnerId));
 
-            var info = q.GroupBy(x => 1).Select(x => new PlayersInfo
+            var info = q.GroupBy(x => 1).Select(x => new ClientsInfo
             {
                 VisitorsCount = x.Sum(y => y.VisitorsCount),
                 SignUpsCount = x.Sum(y => y.SignUpsCount),
@@ -116,7 +120,7 @@ namespace IqSoft.CP.BLL.Services
                 MaxWin = x.Max(y => y.MaxWin)
             }).FirstOrDefault();
             if (info == null)
-                return new PlayersInfo();
+                return new ClientsInfo();
 
             info.AverageBet = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, info.TotalBetsCount == 0 ? 0 : info.TotalBetAmount / info.TotalBetsCount);
             info.MaxBet = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, info.MaxBet);
@@ -125,7 +129,7 @@ namespace IqSoft.CP.BLL.Services
             info.TotalBetAmount = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, info.TotalBetAmount);
             info.TotalCashoutAmount = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, info.TotalCashoutAmount);
             
-            info.DailyInfo = q.GroupBy(x => x.Date).Select(x => new PlayersDailyInfo
+            info.DailyInfo = q.GroupBy(x => x.Date).Select(x => new ClientsDailyInfo
             {
                 LongDate = x.Key,
                 VisitorsCount = x.Sum(y => y.VisitorsCount),
@@ -147,7 +151,7 @@ namespace IqSoft.CP.BLL.Services
                 var day = (long)date.Year * 10000 + (long)date.Month * 100 + (long)date.Day;
                 if(!info.DailyInfo.Any(x => x.LongDate == day))
                 {
-                    info.DailyInfo.Add(new PlayersDailyInfo { LongDate = day });
+                    info.DailyInfo.Add(new ClientsDailyInfo { LongDate = day });
                 }
             }
             info.DailyInfo = info.DailyInfo.OrderBy(x => x.LongDate).ToList();
@@ -161,6 +165,124 @@ namespace IqSoft.CP.BLL.Services
                 di.TotalBetAmount = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, di.TotalBetAmount);
                 di.TotalCashoutAmount = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, di.TotalCashoutAmount);
             }
+            return info;
+        }
+
+        public List<CountryClientsInfo> GetTopRegistrationCountries(FilterDashboard filter)
+        {
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewPartner,
+                ObjectTypeId = ObjectTypes.Partner
+            });
+
+            GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewDashboard
+            });
+
+            GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewClientByCategory,
+                ObjectTypeId = ObjectTypes.ClientCategory
+            });
+
+            var partnerIds = filter.PartnerId.HasValue ? new List<int> { filter.PartnerId.Value } : new List<int>();
+            if (!partnerAccess.HaveAccessForAllObjects)
+            {
+                if (filter.PartnerId != null && !partnerAccess.AccessibleIntegerObjects.Contains(filter.PartnerId.Value))
+                    throw CreateException(LanguageId, Errors.DontHavePermission);
+
+                if (!partnerIds.Any())
+                {
+                    if (partnerAccess.AccessibleIntegerObjects.Any())
+                        partnerIds = partnerAccess.AccessibleIntegerObjects.ToList();
+                    else
+                        partnerIds = new List<int> { -1 };
+                }
+            }
+            var q = Dwh.Clients.Where(x => x.CreationTime >= filter.FromDate && x.CreationTime < filter.ToDate);
+            if (partnerIds.Any())
+                q = q.Where(x => partnerIds.Contains(x.PartnerId));
+
+            var info = q.GroupBy(x => x.CountryId).Select(x => new CountryClientsInfo
+            {
+                CountryId = x.Key,
+                TotalCount = x.Count()
+            }).ToList();
+            int totalCount = info.Sum(x => x.TotalCount);
+            foreach(var i in info)
+            {
+                if (i.CountryId == null)
+                    i.CountryId = Constants.DefaultRegionId;
+                var r = CacheManager.GetRegionById(i.CountryId.Value, LanguageId);
+                i.CountryCode = r?.IsoCode;
+                i.CountryName = r?.Name;
+                i.Percent = Math.Round(i.TotalCount * 100 / (double)totalCount, 2);
+            }
+
+            return info;
+        }
+
+        public List<CountryClientsInfo> GetTopVisitorCountries(FilterDashboard filter)
+        {
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewPartner,
+                ObjectTypeId = ObjectTypes.Partner
+            });
+
+            GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewDashboard
+            });
+
+            GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewClientByCategory,
+                ObjectTypeId = ObjectTypes.ClientCategory
+            });
+
+            var partnerIds = filter.PartnerId.HasValue ? new List<int> { filter.PartnerId.Value } : new List<int>();
+            if (!partnerAccess.HaveAccessForAllObjects)
+            {
+                if (filter.PartnerId != null && !partnerAccess.AccessibleIntegerObjects.Contains(filter.PartnerId.Value))
+                    throw CreateException(LanguageId, Errors.DontHavePermission);
+
+                if (!partnerIds.Any())
+                {
+                    if (partnerAccess.AccessibleIntegerObjects.Any())
+                        partnerIds = partnerAccess.AccessibleIntegerObjects.ToList();
+                    else
+                        partnerIds = new List<int> { -1 };
+                }
+            }
+            var q = Dwh.fn_ClientSession().Where(x => x.StartTime >= filter.FromDate && x.StartTime < filter.ToDate && x.ProductId == (int)Constants.PlatformProductId);
+            if (partnerIds.Any())
+                q = q.Where(x => partnerIds.Contains(x.PartnerId));
+
+            var info = q.GroupBy(x => x.Country).Select(x => new CountryClientsInfo
+            {
+                CountryCode = x.Key,
+                TotalCount = x.Count()
+            }).ToList();
+            int totalCount = info.Sum(x => x.TotalCount);
+            foreach (var i in info)
+            {
+                if (string.IsNullOrEmpty(i.CountryCode))
+                {
+                    i.CountryId = Constants.DefaultRegionId;
+                }
+                else
+                {
+                    var r = CacheManager.GetRegionByCountryCode(i.CountryCode, LanguageId);
+                    i.CountryId = r.Id;
+                }
+                
+                i.CountryName = CacheManager.GetRegionById(i.CountryId.Value, LanguageId)?.Name;
+                i.Percent = Math.Round(i.TotalCount * 100 / (double)totalCount, 2);
+            }
+
             return info;
         }
 
@@ -656,7 +778,7 @@ namespace IqSoft.CP.BLL.Services
             return response;
         }
 
-        private PagedModel<ApiClientInfo> GetClientsInfo(FilterfnClientDashboard filter)
+        private PagedModel<DashboardClientInfo> GetClientsInfo(FilterfnClientDashboard filter)
         {
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
@@ -705,11 +827,11 @@ namespace IqSoft.CP.BLL.Services
             filter.FieldNameToOrderBy = "ClientId";
             filter.OrderBy = true;
             var dbClientReport = filter.FilterObjects(Dwh.fn_ClientReport(fDate, tDate), true).ToList();
-            var entities = new List<ApiClientInfo>();
+            var entities = new List<DashboardClientInfo>();
             dbClientReport.ForEach(x =>
             {
                 var balance = CacheManager.GetClientCurrentBalance(x.ClientId);
-                entities.Add(new ApiClientInfo
+                entities.Add(new DashboardClientInfo
                 {
                     ClientId = x.ClientId,
                     UserName = x.UserName,
@@ -740,11 +862,11 @@ namespace IqSoft.CP.BLL.Services
                                                                     y.TypeId != (int)AccountTypes.ClientCoinBalance &&
                                                                     y.TypeId != (int)AccountTypes.ClientBonusBalance).Sum(y => y.Balance) * 100) / 100,
                     BonusBalance = Math.Floor(balance.Balances.Where(y => y.TypeId == (int)AccountTypes.ClientBonusBalance).Sum(y => y.Balance) * 100) / 100,
-                    ComplimentaryBalance = Math.Floor(balance.Balances.Where(y => y.TypeId == (int)AccountTypes.ClientCoinBalance).Sum(y => y.Balance) * 100) / 100
+                    ComplementaryBalance = Math.Floor(x.ComplementaryBalance ?? 0 * 100) / 100
                 });
             });
 
-            return new PagedModel<ApiClientInfo>
+            return new PagedModel<DashboardClientInfo>
             {
                 Entities = entities,
                 Count = filter.SelectedObjectsCount(Dwh.fn_ClientReport(fDate, tDate)),
@@ -759,6 +881,195 @@ namespace IqSoft.CP.BLL.Services
             {
                 Clients = entities
             };
+        }
+
+        public List<DashboardClientInfo> GetTopTurnoverClients(FilterDashboard filter)
+        {
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewPartner,
+                ObjectTypeId = ObjectTypes.Partner
+            });
+            var clientAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewClient,
+                ObjectTypeId = ObjectTypes.Client
+            });
+            var checkViewAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewPlayerDashboard,
+                ObjectTypeId = ObjectTypes.Partner
+            });
+            var affiliateAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewAffiliate,
+                ObjectTypeId = ObjectTypes.Affiliate
+            });
+
+           
+            var fDate = (long)filter.FromDate.Year * 10000 + (long)filter.FromDate.Month * 100 + (long)filter.FromDate.Day;
+            var tDate = (long)filter.ToDate.Year * 10000 + (long)filter.ToDate.Month * 100 + (long)filter.ToDate.Day;
+
+            var query = Dwh.fn_ClientReport(fDate, tDate);
+            if (!partnerAccess.HaveAccessForAllObjects)
+                query = query.Where(x => partnerAccess.AccessibleObjects.Contains(x.PartnerId));
+
+            var clients = query.OrderByDescending(x => x.TotalBetAmount * x.CurrentRate).Take(5).ToList();
+            return clients.Select(x => new DashboardClientInfo
+            {
+                ClientId = x.ClientId,
+                UserName = x.UserName,
+                PartnerId = x.PartnerId,
+                CurrencyId = x.CurrencyId,
+                FirstName = x.FirstName,
+                LastName = x.LastName,
+                Email = x.Email,
+                AffiliatePlatformId = x.AffiliatePlatformId,
+                AffiliateId = x.AffiliateId,
+                AffiliateReferralId = x.AffiliateReferralId,
+                TotalDepositAmount = x.TotalDepositAmount ?? 0,
+                DepositsCount = x.DepositsCount ?? 0,
+                TotalWithdrawalAmount = x.TotalWithdrawalAmount ?? 0,
+                WithdrawalsCount = x.WithdrawalsCount ?? 0,
+                TotalBetAmount = x.TotalBetAmount ?? 0,
+                TotalBetsCount = x.TotalBetsCount ?? 0,
+                SportBetsCount = x.SportBetsCount ?? 0,
+                TotalWinAmount = x.TotalWinAmount ?? 0,
+                WinsCount = x.WinsCount ?? 0,
+                TotalCreditCorrection = x.TotalCreditCorrection ?? 0,
+                CreditCorrectionsCount = x.CreditCorrectionsCount ?? 0,
+                TotalDebitCorrection = x.TotalDebitCorrection ?? 0,
+                DebitCorrectionsCount = x.DebitCorrectionsCount ?? 0,
+                GGR = x.GGR ?? 0,
+                NGR = 0,
+                ComplementaryBalance = Math.Floor(x.ComplementaryBalance ?? 0 * 100) / 100
+            }).ToList();
+        }
+
+        public List<DashboardClientInfo> GetTopProfitableClients(FilterDashboard filter)
+        {
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewPartner,
+                ObjectTypeId = ObjectTypes.Partner
+            });
+            var clientAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewClient,
+                ObjectTypeId = ObjectTypes.Client
+            });
+            var checkViewAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewPlayerDashboard,
+                ObjectTypeId = ObjectTypes.Partner
+            });
+            var affiliateAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewAffiliate,
+                ObjectTypeId = ObjectTypes.Affiliate
+            });
+
+
+            var fDate = (long)filter.FromDate.Year * 10000 + (long)filter.FromDate.Month * 100 + (long)filter.FromDate.Day;
+            var tDate = (long)filter.ToDate.Year * 10000 + (long)filter.ToDate.Month * 100 + (long)filter.ToDate.Day;
+
+            var query = Dwh.fn_ClientReport(fDate, tDate);
+            if (!partnerAccess.HaveAccessForAllObjects)
+                query = query.Where(x => partnerAccess.AccessibleObjects.Contains(x.PartnerId));
+
+            var clients = query.OrderByDescending(x => x.GGR * x.CurrentRate).Take(5).ToList();
+            return clients.Select(x => new DashboardClientInfo
+            {
+                ClientId = x.ClientId,
+                UserName = x.UserName,
+                PartnerId = x.PartnerId,
+                CurrencyId = x.CurrencyId,
+                FirstName = x.FirstName,
+                LastName = x.LastName,
+                Email = x.Email,
+                AffiliatePlatformId = x.AffiliatePlatformId,
+                AffiliateId = x.AffiliateId,
+                AffiliateReferralId = x.AffiliateReferralId,
+                TotalDepositAmount = x.TotalDepositAmount ?? 0,
+                DepositsCount = x.DepositsCount ?? 0,
+                TotalWithdrawalAmount = x.TotalWithdrawalAmount ?? 0,
+                WithdrawalsCount = x.WithdrawalsCount ?? 0,
+                TotalBetAmount = x.TotalBetAmount ?? 0,
+                TotalBetsCount = x.TotalBetsCount ?? 0,
+                SportBetsCount = x.SportBetsCount ?? 0,
+                TotalWinAmount = x.TotalWinAmount ?? 0,
+                WinsCount = x.WinsCount ?? 0,
+                TotalCreditCorrection = x.TotalCreditCorrection ?? 0,
+                CreditCorrectionsCount = x.CreditCorrectionsCount ?? 0,
+                TotalDebitCorrection = x.TotalDebitCorrection ?? 0,
+                DebitCorrectionsCount = x.DebitCorrectionsCount ?? 0,
+                GGR = x.GGR ?? 0,
+                NGR = 0,
+                ComplementaryBalance = Math.Floor(x.ComplementaryBalance ?? 0 * 100) / 100
+            }).ToList();
+        }
+
+        public List<DashboardClientInfo> GetTopDamagingClients(FilterDashboard filter)
+        {
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewPartner,
+                ObjectTypeId = ObjectTypes.Partner
+            });
+            var clientAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewClient,
+                ObjectTypeId = ObjectTypes.Client
+            });
+            var checkViewAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewPlayerDashboard,
+                ObjectTypeId = ObjectTypes.Partner
+            });
+            var affiliateAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewAffiliate,
+                ObjectTypeId = ObjectTypes.Affiliate
+            });
+
+
+            var fDate = (long)filter.FromDate.Year * 10000 + (long)filter.FromDate.Month * 100 + (long)filter.FromDate.Day;
+            var tDate = (long)filter.ToDate.Year * 10000 + (long)filter.ToDate.Month * 100 + (long)filter.ToDate.Day;
+
+            var query = Dwh.fn_ClientReport(fDate, tDate);
+            if (!partnerAccess.HaveAccessForAllObjects)
+                query = query.Where(x => partnerAccess.AccessibleObjects.Contains(x.PartnerId));
+
+            var clients = query.OrderBy(x => x.GGR * x.CurrentRate).Take(5).ToList();
+            return clients.Select(x => new DashboardClientInfo
+            {
+                ClientId = x.ClientId,
+                UserName = x.UserName,
+                PartnerId = x.PartnerId,
+                CurrencyId = x.CurrencyId,
+                FirstName = x.FirstName,
+                LastName = x.LastName,
+                Email = x.Email,
+                AffiliatePlatformId = x.AffiliatePlatformId,
+                AffiliateId = x.AffiliateId,
+                AffiliateReferralId = x.AffiliateReferralId,
+                TotalDepositAmount = x.TotalDepositAmount ?? 0,
+                DepositsCount = x.DepositsCount ?? 0,
+                TotalWithdrawalAmount = x.TotalWithdrawalAmount ?? 0,
+                WithdrawalsCount = x.WithdrawalsCount ?? 0,
+                TotalBetAmount = x.TotalBetAmount ?? 0,
+                TotalBetsCount = x.TotalBetsCount ?? 0,
+                SportBetsCount = x.SportBetsCount ?? 0,
+                TotalWinAmount = x.TotalWinAmount ?? 0,
+                WinsCount = x.WinsCount ?? 0,
+                TotalCreditCorrection = x.TotalCreditCorrection ?? 0,
+                CreditCorrectionsCount = x.CreditCorrectionsCount ?? 0,
+                TotalDebitCorrection = x.TotalDebitCorrection ?? 0,
+                DebitCorrectionsCount = x.DebitCorrectionsCount ?? 0,
+                GGR = x.GGR ?? 0,
+                NGR = 0,
+                ComplementaryBalance = Math.Floor(x.ComplementaryBalance ?? 0 * 100) / 100
+            }).ToList();
         }
 
         #endregion
@@ -1164,9 +1475,16 @@ namespace IqSoft.CP.BLL.Services
             else
                 filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnInternetBet>>();
 
-            if(((filter.ToDate ?? DateTime.UtcNow) - filter.FromDate).TotalDays > 50)
-                throw CreateException(Constants.DefaultLanguageId, Constants.Errors.InvalidDataRange);
-
+            if (filter.ClientId != null)
+            {
+                if (((filter.ToDate ?? DateTime.UtcNow) - filter.FromDate).TotalDays > 366)
+                    throw CreateException(Constants.DefaultLanguageId, Constants.Errors.InvalidDataRange);
+            }
+            else
+            {
+                if (((filter.ToDate ?? DateTime.UtcNow) - filter.FromDate).TotalDays > 50)
+                    throw CreateException(Constants.DefaultLanguageId, Constants.Errors.InvalidDataRange);
+            }
             bool orderByDate = false;
             if (filter.OrderBy.HasValue)
             {
@@ -2103,7 +2421,6 @@ namespace IqSoft.CP.BLL.Services
             };
         }
 
-
 		public PagedModel<fnReportByClientGame> GetClientGamePagedModel(FilterClientGame filter, string currencyId, bool checkPermission)
 		{
 			var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
@@ -2146,6 +2463,45 @@ namespace IqSoft.CP.BLL.Services
 			    Count = filter.SelectedObjectsCount(Db.fn_ReportByClientGame(fDate, tDate))
 			};
 		}
+
+        public PagedModel<fnDuplicateClient> GetDuplicateClients(FilterfnDuplicateClient filter)
+        {
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewPartner,
+                ObjectTypeId = ObjectTypes.Partner
+            });
+
+            var clientAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewClient,
+                ObjectTypeId = ObjectTypes.Client
+            });
+
+            filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnDuplicateClient>>
+            {
+                new CheckPermissionOutput<fnDuplicateClient>
+                {
+                    AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
+                    HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
+                    Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
+                },
+                new CheckPermissionOutput<fnDuplicateClient>
+                {
+                    AccessibleObjects = clientAccess.AccessibleObjects,
+                    HaveAccessForAllObjects = clientAccess.HaveAccessForAllObjects,
+                    Filter = x => clientAccess.AccessibleObjects.Contains(x.ClientId)
+                }
+            };
+
+            var fDate = filter.FromDate.Year * 1000000 + filter.FromDate.Month * 10000 + filter.FromDate.Day * 100 + filter.FromDate.Hour;
+            var tDate = filter.ToDate.Year * 1000000 + filter.ToDate.Month * 10000 + filter.ToDate.Day * 100 + filter.ToDate.Hour;
+            return new PagedModel<fnDuplicateClient>
+            {
+                Entities = filter.FilterObjects(Dwh.fn_DuplicateClient(fDate, tDate), false).ToList(),
+                Count = filter.SelectedObjectsCount(Dwh.fn_DuplicateClient(fDate, tDate), false)
+            };
+        }      
 
         #endregion
 
@@ -2353,63 +2709,6 @@ namespace IqSoft.CP.BLL.Services
             {
                 Entities = filter.FilterObjects(Db.fn_ReportByUserTransaction(fDate, tDate), orderBy).ToList(),
                 Count = filter.SelectedObjectsCount(Db.fn_ReportByUserTransaction(fDate, tDate))
-            };
-        }
-        public PagedModel<fnReportByAgentTransfer> GetReportByAgentTransfers(FilterReportByAgentTranfer filter)
-        {
-            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
-            {
-                Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
-            });
-            var userAccess = GetPermissionsToObject(new CheckPermissionInput
-            {
-                Permission = Constants.Permissions.ViewUser,
-                ObjectTypeId = ObjectTypes.User
-            });
-
-            GetPermissionsToObject(new CheckPermissionInput
-            {
-                Permission = Constants.Permissions.ViewReportByCorrection
-            });
-            filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnReportByAgentTransfer>>
-            {
-                new CheckPermissionOutput<fnReportByAgentTransfer>
-                {
-                    AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
-                    HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-                    Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
-                },
-                new CheckPermissionOutput<fnReportByAgentTransfer>
-                {
-                    AccessibleObjects = userAccess.AccessibleObjects,
-                    HaveAccessForAllObjects = userAccess.HaveAccessForAllObjects,
-                    Filter = x => userAccess.AccessibleObjects.Contains(x.UserId)
-                }
-            };
-            Func<IQueryable<fnReportByAgentTransfer>, IOrderedQueryable<fnReportByAgentTransfer>> orderBy;
-
-            if (filter.OrderBy.HasValue)
-            {
-                if (filter.OrderBy.Value)
-                {
-                    orderBy = QueryableUtilsHelper.OrderByFunc<fnReportByAgentTransfer>(filter.FieldNameToOrderBy, true);
-                }
-                else
-                {
-                    orderBy = QueryableUtilsHelper.OrderByFunc<fnReportByAgentTransfer>(filter.FieldNameToOrderBy, false);
-                }
-            }
-            else
-            {
-                orderBy = agentTranfers => agentTranfers.OrderByDescending(x => x.UserId);
-            }
-            var fDate = filter.FromDate.Year * 1000000 + filter.FromDate.Month * 10000 + filter.FromDate.Day * 100 + filter.FromDate.Hour;
-            var tDate = filter.ToDate.Year * 1000000 + filter.ToDate.Month * 10000 + filter.ToDate.Day * 100 + filter.ToDate.Hour;
-            return new PagedModel<fnReportByAgentTransfer>
-            {
-                Entities = filter.FilterObjects(Db.fn_ReportByAgentTransfer(fDate, tDate), orderBy).ToList(),
-                Count = filter.SelectedObjectsCount(Db.fn_ReportByAgentTransfer(fDate, tDate))
             };
         }
         public List<fnReportByPartner> GetReportByPartners(FilterReportByPartner filter)
@@ -3321,7 +3620,7 @@ namespace IqSoft.CP.BLL.Services
             return filter.FilterObjects(Db.fn_Account(LanguageId)).ToList();
         }
 
-        public List<ApiClientInfo> ExportClientsInfoList(FilterfnClientDashboard filter)
+        public List<DashboardClientInfo> ExportClientsInfoList(FilterfnClientDashboard filter)
         {
             filter.TakeCount = 0;
             filter.SkipCount = 0;
@@ -3350,17 +3649,6 @@ namespace IqSoft.CP.BLL.Services
             filter.TakeCount = 0;
             filter.SkipCount = 0;
             return GetReportByUserTransactions(filter);
-        }
-
-        public PagedModel<fnReportByAgentTransfer> ExportReportByAgentTransfers(FilterReportByAgentTranfer filter)
-        {
-            CheckPermissionToSaveObject(new CheckPermissionInput
-            {
-                Permission = Constants.Permissions.ViewReportByCorrection
-            });
-            filter.TakeCount = 0;
-            filter.SkipCount = 0;
-            return GetReportByAgentTransfers(filter);
         }
 
         public List<fnReportByPartner> ExportReportByPartners(FilterReportByPartner filter)
@@ -3469,6 +3757,70 @@ namespace IqSoft.CP.BLL.Services
                 Entities = filter.FilterObjects(Db.fn_AgentTransaction(fDate, tDate, agentId), orderBy).ToList(),
                 Count = filter.SelectedObjectsCount(Db.fn_AgentTransaction(fDate, tDate, agentId))
             };
+        }
+
+        public PagedModel<AgentReportItem> GetAgentsReport(FilterfnUser filter, bool checkPermission)
+        {
+            if (checkPermission)
+                CheckPermission(Constants.Permissions.ViewReportByAgents);
+            var fDate = filter.FromDate.Year * (long)1000000 + filter.FromDate.Month * 10000 + filter.FromDate.Day * 100 + filter.FromDate.Hour;
+            var tDate = filter.ToDate.Year * (long)1000000 + filter.ToDate.Month * 10000 + filter.ToDate.Day * 100 + filter.ToDate.Hour;
+            using (var userBl = new UserBll(this))
+            {
+                var agents = new PagedModel<AgentReportItem>();
+                if (filter.ParentId == null)
+                {
+                    filter.IdentityId = Identity.Id;
+                    filter.Types = new List<int> { (int)UserTypes.CompanyAgent };
+                    var users = userBl.GetUsersPagedModel(filter, checkPermission);
+                    agents.Count = users.Count;
+                    agents.Entities = users.Entities.Select(x => x.ToAgentReportItem()).ToList();
+                }
+                else
+                {
+                    var users = userBl.GetSubAgents(filter.ParentId.Value, null, null, true, string.Empty);
+                    agents.Count = users.Count;
+                    agents.Entities = users.Select(x => x.ToAgentReportItem()).ToList();
+                }
+
+                var agentsGGRProfit = userBl.GetAgentProfit(fDate, tDate).Where(x => x.TotalProfit > 0).ToList();
+                var agentsTurnoverProfit = userBl.GetAgentTurnoverProfit(fDate, tDate).Where(x => x.TotalProfit > 0).ToList();
+                var corrections = userBl.GetAgentTransfers(fDate, tDate);
+
+                foreach (var agent in agents.Entities)
+                {
+                    var ggrItems = agentsGGRProfit.Where(x => x.RecieverAgentId == agent.AgentId).ToList();
+                    var turnoverItems = agentsTurnoverProfit.Where(x => x.RecieverAgentId == agent.AgentId).ToList();
+                    var correctionItems = corrections.Where(x => (x.OperationTypeId >= (int)OperationTypes.DebitCorrectionOnUser && x.OperationTypeId <= (int)OperationTypes.CreditCorrectionOnUser &&
+                        (x.Creator == agent.AgentId || x.UserId == agent.AgentId)) ||
+                        (x.OperationTypeId >= (int)OperationTypes.DebitCorrectionOnClient && x.OperationTypeId <= (int)OperationTypes.CreditCorrectionOnClient &&
+                        x.Creator == agent.AgentId)).ToList();
+                    var dQuery = correctionItems.Where(x => (x.OperationTypeId == (int)OperationTypes.DebitCorrectionOnUser && x.UserId == agent.AgentId) ||
+                        ((x.OperationTypeId == (int)OperationTypes.CreditCorrectionOnUser || 
+                        x.OperationTypeId == (int)OperationTypes.CreditCorrectionOnClient) && x.Creator == agent.AgentId));
+                    var wQuery = correctionItems.Where(x => ((x.OperationTypeId == (int)OperationTypes.DebitCorrectionOnUser || 
+                        x.OperationTypeId == (int)OperationTypes.DebitCorrectionOnClient) && x.Creator == agent.AgentId) ||
+                        (x.OperationTypeId == (int)OperationTypes.CreditCorrectionOnUser && x.UserId == agent.AgentId));
+
+                    agent.TotalDepositCount = dQuery.Count();
+                    agent.TotalDepositAmount = dQuery.Select(x => x.Amount).DefaultIfEmpty(0).Sum();
+                    agent.TotalWithdrawCount = wQuery.Count();
+                    agent.TotalWithdrawAmount = wQuery.Select(x => x.Amount).DefaultIfEmpty(0).Sum();
+                    agent.TotalBetsCount = turnoverItems.Select(x => x.TotalBetsCount).DefaultIfEmpty(0).Sum();
+                    agent.TotalUnsettledBetsCount = turnoverItems.Select(x => x.TotalUnsettledBetsCount).DefaultIfEmpty(0).Sum();
+                    agent.TotalDeletedBetsCount = turnoverItems.Select(x => x.TotalDeletedBetsCount).DefaultIfEmpty(0).Sum();
+
+                    agent.TotalBetAmount = ggrItems.Select(x => x.TotalBetAmount ?? 0).DefaultIfEmpty(0).Sum();
+                    agent.TotalWinAmount = ggrItems.Select(x => x.TotalBetAmount ?? 0).DefaultIfEmpty(0).Sum();
+                    agent.TotalProfit = agent.TotalBetAmount - agent.TotalWinAmount;
+                    agent.TotalProfitPercent = agent.TotalBetAmount == 0 ? 0 : agent.TotalProfit * 100 / agent.TotalBetAmount;
+
+                    agent.TotalGGRCommission = ggrItems.Select(x => x.TotalProfit ?? 0).DefaultIfEmpty(0).Sum();
+                    agent.TotalTurnoverCommission = turnoverItems.Select(x => x.TotalProfit).DefaultIfEmpty(0).Sum();
+                }
+
+                return agents;
+            }
         }
 
         public PagedModel<fnAffiliateTransaction> GetAffiliateTransactions(FilterfnAffiliateTransaction filter, int affiliateId)

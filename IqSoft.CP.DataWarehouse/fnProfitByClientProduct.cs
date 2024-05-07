@@ -19,5 +19,8 @@ namespace IqSoft.CP.DataWarehouse
         public Nullable<int> SelectionsCount { get; set; }
         public Nullable<decimal> TotalBetAmount { get; set; }
         public Nullable<decimal> TotalWinAmount { get; set; }
+        public Nullable<int> TotalBetsCount { get; set; }
+        public Nullable<int> TotalUnsettledBetsCount { get; set; }
+        public Nullable<int> TotalDeletedBetsCount { get; set; }
     }
 }

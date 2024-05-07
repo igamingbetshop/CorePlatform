@@ -137,7 +137,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                         Helpers.Helpers.InvokeMessage("RemoveClient", client.Id);
                         clientSession.SessionId = session.Id;
                         clientSession.Id = client.Id;
-                        clientSession.LoginIp = Constants.DefaultIp;
+                        clientSession.LoginIp = (string.IsNullOrEmpty(input.Ip) ? Constants.DefaultIp : input.Ip);
                         clientSession.CurrencyId = client.CurrencyId;
 
                         productSession = ProductController.GetProductSession(input.GameId, input.IsForMobile ? (int)DeviceTypes.Mobile :
@@ -1053,39 +1053,46 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
         {
             try
             {
-                using (var clientBl = new ClientBll(new SessionIdentity { LanguageId = input.LanguageId, Domain = input.Domain, Country = input.CountryCode },
-                    WebApiApplication.DbLogger))
+                var session = new SessionIdentity { LanguageId = input.LanguageId, Domain = input.Domain, Country = input.CountryCode };
+                using (var affiliateService = new AffiliateService(session, WebApiApplication.DbLogger))
                 {
-                    using (var regionBl = new RegionBll(clientBl))
+                    using (var regionBl = new RegionBll(affiliateService))
                     {
                         if (input.TermsConditionsAccepted.HasValue && !input.TermsConditionsAccepted.Value) // should have a value
                             throw BaseBll.CreateException(input.LanguageId, Constants.Errors.AcceptTermsConditions);
 
                         if (string.IsNullOrEmpty(input.Email))
                             throw BaseBll.CreateException(input.LanguageId, Constants.Errors.EmailCantBeEmpty);
-                        else
-                            input.Email = input.Email.Replace(" ", string.Empty);
+                        input.Email = input.Email.Replace(" ", string.Empty);
 
                         if (!string.IsNullOrEmpty(input.MobileNumber))
                             input.MobileNumber = input.MobileNumber.Replace(" ", string.Empty);
 
-                        var clientRegistrationInput = new ClientRegistrationInput
+                        var newAffiliate = new DAL.Affiliate
                         {
-                            ClientData = input.MapToClient(),
-                            ReCaptcha = input.ReCaptcha ?? string.Empty,
+                            PartnerId = input.PartnerId,
+                            Email = input.Email,
+                            UserName = input.UserName,
+                            Password = input.Password,
+                            Gender = input.Gender ?? (int)Gender.Male,
+                            RegionId = input.Country ?? 0,
+                            FirstName = input.FirstName ?? string.Empty,
+                            LastName = input.LastName ?? string.Empty,
+                            NickName = input.NickName ?? string.Empty,
+                            MobileNumber = input.MobileNumber.Replace(" ", string.Empty),
+                            LanguageId = input.LanguageId,
                             CommunicationType = input.CommunicationType,
                             CommunicationTypeValue = input.CommunicationTypeValue
                         };
-
-                        if (clientRegistrationInput.ClientData.RegionId == 0)
+                        if (newAffiliate.RegionId == 0)
                         {
                             var region = regionBl.GetRegionByCountryCode(input.CountryCode);
                             if (region != null)
-                                clientRegistrationInput.ClientData.RegionId = region.Id;
+                                newAffiliate.RegionId = region.Id;
                         }
 
-                        var client = clientBl.RegisterAffiliate(clientRegistrationInput);
-                        return client.MapToApiAffiliateOutput(input.TimeZone);
+                        var affiliate = affiliateService.RegisterAffiliate(newAffiliate, input.ReCaptcha);
+                        return affiliate.MapToApiAffiliateOutput(input.TimeZone);
                     }
                 }
             }
@@ -2108,7 +2115,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                 using (var clientBl = new ClientBll(identity, WebApiApplication.DbLogger))
                 {
                     var info = clientBl.GetClientInfoByKey(input.ActivationKey, (int)ClientInfoTypes.WelcomeBonusActivationKey, true);
-                    var client = CacheManager.GetClientById(info.ClientId ?? 0);
+                    var client = CacheManager.GetClientById(info.ObjectId ?? 0);
                     identity = new SessionIdentity { LanguageId = input.LanguageId, PartnerId = client.PartnerId };
                     using (var bonusBl = new BonusService(identity, WebApiApplication.DbLogger))
                     {
@@ -2664,7 +2671,8 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                         var activePeriodInMinutes = notificationBl.SendNotificationMessage(new NotificationModel
                         {
                             PartnerId = request.PartnerId,
-                            ClientId = request.ClientId,
+                            ObjectId = request.ClientId ?? 0,
+                            ObjectTypeId = (int)ObjectTypes.Client,
                             MobileOrEmail = request.MobileNumber,
                             ClientInfoType = (int)clientInfoType,
                             VerificationCode = verificationKey,
@@ -2746,7 +2754,8 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                         var activePeriodInMinutes = notificationBl.SendNotificationMessage(new NotificationModel
                         {
                             PartnerId = request.PartnerId,
-                            ClientId = request.ClientId,
+                            ObjectId = request.ClientId ?? 0,
+                            ObjectTypeId = (int)ObjectTypes.Client,
                             MobileOrEmail =request.Email,
                             ClientInfoType = (int)clientInfoType,
                             VerificationCode = verificationKey,
@@ -2976,8 +2985,8 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                     var favoriteProducts = new List<int>();
                     var partnerGameProviderSettings = CacheManager.GetGameProviderSettings((int)ObjectTypes.Partner, partner.Id);
                     var clientGameProviderSettings = new List<BllGameProviderSetting>();
-
                     var blockedProviders = partnerGameProviderSettings.Where(x => x.State == (int)BaseStates.Inactive).Select(x => x.GameProviderId).ToList();
+                    
                     if (!string.IsNullOrEmpty(input.Token))
                     {
                         Helpers.Helpers.CheckToken(input.Token, input.ClientId, input.TimeZone);
@@ -3104,23 +3113,27 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                 using (var productBl = new ProductBll(new SessionIdentity { LanguageId = input.LanguageId, Domain = input.Domain }, WebApiApplication.DbLogger))
                 {
                     var favoriteProducts = new List<int>();
-                    var blockedProviders = CacheManager.GetGameProviderSettings((int)ObjectTypes.Partner, partner.Id)
-                                          .Where(x => x.State == (int)BaseStates.Inactive).Select(x => x.GameProviderId).ToList();
+                    var partnerGameProviderSettings = CacheManager.GetGameProviderSettings((int)ObjectTypes.Partner, partner.Id);
+                    var clientGameProviderSettings = new List<BllGameProviderSetting>();
+                    var blockedProviders = partnerGameProviderSettings.Where(x => x.State == (int)BaseStates.Inactive).Select(x => x.GameProviderId).ToList();
+
                     if (!string.IsNullOrEmpty(input.Token))
                     {
                         Helpers.Helpers.CheckToken(input.Token, input.ClientId, input.TimeZone);
                         favoriteProducts = CacheManager.GetClientFavoriteProducts(input.ClientId).Select(x => x.ProductId).ToList();
+                        clientGameProviderSettings = CacheManager.GetGameProviderSettings((int)ObjectTypes.Client, input.ClientId);
+                        var clientBlockedProviders = clientGameProviderSettings.Where(x => x.State == (int)BaseStates.Inactive && !blockedProviders.Contains(x.GameProviderId))
+                                                    .Select(x => x.GameProviderId).ToList();
                         blockedProviders.AddRange(CacheManager.GetGameProviderSettings((int)ObjectTypes.Client, input.ClientId)
                                         .Where(x => x.State == (int)BaseStates.Inactive).Select(x => x.GameProviderId).ToList());
+                        var client = CacheManager.GetClientById(input.ClientId);
+                        blockedProviders.AddRange(CacheManager.GetRestrictedGameProviders(client.CurrencyId));
                     }
                     var product = (input.IsForMobile ? CacheManager.GetPartnerProductSettings(input.PartnerId, input.CountryCode, (int)DeviceTypes.Mobile, input.LanguageId, WebApiApplication.DbLogger) :
                                                     CacheManager.GetPartnerProductSettings(input.PartnerId, input.CountryCode, (int)DeviceTypes.Desktop, input.LanguageId, WebApiApplication.DbLogger))
                        .Where(x => !blockedProviders.Contains(x.SI) &&
                         (input.CategoryIds == null || !input.CategoryIds.Any() || input.CategoryIds.Any(y => x.CI != null && x.CI.Contains(y)))).AsEnumerable();
-                    var partnerGameProviderSettings = CacheManager.GetGameProviderSettings((int)ObjectTypes.Partner, partner.Id);
-                    if (!string.IsNullOrEmpty(input.Token))
-                        blockedProviders.AddRange(CacheManager.GetGameProviderSettings((int)ObjectTypes.Client, input.ClientId)
-                                        .Where(x => x.State == (int)BaseStates.Inactive).Select(x => x.GameProviderId).ToList());
+
                     var categories = CacheManager.GetProductCategories(input.PartnerId, input.LanguageId, (int)ProductCategoryTypes.ForPartner)
                                                  .Where(x => x.Type == (int)ProductCategoryTypes.ForPartner && x.Name.ToLower().Contains(input.Pattern ?? string.Empty))
                                                  .Select(x => new { x.Id, x.Name }).ToList();
@@ -3154,28 +3167,11 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                     {
                         providers = providers.Where(x => x.Name.ToLower().Contains(input.Pattern)).ToList();
                     }
-
-                    //var games = product.Where(x => x.N.ToLower().Contains(input.Pattern ?? string.Empty)).Take(100).ToList();
-                    /*var resp = new List<object>();
-                    foreach (var g in games)
-                    {
-                        var game = CacheManager.GetProductById(g.I);
-                        var imageUrl = input.IsForMobile ? game.MobileImageUrl : game.WebImageUrl;
-                        resp.Add(new
-                        {
-                            Id = g.I,
-                            g.N,
-                            ImageUrl = string.IsNullOrEmpty(imageUrl) ? string.Empty : imageUrl,
-                            IsFavorite = favoriteProducts.Contains(game.Id),
-                            HasDemo = game.HasDemo && g.HD.HasValue ? g.HD.Value : game.HasDemo,
-                        });
-                    }*/
                     return new ApiResponseBase
                     {
                         ResponseObject = new
                         {
                             Providers = providers.OrderBy(x => x.Order).ThenBy(x => x.Name).ToList(),
-                            //Games = resp,
                             Categories = categories
                         }
                     };

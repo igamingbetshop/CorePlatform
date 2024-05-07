@@ -44,14 +44,11 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             {
                 using (var clientbl = new ClientBll(identity, log))
                 {
-                    using (var userBl = new UserBll(identity, log))
+                    clientbl.SaveNote(note);
+                    return new ApiResponseBase
                     {
-                        clientbl.SaveNote(note);
-                        return new ApiResponseBase
-                        {
-                            ResponseObject = note
-                        };
-                    }
+                        ResponseObject = note
+                    };
                 }
             }
             else if (note.ObjectTypeId == (int)ObjectTypes.Document)

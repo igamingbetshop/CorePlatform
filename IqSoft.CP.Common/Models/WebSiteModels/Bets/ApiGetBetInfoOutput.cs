@@ -44,6 +44,7 @@ namespace IqSoft.CP.Common.Models.WebSiteModels.Bets
 		public decimal? CommissionFee { get; set; }
 
 		public int? NumberOfMatches { get; set; }
+		public string RoundResult { get; set; }
 
 		public List<ApiBetItem> BetSelections { get; set; }
 	}

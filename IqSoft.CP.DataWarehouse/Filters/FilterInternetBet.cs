@@ -14,6 +14,8 @@ namespace IqSoft.CP.DataWarehouse.Filters
 
         public int? AgentId { get; set; }
 
+        public int? ClientId { get; set; }
+
         public long? AccountId { get; set; }
 
         public DateTime FromDate { get; set; }
@@ -23,6 +25,7 @@ namespace IqSoft.CP.DataWarehouse.Filters
         public FiltersOperation Ids { get; set; }
 
         public FiltersOperation ClientIds { get; set; }
+
         public FiltersOperation UserIds { get; set; }
 
         public FiltersOperation Names { get; set; }
@@ -36,7 +39,9 @@ namespace IqSoft.CP.DataWarehouse.Filters
         public FiltersOperation ProductNames { get; set; }
 
         public FiltersOperation ProviderNames { get; set; }
+
         public FiltersOperation SubproviderIds { get; set; }
+        
         public FiltersOperation SubproviderNames { get; set; }
 
         public FiltersOperation Currencies { get; set; }
@@ -99,11 +104,9 @@ namespace IqSoft.CP.DataWarehouse.Filters
         {
             if (PartnerId.HasValue)
                 objects = objects.Where(x => x.PartnerId == PartnerId.Value);
-            if (AgentId.HasValue)
-            {
-                var agentValue = "/" + AgentId.Value + "/";
-                objects = objects.Where(x => x.UserPath.Contains(agentValue));
-            }
+            if (ClientId.HasValue)
+                objects = objects.Where(x => x.ClientId == ClientId.Value);
+
             var fDate = FromDate.Year * 1000000 + FromDate.Month * 10000 + FromDate.Day * 100 + FromDate.Hour;
             objects = objects.Where(x => x.Date >= fDate);
             if (ToDate != null)
@@ -111,7 +114,12 @@ namespace IqSoft.CP.DataWarehouse.Filters
                 var tDate = ToDate.Value.Year * 1000000 + ToDate.Value.Month * 10000 + ToDate.Value.Day * 100 + ToDate.Value.Hour;
                 objects = objects.Where(x => x.Date < tDate);
             }
-            if(AccountId != null)
+            if (AgentId.HasValue)
+            {
+                var agentValue = "/" + AgentId.Value + "/";
+                objects = objects.Where(x => x.UserPath.Contains(agentValue));
+            }
+            if (AccountId != null)
                 objects = objects.Where(x => x.AccountId == AccountId.Value);
 
             FilterByValue(ref objects, Ids, "BetDocumentId");

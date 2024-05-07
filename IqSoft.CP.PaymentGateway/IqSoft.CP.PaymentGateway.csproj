@@ -296,6 +296,7 @@
     <Compile Include="Controllers\PaymentIQCashierController.cs" />
     <Compile Include="Controllers\PaymentIQController.cs" />
     <Compile Include="Controllers\PremierCashierController.cs" />
+    <Compile Include="Controllers\QuikiPayController.cs" />
     <Compile Include="Controllers\SantimaPayController.cs" />
     <Compile Include="Controllers\StripeController.cs" />
     <Compile Include="Controllers\TelebirrController.cs" />
@@ -509,6 +510,8 @@
     <Compile Include="Models\Qiwi\ResultResponse.cs" />
     <Compile Include="Models\Qiwi\InputBase.cs" />
     <Compile Include="Models\Qiwi\OutputBase.cs" />
+    <Compile Include="Models\QuikiPay\PaymentInput.cs" />
+    <Compile Include="Models\QuikiPay\PayoutInput.cs" />
     <Compile Include="Models\Runpay\PaymentInput.cs" />
     <Compile Include="Models\SantimaPay\Transaction.cs" />
     <Compile Include="Models\SDPay\OrderInput.cs" />

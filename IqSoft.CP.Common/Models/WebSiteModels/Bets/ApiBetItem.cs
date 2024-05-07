@@ -41,5 +41,6 @@ namespace IqSoft.CP.Common.Models.WebSiteModels.Bets
 		public bool ForcedChosen { get; set; }
 
 		public string MatchStatisticsInfo { get; set; }
+		public decimal? Amount { get; set; }
 	}
 }

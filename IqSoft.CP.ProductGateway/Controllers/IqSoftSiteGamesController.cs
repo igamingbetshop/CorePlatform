@@ -586,6 +586,16 @@ namespace IqSoft.CP.ProductGateway.Controllers
                             case Constants.GameProviders.AleaPlay:
                                 Integration.Products.Helpers.AleaPlayHelpers.AddFreeRound(freespinModel, WebApiApplication.DbLogger);                             
                                 break;
+                            case Constants.GameProviders.Endorphina:
+                                Integration.Products.Helpers.EndorphinaHelpers.AddFreeRound(freespinModel, WebApiApplication.DbLogger);                             
+                                break;
+                            case Constants.GameProviders.TimelessTech:
+                                Integration.Products.Helpers.TimelessTechHelpers.CreateCampaign(freespinModel, Constants.GameProviders.TimelessTech, WebApiApplication.DbLogger);                             
+                                break;
+                            case Constants.GameProviders.BCWGames:
+                                Integration.Products.Helpers.TimelessTechHelpers.CreateCampaign(freespinModel, Constants.GameProviders.BCWGames, WebApiApplication.DbLogger);
+                                break;
+
                             default:
                                 break;
                         }

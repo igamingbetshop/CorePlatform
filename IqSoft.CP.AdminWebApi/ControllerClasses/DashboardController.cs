@@ -38,6 +38,21 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     return
                         GetClientsInfoList(
                             JsonConvert.DeserializeObject<ApiFilterfnClientDashboard>(request.RequestData), identity, log);
+                case Constants.RequestMethods.GetTopRegistrationCountries:
+                    return GetTopRegistrationCountries(JsonConvert.DeserializeObject<ApiFilterDashboard>(request.RequestData),
+                        identity, log);
+                case Constants.RequestMethods.GetTopVisitorCountries:
+                    return GetTopVisitorCountries(JsonConvert.DeserializeObject<ApiFilterDashboard>(request.RequestData),
+                        identity, log);
+                case Constants.RequestMethods.GetTopTurnoverClients:
+                    return GetTopTurnoverClients(JsonConvert.DeserializeObject<ApiFilterDashboard>(request.RequestData),
+                        identity, log);
+                case Constants.RequestMethods.GetTopProfitableClients:
+                    return GetTopProfitableClients(JsonConvert.DeserializeObject<ApiFilterDashboard>(request.RequestData),
+                        identity, log);
+                case Constants.RequestMethods.GetTopDamagingClients:
+                    return GetTopDamagingClients(JsonConvert.DeserializeObject<ApiFilterDashboard>(request.RequestData),
+                        identity, log);
                 case Constants.RequestMethods.ExportClientsInfoList:
                     return
                         ExportClientsInfoList(
@@ -127,6 +142,61 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             }
         }
 
+        private static ApiResponseBase GetTopRegistrationCountries(ApiFilterDashboard input, SessionIdentity identity, ILog log)
+        {
+            using (var reportBl = new ReportBll(identity, log))
+            {
+                var response = new ApiResponseBase();
+                var filter = input.MapToFilterDashboard(identity.TimeZone);
+                response.ResponseObject = reportBl.GetTopRegistrationCountries(filter).OrderByDescending(x => x.TotalCount).ToList();
+                return response;
+            }
+        }
+
+        private static ApiResponseBase GetTopVisitorCountries(ApiFilterDashboard input, SessionIdentity identity, ILog log)
+        {
+            using (var reportBl = new ReportBll(identity, log))
+            {
+                var response = new ApiResponseBase();
+                var filter = input.MapToFilterDashboard(identity.TimeZone);
+                response.ResponseObject = reportBl.GetTopVisitorCountries(filter).OrderByDescending(x => x.TotalCount).ToList();
+                return response;
+            }
+        }
+
+        private static ApiResponseBase GetTopTurnoverClients(ApiFilterDashboard input, SessionIdentity identity, ILog log)
+        {
+            using (var reportBl = new ReportBll(identity, log))
+            {
+                var response = new ApiResponseBase();
+                var filter = input.MapToFilterDashboard(identity.TimeZone);
+                response.ResponseObject = reportBl.GetTopTurnoverClients(filter).ToList();
+                return response;
+            }
+        }
+
+        private static ApiResponseBase GetTopProfitableClients(ApiFilterDashboard input, SessionIdentity identity, ILog log)
+        {
+            using (var reportBl = new ReportBll(identity, log))
+            {
+                var response = new ApiResponseBase();
+                var filter = input.MapToFilterDashboard(identity.TimeZone);
+                response.ResponseObject = reportBl.GetTopProfitableClients(filter).ToList();
+                return response;
+            }
+        }
+
+        private static ApiResponseBase GetTopDamagingClients(ApiFilterDashboard input, SessionIdentity identity, ILog log)
+        {
+            using (var reportBl = new ReportBll(identity, log))
+            {
+                var response = new ApiResponseBase();
+                var filter = input.MapToFilterDashboard(identity.TimeZone);
+                response.ResponseObject = reportBl.GetTopDamagingClients(filter).ToList();
+                return response;
+            }
+        }
+
         private static ApiResponseBase ExportClientsInfoList(ApiFilterfnClientDashboard input, SessionIdentity identity, ILog log)
         {
             using (var reportBl = new ReportBll(identity, log))
@@ -134,7 +204,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 var filter = input.MapToFilterfnClientDashboard();
                 var clients = reportBl.ExportClientsInfoList(filter);
                 string fileName = "ExportPlayersDashboard.csv";
-                string fileAbsPath = reportBl.ExportToCSV<ApiClientInfo>(fileName, clients, input.FromDate, input.ToDate, reportBl.GetUserIdentity().TimeZone, input.AdminMenuId);
+                string fileAbsPath = reportBl.ExportToCSV<DashboardClientInfo>(fileName, clients, input.FromDate, input.ToDate, reportBl.GetUserIdentity().TimeZone, input.AdminMenuId);
 
                 var response = new ApiResponseBase
                 {

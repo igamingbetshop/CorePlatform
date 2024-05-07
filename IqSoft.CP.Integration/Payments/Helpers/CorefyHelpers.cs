@@ -28,7 +28,8 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             { Constants.PaymentSystems.CorefyMefete, "mefete_{0}_hpp"},
             { Constants.PaymentSystems.CorefyParazula, "parazula_{0}_hpp"},
             { Constants.PaymentSystems.CorefyPapara, "papara_{0}_hpp" },
-            { Constants.PaymentSystems.CorefyMaldoCrypto, "maldo_crypto_{0}_hpp" }
+            { Constants.PaymentSystems.CorefyMaldoCrypto, "maldo_crypto_{0}_hpp" },
+            { Constants.PaymentSystems.CorefyIPague, "pix_qr_{0}_invoice" }
         };
 
         private static Dictionary<string, string> PayoutServices { get; set; } = new Dictionary<string, string>
@@ -41,6 +42,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             { Constants.PaymentSystems.CorefyMefete, "mefete_{0}"},
             { Constants.PaymentSystems.CorefyParazula, "parazula_{0}"},
             { Constants.PaymentSystems.CorefyPapara, "papara_{0}" },
+            { Constants.PaymentSystems.CorefyIPague, "pix_{0}" },
             { Constants.PaymentSystems.CorefyMaldoCryptoBTC, "maldo_crypto_{0}" },
             { Constants.PaymentSystems.CorefyMaldoCryptoETH, "maldo_crypto_{0}" },
             { Constants.PaymentSystems.CorefyMaldoCryptoETHBEP20, "maldo_crypto_{0}" },
@@ -186,12 +188,15 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                     accountNumber = paymentInfo.WalletNumber != string.Empty ? paymentInfo.WalletNumber : null;
                 else if (paymentSystem.Name == Constants.PaymentSystems.CorefyPep)
                     paymentInfo.BankBranchName =  $"{client.FirstName} {client.LastName}";
-                else if(paymentSystem.Name == Constants.PaymentSystems.CorefyHavale)
+                else if(paymentSystem.Name == Constants.PaymentSystems.CorefyHavale || paymentSystem.Name == Constants.PaymentSystems.CorefyIPague)
                 {
                     var bankInfo = paymentSystemBl.GetBankInfoById(Convert.ToInt32(paymentInfo.BankId));
                     if (bankInfo == null)
                         throw BaseBll.CreateException(session.LanguageId, Constants.Errors.BankIsUnavailable);
-                    paymentInfo.BankBranchName = bankInfo.BankCode;
+                    if(paymentSystem.Name == Constants.PaymentSystems.CorefyHavale)
+                        paymentInfo.BankBranchName = bankInfo.BankCode;
+                    else
+                        paymentInfo.AccountType = bankInfo.BankCode;
                 }
                 string beneficiaryName = null;
                 if (paymentSystem.Name == Constants.PaymentSystems.CorefyParazula || paymentSystem.Name == Constants.PaymentSystems.CorefyPayFix ||
@@ -202,7 +207,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                     }
 
                 if(paymentSystem.Name == Constants.PaymentSystems.CorefyBankTransfer)
-                    beneficiaryName=paymentInfo.BeneficiaryName;
+                    beneficiaryName = paymentInfo.BeneficiaryName;
                 else if (!string.IsNullOrEmpty(paymentInfo.BankAccountHolder))
                     beneficiaryName = paymentInfo.BankAccountHolder;
                 var paymentInput = new PaymentInput
@@ -227,7 +232,13 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                                 BranchCode = paymentSystem.Name != Constants.PaymentSystems.CorefyHavale && paymentInfo.BankBranchName != string.Empty ? paymentInfo.BankBranchName : null,
                                 BankBranchCode = paymentInfo.BankBranchName != string.Empty ? paymentInfo.BankBranchName : null,
                                 BeneficiaryFullName = beneficiaryName,
-                                BeneficiaryAccountNumber = paymentInfo.BankAccountNumber != string.Empty ? paymentInfo.BankAccountNumber : null
+                                BeneficiaryAccountNumber = paymentInfo.BankAccountNumber != string.Empty ? paymentInfo.BankAccountNumber : null,
+                                AccountType = paymentInfo.AccountType,
+                                BeneficiaryName = paymentInfo.NationalId,
+                                BeneficiaryLastname = paymentInfo.BankBranchName,
+                                PixKey = paymentInfo.BankIBAN,
+                                CpfNumber = paymentInfo.BankAccountNumber
+
                             },
                             Customer = new CustomerModel
                             {

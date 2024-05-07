@@ -537,7 +537,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 {
                     var input = new Popup
                     {
-                        Id =apiPopupInput.Id,
+                        Id = apiPopupInput.Id,
                         PartnerId = apiPopupInput.PartnerId,
                         NickName = apiPopupInput.NickName,
                         Type = apiPopupInput.Type,
@@ -548,7 +548,8 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                         SegmentIds = apiPopupInput.SegmentIds,
                         ClientIds = apiPopupInput.ClientIds,
                         StartDate = apiPopupInput.StartDate,
-                        FinishDate = apiPopupInput.FinishDate
+                        FinishDate = apiPopupInput.FinishDate,
+                        DeviceType = apiPopupInput.DeviceType
                     };
                     var dbPopup = contentBl.SavePopup(input);
                     apiPopupInput.Id = dbPopup.Id;
@@ -568,12 +569,10 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                             if (!string.IsNullOrEmpty(apiPopupInput.ImageData))
                             {
                                 byte[] bytes = Convert.FromBase64String(apiPopupInput.ImageData);
-                                contentBl.UploadFtpImage(bytes, ftpModel, $"{path}/web/{apiPopupInput.ImageName}");
-                            }
-                            if (!string.IsNullOrEmpty(apiPopupInput.MobileImageData))
-                            {
-                                byte[] bytes = Convert.FromBase64String(apiPopupInput.MobileImageData);
-                                contentBl.UploadFtpImage(bytes, ftpModel, $"{path}/mobile/{apiPopupInput.ImageName}");
+                                if (!apiPopupInput.DeviceType.HasValue || apiPopupInput.DeviceType == (int)DeviceTypes.Desktop)
+                                    contentBl.UploadFtpImage(bytes, ftpModel, $"{path}/web/{apiPopupInput.ImageName}");
+                                if (!apiPopupInput.DeviceType.HasValue || apiPopupInput.DeviceType == (int)DeviceTypes.Mobile)
+                                    contentBl.UploadFtpImage(bytes, ftpModel, $"{path}/mobile/{apiPopupInput.ImageName}");
                             }
                         }
                         catch (Exception e)
@@ -608,6 +607,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                             x.Type,
                             x.State,
                             x.Page,
+                            x.DeviceType,
                             x.Order,
                             StartDate = x.StartDate.GetGMTDateFromUTC(identity.TimeZone),
                             FinishDate = x.FinishDate.GetGMTDateFromUTC(identity.TimeZone),

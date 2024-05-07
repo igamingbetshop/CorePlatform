@@ -14,5 +14,6 @@ namespace IqSoft.CP.BLL.Models
         public string content { get; set; }
         public string description { get; set; }
         public string title { get; set; }
+        public DateTime startDate { get; set; }
     }
 }

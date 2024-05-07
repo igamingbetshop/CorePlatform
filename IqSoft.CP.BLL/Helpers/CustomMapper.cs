@@ -9,6 +9,7 @@ using IqSoft.CP.Common.Models.Filters;
 using IqSoft.CP.Common.Models.WebSiteModels;
 using IqSoft.CP.DAL;
 using IqSoft.CP.DAL.Models;
+using IqSoft.CP.DAL.Models.Agents;
 using IqSoft.CP.DAL.Models.Cache;
 using IqSoft.CP.DAL.Models.Products;
 using IqSoft.CP.DAL.Models.Segment;
@@ -51,7 +52,8 @@ namespace IqSoft.CP.BLL.Helpers
 				SessionId = document.SessionId,
 				CreationTime = document.CreationTime,
 				LastUpdateTime = document.LastUpdateTime,
-				RoundId = document.RoundId
+				RoundId = document.RoundId,
+				ProductId = document.ProductId
 			};
 		}
 
@@ -114,7 +116,55 @@ namespace IqSoft.CP.BLL.Helpers
             };
 		}
 
-		public static object ToApiMenu(this BllMenu input)
+        public static AgentReportItem ToAgentReportItem(this fnUser input)
+        {
+            return new AgentReportItem
+            {
+                AgentId = input.Id,
+                AgentFirstName = input.FirstName,
+				AgentLastName = input.LastName,
+                AgentUserName = input.UserName,
+                TotalDepositCount = 0,
+                TotalWithdrawCount = 0,
+                TotalDepositAmount = 0,
+                TotalWithdrawAmount = 0,
+                TotalBetsCount = 0,
+                TotalUnsettledBetsCount = 0,
+                TotalDeletedBetsCount = 0,
+                TotalBetAmount = 0,
+                TotalWinAmount = 0,
+                TotalProfit = 0,
+                TotalProfitPercent = 0,
+                TotalGGRCommission = 0,
+                TotalTurnoverCommission = 0
+            };
+        }
+
+        public static AgentReportItem ToAgentReportItem(this fnAgent input)
+        {
+            return new AgentReportItem
+            {
+                AgentId = input.Id,
+                AgentFirstName = input.FirstName,
+                AgentLastName = input.LastName,
+                AgentUserName = input.UserName,
+                TotalDepositCount = 0,
+                TotalWithdrawCount = 0,
+                TotalDepositAmount = 0,
+                TotalWithdrawAmount = 0,
+                TotalBetsCount = 0,
+                TotalUnsettledBetsCount = 0,
+                TotalDeletedBetsCount = 0,
+                TotalBetAmount = 0,
+                TotalWinAmount = 0,
+                TotalProfit = 0,
+                TotalProfitPercent = 0,
+                TotalGGRCommission = 0,
+                TotalTurnoverCommission = 0
+            };
+        }
+
+        public static object ToApiMenu(this BllMenu input)
 		{
 			return new
 			{
@@ -275,7 +325,10 @@ namespace IqSoft.CP.BLL.Helpers
 				MinAmount = input.MinAmount,
 				MaxAmount = input.MaxAmount,
 				Condition = input.Condition,
-				BonusPaymentSystemSettings = input.BonusPaymentSystemSettings?.Select(x => new
+                ConsiderBonusBets = input.ConsiderBonusBets,
+                UpToAmount = input.UpToAmount,
+                Status = input.Status,
+                BonusPaymentSystemSettings = input.BonusPaymentSystemSettings?.Select(x => new
 				{ x.Id, x.PaymentSystemId, x.Type }).ToList()
 			};
 		}
@@ -503,7 +556,6 @@ namespace IqSoft.CP.BLL.Helpers
 				TotalBetsCount = model.TotalBetsCount?.ToString(),
 				TotalBetsAmount = model.TotalBetsAmount?.ToString(),
 				Profit = model.Profit?.ToString(),
-				Bonus = model.Bonus?.ToString(),
 				SuccessDepositPaymentSystem = model.SuccessDepositPaymentSystem?.ToString(),
 				SuccessWithdrawalPaymentSystem = model.SuccessWithdrawalPaymentSystem?.ToString(),
 				SportBetsCount = model.SportBetsCount?.ToString(),
@@ -746,6 +798,5 @@ namespace IqSoft.CP.BLL.Helpers
 			}
 			throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongInputParameters);
 		}
-
 	}
 }

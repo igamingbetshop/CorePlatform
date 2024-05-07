@@ -27,6 +27,8 @@ using PdfSharp.Pdf;
 using PdfSharp.Pdf.IO;
 using Newtonsoft.Json;
 using IqSoft.CP.Common.Models.UserModels;
+using IqSoft.CP.BLL.Helpers;
+using System.Data.Entity.Validation;
 
 namespace IqSoft.CP.BLL.Services
 {
@@ -121,18 +123,6 @@ namespace IqSoft.CP.BLL.Services
             }
 
             GC.SuppressFinalize(this);
-        }
-
-        public void WriteToFile(string content, string fileName)
-        {
-            using (var fs = new FileStream(fileName, FileMode.Append, FileAccess.Write))
-            using (var sw = new StreamWriter(fs))
-            {
-                sw.WriteLine(content);
-                sw.Flush();
-                sw.Close();
-                fs.Close();
-            }
         }
 
         public void UploadFile(string content, string path, FtpModel ftpInput)
@@ -752,6 +742,8 @@ namespace IqSoft.CP.BLL.Services
             fileName= $"{Guid.NewGuid()}_{fileName}";
             if (fromDate != null && endDate != null)
                 fileName = $"/ExportExcelFiles/{fromDate.Value.GetGMTDateFromUTC(timeZone):dd_MM_yyyy_HH_mm_ss}_{endDate.Value.GetGMTDateFromUTC(timeZone):dd_MM_yyyy_HH_mm_ss}_{fileName}";
+            else
+                fileName = $"/ExportExcelFiles/{currentDate.GetGMTDateFromUTC(timeZone):dd_MM_yyyy_HH_mm_ss}_{fileName}";
             var lines = ExportExcelHelper.SaveToCSV<T>(exportList, fromDate, endDate, currentDate, timeZone, fileName, userMenuColumns);
 
             var ftpModel = new FtpModel
@@ -865,26 +857,62 @@ namespace IqSoft.CP.BLL.Services
                 throw CreateException(Constants.DefaultLanguageId, Constants.Errors.DontHavePermission, info: ip);
         }
 
-        public static void LogAction(ActionLog action)
+        public static void LogAction(ActionLog action, ILog log = null)
         {
-            using (var db = new IqSoftCorePlatformEntities())
+            try
             {
-                var currentDate = DateTime.UtcNow;
-                action.CreationTime = currentDate;
-                action.Date = currentDate.Year * 1000000 + currentDate.Month * 10000 + currentDate.Day * 100 + currentDate.Hour;
+                using (var db = new IqSoftCorePlatformEntities())
+                {
+                    var currentDate = DateTime.UtcNow;
+                    action.CreationTime = currentDate;
+                    action.Date = currentDate.Year * 1000000 + currentDate.Month * 10000 + currentDate.Day * 100 + currentDate.Hour;
+                    int maxLength = 255;
+                    action.Description = string.IsNullOrEmpty(action.Description) ? string.Empty : 
+                        (action.Description.Length <= maxLength ? action.Description : action.Description.Substring(0, maxLength));
 
-                if (string.IsNullOrEmpty(action.Domain))
-                    action.Domain = string.Empty;
-                if (string.IsNullOrEmpty(action.Source))
-                    action.Source = string.Empty;
-                if (string.IsNullOrEmpty(action.Ip))
-                    action.Ip = string.Empty;
-                if (string.IsNullOrEmpty(action.Country))
-                    action.Country = string.Empty;
-                if (action.ActionId == 0)
-                    action.ActionId = CacheManager.GetAction("NotFound").Id;
-                db.ActionLogs.Add(action);
-                db.SaveChanges();
+                    if (string.IsNullOrEmpty(action.Domain))
+                        action.Domain = string.Empty;
+                    if (string.IsNullOrEmpty(action.Source))
+                        action.Source = string.Empty;
+                    if (string.IsNullOrEmpty(action.Ip))
+                        action.Ip = string.Empty;
+                    if (string.IsNullOrEmpty(action.Country))
+                        action.Country = string.Empty;
+                    if (action.ActionId == 0)
+                        action.ActionId = CacheManager.GetAction("NotFound").Id;
+                    db.ActionLogs.Add(action);
+                    db.SaveChanges();
+                }
+            }
+            catch (DbEntityValidationException e)
+            {
+                var msg = string.Empty;
+                foreach (var eve in e.EntityValidationErrors)
+                {
+                    msg += string.Format("Entity of type \"{0}\" in state \"{1}\" has the following validation errors:",
+                        eve.Entry.Entity.GetType().Name, eve.Entry.State);
+                    foreach (var ve in eve.ValidationErrors)
+                    {
+                        msg += string.Format("- Property: \"{0}\", Error: \"{1}\"",
+                            ve.PropertyName, ve.ErrorMessage);
+                    }
+                }
+                if(log != null)
+                    log.Error(msg + "_" + action.Description);
+                throw;
+            }
+        }
+
+        public void CheckSiteCaptcha(int partnerId, string reCaptcha)
+        {
+            if (CacheManager.GetConfigKey(partnerId, Constants.PartnerKeys.CaptchaEnabled) != "0")
+            {
+                var captchaResponse = CaptchaHelpers.CallCaptchaApi(reCaptcha, new SessionIdentity { LanguageId = Identity.LanguageId, PartnerId = partnerId });
+                if (!captchaResponse.Success)
+                {
+                    Log.Info(JsonConvert.SerializeObject(captchaResponse));
+                    throw CreateException(Identity.LanguageId, Constants.Errors.InvalidSecretKey);
+                }
             }
         }
     }

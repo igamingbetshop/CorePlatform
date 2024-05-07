@@ -65,10 +65,11 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 var paymentSystem = CacheManager.GetPaymentSystemById(paymentSystemId);
                 if (!CryptoCurrencies.ContainsKey(paymentSystem.Name))
                     throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.PaymentSystemNotFound);
-                var postData = new
+                var convertCurrency = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.CoinsPaidConvertCurrency).StringValue;
+				var postData = new
                 {
                     currency = CryptoCurrencies[paymentSystem.Name],
-                    convert_to = Constants.Currencies.Euro, //client.CurrencyId,
+                    convert_to = !string.IsNullOrWhiteSpace(convertCurrency) ? convertCurrency : Constants.Currencies.Euro, //client.CurrencyId,
                     foreign_id = clientId.ToString()
                 };
                 var url = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.CoinsPaidUrl).StringValue;

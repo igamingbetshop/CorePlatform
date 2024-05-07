@@ -19,7 +19,7 @@ namespace IqSoft.CP.DAL
         public int AdminMenuId { get; set; }
         public string State { get; set; }
     
-        public virtual AdminMenu AdminMenu { get; set; }
         public virtual User User { get; set; }
+        public virtual AdminMenu AdminMenu { get; set; }
     }
 }

@@ -430,8 +430,6 @@ namespace IqSoft.CP.ProductGateway.Controllers
                             var ids = productBll.SynchronizeProducts(Provider.Id, gameList);
                             productBll.SavePartnerProductSettings(new ApiPartnerProductSettingInput { ProductIds = ids, PartnerId = partnerId, CategoryIds = new List<int>() }, false);
                             CacheManager.RemoveFromCache(string.Format("{0}_{1}", Constants.CacheItems.ClientProductCategories, partnerId));
-                            CacheManager.RemoveFromCache(string.Format("{0}_{1}_", Constants.CacheItems.PartnerProductSettings, partnerId));
-                            CacheManager.RemoveKeysFromCache(string.Format("{0}_", Constants.CacheItems.ProductCountrySetting));
                             foreach (var id in ids)
                             {
                                 CacheManager.DeleteProductFromCache(id);

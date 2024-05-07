@@ -1156,7 +1156,7 @@ namespace IqSoft.CP.JobService
             }
         }
 
-        public static void CalculateAgentsProfit(Job job, ILog log)
+        public static void CalculateAgentsGGRProfit(Job job, ILog log)
         {
             try
             {

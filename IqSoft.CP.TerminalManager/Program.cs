@@ -24,10 +24,9 @@ namespace IqSoft.CP.TerminalManager
             Console.WriteLine("Continuing with the application");
             Log.Logger = new LoggerConfiguration()
                .WriteTo.Map("FileName", "", (fileName, wt) => wt.File($"accesslogs/{fileName}/log.txt", rollingInterval: RollingInterval.Day))
-               .CreateLogger();
+               .CreateLogger();           
             ReadConfigFile();
             CreateHostBuilder(args).Build().Run();
-
         }       
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>

@@ -8,10 +8,12 @@ using IqSoft.CP.Common.Models.CacheModels;
 using IqSoft.CP.DAL;
 using IqSoft.CP.DAL.Models;
 using IqSoft.CP.Integration.Products.Models.BGGames;
+using IqSoft.CP.Integration.Products.Models.IqSoft;
 using log4net;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -41,7 +43,9 @@ namespace IqSoft.CP.Integration.Products.Helpers
 					userIP = "109.75.47.208", //serverIP.FirstOrDefault().ToString(),
 					currency = client?.CurrencyId ?? "EUR",
 					customer = token,
-					country = region.IsoCode3
+					country = region?.IsoCode ?? "TR",
+					demo = isForDemo ? "true" : null,
+				    homeURL = Uri.EscapeDataString($"https://{session.Domain}")
 				};
 				if (product.NickName == "pregame" || product.NickName == "live")
 				{
@@ -54,10 +58,7 @@ namespace IqSoft.CP.Integration.Products.Helpers
 					data.action = "get_game";
 					data.license = "2";
 					data.game = product.ExternalId;
-					data.demo = isForDemo ? "true" : null;
 				}
-				
-				var a = JsonConvert.SerializeObject(data, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
 				var signature = CommonFunctions.ComputeMd5(JsonConvert.SerializeObject(data, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore }) + signatureKey);
 				var httpRequestInput = new HttpRequestInput
 				{
@@ -67,11 +68,12 @@ namespace IqSoft.CP.Integration.Products.Helpers
 					PostData = CommonFunctions.GetUriEndocingFromObject(data) + $"&signature={signature}"
 				};
 				var res = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
+				log.Info("Response_" + res);
 				var regex = new Regex(@"<iframe.*?src=[""'](.*?)[""'].*?>", RegexOptions.IgnoreCase);
 				Match match = regex.Match(res);
 				if (match.Success)
 					response = match.Groups[1].Value;
-				return response.Replace("yourdomain.here", $"{session.Domain}");
+                return response.Replace("yourdomain.here", $"{session.Domain}");
 			}
 		}
 
@@ -94,9 +96,52 @@ namespace IqSoft.CP.Integration.Products.Helpers
 				PostData = CommonFunctions.GetUriEndocingFromObject(data) + $"&signature={signature}"
 			};
 			var res = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
-			var resData = JsonConvert.DeserializeObject<Data>(res);
-            var response = JsonConvert.DeserializeObject<List<Game>>(JsonConvert.SerializeObject(resData.data));
-            return response;
+			var resData = JsonConvert.DeserializeObject<Models.BGGames.Data>(res);
+			var response = JsonConvert.DeserializeObject<List<Game>>(JsonConvert.SerializeObject(resData.data));
+			return response;
+		}
+
+
+		public static object BetHistory(int partnerId, int clientId, string ExternalTransactionId)
+		{
+			var apiKey = CacheManager.GetGameProviderValueByKey(partnerId, Provider.Id, Constants.PartnerKeys.BGGamesApiKey);
+			var signatureKey = CacheManager.GetGameProviderValueByKey(partnerId, Provider.Id, Constants.PartnerKeys.BGGamesSignature);
+		var data = new
+			{
+				action = "bet_history",
+				appID = apiKey,
+				userID = clientId.ToString(),
+			};
+			var signature = CommonFunctions.ComputeMd5(JsonConvert.SerializeObject(data) + signatureKey);
+			var httpRequestInput = new HttpRequestInput
+			{
+				RequestMethod = Constants.HttpRequestMethods.Post,
+				ContentType = Constants.HttpContentTypes.ApplicationUrlEncoded,
+				Url = Provider.GameLaunchUrl,
+				PostData = CommonFunctions.GetUriEndocingFromObject(data) + $"&signature={signature}"
+			};
+			var res = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
+			var resData = JsonConvert.DeserializeObject<BetHistory>(res);
+			var output = JsonConvert.DeserializeObject<List<Datum>>(JsonConvert.SerializeObject(resData.data));
+			var datum = output.FirstOrDefault(x => x.betslipId == ExternalTransactionId);
+			var report = new Report
+			{
+				betslipId = datum.betslipId,
+				events = new List<Models.BGGames.Info>()
+			};
+			foreach (var e in datum.events)
+			{
+				var ev = new Models.BGGames.Info
+				{
+					name = e.name,
+					oddName = e.oddName,
+					oddValue = e.oddValue,
+					selName = e.selName,
+					extra = e.extra,
+				};
+				report.events.Add(ev);
+			}
+			return report;
 		}
 
 

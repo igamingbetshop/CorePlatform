@@ -40,6 +40,7 @@ namespace IqSoft.CP.AdminWebApi.Models.BonusModels
         public int? DayOfWeek { get; set; }
         public decimal? WageringAmount { get; set; }
         public decimal? UpToAmount { get; set; }
+        public bool? ConsiderBonusBets { get; set; }
         public BonusCondition Conditions { get; set; }
         public List<ApiAmountSetting> AmountSettings { get; set; }
     }

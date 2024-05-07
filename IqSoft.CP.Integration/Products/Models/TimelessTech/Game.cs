@@ -18,6 +18,7 @@ namespace IqSoft.CP.Integration.Products.Models.TimelessTech
 		public int fun_mode { get; set; }
 		public int? campaigns { get; set; }
 		public string vendor { get; set; }
+		public string betValue { get; set; }
 		public List<string> vendorGroups { get; set; }
 		public Details details { get; set; }
 	}

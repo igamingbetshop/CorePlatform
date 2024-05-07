@@ -351,7 +351,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                                 amount += input.promoWinAmount.Value;
                             if (NotSupportedCurrencies.Contains(client.CurrencyId))
                                 amount = BaseBll.ConvertCurrency(Constants.Currencies.USADollar, client.CurrencyId, amount);
-                            var state = (amount > 0 ? (int)BetDocumentStates.Won : (int)BetDocumentStates.Lost);
+                            var state = amount > 0 ? (int)BetDocumentStates.Won : (int)BetDocumentStates.Lost;
                             betDocument.State = state;
                             var operationsFromProduct = new ListOfOperationsFromApi
                             {

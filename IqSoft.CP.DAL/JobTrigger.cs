@@ -21,6 +21,7 @@ namespace IqSoft.CP.DAL
         public Nullable<int> JackpotId { get; set; }
         public Nullable<decimal> Amount { get; set; }
         public Nullable<long> PaymentRequestId { get; set; }
+        public string Info { get; set; }
     
         public virtual Jackpot Jackpot { get; set; }
         public virtual Segment Segment { get; set; }

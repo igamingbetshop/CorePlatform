@@ -22,6 +22,9 @@ using IqSoft.CP.Common.Models.AdminModels;
 using IqSoft.CP.Common.Helpers;
 using System.Web.UI.WebControls;
 using static IqSoft.CP.Common.Constants;
+using System.ComponentModel;
+using IqSoft.CP.Common.Attributes;
+using IqSoft.CP.Common.Models.Filters;
 
 namespace IqSoft.CP.BLL.Services
 {
@@ -509,7 +512,8 @@ namespace IqSoft.CP.BLL.Services
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             var currentDate = DateTime.Now;
             if (apiPopup.FinishDate <= apiPopup.StartDate || apiPopup.FinishDate <= currentDate ||
-                !Enum.IsDefined(typeof(PopupTypes), apiPopup.Type) || !Enum.IsDefined(typeof(BaseStates), apiPopup.State))
+                !Enum.IsDefined(typeof(PopupTypes), apiPopup.Type) || !Enum.IsDefined(typeof(BaseStates), apiPopup.State) ||
+                (apiPopup.DeviceType.HasValue && !Enum.IsDefined(typeof(DeviceTypes), apiPopup.DeviceType)))
                 throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
             apiPopup.LastUpdateTime = currentDate;
             var dbPopup = Db.Popups.Include(x => x.PopupSettings).FirstOrDefault(x => x.Id == apiPopup.Id);
@@ -521,6 +525,7 @@ namespace IqSoft.CP.BLL.Services
                 dbPopup.Type = apiPopup.Type;
                 dbPopup.State = apiPopup.State;
                 dbPopup.Page = apiPopup.Page;
+                dbPopup.DeviceType = apiPopup.DeviceType;
                 dbPopup.Order = apiPopup.Order;
                 dbPopup.LastUpdateTime = currentDate;
                 dbPopup.StartDate = apiPopup.StartDate;
@@ -534,7 +539,7 @@ namespace IqSoft.CP.BLL.Services
                     Db.PopupSettings.Where(x => x.PopupId == apiPopup.Id && x.ObjectTypeId == (int)ObjectTypes.Segment &&
                                                !apiPopup.SegmentIds.Contains(x.ObjectId)).DeleteFromQuery();
                     var dbSegments = dbPopup.PopupSettings.Where(x => x.PopupId == apiPopup.Id && x.ObjectTypeId == (int)ObjectTypes.Segment)
-                                                     .Select(x => x.ObjectId).ToList();
+                                                          .Select(x => x.ObjectId).ToList();
                     apiPopup.SegmentIds.RemoveAll(x => dbSegments.Contains(x));
                     foreach (var s in apiPopup.SegmentIds)
                         Db.PopupSettings.Add(new PopupSetting
@@ -572,6 +577,7 @@ namespace IqSoft.CP.BLL.Services
                 Type = apiPopup.Type,
                 State = apiPopup.State,
                 Page = apiPopup.Page,
+                DeviceType = apiPopup.DeviceType,
                 Order = apiPopup.Order,
                 ImageName = apiPopup.ImageName,
                 StartDate = apiPopup.StartDate,
@@ -583,7 +589,7 @@ namespace IqSoft.CP.BLL.Services
                     ObjectTypeId = (int)ObjectTypes.Popup,
                     Text = apiPopup.NickName,
                     LanguageId = Constants.DefaultLanguageId
-                }),
+                })
             });
             Db.SaveChanges();
             newPopup.ImageName = newPopup.Id.ToString() + "." + apiPopup.ImageName.ToLower() + "?ver=1";
@@ -694,7 +700,7 @@ namespace IqSoft.CP.BLL.Services
             Db.Translations.Where(x => x.Id == translationId).DeleteFromQuery();
         }
 
-        public void UploadPopupFile(int popupId, int type)
+        public void UploadPopupFile(int popupId)
         {
             var popup = Db.Popups.Where(x => x.Id == popupId)
                                  .Select(x => new
@@ -702,15 +708,16 @@ namespace IqSoft.CP.BLL.Services
                                      x.Id,
                                      x.PartnerId,
                                      x.Type,
+                                     x.DeviceType,
                                      x.ImageName,
                                      Content = x.Translation.TranslationEntries.OrderBy(y => y.LanguageId != Constants.DefaultLanguageId)
-                                                                               .Select(y => new { y.LanguageId, y.Text }).ToList()
+                                                                               .Select(y => new { y.LanguageId, y.Text }).ToList(),
                                  }).FirstOrDefault() ??
                 throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
             var partner = CacheManager.GetPartnerById(popup.PartnerId);
             var languages = Db.PartnerLanguageSettings.Where(x => x.PartnerId == partner.Id && x.State == (int)PartnerLanguageStates.Active)
                                                       .Select(x => x.LanguageId).ToList();
-            var pathTemplate = "/assets/json/popups/" + (type == (int)DeviceTypes.Mobile ? "mobile/" : "web/");
+            var pathTemplate = "/assets/json/popups/";
             var ftpModels = Db.PartnerKeys.Where(x => x.PartnerId == partner.Id && x.PaymentSystemId == null &&
                    (x.Name == Constants.PartnerKeys.FtpServer || x.Name == Constants.PartnerKeys.FtpUserName || x.Name == Constants.PartnerKeys.FtpPassword)).
                    GroupBy(x => x.NotificationServiceId.Value).
@@ -730,7 +737,12 @@ namespace IqSoft.CP.BLL.Services
                     Content = popup.Content.FirstOrDefault(x => x.LanguageId == lang || x.LanguageId == Constants.DefaultLanguageId).Text
                 };
                 foreach (var ftp in ftpModels)
-                    UploadFile(JsonConvert.SerializeObject(p), $"/coreplatform/website/{partner.Name.ToLower()}{pathTemplate}{p.Id}_{lang.ToLower()}.json", ftp.Value);
+                {
+                    if (!popup.DeviceType.HasValue || popup.DeviceType == (int)DeviceTypes.Desktop)
+                        UploadFile(JsonConvert.SerializeObject(p), $"/coreplatform/website/{partner.Name.ToLower()}{pathTemplate}web/{p.Id}_{lang.ToLower()}.json", ftp.Value);
+                    if (!popup.DeviceType.HasValue || popup.DeviceType == (int)DeviceTypes.Mobile)
+                        UploadFile(JsonConvert.SerializeObject(p), $"/coreplatform/website/{partner.Name.ToLower()}{pathTemplate}mobile/{p.Id}_{lang.ToLower()}.json", ftp.Value);
+                }
             }
         }
 
@@ -919,9 +931,9 @@ namespace IqSoft.CP.BLL.Services
                 x.DeviceType == deviceType)).OrderBy(x => x.Id).ToList();
         }
 
-        public List<ApiAdminMenu> GetAdminMenus(List<string> permissionIds, bool isAdmin)
+        public List<ApiAdminMenu> GetAdminMenus(List<string> permissionIds, bool isAdmin, int interfaceId)
         {
-            var dbAdminMenus = Db.AdminMenus.ToList();
+            var dbAdminMenus = Db.AdminMenus.Where(x => x.InterfaceId == interfaceId).ToList();
             var nodes = dbAdminMenus.Select(x => new ApiAdminMenu
             {
                 Id = x.Id,
@@ -1717,8 +1729,7 @@ namespace IqSoft.CP.BLL.Services
                     break;
 
                 case (int)ObjectTypes.Popup:
-                    var popup = Db.Popups.FirstOrDefault(x => x.Id == objectId);
-                    if (popup == null)
+                    var popup = Db.Popups.FirstOrDefault(x => x.Id == objectId) ??
                         throw CreateException(LanguageId, Constants.Errors.ObjectTypeNotFound);
                     partnerId = popup.PartnerId;
                     translationObject = new ObjectTranslations
@@ -2361,7 +2372,8 @@ namespace IqSoft.CP.BLL.Services
                                                                     image = x.ImageName,
                                                                     content = x.Content,
                                                                     description = x.Description,
-                                                                    title = x.Title
+                                                                    title = x.Title,
+                                                                    startDate = x.StartDate
                                                                 }).ToList().ForEach(p =>
                                                                 {
                                                                     UploadFile(JsonConvert.SerializeObject(p), "/coreplatform/website/" + partner.Name.ToLower() + String.Format(pathTemplate, p.id, languageId.ToLower()), ftpInput);
@@ -2378,12 +2390,17 @@ namespace IqSoft.CP.BLL.Services
                     throw BaseBll.CreateException(LanguageId, Constants.Errors.PartnerNotFound);
                 var ftpModel = partnerBl.GetPartnerEnvironments(partnerId).First();
 
-                var path = "ftp://" + ftpModel.Value.Url + "/coreplatform/website/" + partner.Name + "/assets/";
-                if (menuItemName.ToLower() == "fonts")
-                    path += "fonts/" + imageName;
+                var path = "ftp://" + ftpModel.Value.Url + "/coreplatform/website/" + partner.Name + "/";
+                if (menuItemName.ToLower() == Constants.WebSiteConfiguration.Root)
+                    path += imageName;
                 else
-                    path += "images/";
-
+                {
+                    path+= "assets/";
+                    if (menuItemName.ToLower() == "fonts")
+                        path += "fonts/" + imageName;
+                    else
+                        path += "images/";
+                }
                 if (menuItemName.StartsWith("Images"))
                     path += (menuItemName.ToLower() != "images" ? menuItemName.Split('_')[1].ToLower() + "/" + imageName : imageName);
                 else if (menuType == Constants.WebSiteConfiguration.AccountTabsList)
@@ -3038,7 +3055,7 @@ namespace IqSoft.CP.BLL.Services
                         break;
                     case (int)ObjectTypes.Popup:
                         var popup = Db.Popups.FirstOrDefault(x => x.ContentTranslationId == translation.TranslationId);
-                        UploadPopupFile(popup.Id, translationEntry.Type ?? 0);
+                        UploadPopupFile(popup.Id);
                         break;
                     default:
                         break;
@@ -3202,10 +3219,7 @@ namespace IqSoft.CP.BLL.Services
             });
             if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != segmentModel.PartnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
-
-            if (segmentModel.State.HasValue && !Enum.IsDefined(typeof(PartnerPaymentSettingStates), segmentModel.State))
-                throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
-
+            ValidateSegmentFields(segmentModel);
             var dbSegment = Db.Segments.FirstOrDefault(x => x.Id != segmentModel.Id && x.Name == segmentModel.Name &&
                                                             x.PartnerId == segmentModel.PartnerId);
             if (dbSegment != null)
@@ -3222,118 +3236,6 @@ namespace IqSoft.CP.BLL.Services
                 dbSegment.IsKYCVerified = segmentModel.IsKYCVerified;
                 dbSegment.Gender = segmentModel.Gender;
                 dbSegment.IsTermsConditionAccepted = segmentModel.IsTermsConditionAccepted;
-                if ((segmentModel.ClientStatus?.ConditionItems?.Any() ?? false) &&
-                    !string.IsNullOrEmpty(segmentModel.ClientStatus?.ConditionItems[0]?.StringValue) &&
-                    ((segmentModel.ClientStatus?.ConditionItems[0]?.StringValue.Split(',').Any(x => !int.TryParse(x, out int i)) ?? false) ||
-                    !Enum.IsDefined(typeof(FilterOperations), segmentModel.ClientStatus?.ConditionItems[0].OperationTypeId)) ||
-
-                    ((segmentModel.SegmentId?.ConditionItems?.Any() ?? false) &&
-                    !string.IsNullOrEmpty(segmentModel.SegmentId?.ConditionItems[0]?.StringValue) &&
-                    ((segmentModel.SegmentId?.ConditionItems[0]?.StringValue.Split(',').Any(x => !int.TryParse(x, out int i)) ?? false) ||
-                    !Enum.IsDefined(typeof(FilterOperations), segmentModel.SegmentId?.ConditionItems[0].OperationTypeId))) ||
-
-                    ((segmentModel.ClientId?.ConditionItems?.Any() ?? false) &&
-                    !string.IsNullOrEmpty(segmentModel.ClientId?.ConditionItems[0]?.StringValue) &&
-                    ((segmentModel.ClientId?.ConditionItems[0]?.StringValue.Split(',').Any(x => !int.TryParse(x, out int i)) ?? false) ||
-                    !Enum.IsDefined(typeof(FilterOperations), segmentModel.ClientId?.ConditionItems[0].OperationTypeId))) ||
-
-                    ((segmentModel.Region?.ConditionItems?.Any() ?? false) &&
-                    !string.IsNullOrEmpty(segmentModel.Region?.ConditionItems[0]?.StringValue) &&
-                    ((segmentModel.Region?.ConditionItems[0]?.StringValue.Split(',').Any(x => !int.TryParse(x, out int i)) ?? false) ||
-                    !Enum.IsDefined(typeof(FilterOperations), segmentModel.Region?.ConditionItems[0].OperationTypeId))) ||
-
-                    ((segmentModel.AffiliateId?.ConditionItems?.Any() ?? false) &&
-                    !string.IsNullOrEmpty(segmentModel.AffiliateId?.ConditionItems[0]?.StringValue) &&
-                    ((segmentModel.AffiliateId?.ConditionItems[0]?.StringValue.Split(',').Any(x => !int.TryParse(x, out int i)) ?? false)||
-                    !Enum.IsDefined(typeof(FilterOperations), segmentModel.AffiliateId?.ConditionItems[0].OperationTypeId))) ||
-
-                    ((segmentModel.SessionPeriod?.ConditionItems?.Any() ?? false) &&
-                    !string.IsNullOrEmpty(segmentModel.SessionPeriod?.ConditionItems[0]?.StringValue) &&                     
-                    ((segmentModel.SessionPeriod?.ConditionItems[0]?.StringValue.Split(',').Any(x => !int.TryParse(x, out int i)) ?? false) ||
-                    !Enum.IsDefined(typeof(FilterOperations), segmentModel.SessionPeriod?.ConditionItems[0].OperationTypeId))) ||
-
-                    ((segmentModel.TotalDepositsCount?.ConditionItems?.Any() ?? false) &&
-                    !string.IsNullOrEmpty(segmentModel.TotalDepositsCount?.ConditionItems[0]?.StringValue) &&
-                    ((segmentModel.TotalDepositsCount?.ConditionItems[0]?.StringValue.Split(',').Any(x => !int.TryParse(x, out int i)) ?? false)||
-                    !Enum.IsDefined(typeof(FilterOperations), segmentModel.TotalDepositsCount?.ConditionItems[0].OperationTypeId))) ||
-
-                    ((segmentModel.TotalDepositsAmount?.ConditionItems?.Any() ?? false) &&
-                    !string.IsNullOrEmpty(segmentModel.TotalDepositsAmount?.ConditionItems[0]?.StringValue) &&
-                    ((segmentModel.TotalDepositsAmount?.ConditionItems[0]?.StringValue.Split(',').Any(x => !decimal.TryParse(x, out decimal i)) ?? false)||
-                    !Enum.IsDefined(typeof(FilterOperations), segmentModel.TotalDepositsAmount?.ConditionItems[0].OperationTypeId))) ||
-
-                    ((segmentModel.TotalWithdrawalsCount?.ConditionItems?.Any() ?? false) &&
-                    !string.IsNullOrEmpty(segmentModel.TotalWithdrawalsCount?.ConditionItems[0]?.StringValue) &&
-                    ((segmentModel.TotalWithdrawalsCount?.ConditionItems[0]?.StringValue.Split(',').Any(x => !int.TryParse(x, out int i)) ?? false)||
-                    !Enum.IsDefined(typeof(FilterOperations), segmentModel.TotalWithdrawalsCount?.ConditionItems[0].OperationTypeId))) ||
-
-                     ((segmentModel.TotalWithdrawalsAmount?.ConditionItems?.Any() ?? false) &&
-                     !string.IsNullOrEmpty(segmentModel.TotalWithdrawalsAmount?.ConditionItems[0]?.StringValue) &&
-                    ((segmentModel.TotalWithdrawalsAmount?.ConditionItems[0]?.StringValue.Split(',').Any(x => !decimal.TryParse(x, out decimal i)) ?? false)||
-                    !Enum.IsDefined(typeof(FilterOperations), segmentModel.TotalWithdrawalsAmount?.ConditionItems[0].OperationTypeId))) ||
-
-                     ((segmentModel.TotalBetsCount?.ConditionItems?.Any() ?? false) &&
-                     !string.IsNullOrEmpty(segmentModel.TotalBetsCount?.ConditionItems[0]?.StringValue) &&
-                    ((segmentModel.TotalBetsCount?.ConditionItems[0]?.StringValue.Split(',').Any(x => !int.TryParse(x, out int i)) ?? false)||
-                    !Enum.IsDefined(typeof(FilterOperations), segmentModel.TotalBetsCount?.ConditionItems[0].OperationTypeId))) ||
-
-                     ((segmentModel.TotalBetsAmount?.ConditionItems?.Any() ?? false) &&
-                     !string.IsNullOrEmpty(segmentModel.TotalBetsAmount?.ConditionItems[0]?.StringValue) &&
-                    ((segmentModel.TotalBetsAmount?.ConditionItems[0]?.StringValue.Split(',').Any(x => !int.TryParse(x, out int i)) ?? false)||
-                    !Enum.IsDefined(typeof(FilterOperations), segmentModel.TotalBetsAmount?.ConditionItems[0].OperationTypeId))) ||
-
-                     ((segmentModel.SportBetsCount?.ConditionItems?.Any() ?? false) &&
-                     !string.IsNullOrEmpty(segmentModel.SportBetsCount?.ConditionItems[0]?.StringValue) &&
-                    ((segmentModel.SportBetsCount?.ConditionItems[0]?.StringValue.Split(',').Any(x => !int.TryParse(x, out int i)) ?? false)||
-                    !Enum.IsDefined(typeof(FilterOperations), segmentModel.SportBetsCount?.ConditionItems[0].OperationTypeId))) ||
-
-                    ((segmentModel.CasinoBetsCount?.ConditionItems?.Any() ?? false) &&
-                    !string.IsNullOrEmpty(segmentModel.CasinoBetsCount?.ConditionItems[0]?.StringValue) &&
-                    ((segmentModel.CasinoBetsCount?.ConditionItems[0]?.StringValue.Split(',').Any(x => !int.TryParse(x, out int i)) ?? false)||
-                    !Enum.IsDefined(typeof(FilterOperations), segmentModel.CasinoBetsCount?.ConditionItems[0].OperationTypeId))) ||
-
-                    ((segmentModel.Profit?.ConditionItems?.Any() ?? false) &&
-                    !string.IsNullOrEmpty(segmentModel.Profit?.ConditionItems[0]?.StringValue) &&
-                    ((segmentModel.Profit?.ConditionItems[0]?.StringValue.Split(',').Any(x => !decimal.TryParse(x, out decimal i)) ?? false)||
-                    !Enum.IsDefined(typeof(FilterOperations), segmentModel.Profit?.ConditionItems[0].OperationTypeId))) ||
-
-                    ((segmentModel.Bonus?.ConditionItems?.Any() ?? false) &&
-                    !string.IsNullOrEmpty(segmentModel.Bonus?.ConditionItems[0]?.StringValue) &&
-                    ((segmentModel.Bonus?.ConditionItems[0]?.StringValue.Split(',').Any(x => !int.TryParse(x, out int i)) ?? false)||
-                    !Enum.IsDefined(typeof(FilterOperations), segmentModel.Bonus?.ConditionItems[0].OperationTypeId))) ||
-
-                    ((segmentModel.SuccessDepositPaymentSystem?.ConditionItems?.Any() ?? false) &&
-                    !string.IsNullOrEmpty(segmentModel.SuccessDepositPaymentSystem?.ConditionItems[0]?.StringValue) &&
-                    ((segmentModel.SuccessDepositPaymentSystem?.ConditionItems[0]?.StringValue.Split(',').Any(x => !int.TryParse(x, out int i)) ?? false)||
-                    !Enum.IsDefined(typeof(FilterOperations), segmentModel.SuccessDepositPaymentSystem?.ConditionItems[0].OperationTypeId))) ||
-
-                    ((segmentModel.SuccessWithdrawalPaymentSystem?.ConditionItems?.Any() ?? false) &&
-                    !string.IsNullOrEmpty(segmentModel.SuccessWithdrawalPaymentSystem?.ConditionItems[0]?.StringValue) &&
-                    ((segmentModel.SuccessWithdrawalPaymentSystem?.ConditionItems[0]?.StringValue.Split(',').Any(x => !int.TryParse(x, out int i)) ?? false)||
-                    !Enum.IsDefined(typeof(FilterOperations), segmentModel.SuccessWithdrawalPaymentSystem?.ConditionItems[0].OperationTypeId))) ||
-
-                    ((segmentModel.ComplimentaryPoint?.ConditionItems?.Any() ?? false) &&
-                    !string.IsNullOrEmpty(segmentModel.ComplimentaryPoint?.ConditionItems[0]?.StringValue) &&
-                    ((segmentModel.ComplimentaryPoint?.ConditionItems[0]?.StringValue.Split(',').Any(x => !int.TryParse(x, out int i)) ?? false) ||
-                    !Enum.IsDefined(typeof(FilterOperations), segmentModel.ComplimentaryPoint?.ConditionItems[0].OperationTypeId))) ||
-
-                    ((segmentModel.Email?.ConditionItems?.Any() ?? false) &&
-                    !string.IsNullOrEmpty(segmentModel.Email?.ConditionItems[0]?.StringValue) &&
-                     !Enum.IsDefined(typeof(FilterOperations), segmentModel.Email?.ConditionItems[0].OperationTypeId)) ||
-
-                     ((segmentModel.FirstName?.ConditionItems?.Any() ?? false) &&
-                     !string.IsNullOrEmpty(segmentModel.FirstName?.ConditionItems[0]?.StringValue) &&
-                     !Enum.IsDefined(typeof(FilterOperations), segmentModel.FirstName?.ConditionItems[0].OperationTypeId)) ||
-
-                     ((segmentModel.LastName?.ConditionItems?.Any() ?? false) &&
-                     !string.IsNullOrEmpty(segmentModel.LastName?.ConditionItems[0]?.StringValue) &&
-                     !Enum.IsDefined(typeof(FilterOperations), segmentModel.LastName?.ConditionItems[0].OperationTypeId)) ||
-
-                     ((segmentModel.MobileCode?.ConditionItems?.Any() ?? false) &&
-                     !string.IsNullOrEmpty(segmentModel.MobileCode?.ConditionItems[0]?.StringValue) &&
-                     !Enum.IsDefined(typeof(FilterOperations), segmentModel.MobileCode?.ConditionItems[0].OperationTypeId))
-                    )
-                    throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
                 dbSegment.ClientStatus = segmentModel.ClientStatus?.ToString();
                 dbSegment.SegmentId = segmentModel.SegmentId?.ToString();
                 dbSegment.ClientId = segmentModel.ClientId?.ToString();
@@ -3354,7 +3256,6 @@ namespace IqSoft.CP.BLL.Services
                 dbSegment.SportBetsCount = segmentModel.SportBetsCount?.ToString();
                 dbSegment.CasinoBetsCount = segmentModel.CasinoBetsCount?.ToString();
                 dbSegment.Profit = segmentModel.Profit?.ToString();
-                dbSegment.Bonus = segmentModel.Bonus?.ToString();
                 dbSegment.SuccessDepositPaymentSystem = segmentModel.SuccessDepositPaymentSystem?.ToString();
                 dbSegment.SuccessWithdrawalPaymentSystem = segmentModel.SuccessWithdrawalPaymentSystem?.ToString();
                 dbSegment.ComplimentaryPoint = segmentModel.ComplimentaryPoint?.ToString();
@@ -3377,6 +3278,64 @@ namespace IqSoft.CP.BLL.Services
             }
 
             return dbSegment;
+        }
+
+        private void ValidateSegmentFields(SegmentModel segmentModel)
+        {
+            if ((segmentModel.State.HasValue && !Enum.IsDefined(typeof(PartnerPaymentSettingStates), segmentModel.State)) ||
+                !Enum.IsDefined(typeof(PaymentSegmentModes), segmentModel.Mode) ||
+                (segmentModel.Gender.HasValue && !Enum.IsDefined(typeof(Gender), segmentModel.Gender)))
+                throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
+
+            IEnumerable<PropertyDescriptor> properties = TypeDescriptor.GetProperties(typeof(SegmentModel)).OfType<PropertyDescriptor>();
+            foreach (var p in properties)
+            {
+                var propertyTypeName = p.Attributes.OfType<PropertyCustomTypeAttribute>()?.FirstOrDefault()?.TypeName;
+                if (!string.IsNullOrEmpty(propertyTypeName))
+                {
+                    var condition = (Condition)segmentModel.GetType().GetProperty(p.Name).GetValue(segmentModel, null);
+                    if (condition?.ConditionItems?.Any() ?? false)
+                    {
+                        foreach (var c in condition.ConditionItems)
+                        {
+                            if (!Enum.IsDefined(typeof(FilterOperations), c.OperationTypeId))
+                                throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
+                            switch (propertyTypeName)
+                            {
+                                case "EmailArray":
+                                    if (c.StringValue.Split(',').Any(x => !BaseBll.IsValidEmail(x)))
+                                        throw CreateException(LanguageId, Constants.Errors.InvalidEmail);
+                                    break;
+                                case "MobileArray":
+                                    if (c.StringValue.Split(',').Any(x => !BaseBll.IsMobileNumber(x)))
+                                        throw CreateException(LanguageId, Constants.Errors.InvalidMobile);
+                                    break;
+                                case "IntArray":
+                                    if (c.StringValue.Split(',').Any(x => !int.TryParse(x, out int _)))
+                                        throw CreateException(LanguageId, Constants.Errors.WrongOperatorId);
+                                    break;
+                                case "DecimalArray":
+                                    if (c.StringValue.Split(',').Any(x => !decimal.TryParse(x, out decimal _)))
+                                        throw CreateException(LanguageId, Constants.Errors.WrongOperationAmount);
+                                    break;
+                                case "Int":
+                                    if (!int.TryParse(c.StringValue, out int _))
+                                        throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
+                                    break;
+                                case "Decimal":
+                                    if (!decimal.TryParse(c.StringValue, out decimal _))
+                                        throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
+                                    break;
+                                case "DateTime":
+                                    if (!DateTime.TryParse(c.StringValue, out DateTime _))
+                                        throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
+                                    break;
+                                default: break;
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         public Segment DeleteSegment(int id)

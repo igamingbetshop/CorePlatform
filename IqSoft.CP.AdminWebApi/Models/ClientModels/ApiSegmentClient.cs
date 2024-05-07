@@ -16,7 +16,7 @@ namespace IqSoft.CP.AdminWebApi.Models.ClientModels
         public string MobileNumber { get; set; }
         public bool IsMobileNumberVerified { get; set; }
         public string CurrencyId { get; set; }
-        public int Gender { get; set; }
+        public int? Gender { get; set; }
         public DateTime BirthDate { get; set; }
         public bool SendMail { get; set; }
         public bool SendSms { get; set; }

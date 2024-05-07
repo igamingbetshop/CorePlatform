@@ -30,7 +30,8 @@ namespace IqSoft.CP.PaymentGateway.Controllers
             var requestOutput = new RequestOutput();
             try
             {
-                BaseBll.CheckIp(WhitelistedIps);
+                // BaseBll.CheckIp(WhitelistedIps);
+                WebApiApplication.DbLogger.Info("Input: " + JsonConvert.SerializeObject(input));
                 using (var paymentSystemBl = new PaymentSystemBll(new SessionIdentity(), WebApiApplication.DbLogger))
                 {
                     var request = paymentSystemBl.GetPaymentRequestById(Convert.ToInt64(input.Trx)) ??
@@ -72,7 +73,8 @@ namespace IqSoft.CP.PaymentGateway.Controllers
             var requestOutput = new RequestOutput();
             try
             {
-                BaseBll.CheckIp(WhitelistedIps);
+                //   BaseBll.CheckIp(WhitelistedIps);
+                WebApiApplication.DbLogger.Info("Input: " + JsonConvert.SerializeObject(input));
                 using (var paymentSystemBl = new PaymentSystemBll(new SessionIdentity(), WebApiApplication.DbLogger))
                 using (var clientBl = new ClientBll(paymentSystemBl))
                 using (var documentBl = new DocumentBll(paymentSystemBl))
@@ -115,6 +117,16 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                     PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
                     BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);
                 }
+            }
+            catch (FaultException<BllFnErrorType> ex)
+            {
+                if (ex.Detail.Id != Constants.Errors.ClientDocumentAlreadyExists &&
+                    ex.Detail.Id != Constants.Errors.RequestAlreadyPayed)
+                {
+                    requestOutput.Code = "999";
+                    requestOutput.Message = ex.Detail.Message;
+                }
+                WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(input) + "_Error: " + ex.Detail.Id + ", " + ex.Detail.Message);
             }
             catch (Exception ex)
             {

@@ -1,5 +1,7 @@
-﻿using IqSoft.CP.DAL.Models;
+﻿using IqSoft.CP.BLL.Models;
+using IqSoft.CP.DAL.Models;
 using IqSoft.CP.DAL.Models.Cache;
+using System.Collections.Generic;
 
 namespace IqSoft.CP.AgentWebApi.Models.User
 {
@@ -28,6 +30,7 @@ namespace IqSoft.CP.AgentWebApi.Models.User
         public bool? AllowDoubleCommission { get; set; }
         public bool? IsCalculationPeriodBlocked { get; set; }
         public decimal? AgentMaxCredit { get; set; }
+        public List<ApiAdminMenu> AdminMenu { get; set; }
         public Session()
         {
         }

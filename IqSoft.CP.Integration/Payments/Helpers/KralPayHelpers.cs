@@ -40,7 +40,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                     input.PaymentSystemId, input.CurrencyId, (int)PaymentRequestTypes.Deposit);
                 var url = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.KralPayApiUrl).StringValue;
                 var paymenstSystem = CacheManager.GetPaymentSystemById(input.PaymentSystemId);
-                if (PaymentServices.ContainsKey(paymenstSystem.Name))
+                if (!PaymentServices.ContainsKey(paymenstSystem.Name))
                     throw BaseBll.CreateException(session.LanguageId, Constants.Errors.PaymentSystemNotFound);
                 var bankId = string.Empty;
                 if (paymenstSystem.Name == Constants.PaymentSystems.KralPayBankTransfer)
@@ -81,7 +81,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                                                                                    client.CurrencyId, (int)PaymentRequestTypes.Withdraw);
                 var url = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.KralPayPayoutApiUrl).StringValue;
                 var paymenstSystem = CacheManager.GetPaymentSystemById(paymentRequest.PaymentSystemId);
-                if (PaymentServices.ContainsKey(paymenstSystem.Name))
+                if (!PaymentServices.ContainsKey(paymenstSystem.Name))
                     throw BaseBll.CreateException(session.LanguageId, Constants.Errors.PaymentSystemNotFound);
                 var amount = paymentRequest.Amount - (paymentRequest.CommissionAmount ?? 0);
                 var paymentInfo = JsonConvert.DeserializeObject<PaymentInfo>(paymentRequest.Info);

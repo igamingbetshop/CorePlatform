@@ -15,6 +15,8 @@ namespace IqSoft.CP.AdminWebApi.Filters.PaymentRequests
         public ApiFiltersOperation Ids { get; set; }
         public ApiFiltersOperation UserNames { get; set; }
         public ApiFiltersOperation Names { get; set; }
+        public ApiFiltersOperation FirstNames { get; set; }
+        public ApiFiltersOperation LastNames { get; set; }
         public ApiFiltersOperation CreatorNames { get; set; }
         public ApiFiltersOperation ClientIds { get; set; }
         public ApiFiltersOperation Emails { get; set; }

@@ -28,5 +28,6 @@ namespace IqSoft.CP.AdminWebApi.Models.PartnerModels
         public List<int> OSTypes { get; set; }
         public int Priority { get; set; }
         public int? OpenMode { get; set; }
+        public string ImageExtension { get; set; }
     }
 }

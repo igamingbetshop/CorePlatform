@@ -38,7 +38,9 @@ namespace IqSoft.CP.BLL.Interfaces
 
         List<PaymentRequestsInfo> GetPaymentRequestsForDashboard(FilterDashboard filter, int type);
 
-        PlayersInfo GetPlayersInfoForDashboard(FilterDashboard filter);
+        ClientsInfo GetPlayersInfoForDashboard(FilterDashboard filter);
+
+        List<CountryClientsInfo> GetTopRegistrationCountries(FilterDashboard filter);
 
         ProvidersBetsInfo GetProviderBetsForDashboard(FilterDashboard filter);
 
@@ -113,6 +115,6 @@ namespace IqSoft.CP.BLL.Interfaces
 
         List<fnAccount> ExportClientAccounts(FilterfnAccount filter);
 
-        List<ApiClientInfo> ExportClientsInfoList(FilterfnClientDashboard filter);
+        List<DashboardClientInfo> ExportClientsInfoList(FilterfnClientDashboard filter);
     }
 }

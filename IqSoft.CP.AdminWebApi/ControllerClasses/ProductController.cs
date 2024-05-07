@@ -20,6 +20,7 @@ using IqSoft.CP.AdminWebApi.Models.ContentModels;
 using System.Threading.Tasks;
 using IqSoft.CP.Common.Models.AdminModels;
 using IqSoft.CP.Common.Models;
+using IqSoft.CP.DataWarehouse;
 
 namespace IqSoft.CP.AdminWebApi.ControllerClasses
 {
@@ -283,7 +284,6 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                         Helpers.Helpers.InvokeMessage(string.Format("{0}_{1}", Constants.CacheItems.GameProviders, x.Id));
                         Helpers.Helpers.InvokeMessage(string.Format("{0}_{1}", Constants.CacheItems.GameProviders, x.Name));
                     });
-                Helpers.Helpers.InvokeMessage("RemoveKeysFromCache", string.Format("{0}_", Constants.CacheItems.RestrictedGameProviders));
                 return new ApiResponseBase
                 {
                     ResponseObject = result.Select(x => new
@@ -319,7 +319,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     var input = product.MapTofnProduct();
                     input.IsNewObject = true;
                     var ftpModel = partnerBl.GetPartnerEnvironments(Constants.MainPartnerId).FirstOrDefault();
-                    var res = productsBl.SaveProduct(input, string.Empty, ftpModel.Value, out _);
+                    var res = productsBl.SaveProduct(input, string.Empty, ftpModel.Value);
                     Helpers.Helpers.InvokeMessage("UpdateProduct", res.Id);
                     return new ApiResponseBase
                     {
@@ -341,11 +341,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     CountryId = x,
                     Type = product.Countries.Type ?? (int)ProductCountrySettingTypes.Restricted
                 }).ToList(), product.State, out List<int> partners);
-                CacheManager.RemoveKeysFromCache(string.Format("{0}_", Constants.CacheItems.ProductCountrySetting));
-                CacheManager.RemoveKeysFromCache(string.Format("{0}_", Constants.CacheItems.PartnerProductSettings));
-                
-                Helpers.Helpers.InvokeMessage("RemoveKeysFromCache", string.Format("{0}_", Constants.CacheItems.ProductCountrySetting));
-                Helpers.Helpers.InvokeMessage("RemoveKeysFromCache", string.Format("{0}_", Constants.CacheItems.PartnerProductSettings));
+
                 foreach (var id in product.Ids)
                     Helpers.Helpers.InvokeMessage("UpdateProduct", id);
             }
@@ -362,18 +358,9 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 {
                     var input = product.MapTofnProduct();
                     input.IsNewObject = false;
-
                     var ftpModel = partnerBl.GetPartnerEnvironments(Constants.MainPartnerId).FirstOrDefault();
-
-                    var res = productsBl.SaveProduct(input, product.Comment, ftpModel.Value, out List<int> partners);
-                    CacheManager.RemoveKeysFromCache(string.Format("{0}_", Constants.CacheItems.ProductCountrySetting));
-                    Helpers.Helpers.InvokeMessage("RemoveKeysFromCache", string.Format("{0}_", Constants.CacheItems.ProductCountrySetting));
+                    var res = productsBl.SaveProduct(input, product.Comment, ftpModel.Value);
                     Helpers.Helpers.InvokeMessage("UpdateProduct", res.Id);
-                    foreach (var partnerId in partners)
-                    {
-                        var key = string.Format("{0}_{1}_", Constants.CacheItems.PartnerProductSettings, partnerId);
-                        CacheManager.RemoveKeysFromCache(key);
-                    }
                     return new ApiResponseBase
                     {
                         ResponseObject = productsBl.GetfnProductById(res.Id, true).MapTofnProductModel(identity.TimeZone)
@@ -529,7 +516,6 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     Helpers.Helpers.InvokeMessage("RemovePartnerProductSettings", apiPartnerProductSetting.PartnerId, productId);
                 });
                 var resp = CacheManager.RemovePartnerProductSettingPages(apiPartnerProductSetting.PartnerId);
-                WebApiApplication.DbLogger.Info("RemovePartnerProductSettings_" + JsonConvert.SerializeObject(resp));
                 return new ApiResponseBase();
             }
         }
@@ -625,20 +611,22 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             {
                 using (var regionBl = new RegionBll(productsBl))
                 {
-                    var gameProvider = CacheManager.GetGameProviderById(gameProviderId);
-                    var filter = new FilterfnProduct
+                    using (var partnerBl = new PartnerBll(regionBl))
                     {
-                        ParentId = Constants.PlatformProductId
-                    };
-                    var productCategories = productsBl.GetFnProducts(filter, true).Entities.Select(x => new { x.Id, x.NickName }).ToList();
-                    var providers = productsBl.GetGameProviders(new FilterGameProvider());
-
-                    filter = new FilterfnProduct
-                    {
-                        Descriptions = new FiltersOperation
+                        var gameProvider = CacheManager.GetGameProviderById(gameProviderId);
+                        var filter = new FilterfnProduct
                         {
-                            IsAnd = true,
-                            OperationTypeList = new List<FiltersOperationType>
+                            ParentId = Constants.PlatformProductId
+                        };
+                        var productCategories = productsBl.GetFnProducts(filter, true).Entities.Select(x => new { x.Id, x.NickName }).ToList();
+                        var providers = productsBl.GetGameProviders(new FilterGameProvider());
+
+                        filter = new FilterfnProduct
+                        {
+                            Descriptions = new FiltersOperation
+                            {
+                                IsAnd = true,
+                                OperationTypeList = new List<FiltersOperationType>
                                 {
                                     new FiltersOperationType
                                     {
@@ -646,15 +634,15 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                                         StringValue = gameProvider.Name
                                     }
                                 }
-                        }
-                    };
-                    var dbCategories = productsBl.GetFnProducts(filter, true).Entities.Select(x => new KeyValuePair<int, int?>(x.Id, x.ParentId)).ToList();
-                    var countryCodes = regionBl.GetAllCountryCodes();
-                    List<fnProduct> providerGames;
-                    switch (gameProvider.Name)
-                    {
-                        case Constants.GameProviders.IqSoft:
-                            var iqSoftCategoryList = new Dictionary<string, int>
+                            }
+                        };
+                        var dbCategories = productsBl.GetFnProducts(filter, true).Entities.Select(x => new KeyValuePair<int, int?>(x.Id, x.ParentId)).ToList();
+                        var countryCodes = regionBl.GetAllCountryCodes();
+                        List<fnProduct> providerGames;
+                        switch (gameProvider.Name)
+                        {
+                            case Constants.GameProviders.IqSoft:
+                                var iqSoftCategoryList = new Dictionary<string, int>
                             {
                                 { "classic-slots", productCategories.First(x => x.NickName.ToLower() == "slots").Id },
                                 { "fish-games", productCategories.First(x => x.NickName.Replace(" ", string.Empty).ToLower() == "fishgames").Id },
@@ -668,22 +656,22 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                                 { "virtual-sport", productCategories.First(x => x.NickName.Replace(" ", string.Empty).ToLower() == "virtualsports").Id },
                                 { "lottery", productCategories.First(x => x.NickName.ToLower() == "lottery").Id },
                             };
-                            providerGames = Integration.Products.Helpers.IqSoftHelpers.GetPartnerGames(Constants.MainPartnerId).AsParallel()
-                                            .Select(x => x.ToFnProduct(gameProviderId, providers, dbCategories, iqSoftCategoryList)).ToList();
+                                providerGames = Integration.Products.Helpers.IqSoftHelpers.GetPartnerGames(Constants.MainPartnerId).AsParallel()
+                                                .Select(x => x.ToFnProduct(gameProviderId, providers, dbCategories, iqSoftCategoryList)).ToList();
 
-                            break;
-                        case Constants.GameProviders.TomHorn:
-                            var tomHornCategoryList = new Dictionary<string, int>
+                                break;
+                            case Constants.GameProviders.TomHorn:
+                                var tomHornCategoryList = new Dictionary<string, int>
                             {
                                 { "videoslot", productCategories.FirstOrDefault(x => x.NickName.ToLower() == "slots").Id },
                                 { "tableGame", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "tablegames").Id },
                                 { "livedealers", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "livegames").Id }
                             };
-                            providerGames = Integration.Products.Helpers.TomHornHelpers.GetGamesList(Constants.MainPartnerId).AsParallel()
-                                .Select(x => x.ToFnProduct(gameProviderId, dbCategories, tomHornCategoryList)).ToList();
-                            break;
-                        case Constants.GameProviders.BlueOcean:
-                            var blueOceanCategoryList = new Dictionary<string, int>
+                                providerGames = Integration.Products.Helpers.TomHornHelpers.GetGamesList(Constants.MainPartnerId).AsParallel()
+                                    .Select(x => x.ToFnProduct(gameProviderId, dbCategories, tomHornCategoryList)).ToList();
+                                break;
+                            case Constants.GameProviders.BlueOcean:
+                                var blueOceanCategoryList = new Dictionary<string, int>
                             {
                                 { "video-slots", productCategories.First(x => x.NickName.ToLower() == "slots").Id },
                                 { "video-slot", productCategories.First(x => x.NickName.ToLower() == "slots").Id },
@@ -700,11 +688,11 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                                 { "poker", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "skillgames").Id },
                                 { "tournaments", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "slots").Id }
                             };
-                            providerGames = Integration.Products.Helpers.BlueOceanHelpers.GetProductsList(Constants.MainPartnerId).AsParallel().Where(x => x.category.ToLower() != "sportsbook")
-                                .Select(x => x.ToFnProduct(providers, gameProviderId, dbCategories, blueOceanCategoryList)).ToList();
-                            break;
-                        case Constants.GameProviders.SoftGaming:
-                            var softGamingCategoryList = new Dictionary<int, int>
+                                providerGames = Integration.Products.Helpers.BlueOceanHelpers.GetProductsList(Constants.MainPartnerId).AsParallel().Where(x => x.category.ToLower() != "sportsbook")
+                                    .Select(x => x.ToFnProduct(providers, gameProviderId, dbCategories, blueOceanCategoryList)).ToList();
+                                break;
+                            case Constants.GameProviders.SoftGaming:
+                                var softGamingCategoryList = new Dictionary<int, int>
                             {
                                 { 16, productCategories.FirstOrDefault(x => x.NickName.ToLower() == "slots").Id },
                                 { 37, productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "livegames").Id },
@@ -719,20 +707,20 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                                 { 1366, productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "tablegames").Id },
                                 { 3604, productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id }
                             };
-                            providerGames = Integration.Products.Helpers.SoftGamingHelpers.GetGamePage(Constants.MainPartnerId, out List<MerchantItem> subProviders).
-                              Select(x => x.ToFnProduct(providers, gameProviderId, dbCategories, softGamingCategoryList, subProviders)).ToList();
-                            break;
-                        case Constants.GameProviders.OutcomeBet:
-                        case Constants.GameProviders.Mascot:
-                            var categoryList = new Dictionary<string, int>
+                                providerGames = Integration.Products.Helpers.SoftGamingHelpers.GetGamePage(Constants.MainPartnerId, out List<MerchantItem> subProviders).
+                                  Select(x => x.ToFnProduct(providers, gameProviderId, dbCategories, softGamingCategoryList, subProviders)).ToList();
+                                break;
+                            case Constants.GameProviders.OutcomeBet:
+                            case Constants.GameProviders.Mascot:
+                                var categoryList = new Dictionary<string, int>
                             {
                                 { "slots", productCategories.First(x => x.NickName.ToLower() == "slots").Id }
                             };
-                            providerGames = Integration.Products.Helpers.OutcomeBetHelpers.GetGamesList(Constants.MainPartnerId, gameProvider.Name).AsParallel()
-                                .Select(x => x.ToFnProduct(providers, gameProviderId, dbCategories, categoryList)).ToList();
-                            break;
-                        case Constants.GameProviders.PragmaticPlay:
-                            var pragmaticPlayCategoryList = new Dictionary<string, int>
+                                providerGames = Integration.Products.Helpers.OutcomeBetHelpers.GetGamesList(Constants.MainPartnerId, gameProvider.Name).AsParallel()
+                                    .Select(x => x.ToFnProduct(providers, gameProviderId, dbCategories, categoryList)).ToList();
+                                break;
+                            case Constants.GameProviders.PragmaticPlay:
+                                var pragmaticPlayCategoryList = new Dictionary<string, int>
                             {
                                 { "Video Slots", productCategories.First(x => x.NickName.ToLower() == "slots").Id },
                                 { "Classic Slots", productCategories.First(x => x.NickName.ToLower() == "slots").Id },
@@ -744,11 +732,11 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                                 { "Scratch card", productCategories.First(x => x.NickName.Replace(" ", string.Empty).ToLower() == "scratchgames").Id },
                                 { "RGS - VSB", productCategories.First(x => x.NickName.ToLower() == "slots").Id } // ??
                             };
-                            providerGames = Integration.Products.Helpers.PragmaticPlayHelpers.GetProductsList(Constants.MainPartnerId).AsParallel()
-                               .Select(x => x.ToFnProduct(gameProviderId, dbCategories, pragmaticPlayCategoryList)).ToList();
-                            break;
-                        case Constants.GameProviders.Habanero:
-                            var habaneroCategoryList = new Dictionary<string, int>
+                                providerGames = Integration.Products.Helpers.PragmaticPlayHelpers.GetProductsList(Constants.MainPartnerId).AsParallel()
+                                   .Select(x => x.ToFnProduct(gameProviderId, dbCategories, pragmaticPlayCategoryList)).ToList();
+                                break;
+                            case Constants.GameProviders.Habanero:
+                                var habaneroCategoryList = new Dictionary<string, int>
                             {
                                 { "Video Slots", productCategories.First(x => x.NickName.ToLower() == "slots").Id },
                                 { "BlackJack", productCategories.First(x => x.NickName.Replace(" ", string.Empty).ToLower() == "tablegames").Id },
@@ -758,22 +746,22 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                                 { "Roulette", productCategories.First(x => x.NickName.Replace(" ", string.Empty).ToLower() == "tablegames").Id },
                                 { "Gamble", productCategories.First(x => x.NickName.Replace(" ", string.Empty).ToLower() == "tablegames").Id }
                             };
-                            providerGames = Integration.Products.Helpers.HabaneroHelpers.GetGames(Constants.MainPartnerId).AsParallel()
-                                            .Select(x => x.ToFnProduct(gameProviderId, dbCategories, habaneroCategoryList)).ToList();
-                            break;
-                        case Constants.GameProviders.BetSoft:
-                            var betsoftCategoryList = new Dictionary<string, int>
+                                providerGames = Integration.Products.Helpers.HabaneroHelpers.GetGames(Constants.MainPartnerId).AsParallel()
+                                                .Select(x => x.ToFnProduct(gameProviderId, dbCategories, habaneroCategoryList)).ToList();
+                                break;
+                            case Constants.GameProviders.BetSoft:
+                                var betsoftCategoryList = new Dictionary<string, int>
                             {
                                 { "Slots", productCategories.First(x => x.NickName.ToLower() == "slots").Id },
                                 { "Table", productCategories.First(x => x.NickName.Replace(" ", string.Empty).ToLower() == "tablegames").Id },
                                 { "Video Poker", productCategories.First(x => x.NickName.Replace(" ", string.Empty).ToLower() == "videopoker").Id }
                             };
-                            providerGames = Integration.Products.Helpers.BetSoftHelpers.GetGames(Constants.MainPartnerId).AsParallel()
-                                            .Select(x => x.ToFnProduct(gameProviderId, dbCategories, betsoftCategoryList)).ToList();
+                                providerGames = Integration.Products.Helpers.BetSoftHelpers.GetGames(Constants.MainPartnerId).AsParallel()
+                                                .Select(x => x.ToFnProduct(gameProviderId, dbCategories, betsoftCategoryList)).ToList();
 
-                            break;
-                        case Constants.GameProviders.Evoplay:
-                            var evoplayCategoryList = new Dictionary<string, int>
+                                break;
+                            case Constants.GameProviders.Evoplay:
+                                var evoplayCategoryList = new Dictionary<string, int>
                             {
                                 { "slots", productCategories.First(x => x.NickName.ToLower() == "slots").Id },
                                 { "instant", productCategories.First(x => x.NickName.ToLower() == "slots").Id }, //?
@@ -784,22 +772,22 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                                 { "socketgames", productCategories.First(x => x.NickName.ToLower() == "slots").Id }, // ? 
                                 { "poker", productCategories.First(x => x.NickName.Replace(" ", string.Empty).ToLower() == "skillgames").Id },
                             };
-                            providerGames = Integration.Products.Helpers.EvoplayHelpers.GetGames(Constants.MainPartnerId).AsParallel()
-                                .Select(x => x.ToFnProduct(gameProviderId, dbCategories, evoplayCategoryList)).ToList();
-                            break;
+                                providerGames = Integration.Products.Helpers.EvoplayHelpers.GetGames(Constants.MainPartnerId).AsParallel()
+                                    .Select(x => x.ToFnProduct(gameProviderId, dbCategories, evoplayCategoryList)).ToList();
+                                break;
 
-                        case Constants.GameProviders.BetSolutions:
-                            var betSolutionsCategoryList = new Dictionary<int, int>
+                            case Constants.GameProviders.BetSolutions:
+                                var betSolutionsCategoryList = new Dictionary<int, int>
                             {
                                 { 2, productCategories.FirstOrDefault(x => x.NickName.ToLower() == "slots").Id },
                                 { 1, productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "tablegames").Id },
                                 { 3, productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id }
                             };
-                            providerGames = Integration.Products.Helpers.BetSolutionsHelpers.GetGames(Constants.MainPartnerId).AsParallel()
-                                .Select(x => x.ToFnProduct(gameProviderId, dbCategories, betSolutionsCategoryList)).ToList();
-                            break;
-                        case Constants.GameProviders.GrooveGaming:
-                            var grooveCategoryList = new Dictionary<string, int>
+                                providerGames = Integration.Products.Helpers.BetSolutionsHelpers.GetGames(Constants.MainPartnerId).AsParallel()
+                                    .Select(x => x.ToFnProduct(gameProviderId, dbCategories, betSolutionsCategoryList)).ToList();
+                                break;
+                            case Constants.GameProviders.GrooveGaming:
+                                var grooveCategoryList = new Dictionary<string, int>
                             {
                                 { "Slots", productCategories.FirstOrDefault(x => x.NickName.ToLower() == "slots").Id },
                                 { "Win or Crash", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
@@ -814,11 +802,11 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                                 { "Scratch Card", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "scratchgames").Id },
                                 { "Action Games", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "specials").Id }
                             };
-                            providerGames = Integration.Products.Helpers.GrooveHelpers.GetGames(Constants.MainPartnerId).AsParallel()
-                                .Select(x => x.ToFnProduct(providers, gameProviderId, dbCategories, grooveCategoryList)).ToList();
-                            break;
-                        case Constants.GameProviders.EveryMatrix:
-                            var everyMatrixCategoryList = new Dictionary<string, int>
+                                providerGames = Integration.Products.Helpers.GrooveHelpers.GetGames(Constants.MainPartnerId).AsParallel()
+                                    .Select(x => x.ToFnProduct(providers, gameProviderId, dbCategories, grooveCategoryList)).ToList();
+                                break;
+                            case Constants.GameProviders.EveryMatrix:
+                                var everyMatrixCategoryList = new Dictionary<string, int>
                             {
                                 { "VIDEOSLOTS", productCategories.FirstOrDefault(x => x.NickName.ToLower() == "slots").Id },
                                 { "TABLEGAMES", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "tablegames").Id },
@@ -835,54 +823,54 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                                 { "LOTTERY", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "lottery").Id },
                                 { "MINIGAMES", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "tablegames").Id }
                             };
-                            providerGames = Integration.Products.Helpers.EveryMatrixHelpers.GetGames(Constants.MainPartnerId).AsParallel()
-                                .Select(x => x.ToFnProduct(providers, gameProviderId, dbCategories, everyMatrixCategoryList, countryCodes)).ToList();
-                            break;
-                        case Constants.GameProviders.Mancala:
-                            var mancalaCategory = productCategories.FirstOrDefault(x => x.NickName.ToLower() == "slots").Id;
-                            providerGames = Integration.Products.Helpers.MancalaHelpers.GetGames(Constants.MainPartnerId).AsParallel()
-                                .Select(x => x.ToFnProduct(gameProviderId, mancalaCategory)).ToList();
-                            break;
-                        case Constants.GameProviders.Nucleus:
-                            var NucleusCategoryList = new Dictionary<string, int>
+                                providerGames = Integration.Products.Helpers.EveryMatrixHelpers.GetGames(Constants.MainPartnerId).AsParallel()
+                                    .Select(x => x.ToFnProduct(providers, gameProviderId, dbCategories, everyMatrixCategoryList, countryCodes)).ToList();
+                                break;
+                            case Constants.GameProviders.Mancala:
+                                var mancalaCategory = productCategories.FirstOrDefault(x => x.NickName.ToLower() == "slots").Id;
+                                providerGames = Integration.Products.Helpers.MancalaHelpers.GetGames(Constants.MainPartnerId).AsParallel()
+                                    .Select(x => x.ToFnProduct(gameProviderId, mancalaCategory)).ToList();
+                                break;
+                            case Constants.GameProviders.Nucleus:
+                                var NucleusCategoryList = new Dictionary<string, int>
                             {
                                 { "Slots", productCategories.FirstOrDefault(x => x.NickName.ToLower() == "slots").Id },
                                 { "Table", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "tablegames").Id }
                             };
-                            providerGames = Integration.Products.Helpers.NucleusHelpers.GetGames(Constants.MainPartnerId).AsParallel()
-                                .Select(x => x.ToFnProduct(gameProviderId, dbCategories, NucleusCategoryList)).ToList();
-                            break;
-                        case Constants.GameProviders.GoldenRace:
-                            var goldenRaceList = new Dictionary<string, int>
+                                providerGames = Integration.Products.Helpers.NucleusHelpers.GetGames(Constants.MainPartnerId).AsParallel()
+                                    .Select(x => x.ToFnProduct(gameProviderId, dbCategories, NucleusCategoryList)).ToList();
+                                break;
+                            case Constants.GameProviders.GoldenRace:
+                                var goldenRaceList = new Dictionary<string, int>
                             {
                                 { "retail", productCategories.FirstOrDefault(x => x.NickName.ToLower() == "slots").Id },
                                 { "virtual", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
                                 { "slot", productCategories.FirstOrDefault(x => x.NickName.ToLower() == "slots").Id },
                                 { "live", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "livegames").Id },
                             };
-                            providerGames = Integration.Products.Helpers.GoldenRaceHelpers.GetGames(Constants.MainPartnerId).AsParallel()
-                                .Select(x => x.ToFnProduct(gameProviderId, dbCategories, goldenRaceList, providers)).ToList();
-                            break;
-                        case Constants.GameProviders.DragonGaming:
-                            var dragonGamesList = new Dictionary<string, int>
+                                providerGames = Integration.Products.Helpers.GoldenRaceHelpers.GetGames(Constants.MainPartnerId).AsParallel()
+                                    .Select(x => x.ToFnProduct(gameProviderId, dbCategories, goldenRaceList, providers)).ToList();
+                                break;
+                            case Constants.GameProviders.DragonGaming:
+                                var dragonGamesList = new Dictionary<string, int>
                             {
                                 { "slots", productCategories.FirstOrDefault(x => x.NickName.ToLower() == "slots").Id },
                                 { "table_games", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "tablegames").Id },
                                 { "scratch_cards", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "scratchgames").Id },
                             };
-                            providerGames = Integration.Products.Helpers.DragonGamingHelpers.GetGames(Constants.MainPartnerId).AsParallel()
-                                 .Select(x => x.ToFnProduct(gameProviderId, dbCategories, dragonGamesList, providers)).ToList();
-                            break;
-                        case Constants.GameProviders.JackpotGaming:
-                            var jackpotGamingGamesList = new Dictionary<string, int>
+                                providerGames = Integration.Products.Helpers.DragonGamingHelpers.GetGames(Constants.MainPartnerId).AsParallel()
+                                     .Select(x => x.ToFnProduct(gameProviderId, dbCategories, dragonGamesList, providers)).ToList();
+                                break;
+                            case Constants.GameProviders.JackpotGaming:
+                                var jackpotGamingGamesList = new Dictionary<string, int>
                             {
                                 { "videoslots", productCategories.FirstOrDefault(x => x.NickName.ToLower() == "slots").Id }
                             };
-                            providerGames = Integration.Products.Helpers.JackpotGamingHelpers.GetGames(Constants.MainPartnerId).AsParallel()
-                                .Select(x => x.ToFnProduct(gameProviderId, providers, dbCategories, jackpotGamingGamesList)).ToList();
-                            break;
-                        case Constants.GameProviders.AleaPlay:
-                            var aleaPlayGamesList = new Dictionary<string, int>
+                                providerGames = Integration.Products.Helpers.JackpotGamingHelpers.GetGames(Constants.MainPartnerId).AsParallel()
+                                    .Select(x => x.ToFnProduct(gameProviderId, providers, dbCategories, jackpotGamingGamesList)).ToList();
+                                break;
+                            case Constants.GameProviders.AleaPlay:
+                                var aleaPlayGamesList = new Dictionary<string, int>
                             {
                                 { "slots", productCategories.FirstOrDefault(x => x.NickName.ToLower() == "slots").Id },
                                 { "roulette", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "livegames").Id },
@@ -911,11 +899,11 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                                 { "shooting", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
                                 { "plinko", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id }
                             };
-                            providerGames = Integration.Products.Helpers.AleaPlayHelpers.GetGames(Constants.MainPartnerId).AsParallel()
-                                            .Select(x => x.ToFnProduct(gameProviderId, dbCategories, aleaPlayGamesList, providers)).ToList();
-                            break;
-                        case Constants.GameProviders.PlaynGo:
-                            var gamesList = new Dictionary<string, int>
+                                providerGames = Integration.Products.Helpers.AleaPlayHelpers.GetGames(Constants.MainPartnerId).AsParallel()
+                                                .Select(x => x.ToFnProduct(gameProviderId, dbCategories, aleaPlayGamesList, providers)).ToList();
+                                break;
+                            case Constants.GameProviders.PlaynGo:
+                                var gamesList = new Dictionary<string, int>
                             {
                                 { "slots", productCategories.FirstOrDefault(x => x.NickName.ToLower() == "slots").Id },
                                 { "table", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "tablegames").Id },
@@ -928,11 +916,11 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                                 { "vb", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
                                 { "mw", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id }
                             };
-                            providerGames = Integration.Products.Helpers.PlaynGoHelpers.GetProductsList(Constants.MainPartnerId).AsParallel()
-                                            .Select(x => x.ToFnProduct(gameProviderId, dbCategories, gamesList)).ToList();
-                            break;
-                        case Constants.GameProviders.SoftSwiss:
-                            gamesList = new Dictionary<string, int>
+                                providerGames = Integration.Products.Helpers.PlaynGoHelpers.GetProductsList(Constants.MainPartnerId).AsParallel()
+                                                .Select(x => x.ToFnProduct(gameProviderId, dbCategories, gamesList)).ToList();
+                                break;
+                            case Constants.GameProviders.SoftSwiss:
+                                gamesList = new Dictionary<string, int>
                             {
                                 { "slots", productCategories.FirstOrDefault(x => x.NickName.ToLower() == "slots").Id },
                                 { "roulette", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "tablegames").Id },
@@ -946,11 +934,11 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                                 { "fishing", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "fishgames").Id },
                                 { "crash", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id }
                             };
-                            providerGames = Integration.Products.Helpers.SoftSwissHelpers.GetGames(Constants.MainPartnerId, log).AsParallel()
-                                            .Select(x => x.ToFnProduct(gameProviderId, dbCategories, gamesList, providers)).ToList();
-                            break;
-                        case Constants.GameProviders.Elite:
-                            var eliteGameList = new Dictionary<string, int>
+                                providerGames = Integration.Products.Helpers.SoftSwissHelpers.GetGames(Constants.MainPartnerId, log).AsParallel()
+                                                .Select(x => x.ToFnProduct(gameProviderId, dbCategories, gamesList, providers)).ToList();
+                                break;
+                            case Constants.GameProviders.Elite:
+                                var eliteGameList = new Dictionary<string, int>
                             {
                                 { "Bingo", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
                                 { "Table Games", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "tablegames").Id },
@@ -961,57 +949,109 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                                 { "Wheel", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
                                 { "Provably Fair", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
                             };
-                            providerGames = new List<fnProduct>();
-                            providerGames = Integration.Products.Helpers.EliteHelpers.GetGames(Constants.MainPartnerId).AsParallel()
-                                .Select(x => x.ToFnProduct(gameProviderId, dbCategories, eliteGameList, providers)).ToList();
-                            break;
-                        case Constants.GameProviders.SoftLand:
-                            var softLandGameList = new Dictionary<string, int>
+                                providerGames = new List<fnProduct>();
+                                providerGames = Integration.Products.Helpers.EliteHelpers.GetGames(Constants.MainPartnerId).AsParallel()
+                                    .Select(x => x.ToFnProduct(gameProviderId, dbCategories, eliteGameList, providers)).ToList();
+                                break;
+                            case Constants.GameProviders.SoftLand:
+                                var softLandGameList = new Dictionary<string, int>
                             {
                                 { "Slots", productCategories.First(x => x.NickName.ToLower() == "slots").Id }
                             };
-                            providerGames = new List<fnProduct>();
-                            providerGames = Integration.Products.Helpers.SoftLandHelpers.GetGames(Constants.MainPartnerId).AsParallel()
-                                .Select(x => x.ToFnProduct(gameProviderId, dbCategories, softLandGameList, providers)).ToList();
-                            break;
-                        case Constants.GameProviders.BGGames:
-                            var betgamesList = new Dictionary<string, int>
+                                providerGames = new List<fnProduct>();
+                                providerGames = Integration.Products.Helpers.SoftLandHelpers.GetGames(Constants.MainPartnerId).AsParallel()
+                                    .Select(x => x.ToFnProduct(gameProviderId, dbCategories, softLandGameList, providers)).ToList();
+                                break;
+                            case Constants.GameProviders.BGGames:
+                                var betgamesList = new Dictionary<string, int>
                             {
                                 { "Slots", productCategories.First(x => x.NickName.ToLower() == "slots").Id },
                                 { "Live casino", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "livegames").Id },
-								{ "Virtual", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id }
+                                { "Live Casino", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "livegames").Id },
+                                { "Virtual Sports", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
+                                { "Crash", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
+                                { "", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
+                                { "O", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id }
                             };
-                            providerGames = new List<fnProduct>();
-                            providerGames = Integration.Products.Helpers.BGGamesHelpers.GetGames(Constants.MainPartnerId, log).AsParallel()
-                                .Select(x => x.ToFnProduct(gameProviderId, dbCategories, betgamesList, providers)).ToList();
-                            break;
-                        case Constants.GameProviders.TimelessTech:
-                        case Constants.GameProviders.BCWGames:
-                            var tltgamesList = new Dictionary<string, int>
+                                providerGames = new List<fnProduct>();
+                                providerGames = Integration.Products.Helpers.BGGamesHelpers.GetGames(Constants.MainPartnerId, log).AsParallel()
+                                    .Select(x => x.ToFnProduct(gameProviderId, dbCategories, betgamesList, providers)).ToList();
+                                break;
+                            case Constants.GameProviders.TimelessTech:
+                            case Constants.GameProviders.BCWGames:
+                                var tltgamesList = new Dictionary<string, int>
                             {
                                 { "casino", productCategories.First(x => x.NickName.ToLower() == "slots").Id },
                                 { "live-casino", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "livegames").Id },
                                 { "virtual-games", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id }
                             };
-                            providerGames = new List<fnProduct>();
-                            providerGames = Integration.Products.Helpers.TimelessTechHelpers.GetGames(Constants.MainPartnerId, gameProvider.Id).AsParallel()
-                                .Select(x => x.ToFnProduct(gameProviderId, dbCategories, tltgamesList, providers)).ToList();
-                            break;
-                        default:
-                            return new ApiResponseBase();
+                                providerGames = new List<fnProduct>();
+                                providerGames = Integration.Products.Helpers.TimelessTechHelpers.GetGames(Constants.MainPartnerId, gameProvider.Id).AsParallel()
+                                    .Select(x => x.ToFnProduct(gameProviderId, dbCategories, tltgamesList, providers)).ToList();
+                                break;
+                            case Constants.GameProviders.RiseUp:
+                                var riseUpList = new Dictionary<string, int>
+                            {
+                                { "Video Slot", productCategories.First(x => x.NickName.ToLower() == "slots").Id },
+                                { "VideoSlot", productCategories.First(x => x.NickName.ToLower() == "slots").Id },
+                                { "Slot", productCategories.First(x => x.NickName.ToLower() == "slots").Id },
+                                { "Live Table", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "livegames").Id },
+                                { "Live Lobby", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "livegames").Id },
+                                { "lobby", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "livegames").Id },
+                                { "Virtual Game", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
+                                { "Virtual Lobby", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
+                                { "Poker", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
+                                { "Hold Em Poker", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
+                                { "Lottery", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
+                                { "Bingo,", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
+                                { "Scratch card,", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
+                                { "Crash Games,", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
+                            };
+                                providerGames = new List<fnProduct>();
+                                providerGames = Integration.Products.Helpers.RiseUpHelpers.GetGames(Constants.MainPartnerId, gameProvider.Id).AsParallel()
+                                    .Select(x => x.ToFnProduct(gameProviderId, dbCategories, riseUpList, providers)).ToList();
+                                break;
+                            case Constants.GameProviders.LuckyStreak:
+                                var luckyStreakList = new Dictionary<string, int>
+                            {
+                                { "Video Slots", productCategories.First(x => x.NickName.ToLower() == "slots").Id },
+                                { "Video Slot", productCategories.First(x => x.NickName.ToLower() == "slots").Id },
+                                { "Slot", productCategories.First(x => x.NickName.ToLower() == "slots").Id },
+                                { "Classic Slots", productCategories.First(x => x.NickName.ToLower() == "slots").Id },
+                                { "Table Games", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "tablegames").Id },
+                                { "Scratch card", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
+                                { "Scratch Card", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
+                                { "Fugaso", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
+                                { "Live games", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "livegames").Id },
+                                { "Baccarat", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "livegames").Id },
+                                { "Baccarat New", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "livegames").Id },
+                                { "Blackjack", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "livegames").Id },
+                                { "Roulette", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "livegames").Id },
+                                { "AutoRoulette", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "livegames").Id },
+                                { "ExternalRoulette", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "livegames").Id },
+                                { "ExternalBaccarat", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "livegames").Id }
+                            };
+                                providerGames = new List<fnProduct>();
+                                providerGames = Integration.Products.Helpers.LuckyStreakHelpers.GetGames(Constants.MainPartnerId, gameProvider.Id, log).AsParallel()
+                                    .Select(x => x.ToFnProduct(gameProviderId, dbCategories, luckyStreakList, providers)).ToList();
+                                break;
+                            default:
+                                return new ApiResponseBase();
+                        }
+                        var ids = productsBl.SynchronizeProducts(gameProviderId, providerGames);
+                        var partners = partnerBl.GetPartners(new FilterPartner(), false).Where(x => x.State == (int)PartnerStates.Active).Select(x => x.Id).ToList();
+                    
+                        foreach (var id in ids)
+                        {
+                            CacheManager.DeleteProductFromCache(id);
+                            Helpers.Helpers.InvokeMessage("UpdateProduct", id);
+                        }
+                        foreach (var p in partners)
+                        {
+                            CacheManager.RemovePartnerProductSettingPages(p);
+                        }
+                        return new ApiResponseBase();
                     }
-                    var ids = productsBl.SynchronizeProducts(gameProviderId, providerGames);
-                    CacheManager.RemoveKeysFromCache(string.Format("{0}_", Constants.CacheItems.ProductCountrySetting)); 
-                    CacheManager.RemoveKeysFromCache(string.Format("{0}_", Constants.CacheItems.PartnerProductSettings)); 
-                    Helpers.Helpers.InvokeMessage("RemoveKeysFromCache", string.Format("{0}_", Constants.CacheItems.ProductCountrySetting));
-                    Helpers.Helpers.InvokeMessage("RemoveKeysFromCache", string.Format("{0}_", Constants.CacheItems.PartnerProductSettings));
-
-                    foreach (var id in ids)
-                    {
-                        CacheManager.DeleteProductFromCache(id);
-                        Helpers.Helpers.InvokeMessage("UpdateProduct", id);
-                    }
-                    return new ApiResponseBase();
                 }
             }
         }

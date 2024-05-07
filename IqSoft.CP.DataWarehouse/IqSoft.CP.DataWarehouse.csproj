@@ -66,10 +66,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AccountBalance.cs">
+      <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
+    </Compile>
     <Compile Include="AffiliatePlatform.cs">
       <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
     </Compile>
     <Compile Include="AffiliateReferral.cs">
+      <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AgentCommission.cs">
       <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
     </Compile>
     <Compile Include="Bet.cs">
@@ -84,6 +90,9 @@
     <Compile Include="ClientBonu.cs">
       <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
     </Compile>
+    <Compile Include="ClientMatchHistory.cs">
+      <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
+    </Compile>
     <Compile Include="ClientSession.cs">
       <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
     </Compile>
@@ -93,16 +102,23 @@
     <Compile Include="Document.cs">
       <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
     </Compile>
+    <Compile Include="DuplicatedClient.cs">
+      <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
+    </Compile>
     <Compile Include="Filters\FilterBase.cs" />
     <Compile Include="Filters\FilterBetShopBet.cs" />
     <Compile Include="Filters\FilterfnClientDashboard.cs" />
     <Compile Include="Filters\FilterfnDocument.cs" />
+    <Compile Include="Filters\FilterfnDuplicateClient.cs" />
     <Compile Include="Filters\FilterInternetBet.cs" />
     <Compile Include="Filters\FilterInternetGame.cs" />
     <Compile Include="Filters\FilterReportByPartner.cs" />
     <Compile Include="Filters\FilterReportByProvider.cs" />
     <Compile Include="Filters\FilterWebSiteBet.cs" />
     <Compile Include="fnAffiliateClient.cs">
+      <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnAgentProfit.cs">
       <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
     </Compile>
     <Compile Include="fnBetShopBet.cs">
@@ -114,10 +130,16 @@
     <Compile Include="fnClientReport.cs">
       <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
     </Compile>
+    <Compile Include="fnClientSession.cs">
+      <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
+    </Compile>
     <Compile Include="fnDeviceClientsCount.cs">
       <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
     </Compile>
     <Compile Include="fnDocument.cs">
+      <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnDuplicateClient.cs">
       <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
     </Compile>
     <Compile Include="fnInternetBet.cs">
@@ -133,6 +155,12 @@
       <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
     </Compile>
     <Compile Include="fnPartnerProviderBets.cs">
+      <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnProductCommission.cs">
+      <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnProductGroup.cs">
       <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
     </Compile>
     <Compile Include="fnProfitByAgent.cs">
@@ -193,6 +221,7 @@
     <Compile Include="PartialClasses\fnBetShopBet.cs" />
     <Compile Include="PartialClasses\fnClientReport.cs" />
     <Compile Include="PartialClasses\fnDocument.cs" />
+    <Compile Include="PartialClasses\fnDuplicateClient.cs" />
     <Compile Include="PartialClasses\fnInternetBet.cs" />
     <Compile Include="PartialClasses\fnInternetGame.cs" />
     <Compile Include="PartialClasses\fnReportByPartner.cs" />

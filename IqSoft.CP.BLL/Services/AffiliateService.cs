@@ -23,6 +23,7 @@ using Document = IqSoft.CP.DAL.Document;
 using AffiliateReferral = IqSoft.CP.DAL.AffiliateReferral;
 using static System.Data.Entity.Infrastructure.Design.Executor;
 using System.Security.Principal;
+using System.Text.RegularExpressions;
 
 namespace IqSoft.CP.BLL.Services
 {
@@ -38,6 +39,72 @@ namespace IqSoft.CP.BLL.Services
             : base(baseBl)
         {
 
+        }
+
+        public Affiliate RegisterAffiliate(Affiliate newAffiliate, string reCaptcha)
+        {
+            if (newAffiliate.RegionId == 0)
+                newAffiliate.RegionId = Constants.DefaultRegionId;
+            if (string.IsNullOrEmpty(newAffiliate.LanguageId))
+                newAffiliate.LanguageId = Constants.DefaultLanguageId;
+            newAffiliate.MobileNumber = newAffiliate.MobileNumber ?? string.Empty;
+            VerifyAffiliateFields(newAffiliate, reCaptcha);
+            var currentDate = DateTime.UtcNow;
+            var rand = new Random();
+            var salt = rand.Next();
+            newAffiliate.CreationTime  = currentDate;
+            newAffiliate.LastUpdateTime  = currentDate;
+            newAffiliate.Salt = salt;
+            newAffiliate.PasswordHash = CommonFunctions.ComputeClientPasswordHash(newAffiliate.Password, salt);
+            newAffiliate.State = (int)AffiliateStates.PendingForApproval;
+            Db.Affiliates.Add(newAffiliate);
+            Db.SaveChanges();
+            return newAffiliate;
+        }
+
+        private void VerifyAffiliateFields(Affiliate affiliate, string reCaptcha)
+        {
+            if (!Enum.IsDefined(typeof(Gender), affiliate.Gender))
+                throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
+            if (string.IsNullOrWhiteSpace(affiliate.Email) || !IsValidEmail(affiliate.Email))
+                throw CreateException(LanguageId, Constants.Errors.InvalidEmail);
+            if (!string.IsNullOrEmpty(affiliate.MobileNumber) && !IsMobileNumber(affiliate.MobileNumber))
+                throw CreateException(LanguageId, Constants.Errors.InvalidMobile);
+            if (affiliate.Id == 0)
+            {
+                var dbAffiliate = Db.Affiliates.Where(x => x.PartnerId == affiliate.PartnerId &&
+                                                      (x.Email.ToLower() == affiliate.Email.ToLower() ||
+                                                      (!string.IsNullOrEmpty(affiliate.MobileNumber) && x.MobileNumber == affiliate.MobileNumber)))
+                                           .FirstOrDefault();
+                if (dbAffiliate != null)
+                {
+                    if (dbAffiliate.Email.ToLower() == affiliate.Email.ToLower())
+                        throw CreateException(LanguageId, Constants.Errors.EmailExists);
+                    if (!string.IsNullOrWhiteSpace(affiliate.MobileNumber) && dbAffiliate.MobileNumber == affiliate.MobileNumber)
+                        throw CreateException(LanguageId, Constants.Errors.MobileExists);
+                }
+            }
+
+            VerifyAffiliatePassword(affiliate);
+            CheckSiteCaptcha(affiliate.PartnerId, reCaptcha);
+        }
+
+        private void VerifyAffiliatePassword(Affiliate affiliate)
+        {
+            var partner = CacheManager.GetPartnerById(affiliate.PartnerId);
+            var partnerConfig = CacheManager.GetConfigKey(partner.Id, Constants.PartnerKeys.ProhibitPasswordContainingPersonalData);
+            var unallowedKeys = new List<string>();
+            if (!string.IsNullOrEmpty(partnerConfig) && partnerConfig == "1")
+            {
+                if (!string.IsNullOrEmpty(affiliate.FirstName))
+                    unallowedKeys.Add(affiliate.FirstName.ToLower());
+                if (!string.IsNullOrEmpty(affiliate.LastName))
+                    unallowedKeys.Add(affiliate.LastName.ToLower());
+                if (!string.IsNullOrEmpty(affiliate.UserName))
+                    unallowedKeys.Add(affiliate.UserName.ToLower());
+            }
+            if (!Regex.IsMatch(affiliate.Password, partner.PasswordRegExp) || unallowedKeys.Any(affiliate.Password.ToLower().Contains))
+                throw CreateException(LanguageId, Constants.Errors.PasswordContainsPersonalData);
         }
 
         public PagedModel<fnAffiliate> GetfnAffiliates(FilterfnAffiliate filter)
@@ -149,7 +216,8 @@ namespace IqSoft.CP.BLL.Services
                 notificationBll.SendNotificationMessage(new NotificationModel
                 {
                     PartnerId = affiliate.PartnerId,
-                    AffiliateId = affiliate.Id,
+                    ObjectId = affiliate.Id,
+                    ObjectTypeId = (int)ObjectTypes.Affiliate,
                     MobileOrEmail = affiliate.Email,
                     MessageType = (int)ClientMessageTypes.Email,
                     ClientInfoType = (int)ClientInfoTypes.AffiliateConfirmationEmail
@@ -383,7 +451,7 @@ namespace IqSoft.CP.BLL.Services
                                                 AccountTypeId = (int)AccountTypes.AffiliateManagerBalance,
                                                 Creator = affiliate.Id
                                             };
-                                            CreateDebitToAffiliateFromJob(affiliate.Id, input, documentBl);
+                                            CreateDebitToAffiliate(affiliate.Id, input, documentBl);
                                         }
                                     }
                                 }
@@ -402,17 +470,17 @@ namespace IqSoft.CP.BLL.Services
 
         public SessionIdentity LoginAffiliate(LoginUserInput loginInput)
         {
-            var currentTime = GetServerDate();
+            var currentTime = DateTime.UtcNow;
             var affiliate = Db.Affiliates.FirstOrDefault(x => x.UserName == loginInput.UserName && x.PartnerId == loginInput.PartnerId);
             if (affiliate == null)
                 throw CreateException(loginInput.LanguageId, Constants.Errors.WrongLoginParameters);
-
             if (affiliate.State != (int)AffiliateStates.Active)
                 throw CreateException(loginInput.LanguageId, Constants.Errors.UserBlocked);
 
             var passwordHash = CommonFunctions.ComputeClientPasswordHash(loginInput.Password, affiliate.Salt);
             if (affiliate.PasswordHash != passwordHash)
             {
+                Log.Info("LoginAffiliate_" + affiliate.PasswordHash + "_" + passwordHash);
                 throw CreateException(loginInput.LanguageId, Constants.Errors.WrongLoginParameters);
             }
 
@@ -477,61 +545,32 @@ namespace IqSoft.CP.BLL.Services
             return item;
         }
 
-        public int SendRecoveryToken(int partnerId, string languageId, string identifier)
+        public Affiliate GetAffiliateByIdentifier(int partnerId, string identifier)
         {
-            Affiliate affiliate;
-            var isValidEmail = IsValidEmail(identifier);
-            if (isValidEmail)
-                affiliate = Db.Affiliates.FirstOrDefault(x => x.Email == identifier && x.PartnerId == partnerId);
+            var query = Db.Affiliates.Where(x => x.PartnerId == partnerId);
+            if (IsValidEmail(identifier))
+                query = query.Where(x => x.Email == identifier);
             else
-            {
-                affiliate = Db.Affiliates.FirstOrDefault(x => x.UserName == identifier && x.PartnerId == partnerId);
-            }
-            if (affiliate == null)
-                return CacheManager.GetPartnerById(partnerId).VerificationKeyActiveMinutes;
-            return SendRecoveryMessageToAffiliateEmail(affiliate);
+                query = query.Where(x => x.UserName == identifier);
+            return query.FirstOrDefault();
         }
-        public int SendRecoveryMessageToAffiliateEmail(Affiliate affiliate)
-        {
-            if (string.IsNullOrWhiteSpace(affiliate.Email))
-                throw CreateException(LanguageId, Constants.Errors.EmailCantBeEmpty);
 
-            using (var notificationBll = new NotificationBll(Identity, Log))
-            {
-                var partner = CacheManager.GetPartnerById(affiliate.PartnerId);
-                var partnerSetting = CacheManager.GetConfigKey(affiliate.PartnerId, Constants.PartnerKeys.VerificationKeyNumberOnly);
-                var verificationKey = (!string.IsNullOrEmpty(partnerSetting) && partnerSetting == "1") ? CommonFunctions.GetRandomNumber(partner.EmailVerificationCodeLength) :
-                                                                                                         CommonFunctions.GetRandomString(partner.EmailVerificationCodeLength);
-                return notificationBll.SendNotificationMessage(new NotificationModel
-                {
-                    PartnerId = affiliate.PartnerId,
-                    AffiliateId = affiliate.Id,
-                    VerificationCode = verificationKey,
-                    MobileOrEmail = affiliate.Email,
-                    ClientInfoType = (int)ClientInfoTypes.PasswordRecoveryEmailKey
-                }, out int responseCode);
-            }
-        }
-        public Affiliate RecoverPassword(int partnerId, string recoveryToken, string newPassword, string languageId)
+        public Affiliate RecoverPassword(int partnerId, string recoveryToken, string newPassword)
         {
-            var clientInfo = Db.ClientInfoes.FirstOrDefault(x => x.Data == recoveryToken && x.PartnerId == partnerId);
-            if (clientInfo == null)
-                throw CreateException(languageId, Constants.Errors.WrongToken);
+            var clientInfo = Db.ClientInfoes.FirstOrDefault(x => x.Data == recoveryToken && x.PartnerId == partnerId && x.ObjectTypeId == (int)ObjectTypes.Affiliate) ??
+                throw CreateException(LanguageId, Constants.Errors.WrongToken);
             if (clientInfo.State == (int)ClientInfoStates.Expired)
-                throw CreateException(languageId, Constants.Errors.TokenExpired);
-            var affiliate = Db.Affiliates.First(x => x.Id == clientInfo.AffiliateId);
-            var currentTime = GetServerDate();
-            var passwordHash = CommonFunctions.ComputeClientPasswordHash(newPassword, affiliate.Salt);
-            affiliate.PasswordHash = passwordHash;
-            affiliate.LastUpdateTime = currentTime;
+                throw CreateException(LanguageId, Constants.Errors.TokenExpired);
+            var affiliate = Db.Affiliates.First(x => x.Id == clientInfo.ObjectId);
+            VerifyAffiliatePassword(affiliate);
+            affiliate.PasswordHash = CommonFunctions.ComputeClientPasswordHash(newPassword, affiliate.Salt);
+            affiliate.LastUpdateTime = DateTime.UtcNow;
             clientInfo.State = (int)ClientInfoStates.Expired;
             Db.SaveChanges();
-
             return affiliate;
         }
 
-
-        public Document CreateDebitToAffiliateFromJob(int affiliateId, ClientOperation transaction, DocumentBll documentBl)
+        public Document CreateDebitToAffiliate(int affiliateId, ClientOperation transaction, DocumentBll documentBl)
         {
             var operation = new Operation
             {
@@ -576,7 +615,7 @@ namespace IqSoft.CP.BLL.Services
                 OperationTypeId = transaction.OperationTypeId
             });
 
-            var document = documentBl.CreateDocumentFromJob(operation);
+            var document = documentBl.CreateDocument(operation);
             Db.SaveChanges();
             return document;
         }

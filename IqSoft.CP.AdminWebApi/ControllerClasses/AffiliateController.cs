@@ -1,5 +1,6 @@
 ﻿using IqSoft.CP.AdminWebApi.ClientModels.Models;
 using IqSoft.CP.AdminWebApi.Filters;
+using IqSoft.CP.AdminWebApi.Filters.Agent;
 using IqSoft.CP.AdminWebApi.Helpers;
 using IqSoft.CP.AdminWebApi.Models.AffiliateModels;
 using IqSoft.CP.AdminWebApi.Models.CommonModels;
@@ -29,6 +30,8 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                         JsonConvert.DeserializeObject<ApiFnAffiliateModel>(request.RequestData), identity, log);
                 case "UpdateCommissionPlan":
                     return UpdateCommissionPlan(JsonConvert.DeserializeObject<Common.Models.AffiliateModels.ApiAffiliateCommission>(request.RequestData), identity, log);
+                case "GetTransactions":
+                    return GetTransactions(JsonConvert.DeserializeObject<ApiFilterfnAgentTransaction>(request.RequestData), identity, log);
             }
             throw BaseBll.CreateException(string.Empty, Constants.Errors.MethodNotFound);
         }
@@ -75,6 +78,22 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             {
                 affiliateBl.UpdateCommissionPlan(input);
                 return new ApiResponseBase();
+            }
+        }
+
+        private static ApiResponseBase GetTransactions(ApiFilterfnAgentTransaction apiFilter, SessionIdentity identity, ILog log)
+        {
+            using (var reportBl = new ReportBll(identity, log))
+            {
+                var result = reportBl.GetAffiliateTransactions(apiFilter.ToFilterfnAffiliateTransaction(), identity.Id);
+                return new ApiResponseBase
+                {
+                    ResponseObject = new
+                    {
+                        result.Count,
+                        Entities = result.Entities.Select(x => x.ToApifnAffiliateTransaction(identity.TimeZone)).ToList()
+                    }
+                };
             }
         }
     }

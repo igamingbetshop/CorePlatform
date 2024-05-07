@@ -105,7 +105,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             using (var clientBl = new ClientBll(contentBl))
             {
                 var popup = contentBl.GetPopupById(popupId).MapToApiPopup(identity.TimeZone);
-                if (popup.Type != (int)PopupTypes.Instant)
+                if (popup.Type != (int)PopupTypes.Instant || popup.State != (int)BaseStates.Active)
                     throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.WrongParameters);
                 if (popup.SegmentIds != null && popup.SegmentIds.Any())
                 {

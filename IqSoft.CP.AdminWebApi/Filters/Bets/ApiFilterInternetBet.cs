@@ -8,6 +8,8 @@ namespace IqSoft.CP.AdminWebApi.Filters.Bets
 
         public int? AgentId { get; set; }
 
+        public int? ClientId { get; set; }
+
         public long? AccountId { get; set; }
 
         public DateTime BetDateFrom { get; set; }
@@ -31,7 +33,9 @@ namespace IqSoft.CP.AdminWebApi.Filters.Bets
         public ApiFiltersOperation ProductNames { get; set; }
 
         public ApiFiltersOperation ProviderNames { get; set; }
+
         public ApiFiltersOperation SubproviderIds { get; set; }
+        
         public ApiFiltersOperation SubproviderNames { get; set; }
 
         public ApiFiltersOperation CurrencyIds { get; set; }
@@ -51,27 +55,33 @@ namespace IqSoft.CP.AdminWebApi.Filters.Bets
         public ApiFiltersOperation PossibleWins { get; set; }
 
         public ApiFiltersOperation BetAmounts { get; set; }
+
         public ApiFiltersOperation OriginalBetAmounts { get; set; }
 
         public ApiFiltersOperation Coefficients { get; set; }
 
         public ApiFiltersOperation WinAmounts { get; set; }
+
         public ApiFiltersOperation OriginalWinAmounts { get; set; }
 
         public ApiFiltersOperation BetDates { get; set; }
+
         public ApiFiltersOperation CalculationDates { get; set; }
 
         public ApiFiltersOperation LastUpdateTimes { get; set; }
 
         public ApiFiltersOperation BonusIds { get; set; }
 
-
         public ApiFiltersOperation GGRs { get; set; }
 
         public ApiFiltersOperation Rakes { get; set; }
+
         public ApiFiltersOperation BonusAmounts { get; set; }
+
         public ApiFiltersOperation OriginalBonusAmounts { get; set; }
+
         public ApiFiltersOperation BonusWinAmounts { get; set; }
+
         public ApiFiltersOperation OriginalBonusWinAmounts { get; set; }
 
         public ApiFiltersOperation Balances { get; set; }

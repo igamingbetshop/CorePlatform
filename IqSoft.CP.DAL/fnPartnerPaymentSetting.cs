@@ -37,5 +37,6 @@ namespace IqSoft.CP.DAL
         public string PaymentSystemName { get; set; }
         public int PaymenSystemType { get; set; }
         public Nullable<int> ContentType { get; set; }
+        public string ImageExtension { get; set; }
     }
 }

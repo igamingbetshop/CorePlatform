@@ -26,11 +26,7 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                 case "GetTransactions":
                     return GetTransactions(JsonConvert.DeserializeObject<ApiFilterfnAgentTransaction>(request.RequestData), identity, log);
                 case "GetReportByAgents":
-                    return GetReportByAgents(JsonConvert.DeserializeObject<ApiFilterAgentReport>(request.RequestData), identity, log);
-                case "GetAgentCasinoReport":
-                    return GetAgentCasinoReport(JsonConvert.DeserializeObject<ApiFilterAgentReport>(request.RequestData), identity, log);
-                case "GetAgentSportReport":
-                    return GetAgentSportReport(JsonConvert.DeserializeObject<ApiFilterAgentReport>(request.RequestData), identity, log);
+                    return GetReportByAgents(JsonConvert.DeserializeObject<ApiFilterfnAgent>(request.RequestData), identity, log);
                 case "GetReportByAgentInternetBet":
                     return GetReportByAgentInternetBet(JsonConvert.DeserializeObject<ApiFilterInternetBet>(request.RequestData), identity, log);
                 case "GetReportByAgentLog":
@@ -106,11 +102,12 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
 
         private static ApiResponseBase GetReportByAgentInternetBet(ApiFilterInternetBet input, SessionIdentity identity, ILog log)
         {
-            using (var reportBl = new ReportBll(identity, log))
+            using (var reportBl = new ReportBll(identity, log, 120))
             {
                 input.AgentId = identity.Id;
                 var filter = input.MapToFilterInternetBet();
-                log.Info(JsonConvert.SerializeObject(filter));
+                filter.FieldNameToOrderBy = "UserPath";
+                filter.OrderBy = true;
                 var bets = reportBl.GetInternetBetsPagedModel(filter, string.Empty, false);
                 var apibets = bets.MapToInternetBetsReportModel(reportBl.GetUserIdentity().TimeZone);
 
@@ -132,36 +129,22 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
             }
         }
 
-        private static ApiResponseBase GetReportByAgents(ApiFilterAgentReport filter, SessionIdentity identity, ILog log)
+        private static ApiResponseBase GetReportByAgents(ApiFilterfnAgent apiFilter, SessionIdentity identity, ILog log)
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                return new ApiResponseBase
-                {
-                    ResponseObject = reportBl.GetReportByAgents(filter.FromDate, filter.ToDate, identity.Id).Select(x => x.MapToUserModel(identity.TimeZone, new List<DAL.AgentCommission>(), identity.Id, log)).ToList()
-                };
-            }
-        }
+                var agentUser = CacheManager.GetUserById(identity.Id);
 
-        private static ApiResponseBase GetAgentSportReport(ApiFilterAgentReport filter, SessionIdentity identity, ILog log)
-        {
-            using (var reportBl = new ReportBll(identity, log))
-            {
-                return new ApiResponseBase
-                {
-                    ResponseObject = reportBl.GetAgentsReportByProductGroup(filter.FromDate, filter.ToDate, identity.Id, Constants.SportGroupName).Select(x => x.MapToUserModel(identity.TimeZone, new List<DAL.AgentCommission>(), identity.Id, log)).ToList()
-                };
-            }
-        }
+                var filter = apiFilter.ToFilterfnUser();
+                var result = reportBl.GetAgentsReport(filter, false);
 
-        private static ApiResponseBase GetAgentCasinoReport(ApiFilterAgentReport filter, SessionIdentity identity, ILog log)
-        {
-            using (var reportBl = new ReportBll(identity, log))
-            {
                 return new ApiResponseBase
                 {
-                    ResponseObject = reportBl.GetAgentsReportByProductGroup(filter.FromDate, filter.ToDate, identity.Id, Constants.CasinoGroupName)
-                    .Select(x => x.MapToUserModel(identity.TimeZone, new List<DAL.AgentCommission>(), identity.Id, log)).ToList()
+                    ResponseObject = new
+                    {
+                        result.Count,
+                        Entities = result.Entities.Select(x => x.ToApiAgentReportItem(identity.TimeZone)).ToList()
+                    }
                 };
             }
         }
@@ -242,9 +225,13 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                         var evolutionResult = Integration.Products.Helpers.EvolutionHelpers.GetReportByRound(document.ClientId.Value, document.RoundId);
                         if (evolutionResult.RoundResult.Any())
                             response.ResponseObject = evolutionResult.RoundResult[0];
-
                         break;
-                    default:
+					case GameProviders.BGGames:
+						var client = CacheManager.GetClientById(document.ClientId.Value);
+						var bgGamesResult = Integration.Products.Helpers.BGGamesHelpers.BetHistory(client.PartnerId, document.ClientId.Value, document.ExternalTransactionId);
+						response.ResponseObject = bgGamesResult;
+						break;
+					default:
                         break;
                 }
                 response.Documents = childs.Select(x => new ApiBetInfoItem

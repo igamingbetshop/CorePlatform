@@ -428,6 +428,7 @@ namespace IqSoft.CP.BLL.Services
                 dbBonus.MaxReceiversCount = bon.MaxReceiversCount;
                 dbBonus.LinkedBonusId = bon.LinkedBonusId;
                 dbBonus.AutoApproveMaxAmount = bon.AutoApproveMaxAmount;
+                dbBonus.TurnoverCount = bon.TurnoverCount;
                 if (bon.StartTime != DateTime.MinValue)
                     dbBonus.StartTime = bon.StartTime;
                 if (bon.FinishTime != DateTime.MinValue)
@@ -744,7 +745,8 @@ namespace IqSoft.CP.BLL.Services
                         Status = triggerSetting.Status,
                         CreationTime = currentTime,
                         LastUpdateTime = currentTime,
-                        UpToAmount = triggerSetting.UpToAmount
+                        UpToAmount = triggerSetting.UpToAmount,
+                        ConsiderBonusBets = triggerSetting.ConsiderBonusBets
                     };
                     Db.TriggerSettings.Add(dbTriggerSetting);
                     Db.SaveChanges();
@@ -925,7 +927,8 @@ namespace IqSoft.CP.BLL.Services
                 Condition = dbTriggerSetting.Condition,
                 CreationTime = currentTime,
                 LastUpdateTime = currentTime,
-                UpToAmount = dbTriggerSetting.UpToAmount
+                UpToAmount = dbTriggerSetting.UpToAmount,
+                ConsiderBonusBets = dbTriggerSetting.ConsiderBonusBets
             };
             newTriggerSetting.TriggerProductSettings = new List<TriggerProductSetting>();
             dbTriggerSetting.TriggerProductSettings.ToList().ForEach(x => newTriggerSetting.TriggerProductSettings.Add(
@@ -1460,7 +1463,7 @@ namespace IqSoft.CP.BLL.Services
                                         CurrencyId = x.Client.CurrencyId,
                                         AccountTypeId = x.Bonu.FinalAccountTypeId ?? (int)AccountTypes.ClientUnusedBalance
                                     };
-                                    clientBl.CreateDebitToClientFromJob(x.ClientId, input, documentBl);
+                                    clientBl.CreateDebitToClient(input, x.ClientId, string.Empty, documentBl, null);
                                     clientIds.Add(x.ClientId);
                                 }
                                 else
@@ -1555,7 +1558,8 @@ namespace IqSoft.CP.BLL.Services
                         foreach (var bonus in bonuses)
                         {
                             var toDate = bonus.LastExecutionTime.AddHours(bonus.Period);
-                            var fromDate = bonus.StartTime;
+                            toDate = new DateTime(toDate.Year, toDate.Month, toDate.Day, toDate.Hour, 0, 0);
+                            var fromDate = bonus.LastExecutionTime;
                             var tDate = (long)toDate.Year * 1000000 + (long)toDate.Month * 10000 + (long)toDate.Day * 100 + (long)toDate.Hour;
                             var fDate = (long)fromDate.Year * 1000000 + (long)fromDate.Month * 10000 + (long)fromDate.Day * 100 + (long)fromDate.Hour;
                             var affiliatesProfit = dwh.fn_AffiliateClient(fDate, tDate, bonus.PartnerId).ToList();
@@ -1564,7 +1568,12 @@ namespace IqSoft.CP.BLL.Services
                             {
                                 var bonusProduct = Db.BonusProducts.FirstOrDefault(x => x.ProductId == Constants.PlatformProductId && x.BonusId == bonus.Id);
                                 if (bonusProduct == null || bonusProduct.Percent == null || bonusProduct.Percent == 0)
+                                {
+                                    bonus.LastExecutionTime = new DateTime(toDate.Year, toDate.Month, toDate.Day, toDate.Hour, 0, 0);
+                                    Db.SaveChanges();
+                                    transactionScope.Complete();
                                     continue;
+                                }
                                 var percent = bonusProduct.Percent.Value;
 
                                 foreach (var aff in affiliatesProfit)
@@ -1593,10 +1602,14 @@ namespace IqSoft.CP.BLL.Services
                                                     AccountTypeId = bonus.FinalAccountTypeId ?? (int)AccountTypes.ClientUsedBalance,
                                                     Creator = aff.ClientId
                                                 };
-                                                clientBl.CreateDebitToClientFromJob(affiliateManagerId, input, documentBl);
+                                                clientBl.CreateDebitToClient(input, affiliateManagerId, string.Empty, documentBl, null);
                                                 clientIds.Add(affiliateManagerId);
                                             }
                                             Db.AffiliateReferrals.Where(x => x.AffiliatePlatformId == bonus.PartnerId * 100 &&
+                                                                             x.Type == (int)AffiliateReferralTypes.WebsiteInvitation &&
+                                                                             x.AffiliateId == affiliateManagerId.ToString()).
+                                            UpdateFromQuery(x => new AffiliateReferral { LastProcessedBonusTime = bonus.LastExecutionTime });
+                                            dwh.AffiliateReferrals.Where(x => x.AffiliatePlatformId == bonus.PartnerId * 100 &&
                                                                              x.Type == (int)AffiliateReferralTypes.WebsiteInvitation &&
                                                                              x.AffiliateId == affiliateManagerId.ToString()).
                                             UpdateFromQuery(x => new AffiliateReferral { LastProcessedBonusTime = bonus.LastExecutionTime });
@@ -1702,7 +1715,7 @@ namespace IqSoft.CP.BLL.Services
                                 ClientId = client.Id,
                                 Info = "RemoveOldBonus"
                             };
-                            clientBl.CreateCreditCorrectionFromJob(client, correctionInput, documentBl);
+                            clientBl.CreateCreditCorrectionOnClient(correctionInput, documentBl, false);
                         }
                         var currentDate = DateTime.UtcNow;
                         if (bi.Type != (int)BonusTypes.CampaignWagerCasino && bi.Type != (int)BonusTypes.CampaignWagerSport &&
@@ -1732,7 +1745,7 @@ namespace IqSoft.CP.BLL.Services
                             CurrencyId = client.CurrencyId,
                             AccountTypeId = (int)AccountTypes.ClientBonusBalance
                         };
-                        result = clientBl.CreateDebitToClientFromJob(client.Id, input, documentBl);
+                        result = clientBl.CreateDebitToClient(input, client.Id, client.UserName, documentBl, null);
                         transactionScope.Complete();
                     }
                 }
@@ -1764,7 +1777,7 @@ namespace IqSoft.CP.BLL.Services
                                 CurrencyId = jp.Client.CurrencyId,
                                 AccountTypeId = (int)AccountTypes.ClientUsedBalance
                             };
-                            clientBl.CreateDebitToClientFromJob(jp.ClientId, input, documentBl);
+                            clientBl.CreateDebitToClient(input, jp.ClientId, string.Empty, documentBl, null);
                         }
                         Db.JobTriggers.RemoveRange(dbJackpotTriggers);
                         transactionScope.Complete();
@@ -2203,7 +2216,7 @@ namespace IqSoft.CP.BLL.Services
                                     AccountTypeId = (int)AccountTypes.AffiliateManagerBalance,
                                     Creator = ac.Key.AffiliateId
                                 };
-                                affiliateService.CreateDebitToAffiliateFromJob(ac.Key.AffiliateId, input, documentBl);
+                                affiliateService.CreateDebitToAffiliate(ac.Key.AffiliateId, input, documentBl);
                             }
                             Db.SaveChanges();
                             transactionScope.Complete();

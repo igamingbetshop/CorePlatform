@@ -59,6 +59,12 @@ namespace IqSoft.CP.Integration.Products.Helpers
 			};
 			var res = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
 			var games = JsonConvert.DeserializeObject<Data>(res);
+			var limits = GetLimits(partnerId, providerId);
+			foreach ( var game in games.games )
+			{
+				game.betValue = limits.FirstOrDefault(x => x.game_id == game.id)?.limits != null
+					                                         ? string.Join(", ", limits.FirstOrDefault(x => x.game_id == game.id)?.limits) : null;
+			}
 			var list = games.games.GroupBy(x => x.vendor).Select(y => y.Key);
 			var lobbies = GetLobbies(partnerId, providerId);
 			games.games.AddRange(lobbies);
@@ -150,10 +156,10 @@ namespace IqSoft.CP.Integration.Products.Helpers
 				players = client.Id.ToString(),
 				games = new	List<GameModel>
 				{ 
-					new GameModel
+					new GameModel	
 					{
 						game_id = Convert.ToInt32(freespinModel.ProductExternalId),
-					    total_bet = 1
+					    total_bet = freespinModel.BetValueLevel.Value								
 					}					
 				}
 			};
@@ -168,6 +174,35 @@ namespace IqSoft.CP.Integration.Products.Helpers
 			};
 			res = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
 		}
+
+		public static List<Datum> GetLimits(int partnerId, int providerId)
+		{
+			var partner = CacheManager.GetPartnerById(partnerId);
+			var provider = CacheManager.GetGameProviderById(providerId);
+			if (provider == null || provider.Name != Constants.GameProviders.TimelessTech && provider.Name != Constants.GameProviders.BCWGames)
+				throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongProviderId);
+			var sectetKey = CacheManager.GetGameProviderValueByKey(partnerId, providerId, Constants.PartnerKeys.TimelessTechSecretkey);
+			var operatorID = CacheManager.GetGameProviderValueByKey(partnerId, providerId, Constants.PartnerKeys.TimelessTechOperatorID);
+			var url = CacheManager.GetGameProviderValueByKey(partnerId, providerId, Constants.PartnerKeys.TimelessTechUrl);
+			var authorization = CommonFunctions.ComputeSha1($"campaigns{operatorID}{sectetKey}");
+			var headers = new Dictionary<string, string> {
+				 { "X-Authorization", authorization } ,
+				 { "X-Operator-Id", operatorID }
+			};
+			var httpRequestInput = new HttpRequestInput
+			{
+				RequestMethod = Constants.HttpRequestMethods.Get,
+				RequestHeaders = headers,
+				Url = $"{url}/campaigns/vendors/limits?currencies={partner.CurrencyId}"
+			};
+			var res = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
+			var games = JsonConvert.DeserializeObject<GameLimits>(res);
+			if (games.data == null)
+				return null;
+			var limits = JsonConvert.DeserializeObject<List<Datum>>(JsonConvert.SerializeObject(games.data));
+			return limits;
+		}
+
 		/*
 		public static void CancelCampaign(int partnerId, int providerId)
 		{

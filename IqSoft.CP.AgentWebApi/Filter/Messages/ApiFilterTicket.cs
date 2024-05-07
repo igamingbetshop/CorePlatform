@@ -24,8 +24,9 @@ namespace IqSoft.CP.AgentWebApi.Filters.Messages
         public ApiFiltersOperation UserLastNames { get; set; }
 
         public ApiFiltersOperation Statuses { get; set; }
-
-        public List<int> Types { get; set; }
+        public ApiFiltersOperation Types { get; set; }
+        public ApiFiltersOperation CreationTimes { get; set; }
+        public ApiFiltersOperation LastMessageTimes { get; set; }
 
         public int? State { get; set; }
         

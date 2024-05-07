@@ -253,7 +253,7 @@ namespace IqSoft.CP.Integration.Platforms.Helpers
                             })
                     };
                     var output = Common.Helpers.CommonFunctions.SendHttpRequest(request, out _);
-                    var resp = JsonConvert.DeserializeObject<FinOperationOutput>(output);
+					var resp = JsonConvert.DeserializeObject<FinOperationOutput>(output);
                     if (resp.ResponseCode != Constants.SuccessResponseCode)
                     {
                         log.Info("UnsuccessfullResponse_Debit_" + client.PartnerId + "_" + JsonConvert.SerializeObject(request) + "_" + output);

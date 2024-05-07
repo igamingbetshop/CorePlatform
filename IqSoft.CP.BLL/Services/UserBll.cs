@@ -28,6 +28,7 @@ using IqSoft.CP.DataWarehouse;
 using User = IqSoft.CP.DAL.User;
 using Client = IqSoft.CP.DAL.Client;
 using Document = IqSoft.CP.DAL.Document;
+using AgentCommission = IqSoft.CP.DAL.AgentCommission;
 using System.Security.Principal;
 
 namespace IqSoft.CP.BLL.Services
@@ -941,9 +942,9 @@ namespace IqSoft.CP.BLL.Services
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             }
             var currentTime = GetServerDate();
-            var dbUser = Db.Users.FirstOrDefault(x => x.Id == user.Id);
-            if (dbUser == null)
+            var dbUser = Db.Users.FirstOrDefault(x => x.Id == user.Id) ??
                 throw CreateException(LanguageId, Constants.Errors.UserNotFound);
+           // VerifyUserFields(user);
             if (dbUser.Type == (int)UserTypes.CompanyAgent || dbUser.Type == (int)UserTypes.AgentEmployee)
             {
                 if (dbUser.CurrencyId != user.CurrencyId)
@@ -1189,6 +1190,19 @@ namespace IqSoft.CP.BLL.Services
             return Db.Users.FirstOrDefault(x => x.UserName == userName);
         }
 
+        public User GetUserByIdentifier(int partnerId, string identifier, bool isAgent)
+        {
+            var query = Db.Users.Where(x => x.PartnerId == partnerId &&
+                                           (x.Type == (int)UserTypes.CompanyAgent || 
+                                            x.Type == (int)UserTypes.DownlineAgent || 
+                                            x.Type == (int)UserTypes.AgentEmployee));
+            if (IsValidEmail(identifier))
+                query = query.Where(x => x.Email == identifier);
+            else
+                query = query.Where(x => x.UserName == identifier);
+            return query.FirstOrDefault();
+        }
+
         public string GetUserPasswordRegex(int partnerId, int userId, int userType)
         {
             if (userId != Identity.Id)
@@ -1270,9 +1284,24 @@ namespace IqSoft.CP.BLL.Services
 
         private void VerifyUserFields(User user)
         {
-            var otherUser = Db.Users.FirstOrDefault(x => x.UserName == user.UserName || x.NickName == user.UserName);
-            if (otherUser != null)
-                throw CreateException(LanguageId, Constants.Errors.UserNameExists);
+            if (user.Id == 0)
+            {
+                var otherUser = Db.Users.FirstOrDefault(x => x.UserName == user.UserName || x.NickName == user.UserName);
+                if (otherUser != null)
+                    throw CreateException(LanguageId, Constants.Errors.UserNameExists);
+            }
+            if (!string.IsNullOrEmpty(user.Email))
+            {
+                if (!IsValidEmail(user.Email))
+                    throw CreateException(LanguageId, Constants.Errors.InvalidEmail);
+                if (user.Id == 0)
+                {
+                    var otherUser = Db.Users.Where(x => x.PartnerId == user.PartnerId && x.Email.ToLower() == user.Email.ToLower())
+                                         .FirstOrDefault();
+                    if (otherUser != null)
+                        throw CreateException(LanguageId, Constants.Errors.EmailExists);
+                }
+            }
             var passwordRegex = string.Empty;
             if (user.Type == (int)UserTypes.CompanyAgent || user.Type == (int)UserTypes.DownlineAgent)
             {
@@ -1437,9 +1466,11 @@ namespace IqSoft.CP.BLL.Services
                     }
                 }
                 );
-                return res.Where(y => (isFromSuspended.Value && y.ParentState != null && y.ParentState.Value == (int)UserStates.Suspended && y.State != (int)UserStates.Suspended &&
+                return res.Where(y => (isFromSuspended.Value && y.ParentState != null && y.ParentState.Value == (int)UserStates.Suspended && 
+                y.State != (int)UserStates.Suspended &&
                                                CustomHelper.Greater((UserStates)y.ParentState.Value, (UserStates)y.State)) ||
-                                     (!isFromSuspended.Value && (y.ParentState == null || (y.ParentState.Value != (int)UserStates.Suspended || y.State == (int)UserStates.Suspended)))).ToList();
+                                     (!isFromSuspended.Value && (y.ParentState == null || (y.ParentState.Value != (int)UserStates.Suspended || 
+                                     y.State == (int)UserStates.Suspended)))).ToList();
             }
             return res;
         }
@@ -1456,11 +1487,13 @@ namespace IqSoft.CP.BLL.Services
             var agent = CacheManager.GetUserById(userId);
             if (agent == null)
                 throw CreateException(LanguageId, Constants.Errors.UserNotFound);
+            var path = "/" + userId + "/";
+
             var qAgents = Db.Users.AsQueryable();
             if (directOnly)
                 qAgents = qAgents.Where(x => x.ParentId == userId);
             else
-                qAgents = qAgents.Where(x => x.Id != userId && x.Path.Contains("/" + userId + "/"));
+                qAgents = qAgents.Where(x => x.Id != userId && x.Path.Contains(path));
             if (!takeAll)
                 qAgents = qAgents.Where(x => x.State != (int)UserStates.Disabled);
             var levels = qAgents.GroupBy(x => x.Level).Select(x =>
@@ -1471,7 +1504,9 @@ namespace IqSoft.CP.BLL.Services
                 if (query.Any())
                     level.MaxCredit = query.Max(x => x.AgentMaxCredit ?? 0);
             }
-            var membersCount = Db.Clients.Count(x => x.UserId == userId);
+            
+            var membersCount = directOnly ? Db.Clients.Count(x => x.UserId == userId) :
+                Db.Clients.Where(x => x.User.Path.Contains(path)).Count();
             var mQuery = Db.ClientSettings.Where(x => x.Client.UserId == userId && x.Name == ClientSettings.MaxCredit);
             var membersMaxCredit = (mQuery.Any() ? mQuery.Max(x => x.NumericValue).Value : 0m);
             var response = BaseBll.GetEnumerations(Constants.EnumerationTypes.AgentLevels, LanguageId)
@@ -1704,6 +1739,23 @@ namespace IqSoft.CP.BLL.Services
             return result;
         }
 
+        public User RecoverPassword(int partnerId, string recoveryToken, string newPassword)
+        {
+            var clientInfo = Db.ClientInfoes.FirstOrDefault(x => x.Data == recoveryToken && x.PartnerId == partnerId && x.ObjectTypeId == (int)ObjectTypes.User) ??
+                throw CreateException(LanguageId, Constants.Errors.WrongToken);
+            if (clientInfo.State == (int)ClientInfoStates.Expired)
+                throw CreateException(LanguageId, Constants.Errors.TokenExpired);
+            var user = Db.Users.First(x => x.Id == clientInfo.ObjectId);
+            var passwordReqex = GetUserPasswordRegex(user.PartnerId, user.Id, user.Type);
+            if (!Regex.IsMatch(user.Password, passwordReqex))
+                throw CreateException(LanguageId, Constants.Errors.InvalidPassword);
+            user.PasswordHash = CommonFunctions.ComputeUserPasswordHash(newPassword, user.Salt);
+            user.LastUpdateTime = DateTime.UtcNow;
+            clientInfo.State = (int)ClientInfoStates.Expired;
+            Db.SaveChanges();
+            return user;
+        }
+
         #region UserDocument
 
         public  void AddAgentProfit(AgentProfit agentProfit)
@@ -1863,10 +1915,7 @@ namespace IqSoft.CP.BLL.Services
 
         public Document TransferToUser(UserTransferInput transferInput, DocumentBll documentBl)
         {
-            var user = GetUserById(transferInput.UserId.Value);
-            if (user == null)
-                throw CreateException(LanguageId, Constants.Errors.UserNotFound);
-
+            var user = CacheManager.GetUserById(transferInput.UserId.Value);
             var operation = new Operation
             {
                 Type = (int)OperationTypes.CommissionForUser,
@@ -1900,7 +1949,7 @@ namespace IqSoft.CP.BLL.Services
                 OperationTypeId = (int)OperationTypes.CommissionForUser
             };
             operation.OperationItems.Add(item);
-            var document = documentBl.CreateDocumentFromJob(operation);
+            var document = documentBl.CreateDocument(operation);
             Db.SaveChanges();
             return document;
         }
@@ -2613,6 +2662,9 @@ namespace IqSoft.CP.BLL.Services
                                 item.TotalBetAmount += client.TotalBetAmount ?? 0;
                                 item.TotalWinAmount += client.TotalWinAmount ?? 0;
                                 item.TotalProfit += (client.TotalBetAmount ?? 0) * finalPercent / 100;
+                                item.TotalBetsCount += client.TotalBetsCount ?? 0;
+                                item.TotalUnsettledBetsCount += client.TotalUnsettledBetsCount ?? 0;
+                                item.TotalDeletedBetsCount += client.TotalDeletedBetsCount ?? 0;
                             }
                             else
                             {
@@ -2626,7 +2678,10 @@ namespace IqSoft.CP.BLL.Services
                                     TotalWinAmount = client.TotalWinAmount ?? 0,
                                     TotalProfit = (client.TotalBetAmount ?? 0) * finalPercent / 100,
                                     ProductId = client.ProductId,
-                                    ProductGroupId = productGroupId
+                                    ProductGroupId = productGroupId,
+                                    TotalBetsCount = client.TotalBetsCount ?? 0,
+                                    TotalUnsettledBetsCount = client.TotalUnsettledBetsCount ?? 0,
+                                    TotalDeletedBetsCount = client.TotalDeletedBetsCount ?? 0
                                 });
                             }
                         }
@@ -2638,7 +2693,20 @@ namespace IqSoft.CP.BLL.Services
 
         public List<fnAgentProfit> GetAgentProfit(long fromDate, long toDate)
         {
-            return Db.fn_AgentProfit(fromDate, toDate).ToList();
+            using (var dwh = new IqSoftDataWarehouseEntities())
+            {
+                return dwh.fn_AgentProfit(fromDate, toDate).ToList();
+            }
+        }
+
+        public List<DataWarehouse.Document> GetAgentTransfers(long fromDate, long toDate)
+        {
+            using (var dwh = new IqSoftDataWarehouseEntities())
+            {
+                return dwh.Documents.Where(x => x.Date >= fromDate && x.Date < toDate && 
+                    (x.OperationTypeId == (int)OperationTypes.DebitCorrectionOnClient || x.OperationTypeId == (int)OperationTypes.CreditCorrectionOnClient || 
+                    x.OperationTypeId == (int)OperationTypes.DebitCorrectionOnUser || x.OperationTypeId == (int)OperationTypes.CreditCorrectionOnUser)).ToList();
+            }
         }
 
         public List<AgentCommission> GetAgentCommissions(List<int> agentIds)

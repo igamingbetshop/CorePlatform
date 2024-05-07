@@ -23,7 +23,8 @@ namespace IqSoft.CP.DAL
         public long Id { get; set; }
         public Nullable<long> ParentId { get; set; }
         public int PartnerId { get; set; }
-        public Nullable<int> ClientId { get; set; }
+        public Nullable<int> ObjectId { get; set; }
+        public Nullable<int> ObjectTypeId { get; set; }
         public string Subject { get; set; }
         public string Message { get; set; }
         public int Type { get; set; }
@@ -31,13 +32,11 @@ namespace IqSoft.CP.DAL
         public System.DateTime CreationTime { get; set; }
         public Nullable<int> EmailId { get; set; }
         public string MobileOrEmail { get; set; }
-        public Nullable<int> AffiliateId { get; set; }
     
-        public virtual UserSession UserSession { get; set; }
-        public virtual Affiliate Affiliate { get; set; }
         public virtual Email Email { get; set; }
+        public virtual ObjectType ObjectType { get; set; }
+        public virtual UserSession UserSession { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ClientMessageState> ClientMessageStates { get; set; }
-        public virtual Client Client { get; set; }
     }
 }

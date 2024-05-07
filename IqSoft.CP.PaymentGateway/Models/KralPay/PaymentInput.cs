@@ -16,7 +16,7 @@ namespace IqSoft.CP.PaymentGateway.Models.KralPay
         [JsonProperty(PropertyName = "status")]
         public string Status { get; set; }
 
-        [JsonProperty(PropertyName = "description ")]
+        [JsonProperty(PropertyName = "reason")]
         public string Description { get; set; }
     }
 }

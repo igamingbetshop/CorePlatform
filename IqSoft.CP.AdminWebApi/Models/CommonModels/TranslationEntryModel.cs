@@ -7,6 +7,5 @@
         public long TranslationId { get; set; }
         public string LanguageId { get; set; }
         public string Text { get; set; }
-        public int? Type { get; set; }
     }
 }

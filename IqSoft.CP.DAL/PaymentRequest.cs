@@ -66,8 +66,8 @@ namespace IqSoft.CP.DAL
         public virtual ICollection<PaymentRequestHistory> PaymentRequestHistories { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PaymentRequestTransfer> PaymentRequestTransfers { get; set; }
-        public virtual PartnerPaymentSetting PartnerPaymentSetting { get; set; }
         public virtual PaymentSystem PaymentSystem { get; set; }
         public virtual Client Client { get; set; }
+        public virtual PartnerPaymentSetting PartnerPaymentSetting { get; set; }
     }
 }

@@ -28,6 +28,7 @@ namespace IqSoft.CP.WebSiteWebApi.Models.PaymentModels
         public int ContentType { get; set; }
         public List<decimal> Info { get; set; }
         public string Address { get; set; }
+        public string ImageExtension { get; set; }
         public string DestinationTag { get; set; }
         public decimal MinAmount { get; set; }
         public decimal MaxAmount { get; set; }

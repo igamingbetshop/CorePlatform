@@ -17,8 +17,8 @@ namespace IqSoft.CP.DAL
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public Popup()
         {
-            this.PopupSettings = new HashSet<PopupSetting>();
             this.ClientMessageStates = new HashSet<ClientMessageState>();
+            this.PopupSettings = new HashSet<PopupSetting>();
         }
     
         public int Id { get; set; }
@@ -30,16 +30,17 @@ namespace IqSoft.CP.DAL
         public string ImageName { get; set; }
         public int Order { get; set; }
         public string Page { get; set; }
+        public Nullable<int> DeviceType { get; set; }
         public System.DateTime StartDate { get; set; }
         public System.DateTime FinishDate { get; set; }
         public System.DateTime CreationTime { get; set; }
         public System.DateTime LastUpdateTime { get; set; }
     
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<ClientMessageState> ClientMessageStates { get; set; }
         public virtual Partner Partner { get; set; }
         public virtual Translation Translation { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PopupSetting> PopupSettings { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<ClientMessageState> ClientMessageStates { get; set; }
     }
 }

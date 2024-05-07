@@ -54,7 +54,6 @@ namespace IqSoft.CP.DistributionWebApi.Controllers
 
 			inputData = inputData.Replace("\\", "");
 			var data = JsonConvert.DeserializeObject<Dictionary<string, string>>(inputData);
-			data["UserIP"] = "103.187.243.255";
 
 			var encodedInput = string.Join("&", data.Select(kvp =>
 							   string.Format("{0}={1}", kvp.Key, HttpUtility.UrlEncode(kvp.Value))));

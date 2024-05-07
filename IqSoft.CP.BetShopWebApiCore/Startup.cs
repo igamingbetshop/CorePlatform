@@ -26,7 +26,7 @@ namespace IqSoft.CP.BetShopWebApiCore
         {
             Configuration = configuration;
             Program.AppSetting = configuration.GetSection("AppConfiguration").Get<AppConfigurationModel>();
-
+            Application_Start();
         }
         public void ConfigureServices(IServiceCollection services)
         {

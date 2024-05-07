@@ -17,6 +17,7 @@ namespace IqSoft.CP.DataWarehouse
         public string UserName { get; set; }
         public int PartnerId { get; set; }
         public string CurrencyId { get; set; }
+        public decimal CurrentRate { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string Email { get; set; }
@@ -37,5 +38,6 @@ namespace IqSoft.CP.DataWarehouse
         public Nullable<int> DebitCorrectionsCount { get; set; }
         public Nullable<decimal> TotalCreditCorrection { get; set; }
         public Nullable<int> CreditCorrectionsCount { get; set; }
+        public Nullable<decimal> ComplementaryBalance { get; set; }
     }
 }

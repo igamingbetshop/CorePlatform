@@ -30,6 +30,7 @@ namespace IqSoft.CP.DAL.Models.Cache
         public int? OpenMode { get; set; }
         public List<int> Countries { get; set; }
         public string OSTypesString { get; set; }
+        public string ImageExtension { get; set; }
         public List<int> OSTypes
         {
             get

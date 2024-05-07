@@ -33,6 +33,7 @@ namespace IqSoft.CP.DataWarehouse.Filters
         public FiltersOperation DebitCorrectionsCounts { get; set; }
         public FiltersOperation TotalCreditCorrections { get; set; }
         public FiltersOperation CreditCorrectionsCounts { get; set; }
+        public FiltersOperation ComplementaryBalances { get; set; }
 
         public override void CreateQuery(ref IQueryable<fnClientReport> objects, bool ordering, bool orderByDate = false)
         {
@@ -64,6 +65,7 @@ namespace IqSoft.CP.DataWarehouse.Filters
             FilterByValue(ref objects, CreditCorrectionsCounts, "CreditCorrectionsCount");
             FilterByValue(ref objects, TotalCreditCorrections, "TotalCreditCorrection");
             FilterByValue(ref objects, DebitCorrectionsCounts, "DebitCorrectionsCount");
+            FilterByValue(ref objects, ComplementaryBalances, "ComplementaryBalance");
             base.FilteredObjects(ref objects, ordering, orderByDate, null);
         }
 

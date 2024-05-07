@@ -26,8 +26,9 @@ namespace IqSoft.CP.DAL.Filters.Messages
         public FiltersOperation UserLastNames { get; set; }
 
         public FiltersOperation Statuses { get; set; }
-
-        public List<int> Types { get; set; }
+        public FiltersOperation Types { get; set; }
+        public FiltersOperation CreationTimes { get; set; }
+        public FiltersOperation LastMessageTimes { get; set; }
 
         public int? State { get; set; }
 
@@ -36,15 +37,12 @@ namespace IqSoft.CP.DAL.Filters.Messages
         public DateTime? CreatedFrom { get; set; }
 
         public DateTime? CreatedBefore { get; set; }
-
         public int? PartnerId { get; set; }
 
         public int? UserId { get; set; }
 
         protected override IQueryable<fnTicket> CreateQuery(IQueryable<fnTicket> objects, Func<IQueryable<fnTicket>, IOrderedQueryable<fnTicket>> orderBy = null)
         {
-            if (Types != null && Types.Count != 0)
-                objects = objects.Where(x => Types.Contains(x.Type));
             if (State.HasValue)
                 objects = objects.Where(x => x.Status == State);
             if (CreatedFrom.HasValue)
@@ -75,6 +73,9 @@ namespace IqSoft.CP.DAL.Filters.Messages
             FilterByValue(ref objects, UserFirstNames, "UserFirstName");
             FilterByValue(ref objects, UserLastNames, "UserLastName");
             FilterByValue(ref objects, Statuses, "Status");
+            FilterByValue(ref objects, Types, "Type");
+            FilterByValue(ref objects, CreationTimes, "CreationTime");
+            FilterByValue(ref objects, LastMessageTimes, "LastMessageTime");
 
             return base.FilteredObjects(objects, orderBy);
         }

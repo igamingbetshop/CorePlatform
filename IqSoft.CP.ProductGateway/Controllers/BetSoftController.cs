@@ -362,6 +362,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                 {
                     using (var documentBl = new DocumentBll(clientBl))
                     {
+                        input.transactionId = $"{Constants.FreeSpinPrefix}{input.transactionId}";
                         var winDocument = documentBl.GetDocumentByExternalId(input.transactionId, client.Id, ProviderId, partnerProductSetting.Id, (int)OperationTypes.Win);
 
                         if (winDocument == null)
@@ -372,7 +373,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                                 CurrencyId = client.CurrencyId,
                                 GameProviderId = ProviderId,
                                 ProductId = clientSession.ProductId,
-                                TransactionId = input.transactionId + "_bet",
+                                TransactionId = "Bet_" + input.transactionId,
                                 OperationTypeId = (int)OperationTypes.Bet,
                                 State = (int)BetDocumentStates.Uncalculated,
                                 OperationItems = new List<OperationItemFromProduct>()

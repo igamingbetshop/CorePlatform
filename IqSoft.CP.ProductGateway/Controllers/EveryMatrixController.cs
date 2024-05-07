@@ -271,7 +271,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                         {
                             var clientBonus = clientBl.GetClientBonusById(bonusId) ??
                                 throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.BonusNotFound);
-                            input.TransactionId = $"FreeSpin_{input.TransactionId}";
+                            input.TransactionId = $"{Constants.FreeSpinPrefix}{input.TransactionId}";
                             var listOfOperationsFromApi = new ListOfOperationsFromApi
                             {
                                 CurrencyId = client.CurrencyId,
@@ -279,7 +279,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                                 ExternalProductId = product.ExternalId,
                                 GameProviderId = ProviderId,
                                 ProductId = product.Id,
-                                TransactionId = input.TransactionId,
+                                TransactionId = $"Bet_{input.TransactionId}",
                                 OperationItems = new List<OperationItemFromProduct> { new OperationItemFromProduct
                                 {
                                     Client = client,
@@ -290,6 +290,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                             var st = input.Amount > 0 ? (int)BetDocumentStates.Won : (int)BetDocumentStates.Lost;
                             betDocument.State = st;
                             listOfOperationsFromApi.OperationTypeId = (int)OperationTypes.Win;
+                            listOfOperationsFromApi.TransactionId = input.TransactionId;
                             listOfOperationsFromApi.CreditTransactionId = betDocument.Id;
                             listOfOperationsFromApi.State = st;
                             listOfOperationsFromApi.OperationItems = new List<OperationItemFromProduct>{ new OperationItemFromProduct

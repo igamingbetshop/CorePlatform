@@ -1,6 +1,8 @@
 ﻿using IqSoft.CP.Common;
+using IqSoft.CP.Common.Enums;
 using IqSoft.CP.Common.Models.WebSiteModels;
 using IqSoft.CP.WebSiteWebApi.Common;
+using IqSoft.CP.WebSiteWebApi.Helpers;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Primitives;
 using Serilog;
@@ -42,11 +44,16 @@ namespace IqSoft.CP.WebSiteWebApi.Hubs
             var ip = Constants.DefaultIp;
             if (Context.GetHttpContext().Request.Headers.TryGetValue("CF-Connecting-IP", out StringValues svIp))
                 ip = svIp.ToString();
+            var OSType = CustomMappers.GetOperationSystemType(Context.GetHttpContext().Request.Headers.UserAgent.ToString());
+            var deviceType = (int)DeviceTypes.Desktop;
+            if (OSType == (int)OSTypes.IPad || OSType == (int)OSTypes.IPhone || OSType == (int)OSTypes.Android)
+                deviceType = (int)DeviceTypes.Mobile;
             var partnerId = Context.GetHttpContext().Request.Query["PartnerId"];
             var token = Context.GetHttpContext().Request.Query["Token"];
             var languageId = Context.GetHttpContext().Request.Query["LanguageId"];
             var timeZone = Context.GetHttpContext().Request.Query["TimeZone"];
             await BaseHub.CurrentContext.Groups.AddToGroupAsync(Context.ConnectionId, "Partner_" + partnerId);
+            await BaseHub.CurrentContext.Groups.AddToGroupAsync(Context.ConnectionId, $"Partner_{partnerId}_{deviceType}");
             var apiIdentity = new ApiIdentity { PartnerId = Convert.ToInt32(partnerId), LanguageId = languageId, TimeZone = Convert.ToDouble(timeZone) };
             if (!string.IsNullOrEmpty(token))
             {
@@ -55,6 +62,7 @@ namespace IqSoft.CP.WebSiteWebApi.Hubs
                 if (client.ResponseCode == Constants.SuccessResponseCode)
                 {
                     await BaseHub.CurrentContext.Groups.AddToGroupAsync(Context.ConnectionId, "Client_" + client.Id);
+                    await BaseHub.CurrentContext.Groups.AddToGroupAsync(Context.ConnectionId, $"Client_{client.Id}_{deviceType}");
                     apiIdentity.ClientId = client.Id;
                     apiIdentity.Token = token;
 

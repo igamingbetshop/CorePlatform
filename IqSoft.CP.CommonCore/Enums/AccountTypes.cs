@@ -11,7 +11,7 @@
         PartnerUnpaidDeposits = 7,
         ExternalClientsAccount = 8,
         PartnerBank = 9,
-        PartnerExternalAccount = 10,
+        ClientBetShopBalance = 10,
         ProductDebtToPartner = 11,
         ClientBonusBalance = 12,
         CashDeskDebtToBetShop = 13,

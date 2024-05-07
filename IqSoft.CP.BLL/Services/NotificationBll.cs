@@ -138,7 +138,8 @@ namespace IqSoft.CP.BLL.Services
             var clientMessage = new ClientMessage
             {
                 PartnerId = partnerId,
-                ClientId = clientId,
+                ObjectId = clientId,
+                ObjectTypeId = (int)ObjectTypes.Client,
                 Message = body,
                 Subject = subject,
                 Type = (int)ClientMessageTypes.Email,
@@ -151,7 +152,9 @@ namespace IqSoft.CP.BLL.Services
                     Subject = subject,
                     Body = body,
                     MessageTemplateId = templateId,
-                    CreationTime = currentTime
+                    CreationTime = currentTime,
+                    ObjectId = clientId,
+                    ObjectTypeId = (int)ObjectTypes.Client
                 },
                 CreationTime = currentTime
             };
@@ -231,7 +234,8 @@ namespace IqSoft.CP.BLL.Services
             var notificationModel = new NotificationModel
             {
                 PartnerId = client.PartnerId,
-                ClientId = client.Id,
+                ObjectId = client.Id,
+                ObjectTypeId = (int)ObjectTypes.Client,
                 MobileOrEmail = changed ? email : client.Email,
                 ClientInfoType = (int)ClientInfoTypes.EmailVerificationKey,
                 VerificationCode = verificationKey
@@ -264,7 +268,8 @@ namespace IqSoft.CP.BLL.Services
             var notificationModel = new NotificationModel
             {
                 PartnerId = client.PartnerId,
-                ClientId = client.Id,
+                ObjectId = client.Id,
+                ObjectTypeId = (int)ObjectTypes.Client,
                 MobileOrEmail = changed ? mobileNumber : client.MobileNumber,
                 ClientInfoType = (int)ClientInfoTypes.MobileVerificationKey,
                 VerificationCode = verificationKey
@@ -280,6 +285,45 @@ namespace IqSoft.CP.BLL.Services
                 CacheManager.RemoveClientFromCache(client.Id);
             }
             return activePeriodInMinutes;
+        }
+        public int SendRecoveryEmail(int partnerId, int objectId, int objectTypeId, string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                throw CreateException(LanguageId, Constants.Errors.EmailCantBeEmpty);
+
+            var partner = CacheManager.GetPartnerById(partnerId);
+            var partnerSetting = CacheManager.GetConfigKey(partnerId, Constants.PartnerKeys.VerificationKeyNumberOnly);
+            var verificationKey = (!string.IsNullOrEmpty(partnerSetting) && partnerSetting == "1") ? CommonFunctions.GetRandomNumber(partner.EmailVerificationCodeLength) :
+                                                                                                     CommonFunctions.GetRandomString(partner.EmailVerificationCodeLength);
+            return SendNotificationMessage(new NotificationModel
+            {
+                PartnerId = partnerId,
+                ObjectId = objectId,
+                ObjectTypeId = objectTypeId,
+                VerificationCode = verificationKey,
+                MobileOrEmail = email,
+                ClientInfoType = (int)ClientInfoTypes.PasswordRecoveryEmailKey
+            }, out _);
+        }
+
+        public int SendRecoverySMS(int partnerId, int objectId, int objectTypeId, string mobileNumber)
+        {
+            if (string.IsNullOrWhiteSpace(mobileNumber))
+                throw CreateException(LanguageId, Constants.Errors.MobileNumberCantBeEmpty);
+
+            var partner = CacheManager.GetPartnerById(partnerId);
+            var partnerSetting = CacheManager.GetConfigKey(partnerId, Constants.PartnerKeys.VerificationKeyNumberOnly);
+            var verificationKey = (!string.IsNullOrEmpty(partnerSetting) && partnerSetting == "1") ? CommonFunctions.GetRandomNumber(partner.MobileVerificationCodeLength) :
+                                                                                                     CommonFunctions.GetRandomString(partner.MobileVerificationCodeLength);
+            return SendNotificationMessage(new NotificationModel
+            {
+                PartnerId = partnerId,
+                ObjectId = objectId,
+                ObjectTypeId = objectTypeId,
+                VerificationCode = verificationKey,
+                MobileOrEmail = mobileNumber,
+                ClientInfoType = (int)ClientInfoTypes.PasswordRecoveryMobileKey
+            }, out _);
         }
 
         public void SendInvitationToAffiliateClient(int clientId, string toEmail)
@@ -300,7 +344,7 @@ namespace IqSoft.CP.BLL.Services
                                              .Replace("{w}", Identity.Domain)
                                              .Replace("{pc}", clientId.ToString())
                                              .Replace("{fn}", client.FirstName);
-            SaveEmailMessage(client.PartnerId, client.Id, string.IsNullOrEmpty(toEmail) ? client.Email : toEmail, partner.Name, msgText, messageTemplate.Id);
+            SaveEmailMessage(client.PartnerId, client.Id, string.IsNullOrEmpty(toEmail) ? client.Email : toEmail, subject?.Text ?? partner.Name, msgText, messageTemplate.Id);
         }
 
         public int SendNotificationMessage(NotificationModel notificationModel, out int responseCode)
@@ -331,31 +375,36 @@ namespace IqSoft.CP.BLL.Services
                     Domain = Identity.Domain,
                     Parameters = notificationModel.Parameters
                 };
-                if (notificationModel.ClientId.HasValue && notificationModel.ClientId.Value > 0)
+                if(notificationModel.ObjectId > 0 )
                 {
-                    CheckLimit(notificationModel.ClientInfoType, notificationModel.PartnerId, notificationModel.ClientId.Value);
-                    var client = CacheManager.GetClientById(notificationModel.ClientId.Value);
-                    composite.ClientId = client.Id;
-                    composite.UserName = client.UserName;
-                    composite.FirstName = client.FirstName;
-                    composite.Email = client.Email;
-                    composite.MobileNumber = client.MobileNumber;
-                    composite.Currency = client.CurrencyId;
-                    composite.PaymentRequestState = notificationModel.PaymentInfo?.State;
-                    composite.Amount = notificationModel.PaymentInfo?.Amount;
-                    composite.Reason = notificationModel.PaymentInfo?.Reason;
-                    composite.BankName = notificationModel.PaymentInfo?.BankName;
-                    composite.BankBranchName = notificationModel.PaymentInfo?.BankBranchName;
-                    composite.BankCode = notificationModel.PaymentInfo?.BankCode;
-                    composite.BankAccountNumber = notificationModel.PaymentInfo?.BankAccountNumber;
-                    composite.BankAccountHolder = notificationModel.PaymentInfo?.BankAccountHolder;
-                }
-                if (notificationModel.AffiliateId.HasValue && notificationModel.AffiliateId.Value > 0)
-                {
-                    CheckAffiliateLimit(notificationModel.ClientInfoType, notificationModel.PartnerId, notificationModel.AffiliateId.Value);
-                    var affiliate = Db.Affiliates.FirstOrDefault(x => x.Id == notificationModel.AffiliateId.Value);
-                    composite.AffiliateId = affiliate.Id;
-                    composite.UserName = affiliate.UserName;
+                    CheckLimit(notificationModel.ClientInfoType, notificationModel.PartnerId, notificationModel.ObjectId, notificationModel.ObjectTypeId);
+
+                    switch (notificationModel.ObjectTypeId)
+                    {
+                        case (int)ObjectTypes.Client:
+                            var client = CacheManager.GetClientById(notificationModel.ObjectId);
+                            composite.ClientId = client.Id;
+                            composite.UserName = client.UserName;
+                            composite.FirstName = client.FirstName;
+                            composite.Email = client.Email;
+                            composite.MobileNumber = client.MobileNumber;
+                            composite.Currency = client.CurrencyId;
+                            composite.PaymentRequestState = notificationModel.PaymentInfo?.State;
+                            composite.Amount = notificationModel.PaymentInfo?.Amount;
+                            composite.Reason = notificationModel.PaymentInfo?.Reason;
+                            composite.BankName = notificationModel.PaymentInfo?.BankName;
+                            composite.BankBranchName = notificationModel.PaymentInfo?.BankBranchName;
+                            composite.BankCode = notificationModel.PaymentInfo?.BankCode;
+                            composite.BankAccountNumber = notificationModel.PaymentInfo?.BankAccountNumber;
+                            composite.BankAccountHolder = notificationModel.PaymentInfo?.BankAccountHolder;
+                            break;
+                        case (int)ObjectTypes.Affiliate:
+                            var affiliate = Db.Affiliates.FirstOrDefault(x => x.Id == notificationModel.ObjectId);
+                            composite.AffiliateId = affiliate.Id;
+                            composite.UserName = affiliate.UserName;
+                            break;
+                        default: break;
+                    }
                 }
                 messageTextTemplate = MapTemplateData(messageTextTemplate, composite);
 
@@ -366,8 +415,8 @@ namespace IqSoft.CP.BLL.Services
                     new ClientMessage
                     {
                         PartnerId = notificationModel.PartnerId,
-                        ClientId = notificationModel.ClientId == 0 ? (int?)null : notificationModel.ClientId,
-                        AffiliateId = notificationModel.AffiliateId == 0 ? null : notificationModel.AffiliateId,
+                        ObjectId = notificationModel.ObjectId,
+                        ObjectTypeId = notificationModel.ObjectTypeId,
                         Subject = partner.Name,
                         MobileOrEmail = notificationModel.MobileOrEmail,
                         Type = notificationModel.MessageType,
@@ -386,8 +435,8 @@ namespace IqSoft.CP.BLL.Services
                     Db.ClientInfoes.Add(new ClientInfo
                     {
                         PartnerId = notificationModel.PartnerId,
-                        ClientId = notificationModel.ClientId == 0 ? null : notificationModel.ClientId,
-                        AffiliateId = notificationModel.AffiliateId == 0 ? null : notificationModel.AffiliateId,
+                        ObjectId = notificationModel.ObjectId,
+                        ObjectTypeId = notificationModel.ObjectTypeId,
                         CreationTime = activeClientInfoesCount > 0 ? currentDate.AddMinutes(-verificationCodeActivePeriod) : currentDate,
                         Data = notificationModel.VerificationCode,
                         Type = notificationModel.ClientInfoType.Value,
@@ -414,9 +463,7 @@ namespace IqSoft.CP.BLL.Services
                 }
                 if (string.IsNullOrEmpty(emailSubject))
                     emailSubject = partner.Name;
-                var objectId = notificationModel.ClientId ?? notificationModel.AffiliateId;
-                var objectTypeId = notificationModel.ClientId.HasValue ? (int)ObjectTypes.Client : notificationModel.AffiliateId.HasValue ? (int)ObjectTypes.Affiliate : (int?)null;
-				var emailId = RegisterActiveEmail(notificationModel.PartnerId, notificationModel.MobileOrEmail, emailSubject, messageTextTemplate, messageTemplateId, objectId, objectTypeId);
+				var emailId = RegisterActiveEmail(notificationModel.PartnerId, notificationModel.MobileOrEmail, emailSubject, messageTextTemplate, messageTemplateId, notificationModel.ObjectId, notificationModel.ObjectTypeId);
                 message.EmailId = emailId;
                 Db.SaveChanges();
                 return verificationCodeActivePeriod;
@@ -462,7 +509,8 @@ namespace IqSoft.CP.BLL.Services
                         var notificationModel = new NotificationModel
                         {
                             PartnerId = client.PartnerId,
-                            ClientId = client.Id,
+                            ObjectId = client.Id,
+                            ObjectTypeId = (int)ObjectTypes.Client,
                             MobileOrEmail = client.Email,
                             ClientInfoType = emailType,
                             PaymentInfo = paymentInfo
@@ -533,7 +581,8 @@ namespace IqSoft.CP.BLL.Services
                     var notificationModel = new NotificationModel
                     {
                         PartnerId = client.PartnerId,
-                        ClientId = client.Id,
+                        ObjectId = client.Id,
+                        ObjectTypeId = (int)ObjectTypes.Client,
                         MobileOrEmail = client.Email,
                         ClientInfoType = emailType,
                         PaymentInfo = paymentInfo
@@ -555,6 +604,17 @@ namespace IqSoft.CP.BLL.Services
         public void RegistrationNotification(int partnerId, int clientId, AffiliatePlatform affiliatePlatform, string clieckId, string affiliateId)
         {
             NotifyAffiliator(partnerId, clientId, affiliatePlatform, clieckId, string.Empty, null, null, false);
+        }
+
+        public void LoginNotification(int partnerId, BllClient client, AffiliatePlatform affiliatePlatform)
+		{
+            var clickId = string.Empty;
+			if (client.AffiliateReferralId != null)
+            {
+                var af = Db.AffiliateReferrals.FirstOrDefault(x => x.Id == client.AffiliateReferralId);
+				clickId = af.RefId;
+			}
+			NotifyAffiliator(partnerId, client.Id, affiliatePlatform, clickId, string.Empty, null, null, false, isLogin: true);
         }
 
        public void DepositAffiliateNotification(BllClient client, decimal depositAmount, DateTime paymentDate, long transactionId, int depositCount, string crmPlatforms)
@@ -615,46 +675,24 @@ namespace IqSoft.CP.BLL.Services
             return Db.ClientInfoes.Count(x => x.MobileOrEmail == mobileOrEmail && x.CreationTime > fromDate && x.PartnerId == partnerId);
         }
 
-        private void CheckLimit(int? type, int partnerId, int clientId)
+        private void CheckLimit(int? type, int partnerId, int objectId, int objectTypeId)
         {
             if (type != null && Constants.PartnerKeyByClientInfoType.ContainsKey(type.Value))
             {
-                var client = CacheManager.GetClientById(clientId);
-                if (client == null)
-                    throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
 
                 var notificationLimit = CacheManager.GetPartnerSettingByKey(partnerId, Constants.PartnerKeyByClientInfoType[type.Value]);
                 if (notificationLimit.Id > 0 && notificationLimit.NumericValue > 0)
                 {
                     var currentDate = DateTime.UtcNow;
                     var fromDate = currentDate.AddHours(-24);
-                    var notificationCount = Db.ClientInfoes.Count(x => x.ClientId == clientId &&
+                    var notificationCount = Db.ClientInfoes.Count(x => x.ObjectId == objectId && x.ObjectTypeId == objectTypeId &&
                                                                        x.Type == type && x.CreationTime > fromDate);
                     if (notificationCount >= notificationLimit.NumericValue)
                         throw CreateException(LanguageId, Constants.Errors.ClientMaxLimitExceeded);
                 }
             }
         }
-        private void CheckAffiliateLimit(int? type, int partnerId, int affiliateId)
-        {
-            if (type != null && Constants.PartnerKeyByClientInfoType.ContainsKey(type.Value))
-            {
-                var affiliate = Db.Affiliates.FirstOrDefault(x => x.Id == affiliateId);
-                if (affiliate == null)
-                    throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
 
-                var notificationLimit = CacheManager.GetPartnerSettingByKey(partnerId, Constants.PartnerKeyByClientInfoType[type.Value]);
-                if (notificationLimit.Id > 0 && notificationLimit.NumericValue > 0)
-                {
-                    var currentDate = DateTime.UtcNow;
-                    var fromDate = currentDate.AddHours(-24);
-                    var notificationCount = Db.ClientInfoes.Count(x => x.AffiliateId == affiliateId &&
-                                                                       x.Type == type && x.CreationTime > fromDate);
-                    if (notificationCount >= notificationLimit.NumericValue)
-                        throw CreateException(LanguageId, Constants.Errors.ClientMaxLimitExceeded);
-                }
-            }
-        }
         private string MapTemplateData(string msgText, Composite composite)
         {
             msgText = msgText.Replace("\\n", Environment.NewLine)
@@ -725,7 +763,7 @@ namespace IqSoft.CP.BLL.Services
         }
 
         private void NotifyAffiliator(int partnerId, int clientId, AffiliatePlatform affiliatePlatform, string clickId, string currency, 
-                                             decimal? amount, long? transactionId, bool isWithdraw, int? depositCount = 0, DateTime? depositDate = null)
+                                             decimal? amount, long? transactionId, bool isWithdraw, int? depositCount = 0, DateTime? depositDate = null, bool isLogin = false)
         {
             try
             {
@@ -913,7 +951,49 @@ namespace IqSoft.CP.BLL.Services
                         url = CacheManager.GetPartnerSettingByKey(partnerId, Constants.PartnerKeys.CustomerIoUrl).StringValue;
                         var partnerName = CacheManager.GetPartnerById(customer.PartnerId).Name;
                         var reqList = new List<string>();
-						if (amount.HasValue)
+                        if (isLogin)
+                        {						
+							postData = JsonConvert.SerializeObject(new
+							{
+								userId = customer.Id.ToString(),
+								type = "track",
+								@event = "Update Profile",
+								properties = new
+								{
+									partnerId = customer.PartnerId,
+									currencyId = customer.CurrencyId,
+									userName = customer.UserName,
+									email = customer.Email,
+									firstname = customer.FirstName,
+									lastName = customer.LastName,
+									gender = customer.Gender,
+									mobileNumber = customer.MobileNumber,
+									zipCode = customer.ZipCode,
+									birthDate = customer.BirthDate.ToString("yyyy-MM-dd HH:mm:ss"),
+									regionId = customer.RegionId,
+									categoryId = customer.CategoryId,
+									brandName = partnerName,
+									state = Enum.GetName(typeof(ClientStates), customer.State),
+									countryId = CacheManager.GetRegionById(customer.CountryId.Value, customer.LanguageId).IsoCode3,
+									city = customer.City,
+									languageId = customer.LanguageId,
+									isDocumentVerified = customer.IsDocumentVerified,
+									documentNumber = customer.DocumentNumber,
+									documentIssuedBy = customer.DocumentIssuedBy,
+									sendPromotions = customer.SendPromotions,
+									affiliateReferralId = clickId,
+									creationTime = customer.CreationTime.ToString("yyyy-MM-dd HH:mm:ss"),
+									address = customer.Address,
+									realBalance = Math.Floor(BaseBll.GetObjectBalance((int)ObjectTypes.Client, customer.Id).Balances.Where(y => y.TypeId != (int)AccountTypes.ClientCompBalance &&
+																		y.TypeId != (int)AccountTypes.ClientCoinBalance &&
+																		y.TypeId != (int)AccountTypes.ClientBonusBalance).Sum(y => y.Balance) * 100) / 100,
+									lastSessionDate = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")
+								}
+							});
+                            reqList.Add(postData);
+							url = $"{url}/track";
+						}
+                        else if (amount.HasValue)
                         {
                             if(isWithdraw) 
                             {
@@ -937,7 +1017,6 @@ namespace IqSoft.CP.BLL.Services
 									@event = "Update Profile",
 									properties = new
 									{
-										userId = customer.Id.ToString(),
 										realBalance = Math.Floor(BaseBll.GetObjectBalance((int)ObjectTypes.Client, customer.Id).Balances.Where(y => y.TypeId != (int)AccountTypes.ClientCompBalance &&
 																		y.TypeId != (int)AccountTypes.ClientCoinBalance &&
 																		y.TypeId != (int)AccountTypes.ClientBonusBalance).Sum(y => y.Balance) * 100) / 100
@@ -1008,8 +1087,9 @@ namespace IqSoft.CP.BLL.Services
                                     sendPromotions = customer.SendPromotions,
                                     affiliateReferralId = clickId, 
                                     creationTime = customer.CreationTime.ToString("yyyy-MM-dd HH:mm:ss"),
-                                    address = customer.Address
-                                }
+                                    address = customer.Address,
+									realBalance = 0
+								}
 
                             });
                             reqList.Add(postData);
@@ -1033,7 +1113,8 @@ namespace IqSoft.CP.BLL.Services
                     case AffiliatePlatforms.Smartico:
                         var user = CacheManager.GetClientById(clientId);
                         var currentDate = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeMilliseconds();
-                        if (amount.HasValue)
+						var brandId = CacheManager.GetPartnerSettingByKey(partnerId, Constants.PartnerKeys.SmarticoBrandId).StringValue;
+						if (amount.HasValue)
                         {
                             if (isWithdraw)
                             {
@@ -1041,14 +1122,19 @@ namespace IqSoft.CP.BLL.Services
 								{
 									eid = $"{user.Id}{currentDate}",
 									event_date = ((DateTimeOffset)user.CreationTime).ToUnixTimeMilliseconds(),
+									ext_brand_id = brandId,
 									user_ext_id = user.Id.ToString(),
-									event_type = "acc_withdrawal_approve",
+									event_type = "acc_withdrawal_approved",
 									payload =
 								    new
 								    {
 								    	acc_last_transaction_id = transactionId,
 								    	acc_last_withdrawal_amount = amount,
-								    	acc_last_withdrawal_date = ((DateTimeOffset)DateTime.UtcNow.AddMinutes(-10)).ToUnixTimeMilliseconds()
+								    	acc_last_withdrawal_date = ((DateTimeOffset)DateTime.UtcNow.AddMinutes(-10)).ToUnixTimeMilliseconds(),
+										acc_real_balance = Math.Floor(BaseBll.GetObjectBalance((int)ObjectTypes.Client, user.Id).Balances.Where(y => y.TypeId != (int)AccountTypes.ClientCompBalance &&
+																		y.TypeId != (int)AccountTypes.ClientCoinBalance &&
+																		y.TypeId != (int)AccountTypes.ClientBonusBalance).Sum(y => y.Balance) * 100) / 100
+
 									}
 								});
 							}
@@ -1058,15 +1144,20 @@ namespace IqSoft.CP.BLL.Services
                                 {
                                     eid = $"{user.Id}{currentDate}",
                                     event_date = ((DateTimeOffset)user.CreationTime).ToUnixTimeMilliseconds(),
-                                    user_ext_id = user.Id.ToString(),
-                                    event_type = "acc_deposit_approve",
+									ext_brand_id = brandId,
+									user_ext_id = user.Id.ToString(),
+                                    event_type = "acc_deposit_approved",
                                     payload =
                                     new
                                     {
                                         acc_last_deposit_amount = amount,
-                                        acc_last_deposit_date = depositDate,
-                                        acc_last_transaction_id = transactionId
-                                    }
+                                        acc_last_deposit_date = ((DateTimeOffset)depositDate).ToUnixTimeMilliseconds(),
+                                        acc_last_transaction_id = transactionId,
+										acc_is_first_deposit = depositCount == 1,
+										acc_real_balance = Math.Floor(BaseBll.GetObjectBalance((int)ObjectTypes.Client, user.Id).Balances.Where(y => y.TypeId != (int)AccountTypes.ClientCompBalance &&
+																		y.TypeId != (int)AccountTypes.ClientCoinBalance &&
+																		y.TypeId != (int)AccountTypes.ClientBonusBalance).Sum(y => y.Balance) * 100) / 100
+									}
                                  });
                             }
                         }
@@ -1076,22 +1167,27 @@ namespace IqSoft.CP.BLL.Services
                             {
                                 eid = $"{user.Id}{currentDate}",
                                 event_date = ((DateTimeOffset)user.CreationTime).ToUnixTimeMilliseconds(),
-                                user_ext_id = user.Id.ToString(),
+								ext_brand_id = brandId,
+								user_ext_id = user.Id.ToString(),
                                 event_type = "update_profile",
                                 payload =
                                 new
                                 {
-                                    core_registration_date = user.CreationTime,
-                                    core_user_gender = user.Gender,
-                                    core_user_language = user.LanguageId.ToUpper(),
+                                    core_registration_date = ((DateTimeOffset)user.CreationTime).ToUnixTimeMilliseconds(),
+                                    core_user_gender = user.Gender != null ? Enum.GetName(typeof(Gender), user.Gender) : null,
+									user_first_name = user.FirstName,
+									user_last_name = user.LastName,
+									core_user_language = user.LanguageId.ToUpper(),
                                     core_username = user.UserName,
                                     core_wallet_currency = user.CurrencyId,
-                                    user_country = user.CountryId,
-                                    core_email = user.Email,
+                                    user_country = CacheManager.GetRegionById(user.CountryId.Value, user.LanguageId).IsoCode,
+									user_email = user.Email,
                                     uer_first_name = user.FirstName,
                                     uer_last_name = user.LastName,
-                                    user_phone = user.MobileNumber
-                                }
+                                    user_phone = user.MobileNumber,
+									core_external_account_status = Enum.GetName(typeof(ClientStates), user.State).ToUpper(),
+									core_affiliate_str = clickId
+								}
                             });
                         }
 						url = CacheManager.GetPartnerSettingByKey(partnerId, Constants.PartnerKeys.SmarticoUrl).StringValue;
@@ -1110,7 +1206,7 @@ namespace IqSoft.CP.BLL.Services
                     default:
                         break;
                 }
-                if (!string.IsNullOrEmpty(postData) && affiliatePlatform.Name != AffiliatePlatforms.CustomerIo)
+                if (!string.IsNullOrEmpty(postData) && (affiliatePlatform.Name != AffiliatePlatforms.CustomerIo || affiliatePlatform.Name != AffiliatePlatforms.Smartico))
                 {
                     var httpRequestInput = new HttpRequestInput
                     {

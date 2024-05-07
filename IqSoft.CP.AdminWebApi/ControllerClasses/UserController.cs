@@ -210,7 +210,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var userBl = new UserBll(identity, log))
             {
-                var input = request.MaptToFilterfnUser();
+                var input = request.ToFilterfnUser();
                 input.IdentityId = identity.Id;
                 input.Types = new List<int> { (int)UserTypes.AdminUser, (int)UserTypes.Cashier };
                 var users = userBl.GetUsersPagedModel(input, true);
@@ -230,7 +230,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 {
                     if (input.Type == (int)UserTypes.CompanyAgent)
                     {
-                        var request = input.MaptToFilterfnUser();
+                        var request = input.ToFilterfnUser();
                         request.IdentityId = identity.Id;
                         request.Types = new List<int> { (int)UserTypes.CompanyAgent };
                         var users = userBl.GetUsersPagedModel(request, true);
@@ -239,7 +239,6 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                             ResponseObject = new { users.Count, Entities = users.Entities.MapToUserModels(userBl.GetUserIdentity().TimeZone) }
                         };
                     }
-
                     else
                     {
                         var resp = userBl.GetSubAgents(input.ParentId ?? identity.Id, input?.Level, input?.Type, !input.WithDownlines, 
@@ -344,7 +343,8 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     user =  userBl.EditUser(input, true).MapToUserModel(timeZone);
                     CacheManager.RemoveUserFromCache(user.Id);
                     Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}", Constants.CacheItems.User, user.Id));
-                    Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}", Constants.CacheItems.UserConfiguration, user.Id, Constants.UserConfigurations.CorrectonMaxAmount));
+                    Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}", Constants.CacheItems.UserConfiguration, user.Id, 
+                        Constants.UserConfigurations.CorrectonMaxAmount));
                 }
                 
                 return new ApiResponseBase
@@ -567,12 +567,13 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             var user = CacheManager.GetUserById(identity.Id);
             var partner = CacheManager.GetPartnerById(user.PartnerId);
             var key = CommonFunctions.GenerateQRCode();
+            var label = $"{partner.Name}:{user.UserName}";
             return new ApiResponseBase
             {
                 ResponseObject = new
                 {
                     Key = key,
-                    Data = "otpauth://totp/"+Uri.EscapeDataString($"{partner.Name}:{user.UserName}?secret={key}&issuer={partner.Name}")
+                    Data = $"otpauth://totp/{Uri.EscapeDataString(label)}?secret={key}&issuer={partner.Name}"
                 }
             };
         }
@@ -611,14 +612,18 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 if (agent == null)
                     throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.UserNotFound);
                 var levEnums = BaseBll.GetEnumerations(Constants.EnumerationTypes.AgentLevels, identity.LanguageId);
-                var result = userBl.GetAgentDownline(userId, true, true);
+
+                var direct = userBl.GetAgentDownline(userId, true, true);
+                var all = userBl.GetAgentDownline(userId, true, false);
+
                 return new ApiResponseBase
                 {
-                    ResponseObject = result.Select(x => new
+                    ResponseObject = direct.Select(x => new
                     {
                         Id = x.Level,
                         Name = levEnums.First(y => y.Value == x.Level).Text,
-                        Count = x.Count
+                        Count = x.Count,
+                        TotalCount = all.FirstOrDefault(y => y.Level == x.Level)?.Count ?? 0
                     })
                 };
             }

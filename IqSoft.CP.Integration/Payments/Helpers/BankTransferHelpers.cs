@@ -27,7 +27,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             }
         }
 
-        public static void GetPayoutRequestStatus(PaymentRequest paymentRequest, SessionIdentity session, ILog log)
+        public static void ApprovePayoutRequest(PaymentRequest paymentRequest, SessionIdentity session, ILog log)
         {
             if (paymentRequest.Type == (int)PaymentRequestTypes.Withdraw && paymentRequest.Status == (int)PaymentRequestStates.PayPanding)
             {

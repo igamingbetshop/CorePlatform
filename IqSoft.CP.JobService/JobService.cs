@@ -46,7 +46,7 @@ namespace IqSoft.CP.WindowsServices.JobService
         private readonly Timer _approveIqWalletConfirmedRequestsTimer;
         private readonly Timer _sendAffiliateReportTimer;
         private readonly Timer _calculateAgentsTurnoverProfitTimer;
-        private readonly Timer _calculateAgentsProfitTimer;
+        private readonly Timer _calculateAgentsGGRProfitTimer;
         private readonly Timer _triggerCRMTimer;
         private readonly Timer _checkClientBlockedSessionsTimer;
         private readonly Timer _checkUserBlockedSessionsTimer;
@@ -74,6 +74,7 @@ namespace IqSoft.CP.WindowsServices.JobService
         private readonly Timer _settleBets;
         private readonly Timer _restrictUnverifiedClients;
         private readonly Timer _expireClientVerificationStatus;
+        private readonly Timer _checkDuplicateClients;
 
 
         public JobService()
@@ -101,7 +102,7 @@ namespace IqSoft.CP.WindowsServices.JobService
             _approveIqWalletConfirmedRequestsTimer = new Timer(CallJob, Constants.Jobs.ApproveIqWalletConfirmedRequests, Timeout.Infinite, Timeout.Infinite);
             _sendAffiliateReportTimer = new Timer(CallJob, Constants.Jobs.SendAffiliateReport, Timeout.Infinite, Timeout.Infinite);
             _calculateAgentsTurnoverProfitTimer = new Timer(CallJob, Constants.Jobs.CalculateAgentsTurnoverProfit, Timeout.Infinite, Timeout.Infinite);
-            _calculateAgentsProfitTimer = new Timer(CallJob, Constants.Jobs.CalculateAgentsProfit, Timeout.Infinite, Timeout.Infinite);
+            _calculateAgentsGGRProfitTimer = new Timer(CallJob, Constants.Jobs.CalculateAgentsGGRProfit, Timeout.Infinite, Timeout.Infinite);
             _triggerCRMTimer = new Timer(CallJob, Constants.Jobs.TriggerCRM, Timeout.Infinite, Timeout.Infinite);
             _checkClientBlockedSessionsTimer = new Timer(CallJob, Constants.Jobs.CheckClientBlockedSessions, Timeout.Infinite, Timeout.Infinite);
             _checkUserBlockedSessionsTimer = new Timer(CallJob, Constants.Jobs.CheckUserBlockedSessions, Timeout.Infinite, Timeout.Infinite);
@@ -129,6 +130,7 @@ namespace IqSoft.CP.WindowsServices.JobService
             _settleBets = new Timer(CallJob, Constants.Jobs.SettleBets, Timeout.Infinite, Timeout.Infinite);
             _restrictUnverifiedClients = new Timer(CallJob, Constants.Jobs.RestrictUnverifiedClients, Timeout.Infinite, Timeout.Infinite);
             _expireClientVerificationStatus = new Timer(CallJob, Constants.Jobs.ExpireClientVerificationStatus, Timeout.Infinite, Timeout.Infinite);
+            _checkDuplicateClients = new Timer(CallJob, Constants.Jobs.CheckDuplicateClients, Timeout.Infinite, Timeout.Infinite);
         }
 
         protected override void OnStart(string[] args)
@@ -154,12 +156,12 @@ namespace IqSoft.CP.WindowsServices.JobService
             _approveIqWalletConfirmedRequestsTimer.Change(5000, 5000);
             _sendAffiliateReportTimer.Change(60000, 60000);
             _calculateAgentsTurnoverProfitTimer.Change(60000, 600000);
-            _calculateAgentsProfitTimer.Change(60000, 3600000);
+            _calculateAgentsGGRProfitTimer.Change(60000, 3600000);
             _triggerCRMTimer.Change(60000, 60000);
             _checkClientBlockedSessionsTimer.Change(60000, 60000);
             _checkUserBlockedSessionsTimer.Change(60000, 60000);
             _checkWithdrawRequestsStatusesTimer.Change(60000, 60000);
-            _checkDepositRequestsStatusesTimer.Change(60000, 60000);
+            _checkDepositRequestsStatusesTimer.Change(60000, 60000); //45
             _giveFreeSpinTimer.Change(60000, 60000);
             _giveJackpotWinTimer.Change(60000, 60000);
             _deactivateExiredKYCTimer.Change(600000, 600000);
@@ -171,7 +173,7 @@ namespace IqSoft.CP.WindowsServices.JobService
             _notifyIdentityExpirationTimer.Change(300000, 300000);
             _inactivateImpossiblBonuses.Change(300000, 300000);
             _updateJackpotFeed.Change(300000, 300000);
-            _reconsiderDynamicSegments.Change(20000, 20000);
+            _reconsiderDynamicSegments.Change(20000, 20000); //35
             _fulfillDepositAction.Change(20000, 20000);
             _fairSegmentTriggers.Change(20000, 20000);
             _sendPartnerDailyReport.Change(120000, 600000);
@@ -182,6 +184,7 @@ namespace IqSoft.CP.WindowsServices.JobService
             _settleBets.Change(60000, 60000);
             _restrictUnverifiedClients.Change(60000, 60000);
             _expireClientVerificationStatus.Change(60000, 3600000);
+            _checkDuplicateClients.Change(60000, 3600000);
 
             var startOptions = new StartOptions("http://*:9010/");
             _server = WebApp.Start<Startup>(startOptions);
@@ -210,7 +213,7 @@ namespace IqSoft.CP.WindowsServices.JobService
             _approveIqWalletConfirmedRequestsTimer.Change(Timeout.Infinite, Timeout.Infinite);
             _sendAffiliateReportTimer.Change(Timeout.Infinite, Timeout.Infinite);
             _calculateAgentsTurnoverProfitTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            _calculateAgentsProfitTimer.Change(Timeout.Infinite, Timeout.Infinite);
+            _calculateAgentsGGRProfitTimer.Change(Timeout.Infinite, Timeout.Infinite);
             _triggerCRMTimer.Change(Timeout.Infinite, Timeout.Infinite);
             _checkClientBlockedSessionsTimer.Change(Timeout.Infinite, Timeout.Infinite);
             _checkUserBlockedSessionsTimer.Change(Timeout.Infinite, Timeout.Infinite);
@@ -238,6 +241,7 @@ namespace IqSoft.CP.WindowsServices.JobService
             _settleBets.Change(Timeout.Infinite, Timeout.Infinite);
             _restrictUnverifiedClients.Change(Timeout.Infinite, Timeout.Infinite);
             _expireClientVerificationStatus.Change(Timeout.Infinite, Timeout.Infinite);
+            _checkDuplicateClients.Change(Timeout.Infinite, Timeout.Infinite);
 
             if (_server != null)
             {
@@ -337,8 +341,8 @@ namespace IqSoft.CP.WindowsServices.JobService
                     timer = _calculateAgentsTurnoverProfitTimer;
                     duration = 600000;
                     break;
-                case Constants.Jobs.CalculateAgentsProfit:
-                    timer = _calculateAgentsProfitTimer;
+                case Constants.Jobs.CalculateAgentsGGRProfit:
+                    timer = _calculateAgentsGGRProfitTimer;
                     duration = 3600000;
                     break;
                 case Constants.Jobs.TriggerCRM:
@@ -449,10 +453,16 @@ namespace IqSoft.CP.WindowsServices.JobService
                     timer = _expireClientVerificationStatus;
                     duration = 60000;
                     break;
+                case Constants.Jobs.CheckDuplicateClients:
+                    timer = _checkDuplicateClients;
+                    duration = 3600000;
+                    break;
             }
+
             timer.Change(Timeout.Infinite, Timeout.Infinite);
             var jobStartTime = DateTime.Now;
             string jobMessage = "Job completed successfully";
+            bool success = true;
             string parameters;
             var job = new Job();
             try
@@ -463,17 +473,20 @@ namespace IqSoft.CP.WindowsServices.JobService
                     timer.Change(duration, duration);
                     return;
                 }
-                parameters = CallJobFunction(job, jobStartTime);
+                parameters = CallJobFunction(job, jobStartTime, out success);
             }
             catch (FaultException<BllFnErrorType> ex)
             {
                 jobMessage = JsonConvert.SerializeObject(ex);
                 parameters = job.Parameters;
+                success = false;
+                Program.DbLogger.Error("JobId_" + jobId + "_" + ex.Detail?.Id + "_" + ex.Detail?.Message);
             }
             catch (Exception ex)
             {
                 jobMessage = JsonConvert.SerializeObject(ex);
                 parameters = job.Parameters;
+                success = false;
                 Program.DbLogger.Error("JobId_" + jobId + "_" + ex.Message + "_" + ex.InnerException);
             }
             var jobResult = new JobResult
@@ -486,7 +499,7 @@ namespace IqSoft.CP.WindowsServices.JobService
             try
             {
                 JobBll.SaveJobResult(jobResult);
-                if (job.NextExecutionTime <= jobStartTime)
+                if (job.NextExecutionTime <= jobStartTime && success)
                     job.NextExecutionTime = job.NextExecutionTime.AddSeconds(job.PeriodInSeconds);
                 job.Parameters = parameters;
                 JobBll.SaveJob(job);
@@ -498,8 +511,9 @@ namespace IqSoft.CP.WindowsServices.JobService
             timer.Change(duration, duration);
         }
 
-        public string CallJobFunction(Job job, DateTime jobStartTime)
+        public string CallJobFunction(Job job, DateTime jobStartTime, out bool success)
         {
+            success = true;
             switch (job.Id)
             {
                 case Constants.Jobs.CloseAccountPeriod:
@@ -601,11 +615,11 @@ namespace IqSoft.CP.WindowsServices.JobService
                     break;
                 case Constants.Jobs.CalculateAgentsTurnoverProfit:
                     if (job.NextExecutionTime <= jobStartTime)
-                        JobBll.CalculateAgentsTurnoverProfit(job.NextExecutionTime, Program.DbLogger);
+                        success = JobBll.CalculateAgentsTurnoverProfit(job.NextExecutionTime, Program.DbLogger);
                     break;
-                case Constants.Jobs.CalculateAgentsProfit:
-                    if ((jobStartTime - job.NextExecutionTime).TotalDays >= 7)
-                        JobBll.CalculateAgentsProfit(job, Program.DbLogger);
+                case Constants.Jobs.CalculateAgentsGGRProfit:
+                    if (job.NextExecutionTime <= jobStartTime)
+                        success = JobBll.CalculateAgentsGGRProfit(job.NextExecutionTime, Program.DbLogger);
                     break;
                 case Constants.Jobs.TriggerCRM:
                     JobBll.TriggerMissedDepositCRM(job, Program.DbLogger);
@@ -681,6 +695,9 @@ namespace IqSoft.CP.WindowsServices.JobService
                     break;
                 case Constants.Jobs.RestrictUnverifiedClients:
                     JobBll.RestrictUnverifiedClients(Program.DbLogger);
+                    break;
+                case Constants.Jobs.CheckDuplicateClients:
+                    JobBll.CheckDuplicateClients(Program.DbLogger);
                     break;
             }
             return null;
@@ -816,9 +833,10 @@ namespace IqSoft.CP.WindowsServices.JobService
                         case Constants.PaymentSystems.CepBank:
                         case Constants.PaymentSystems.ShebaTransfer:
                         case Constants.PaymentSystems.CryptoTransfer:
-                            BankTransferHelpers.GetPayoutRequestStatus(paymentRequest, session, log);
+                            BankTransferHelpers.ApprovePayoutRequest(paymentRequest, session, log);
                             break;
                         case Constants.PaymentSystems.Praxis:
+                        case Constants.PaymentSystems.PraxisFiat:
                             PraxisHelpers.GetPayoutRequestStatus(paymentRequest, session, log);
                             break;
                         case Constants.PaymentSystems.OktoPay:
@@ -826,6 +844,10 @@ namespace IqSoft.CP.WindowsServices.JobService
                             break;
                         case Constants.PaymentSystems.Chapa:
                             ChapaHelpers.CheckTransactionStatus(paymentRequest, session, log);
+                            break;
+                        case Constants.PaymentSystems.IqWallet:
+                            IqWalletHelpers.ApprovePayoutRequest(paymentRequest, session, log, out int toClientId);
+                            JobBll.BroadcastRemoveCache(string.Format("{0}_{1}", Constants.CacheItems.ClientBalance, toClientId));
                             break;
                         default:
                             break;
@@ -1024,7 +1046,7 @@ namespace IqSoft.CP.WindowsServices.JobService
                             {
                                 switch (x.GameProviderName)
                                 {
-                          case Constants.GameProviders.IqSoft:
+                                    case Constants.GameProviders.IqSoft:
                                         x.Products.ForEach(y =>
                                         {
                                             freespinModel.ProductExternalId = y.ExternalId;
@@ -1138,9 +1160,32 @@ namespace IqSoft.CP.WindowsServices.JobService
                                             freespinModel.ProductExternalId = y.ExternalId;
                                             freespinModel.SpinCount = Convert.ToInt32(y.SpinCount);
                                             freespinModel.BonusId = clientBonus.Id;
-                                            Integration.Products.Helpers.TimelessTechHelpers.CreateCampaign(freespinModel, Constants.GameProviders.TimelessTech, log);
+											freespinModel.BetValueLevel = y.BetValueLevel;
+											Integration.Products.Helpers.TimelessTechHelpers.CreateCampaign(freespinModel, Constants.GameProviders.TimelessTech, log);
                                         });
                                         break;
+                                    case Constants.GameProviders.BCWGames:
+                                        x.Products.ForEach(y =>
+                                        {
+                                            freespinModel.ProductExternalId = y.ExternalId;
+                                            freespinModel.SpinCount = Convert.ToInt32(y.SpinCount);
+                                            freespinModel.BonusId = clientBonus.Id;
+											freespinModel.BetValueLevel = y.BetValueLevel;
+											Integration.Products.Helpers.TimelessTechHelpers.CreateCampaign(freespinModel, Constants.GameProviders.BCWGames, log);
+                                        });
+                                        break;
+                                    case Constants.GameProviders.Endorphina:
+                                        x.Products.ForEach(y =>
+                                        {
+                                            freespinModel.ProductExternalId = y.ExternalId;
+                                            freespinModel.SpinCount = Convert.ToInt32(y.SpinCount);
+                                            freespinModel.BetValueLevel = y.BetValueLevel;
+                                            freespinModel.CoinValue = y.CoinValue;
+                                            freespinModel.BonusId = clientBonus.Id;
+                                            Integration.Products.Helpers.EndorphinaHelpers.AddFreeRound(freespinModel, log);
+                                        });
+                                        break;
+
                                     default:
                                         break;
                                 }

@@ -21,7 +21,7 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                     return GetTypesEnumByType(Constants.EnumerationTypes.Gender, identity, log);
                 case "GetCommonEnumModels":
                     return GetCommonEnumModels(identity, log);
-                case "GetDocumenStatesEnum":
+                case "GetDocumentStatesEnum":
                     return GetTypesEnumByType(Constants.EnumerationTypes.DocumentStates, identity, log);
                 case "GetProductsEnum":
                     return GetProductsEnum(identity, log);
@@ -75,6 +75,8 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                     return GetTypesEnumByType(nameof(AgentEmployeePermissions), identity, log);
                 case "GetBetShopGroupsEnum":
                     return GetBetShopGroupsEnum(identity, log);
+                case "GetOperationTypesEnum":
+                    return GetOperationTypesEnum(identity, log);
             }
 
             throw BaseBll.CreateException(string.Empty, Constants.Errors.MethodNotFound);
@@ -231,6 +233,22 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                     ResponseObject = betShopGroup
                 };
                 return response;
+            }
+        }
+
+        private static ApiResponseBase GetOperationTypesEnum(SessionIdentity identity, ILog log)
+        {
+            using (var baseBl = new BaseBll(identity, log))
+            {
+                return new ApiResponseBase
+                {
+                    ResponseObject = baseBl.GetOperationTypes().Select(x => new EnumerationModel<int>
+                    {
+                        Id = x.Id,
+                        NickName = x.NickName,
+                        Name = x.Name
+                    }).ToList()
+                };
             }
         }
     }

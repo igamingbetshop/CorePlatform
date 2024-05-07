@@ -277,6 +277,7 @@
     <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Threading.Tasks.Extensions.4.5.4\lib\net461\System.Threading.Tasks.Extensions.dll</HintPath>
     </Reference>
+    <Reference Include="System.Transactions" />
     <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.ValueTuple.4.5.0\lib\net47\System.ValueTuple.dll</HintPath>
     </Reference>
@@ -385,6 +386,7 @@
     <Compile Include="Payments\Helpers\KazPostHelpers.cs" />
     <Compile Include="Payments\Helpers\NetellerHelpers.cs" />
     <Compile Include="Payments\Helpers\PerfectMoneyHelpers.cs" />
+    <Compile Include="Payments\Helpers\QuikiPayHelpers.cs" />
     <Compile Include="Payments\Helpers\RunpayHelpers.cs" />
     <Compile Include="Payments\Helpers\SantimaPayHelpers.cs" />
     <Compile Include="Payments\Helpers\StripeHelpers.cs" />
@@ -436,6 +438,7 @@
     <Compile Include="Payments\Models\DPOPay\VerifyInput.cs" />
     <Compile Include="Payments\Models\DPOPay\VerifyOutput.cs" />
     <Compile Include="Payments\Models\Elite\Result.cs" />
+    <Compile Include="Payments\Models\ErrorOutput.cs" />
     <Compile Include="Payments\Models\Eway\PaymentOutput.cs" />
     <Compile Include="Payments\Models\FinVert\PaymentOutput.cs" />
     <Compile Include="Payments\Models\Flexepin\BaseOutput.cs" />
@@ -580,6 +583,10 @@
     <Compile Include="Payments\Models\Piastrix\PaymentOutput.cs" />
     <Compile Include="Payments\Models\Piastrix\PayoutInput.cs" />
     <Compile Include="Payments\Models\Piastrix\PayoutOutput.cs" />
+    <Compile Include="Payments\Models\QuikiPay\PaymentInput.cs" />
+    <Compile Include="Payments\Models\QuikiPay\PaymentOutput.cs" />
+    <Compile Include="Payments\Models\QuikiPay\PayoutInput.cs" />
+    <Compile Include="Payments\Models\QuikiPay\PayoutOutput.cs" />
     <Compile Include="Payments\Models\Runpay\PayoutOutput.cs" />
     <Compile Include="Payments\Models\SantimaPay\PayoutOutput.cs" />
     <Compile Include="Payments\Models\SantimaPay\PaymentOutput.cs" />
@@ -595,6 +602,8 @@
     <Compile Include="Payments\Models\VevoPay\PayoutOutput.cs" />
     <Compile Include="Payments\Models\XcoinsPay\PaymentOutput.cs" />
     <Compile Include="Payments\Models\Yaspa\PaymentOutput.cs" />
+    <Compile Include="Payments\Models\Yaspa\PayoutInput.cs" />
+    <Compile Include="Payments\Models\Yaspa\PayoutOutput.cs" />
     <Compile Include="Payments\Models\Zippy\PaymentRequestOutput.cs" />
     <Compile Include="Payments\Models\Zippy\PayoutGeneratorOutput.cs" />
     <Compile Include="Payments\Models\Zippy\PayoutOutput.cs" />
@@ -684,6 +693,7 @@
     <Compile Include="Products\Helpers\BetSolutionsHelpers.cs" />
     <Compile Include="Products\Helpers\BlueOceanHelpers.cs" />
     <Compile Include="Products\Helpers\DragonGamingHelpers.cs" />
+    <Compile Include="Products\Helpers\EndorphinaHelpers.cs" />
     <Compile Include="Products\Helpers\EvenBetHelpers.cs" />
     <Compile Include="Products\Helpers\EveryMatrixHelpers.cs" />
     <Compile Include="Products\Helpers\EvolutionHelpers.cs" />
@@ -701,11 +711,13 @@
     <Compile Include="Products\Helpers\JackpotGamingHelpers.cs" />
     <Compile Include="Products\Helpers\KironHelpers.cs" />
     <Compile Include="Products\Helpers\LuckyGamingHelpers.cs" />
+    <Compile Include="Products\Helpers\LuckyStreakHelpers.cs" />
     <Compile Include="Products\Helpers\MancalaHelpers.cs" />
     <Compile Include="Products\Helpers\NucleusHelpers.cs" />
     <Compile Include="Products\Helpers\OutcomeBetHelpers.cs" />
     <Compile Include="Products\Helpers\PlaynGoHelpers.cs" />
     <Compile Include="Products\Helpers\PragmaticPlayHelpers.cs" />
+    <Compile Include="Products\Helpers\RiseUpHelpers.cs" />
     <Compile Include="Products\Helpers\SkyWindHelpers.cs" />
     <Compile Include="Products\Helpers\SoftGamingHelpers.cs" />
     <Compile Include="Products\Helpers\SoftLandHelpers.cs" />
@@ -749,6 +761,7 @@
     <Compile Include="Products\Models\BetSolutions\Game.cs" />
     <Compile Include="Products\Models\BGGames\BaseInput.cs" />
     <Compile Include="Products\Models\BGGames\BaseOutput.cs" />
+    <Compile Include="Products\Models\BGGames\BetHistory.cs" />
     <Compile Include="Products\Models\BGGames\Game.cs" />
     <Compile Include="Products\Models\BlueOcean\BaseOutput.cs" />
     <Compile Include="Products\Models\BlueOcean\FreeRoundOutput.cs" />
@@ -796,6 +809,8 @@
     <Compile Include="Products\Models\LuckyGaming\AccountInput.cs" />
     <Compile Include="Products\Models\LuckyGaming\AccountOutput.cs" />
     <Compile Include="Products\Models\LuckyGaming\LaunchH5Output.cs" />
+    <Compile Include="Products\Models\LuckyStreak\AuthorizationOutput.cs" />
+    <Compile Include="Products\Models\LuckyStreak\GameOutput.cs" />
     <Compile Include="Products\Models\Mancala\GamesOutput.cs" />
     <Compile Include="Products\Models\Mancala\GetTokenOutput.cs" />
     <Compile Include="Products\Models\Nucleus\GamesOutput.cs" />
@@ -807,6 +822,7 @@
     <Compile Include="Products\Models\PragmaticPlay\BaseOutput.cs" />
     <Compile Include="Products\Models\PragmaticPlay\GamesOutput.cs" />
     <Compile Include="Products\Models\PragmaticPlay\LaunchOutput.cs" />
+    <Compile Include="Products\Models\RiseUp\BaseOutput.cs" />
     <Compile Include="Products\Models\Rocabee\Rocabee.cs" />
     <Compile Include="Products\Models\SkyWind\GetGameUrlResponse.cs" />
     <Compile Include="Products\Models\SkyWind\LoginUserResponse.cs" />

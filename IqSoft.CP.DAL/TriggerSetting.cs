@@ -17,12 +17,12 @@ namespace IqSoft.CP.DAL
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public TriggerSetting()
         {
-            this.BonusPaymentSystemSettings = new HashSet<BonusPaymentSystemSetting>();
-            this.TriggerGroupSettings = new HashSet<TriggerGroupSetting>();
-            this.TriggerProductSettings = new HashSet<TriggerProductSetting>();
             this.AmountCurrencySettings = new HashSet<AmountCurrencySetting>();
+            this.BonusPaymentSystemSettings = new HashSet<BonusPaymentSystemSetting>();
             this.ClientBonus = new HashSet<ClientBonu>();
             this.ClientBonusTriggers = new HashSet<ClientBonusTrigger>();
+            this.TriggerGroupSettings = new HashSet<TriggerGroupSetting>();
+            this.TriggerProductSettings = new HashSet<TriggerProductSetting>();
         }
     
         public int Id { get; set; }
@@ -45,21 +45,22 @@ namespace IqSoft.CP.DAL
         public Nullable<int> DayOfWeek { get; set; }
         public Nullable<decimal> UpToAmount { get; set; }
         public Nullable<int> Status { get; set; }
+        public Nullable<bool> ConsiderBonusBets { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<BonusPaymentSystemSetting> BonusPaymentSystemSettings { get; set; }
-        public virtual Segment Segment { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<TriggerGroupSetting> TriggerGroupSettings { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<TriggerProductSetting> TriggerProductSettings { get; set; }
-        public virtual Partner Partner { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<AmountCurrencySetting> AmountCurrencySettings { get; set; }
-        public virtual Translation Translation { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<BonusPaymentSystemSetting> BonusPaymentSystemSettings { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ClientBonu> ClientBonus { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ClientBonusTrigger> ClientBonusTriggers { get; set; }
+        public virtual Partner Partner { get; set; }
+        public virtual Segment Segment { get; set; }
+        public virtual Translation Translation { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TriggerGroupSetting> TriggerGroupSettings { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TriggerProductSetting> TriggerProductSettings { get; set; }
     }
 }

@@ -43,7 +43,7 @@ namespace IqSoft.CP.JobServicesCore
         private readonly Timer _approveIqWalletConfirmedRequestsTimer;
         private readonly Timer _sendAffiliateReportTimer;
         private readonly Timer _calculateAgentsTurnoverProfitTimer;
-        private readonly Timer _calculateAgentsProfitTimer;
+        private readonly Timer _calculateAgentsGGRProfitTimer;
         private readonly Timer _triggerCRMTimer;
         private readonly Timer _checkClientBlockedSessionsTimer;
         private readonly Timer _checkUserBlockedSessionsTimer;
@@ -91,7 +91,7 @@ namespace IqSoft.CP.JobServicesCore
             _approveIqWalletConfirmedRequestsTimer = new Timer(CallJob, Constants.Jobs.ApproveIqWalletConfirmedRequests, Timeout.Infinite, Timeout.Infinite);
             _sendAffiliateReportTimer = new Timer(CallJob, Constants.Jobs.SendAffiliateReport, Timeout.Infinite, Timeout.Infinite);
             _calculateAgentsTurnoverProfitTimer = new Timer(CallJob, Constants.Jobs.CalculateAgentsTurnoverProfit, Timeout.Infinite, Timeout.Infinite);
-            _calculateAgentsProfitTimer = new Timer(CallJob, Constants.Jobs.CalculateAgentsProfit, Timeout.Infinite, Timeout.Infinite);
+            _calculateAgentsGGRProfitTimer = new Timer(CallJob, Constants.Jobs.CalculateAgentsGGRProfit, Timeout.Infinite, Timeout.Infinite);
             _triggerCRMTimer = new Timer(CallJob, Constants.Jobs.TriggerCRM, Timeout.Infinite, Timeout.Infinite);
             _checkClientBlockedSessionsTimer = new Timer(CallJob, Constants.Jobs.CheckClientBlockedSessions, Timeout.Infinite, Timeout.Infinite);
             _checkUserBlockedSessionsTimer = new Timer(CallJob, Constants.Jobs.CheckUserBlockedSessions, Timeout.Infinite, Timeout.Infinite);
@@ -147,7 +147,7 @@ namespace IqSoft.CP.JobServicesCore
             _approveIqWalletConfirmedRequestsTimer.Change(5000, 5000);
             _sendAffiliateReportTimer.Change(60000, 60000);
             _calculateAgentsTurnoverProfitTimer.Change(60000, 600000);
-            _calculateAgentsProfitTimer.Change(60000, 3600000);
+            _calculateAgentsGGRProfitTimer.Change(60000, 3600000);
             _triggerCRMTimer.Change(60000, 60000);
             _checkClientBlockedSessionsTimer.Change(60000, 60000);
             _checkUserBlockedSessionsTimer.Change(60000, 60000);
@@ -196,7 +196,7 @@ namespace IqSoft.CP.JobServicesCore
             _approveIqWalletConfirmedRequestsTimer.Change(Timeout.Infinite, Timeout.Infinite);
             _sendAffiliateReportTimer.Change(Timeout.Infinite, Timeout.Infinite);
             _calculateAgentsTurnoverProfitTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            _calculateAgentsProfitTimer.Change(Timeout.Infinite, Timeout.Infinite);
+            _calculateAgentsGGRProfitTimer.Change(Timeout.Infinite, Timeout.Infinite);
             _triggerCRMTimer.Change(Timeout.Infinite, Timeout.Infinite);
             _checkClientBlockedSessionsTimer.Change(Timeout.Infinite, Timeout.Infinite);
             _checkUserBlockedSessionsTimer.Change(Timeout.Infinite, Timeout.Infinite);
@@ -311,8 +311,8 @@ namespace IqSoft.CP.JobServicesCore
                     timer = _calculateAgentsTurnoverProfitTimer;
                     duration = 600000;
                     break;
-                case Constants.Jobs.CalculateAgentsProfit:
-                    timer = _calculateAgentsProfitTimer;
+                case Constants.Jobs.CalculateAgentsGGRProfit:
+                    timer = _calculateAgentsGGRProfitTimer;
                     duration = 3600000;
                     break;
                 case Constants.Jobs.TriggerCRM:
@@ -541,8 +541,8 @@ namespace IqSoft.CP.JobServicesCore
                     if (job.NextExecutionTime <= DateTime.UtcNow)
                         JobBll.CalculateAgentsTurnoverProfit(job.NextExecutionTime, Program.DbLogger);
                     break;
-                case Constants.Jobs.CalculateAgentsProfit:
-                    JobBll.CalculateAgentsProfit(job, Program.DbLogger);
+                case Constants.Jobs.CalculateAgentsGGRProfit:
+                    JobBll.CalculateAgentsGGRProfit(job, Program.DbLogger);
                     break;
                 case Constants.Jobs.TriggerCRM:
                     JobBll.TriggerMissedDepositCRM(job, Program.DbLogger);

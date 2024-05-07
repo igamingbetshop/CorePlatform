@@ -21,6 +21,7 @@ using System.Collections.Generic;
 using IqSoft.CP.DAL.Models;
 using IqSoft.CP.DAL.Models.Clients;
 using IqSoft.CP.Common.Models.WebSiteModels;
+using IqSoft.CP.Integration.Platforms.Helpers;
 
 namespace IqSoft.CP.ProductGateway.Controllers
 {
@@ -82,7 +83,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
 						if (clientSession.Id.ToString() != transactiontData.UserId)
 							throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongInputParameters);
 						client = CacheManager.GetClientById(clientSession.Id);
-						responseData = Changebalance(transactiontData, clientSession, client, providerId.Value);
+						responseData = ChangeBalance(transactiontData, clientSession, client, providerId.Value);
 						break;
 					case TimelessTechHelpers.Methods.FinishRound:
                         var finishRound = JsonConvert.DeserializeObject<FinishRoundInput>(JsonConvert.SerializeObject(input.DataInput));
@@ -174,28 +175,34 @@ namespace IqSoft.CP.ProductGateway.Controllers
 
 		private static object Authenticate(BllClient client)
 		{
+			var isExternalPlatformClient = ExternalPlatformHelpers.IsExternalPlatformClient(client, out DAL.Models.Cache.PartnerKey externalPlatformType);
+			var balance = isExternalPlatformClient ? ExternalPlatformHelpers.GetClientBalance(Convert.ToInt32(externalPlatformType.StringValue), client.Id) :
+													 CacheManager.GetClientCurrentBalance(client.Id).AvailableBalance;
 			var regionPath = CacheManager.GetRegionPathById(client.RegionId);
 			var isoCode = regionPath.FirstOrDefault(x => x.TypeId == (int)RegionTypes.Country)?.IsoCode;
 			return new
 			{
 				user_id = client.Id.ToString(),
 				user_name = client.UserName,
-				user_country = isoCode,
+				user_country = isoCode ?? "AU",
 				currency_code = client.CurrencyId,
-				balance = CacheManager.GetClientCurrentBalance(client.Id).AvailableBalance
+				balance
 			};
 		}
 
 		private static object Balance(BllClient client)
 		{
+			var isExternalPlatformClient = ExternalPlatformHelpers.IsExternalPlatformClient(client, out DAL.Models.Cache.PartnerKey externalPlatformType);
+			var balance = isExternalPlatformClient ? ExternalPlatformHelpers.GetClientBalance(Convert.ToInt32(externalPlatformType.StringValue), client.Id) :
+													 CacheManager.GetClientCurrentBalance(client.Id).AvailableBalance;
 			return new
 			{
-				balance = CacheManager.GetClientCurrentBalance(client.Id).AvailableBalance,
+				balance,
 				currency_code = client.CurrencyId
 			};
 		}
 
-		private static object Changebalance(TransactionInput input, SessionIdentity session, BllClient client, int providerId)
+		private static object ChangeBalance(TransactionInput input, SessionIdentity session, BllClient client, int providerId)
 		{
 			var product = CacheManager.GetProductByExternalId (providerId, input.GameId.ToString()) ?? // for lobby
 				throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongProductId);
@@ -275,8 +282,22 @@ namespace IqSoft.CP.ProductGateway.Controllers
 					ExternalProductId = product.ExternalId,
 					ProductId = product.Id
 				};
-				documentBl.RollbackProductTransactions(operationsFromProduct);
-				BaseHelpers.RemoveClientBalanceFromeCache(client.Id);
+				var documents = documentBl.RollbackProductTransactions(operationsFromProduct);
+				var isExternalPlatformClient = ExternalPlatformHelpers.IsExternalPlatformClient(client, out PartnerKey externalPlatformType);
+				if (isExternalPlatformClient)
+				{
+					try
+					{
+						ExternalPlatformHelpers.RollbackTransaction(Convert.ToInt32(externalPlatformType.StringValue), client,
+							operationsFromProduct, documents[0], WebApiApplication.DbLogger);
+					}
+					catch (Exception ex)
+					{
+						WebApiApplication.DbLogger.Error(ex.Message);
+					}
+				}
+				else
+					BaseHelpers.RemoveClientBalanceFromeCache(client.Id);
 			}
 		}
 
@@ -309,20 +330,21 @@ namespace IqSoft.CP.ProductGateway.Controllers
 			{
 				using (var clientBl = new ClientBll(documentBl))
 				{
-
-					var document = documentBl.GetDocumentByExternalId(input.TransactionId.ToString(), client.Id, providerId,
+					var transactionId = input.TransactionId.ToString();
+					if (input.Reason.ToLower().Contains("freespin"))
+						transactionId = $"Bet_{Constants.FreeSpinPrefix}{input.TransactionId}";
+                    var document = documentBl.GetDocumentByExternalId(transactionId, client.Id, providerId,
 																			partnerProductSettingId, (int)OperationTypes.Bet);
 					if (document == null)
 					{
 						var operationsFromProduct = new ListOfOperationsFromApi
 						{
-							SessionId = session.Id,
+							SessionId = session.SessionId,
 							CurrencyId = client.CurrencyId,
 							RoundId = input.RoundId.ToString(),
-							ExternalProductId = input.TransactionId.ToString(),
 							GameProviderId = providerId,
 							ProductId = productId,
-							TransactionId = input.TransactionId.ToString(),
+							TransactionId = transactionId,
 							OperationItems = new List<OperationItemFromProduct>()
 						};
 						operationsFromProduct.OperationItems.Add(new OperationItemFromProduct
@@ -331,9 +353,33 @@ namespace IqSoft.CP.ProductGateway.Controllers
 							Amount = Convert.ToDecimal(input.Amount)
 						});
 						document = clientBl.CreateCreditFromClient(operationsFromProduct, documentBl, out LimitInfo info);
-						BaseHelpers.RemoveClientBalanceFromeCache(client.Id);
-						BaseHelpers.BroadcastBalance(client.Id);
-						BaseHelpers.BroadcastBetLimit(info);
+						var isExternalPlatformClient = ExternalPlatformHelpers.IsExternalPlatformClient(client, out DAL.Models.Cache.PartnerKey externalPlatformType);
+						if (isExternalPlatformClient)
+						{
+							try
+							{
+								ExternalPlatformHelpers.CreditFromClient(Convert.ToInt32(externalPlatformType.StringValue), client,
+																		 session.ParentId ?? 0, operationsFromProduct, document, WebApiApplication.DbLogger);
+							}
+							catch (FaultException<BllFnErrorType> ex)
+							{
+								WebApiApplication.DbLogger.Error(ex.Detail?.Id + " _ " + ex.Detail?.Message);
+								documentBl.RollbackProductTransactions(operationsFromProduct);
+								throw;
+							}
+							catch (Exception ex)
+							{
+								WebApiApplication.DbLogger.Error(ex.Message);
+								documentBl.RollbackProductTransactions(operationsFromProduct);
+								throw;
+							}
+						}
+						else
+						{
+							BaseHelpers.RemoveClientBalanceFromeCache(client.Id);
+							BaseHelpers.BroadcastBalance(client.Id);
+							BaseHelpers.BroadcastBetLimit(info);
+						}
 					}
 				}
 			}
@@ -347,7 +393,11 @@ namespace IqSoft.CP.ProductGateway.Controllers
 				{
 					var betDocument = documentBl.GetDocumentByRoundId((int)OperationTypes.Bet, input.RoundId.ToString(), providerId, client.Id) ??
 							throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.CanNotConnectCreditAndDebit);
-					var winDocument = documentBl.GetDocumentByExternalId(input.RoundId.ToString(), client.Id, providerId,
+                    var transactionId = input.TransactionId.ToString();
+                    if (input.Reason.ToLower().Contains("freespin"))
+                        transactionId = $"{Constants.FreeSpinPrefix}{input.TransactionId}";
+
+                    var winDocument = documentBl.GetDocumentByExternalId(input.RoundId.ToString(), client.Id, providerId,
 																		 partnerProductSettingId, (int)OperationTypes.Win);
 					if (winDocument == null)
 					{
@@ -360,7 +410,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
 							GameProviderId = providerId,
 							RoundId = input.RoundId.ToString(),
 							ProductId = betDocument.ProductId,
-							TransactionId = input.TransactionId.ToString(),
+							TransactionId = transactionId,
 							CreditTransactionId = betDocument.Id,
 							State = state,
 							OperationItems = new List<OperationItemFromProduct>()
@@ -371,6 +421,27 @@ namespace IqSoft.CP.ProductGateway.Controllers
 							Amount = Convert.ToDecimal(input.Amount)
 						});
 						winDocument = clientBl.CreateDebitsToClients(operationsFromProduct, betDocument, documentBl)[0];
+						var isExternalPlatformClient = ExternalPlatformHelpers.IsExternalPlatformClient(client, out DAL.Models.Cache.PartnerKey externalPlatformType);
+						if (isExternalPlatformClient)
+						{
+							try
+							{
+								ExternalPlatformHelpers.DebitToClient(Convert.ToInt32(externalPlatformType.StringValue), client,
+								(betDocument == null ? (long?)null : betDocument.Id), operationsFromProduct, winDocument, WebApiApplication.DbLogger);
+							}
+							catch (FaultException<BllFnErrorType> ex)
+							{
+								WebApiApplication.DbLogger.Error(ex.Detail?.Id + " _ " + ex.Detail?.Message);
+								documentBl.RollbackProductTransactions(operationsFromProduct);
+								throw;
+							}
+							catch (Exception ex)
+							{
+								WebApiApplication.DbLogger.Error(ex);
+								documentBl.RollbackProductTransactions(operationsFromProduct);
+								throw;
+							}
+						}
 						BaseHelpers.RemoveClientBalanceFromeCache(client.Id);
 						BaseHelpers.BroadcastWin(new ApiWin
 						{
@@ -388,46 +459,5 @@ namespace IqSoft.CP.ProductGateway.Controllers
 				}
 			}
 		}
-
-		private static object FinishRound(RoundInput input, BllClient client, int providerId)
-		{
-			var product = CacheManager.GetProductByExternalId(providerId, input.GameId.ToString()) ??
-				throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.ProductNotFound);
-
-            using (var clientBl = new ClientBll(new SessionIdentity(), WebApiApplication.DbLogger))
-            {
-                using (var documentBl = new DocumentBll(clientBl))
-                {
-                    var betDocuments = documentBl.GetDocumentsByRoundId((int)OperationTypes.Bet, input.RoundId, providerId,
-                                                                    client.Id, (int)BetDocumentStates.Uncalculated);
-                    var listOfOperationsFromApi = new ListOfOperationsFromApi
-                    {
-                        CurrencyId = client.CurrencyId,
-                        RoundId = input.RoundId,
-                        GameProviderId = providerId,
-                        ProductId = product.Id,
-                        OperationItems = new List<OperationItemFromProduct>()
-                    };
-                    listOfOperationsFromApi.OperationItems.Add(new OperationItemFromProduct
-                    {
-                        Client = client,
-                        Amount = 0
-                    });
-                    foreach (var betDoc in betDocuments)
-                    {
-                        betDoc.State = (int)BetDocumentStates.Lost;
-                        listOfOperationsFromApi.TransactionId = betDoc.ExternalTransactionId;
-                        listOfOperationsFromApi.CreditTransactionId = betDoc.Id;
-                        clientBl.CreateDebitsToClients(listOfOperationsFromApi, betDoc, documentBl);                        
-                    }
-                }
-            }
-			return new
-			{
-				user_id = client.Id,
-				round_id = input.RoundId,
-				game_id = input.GameId
-			};
-        }
 	}
 }

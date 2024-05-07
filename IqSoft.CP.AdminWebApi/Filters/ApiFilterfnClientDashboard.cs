@@ -31,5 +31,6 @@ namespace IqSoft.CP.AdminWebApi.Filters
         public ApiFiltersOperation DebitCorrectionsCounts { get; set; }
         public ApiFiltersOperation TotalCreditCorrections { get; set; }
         public ApiFiltersOperation CreditCorrectionsCounts { get; set; }
+        public ApiFiltersOperation ComplementaryBalances { get; set; }
     }
 }

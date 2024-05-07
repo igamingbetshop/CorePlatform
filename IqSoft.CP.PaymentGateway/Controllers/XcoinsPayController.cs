@@ -45,7 +45,6 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                 var inputNonce = HttpContext.Current.Request.Headers.Get("Nonce");
                 if (string.IsNullOrEmpty(inputNonce))
                     throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongHash);
-                WebApiApplication.DbLogger.Info($"inputString: {inputString}, Xcoins-Signature: {inputSign}, Nonce: {inputNonce}");
 
                 using (var paymentSystemBl = new PaymentSystemBll(new SessionIdentity(), WebApiApplication.DbLogger))
                 {
@@ -123,7 +122,10 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                 var bodyStream = new StreamReader(HttpContext.Current.Request.InputStream);
                 WebApiApplication.DbLogger.Error($"Code: {ex.Detail.Id} Message: {ex.Detail.Message} Input: {bodyStream.ReadToEnd()}" +
                                                 $" Response: {JsonConvert.SerializeObject(response)}");
-
+                if (ex.Detail?.Id == Constants.Errors.DontHavePermission)
+                {
+                    WebApiApplication.DbLogger.Error("NotAllowd IP: " + HttpContext.Current.Request.Headers.Get("CF-Connecting-IP"));
+                }
                 if (ex.Detail != null && ex.Detail.Id != Constants.Errors.ClientDocumentAlreadyExists &&
                     ex.Detail.Id != Constants.Errors.RequestAlreadyPayed)
                     return new HttpResponseMessage

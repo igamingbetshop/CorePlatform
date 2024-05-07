@@ -15,6 +15,7 @@ using System.Data.Entity;
 using IqSoft.CP.Common.Models.CacheModels;
 using IqSoft.CP.DataWarehouse;
 using ILog = log4net.ILog;
+using System.Runtime.InteropServices.ComTypes;
 
 namespace IqSoft.CP.BLL.Caching
 {
@@ -778,6 +779,7 @@ namespace IqSoft.CP.BLL.Caching
                     RegionId = x.RegionId,
                     State = x.State,
                     DefaultLimit = x.DefaultLimit,
+                    CurrentLimit = x.CurrentLimit,
                     BonusPercent = x.BonusPercent,
                     UserId = x.UserId,
                     MaxCopyCount = x.MaxCopyCount,
@@ -1113,6 +1115,7 @@ namespace IqSoft.CP.BLL.Caching
                         OpenMode = x.OpenMode,
                         Countries = x.PartnerPaymentCountrySettings.Select(y => y.CountryId).ToList(),
                         OSTypesString = x.OSTypes,
+                        ImageExtension = x.ImageExtension,
                         CurrencyRates = x.PartnerPaymentCurrencyRates.Select(y => new BllCurrencyRate { Id = y.Id, CurrencyId = y.CurrencyId, Rate = y.Rate }).ToList()
                     }).FirstOrDefault();
             }
@@ -1240,7 +1243,6 @@ namespace IqSoft.CP.BLL.Caching
                 return oldValue;
             var newValue = GetProductCountrySettingsFromDb(countryCode);
             MemcachedCache.Store(StoreMode.Set, key, newValue, TimeSpan.FromDays(1d));
-            UpdateListedKeys(key);
             return newValue;
         }
 
@@ -1538,7 +1540,6 @@ namespace IqSoft.CP.BLL.Caching
             if (oldValue != null) return oldValue;
             var newValue = GetRestrictedGameProvidersFromDb(currencyId);
             MemcachedCache.Store(StoreMode.Set, key, newValue, TimeSpan.FromDays(1d));
-            UpdateListedKeys(key);
             return newValue;
         }
 
@@ -2696,7 +2697,8 @@ namespace IqSoft.CP.BLL.Caching
                     USSDPin = x.USSDPin,
                     Title = x.Title,
                     IsTwoFactorEnabled = x.IsTwoFactorEnabled ?? false,
-                    QRCode = x.QRCode
+                    QRCode = x.QRCode,
+                    AffiliateReferralId = x.AffiliateReferralId
                 }).FirstOrDefault();
                 if (client != null)
                 {
@@ -2749,7 +2751,8 @@ namespace IqSoft.CP.BLL.Caching
                     USSDPin = x.USSDPin,
                     Title = x.Title,
                     IsTwoFactorEnabled = x.IsTwoFactorEnabled ?? false,
-                    QRCode = x.QRCode
+                    QRCode = x.QRCode,
+                    AffiliateReferralId = x.AffiliateReferralId
                 }).FirstOrDefault();
                 if (client != null)
                 {
@@ -2800,7 +2803,8 @@ namespace IqSoft.CP.BLL.Caching
                     USSDPin = x.USSDPin,
                     Title = x.Title,
                     IsTwoFactorEnabled = x.IsTwoFactorEnabled ?? false,
-                    QRCode = x.QRCode
+                    QRCode = x.QRCode,
+                    AffiliateReferralId = x.AffiliateReferralId
                 }).FirstOrDefault();
                 if (client != null)
                 {
@@ -2851,7 +2855,8 @@ namespace IqSoft.CP.BLL.Caching
                     USSDPin = x.USSDPin,
                     Title = x.Title,
                     IsTwoFactorEnabled = x.IsTwoFactorEnabled ?? false,
-                    QRCode = x.QRCode
+                    QRCode = x.QRCode,
+                    AffiliateReferralId = x.AffiliateReferralId
                 }).FirstOrDefault();
                 if (client != null)
                 {
@@ -2882,8 +2887,14 @@ namespace IqSoft.CP.BLL.Caching
                 var client = db.AgentCommissions.FirstOrDefault(x => x.ClientId == clientId);
                 if (client == null || string.IsNullOrEmpty(client.TurnoverPercent))
                     return new BllAsianCommissionPlan();
-
-                return JsonConvert.DeserializeObject<BllAsianCommissionPlan>(client.TurnoverPercent);
+                try
+                {
+                    return JsonConvert.DeserializeObject<BllAsianCommissionPlan>(client.TurnoverPercent);
+                }
+                catch(Exception e)
+                {
+                    return new BllAsianCommissionPlan();
+                }
             }
         }
 
@@ -3558,6 +3569,7 @@ namespace IqSoft.CP.BLL.Caching
                     }).FirstOrDefault();
             }
         }
+
         public static TriggerSettingInfo GetTriggerSettingById(int id)
         {
             var key = string.Format("{0}_{1}", Constants.CacheItems.TriggerSettings, id);
@@ -3595,6 +3607,7 @@ namespace IqSoft.CP.BLL.Caching
                     SegmentId = x.SegmentId,
                     DayOfWeek = x.DayOfWeek,
                     UpToAmount = x.UpToAmount,
+                    ConsiderBonusBets = x.ConsiderBonusBets,
                     PaymentSystemIds = x.BonusPaymentSystemSettings.Select(y => y.PaymentSystemId).ToList(),
                     ProductSettings = x.TriggerProductSettings.Select(y => new TriggerProductInfo
                     {
@@ -3826,7 +3839,7 @@ namespace IqSoft.CP.BLL.Caching
         {
             using (var db = new IqSoftCorePlatformEntities())
             {
-                return db.Popups.Where(x => x.PartnerId == partnerId && x.Type == type).OrderBy(x => x.Order)
+                return db.Popups.Where(x => x.PartnerId == partnerId && x.Type == type && x.State == (int)BaseStates.Active).OrderBy(x => x.Order)
                                  .Select(x => new BllPopup
                                  {
                                      Id = x.Id,

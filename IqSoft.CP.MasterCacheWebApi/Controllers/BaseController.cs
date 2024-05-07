@@ -90,7 +90,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                 return url;
             }
             else if (providerName == Constants.GameProviders.Endorphina.ToLower())
-                return EndorphinaHelpers.GetUrl(input.PartnerId, token, input.ProductId, input.IsForDemo, clientSession);
+                return Integration.Products.Helpers.EndorphinaHelpers.GetLaunchUrl(input.PartnerId, token, input.ProductId, input.IsForDemo, clientSession, WebApiApplication.DbLogger);
             else if (providerName == Constants.GameProviders.Ganapati.ToLower())
                 return GanapatiHelpers.GetUrl(input.PartnerId, input.ProductId, token, input.ClientId, input.IsForDemo, clientSession);
             else if (providerName == Constants.GameProviders.Evolution.ToLower())
@@ -177,7 +177,11 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
             else if (providerName == Constants.GameProviders.BGGames.ToLower())
                 return Integration.Products.Helpers.BGGamesHelpers.GetUrl(token, input.ClientId, input.PartnerId, input.ProductId, input.IsForDemo, clientSession, WebApiApplication.DbLogger);            
             else if (providerName == Constants.GameProviders.TimelessTech.ToLower() || providerName == Constants.GameProviders.BCWGames.ToLower())
-                return Integration.Products.Helpers.TimelessTechHelpers.GetUrl(token, input.ClientId, input.PartnerId, input.ProductId, input.IsForDemo, clientSession, WebApiApplication.DbLogger);
+                return Integration.Products.Helpers.TimelessTechHelpers.GetUrl(token, input.ClientId, input.PartnerId, input.ProductId, input.IsForDemo, clientSession, WebApiApplication.DbLogger);      
+            else if (providerName == Constants.GameProviders.RiseUp.ToLower())
+                return Integration.Products.Helpers.RiseUpHelpers.GetUrl(token, input.ClientId, input.PartnerId, input.ProductId, input.IsForDemo, clientSession, WebApiApplication.DbLogger); 
+            else if (providerName == Constants.GameProviders.LuckyStreak.ToLower())
+                return Integration.Products.Helpers.LuckyStreakHelpers.GetUrl(token, input.ClientId, input.PartnerId, input.ProductId, input.IsForDemo, clientSession, WebApiApplication.DbLogger);
             else
                 throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongProductId);
         }

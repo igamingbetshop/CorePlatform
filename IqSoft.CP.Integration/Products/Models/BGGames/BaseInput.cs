@@ -14,5 +14,6 @@
         public string demo { get; set; }
         public string lang { get; set; }
         public string device { get; set; }
+        public string homeURL { get; set; }
     }
 }

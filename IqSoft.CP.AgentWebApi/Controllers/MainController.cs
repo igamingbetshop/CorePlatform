@@ -56,7 +56,7 @@ namespace IqSoft.CP.AgentWebApi.Controllers
                     if (!string.IsNullOrEmpty(origin))
                     {
                         siteUrl = origin.Replace("http://", string.Empty).Replace("https://", string.Empty).Replace("agent", "admin").Replace("affiliate", "admin");
-                        if (origin.Contains("affiliate") || origin == "http://ag.com" || origin == "http://localhost:4201" || origin == "http://localhost:4200" || origin== "http://10.50.17.10:10006") // development 
+                        if (origin.Contains("affiliate") || origin == "http://localhost:4201" || origin== "http://10.50.17.10:10006") // development 
                             isAffiliate = true;
                     }
                 }
@@ -67,76 +67,81 @@ namespace IqSoft.CP.AgentWebApi.Controllers
                 action.Country = ipCountry;
                 action.Ip = ip;
                 action.ActionId = CacheManager.GetAction(MethodBase.GetCurrentMethod().Name).Id;
-
+                action.ObjectTypeId = isAffiliate ? (int)ObjectTypes.Affiliate : (int)ObjectTypes.User;
                 using (var partnerBl = new PartnerBll(new SessionIdentity(), WebApiApplication.DbLogger))
                 {
-                    var partner = partnerBl.GetPartners(new FilterPartner { AdminSiteUrl = siteUrl }, false).FirstOrDefault() ??
+                    using (var contentBl = new ContentBll(partnerBl))
+                    {
+                        var partner = partnerBl.GetPartners(new FilterPartner { AdminSiteUrl = siteUrl }, false).FirstOrDefault() ??
                         throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.PartnerNotFound);
-                    PartnerBll.CheckApiRestrictions(partner.Id, isAffiliate ? Constants.SystemModuleTypes.AffilliateSystem : Constants.SystemModuleTypes.AgentSystem);
-                    var loginInput = new LoginUserInput
-                    {
-                        PartnerId = partner.Id,
-                        UserName = input.UserName,
-                        Password = input.Password,
-                        Ip = ip,
-                        LanguageId = requestInfo.LanguageId,
-                        UserType = (int)UserTypes.DownlineAgent,
-                        ReCaptcha = input.ReCaptcha
-                    };
-
-                    if (!isAffiliate)
-                    {
-
-                        using (var userBl = new UserBll(partnerBl))
-                        {        
-                            var userIdentity = userBl.LoginUser(loginInput, out string imageData);
-                            var user = CacheManager.GetUserById(userIdentity.Id);
-                            var parentLevel = user.ParentId.HasValue ? CacheManager.GetUserById(user.ParentId.Value)?.Level : 0;
-                            BllUserSetting userSetting;
-                            if (user.Type == (int)UserTypes.AdminUser)
-                                userSetting = new BllUserSetting
-                                {
-                                    UserId = user.Id,
-                                    AllowAutoPT = true,
-                                    AllowOutright = true,
-                                    AllowDoubleCommission = true,
-                                    AgentMaxCredit = 0
-                                };
-                            else
-                                userSetting = CacheManager.GetUserSetting(user.Id);
-
-                            loginResult = new Session(userIdentity, user)
-                            {
-                                ImageData = imageData,
-                                AllowAutoPT = userSetting?.AllowAutoPT,
-                                AllowOutright = userSetting?.AllowOutright,
-                                AllowDoubleCommission = userSetting?.AllowDoubleCommission,
-                                IsCalculationPeriodBlocked = userSetting?.IsCalculationPeriodBlocked,
-                                AgentMaxCredit = userSetting?.AgentMaxCredit,
-                                ParentLevel = parentLevel ?? 0
-                            };
-                        }
-                    }
-                    else
-                    {
-                        using (var affiliateBl = new AffiliateService(partnerBl))
+                        PartnerBll.CheckApiRestrictions(partner.Id, isAffiliate ? Constants.SystemModuleTypes.AffilliateSystem : Constants.SystemModuleTypes.AgentSystem);
+                        var loginInput = new LoginUserInput
                         {
-                            var userIdentity = affiliateBl.LoginAffiliate(loginInput);
-                            var affiliate = affiliateBl.GetAffiliateById(userIdentity.Id, false);
-                            loginResult = new Session
+                            PartnerId = partner.Id,
+                            UserName = input.UserName,
+                            Password = input.Password,
+                            Ip = ip,
+                            LanguageId = requestInfo.LanguageId,
+                            UserType = (int)UserTypes.DownlineAgent,
+                            ReCaptcha = input.ReCaptcha
+                        };
+
+                        if (!isAffiliate)
+                        {
+                            using (var userBl = new UserBll(partnerBl))
                             {
-                                AffiliateId = userIdentity.Id,
-                                LoginIp = userIdentity.LoginIp,
-                                LanguageId = userIdentity.LanguageId,
-                                SessionId = userIdentity.SessionId,
-                                Token = userIdentity.Token,
-                                State = userIdentity.State,
-                                UserName = affiliate.UserName,
-                                NickName = affiliate.NickName,
-                                FirstName = affiliate.FirstName,
-                                LastName = affiliate.LastName,
-                                CurrencyId = partner.CurrencyId
-                            };
+                                var userIdentity = userBl.LoginUser(loginInput, out string imageData);
+                                var user = CacheManager.GetUserById(userIdentity.Id);
+                                var parentLevel = user.ParentId.HasValue ? CacheManager.GetUserById(user.ParentId.Value)?.Level : 0;
+                                BllUserSetting userSetting;
+                                if (user.Type == (int)UserTypes.AdminUser)
+                                    userSetting = new BllUserSetting
+                                    {
+                                        UserId = user.Id,
+                                        AllowAutoPT = true,
+                                        AllowOutright = true,
+                                        AllowDoubleCommission = true,
+                                        AgentMaxCredit = 0
+                                    };
+                                else
+                                    userSetting = CacheManager.GetUserSetting(user.Id);
+
+                                loginResult = new Session(userIdentity, user)
+                                {
+                                    ImageData = imageData,
+                                    AllowAutoPT = userSetting?.AllowAutoPT,
+                                    AllowOutright = userSetting?.AllowOutright,
+                                    AllowDoubleCommission = userSetting?.AllowDoubleCommission,
+                                    IsCalculationPeriodBlocked = userSetting?.IsCalculationPeriodBlocked,
+                                    AgentMaxCredit = userSetting?.AgentMaxCredit,
+                                    ParentLevel = parentLevel ?? 0
+                                };
+                                loginResult.AdminMenu = contentBl.GetAdminMenus(new List<string>(), true, (int)InterfaceTypes.Agent).ToList();
+                            }
+                        }
+                        else
+                        {
+                            using (var affiliateBl = new AffiliateService(partnerBl))
+                            {
+                                WebApiApplication.DbLogger.Debug("LoginAffiliate_" + JsonConvert.SerializeObject(loginInput));
+                                var userIdentity = affiliateBl.LoginAffiliate(loginInput);
+                                var affiliate = affiliateBl.GetAffiliateById(userIdentity.Id, false);
+                                loginResult = new Session
+                                {
+                                    AffiliateId = userIdentity.Id,
+                                    LoginIp = userIdentity.LoginIp,
+                                    LanguageId = userIdentity.LanguageId,
+                                    SessionId = userIdentity.SessionId,
+                                    Token = userIdentity.Token,
+                                    State = userIdentity.State,
+                                    UserName = affiliate.UserName,
+                                    NickName = affiliate.NickName,
+                                    FirstName = affiliate.FirstName,
+                                    LastName = affiliate.LastName,
+                                    CurrencyId = partner.CurrencyId
+                                };
+                                loginResult.AdminMenu = contentBl.GetAdminMenus(new List<string>(), true, (int)InterfaceTypes.Agent).ToList();
+                            }
                         }
                     }
                 }
@@ -144,6 +149,9 @@ namespace IqSoft.CP.AgentWebApi.Controllers
             catch (FaultException<BllFnErrorType> e)
             {
                 WebApiApplication.DbLogger.Error(e);
+                if (e.Detail != null && e.Detail.Id == Constants.Errors.DontHavePermission)
+                    WebApiApplication.DbLogger.Error($"Ip: {HttpContext.Current.Request.Headers.Get("CF-Connecting-IP")}, " +
+                                                     $"Country: {HttpContext.Current.Request.Headers.Get("CF-IPCountry")} " + e);
                 loginResult = new Session
                 {
                     ResponseCode = e.Detail.Id,
@@ -264,12 +272,15 @@ namespace IqSoft.CP.AgentWebApi.Controllers
                 actionLog.Info = action.Type == (int)ActionTypes.Info ? request.RequestData : string.Empty;
                 var identity = CheckToken(requestInfo, request.Token);
                 identity.Domain = HttpContext.Current.Request.Url.Authority;
+                identity.Country = actionLog.Country;
                 actionLog.ObjectId = identity.Id;
                 actionLog.SessionId = identity.SessionId;
+                actionLog.ObjectTypeId = identity.IsAffiliate ? (int)ObjectTypes.Affiliate : (int)ObjectTypes.User;
+                PartnerBll.CheckApiRestrictions(identity.PartnerId, identity.IsAffiliate ? Constants.SystemModuleTypes.AffilliateSystem : Constants.SystemModuleTypes.AgentSystem);
+
                 if (!identity.IsAffiliate)
                 {
                     var user = CacheManager.GetUserById(identity.Id);
-                    PartnerBll.CheckApiRestrictions(user.PartnerId, Constants.SystemModuleTypes.ManagementSystem);
                     var userState = CacheManager.GetUserSetting(user.Id)?.ParentState;
                     if (userState.HasValue && CustomHelper.Greater((UserStates)userState.Value, (UserStates)user.State))
                         user.State = userState.Value;
@@ -316,7 +327,7 @@ namespace IqSoft.CP.AgentWebApi.Controllers
             {
                 actionLog.ResultCode = response.ResponseCode;
                 actionLog.Description = response.Description;
-                BaseBll.LogAction(actionLog);
+                BaseBll.LogAction(actionLog, WebApiApplication.DbLogger);
             }
             return response;
         }
@@ -390,6 +401,7 @@ namespace IqSoft.CP.AgentWebApi.Controllers
 
                 action.ActionId = CacheManager.GetAction(MethodBase.GetCurrentMethod().Name).Id;
                 var sessionIdentity = CheckToken(requestInfo, token);
+                action.ObjectTypeId = sessionIdentity.IsAffiliate ? (int)ObjectTypes.Affiliate : (int)ObjectTypes.User;
                 action.SessionId = sessionIdentity.SessionId;
                 if (!sessionIdentity.IsAffiliate)
                 {
@@ -464,90 +476,41 @@ namespace IqSoft.CP.AgentWebApi.Controllers
         }
 
         [HttpPost]
-        public RecoverPasswordOutput RecoverPassword(AffiliatePasswordRecovery input)
+        public ApiResponseBase RecoverPassword(PasswordRecovery input) 
         {
+            var actionLog = new DAL.ActionLog
+            {
+                Page = string.Empty,
+                ObjectTypeId = (int)ObjectTypes.User,
+                ResultCode = 0,
+                Language = input.LanguageId
+            };
             try
             {
-                string siteUrl = string.Empty;
-                if (HttpContext.Current != null && HttpContext.Current.Request != null && HttpContext.Current.Request.Headers != null)
-                {
-                    var origin = HttpContext.Current.Request.Headers.Get("Origin");
-                    if (!string.IsNullOrEmpty(origin))
-                    {
-                        siteUrl = origin.Replace("http://", string.Empty).Replace("https://", string.Empty).Replace("agent", "admin").Replace("affiliate", "admin");
-                    }
-                }
+                var isAffiliate = false;
+                var origin = HttpContext.Current.Request.Headers.Get("Origin");
+                actionLog.Source = Request.Headers.UserAgent.ToString();
+                actionLog.Ip = HttpContext.Current.Request.Headers.Get("CF-Connecting-IP") ?? "127.0.0.1";
+                actionLog.Domain = origin;
+                actionLog.Country = HttpContext.Current.Request.Headers.Get("CF-IPCountry");
+                var action = CacheManager.GetAction(MethodBase.GetCurrentMethod().Name) ??
+                    throw BaseBll.CreateException(input.LanguageId, Constants.Errors.ActionNotFound);
+                if (origin.Contains("affiliate") || origin == "http://ag.com" || origin == "http://localhost:4201" || origin == "http://localhost:4200" || origin== "http://10.50.17.10:10006") // development 
+                    isAffiliate = true;
+                var siteUrl = origin.Replace("http://", string.Empty).Replace("https://", string.Empty).Replace("agent", "admin").Replace("affiliate", "admin");
                 using (var partnerBl = new PartnerBll(new SessionIdentity(), WebApiApplication.DbLogger))
+                using (var notificationBll = new NotificationBll(partnerBl))
                 {
-                    var partner = partnerBl.GetPartners(new FilterPartner { AdminSiteUrl = siteUrl }, false).FirstOrDefault();
-                    if (partner == null)
-                        throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.PartnerNotFound);
-                    using (var affiliateService = new AffiliateService(new SessionIdentity { LanguageId = input.LanguageId }, WebApiApplication.DbLogger))
-                    {
-                        var response = affiliateService.RecoverPassword(partner.Id, input.RecoveryToken, input.NewPassword, input.LanguageId);
-
-                        return new RecoverPasswordOutput
-                        {
-                            AffiliateId = response.Id,
-                            AffiliateEmail = response.Email,
-                            AffiliateFirstName = response.FirstName,
-                            AffiliateLastName = response.LastName
-                        };
-                    }
+                    var partner = partnerBl.GetPartners(new FilterPartner { AdminSiteUrl = siteUrl }, false).FirstOrDefault() ??
+                      throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.PartnerNotFound);
+                    PartnerBll.CheckApiRestrictions(partner.Id, isAffiliate ? Constants.SystemModuleTypes.AffilliateSystem : Constants.SystemModuleTypes.AgentSystem);
+                    if (isAffiliate)
+                        using (var affiliateService = new AffiliateService(partnerBl))
+                            affiliateService.RecoverPassword(partner.Id, input.Token, input.NewPassword);
+                    else
+                        using (var userBll = new UserBll(partnerBl))userBll.RecoverPassword(partner.Id, input.Token, input.NewPassword);
                 }
-            }
-            catch (FaultException<BllFnErrorType> ex)
-            {
-                var response = new RecoverPasswordOutput
-                {
-                    ResponseCode = ex.Detail.Id,
-                    Description = ex.Detail.Message
-                };
-                WebApiApplication.DbLogger.Info(JsonConvert.SerializeObject(response));
-                return response;
-            }
-            catch (Exception ex)
-            {
-                WebApiApplication.DbLogger.Error(ex);
-                var response = new RecoverPasswordOutput
-                {
-                    ResponseCode = Constants.Errors.GeneralException,
-                    Description = ex.Message
-                };
-                return response;
-            }
-        }
-
-        [HttpPost]
-        public ApiResponseBase SendRecoveryToken(ApiSendRecoveryTokenInput input)
-        {
-            try
-            {
-                var siteUrl = string.Empty;
-                var origin = string.Empty;
-
-                if (HttpContext.Current != null && HttpContext.Current.Request != null && HttpContext.Current.Request.Headers != null)
-                {
-                    origin = HttpContext.Current.Request.Headers.Get("Origin");
-                    if (!string.IsNullOrEmpty(origin))
-                    {
-                        siteUrl = origin.Replace("http://", string.Empty).Replace("https://", string.Empty).Replace("agent", "admin").Replace("affiliate", "admin");
-                        origin = $"{origin.Replace("http://", string.Empty).Replace("https://", string.Empty)}/#";
-                    }
-                }
-                using (var partnerBl = new PartnerBll(new SessionIdentity(), WebApiApplication.DbLogger))
-                {
-                    var partner = partnerBl.GetPartners(new FilterPartner { AdminSiteUrl = siteUrl }, false).FirstOrDefault();
-                    if (partner == null)
-                        throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.PartnerNotFound);
-                    using (var affiliateService = new AffiliateService(new SessionIdentity { LanguageId = input.LanguageId, Domain = origin }, WebApiApplication.DbLogger))
-                    {
-                        return new ApiResponseBase
-                        {
-                            ResponseObject = new { ActivePeriodInMinutes = affiliateService.SendRecoveryToken(partner.Id, input.LanguageId, input.EmailOrMobile) }
-                        };
-                    }
-                }
+                return new ApiResponseBase();
             }
             catch (FaultException<BllFnErrorType> ex)
             {
@@ -562,12 +525,90 @@ namespace IqSoft.CP.AgentWebApi.Controllers
             catch (Exception ex)
             {
                 WebApiApplication.DbLogger.Error(ex);
-                var response = new ApiResponseBase
+               return new ApiResponseBase
                 {
                     ResponseCode = Constants.Errors.GeneralException,
                     Description = ex.Message
                 };
+            }
+        }
+
+        [HttpPost]
+        public ApiResponseBase SendRecoveryToken(RecoveryTokenInput input)
+        {
+            var actionLog = new DAL.ActionLog
+            {
+                Page = string.Empty,
+                ObjectTypeId = (int)ObjectTypes.User,
+                ResultCode = 0,
+                Language = input.LanguageId
+            };
+            try
+            {
+                var isAffiliate = false;
+                var origin = HttpContext.Current.Request.Headers.Get("Origin");
+                actionLog.Source = Request.Headers.UserAgent.ToString();
+                actionLog.Ip = HttpContext.Current.Request.Headers.Get("CF-Connecting-IP") ?? "127.0.0.1";
+                actionLog.Domain = origin;
+                actionLog.Country = HttpContext.Current.Request.Headers.Get("CF-IPCountry");
+                var action = CacheManager.GetAction(MethodBase.GetCurrentMethod().Name);
+                if (action == null)
+                    throw BaseBll.CreateException(input.LanguageId, Constants.Errors.ActionNotFound);
+                if (origin.Contains("affiliate") || origin == "http://ag.com" || origin == "http://localhost:4201" || origin == "http://localhost:4200" || origin== "http://10.50.17.10:10006") // development 
+                    isAffiliate = true;
+                actionLog.ObjectTypeId = isAffiliate ? (int)ObjectTypes.Affiliate : (int)ObjectTypes.User;
+                var siteUrl = origin.Replace("http://", string.Empty).Replace("https://", string.Empty).Replace("agent", "admin").Replace("affiliate", "admin");
+                int activePeriodInMinutes = 0;
+                using (var partnerBl = new PartnerBll(new SessionIdentity(), WebApiApplication.DbLogger))
+                using (var notificationBll = new NotificationBll(partnerBl))
+                {
+                    var partner = partnerBl.GetPartners(new FilterPartner { AdminSiteUrl = siteUrl }, false).FirstOrDefault() ??
+                      throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.PartnerNotFound);
+                    PartnerBll.CheckApiRestrictions(partner.Id, isAffiliate ? Constants.SystemModuleTypes.AffilliateSystem : Constants.SystemModuleTypes.AgentSystem);                 
+                    if (isAffiliate)
+                    {
+                        using (var affiliateService = new AffiliateService(partnerBl))
+                        {
+                            var affiliate = affiliateService.GetAffiliateByIdentifier(partner.Id, input.Identifier);
+                            if (affiliate == null)
+                                activePeriodInMinutes = CacheManager.GetPartnerById(partner.Id).VerificationKeyActiveMinutes;
+                            else activePeriodInMinutes = notificationBll.SendRecoveryEmail(partner.Id, affiliate.Id, (int)ObjectTypes.Affiliate, affiliate.Email);
+                        }
+                    }
+                    else
+                    {
+                        using (var userBll = new UserBll(partnerBl))
+                        {
+                            var agent = userBll.GetUserByIdentifier(partner.Id, input.Identifier, true);
+                            if (agent == null)
+                                activePeriodInMinutes = CacheManager.GetPartnerById(partner.Id).VerificationKeyActiveMinutes;
+                            else activePeriodInMinutes = notificationBll.SendRecoveryEmail(partner.Id, agent.Id, (int)ObjectTypes.User, agent.Email);
+                        }
+                    }
+                }
+                return new ApiResponseBase
+                {
+                    ResponseObject = new { ActivePeriodInMinutes = activePeriodInMinutes }
+                };
+            }
+            catch (FaultException<BllFnErrorType> ex)
+            {
+                var response = new ApiResponseBase
+                {
+                    ResponseCode = ex.Detail.Id,
+                    Description = ex.Detail.Message
+                };
+                WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(response));
                 return response;
+            }
+            catch (Exception ex)
+            {
+                WebApiApplication.DbLogger.Error(ex);
+                return new ApiResponseBase
+                {
+                    ResponseCode = Constants.Errors.GeneralException,
+                    Description = ex.Message
+                };
             }
         }
 

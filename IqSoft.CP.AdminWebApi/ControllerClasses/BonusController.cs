@@ -350,6 +350,11 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 {
                     input.Condition = apiTriggerSetting.Activate.Value ? ((int)ManualEvenStatuses.Accepted).ToString() : ((int)ManualEvenStatuses.Rejected).ToString();
                 }
+                else if(apiTriggerSetting.Type == (int)TriggerTypes.DailyDeposit)
+                {
+                    input.UpToAmount = apiTriggerSetting.Amount;
+                }
+
                 var resp = bonusBl.SaveTriggerSetting(input, apiTriggerSetting.Activate);
                 CacheManager.RemoveTriggerSetting(resp.Id);
                 Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}", Constants.CacheItems.TriggerSettings, resp.Id));

@@ -49,17 +49,27 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 Url = string.Format("{0}{1}", url, "payment"),
                 PostData = JsonConvert.SerializeObject(paymentRequestInput)
             };
-            var req = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
-            log.Info("CallNOWPayApi_" + req);
-            var resp = JsonConvert.DeserializeObject<PaymentOutput>(req);
-            if (resp.Payment_status?.ToLower() == "failed")
-                throw new Exception(resp.Payment_status);
+            var paymentOutput = new PaymentOutput();
+            try
+            {
+                var req = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
+                paymentOutput = JsonConvert.DeserializeObject<PaymentOutput>(req);
+            }
+            catch(Exception ex) // error message contains api key which is visible  for player
+            {
+                var errorOutput = JsonConvert.DeserializeObject<ErrorOutput>(ex.Message);
+                var message = JsonConvert.DeserializeObject<ErrorOutput>(errorOutput.Message);
+                throw new Exception(message.Message);
+            }          
+
+            if (paymentOutput.Payment_status?.ToLower() == "failed")
+                throw new Exception(paymentOutput.Payment_status);
 
             var paymentProcessingInput = new
             {
-                PayAddress = resp.Pay_address,
-                Amount = resp.Pay_amount,
-                Currency = resp.Pay_currency,
+                PayAddress = paymentOutput.Pay_address,
+                Amount = paymentOutput.Pay_amount,
+                Currency = paymentOutput.Pay_currency,
                 PartnerDomain = session.Domain,
                 ResourcesUrl = (resourcesUrlKey == null || resourcesUrlKey.Id == 0 ? ("https://resources." + session.Domain) : resourcesUrlKey.StringValue),
                 PartnerId = client.PartnerId,

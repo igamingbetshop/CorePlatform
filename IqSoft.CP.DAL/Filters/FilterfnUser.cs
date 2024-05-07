@@ -7,33 +7,24 @@ namespace IqSoft.CP.DAL.Filters
 {
     public class FilterfnUser : FilterBase<fnUser>
     {
+        public DateTime FromDate { get; set; }
+        public DateTime ToDate { get; set; }
         public int? PartnerId { get; set; }
-
         public int? ParentId { get; set; }
         public int? IdentityId { get; set; }
-
         public List<int> Types { get; set; }
 
         public FiltersOperation Ids { get; set; }
-
         public FiltersOperation FirstNames { get; set; }
-
         public FiltersOperation LastNames { get; set; }
-
         public FiltersOperation UserNames { get; set; }
         public FiltersOperation NickNames { get; set; }
         public FiltersOperation MobileNumbers { get; set; }
-
         public FiltersOperation Emails { get; set; }
-
         public FiltersOperation Genders { get; set; }
-
         public FiltersOperation Currencies { get; set; }
-
         public FiltersOperation LanguageIds { get; set; }
-
         public FiltersOperation UserStates { get; set; }
-
         public FiltersOperation UserTypes { get; set; }
         public FiltersOperation UserRoles { get; set; }
 

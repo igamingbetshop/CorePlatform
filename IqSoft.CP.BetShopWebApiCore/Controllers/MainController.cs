@@ -73,7 +73,7 @@ namespace IqSoft.CP.BetShopWebApi.Controllers
 						var placeBetInput = JsonConvert.DeserializeObject<PlaceBetInput>(requestInput.RequestObject);
 						response.ResponseObject = PlaceBet(requestInput.Token, placeBetInput, client.Value);
 						break;
-					case ApiMethods.Cashout: // To Be Deleted
+					case ApiMethods.Cashout:
 						if (client.Equals(default(KeyValuePair<string, CashierIdentity>)))
 							throw new Exception(Constants.Errors.SessionNotFound.ToString());
 						var cashoutInput = JsonConvert.DeserializeObject<ApiCashoutInput>(requestInput.RequestObject);

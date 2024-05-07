@@ -118,7 +118,9 @@
     <Compile Include="Enums\ComplianceVerificationServices.cs" />
     <Compile Include="Enums\EmailNotificationServices.cs" />
     <Compile Include="Enums\ExternalApiTypes.cs" />
+    <Compile Include="Enums\InterfaceTypes.cs" />
     <Compile Include="Enums\ManualEvenStatuses.cs" />
+    <Compile Include="Enums\NFTFamilies.cs" />
     <Compile Include="Enums\OddsTypes.cs" />
     <Compile Include="Enums\OpenModes.cs" />
     <Compile Include="Enums\OSTypes.cs" />
@@ -143,9 +145,13 @@
     <Compile Include="Models\AdminModels\ApiAdminClientSetting.cs" />
     <Compile Include="Models\AdminModels\ApiAnnouncement.cs" />
     <Compile Include="Models\AdminModels\ApiGameProvider.cs" />
+    <Compile Include="Models\AdminModels\ApiNFTInfo.cs" />
+    <Compile Include="Models\AdminModels\NFTInfo.cs" />
     <Compile Include="Models\AdminModels\PaymentRequestInput.cs" />
     <Compile Include="Models\AdminModels\ApiPaymentSystemModel.cs" />
     <Compile Include="Models\AffiliateModels\ApiAffiliateCommission.cs" />
+    <Compile Include="Models\AgentModels\ApiAgentReportItem.cs" />
+    <Compile Include="Models\AgentModels\ApifnAgentTransaction.cs" />
     <Compile Include="Models\AffiliateModels\BetCommission.cs" />
     <Compile Include="Models\AffiliateModels\BllAffiliate.cs" />
     <Compile Include="Models\AffiliateModels\ClientAffiliateModel.cs" />
@@ -465,7 +471,6 @@
     <Compile Include="Models\WebSiteModels\Products\ApiPartnerProductsGroup.cs" />
     <Compile Include="Models\WebSiteModels\Products\ApiProductInfoInput.cs" />
     <Compile Include="Models\WebSiteModels\Products\CModuleInput.cs" />
-    <Compile Include="Models\WebSiteModels\Products\EndorphinaInput.cs" />
     <Compile Include="Models\WebSiteModels\Products\GetProductUrlInput.cs" />
     <Compile Include="Models\WebSiteModels\Products\InBetInput.cs" />
     <Compile Include="Models\WebSiteModels\QuickClientModel.cs" />

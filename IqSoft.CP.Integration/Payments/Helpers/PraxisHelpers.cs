@@ -40,13 +40,14 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                                                                                input.CurrencyId, input.Type);
             var url = string.Format("{0}cashier/cashier",
                                     CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.PraxisApiUrl).StringValue);
+            var applicationKey = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.PraxisApplicationKey)?.StringValue;
             var returnUrl = string.Format("https://{0}/user/1/deposit?get=1", session.Domain);
             var paymentGatewayUrl = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.PaymentGateway).StringValue;
 
             var paymentRequestInput = new
             {
                 merchant_id = partnerPaymentSetting.UserName,
-                application_key = session.Domain,
+                application_key = !string.IsNullOrEmpty(applicationKey) ? applicationKey : session.Domain,
                 intent = input.Type == (int)PaymentRequestTypes.Deposit ? "payment" : "withdrawal",
                 currency = input.CurrencyId,
                 amount = Convert.ToInt32(input.Amount * 100),
@@ -99,7 +100,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 throw new Exception(response.Description);
             return response.RedirectUrl;
         }
-
+        /*
         public static string CallPraxisGatewayApi(PaymentRequest input, SessionIdentity session, ILog log)
         {
             var client = CacheManager.GetClientById(input.ClientId.Value);
@@ -110,13 +111,15 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             var returnUrl = string.Format("https://{0}/user/1/{1}?get=1", session.Domain,
                                                                     input.Type == (int)PaymentRequestTypes.Deposit ? "deposit" : "withdraw");
             var paymentGatewayUrl = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.PaymentGateway).StringValue;
+            var applicationKey = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.PraxisApplicationKey)?.StringValue;
+
             var merchant = partnerPaymentSetting.UserName.Split(',');
             if (merchant.Length != 2)
                 throw BaseBll.CreateException(session.LanguageId, Constants.Errors.PartnerKeyNotFound);
             var paymentRequestInput = new
             {
                 merchant_id = merchant[0],
-                application_key = session.Domain,
+                application_key = !string.IsNullOrEmpty(applicationKey) ? applicationKey : session.Domain,
                 intent = input.Type == (int)PaymentRequestTypes.Deposit ? "payment" : "withdrawal",
                 currency = input.CurrencyId,
                 gateway = merchant[1],
@@ -156,7 +159,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 throw new Exception(response.Description);
             return response.RedirectUrl;
         }
-
+        */
         public static PaymentResponse CreatePayoutRequest(PaymentRequest paymentRequest, SessionIdentity session, ILog log)
         {
             using (var paymentSystemBl = new PaymentSystemBll(session, log))
@@ -314,7 +317,6 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                     }
                 }
             }
-        } 
-
+        }
     }
 }

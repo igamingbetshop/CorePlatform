@@ -164,16 +164,16 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                     throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongHash);
                                 var paymentSystem = CacheManager.GetPaymentSystemById(request.PaymentSystemId);
                                 var paymentInfo = JsonConvert.DeserializeObject<PaymentInfo>(request.Info);
-                                if (paymentSystem.Name == Constants.PaymentSystems.PraxisCard)
+                                /*if (paymentSystem.Name == Constants.PaymentSystems.PraxisCard)
                                 {
                                     paymentInfo.CardNumber = input.Transaction.CardDetails.CardNumber;
                                     paymentInfo.AccountType = input.Transaction.CardDetails.Type;
-                                       paymentInfo.ExpiryDate = input.Transaction.CardDetails.ExpDate;
+                                    paymentInfo.ExpiryDate = input.Transaction.CardDetails.ExpDate;
                                     paymentInfo.BankName = input.Transaction.CardDetails.BankName;
-                                       paymentInfo.TrackingNumber = input.Transaction.CardDetails.Token;
+                                    paymentInfo.TrackingNumber = input.Transaction.CardDetails.Token;
                                     request.CardNumber = paymentInfo.CardNumber;
                                 }
-                                else
+                                else*/
                                 {
                                     paymentInfo.WalletNumber = input.Transaction.WalletDetails?.AccountIdentifier;
                                     paymentInfo.TrackingNumber = input.Transaction.WalletDetails?.Token;  

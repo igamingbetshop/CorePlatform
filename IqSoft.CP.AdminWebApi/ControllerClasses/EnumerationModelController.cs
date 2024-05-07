@@ -30,7 +30,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     return GetCommonEnumModels(identity, log);
                 case "GetCashDeskStatesEnum":
                     return GetTypesEnumByType(Constants.EnumerationTypes.CashDeskStates, identity);
-                case "GetDocumenStatesEnum":
+                case "GetDocumentStatesEnum":
                     return GetTypesEnumByType(Constants.EnumerationTypes.DocumentStates, identity);
                 case "GetProductsEnum":
                     return GetProductsEnum(identity, log);
@@ -347,7 +347,8 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     ResponseObject = baseBl.GetOperationTypes().Select(x => new EnumerationModel<int>
                     {
                         Id = x.Id,
-                        NickName = x.Name
+                        NickName = x.NickName,
+                        Name = x.Name
                     }).ToList()
                 };
             }

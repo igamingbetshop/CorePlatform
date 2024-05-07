@@ -273,6 +273,11 @@ namespace IqSoft.CP.Common
             public const string Turkish = "tr";
         }
 
+        public static class Extensions
+        {
+            public const string Png = "png";
+        }
+
         public static class PaymentSystems
         {
             public const string BetShop = "Cash";
@@ -1033,7 +1038,7 @@ namespace IqSoft.CP.Common
             public const int SendActiveMerchantRequests = 19;
             public const int ApproveIqWalletConfirmedRequests = 20;
             public const int SendAffiliateReport = 21;
-            public const int CalculateAgentsProfit = 22;
+            public const int CalculateAgentsGGRProfit = 22;
             public const int CalculateAgentsTurnoverProfit = 23;
             public const int TriggerCRM = 24;
             public const int CheckClientBlockedSessions = 25;

@@ -6,7 +6,7 @@ by editing this MSBuild file. In order to learn more about this please visit htt
 <Project>
   <PropertyGroup>
     <_PublishTargetUrl>C:\inetpub\wwwroot\CP\PaymentGateway</_PublishTargetUrl>
-    <History>True|2024-01-27T11:37:17.4140380Z;True|2024-01-25T15:19:35.9178954+04:00;True|2024-01-23T19:40:24.9203149+04:00;</History>
+    <History>True|2024-04-24T13:40:41.5745184Z;True|2024-04-12T13:29:30.8093754+04:00;True|2024-04-08T14:04:40.9777351+04:00;True|2024-04-08T13:18:12.9067722+04:00;True|2024-04-04T18:12:47.4824482+04:00;True|2024-01-27T15:37:17.4140380+04:00;True|2024-01-25T15:19:35.9178954+04:00;True|2024-01-23T19:40:24.9203149+04:00;</History>
     <LastFailureDetails />
   </PropertyGroup>
   <ItemGroup>
@@ -15,6 +15,9 @@ by editing this MSBuild file. In order to learn more about this please visit htt
     </File>
     <File Include="bin/BouncyCastle.Crypto.dll">
       <publishTime>12/08/2020 18:05:32</publishTime>
+    </File>
+    <File Include="bin/BouncyCastle.Cryptography.dll">
+      <publishTime>02/12/2024 11:25:52</publishTime>
     </File>
     <File Include="bin/de/PdfSharp.resources.dll">
       <publishTime>12/05/2022 16:01:08</publishTime>
@@ -50,55 +53,55 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>12/11/2023 18:56:32</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.BLL.dll">
-      <publishTime>01/27/2024 15:32:45</publishTime>
+      <publishTime>04/24/2024 14:06:24</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.BLL.dll.config">
-      <publishTime>01/22/2024 18:02:07</publishTime>
+      <publishTime>02/12/2024 11:25:51</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.BLL.pdb">
-      <publishTime>01/27/2024 15:32:45</publishTime>
+      <publishTime>04/24/2024 14:06:24</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Common.dll">
-      <publishTime>01/27/2024 14:58:55</publishTime>
+      <publishTime>04/23/2024 00:58:24</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Common.dll.config">
       <publishTime>04/27/2022 21:31:02</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Common.pdb">
-      <publishTime>01/27/2024 14:58:55</publishTime>
+      <publishTime>04/23/2024 00:58:24</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DAL.dll">
-      <publishTime>01/27/2024 14:59:06</publishTime>
+      <publishTime>04/23/2024 00:58:39</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DAL.dll.config">
-      <publishTime>01/11/2024 17:04:03</publishTime>
+      <publishTime>03/11/2024 19:39:46</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DAL.pdb">
-      <publishTime>01/27/2024 14:59:06</publishTime>
+      <publishTime>04/23/2024 00:58:39</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DataWarehouse.dll">
-      <publishTime>01/27/2024 15:32:39</publishTime>
+      <publishTime>04/23/2024 00:58:25</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DataWarehouse.dll.config">
-      <publishTime>01/08/2024 21:00:54</publishTime>
+      <publishTime>04/20/2024 18:14:27</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DataWarehouse.pdb">
-      <publishTime>01/27/2024 15:32:39</publishTime>
+      <publishTime>04/23/2024 00:58:25</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Integration.dll">
-      <publishTime>01/27/2024 15:32:50</publishTime>
+      <publishTime>04/24/2024 17:35:34</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Integration.dll.config">
-      <publishTime>01/22/2024 18:02:20</publishTime>
+      <publishTime>02/12/2024 11:25:51</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Integration.pdb">
-      <publishTime>01/27/2024 15:32:50</publishTime>
+      <publishTime>04/24/2024 17:35:34</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.PaymentGateway.dll">
-      <publishTime>01/27/2024 15:37:15</publishTime>
+      <publishTime>04/24/2024 17:40:40</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.PaymentGateway.pdb">
-      <publishTime>01/27/2024 15:37:15</publishTime>
+      <publishTime>04/24/2024 17:40:40</publishTime>
     </File>
     <File Include="bin/jose-jwt.dll">
       <publishTime>12/02/2022 20:38:22</publishTime>
@@ -227,7 +230,7 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>10/31/2023 19:00:28</publishTime>
     </File>
     <File Include="bin/System.Text.Json.dll">
-      <publishTime>11/30/2023 12:28:46</publishTime>
+      <publishTime>03/14/2022 21:03:36</publishTime>
     </File>
     <File Include="bin/System.Threading.Channels.dll">
       <publishTime>10/23/2021 03:46:32</publishTime>
@@ -272,7 +275,7 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>06/25/2021 21:01:44</publishTime>
     </File>
     <File Include="Web.config">
-      <publishTime>01/27/2024 15:37:17</publishTime>
+      <publishTime>04/24/2024 17:40:41</publishTime>
     </File>
   </ItemGroup>
 </Project>

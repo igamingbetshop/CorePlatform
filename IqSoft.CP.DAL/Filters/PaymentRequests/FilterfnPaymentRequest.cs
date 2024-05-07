@@ -26,6 +26,8 @@ namespace IqSoft.CP.DAL.Filters.PaymentRequests
         public FiltersOperation UserNames { get; set; }
 
         public FiltersOperation Names { get; set; }
+        public FiltersOperation FirstNames { get; set; }
+        public FiltersOperation LastNames { get; set; }
 
         public FiltersOperation CreatorNames { get; set; }
 
@@ -133,6 +135,8 @@ namespace IqSoft.CP.DAL.Filters.PaymentRequests
             FilterByValue(ref objects, LastUpdateTimes, "LastUpdateTime");
             FilterByValue(ref objects, ExternalTransactionIds, "ExternalTransactionId");
             FilterByValue(ref objects, Names, "FirstName", "LastName");
+            FilterByValue(ref objects, FirstNames, "FirstName");
+            FilterByValue(ref objects, LastNames, "LastName");
             FilterByValue(ref objects, CreatorNames, "UserFirstName", "UserLastName");
 			FilterByValue(ref objects, AffiliatePlatformIds, "AffiliatePlatformId");
 			FilterByValue(ref objects, AffiliateIds, "AffiliateId");

@@ -458,7 +458,8 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                 notificationBl.SendNotificationMessage(new NotificationModel
                 {
                     PartnerId = client.PartnerId,
-                    ClientId = client.Id,
+                    ObjectId = client.Id,
+                    ObjectTypeId = (int)ObjectTypes.Client,
                     MobileOrEmail = client.MobileNumber,
                     ClientInfoType = (int)ClientInfoTypes.AccountDetailsMobileKey,
                     VerificationCode = verificationKey
@@ -1363,7 +1364,7 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                 ResponseObject = new
                 {
                     Key = key,
-                    Data = "otpauth://totp/"+Uri.EscapeDataString($"{partner.Name}:{client.Email??client.UserName}?secret={key}&issuer={partner.Name}")
+                    Data = $"otpauth://totp/{partner.Name}:{Uri.EscapeDataString(client.Email??client.UserName)}?secret={key}&issuer={partner.Name}"
                 }
             };
         }

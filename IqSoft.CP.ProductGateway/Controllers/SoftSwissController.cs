@@ -517,8 +517,8 @@ namespace IqSoft.CP.ProductGateway.Controllers
                     var partnerProductSetting = CacheManager.GetPartnerProductSettingByProductId(client.PartnerId, product.Id);
                     if (partnerProductSetting == null || partnerProductSetting.Id == 0)
                         throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.PartnerProductSettingNotFound);
-                    var transactionId = $"Freespin_{bonus.Id}";
-                    var winDocument = documentBl.GetDocumentByExternalId($"Freespin_{bonus.Id}", client.Id, ProviderId, partnerProductSetting.Id, (int)OperationTypes.Win);
+                    var transactionId = $"{Constants.FreeSpinPrefix}{bonus.Id}_{product.Id}";
+                    var winDocument = documentBl.GetDocumentByExternalId(transactionId, client.Id, ProviderId, partnerProductSetting.Id, (int)OperationTypes.Win);
                     if (winDocument == null)
                     {
                         var operationsFromProduct = new ListOfOperationsFromApi

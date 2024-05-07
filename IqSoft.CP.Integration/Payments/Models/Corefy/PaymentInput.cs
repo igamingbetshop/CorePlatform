@@ -127,6 +127,21 @@ namespace IqSoft.CP.Integration.Payments.Models.Corefy
         [JsonProperty(PropertyName = "beneficiary_account_number")]
         public string BeneficiaryAccountNumber { get; set; }
 
+        [JsonProperty(PropertyName = "cpf_number")]
+        public string CpfNumber { get; set; }
+
+        [JsonProperty(PropertyName = "beneficiary_name")]
+        public string BeneficiaryName { get; set; }
+
+        [JsonProperty(PropertyName = "beneficiary_lastname")]
+        public string BeneficiaryLastname { get; set; }
+
+        [JsonProperty(PropertyName = "pix_key")]
+        public string PixKey { get; set; }
+
+        [JsonProperty(PropertyName = "account_type")]
+        public string AccountType { get; set; }
+
     }
 
     public class Metadata

@@ -377,9 +377,8 @@ namespace IqSoft.CP.ProductGateway.Controllers
                     var partnerProductSetting = CacheManager.GetPartnerProductSettingByProductId(client.PartnerId, clientSession.ProductId);
                     if (partnerProductSetting == null || partnerProductSetting.Id == 0)
                         throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.PartnerProductSettingNotFound);
-                    var winTransactionId = $"FrespinWin_{transactionId}";
-                    var betTransactionId = $"FrespinBet_{transactionId}";
-                    var winDocument = documentBl.GetDocumentByExternalId(winTransactionId, client.Id, ProviderId, partnerProductSetting.Id, (int)OperationTypes.Win);
+                    transactionId = $"{Constants.FreeSpinPrefix}{transactionId}";
+                    var winDocument = documentBl.GetDocumentByExternalId(transactionId, client.Id, ProviderId, partnerProductSetting.Id, (int)OperationTypes.Win);
                     if (winDocument != null)
                         throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.ClientDocumentAlreadyExists);
                     var listOfOperationsFromApi = new ListOfOperationsFromApi
@@ -390,7 +389,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                         ExternalProductId = product.ExternalId,
                         GameProviderId = ProviderId,
                         ProductId = product.Id,
-                        TransactionId = betTransactionId,
+                        TransactionId = $"Bet_{transactionId}",
                         OperationItems = new List<OperationItemFromProduct>()
                     };
                     listOfOperationsFromApi.OperationItems.Add(new OperationItemFromProduct
@@ -414,7 +413,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                         ExternalOperationId = null,
                         ExternalProductId = product.ExternalId,
                         ProductId = betDocument.ProductId,
-                        TransactionId = winTransactionId,
+                        TransactionId = transactionId,
                         CreditTransactionId = betDocument.Id,
                         State = state,
                         Info = string.Empty,

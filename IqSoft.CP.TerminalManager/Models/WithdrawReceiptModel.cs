@@ -1,15 +1,13 @@
 ﻿namespace IqSoft.CP.TerminalManager.Models
 {
-    public class WithdrawReceiptModel
+    public class WithdrawReceiptModel : PrintInputBase
     {
-        public string Title { get; set; }
         public string ShopAddress { get; set; }
         public string DeviceIdLabel { get; set; }
         public string DeviceId { get; set; }
         public string BranchIdLabel { get; set; }
         public string BranchId { get; set; }
         public string PrintDateLabel { get; set; }
-        public DateTime PrintDate { get; set; }
         public string WithdrawIdLabel { get; set; }
         public string WithdrawId { get; set; }
         public string AmountLabel { get; set; }

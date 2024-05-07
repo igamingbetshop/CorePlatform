@@ -40,9 +40,6 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 			};
 			try
 			{
-				//var inputString = httpRequestMessage.Content.ReadAsStringAsync().Result;
-				//WebApiApplication.DbLogger.Info(inputString);
-				//var input = JsonConvert.DeserializeObject<PaymentInput>(inputString);
 				WebApiApplication.DbLogger.Info(JsonConvert.SerializeObject(input));
 				var inputSign = HttpContext.Current.Request.Headers.Get("Citizen-Signature");
 				WebApiApplication.DbLogger.Info("Citizen-Signature: " + inputSign);

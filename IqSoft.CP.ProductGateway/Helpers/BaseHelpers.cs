@@ -5,9 +5,9 @@ using IqSoft.CP.Common.Models.WebSiteModels;
 using IqSoft.CP.DAL.Models;
 using IqSoft.CP.DAL.Models.Clients;
 using IqSoft.CP.ProductGateway.Hubs;
+using IqSoft.CP.ProductGateway.Models.Common;
 using Microsoft.AspNet.SignalR;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -65,12 +65,9 @@ namespace IqSoft.CP.ProductGateway.Helpers
                 return CacheManager.GetClientCurrentBalance(clientId).AvailableBalance;
         }
 
-        public static void BroadcastBetShopBet(BetShopFinOperationDocument input)
+        public static void BroadcastBetShopBet(PlaceBetOutput placeBetOutput )
         {
-            _connectedClients.BroadcastBet(new { 
-                CashierId = input.UserId,
-                Bets = new List<DAL.Document> { input }
-            });
+            _connectedClients.BroadcastBet(placeBetOutput);
         }
 
         public static void BroadcastWin(ApiWin input)
@@ -124,6 +121,11 @@ namespace IqSoft.CP.ProductGateway.Helpers
         public static void RemoveClientBalanceFromeCache(int clientId)
         {
             InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}", Constants.CacheItems.ClientBalance, clientId));
+        }
+
+        public static void RemoveBetshopFromeCache(int betshopId)
+        {
+            InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}", Constants.CacheItems.BetShops, betshopId));
         }
 
         private static void InvokeMessage(string messageName, params object[] obj)

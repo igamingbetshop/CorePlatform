@@ -255,7 +255,6 @@
     <Compile Include="Helpers\CustomMapper.cs" />
     <Compile Include="Helpers\DriveMediaHelpers.cs" />
     <Compile Include="Helpers\EkkoSpinHelpers.cs" />
-    <Compile Include="Helpers\EndorphinaHelpers.cs" />
     <Compile Include="Helpers\ESportHelpers.cs" />
     <Compile Include="Helpers\EvenBetHelpers.cs" />
     <Compile Include="Helpers\EvolutionHelpers.cs" />

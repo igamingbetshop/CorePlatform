@@ -4,29 +4,36 @@
   <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
     <!-- Diagram content (shape and connector positions) -->
     <edmx:Diagrams>
-      <Diagram DiagramId="6d41aa81ac6b4e7d96e8719bbc119db6" Name="Diagram1" ZoomLevel="50">
+      <Diagram DiagramId="6d41aa81ac6b4e7d96e8719bbc119db6" Name="Diagram1" ZoomLevel="39">
         <EntityTypeShape EntityType="DataWarehouseModel.Document" Width="1.5" PointX="2.5" PointY="0.75" IsExpanded="true" />
         <EntityTypeShape EntityType="DataWarehouseModel.Setting" Width="1.5" PointX="4.5" PointY="0.75" IsExpanded="true" />
         <EntityTypeShape EntityType="DataWarehouseModel.Product" Width="1.5" PointX="6.5" PointY="0.75" />
         <EntityTypeShape EntityType="DataWarehouseModel.User" Width="1.5" PointX="8.5" PointY="0.75" />
         <EntityTypeShape EntityType="DataWarehouseModel.GameProvider" Width="1.5" PointX="12.5" PointY="0.75" />
         <EntityTypeShape EntityType="DataWarehouseModel.Currency" Width="1.5" PointX="14.5" PointY="0.75" />
-        <EntityTypeShape EntityType="DataWarehouseModel.ClientSession" Width="1.5" PointX="14.5" PointY="3.625" />
         <EntityTypeShape EntityType="DataWarehouseModel.ClientBonu" Width="1.5" PointX="18.5" PointY="0.75" />
-        <EntityTypeShape EntityType="DataWarehouseModel.Gtd_Dashboard_Info" Width="1.5" PointX="0.5" PointY="13.5" />
-        <EntityTypeShape EntityType="DataWarehouseModel.Gtd_Provider_Bets" Width="1.5" PointX="2.5" PointY="13.5" />
+        <EntityTypeShape EntityType="DataWarehouseModel.Gtd_Dashboard_Info" Width="1.5" PointX="2.25" PointY="13.375" />
+        <EntityTypeShape EntityType="DataWarehouseModel.Gtd_Provider_Bets" Width="1.5" PointX="4.25" PointY="13.375" />
         <EntityTypeShape EntityType="DataWarehouseModel.PaymentRequest" Width="1.5" PointX="20.5" PointY="0.75" />
-        <EntityTypeShape EntityType="DataWarehouseModel.Gtd_Deposit_Info" Width="1.5" PointX="4.5" PointY="13.5" />
-        <EntityTypeShape EntityType="DataWarehouseModel.Gtd_Withdraw_Info" Width="1.5" PointX="6.5" PointY="13.5" />
+        <EntityTypeShape EntityType="DataWarehouseModel.Gtd_Deposit_Info" Width="1.5" PointX="6.25" PointY="13.375" />
+        <EntityTypeShape EntityType="DataWarehouseModel.Gtd_Withdraw_Info" Width="1.5" PointX="8.25" PointY="13.375" />
         <EntityTypeShape EntityType="DataWarehouseModel.JobTrigger" Width="1.5" PointX="22.5" PointY="0.75" />
-        <EntityTypeShape EntityType="DataWarehouseModel.AffiliatePlatform" Width="1.5" PointX="4.5" PointY="3.75" />
+        <EntityTypeShape EntityType="DataWarehouseModel.AffiliatePlatform" Width="1.5" PointX="4.5" PointY="3.875" />
         <EntityTypeShape EntityType="DataWarehouseModel.Partner" Width="1.5" PointX="12.5" PointY="3.125" />
-        <EntityTypeShape EntityType="DataWarehouseModel.AffiliateReferral" Width="1.5" PointX="4.5" PointY="6.625" />
+        <EntityTypeShape EntityType="DataWarehouseModel.AffiliateReferral" Width="1.5" PointX="4.5" PointY="7" />
         <EntityTypeShape EntityType="DataWarehouseModel.Bonu" Width="1.5" PointX="16.5" PointY="0.75" />
         <EntityTypeShape EntityType="DataWarehouseModel.Client" Width="1.5" PointX="10.5" PointY="0.75" />
         <EntityTypeShape EntityType="DataWarehouseModel.Bet" Width="1.5" PointX="24.5" PointY="0.875" />
-        <EntityTypeShape EntityType="DataWarehouseModel.Gtd_Client_Info" Width="1.5" PointX="8.5" PointY="13.5" />
-      </Diagram>
+        <EntityTypeShape EntityType="DataWarehouseModel.Gtd_Client_Info" Width="1.5" PointX="10.25" PointY="13.375" />
+        <EntityTypeShape EntityType="DataWarehouseModel.AgentCommission" Width="1.5" PointX="12.25" PointY="13.375" />
+        <EntityTypeShape EntityType="DataWarehouseModel.DuplicatedClient" Width="1.5" PointX="12.75" PointY="10.5" />
+        <AssociationConnector Association="DataWarehouseModel.FK_DuplicatedClient_Client" />
+        <AssociationConnector Association="DataWarehouseModel.FK_DuplicatedClient_MatchedClient" />
+        <EntityTypeShape EntityType="DataWarehouseModel.ClientSession" Width="1.5" PointX="14.25" PointY="13.375" />
+        <EntityTypeShape EntityType="DataWarehouseModel.ClientMatchHistory" Width="1.5" PointX="15" PointY="10.5" />
+        <AssociationConnector Association="DataWarehouseModel.FK_ClientMatchHistory_DuplicatedClient" />
+        <EntityTypeShape EntityType="DataWarehouseModel.AccountBalance" Width="1.5" PointX="6.5" PointY="7" />
+        </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>
 </edmx:Edmx>

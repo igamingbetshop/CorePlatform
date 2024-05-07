@@ -16,17 +16,16 @@ namespace IqSoft.CP.DAL
     {
         public long Id { get; set; }
         public Nullable<int> PartnerId { get; set; }
-        public Nullable<int> ClientId { get; set; }
+        public Nullable<int> ObjectId { get; set; }
+        public Nullable<int> ObjectTypeId { get; set; }
         public int Type { get; set; }
         public string Data { get; set; }
         public System.DateTime CreationTime { get; set; }
         public int State { get; set; }
         public string MobileOrEmail { get; set; }
         public string Ip { get; set; }
-        public Nullable<int> AffiliateId { get; set; }
     
+        public virtual ObjectType ObjectType { get; set; }
         public virtual Partner Partner { get; set; }
-        public virtual Affiliate Affiliate { get; set; }
-        public virtual Client Client { get; set; }
     }
 }

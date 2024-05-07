@@ -68,25 +68,15 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
             using (var clientBl = new ClientBll(identity, log))
             using (var userBl = new UserBll(clientBl))
             using (var documentBl = new DocumentBll(clientBl))
-            using (var regionBl = new RegionBll(clientBl))
+            using (var betShopBl = new BetShopBll(clientBl))
             {
-                var ip = HttpContext.Current.Request.Headers.Get("CF-Connecting-IP");
-                if (ip == null)
-                    ip = Constants.DefaultIp;
                 var client = clientModel.MapToClient();
-                if (client.RegionId == 0)
+                if (!client.CountryId.HasValue)
                 {
-                    var country = HttpContext.Current.Request.Headers.Get("CF-IPCountry");
-                    if (country != null)
-                    {
-                        var region = regionBl.GetRegionByCountryCode(country);
-                        if (region != null)
-                            client.RegionId = region.Id;
-                    }
+                    client.RegionId = CacheManager.GetRegionByCountryCode(identity.Country, identity.LanguageId)?.Id ?? 0;
+                    client.CountryId = client.RegionId;
                 }
-
-                var isAgentEmploye = user.Type == (int)UserTypes.AgentEmployee;
-                if (isAgentEmploye)
+                if (user.Type == (int)UserTypes.AgentEmployee)
                 {
                     clientBl.CheckPermission(Constants.Permissions.EditClient);
                     user = CacheManager.GetUserById(user.ParentId.Value);
@@ -124,7 +114,7 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                 }
 
                 client.PartnerId = identity.PartnerId;
-                client.RegistrationIp = ip;
+                client.RegistrationIp = identity.LoginIp;
                 client.CurrencyId = identity.CurrencyId;
                 client.LanguageId = identity.LanguageId;
                 var parentBalance = userBl.GetUserBalance(user.Id);
@@ -190,7 +180,7 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                     {
                         client.UserName = userNamePrefix + client.UserName;
                         log.Info(JsonConvert.SerializeObject(client));
-                        client = RegisterClient(identity, new ClientRegistrationInput { ClientData = client, RegistrationType = (int)Constants.RegisterTypes.Full }, log);
+                        client = RegisterClient(identity, new ClientRegistrationInput { ClientData = client, RegistrationType = (int)Constants.RegisterTypes.Email }, log);
                         resultList.Add(client.MapTofnClientModel(identity.TimeZone));
                         var commissionPlan = new AgentCommission
                         {
@@ -206,6 +196,14 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                             clientBl.CreateDebitCorrectionOnClient(clientCorrectionInput, documentBl, false);
                     }
                     transactionScope.Complete();
+                }
+                var shop = betShopBl.GetBetShopsByPartnerId(client.PartnerId, client.CurrencyId).Where(x => x.Name == "Agent").FirstOrDefault();
+                if (shop != null)
+                {
+                    foreach (var rl in resultList)
+                    {
+                        clientBl.RegisterClientAccounts(rl.Id, rl.CurrencyId, shop.Id, null);
+                    }
                 }
                 return new ApiResponseBase { ResponseObject = resultList };
             }

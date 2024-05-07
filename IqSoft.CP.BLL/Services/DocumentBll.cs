@@ -234,6 +234,7 @@ namespace IqSoft.CP.BLL.Services
             if (document == null)
                 return;
             var currentDate = DateTime.UtcNow;
+            var date = (long)currentDate.Year * 1000000 + (long)currentDate.Month * 10000 + (long)currentDate.Day * 100 + (long)currentDate.Hour;
             var deletedDocument = new Document
             {
                 ExternalTransactionId = document.ExternalTransactionId,
@@ -250,7 +251,8 @@ namespace IqSoft.CP.BLL.Services
                 ClientId = document.ClientId,
                 CreationTime = currentDate,
                 LastUpdateTime = currentDate,
-                OperationTypeId = (int)OperationTypes.PaymentRequestBooking
+                OperationTypeId = (int)OperationTypes.PaymentRequestBooking,
+                Date = date
             };
             Db.Documents.Add(deletedDocument);
             var transactions = new List<Transaction>{ CreateDebitTransaction(new OperationItem
@@ -762,6 +764,12 @@ namespace IqSoft.CP.BLL.Services
                 var clients = existingDocuments.Where(x => x.ClientId.HasValue).Select(x => x.ClientId).ToList().Distinct();
                 foreach (var c in clients)
                     CacheManager.RemoveClientBalance(c.Value);
+                var cashdesks = existingDocuments.Where(x => x.CashDeskId.HasValue).Select(x => x.CashDeskId.Value).Distinct().ToList();
+                foreach (var c in cashdesks)
+                {
+                    var cashDesk = CacheManager.GetCashDeskById(c);
+                    CacheManager.UpdateBetShopById(cashDesk.BetShopId);
+                }
                 return documents;
             }
         }
@@ -825,6 +833,7 @@ namespace IqSoft.CP.BLL.Services
         {
             return Db.fn_ClientBonus(Identity.LanguageId).Where(x => x.ClientId == Identity.Id).ToList();
         }
+
         public fnClientBonus GetClientBonusById(int bonusId, long? reuseNumber)
         {
             if (reuseNumber == null)
@@ -1146,181 +1155,6 @@ namespace IqSoft.CP.BLL.Services
             }
             Db.SaveChanges();
             return resultList;
-        }
-
-        public Document CreateDocumentFromJob(Operation operation)
-        {
-            if (operation.Amount < 0)
-                throw CreateException(LanguageId, Constants.Errors.WrongOperationAmount);
-            var currentDate = GetServerDate();
-            var date = (long)currentDate.Year * 1000000 + (long)currentDate.Month * 10000 + (long)currentDate.Day * 100 + (long)currentDate.Hour;
-            var document = new Document
-            {
-                ExternalTransactionId = operation.ExternalTransactionId,
-                Amount = operation.Amount,
-                CurrencyId = operation.CurrencyId,
-                ExternalOperationId = operation.ExternalOperationId,
-                TicketNumber = operation.TicketNumber,
-                TicketInfo = operation.TicketInfo,
-                CashDeskId = operation.CashDeskId,
-                PartnerPaymentSettingId = operation.PartnerPaymentSettingId,
-                PaymentRequestId = operation.PaymentRequestId,
-                PartnerProductId = operation.PartnerProductId,
-                ProductId = operation.ProductId,
-                GameProviderId = operation.GameProviderId,
-                SessionId = Identity.IsAdminUser ? Identity.SessionId : operation.SessionId,
-                ClientId = operation.ClientId,
-                Info = operation.Info,
-                ParentId = operation.ParentId,
-                OperationTypeId = operation.Type,
-                UserId = operation.UserId,
-                Creator = operation.Creator,
-                DeviceTypeId = operation.DeviceTypeId,
-                TypeId = operation.DocumentTypeId,
-                State = operation.State ?? (int)BetDocumentStates.Uncalculated,
-                RoundId = operation.RoundId,
-                PossibleWin = operation.PossibleWin,
-                CreationTime = currentDate,
-                LastUpdateTime = currentDate,
-                Date = date
-            };
-            var debitTrans =
-               operation.OperationItems.Where(x => x.Type == (int)TransactionTypes.Debit).ToList();
-            var creditTrans =
-                operation.OperationItems.Where(x => x.Type == (int)TransactionTypes.Credit).ToList();
-            document.Transactions = new List<Transaction>();
-            foreach (var operationItem in debitTrans)
-            {
-                document.Transactions.Add(CreateDebitTransactionFromJob(operationItem));
-            }
-            foreach (var operationItem in creditTrans)
-            {
-                var transactions = CreateCreditTransactionFromJob(operationItem);
-                transactions.ForEach(x => document.Transactions.Add(x));
-            }
-            Db.Documents.Add(document);
-            return document;
-        }
-
-        private Transaction CreateDebitTransactionFromJob(OperationItem operationItem)
-        {
-            bool willBalanceChange = (operationItem.ObjectTypeId != (int)ObjectTypes.Partner && operationItem.ObjectTypeId != (int)ObjectTypes.PartnerProduct);
-            Account account = null;
-            if (operationItem.AccountId.HasValue)
-            {
-                if (willBalanceChange)
-                {
-                    Db.sp_GetAccountLockById(operationItem.AccountId.Value);
-                    account = GetAccount(operationItem.AccountId.Value);
-                }
-                else
-                {
-                    account = new Account { Id = operationItem.AccountId.Value };
-                }
-            }
-            else
-            {
-                if (!operationItem.AccountTypeId.HasValue)
-                    throw CreateException(LanguageId, Constants.Errors.AccountNotFound);
-
-                var accountId = CreateAccountIfNotExists(operationItem.ObjectId, operationItem.ObjectTypeId,
-                    operationItem.CurrencyId, operationItem.AccountTypeId.Value, operationItem.BetShopId, false);
-
-                if (willBalanceChange)
-                {
-                    Db.sp_GetAccountLockById(accountId);
-                    account = GetAccount(accountId);
-                }
-                else
-                {
-                    account = new Account { Id = accountId };
-                }
-            }
-            var currentDate = GetServerDate();
-            var transaction = new Transaction
-            {
-                AccountId = account.Id,
-                Amount = operationItem.Amount,
-                OperationTypeId = operationItem.OperationTypeId,
-                Type = operationItem.Type,
-                CreationTime = currentDate,
-                Date = currentDate.Year * 1000000 + currentDate.Month * 10000 + currentDate.Day * 100 + currentDate.Hour
-            };
-            if (operationItem.Amount > 0)
-            {
-                if (willBalanceChange)
-                {
-                    Db.Entry(account).Reload();
-                    ChangeAccountBalanceForJob(operationItem.Amount, account);
-                }
-            }
-            return transaction;
-        }
-
-        public List<Transaction> CreateCreditTransactionFromJob(OperationItem operationItem)
-        {
-            var currentTime = GetServerDate();
-            var transactions = new List<Transaction>();
-            bool willBalanceChange = (operationItem.ObjectTypeId != (int)ObjectTypes.Partner && operationItem.ObjectTypeId != (int)ObjectTypes.PartnerProduct);
-
-            if (willBalanceChange)
-            {
-                Account account = null;
-                if (operationItem.AccountId.HasValue)
-                {
-                    Db.sp_GetAccountLockById(operationItem.AccountId);
-                    account = GetAccount(operationItem.AccountId.Value);
-                }
-                else
-                {
-                    Db.sp_GetAccountLock(operationItem.ObjectId, operationItem.ObjectTypeId,
-                        operationItem.CurrencyId, operationItem.AccountTypeId);
-                    account = GetOrCreateAccount(operationItem.ObjectId, operationItem.ObjectTypeId,
-                        operationItem.CurrencyId, operationItem.AccountTypeId.Value, false);
-                }
-
-                var accountType = Db.AccountTypes.First(x => x.Id == account.TypeId);
-                if (account.Balance - operationItem.Amount < 0 && !accountType.CanBeNegative)
-                    throw CreateException(LanguageId, Constants.Errors.LowBalance);
-
-                var transaction = new Transaction
-                {
-                    AccountId = account.Id,
-                    Amount = operationItem.Amount,
-                    OperationTypeId = operationItem.OperationTypeId,
-                    Type = operationItem.Type,
-                    CreationTime = currentTime,
-                    Date = currentTime.Year * 1000000 + currentTime.Month * 10000 + currentTime.Day * 100 + currentTime.Hour,
-                    AccountTypeId = account.TypeId
-                };
-                transactions.Add(transaction);
-                ChangeAccountBalanceForJob(operationItem.Amount * -1, account);
-            }
-            else
-            {
-                long accountId = 0;
-                if (operationItem.AccountId.HasValue)
-                    accountId = operationItem.AccountId.Value;
-                else
-                {
-                    var account = GetOrCreateAccount(operationItem.ObjectId, operationItem.ObjectTypeId,
-                        operationItem.CurrencyId, operationItem.AccountTypeId.Value, false);
-                    accountId = account.Id;
-                }
-
-                var transaction = new Transaction
-                {
-                    AccountId = accountId,
-                    Amount = operationItem.Amount,
-                    OperationTypeId = operationItem.OperationTypeId,
-                    Type = operationItem.Type,
-                    CreationTime = currentTime,
-                    Date = currentTime.Year * 1000000 + currentTime.Month * 10000 + currentTime.Day * 100 + currentTime.Hour
-                };
-                transactions.Add(transaction);
-            }
-
-            return transactions;
         }
 
         public List<Document> GetBetRelatedDocuments(long betId)

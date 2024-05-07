@@ -20,6 +20,7 @@ namespace IqSoft.CP.TerminalManager.Helpers
 
         private static readonly Font boldFont = new Font("Calibri", 13, FontStyle.Bold);
         private static readonly Font normalFont = new Font("Calibri", 11, FontStyle.Regular);
+        private static readonly Font middleFont = new Font("Calibri", 10, FontStyle.Regular);
         private static readonly Font smallFont = new Font("Calibri", 9, FontStyle.Regular);
         private StringFormat DefaultStringFormat = new StringFormat();
 
@@ -39,10 +40,9 @@ namespace IqSoft.CP.TerminalManager.Helpers
             }
         }
 
-        public void PrintReceipt()
+        public void PrintReceipt(string printerName)
         {
             PrintDocument pd = new PrintDocument();
-            PrinterSettings ps = new PrinterSettings();
             switch (PrintType)
             {
                 case TicketTypes.Bet:
@@ -54,6 +54,8 @@ namespace IqSoft.CP.TerminalManager.Helpers
                 default:
                     break;
             }
+            if (!string.IsNullOrEmpty(printerName))
+                pd.PrinterSettings.PrinterName = printerName;
             pd.Print();
         }
 
@@ -84,7 +86,7 @@ namespace IqSoft.CP.TerminalManager.Helpers
                 ev.Graphics.DrawString(Duplicate, headingFont, Brushes.White, 10 + (lineSz.Width - valWidth.Width) / 2, height, DefaultStringFormat);
             }
             height += valWidth.Height;
-            var date = BetReceiptItem.PrintDate.ToString("yyyy-MM-ddTHH:mm:ss.sss");
+            var date = BetReceiptItem.PrintDate;
             valWidth = ev.Graphics.MeasureString(date, smallFont);
             ev.Graphics.DrawString(date, smallFont, Brushes.Black, 10 + (lineSz.Width - valWidth.Width) / 2, height, DefaultStringFormat);
             height += valWidth.Height;
@@ -101,24 +103,73 @@ namespace IqSoft.CP.TerminalManager.Helpers
             if (BetReceiptItem.BetDetails.Selections != null && BetReceiptItem.BetDetails.Selections.Any())
             {
                 foreach (var selection in BetReceiptItem.BetDetails.Selections)
-                {
-                    ev.Graphics.DrawString(selection.Id, normalFont, Brushes.Black, 10, height, DefaultStringFormat);
-                    valWidth = ev.Graphics.MeasureString(selection.CurrentTime, normalFont);
-                    ev.Graphics.DrawString(selection.CurrentTime, normalFont, Brushes.Black, 257 - valWidth.Width, height, DefaultStringFormat);
-                    height += valWidth.Height==0 ? 15 : valWidth.Height;
-                    ev.Graphics.DrawString($"{selection.MatchDate}  {selection.Team1}", normalFont, Brushes.Black, 10, height, DefaultStringFormat);
-                    valWidth = ev.Graphics.MeasureString(selection.Score, normalFont);
-                    ev.Graphics.DrawString(selection.Score, normalFont, Brushes.Black, 257 - valWidth.Width, height, DefaultStringFormat);
-                    height += valWidth.Height==0 ? 15 : valWidth.Height;
-                    ev.Graphics.DrawString(selection.MatchName, normalFont, Brushes.Black, 10, height, DefaultStringFormat);
-                    valWidth = ev.Graphics.MeasureString(selection.Coefficient, normalFont);
-                    ev.Graphics.DrawString(selection.Coefficient, normalFont, Brushes.Black, 257 - valWidth.Width, height, DefaultStringFormat);
-                    height += valWidth.Height==0 ? 15 : valWidth.Height;
+                {                    
+                    if (!string.IsNullOrEmpty(selection.Team1))
+                    {
+                        ev.Graphics.DrawString(selection.Id, smallFont, Brushes.Black, 10, height, DefaultStringFormat);
+                        valWidth = ev.Graphics.MeasureString(selection.CurrentTime, smallFont);
+                        ev.Graphics.DrawString(selection.CurrentTime, smallFont, Brushes.Black, 257 - valWidth.Width, height, DefaultStringFormat);
+                        height += valWidth.Height==0 ? 15 : valWidth.Height;
+
+                        ev.Graphics.DrawString($"{selection.MatchDate}  {selection.Team1}", smallFont, Brushes.Black, 10, height, DefaultStringFormat);
+                        valWidth = ev.Graphics.MeasureString(selection.Score, smallFont);
+                        ev.Graphics.DrawString(selection.Score, smallFont, Brushes.Black, 257 - valWidth.Width, height, DefaultStringFormat);
+                        height += valWidth.Height==0 ? 15 : valWidth.Height;
+                        ev.Graphics.DrawString($"{selection.MatchTime}  {selection.Team2}", smallFont, Brushes.Black, 10, height, DefaultStringFormat);
+                        height += valWidth.Height==0 ? 15 : valWidth.Height;
+                        ev.Graphics.DrawString(selection.MatchName, smallFont, Brushes.Black, 10, height, DefaultStringFormat);
+                        height += valWidth.Height==0 ? 15 : valWidth.Height;
+                        ev.Graphics.DrawString(selection.SelectionName, smallFont, Brushes.Black, 10, height, DefaultStringFormat);
+                        valWidth = ev.Graphics.MeasureString(selection.Coefficient, smallFont);
+                        ev.Graphics.DrawString(selection.Coefficient, smallFont, Brushes.Black, 257 - valWidth.Width, height, DefaultStringFormat);                                             
+                        height += valWidth.Height==0 ? 15 : valWidth.Height+5;
+                    }
+                    else
+                    {
+                        if (!string.IsNullOrEmpty(selection.Id) && selection.Id!= "0")
+                            ev.Graphics.DrawString(selection.Id, middleFont, Brushes.Black, 10, height, DefaultStringFormat);
+                        valWidth = ev.Graphics.MeasureString(selection.CurrentTime, middleFont);
+                        ev.Graphics.DrawString(selection.CurrentTime, middleFont, Brushes.Black, 257 - valWidth.Width, height, DefaultStringFormat);
+                        height += valWidth.Height==0 ? 15 : valWidth.Height;
+                        if (!string.IsNullOrEmpty(selection.Id) && selection.Id!= "0")
+                        {
+                            ev.Graphics.DrawString(selection.Id, middleFont, Brushes.Black, 10, height, DefaultStringFormat);
+                            valWidth = ev.Graphics.MeasureString(selection.Id, normalFont);
+                            height += valWidth.Height;
+                        }
+                        valWidth = ev.Graphics.MeasureString(selection.SelectionName, normalFont);
+                        if (!string.IsNullOrEmpty(selection.SelectionName))
+                        {
+                            ev.Graphics.DrawString(selection.SelectionName, normalFont, Brushes.Black, 10, height, DefaultStringFormat);
+                            height += valWidth.Height;
+                        }
+                        valWidth = ev.Graphics.MeasureString(selection.EventInfoLabel, normalFont);
+                        ev.Graphics.DrawString(selection.EventInfoLabel, normalFont, Brushes.Black, 10, height, DefaultStringFormat);
+                        var valSz = ev.Graphics.MeasureString(selection.EventInfo, normalFont);
+                        if (valWidth.Width + valSz.Width + 10 > lineSz.Width)
+                        {
+                            height += valWidth.Height;
+                            var rowsCount = (int)Math.Ceiling(valSz.Width / lineSz.Width);
+                            var rect = new RectangleF(10, height, 252, rowsCount * valSz.Height);
+                            ev.Graphics.DrawString(selection.EventInfo, normalFont, Brushes.Black, rect);
+                            height += rect.Height;
+                        }
+                        else
+                        {
+                            ev.Graphics.DrawString(selection.EventInfo, normalFont, Brushes.Black, lineSz.Width - valSz.Width, height, DefaultStringFormat);
+                            height += valSz.Height;
+                        }
+                        valWidth = ev.Graphics.MeasureString(selection.RoundId, normalFont);
+                        ev.Graphics.DrawString(selection.RoundIdLabel, normalFont, Brushes.Black, 10, height, DefaultStringFormat);
+                        ev.Graphics.DrawString(selection.RoundId, normalFont, Brushes.Black, 257 - valWidth.Width, height, DefaultStringFormat);
+                        height += valWidth.Height;
+
+                    }
                 }
                 ev.Graphics.DrawString(line, normalFont, Brushes.Black, 10, height, DefaultStringFormat);
                 height += lineSz.Height;
             }
-
+            //-----------------------------------------
             valWidth = ev.Graphics.MeasureString(BetReceiptItem.BetDetails.BetAmount, normalFont);
             ev.Graphics.DrawString(BetReceiptItem.BetDetails.BetAmountLabel, normalFont, Brushes.Black, 10, height, DefaultStringFormat);
             ev.Graphics.DrawString(BetReceiptItem.BetDetails.BetAmount, normalFont, Brushes.Black, 257 - valWidth.Width, height, DefaultStringFormat);
@@ -197,7 +248,7 @@ namespace IqSoft.CP.TerminalManager.Helpers
                 ev.Graphics.DrawString(branchInfo, headingFont, Brushes.Black, 10 + (lineSz.Width - valWidth.Width) / 2, height, DefaultStringFormat);
             }
             height += valWidth.Height;
-            var printDate = $"{WithdrawReceiptItem.PrintDateLabel}: {WithdrawReceiptItem.PrintDate.ToString("yyyy-MM-ddTHH:mm:ss.sss")}";
+            var printDate = $"{WithdrawReceiptItem.PrintDateLabel}: {WithdrawReceiptItem.PrintDate}";
             valWidth = ev.Graphics.MeasureString(printDate, normalFont);
             ev.Graphics.DrawString(printDate, normalFont, Brushes.Black, 10 + (lineSz.Width - valWidth.Width) / 2, height, DefaultStringFormat);
 

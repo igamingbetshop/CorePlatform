@@ -10,6 +10,7 @@
         public ApiFiltersOperation Types { get; set; }
         public ApiFiltersOperation Orders { get; set; }
         public ApiFiltersOperation Pages { get; set; }
+        public ApiFiltersOperation DeviceTypes { get; set; }
         public ApiFiltersOperation StartDates { get; set; }
         public ApiFiltersOperation FinishDates { get; set; }
         public ApiFiltersOperation CreationTimes { get; set; }

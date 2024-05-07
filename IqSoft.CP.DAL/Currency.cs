@@ -35,7 +35,6 @@ namespace IqSoft.CP.DAL
             this.GameProviderCurrencySettings = new HashSet<GameProviderCurrencySetting>();
             this.Accounts = new HashSet<Account>();
             this.PaymentRequests = new HashSet<PaymentRequest>();
-            this.PartnerPaymentSettings = new HashSet<PartnerPaymentSetting>();
             this.Clients = new HashSet<Client>();
         }
     
@@ -85,8 +84,6 @@ namespace IqSoft.CP.DAL
         public virtual ICollection<Account> Accounts { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PaymentRequest> PaymentRequests { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PartnerPaymentSetting> PartnerPaymentSettings { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Client> Clients { get; set; }
     }

@@ -159,8 +159,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var paymentSystemBl = new PaymentSystemBll(identity, log))
             {
-                var partnerPaymentSetting = paymentSystemBl.GetPartnerPaymentSettingById(partnerPaymentSettingId);
-                if (partnerPaymentSetting == null)
+                var partnerPaymentSetting = paymentSystemBl.GetPartnerPaymentSettingById(partnerPaymentSettingId) ??
                     throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.PartnerPaymentSettingNotFound);
                 return new ApiResponseBase
                 {
@@ -202,6 +201,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     AllowMultiplePaymentInfoes = paymentSystem.AllowMultiplePaymentInfoes,
                     OpenMode = paymentSystem.OpenMode,
                     OSTypesString = paymentSystem.OSTypes,
+                    ImageExtension = paymentSystem.ImageExtension,
                     Countries = paymentSystem.PartnerPaymentCountrySettings.Select(x => x.CountryId).ToList(),
                     CurrencyRates = paymentSystem.PartnerPaymentCurrencyRates.Select(y => new BllCurrencyRate { Id = y.Id, CurrencyId = y.CurrencyId, Rate = y.Rate }).ToList()
                 };
@@ -480,7 +480,8 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                                     notificationBl.SendNotificationMessage(new NotificationModel
                                     {
                                         PartnerId = client.PartnerId,
-                                        ClientId = client.Id,
+                                        ObjectId = client.Id,
+                                        ObjectTypeId = (int)ObjectTypes.Client,
                                         MobileOrEmail =client.MobileNumber,
                                         ClientInfoType = (int)ClientInfoTypes.ConfirmWithdrawSMS,
                                         Parameters = string.Format("betshop:{0},cashcode:{1},amount:{2},betshopaddress:{3}",

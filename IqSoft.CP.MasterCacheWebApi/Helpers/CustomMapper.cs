@@ -186,31 +186,31 @@ namespace IqSoft.CP.MasterCacheWebApi.Helpers
             };
         }
 
-        public static ApiLoginClientOutput MapToApiAffiliateOutput(this Affiliate client, double timezone, ClientLoginOut clientLoginOut = null)
+        public static ApiLoginClientOutput MapToApiAffiliateOutput(this Affiliate affiliate, double timezone, ClientLoginOut affiliateLoginOut = null)
         {
             return new ApiLoginClientOutput
             {
-                Id = client.Id,
-                Email = client.Email,
-                PartnerId = client.PartnerId,
-                UserName = client.UserName,
-                RegionId = clientLoginOut == null ? client.RegionId : clientLoginOut.RegionId,
-                CityId = clientLoginOut == null ? client.RegionId : clientLoginOut.CityId,
-                DistrictId = clientLoginOut == null ? client.RegionId : clientLoginOut.DistrictId,
-                CountryId = clientLoginOut == null ? client.RegionId : clientLoginOut.CountryId,
-                Gender = client.Gender,
-                FirstName = client.FirstName,
-                LastName = client.LastName,
-                NickName = client.NickName,
-                MobileNumber = client.MobileNumber,
-                LanguageId = client.LanguageId,
-                CreationTime = client.CreationTime,
-                LastLogin = clientLoginOut?.LastSession?.StartTime?.GetGMTDateFromUTC(timezone),
-                LastLogout = clientLoginOut?.LastSession?.EndTime?.GetGMTDateFromUTC(timezone),
-                LastLoginIp = clientLoginOut?.LastSession?.Ip,
-                ResetPassword = clientLoginOut?.ResetPassword,
-                AcceptTermsConditions = clientLoginOut?.AcceptTermsConditions,
-                DocumentExpirationStatus = clientLoginOut?.DocumentExpirationStatus
+                Id = affiliate.Id,
+                Email = affiliate.Email,
+                PartnerId = affiliate.PartnerId,
+                UserName = affiliate.UserName,
+                RegionId = affiliateLoginOut?.RegionId ?? affiliate.RegionId,
+                CityId = affiliateLoginOut?.CityId ?? affiliate.RegionId,
+                DistrictId = affiliateLoginOut?.DistrictId ?? affiliate.RegionId,
+                CountryId = affiliateLoginOut?.CountryId ?? affiliate.RegionId,
+                Gender = affiliate.Gender,
+                FirstName = affiliate.FirstName,
+                LastName = affiliate.LastName,
+                NickName = affiliate.NickName,
+                MobileNumber = affiliate.MobileNumber,
+                LanguageId = affiliate.LanguageId,
+                CreationTime = affiliate.CreationTime,
+                LastLogin = affiliateLoginOut?.LastSession?.StartTime?.GetGMTDateFromUTC(timezone),
+                LastLogout = affiliateLoginOut?.LastSession?.EndTime?.GetGMTDateFromUTC(timezone),
+                LastLoginIp = affiliateLoginOut?.LastSession?.Ip,
+                ResetPassword = affiliateLoginOut?.ResetPassword,
+                AcceptTermsConditions = affiliateLoginOut?.AcceptTermsConditions,
+                DocumentExpirationStatus = affiliateLoginOut?.DocumentExpirationStatus
             };
         }
 
@@ -949,8 +949,11 @@ namespace IqSoft.CP.MasterCacheWebApi.Helpers
                 PaymentSystemName = fnPartnerPaymentSetting.PaymentSystemName,
                 PaymentSystemType = fnPartnerPaymentSetting.Type == (int)PaymentSettingTypes.Withdraw ? fnPartnerPaymentSetting.PaymenSystemType % 100 : (fnPartnerPaymentSetting.PaymenSystemType / 100) % 100,
                 PaymentSystemPriority = fnPartnerPaymentSetting.PaymentSystemPriority,
-                ContentType = fnPartnerPaymentSetting.ContentType.Value,
+                ContentType = fnPartnerPaymentSetting.Type == (int)PaymentRequestTypes.Deposit ?
+                             (fnPartnerPaymentSetting.ContentType.Value / 10 == 0 ? (int)OpenModes.Iframe : fnPartnerPaymentSetting.ContentType.Value / 10 ) :
+                             (fnPartnerPaymentSetting.ContentType.Value % 10 == 0 ? (int)OpenModes.StatusMessage : fnPartnerPaymentSetting.ContentType.Value % 10),
                 Info = fnPartnerPaymentSetting.Info,
+                ImageExtension = fnPartnerPaymentSetting.ImageExtension,
                 MinAmount = fnPartnerPaymentSetting.MinAmount,
                 MaxAmount = fnPartnerPaymentSetting.MaxAmount
             };

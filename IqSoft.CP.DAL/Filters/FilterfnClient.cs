@@ -97,7 +97,10 @@ namespace IqSoft.CP.DAL.Filters
             if (PartnerId.HasValue)
                 objects = objects.Where(x => x.PartnerId == PartnerId.Value);
             if (AgentId.HasValue)
-                objects = objects.Where(x => x.UserPath.Contains("/" + AgentId.Value + "/"));
+            {
+                var path = "/" + AgentId.Value + "/";
+                objects = objects.Where(x => x.UserPath.Contains(path));
+            }
             if (AffiliateId.HasValue)
                 objects = objects.Where(x => x.AffiliateId == AffiliateId.Value.ToString() && x.AffiliatePlatformId == PartnerId * 100);
             if (!string.IsNullOrEmpty(RefId))

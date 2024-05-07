@@ -28,6 +28,7 @@ namespace IqSoft.CP.DAL.Models.Cache
         public int? SegmentId { get; set; }
         public int? DayOfWeek { get; set; }
         public decimal? UpToAmount { get; set; }
+        public bool? ConsiderBonusBets { get; set; }
         public List<int> PaymentSystemIds { get; set; }
         public List<TriggerProductInfo> ProductSettings { get; set; }
     }

@@ -10,5 +10,8 @@
         public decimal TotalBetAmount { get; set; }
         public decimal TotalWinAmount { get; set; }
         public decimal TotalProfit { get; set; }
+        public int TotalBetsCount { get; set; }
+        public int TotalUnsettledBetsCount { get; set; }
+        public int TotalDeletedBetsCount { get; set; }
     }
 }

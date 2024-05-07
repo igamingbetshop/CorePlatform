@@ -32,10 +32,10 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 var distributionUrl = string.Format(distributionUrlKey.StringValue, session.Domain);
                 var paymentInput = new
                 {
-                    from = client.CurrencyId,
-                    fromDefault = client.CurrencyId,
-                    to = paymentInfo.AccountType,
-                    toDefault = paymentInfo.Info,
+                    from = client.CurrencyId.ToLower(),
+                    fromDefault = client.CurrencyId.ToLower(),
+                    to = paymentInfo.AccountType.ToLower(),
+                    toDefault = paymentInfo.AccountType.ToLower(),
                     amount = input.Amount.ToString("F"),
                     address = receiptWallet,
                     merchant_id = partnerPaymentSetting.UserName,

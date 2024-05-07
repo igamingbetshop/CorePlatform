@@ -1,14 +1,12 @@
 ﻿namespace IqSoft.CP.TerminalManager.Models
 {
-    public class BetReceiptModel
-    {
-        public string Title { get; set; }
+    public class BetReceiptModel : PrintInputBase
+    {       
         public string TicketNumber { get; set; }
         public string BetType { get; set; }
         public string ShopAddress { get; set; }
         public string Barcode { get; set; }
         public bool IsDuplicate { get; set; }
-        public DateTime PrintDate { get; set; }
         public BetData BetDetails { get; set; }
     }
 
@@ -42,9 +40,14 @@
         public string Team2 { get; set; }
         public string MatchDate { get; set; }
         public string MatchTime { get; set; }
-        public string MatchName { get; set; }
+        public string MatchName { get; set; } // market name 
         public string Coefficient { get; set; }
         public string Score { get; set; }
         public string CurrentTime { get; set; }
+        public string EventInfoLabel { get; set; }
+        public string EventInfo { get; set; }
+        public string RoundIdLabel { get; set; }
+        public string RoundId { get; set; }
+        public string SelectionName { get; set; }
     }
 }

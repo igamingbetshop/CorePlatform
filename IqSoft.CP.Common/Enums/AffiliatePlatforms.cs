@@ -19,5 +19,6 @@
         public const string CustomerIo = "CustomerIo"; //14
         public const string Scaleo = "Scaleo"; //15
         public const string Smartico = "Smartico"; //16
+        public const string Trackier = "Trackier"; //17
     }
 }

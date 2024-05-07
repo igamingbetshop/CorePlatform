@@ -575,13 +575,15 @@ namespace IqSoft.CP.DataManager.Services
                     
                     foreach (var bet in bets)
                     {
+                        var balance = db.AccountBalances.Where(x => x.ObjectTypeId == (int)ObjectTypes.Client &&
+                            x.ObjectId == bet.ClientId && x.TypeId == (int)AccountTypes.ClientCoinBalance).OrderByDescending(x => x.Id).FirstOrDefault();
                         var dayInfo = db.Gtd_Client_Info.FirstOrDefault(x => x.Date == currentDate && x.ClientId == bet.ClientId);
                         if (dayInfo == null)
                         {
                             dayInfo = new Gtd_Client_Info
                             {
                                 Date = currentDate,
-                                ClientId = bet.ClientId.Value,
+                                ClientId = bet.ClientId.Value
                             };
                             db.Gtd_Client_Info.Add(dayInfo);
                             db.SaveChanges();
@@ -591,6 +593,7 @@ namespace IqSoft.CP.DataManager.Services
                         dayInfo.SportBetCount = bet.SportBetsCount ?? 0;
                         dayInfo.TotalWinAmount = bet.WinAmount ?? 0;
                         dayInfo.TotalWinCount = bet.WinCount ?? 0;
+                        dayInfo.ComplementaryBalance = balance == null ? 0 : balance.Balance;
                         dayInfo.GGR = dayInfo.TotalBetAmount - dayInfo.TotalWinAmount;
                     }
 
@@ -611,18 +614,20 @@ namespace IqSoft.CP.DataManager.Services
 
                     foreach (var d in deposits)
                     {
+                        var balance = db.AccountBalances.Where(x => x.ObjectTypeId == (int)ObjectTypes.Client &&
+                            x.ObjectId == d.ClientId && x.TypeId == (int)AccountTypes.ClientCoinBalance).OrderByDescending(x => x.Id).FirstOrDefault();
                         var dayInfo = db.Gtd_Client_Info.FirstOrDefault(x => x.Date == currentDate && x.ClientId == d.ClientId);
                         if (dayInfo == null)
                         {
                             dayInfo = new Gtd_Client_Info
                             {
                                 Date = currentDate,
-                                ClientId = d.ClientId,
+                                ClientId = d.ClientId
                             };
                             db.Gtd_Client_Info.Add(dayInfo);
                             db.SaveChanges();
                         }
-
+                        dayInfo.ComplementaryBalance = balance == null ? 0 : balance.Balance;
                         dayInfo.TotalDepositAmount = d.Amount;
                         dayInfo.TotalDepositCount = d.Count;
                     }
@@ -640,18 +645,20 @@ namespace IqSoft.CP.DataManager.Services
 
                     foreach (var w in withdraws)
                     {
+                        var balance = db.AccountBalances.Where(x => x.ObjectTypeId == (int)ObjectTypes.Client &&
+                            x.ObjectId == w.ClientId && x.TypeId == (int)AccountTypes.ClientCoinBalance).OrderByDescending(x => x.Id).FirstOrDefault();
                         var dayInfo = db.Gtd_Client_Info.FirstOrDefault(x => x.Date == currentDate && x.ClientId == w.ClientId);
                         if (dayInfo == null)
                         {
                             dayInfo = new Gtd_Client_Info
                             {
                                 Date = currentDate,
-                                ClientId = w.ClientId,
+                                ClientId = w.ClientId
                             };
                             db.Gtd_Client_Info.Add(dayInfo);
                             db.SaveChanges();
                         }
-
+                        dayInfo.ComplementaryBalance = balance == null ? 0 : balance.Balance;
                         dayInfo.TotalWithdrawalAmount = w.Amount;
                         dayInfo.TotalWithdrawalCount = w.Count;
                     }
@@ -672,18 +679,20 @@ namespace IqSoft.CP.DataManager.Services
 
                     foreach (var d in dCorrections)
                     {
+                        var balance = db.AccountBalances.Where(x => x.ObjectTypeId == (int)ObjectTypes.Client &&
+                            x.ObjectId == d.ClientId && x.TypeId == (int)AccountTypes.ClientCoinBalance).OrderByDescending(x => x.Id).FirstOrDefault();
                         var dayInfo = db.Gtd_Client_Info.FirstOrDefault(x => x.Date == currentDate && x.ClientId == d.ClientId);
                         if (dayInfo == null)
                         {
                             dayInfo = new Gtd_Client_Info
                             {
                                 Date = currentDate,
-                                ClientId = d.ClientId,
+                                ClientId = d.ClientId
                             };
                             db.Gtd_Client_Info.Add(dayInfo);
                             db.SaveChanges();
                         }
-
+                        dayInfo.ComplementaryBalance = balance == null ? 0 : balance.Balance;
                         dayInfo.TotalDebitCorrectionAmount = d.Amount;
                         dayInfo.TotalDebitCorrectionCount = d.Count;
                     }
@@ -701,18 +710,20 @@ namespace IqSoft.CP.DataManager.Services
 
                     foreach (var d in cCorrections)
                     {
+                        var balance = db.AccountBalances.Where(x => x.ObjectTypeId == (int)ObjectTypes.Client &&
+                            x.ObjectId == d.ClientId && x.TypeId == (int)AccountTypes.ClientCoinBalance).OrderByDescending(x => x.Id).FirstOrDefault();
                         var dayInfo = db.Gtd_Client_Info.FirstOrDefault(x => x.Date == currentDate && x.ClientId == d.ClientId);
                         if (dayInfo == null)
                         {
                             dayInfo = new Gtd_Client_Info
                             {
                                 Date = currentDate,
-                                ClientId = d.ClientId,
+                                ClientId = d.ClientId
                             };
                             db.Gtd_Client_Info.Add(dayInfo);
                             db.SaveChanges();
                         }
-
+                        dayInfo.ComplementaryBalance = balance == null ? 0 : balance.Balance;
                         dayInfo.TotalCreditCorrectionAmount = d.Amount;
                         dayInfo.TotalCreditCorrectionCount = d.Count;
                     }
@@ -732,43 +743,46 @@ namespace IqSoft.CP.DataManager.Services
             }
         }
 
-        public static void ExecuteInfoFunctions(ILog logger)
+        public static bool ExecuteInfoFunctions(ILog logger)
         {
             try
             {
-                var jobTriggers = new List<JobTrigger>();
+                JobTrigger jobTrigger = null;
                 using (var db = new IqSoftDataWarehouseEntities())
                 {
-                    jobTriggers = db.JobTriggers.ToList();
+                    jobTrigger = db.JobTriggers.FirstOrDefault();
                 }
-                foreach (var jt in jobTriggers)
+                if(jobTrigger != null)
                 {
-                    switch (jt.FunctionName)
+                    switch (jobTrigger.FunctionName)
                     {
                         case "CalculateDashboardInfo":
-                            CalculateDashboardInfo(logger, jt.Date);
+                            CalculateDashboardInfo(logger, jobTrigger.Date);
                             break;
                         case "CalculateProviderBets":
-                            CalculateProviderBets(logger, jt.Date);
+                            CalculateProviderBets(logger, jobTrigger.Date);
                             break;
                         case "CalculatePaymentInfo":
-                            CalculatePaymentInfo(logger, jt.Date);
+                            CalculatePaymentInfo(logger, jobTrigger.Date);
                             break;
                         case "CalculateClientInfo":
-                            CalculateClientInfo(logger, jt.Date, jt.ClientId ?? 0);
+                            CalculateClientInfo(logger, jobTrigger.Date, jobTrigger.ClientId ?? 0);
                             break;
                         default:
                             break;
                     }
+                    using (var db = new IqSoftDataWarehouseEntities())
+                    {
+                        db.JobTriggers.DeleteByKey(jobTrigger);
+                    }
+                    return true;
                 }
-                using (var db = new IqSoftDataWarehouseEntities())
-                {
-                    db.JobTriggers.DeleteFromQuery();
-                }
+                return false;
             }
             catch (Exception e)
             {
                 logger.Error(e);
+                return true;
             }
         }
 

@@ -482,14 +482,13 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
             try
             {
                 var identity = CheckToken(apiRequestBase.Token, apiRequestBase.CashDeskId);
-                WebApiApplication.DbLogger.Info(JsonConvert.SerializeObject(apiRequestBase));
                 var input = JsonConvert.DeserializeObject<ApiProductInput>(apiRequestBase.RequestObject);
                 using (var userBl = new UserBll(identity, WebApiApplication.DbLogger))
                 {
                     var product = CacheManager.GetProductById(input.ProductId ?? 0) ??
                         throw BaseBll.CreateException(apiRequestBase.LanguageId, Constants.Errors.ProductNotFound);
                     var productSession = userBl.CreateProductSession(identity, product.Id);
-                    var r = new ApiResponseBase
+                    return Ok(new ApiResponseBase
                     {
                         ResponseObject = new GetProductSessionOutput
                         {
@@ -497,9 +496,7 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                             ProductToken = productSession.Token,
                             LaunchUrl = ProductHelpers.GetProductLaunchUrl(product.Id, productSession.Token, identity)
                         }
-                    };
-                    WebApiApplication.DbLogger.Info(JsonConvert.SerializeObject(r));
-                    return Ok(r);
+                    });
                 }
             }
             catch (FaultException<BllFnErrorType> ex)
@@ -610,7 +607,7 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                     }
                     else
                     {
-                        clientBl.RegisterClientAccounts(existingClient, identity.BetShopId, input.BetShopPaymentSystems);
+                        clientBl.RegisterClientAccounts(existingClient.Id, existingClient.CurrencyId, identity.BetShopId, input.BetShopPaymentSystems);
                         var response = existingClient.MapToApiLoginClientOutput(apiRequestBase.TimeZone);
                         return Ok(new ApiResponseBase { ResponseObject = response });
                     }
@@ -1758,7 +1755,7 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                 var input = JsonConvert.DeserializeObject<ReportByBetInput>(apiRequestBase.RequestObject);
                 var fromDate = input.FromDate.GetGMTDateFromUTC(apiRequestBase.TimeZone);
                 var toDate = input.ToDate.GetGMTDateFromUTC(apiRequestBase.TimeZone);
-                if (fromDate < DateTime.UtcNow.AddDays(-4))
+                if (fromDate < DateTime.UtcNow.AddDays(-7))
                     throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.WrongParameters);
 
                 using (var reportBl = new ReportBll(identity, WebApiApplication.DbLogger))

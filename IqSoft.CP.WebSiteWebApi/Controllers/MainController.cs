@@ -875,13 +875,7 @@ namespace IqSoft.CP.WebSiteWebApi.Controllers
 
             StringValues originValues = string.Empty;
             Request.Headers.TryGetValue("Origin", out originValues);
-            var domain = originValues.ToString().Replace("https://", string.Empty).Replace("http://", string.Empty).Replace("www.", string.Empty);
-            if(!string.IsNullOrEmpty(domain))
-            {
-                var items = domain.Split('.');
-                if (items.Length > 1)
-                    domain = items[items.Length - 2] + "." + items[items.Length - 1];
-            }
+            var domain = originValues.ToString().Replace("https://", string.Empty).Replace("http://", string.Empty).Replace("www.", string.Empty).Replace("distribution.", string.Empty);
             request.Domain = domain;
             return response;
         }

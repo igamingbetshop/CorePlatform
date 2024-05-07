@@ -6,7 +6,7 @@ by editing this MSBuild file. In order to learn more about this please visit htt
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <_PublishTargetUrl>C:\inetpub\wwwroot\CP\IqWallet</_PublishTargetUrl>
-    <History>True|2024-02-12T16:54:03.1578783Z;True|2024-01-23T19:31:52.2641463+04:00;True|2023-06-02T17:54:07.5835118+04:00;True|2023-03-30T20:30:56.6495255+04:00;True|2022-08-18T14:05:15.7396849+04:00;True|2022-07-26T15:03:13.1971477+04:00;True|2022-07-18T17:45:44.4812503+04:00;True|2022-06-03T15:27:14.8125884+04:00;True|2022-05-10T14:21:47.5299534+04:00;True|2022-03-22T13:48:07.1014340+04:00;True|2022-01-24T17:43:38.7886219+04:00;True|2021-11-24T21:34:19.7612363+04:00;True|2021-11-15T18:11:13.3185416+04:00;True|2021-10-28T16:18:05.3789608+04:00;True|2021-06-30T15:31:15.7961282+04:00;</History>
+    <History>True|2024-04-08T09:15:15.4911721Z;True|2024-02-12T20:54:03.1578783+04:00;True|2024-01-23T19:31:52.2641463+04:00;True|2023-06-02T17:54:07.5835118+04:00;True|2023-03-30T20:30:56.6495255+04:00;True|2022-08-18T14:05:15.7396849+04:00;True|2022-07-26T15:03:13.1971477+04:00;True|2022-07-18T17:45:44.4812503+04:00;True|2022-06-03T15:27:14.8125884+04:00;True|2022-05-10T14:21:47.5299534+04:00;True|2022-03-22T13:48:07.1014340+04:00;True|2022-01-24T17:43:38.7886219+04:00;True|2021-11-24T21:34:19.7612363+04:00;True|2021-11-15T18:11:13.3185416+04:00;True|2021-10-28T16:18:05.3789608+04:00;True|2021-06-30T15:31:15.7961282+04:00;</History>
     <LastFailureDetails />
   </PropertyGroup>
   <ItemGroup>
@@ -29,46 +29,46 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>08/22/2016 01:13:00</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.BLL.dll">
-      <publishTime>02/12/2024 20:52:09</publishTime>
+      <publishTime>04/08/2024 13:13:36</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.BLL.dll.config">
       <publishTime>02/12/2024 11:25:51</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.BLL.pdb">
-      <publishTime>02/12/2024 20:52:09</publishTime>
+      <publishTime>04/08/2024 13:13:36</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Common.dll">
-      <publishTime>02/12/2024 20:43:58</publishTime>
+      <publishTime>04/06/2024 22:57:07</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Common.dll.config">
       <publishTime>04/27/2022 21:31:02</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Common.pdb">
-      <publishTime>02/12/2024 20:43:58</publishTime>
+      <publishTime>04/06/2024 22:57:07</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DAL.dll">
-      <publishTime>02/12/2024 20:44:25</publishTime>
+      <publishTime>04/06/2024 22:57:17</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DAL.dll.config">
-      <publishTime>01/11/2024 17:04:03</publishTime>
+      <publishTime>03/11/2024 19:39:46</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DAL.pdb">
-      <publishTime>02/12/2024 20:44:25</publishTime>
+      <publishTime>04/06/2024 22:57:17</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DataWarehouse.dll">
-      <publishTime>02/12/2024 20:52:03</publishTime>
+      <publishTime>04/08/2024 13:13:28</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DataWarehouse.dll.config">
-      <publishTime>01/08/2024 21:00:54</publishTime>
+      <publishTime>03/23/2024 19:40:42</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DataWarehouse.pdb">
-      <publishTime>02/12/2024 20:52:03</publishTime>
+      <publishTime>04/08/2024 13:13:28</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.IqWalletWebApi.dll">
-      <publishTime>02/12/2024 20:54:02</publishTime>
+      <publishTime>04/08/2024 13:15:14</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.IqWalletWebApi.pdb">
-      <publishTime>02/12/2024 20:54:02</publishTime>
+      <publishTime>04/08/2024 13:15:14</publishTime>
     </File>
     <File Include="bin/LinqKit.Core.dll">
       <publishTime>12/13/2023 20:16:23</publishTime>
@@ -500,7 +500,7 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>03/27/2020 14:07:32</publishTime>
     </File>
     <File Include="Web.config">
-      <publishTime>02/12/2024 20:54:02</publishTime>
+      <publishTime>04/08/2024 13:15:15</publishTime>
     </File>
   </ItemGroup>
 </Project>

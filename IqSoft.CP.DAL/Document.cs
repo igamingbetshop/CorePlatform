@@ -59,9 +59,9 @@ namespace IqSoft.CP.DAL
         public virtual OperationType OperationType { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Transaction> Transactions { get; set; }
-        public virtual PartnerPaymentSetting PartnerPaymentSetting { get; set; }
         public virtual GameProvider GameProvider { get; set; }
         public virtual Product Product { get; set; }
         public virtual Client Client { get; set; }
+        public virtual PartnerPaymentSetting PartnerPaymentSetting { get; set; }
     }
 }

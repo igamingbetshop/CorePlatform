@@ -1,4 +1,5 @@
-﻿using IqSoft.CP.DataWarehouse;
+﻿using IqSoft.CP.DataManager.Helpers;
+using IqSoft.CP.DataWarehouse;
 using System;
 using System.Configuration;
 using System.Data.Entity;
@@ -9,15 +10,10 @@ namespace IqSoft.CP.DataManager.Services
 {
     public class DataCollector
     {
-        private static int LastClientId;
         private static string CorePlatformDbConnectionString = ConfigurationManager.AppSettings["IqSoftCorePlatformEntities"];
 
         static DataCollector()
         {
-            using (var db = new IqSoftDataWarehouseEntities())
-            {
-                LastClientId = db.Clients.OrderByDescending(x => x.Id).Select(x => x.Id).FirstOrDefault();
-            }
         }
 
         public static void MigrateDocuments()
@@ -44,16 +40,20 @@ namespace IqSoft.CP.DataManager.Services
         {
             try
             {
+                var updateTime = DateTime.UtcNow.AddHours(-1);
                 using (var db = new IqSoftDataWarehouseEntities())
                 {
-                    var sqlString = "SELECT TOP(5000) * FROM Client WHERE Id > @clientId";
+                    var lastClientId = db.Clients.OrderByDescending(x => x.Id).Select(x => x.Id).FirstOrDefault();
+                    var sqlString = "SELECT TOP(5000) * FROM Client WHERE Id > @clientId or LastUpdateTime > @updateTime"; 
                     var context = new DbContext(CorePlatformDbConnectionString);
-                    var result = context.Database.SqlQuery<Client>(sqlString, new SqlParameter("@clientId", LastClientId)).ToList();
+                    var paramId = new SqlParameter("@clientId", lastClientId);
+                    var paramUpdateDate = new SqlParameter("@updateTime", updateTime);
+                    var result = context.Database.SqlQuery<Client>(sqlString, paramId, paramUpdateDate).ToList();
                     if (result.Count > 0)
                     {
-                        db.Clients.AddRange(result);
+                        foreach (var r in result)
+                            db.Clients.AddOrUpdate(r, x => x.Id == r.Id);
                         db.SaveChanges();
-                        LastClientId = result.Max(x => x.Id);
                     }
                 }
             }
@@ -292,27 +292,16 @@ namespace IqSoft.CP.DataManager.Services
         {
             try
             {
-                var startTime = DateTime.UtcNow.AddHours(-24);
+                var startTime = DateTime.UtcNow.AddHours(-1);
                 using (var db = new IqSoftDataWarehouseEntities())
                 {
-                    var sqlString = "SELECT * FROM [ClientSession] WHERE ProductId = 1 AND StartTime > @startTime";
+                    var sqlString = "SELECT * FROM [ClientSession] WHERE ProductId = 1 AND StartTime > @startTime or LastUpdateTime > @startTime";
                     var context = new DbContext(CorePlatformDbConnectionString);
                     var result = context.Database.SqlQuery<ClientSession>(sqlString, new SqlParameter("@startTime", startTime)).ToList();
                     if (result.Count > 0)
                     {
                         foreach (var r in result)
-                        {
-                            var old = db.ClientSessions.FirstOrDefault(x => x.Id == r.Id);
-                            if (old == null)
-                                db.ClientSessions.Add(r);
-                            else
-                            {
-                                old.State = r.State;
-                                old.LogoutType = r.LogoutType;
-                                old.LastUpdateTime = r.LastUpdateTime;
-                                old.EndTime = r.EndTime;
-                            }
-                        }
+                            db.ClientSessions.AddOrUpdate(r, x => x.Id == r.Id);
                         db.SaveChanges();
                     }
                 }
@@ -465,6 +454,65 @@ namespace IqSoft.CP.DataManager.Services
             catch (Exception ex)
             {
                 Program.DbLogger.Error(ex);
+            }
+        }
+
+        public static void MigrateAgentCommission()
+        {
+            try
+            {
+                using (var db = new IqSoftDataWarehouseEntities())
+                {
+                    var sqlString = "SELECT * FROM AgentCommission";
+                    var context = new DbContext(CorePlatformDbConnectionString);
+                    var result = context.Database.SqlQuery<AgentCommission>(sqlString).ToList();
+                    if (result.Count > 0)
+                    {
+                        foreach (var p in result)
+                        {
+                            var old = db.AgentCommissions.FirstOrDefault(x => x.Id == p.Id);
+                            if (old == null)
+                                db.AgentCommissions.Add(p);
+                            else
+                            {
+                                old.Percent = p.Percent;
+                                old.TurnoverPercent = p.TurnoverPercent;
+                            }
+                        }
+                        db.SaveChanges();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Program.DbLogger.Error(ex);
+            }
+        }
+
+        public static int MigrateAccountBalances()
+        {
+            try
+            {
+                using (var db = new IqSoftDataWarehouseEntities())
+                {
+                    var lastId = db.AccountBalances.OrderByDescending(x => x.Id).Select(x => x.Id).FirstOrDefault();
+                    var sqlString = "SELECT TOP(5000) ab.Id, ab.AccountId, acc.ObjectId, acc.ObjectTypeId, acc.TypeId, " +
+                        "acc.CurrencyId, ab.Balance, ab.Date FROM AccountBalance ab JOIN Account acc ON ab.AccountId = acc.Id WHERE ab.Id > @lastId";
+                    var context = new DbContext(CorePlatformDbConnectionString);
+                    var paramId = new SqlParameter("@lastId", lastId);
+                    var result = context.Database.SqlQuery<AccountBalance>(sqlString, paramId).ToList();
+                    if (result.Count > 0)
+                    {
+                        db.AccountBalances.AddRange(result);
+                        db.SaveChanges();
+                    }
+                    return result.Count;
+                }
+            }
+            catch (Exception ex)
+            {
+                Program.DbLogger.Error(ex);
+                return 0;
             }
         }
     }

@@ -43,9 +43,7 @@ namespace IqSoft.CP.AdminWebApi.ClientModels.Models
         public string StateNickName { get; set; }
         [NotExcelProperty]
         public string StateName { get; set; }
-        [NotExcelProperty]
         public int? CountryId { get; set; }
-        [JsonProperty(PropertyName = "CountryId"), JsonIgnore]
         public string CountryName { get; set; }
         public string City { get; set; }
         public string LanguageId { get; set; }
@@ -71,7 +69,6 @@ namespace IqSoft.CP.AdminWebApi.ClientModels.Models
         public string Address { get; set; }
         [NotExcelProperty]
         public string CountryState { get; set; }
-        //  public string Country { get; set; }
         [NotExcelProperty]
         public List<int> UnderMonitoringTypes { get; set; }
 

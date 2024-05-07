@@ -19,8 +19,6 @@ namespace IqSoft.CP.DAL
         {
             this.AffiliateCommissions = new HashSet<AffiliateCommission>();
             this.UserSessions = new HashSet<UserSession>();
-            this.ClientInfoes = new HashSet<ClientInfo>();
-            this.ClientMessages = new HashSet<ClientMessage>();
         }
     
         public int Id { get; set; }
@@ -48,9 +46,5 @@ namespace IqSoft.CP.DAL
         public virtual ICollection<AffiliateCommission> AffiliateCommissions { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<UserSession> UserSessions { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<ClientInfo> ClientInfoes { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<ClientMessage> ClientMessages { get; set; }
     }
 }

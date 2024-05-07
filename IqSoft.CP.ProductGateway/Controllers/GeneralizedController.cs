@@ -734,7 +734,8 @@ namespace IqSoft.CP.ProductGateway.Controllers
                     notificationBll.SendNotificationMessage(new NotificationModel
                     {
                         PartnerId = client.PartnerId,
-                        ClientId = client.Id,
+                        ObjectId = client.Id,
+                        ObjectTypeId = (int)ObjectTypes.Client,
                         MobileOrEmail = type == ClientMessageTypes.Email ? client.Email : client.MobileNumber,
                         ClientInfoType = input.Type,
                         MessageText = input.Message,

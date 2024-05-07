@@ -19,9 +19,12 @@ namespace IqSoft.CP.ProductGateway.Models.Common
 
     public class BetOutput : ResponseBase
     {
+        public long Id { get; set; }
+        public decimal BetAmount { get; set; }
         public string TransactionId { get; set; }
 
         public long Barcode { get; set; }
+        public int NumberOfBets { get; set; }
 
         public long TicketNumber { get; set; }
 
@@ -40,7 +43,7 @@ namespace IqSoft.CP.ProductGateway.Models.Common
 
         public decimal Coefficient { get; set; }
 
-        public int BetType { get; set; }
+        public int TypeId { get; set; }
 
         public string Info { get; set; }
 
@@ -49,7 +52,7 @@ namespace IqSoft.CP.ProductGateway.Models.Common
 
     public class BllBetSelection
     {
-        public int RoundId { get; set; }
+        public string RoundId { get; set; }
 
         public int UnitId { get; set; }
 
@@ -73,5 +76,6 @@ namespace IqSoft.CP.ProductGateway.Models.Common
 
         [JsonConverter(typeof (DateTimeHelper.CustomDateTimeConverter))]
         public DateTime? EventDate { get; set; }
+        public string EventInfo { get; set; }
     }
 }

@@ -10,7 +10,6 @@ using log4net;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
 
@@ -37,7 +36,8 @@ namespace IqSoft.CP.Integration.Products.Helpers
             "playngo",
             "tomhorn",
             "spigo",
-            "luckystreak"
+            "luckystreak",
+            "pgsoft"
         };
 
         private static readonly Dictionary<int, string> OperatorsList = new Dictionary<int, string>
@@ -93,6 +93,7 @@ namespace IqSoft.CP.Integration.Products.Helpers
             "quickspin",
             "edict"
         };
+
         private static readonly List<MerchantItem> AbsentMerchants = new List<MerchantItem>
         {
             new MerchantItem { ID = 356, Name = "OrosGaming" },
@@ -166,7 +167,7 @@ namespace IqSoft.CP.Integration.Products.Helpers
             new MerchantItem { ID = 495, Name = "Plank" }
         };
 
-        public static string GetUrl(int partnerId, int productId, string token, int clientId, 
+        public static string GetUrl(int partnerId, int productId, string token, int clientId,
             bool isForDemo, bool isForMobile, SessionIdentity session, ILog logger)
         {
             var gameProvider = CacheManager.GetGameProviderByName(Constants.GameProviders.SoftGaming);
@@ -184,7 +185,7 @@ namespace IqSoft.CP.Integration.Products.Helpers
             {
                 subProvider = CacheManager.GetGameProviderById(product.SubProviderId.Value).Name.ToLower();
 
-                var distributionUrlKey = CacheManager.GetPartnerSettingByKey(partnerId,  Constants.PartnerKeys.DistributionUrl);
+                var distributionUrlKey = CacheManager.GetPartnerSettingByKey(partnerId, Constants.PartnerKeys.DistributionUrl);
                 if (distributionUrlKey == null || distributionUrlKey.Id == 0)
                     distributionUrlKey = CacheManager.GetPartnerSettingByKey(null, Constants.PartnerKeys.DistributionUrl);
                 if (NonDirectProviders.Contains(subProvider))
@@ -193,7 +194,7 @@ namespace IqSoft.CP.Integration.Products.Helpers
                     hostName = string.Format(distributionUrlKey.StringValue, session.Domain);
                     logger.Info("GetUrlOutput_HostName_" + hostName);
                 }
-                else if(RedirectingProviders.Contains(subProvider))
+                else if (RedirectingProviders.Contains(subProvider))
                     hostName = string.Format(distributionUrlKey.StringValue, session.Domain);
             }
             var serverIPs = Dns.GetHostEntry(hostName.Replace("https://", string.Empty).Replace("http://", string.Empty)).AddressList;
@@ -250,14 +251,23 @@ namespace IqSoft.CP.Integration.Products.Helpers
                 hash = CommonFunctions.ComputeMd5(string.Format("User/{7}/{0}/{1}/{2}/{3}/{4}/{5}/{6}", redirectedIp, input.TID, apiKey, input.Login, input.Password, productData[0], pwd, method));
                 return string.Format("{0}/softgaming/launchgame?requestUrl={1}&inputData={2}&hash={3}", hostName, url, JsonConvert.SerializeObject(input), hash);
             }
+
             if (RedirectingProviders.Contains(subProvider))
             {
-                input.UserIP = session.LoginIp;
+                if (subProvider == "playtech")
+                    input.UserIP = "103.187.243.255"; //Temp Solution
+                else if (subProvider == "microgaming" && !string.IsNullOrEmpty(session.Country) && session.Country.ToLower() == "au")
+                    input.UserIP = "194.135.119.17";
+                else
+                    input.UserIP = session.LoginIp;
+
                 url = string.Format("{0}/System/Api/{1}/User/{2}", gameProvider.GameLaunchUrl, apiKey, method);
                 var redirectedIp = CacheManager.GetConfigKey(Constants.MainPartnerId, Constants.PartnerKeys.DistributionAddress);
-                hash = CommonFunctions.ComputeMd5(string.Format("User/{7}/{0}/{1}/{2}/{3}/{4}/{5}/{6}", redirectedIp, input.TID, apiKey, input.Login, input.Password, productData[0], pwd, method));
+                hash = CommonFunctions.ComputeMd5(string.Format("User/{7}/{0}/{1}/{2}/{3}/{4}/{5}/{6}", redirectedIp, 
+                    input.TID, apiKey, input.Login, input.Password, productData[0], pwd, method));
                 url = string.Format("{0}/softgaming/redirectgame?requestUrl={1}&inputData={2}&hash={3}", hostName, url, JsonConvert.SerializeObject(input), hash);
             }
+
             var httpRequestInput = new HttpRequestInput
             {
                 RequestMethod = Constants.HttpRequestMethods.Get,

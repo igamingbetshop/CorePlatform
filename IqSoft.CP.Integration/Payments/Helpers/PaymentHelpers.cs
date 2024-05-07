@@ -112,11 +112,8 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             switch (paymentSystem.Name)
             {
                 case Constants.PaymentSystems.Praxis:
+                case Constants.PaymentSystems.PraxisFiat:
                     initializeUrl = PraxisHelpers.CallPraxisApi(paymentRequest, session, log);
-                    break;
-                case Constants.PaymentSystems.PraxisCard:
-                case Constants.PaymentSystems.PraxisWallet:
-                    initializeUrl = PraxisHelpers.CallPraxisGatewayApi(paymentRequest, session, log);
                     break;
                 case Constants.PaymentSystems.FinalPaySkrill:
                 case Constants.PaymentSystems.FinalPayCrypto:
@@ -187,7 +184,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 case Constants.PaymentSystems.ShebaTransfer:
                 case Constants.PaymentSystems.CryptoTransfer:
                     BankTransferHelpers.PayPayoutRequest(paymentRequest, session, log);
-                    response.Status = PaymentRequestStates.Approved;
+                    response.Status = PaymentRequestStates.PayPanding;
                     break;
                 case Constants.PaymentSystems.Help2Pay:
                     response = Help2PayHelpers.CreatePayment(paymentRequest, session, log);
@@ -338,8 +335,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                     response = QaicashHelpers.CreatePayoutRequest(paymentRequest, session, log);
                     break;
                 case Constants.PaymentSystems.Praxis:
-                case Constants.PaymentSystems.PraxisCard:
-                case Constants.PaymentSystems.PraxisWallet:
+                case Constants.PaymentSystems.PraxisFiat:
                     response = PraxisHelpers.CreatePayoutRequest(paymentRequest, session, log);
                     break;
                 case Constants.PaymentSystems.PaymentIQ:
@@ -435,6 +431,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 case Constants.PaymentSystems.CorefyMefete:
                 case Constants.PaymentSystems.CorefyParazula:
                 case Constants.PaymentSystems.CorefyPapara:
+                case Constants.PaymentSystems.CorefyIPague:
                 case Constants.PaymentSystems.CorefyMaldoCryptoBTC:
                 case Constants.PaymentSystems.CorefyMaldoCryptoETH:
                 case Constants.PaymentSystems.CorefyMaldoCryptoETHBEP20:
@@ -585,6 +582,12 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 				case Constants.PaymentSystems.GumballPay:
 					response = GumballPayHelpers.ReturnRequest(paymentRequest, session, log);
 					break;
+				case Constants.PaymentSystems.Yaspa:
+					//response = YaspaHelpers.PayoutRequest(paymentRequest, session, log);
+					break;
+				case Constants.PaymentSystems.QuikiPayCrypto:
+					response = QuikiPayHelpers.CreatePayoutRequest(paymentRequest, session, log);
+					break;
 				default:
                     response.Status = PaymentRequestStates.Failed;
                     throw BaseBll.CreateException(session.LanguageId, Constants.Errors.PaymentSystemNotFound);
@@ -726,12 +729,6 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 case Constants.PaymentSystems.CardPayDirectBankingEU:
                     paymentResponse.Url = CardPayHelpers.CallCardPayApi(paymentRequest, cashierPageUrl, session, log);
                     break;
-                case Constants.PaymentSystems.IqWallet:
-                    var resp = IqWalletHelpers.CallIqWalletApi(paymentRequest, session, log);
-                    paymentResponse.CancelUrl = "https://" + session.Domain;
-                    paymentResponse.Status = resp.Status;
-                    paymentResponse.Description = resp.Description;
-                    break;
                 case Constants.PaymentSystems.TotalProcessingVisa:
                 case Constants.PaymentSystems.TotalProcessingMaster:
                 case Constants.PaymentSystems.TotalProcessingMaestro:
@@ -872,11 +869,8 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                     paymentResponse.Url = Pay4FunHelpers.CallPay4FunApi(paymentRequest, cashierPageUrl, session, log);
                     break;
                 case Constants.PaymentSystems.Praxis:
+                case Constants.PaymentSystems.PraxisFiat:
                     paymentResponse.Url = PraxisHelpers.CallPraxisApi(paymentRequest, session, log);
-                    break;
-                case Constants.PaymentSystems.PraxisCard:
-                case Constants.PaymentSystems.PraxisWallet:
-                    paymentResponse.Url = PraxisHelpers.CallPraxisGatewayApi(paymentRequest, session, log);
                     break;
                 case Constants.PaymentSystems.FinalPaySkrill:
                 case Constants.PaymentSystems.FinalPayCrypto:
@@ -1009,6 +1003,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 case Constants.PaymentSystems.CorefyParazula:
                 case Constants.PaymentSystems.CorefyPapara:
                 case Constants.PaymentSystems.CorefyMaldoCrypto:
+                case Constants.PaymentSystems.CorefyIPague:
                     paymentResponse.Url = CorefyHelpers.CallCorefyApi(paymentRequest, cashierPageUrl, session, log);
                     break;
                 case Constants.PaymentSystems.CryptonPay:
@@ -1178,6 +1173,10 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                     break;
                 case Constants.PaymentSystems.Yaspa:
                     paymentResponse.Url = YaspaHelpers.PaymentRequest(paymentRequest, cashierPageUrl, log);
+                    break;
+                case Constants.PaymentSystems.QuikiPay:
+				case Constants.PaymentSystems.QuikiPayCrypto:
+					paymentResponse.Url = QuikiPayHelpers.PaymentRequest(paymentRequest, cashierPageUrl, session, log);
                     break;
                 default:
                     throw BaseBll.CreateException(session.LanguageId, Constants.Errors.PaymentSystemNotFound);

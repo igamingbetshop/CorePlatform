@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using log4net;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using IqSoft.CP.DAL;
 using IqSoft.CP.DAL.Filters;
 using IqSoft.CP.DAL.Filters.Reporting;
@@ -38,11 +41,9 @@ using IqSoft.CP.AdminWebApi.Models.PaymentModels;
 using IqSoft.CP.AdminWebApi.Models.ProductModels;
 using IqSoft.CP.AdminWebApi.Models.ReportModels.BetShop;
 using IqSoft.CP.AdminWebApi.Models.ReportModels.Internet;
-using PermissionModel = IqSoft.CP.AdminWebApi.Models.RoleModels.PermissionModel;
 using IqSoft.CP.AdminWebApi.Filters.Messages;
 using IqSoft.CP.DAL.Filters.Messages;
 using IqSoft.CP.AdminWebApi.Models.AgentModels;
-using Newtonsoft.Json;
 using IqSoft.CP.AdminWebApi.Models;
 using IqSoft.CP.BLL.Caching;
 using IqSoft.CP.DAL.Models.Bonuses;
@@ -59,6 +60,11 @@ using IqSoft.CP.DataWarehouse;
 using IqSoft.CP.DataWarehouse.Models;
 using IqSoft.CP.DataWarehouse.Filters;
 using IqSoft.CP.Common.Models.Report;
+using IqSoft.CP.Common.Models.AgentModels;
+using IqSoft.CP.AdminWebApi.Filters.Agent;
+using IqSoft.CP.DAL.Filters.Agent;
+using IqSoft.CP.DAL.Models.Agents;
+
 using Client = IqSoft.CP.DAL.Client;
 using Document = IqSoft.CP.DAL.Document;
 using User = IqSoft.CP.DAL.User;
@@ -66,8 +72,10 @@ using ClientSession = IqSoft.CP.DAL.ClientSession;
 using AffiliatePlatform = IqSoft.CP.DAL.AffiliatePlatform;
 using Partner = IqSoft.CP.DAL.Partner;
 using Bonu = IqSoft.CP.DAL.Bonu;
-using log4net;
-using IqSoft.CP.Common.Models.AgentModels;
+using AgentCommission = IqSoft.CP.DAL.AgentCommission;
+using fnClientSession = IqSoft.CP.DAL.fnClientSession;
+using PermissionModel = IqSoft.CP.AdminWebApi.Models.RoleModels.PermissionModel;
+
 
 namespace IqSoft.CP.AdminWebApi.Helpers
 {
@@ -458,21 +466,6 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 TotalBetsCount = input.TotalBetsCount ?? 0,
                 TotalWinAmount = input.TotalWinAmount ?? 0,
                 TotalGGR = input.TotalGGR ?? 0
-            };
-        }
-
-        public static ApiReportByAgentTranfer MapToFilterReportByAgentTranfer(this fnReportByAgentTransfer input)
-        {
-            return new ApiReportByAgentTranfer
-            {
-                PartnerId = input.PartnerId,
-                PartnerName = input.PartnerName,
-                UserId = input.UserId,
-                UserName = input.UserName,
-                NickName = input.NickName,
-                TotalProfit = input.TotoalProfit ?? 0,
-                TotalDebit = input.TotalDebit ?? 0,
-                Balance = input.Balance ?? 0
             };
         }
 
@@ -1087,12 +1080,12 @@ namespace IqSoft.CP.AdminWebApi.Helpers
 
         #region ClientSession
 
-        public static List<ClientSessionModel> MapToClientSessionModels(this IEnumerable<fnClientSession> sessions, double timeZone)
+        public static List<ClientSessionModel> MapToClientSessionModels(this IEnumerable<DAL.fnClientSession> sessions, double timeZone)
         {
             return sessions.Select(x => x.MapToClientSessionModel(timeZone)).ToList();
         }
 
-        public static ClientSessionModel MapToClientSessionModel(this fnClientSession session, double timeZone)
+        public static ClientSessionModel MapToClientSessionModel(this DAL.fnClientSession session, double timeZone)
         {
             return new ClientSessionModel
             {
@@ -1627,8 +1620,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 TranslationId = translationEntryModel.TranslationId,
                 ObjectTypeId = translationEntryModel.ObjectTypeId,
                 LanguageId = translationEntryModel.LanguageId,
-                Text = translationEntryModel.Text,
-                Type = translationEntryModel.Type
+                Text = translationEntryModel.Text
             };
         }
 
@@ -1699,7 +1691,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 UserFirstNames = filterTicket.UserFirstNames == null ? new FiltersOperation() : filterTicket.UserFirstNames.MapToFiltersOperation(),
                 UserLastNames = filterTicket.UserLastNames == null ? new FiltersOperation() : filterTicket.UserLastNames.MapToFiltersOperation(),
                 Statuses = filterTicket.Statuses == null ? new FiltersOperation() : filterTicket.Statuses.MapToFiltersOperation(),
-                Types = filterTicket.Types,
+                Types = filterTicket.Types == null ? new FiltersOperation() : filterTicket.Types.MapToFiltersOperation(),
                 State = filterTicket.State,
                 UnreadsOnly = filterTicket.UnreadsOnly,
                 CreatedBefore = filterTicket.CreatedBefore,
@@ -2733,6 +2725,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 Countries = partnerPaymentSetting.PartnerPaymentCountrySettings?.Select(x => x.CountryId).ToList(),
                 OSTypes = partnerPaymentSetting.OSTypes?.Split(',').Select(Int32.Parse).ToList(),
                 OpenMode = partnerPaymentSetting.OpenMode,
+                ImageExtension = partnerPaymentSetting.ImageExtension,
                 PaymentSystemName = CacheManager.GetPaymentSystemById(partnerPaymentSetting.PaymentSystemId).Name
             };
         }
@@ -2760,6 +2753,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 PaymentSystemPriority = input.Priority,
                 OpenMode = input.OpenMode,
                 OSTypes = input.OSTypes != null ? string.Join(",", input.OSTypes) : null,
+                ImageExtension = input.ImageExtension,
                 PartnerPaymentCountrySettings = input.Countries?.Select(x => new PartnerPaymentCountrySetting { CountryId = x }).ToList()
             };
         }
@@ -2790,7 +2784,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 UserName = string.Empty,
                 Password = string.Empty,
                 Priority = model.PaymentSystemPriority,
-
+                ImageExtension = model.ImageExtension
             };
         }
 
@@ -2902,7 +2896,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
 
         #region Dashboard
 
-        public static ApiPlayersInfo MapToApiPlayersInfo(this PlayersInfo info)
+        public static ApiPlayersInfo MapToApiPlayersInfo(this ClientsInfo info)
         {
             return new ApiPlayersInfo
             {
@@ -2922,7 +2916,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
             };
         }
 
-        public static ApiPlayersDailyInfo ToApiPlayersDailyInfo(this PlayersDailyInfo info)
+        public static ApiPlayersDailyInfo ToApiPlayersDailyInfo(this ClientsDailyInfo info)
         {
             return new ApiPlayersDailyInfo
             {
@@ -3615,6 +3609,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 DayOfWeek = apiTriggerSetting.DayOfWeek,
                 UpToAmount = apiTriggerSetting.UpToAmount,
                 Status = apiTriggerSetting.Status,
+                ConsiderBonusBets = apiTriggerSetting.ConsiderBonusBets,
                 BonusPaymentSystemSettings = apiTriggerSetting.PaymentSystemIds?.Ids?.Select(x => new BonusPaymentSystemSetting
                 {
                     PaymentSystemId = x,
@@ -3693,6 +3688,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                     Ids = triggerSetting.BonusPaymentSystemSettings.Select(x => x.PaymentSystemId).ToList()
                 } : null,
                 UpToAmount = upToAmountTriggers.Contains(triggerSetting.Type) ? null : triggerSetting.UpToAmount,
+                ConsiderBonusBets = triggerSetting.ConsiderBonusBets,
                 AmountSettings = triggerSetting.AmountCurrencySettings.Select(x => new ApiAmountSetting {
                     CurrencyId = x.CurrencyId,
                     MinAmount = x.MinAmount,
@@ -3874,9 +3870,32 @@ namespace IqSoft.CP.AdminWebApi.Helpers
 
         public static FilterInternetBet MapToFilterInternetBet(this ApiFilterInternetBet apiFilterInternetBet)
         {
+            if (!string.IsNullOrEmpty(apiFilterInternetBet.FieldNameToOrderBy))
+            {
+                var orderBy = apiFilterInternetBet.FieldNameToOrderBy;
+                switch (orderBy)
+                {
+                    case "OriginalBetAmount":
+                        apiFilterInternetBet.FieldNameToOrderBy = "BetAmount";
+                        break;
+                    case "OriginalWinAmount":
+                        apiFilterInternetBet.FieldNameToOrderBy = "WinAmount";
+                        break;
+                    case "OriginalBonusAmount":
+                        apiFilterInternetBet.FieldNameToOrderBy = "BonusAmount";
+                        break;
+                    case "OriginalBonusWinAmount":
+                        apiFilterInternetBet.FieldNameToOrderBy = "BonusWinAmount";
+                        break;
+                    default:
+                        break;
+                }
+            }
+
             return new FilterInternetBet
             {
                 PartnerId = apiFilterInternetBet.PartnerId,
+                ClientId = apiFilterInternetBet.ClientId,
                 AccountId = apiFilterInternetBet.AccountId,
                 FromDate = apiFilterInternetBet.BetDateFrom,
                 ToDate = apiFilterInternetBet.BetDateBefore,
@@ -4318,23 +4337,6 @@ namespace IqSoft.CP.AdminWebApi.Helpers
             };
         }
 
-        public static FilterReportByAgentTranfer MapToFilterReportByAgentTranfer(this ApiFilterReportByAgentTranfer filter)
-        {
-            return new FilterReportByAgentTranfer
-            {
-                PartnerId = filter.PartnerId,
-                FromDate = filter.FromDate,
-                ToDate = filter.ToDate,
-                PartnerIds = filter.PartnerIds == null ? new FiltersOperation() : filter.PartnerIds.MapToFiltersOperation(),
-                UserIds = filter.UserIds == null ? new FiltersOperation() : filter.UserIds.MapToFiltersOperation(),
-                UserNames = filter.UserNames == null ? new FiltersOperation() : filter.UserNames.MapToFiltersOperation(),
-                NickNames = filter.NickNames == null ? new FiltersOperation() : filter.NickNames.MapToFiltersOperation(),
-                TotoalProfits = filter.TotoalProfits == null ? new FiltersOperation() : filter.TotoalProfits.MapToFiltersOperation(),
-                TotalDebits = filter.TotalDebits == null ? new FiltersOperation() : filter.TotalDebits.MapToFiltersOperation(),
-                Balances = filter.Balances == null ? new FiltersOperation() : filter.Balances.MapToFiltersOperation()
-            };
-        }
-
         public static FilterReportByUserTransaction MapToFilterReportByUserTransaction(this ApiFilterReportByUserTransaction filter)
         {
             return new FilterReportByUserTransaction
@@ -4454,6 +4456,71 @@ namespace IqSoft.CP.AdminWebApi.Helpers
 
         #endregion
 
+        #region Affiliates And Agents
+
+        public static FilterfnAffiliateTransaction ToFilterfnAffiliateTransaction(this ApiFilterfnAgentTransaction apiFilterfnAgentTransaction)
+        {
+            var currentDate = DateTime.UtcNow;
+            if (!string.IsNullOrEmpty(apiFilterfnAgentTransaction.FieldNameToOrderBy))
+            {
+                var orderBy = apiFilterfnAgentTransaction.FieldNameToOrderBy;
+                switch (orderBy)
+                {
+                    case "ProductGroupId":
+                        apiFilterfnAgentTransaction.FieldNameToOrderBy = "ProductId";
+                        break;
+                    default:
+                        break;
+                }
+            }
+            return new FilterfnAffiliateTransaction
+            {
+                FromDate = apiFilterfnAgentTransaction.FromDate ??
+                currentDate.AddDays((apiFilterfnAgentTransaction.IsYesterday.HasValue && apiFilterfnAgentTransaction.IsYesterday.Value) ? -2 : -1),
+                ToDate = apiFilterfnAgentTransaction.ToDate ?? currentDate.AddDays(1),
+                Ids = apiFilterfnAgentTransaction.Ids == null ? new FiltersOperation() : apiFilterfnAgentTransaction.Ids.MapToFiltersOperation(),
+                ExternalTransactionIds = apiFilterfnAgentTransaction.ExternalTransactionIds == null ? new FiltersOperation() : apiFilterfnAgentTransaction.ExternalTransactionIds.MapToFiltersOperation(),
+                Amounts = apiFilterfnAgentTransaction.Amounts == null ? new FiltersOperation() : apiFilterfnAgentTransaction.Amounts.MapToFiltersOperation(),
+                CurrencyIds = apiFilterfnAgentTransaction.CurrencyIds == null ? new FiltersOperation() : apiFilterfnAgentTransaction.CurrencyIds.MapToFiltersOperation(),
+                ProductIds = apiFilterfnAgentTransaction.ProductIds == null ? new FiltersOperation() : apiFilterfnAgentTransaction.ProductIds.MapToFiltersOperation(),
+                ProductNames = apiFilterfnAgentTransaction.ProductNames == null ? new FiltersOperation() : apiFilterfnAgentTransaction.ProductNames.MapToFiltersOperation(),
+                TransactionTypes = apiFilterfnAgentTransaction.TransactionTypes == null ? new FiltersOperation() : apiFilterfnAgentTransaction.TransactionTypes.MapToFiltersOperation(),
+                SkipCount = apiFilterfnAgentTransaction.SkipCount,
+                TakeCount = Math.Min(apiFilterfnAgentTransaction.TakeCount, 5000),
+                OrderBy = apiFilterfnAgentTransaction.OrderBy,
+                FieldNameToOrderBy = apiFilterfnAgentTransaction.FieldNameToOrderBy
+            };
+        }
+
+        public static FilterfnAgentTransaction ToFilterfnAgentTransaction(this ApiFilterfnAgentTransaction apiFilterfnAgentTransaction)
+        {
+            var currentDate = DateTime.UtcNow;
+            return new FilterfnAgentTransaction
+            {
+                FromDate = apiFilterfnAgentTransaction.FromDate ??
+                currentDate.AddDays((apiFilterfnAgentTransaction.IsYesterday.HasValue && apiFilterfnAgentTransaction.IsYesterday.Value) ? -2 : -1),
+                ToDate = apiFilterfnAgentTransaction.ToDate ?? currentDate.AddDays(1),
+                UserState = apiFilterfnAgentTransaction.UserState,
+                Ids = apiFilterfnAgentTransaction.Ids == null ? new FiltersOperation() : apiFilterfnAgentTransaction.Ids.MapToFiltersOperation(),
+                FromUserIds = apiFilterfnAgentTransaction.FromUserIds == null ? new FiltersOperation() : apiFilterfnAgentTransaction.FromUserIds.MapToFiltersOperation(),
+                UserIds = apiFilterfnAgentTransaction.UserIds == null ? new FiltersOperation() : apiFilterfnAgentTransaction.UserIds.MapToFiltersOperation(),
+                ExternalTransactionIds = apiFilterfnAgentTransaction.ExternalTransactionIds == null ? new FiltersOperation() : apiFilterfnAgentTransaction.ExternalTransactionIds.MapToFiltersOperation(),
+                Amounts = apiFilterfnAgentTransaction.Amounts == null ? new FiltersOperation() : apiFilterfnAgentTransaction.Amounts.MapToFiltersOperation(),
+                CurrencyIds = apiFilterfnAgentTransaction.CurrencyIds == null ? new FiltersOperation() : apiFilterfnAgentTransaction.CurrencyIds.MapToFiltersOperation(),
+                States = apiFilterfnAgentTransaction.States == null ? new FiltersOperation() : apiFilterfnAgentTransaction.States.MapToFiltersOperation(),
+                OperationTypeIds = apiFilterfnAgentTransaction.OperationTypeIds == null ? new FiltersOperation() : apiFilterfnAgentTransaction.OperationTypeIds.MapToFiltersOperation(),
+                ProductIds = apiFilterfnAgentTransaction.ProductIds == null ? new FiltersOperation() : apiFilterfnAgentTransaction.ProductIds.MapToFiltersOperation(),
+                ProductNames = apiFilterfnAgentTransaction.ProductNames == null ? new FiltersOperation() : apiFilterfnAgentTransaction.ProductNames.MapToFiltersOperation(),
+                TransactionTypes = apiFilterfnAgentTransaction.TransactionTypes == null ? new FiltersOperation() : apiFilterfnAgentTransaction.TransactionTypes.MapToFiltersOperation(),
+                SkipCount = apiFilterfnAgentTransaction.SkipCount,
+                TakeCount = Math.Min(apiFilterfnAgentTransaction.TakeCount, 5000),
+                OrderBy = apiFilterfnAgentTransaction.OrderBy,
+                FieldNameToOrderBy = apiFilterfnAgentTransaction.FieldNameToOrderBy
+            };
+        }
+
+        #endregion
+
         #endregion
 
         #region Clients
@@ -4467,6 +4534,43 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 ClientId = filter.ClientId,
                 UserId = filter.UserId,
                 AccountId = filter.AccountId
+            };
+        }
+
+        public static FilterfnDuplicateClient MapToFilterDuplicateClient(this ApiFilterfnDuplicateClient filterClient)
+        {
+            return new FilterfnDuplicateClient
+            {
+                FromDate = filterClient.FromDate,
+                ToDate = filterClient.ToDate,
+                PartnerId = filterClient.PartnerId,
+                ClientId = filterClient.ClientId,
+                ClientIds = filterClient.ClientIds == null ? new FiltersOperation() : filterClient.ClientIds.MapToFiltersOperation(),
+                PartnerIds = filterClient.PartnerIds == null ? new FiltersOperation() : filterClient.PartnerIds.MapToFiltersOperation(),
+                MatchedClientIds = filterClient.MatchedClientIds == null ? new FiltersOperation() : filterClient.MatchedClientIds.MapToFiltersOperation(),
+                MatchedDatas = filterClient.MatchedDatas == null ? new FiltersOperation() : filterClient.MatchedDatas.MapToFiltersOperation(),
+                MatchDates = filterClient.MatchDates == null ? new FiltersOperation() : filterClient.MatchDates.MapToFiltersOperation(),
+                SkipCount = filterClient.SkipCount,
+                TakeCount = filterClient.TakeCount,
+                OrderBy = filterClient.OrderBy,
+                FieldNameToOrderBy = filterClient.FieldNameToOrderBy
+            };
+        }
+
+        public static FilterClientGame MapToFilterClientGame(this ApiFilterClientGame apiFilterClientGame)
+        {
+            return new FilterClientGame
+            {
+                PartnerId = apiFilterClientGame.PartnerId,
+                FromDate = apiFilterClientGame.FromDate,
+                ToDate = apiFilterClientGame.ToDate,
+                ClientIds = apiFilterClientGame.ClientIds == null ? new FiltersOperation() : apiFilterClientGame.ClientIds.MapToFiltersOperation(),
+                FirstNames = apiFilterClientGame.FirstNames == null ? new FiltersOperation() : apiFilterClientGame.FirstNames.MapToFiltersOperation(),
+                LastNames = apiFilterClientGame.LastNames == null ? new FiltersOperation() : apiFilterClientGame.LastNames.MapToFiltersOperation(),
+                ProductIds = apiFilterClientGame.ProductIds == null ? new FiltersOperation() : apiFilterClientGame.ProductIds.MapToFiltersOperation(),
+                ProductNames = apiFilterClientGame.ProductNames == null ? new FiltersOperation() : apiFilterClientGame.ProductNames.MapToFiltersOperation(),
+                ProviderNames = apiFilterClientGame.ProviderNames == null ? new FiltersOperation() : apiFilterClientGame.ProviderNames.MapToFiltersOperation(),
+                Currencies = apiFilterClientGame.CurrencyIds == null ? new FiltersOperation() : apiFilterClientGame.CurrencyIds.MapToFiltersOperation(),
             };
         }
 
@@ -4605,7 +4709,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 FieldNameToOrderBy = filterUser.FieldNameToOrderBy
             };
         }
-        public static FilterfnUser MaptToFilterfnUser(this ApiFilterUser filterUser)
+        public static FilterfnUser ToFilterfnUser(this ApiFilterUser filterUser)
         {
             if (!string.IsNullOrEmpty(filterUser.FieldNameToOrderBy))
             {
@@ -4638,6 +4742,42 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 TakeCount = filterUser.TakeCount,
                 OrderBy = filterUser.OrderBy,
                 FieldNameToOrderBy = filterUser.FieldNameToOrderBy
+            };
+        }
+
+        public static FilterfnUser ToFilterfnUser(this ApiFilterfnAgent filter)
+        {
+            if (!string.IsNullOrEmpty(filter.FieldNameToOrderBy))
+            {
+                var orderBy = filter.FieldNameToOrderBy;
+                switch (orderBy)
+                {
+                    case "UserType":
+                        filter.FieldNameToOrderBy = "Type";
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            return new FilterfnUser
+            {
+                FromDate = filter.FromDate,
+                ToDate = filter.ToDate,
+                PartnerId = filter.PartnerId,
+                ParentId = filter.PartnerId,
+                Ids = filter.Ids == null ? new FiltersOperation() : filter.Ids.MapToFiltersOperation(),
+                FirstNames = filter.FirstNames == null ? new FiltersOperation() : filter.FirstNames.MapToFiltersOperation(),
+                LastNames = filter.LastNames == null ? new FiltersOperation() : filter.LastNames.MapToFiltersOperation(),
+                UserNames = filter.UserNames == null ? new FiltersOperation() : filter.UserNames.MapToFiltersOperation(),
+                Emails = filter.Emails == null ? new FiltersOperation() : filter.Emails.MapToFiltersOperation(),
+                Genders = filter.Genders == null ? new FiltersOperation() : filter.Genders.MapToFiltersOperation(),
+                Currencies = filter.Currencies == null ? new FiltersOperation() : filter.Currencies.MapToFiltersOperation(),
+                LanguageIds = filter.LanguageIds == null ? new FiltersOperation() : filter.LanguageIds.MapToFiltersOperation(),
+                SkipCount = filter.SkipCount,
+                TakeCount = filter.TakeCount,
+                OrderBy = filter.OrderBy,
+                FieldNameToOrderBy = filter.FieldNameToOrderBy
             };
         }
 
@@ -5102,6 +5242,8 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 Ids = request.Ids == null ? new FiltersOperation() : request.Ids.MapToFiltersOperation(),
                 UserNames = request.UserNames == null ? new FiltersOperation() : request.UserNames.MapToFiltersOperation(),
                 Names = request.Names == null ? new FiltersOperation() : request.Names.MapToFiltersOperation(),
+                FirstNames = request.FirstNames == null ? new FiltersOperation() : request.FirstNames.MapToFiltersOperation(),
+                LastNames = request.LastNames == null ? new FiltersOperation() : request.LastNames.MapToFiltersOperation(),
                 CreatorNames = request.CreatorNames == null ? new FiltersOperation() : request.CreatorNames.MapToFiltersOperation(),
                 ClientIds = request.ClientIds == null ? new FiltersOperation() : request.ClientIds.MapToFiltersOperation(),
                 ClientEmails = request.Emails == null ? new FiltersOperation() : request.Emails.MapToFiltersOperation(),
@@ -5389,6 +5531,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 DebitCorrectionsCounts = filter.DebitCorrectionsCounts == null ? new FiltersOperation() : filter.DebitCorrectionsCounts.MapToFiltersOperation(),
                 TotalCreditCorrections = filter.TotalCreditCorrections == null ? new FiltersOperation() : filter.TotalCreditCorrections.MapToFiltersOperation(),
                 CreditCorrectionsCounts = filter.CreditCorrectionsCounts == null ? new FiltersOperation() : filter.CreditCorrectionsCounts.MapToFiltersOperation(),
+                ComplementaryBalances = filter.ComplementaryBalances == null ? new FiltersOperation() : filter.ComplementaryBalances.MapToFiltersOperation(),
                 SkipCount = filter.SkipCount,
                 TakeCount = filter.TakeCount,
                 OrderBy = filter.OrderBy,
@@ -5547,6 +5690,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 Types = filter.Types == null ? new FiltersOperation() : filter.Types.MapToFiltersOperation(),
                 Orders = filter.Orders == null ? new FiltersOperation() : filter.Orders.MapToFiltersOperation(),
                 Pages = filter.Pages == null ? new FiltersOperation() : filter.Pages.MapToFiltersOperation(),
+                DeviceTypes = filter.DeviceTypes == null ? new FiltersOperation() : filter.DeviceTypes.MapToFiltersOperation(),
                 StartDates = filter.StartDates == null ? new FiltersOperation() : filter.StartDates.MapToFiltersOperation(),
                 FinishDates = filter.FinishDates == null ? new FiltersOperation() : filter.FinishDates.MapToFiltersOperation(),
                 CreationTimes = filter.CreationTimes == null ? new FiltersOperation() : filter.CreationTimes.MapToFiltersOperation(),
@@ -5801,6 +5945,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 State = popup.State,
                 Order = popup.Order,
                 Page = popup.Page,
+                DeviceType = popup.DeviceType,
                 StartDate = popup.StartDate.GetGMTDateFromUTC(timeZone),
                 FinishDate = popup.FinishDate.GetGMTDateFromUTC(timeZone),
                 CreationTime   = popup.CreationTime.GetGMTDateFromUTC(timeZone),
@@ -5988,6 +6133,24 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 MobileNumber = arg.MobileNumber,
                 LanguageId = arg.LanguageId,
                 State = arg.State
+            };
+        }
+
+        public static ApifnAgentTransaction ToApifnAffiliateTransaction(this fnAffiliateTransaction transactions, double timeZone)
+        {
+            return new ApifnAgentTransaction
+            {
+                Id = transactions.Id,
+                ExternalTransactionId = transactions.ExternalTransactionId,
+                Amount = transactions.Amount,
+                CurrencyId = transactions.CurrencyId,
+                State = transactions.State,
+                OperationTypeId = transactions.OperationTypeId,
+                ProductId = transactions.ProductId,
+                ProductName = transactions.ProductName,
+                TransactionType = transactions.TransactionType,
+                CreationTime = transactions.CreationTime.GetGMTDateFromUTC(timeZone),
+                LastUpdateTime = transactions.LastUpdateTime.GetGMTDateFromUTC(timeZone)
             };
         }
 
@@ -6208,7 +6371,117 @@ namespace IqSoft.CP.AdminWebApi.Helpers
             return resp;
         }
 
+        public static ApifnAgentTransaction ToApifnAgentTransaction(this fnAgentTransaction transactions, double timeZone)
+        {
+            return new ApifnAgentTransaction
+            {
+                Id = transactions.Id,
+                ExternalTransactionId = transactions.ExternalTransactionId,
+                Amount = transactions.Amount,
+                CurrencyId = transactions.CurrencyId,
+                State = transactions.State,
+                OperationTypeId = transactions.OperationTypeId,
+                ProductId = transactions.ProductId,
+                ProductName = transactions.ProductName,
+                TransactionType = transactions.TransactionType.ToString(),
+                FromUserId = transactions.FromUserId,
+                UserId = transactions.UserId,
+                UserName = transactions.UserName,
+                FirstName = transactions.FirstName,
+                LastName = transactions.LastName,
+                CreationTime = transactions.CreationTime.GetGMTDateFromUTC(timeZone),
+                LastUpdateTime = transactions.LastUpdateTime.GetGMTDateFromUTC(timeZone)
+            };
+        }
+
+        public static ApiAgentReportItem ToApiAgentReportItem(this AgentReportItem input, double timeZone)
+        {
+            return new ApiAgentReportItem
+            {
+                AgentId = input.AgentId,
+                AgentFirstName = input.AgentFirstName,
+                AgentLastName = input.AgentLastName,
+                AgentUserName = input.AgentUserName,
+                TotalDepositCount = input.TotalDepositCount,
+                TotalWithdrawCount = input.TotalWithdrawCount,
+                TotalDepositAmount = input.TotalDepositAmount,
+                TotalWithdrawAmount = input.TotalWithdrawAmount,
+                TotalBetsCount = input.TotalBetsCount,
+                TotalUnsettledBetsCount = input.TotalUnsettledBetsCount,
+                TotalDeletedBetsCount = input.TotalDeletedBetsCount,
+                TotalBetAmount = input.TotalBetAmount,
+                TotalWinAmount = input.TotalWinAmount,
+                TotalProfit = input.TotalProfit,
+                TotalProfitPercent = input.TotalProfitPercent,
+                TotalGGRCommission = input.TotalGGRCommission,
+                TotalTurnoverCommission = input.TotalTurnoverCommission
+            };
+        }
+
         #endregion
+
+        #region Characters
+
+        public static DAL.Character MapToCharacter(this ApiCharacter input)
+        {
+            return new DAL.Character
+            {
+                Id = input.Id,
+                PartnerId = input.PartnerId,
+                ParentId = input.ParentId,
+                NickName = input.NickName,
+                Title = input.Title,
+                Description = input.Description,
+                Status = input.Status,
+                Order = input.Order,
+                CompPoints = input.CompPoints,
+                ImageData = input.ImageData,
+                BackgroundImageData = input.BackgroundImageData,
+                MobileBackgroundImageData = input.MobileBackgroundImageData
+            };
+        }
+
+        public static ApiCharacter MapToApiCharacter(this Character input)
+        {
+            return new ApiCharacter
+            {
+                Id = input.Id,
+                PartnerId = input.PartnerId,
+                ParentId = input.ParentId,
+                NickName = input.NickName,
+                Title = input.Title,
+                Description = input.Description,
+                Status = input.Status,
+                Order = input.Order,
+                ImageData = input.ImageUrl,
+                BackgroundImageData = input.BackgroundImageUrl,
+                MobileBackgroundImageData = input.BackgroundImageUrl?.Replace("/assets/images/characters/background/", "/assets/images/characters/background/mobile/")
+            };
+        }
+
+        public static ApiCharacter MapToApiCharacter(this fnCharacter character)
+        {
+            return new ApiCharacter
+            {
+                Id = character.Id,
+                ParentId = character.ParentId,
+                PartnerId = character.PartnerId,
+                NickName = character.NickName,
+                Title = character.Title,
+                Description = character.Description,
+                Status = character.Status,
+                Order = character.Order,
+                ImageData = character.ImageUrl,
+                BackgroundImageData = character.BackgroundImageUrl,
+                MobileBackgroundImageData = character.BackgroundImageUrl?.Replace("/assets/images/characters/background/", "/assets/images/characters/background/mobile/"),
+                CompPoints = character.CompPoints
+            };
+        }
+
+        #endregion
+
+        #region Announcements
+
         public static FilterAnnouncement MapToFilterAnnouncement(this ApiFilterAnnouncement filter)
         {
             return new FilterAnnouncement
@@ -6247,77 +6520,6 @@ namespace IqSoft.CP.AdminWebApi.Helpers
             };
         }
 
-        public static DAL.Character MapToCharacter(this ApiCharacter input)
-        {
-            return new DAL.Character
-            {
-                Id = input.Id,
-                PartnerId = input.PartnerId,
-                ParentId = input.ParentId,
-                NickName = input.NickName,
-                Title = input.Title,
-                Description = input.Description,
-                Status = input.Status,
-                Order = input.Order,
-                CompPoints = input.CompPoints,
-                ImageData = input.ImageData,
-                BackgroundImageData = input.BackgroundImageData,
-				MobileBackgroundImageData = input.MobileBackgroundImageData
-			};
-        }
-
-        public static ApiCharacter MapToApiCharacter(this Character input)
-        {
-            return new ApiCharacter
-            {
-                Id = input.Id,
-                PartnerId = input.PartnerId,
-                ParentId = input.ParentId,
-                NickName = input.NickName,
-                Title = input.Title,
-                Description = input.Description,
-                Status = input.Status,
-                Order = input.Order,
-                ImageData = input.ImageUrl,
-                BackgroundImageData = input.BackgroundImageUrl,
-				MobileBackgroundImageData = input.BackgroundImageUrl?.Replace("/assets/images/characters/background/", "/assets/images/characters/background/mobile/")
-			};
-        }
-
-        public static ApiCharacter MapToApiCharacter(this fnCharacter character)
-        {
-            return new ApiCharacter
-            {
-				Id = character.Id,
-				ParentId = character.ParentId,
-				PartnerId = character.PartnerId,
-				NickName = character.NickName,
-				Title = character.Title,
-				Description = character.Description,
-				Status = character.Status,
-				Order = character.Order,
-				ImageData = character.ImageUrl,
-				BackgroundImageData = character.BackgroundImageUrl,
-				MobileBackgroundImageData = character.BackgroundImageUrl?.Replace("/assets/images/characters/background/", "/assets/images/characters/background/mobile/"),
-				CompPoints = character.CompPoints
-			};
-        }
-
-        public static FilterClientGame MapToFilterClientGame(this ApiFilterClientGame apiFilterClientGame)
-        {
-            return new FilterClientGame
-			{
-                PartnerId = apiFilterClientGame.PartnerId,
-                FromDate = apiFilterClientGame.FromDate,
-                ToDate = apiFilterClientGame.ToDate,
-                ClientIds = apiFilterClientGame.ClientIds == null ? new FiltersOperation() : apiFilterClientGame.ClientIds.MapToFiltersOperation(),
-                FirstNames = apiFilterClientGame.FirstNames == null ? new FiltersOperation() : apiFilterClientGame.FirstNames.MapToFiltersOperation(),
-                LastNames = apiFilterClientGame.LastNames == null ? new FiltersOperation() : apiFilterClientGame.LastNames.MapToFiltersOperation(),
-                ProductIds = apiFilterClientGame.ProductIds == null ? new FiltersOperation() : apiFilterClientGame.ProductIds.MapToFiltersOperation(),
-                ProductNames = apiFilterClientGame.ProductNames == null ? new FiltersOperation() : apiFilterClientGame.ProductNames.MapToFiltersOperation(),
-                ProviderNames = apiFilterClientGame.ProviderNames == null ? new FiltersOperation() : apiFilterClientGame.ProviderNames.MapToFiltersOperation(),
-                Currencies = apiFilterClientGame.CurrencyIds == null ? new FiltersOperation() : apiFilterClientGame.CurrencyIds.MapToFiltersOperation(),
-            };
-        }
+        #endregion
     }
 }

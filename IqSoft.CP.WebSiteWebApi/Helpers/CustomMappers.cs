@@ -68,7 +68,8 @@ namespace IqSoft.CP.WebSiteWebApi.Helpers
                 DestinationTag = input.DestinationTag,
                 MinAmount = input.MinAmount,
                 MaxAmount = input.MaxAmount,
-                HasBank = input.HasBank
+                HasBank = input.HasBank,
+                ImageExtension = string.IsNullOrEmpty(input.ImageExtension) ? CP.Common.Constants.Extensions.Png : input.ImageExtension
             };
         }
 

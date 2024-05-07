@@ -21,9 +21,9 @@ namespace IqSoft.CP.DAL
             this.BonusPaymentSystemSettings = new HashSet<BonusPaymentSystemSetting>();
             this.PartnerBankInfoes = new HashSet<PartnerBankInfo>();
             this.PartnerKeys = new HashSet<PartnerKey>();
-            this.PartnerPaymentSettings = new HashSet<PartnerPaymentSetting>();
             this.PaymentRequests = new HashSet<PaymentRequest>();
             this.PaymentRequestTransfers = new HashSet<PaymentRequestTransfer>();
+            this.PartnerPaymentSettings = new HashSet<PartnerPaymentSetting>();
         }
     
         public int Id { get; set; }
@@ -47,11 +47,11 @@ namespace IqSoft.CP.DAL
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PartnerKey> PartnerKeys { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PartnerPaymentSetting> PartnerPaymentSettings { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PaymentRequest> PaymentRequests { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PaymentRequestTransfer> PaymentRequestTransfers { get; set; }
         public virtual Translation Translation { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PartnerPaymentSetting> PartnerPaymentSettings { get; set; }
     }
 }

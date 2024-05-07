@@ -4,7 +4,7 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
 -->
 <Project>
   <PropertyGroup>
-    <History>True|2024-03-25T12:10:22.5802437Z;True|2024-03-18T11:51:31.8503424+04:00;True|2024-03-15T17:57:04.6106789+04:00;True|2024-03-13T22:38:27.0204672+04:00;True|2024-03-12T13:56:23.6576138+04:00;True|2024-03-12T13:40:28.0756163+04:00;True|2024-03-12T12:42:52.1397700+04:00;True|2024-03-11T21:07:29.2011638+04:00;True|2024-03-11T20:27:08.8631692+04:00;True|2024-03-11T19:29:58.6988724+04:00;True|2024-03-11T19:27:27.6832557+04:00;True|2024-03-11T13:09:29.0581851+04:00;True|2024-03-07T20:42:57.2662836+04:00;False|2024-03-07T20:41:47.8309269+04:00;True|2024-03-06T13:44:14.5570956+04:00;True|2024-03-06T13:22:09.3443939+04:00;True|2024-03-06T13:21:15.1419633+04:00;True|2024-03-06T12:55:48.6149254+04:00;True|2024-03-05T02:50:54.7276468+04:00;False|2024-02-23T19:18:08.2116021+04:00;</History>
+    <History>True|2024-05-06T07:18:57.9686246Z;True|2024-04-27T21:30:21.1769538+04:00;True|2024-04-27T21:12:11.6768054+04:00;True|2024-04-27T21:02:43.2131042+04:00;True|2024-04-27T20:53:04.5675749+04:00;True|2024-04-27T20:46:08.5309244+04:00;True|2024-04-27T20:12:24.5796791+04:00;True|2024-04-26T18:12:11.3559188+04:00;True|2024-04-26T18:11:57.8418732+04:00;True|2024-04-26T14:29:28.8733593+04:00;True|2024-04-26T13:08:43.0391863+04:00;True|2024-04-25T21:19:33.3030033+04:00;True|2024-04-25T21:19:15.3701097+04:00;True|2024-04-25T21:15:28.1591086+04:00;True|2024-04-25T16:10:51.1260443+04:00;True|2024-04-24T18:34:41.9712228+04:00;True|2024-04-24T18:34:27.3891245+04:00;True|2024-04-24T18:21:53.1256483+04:00;True|2024-04-24T17:35:39.3568243+04:00;True|2024-04-24T17:30:41.4939432+04:00;True|2024-04-19T13:38:54.2626047+04:00;False|2024-04-19T13:29:40.3020863+04:00;True|2024-03-28T17:25:09.8002918+04:00;True|2024-03-27T19:30:29.7827146+04:00;True|2024-03-27T14:24:36.7972216+04:00;True|2024-03-27T13:13:21.4747728+04:00;True|2024-03-25T16:10:22.5802437+04:00;True|2024-03-18T11:51:31.8503424+04:00;True|2024-03-15T17:57:04.6106789+04:00;True|2024-03-13T22:38:27.0204672+04:00;True|2024-03-12T13:56:23.6576138+04:00;True|2024-03-12T13:40:28.0756163+04:00;True|2024-03-12T12:42:52.1397700+04:00;True|2024-03-11T21:07:29.2011638+04:00;True|2024-03-11T20:27:08.8631692+04:00;True|2024-03-11T19:29:58.6988724+04:00;True|2024-03-11T19:27:27.6832557+04:00;True|2024-03-11T13:09:29.0581851+04:00;True|2024-03-07T20:42:57.2662836+04:00;False|2024-03-07T20:41:47.8309269+04:00;True|2024-03-06T13:44:14.5570956+04:00;True|2024-03-06T13:22:09.3443939+04:00;True|2024-03-06T13:21:15.1419633+04:00;True|2024-03-06T12:55:48.6149254+04:00;True|2024-03-05T02:50:54.7276468+04:00;False|2024-02-23T19:18:08.2116021+04:00;</History>
     <LastFailureDetails />
     <_PublishTargetUrl>C:\inetpub\wwwroot\CP\MasterCacheWebApi</_PublishTargetUrl>
   </PropertyGroup>
@@ -49,55 +49,55 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
       <publishTime>12/11/2023 18:56:32</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.BLL.dll">
-      <publishTime>03/25/2024 16:08:17</publishTime>
+      <publishTime>05/06/2024 11:14:19</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.BLL.dll.config">
       <publishTime>02/12/2024 11:25:51</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.BLL.pdb">
-      <publishTime>03/25/2024 16:08:17</publishTime>
+      <publishTime>05/06/2024 11:14:19</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Common.dll">
-      <publishTime>03/25/2024 15:49:05</publishTime>
+      <publishTime>05/06/2024 11:14:10</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Common.dll.config">
       <publishTime>04/27/2022 21:31:02</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Common.pdb">
-      <publishTime>03/25/2024 15:49:05</publishTime>
+      <publishTime>05/06/2024 11:14:10</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DAL.dll">
-      <publishTime>03/25/2024 15:49:10</publishTime>
+      <publishTime>05/06/2024 11:14:14</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DAL.dll.config">
       <publishTime>03/11/2024 19:39:46</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DAL.pdb">
-      <publishTime>03/25/2024 15:49:10</publishTime>
+      <publishTime>05/06/2024 11:14:14</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DataWarehouse.dll">
-      <publishTime>03/25/2024 16:08:12</publishTime>
+      <publishTime>05/06/2024 11:14:11</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DataWarehouse.dll.config">
-      <publishTime>03/23/2024 19:40:42</publishTime>
+      <publishTime>04/27/2024 17:37:27</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DataWarehouse.pdb">
-      <publishTime>03/25/2024 16:08:12</publishTime>
+      <publishTime>05/06/2024 11:14:11</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Integration.dll">
-      <publishTime>03/25/2024 16:08:22</publishTime>
+      <publishTime>05/06/2024 11:14:25</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Integration.dll.config">
       <publishTime>02/12/2024 11:25:51</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Integration.pdb">
-      <publishTime>03/25/2024 16:08:22</publishTime>
+      <publishTime>05/06/2024 11:14:25</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.MasterCacheWebApi.dll">
-      <publishTime>03/25/2024 16:10:20</publishTime>
+      <publishTime>05/06/2024 11:18:57</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.MasterCacheWebApi.pdb">
-      <publishTime>03/25/2024 16:10:20</publishTime>
+      <publishTime>05/06/2024 11:18:57</publishTime>
     </File>
     <File Include="bin/jose-jwt.dll">
       <publishTime>12/02/2022 20:38:22</publishTime>
@@ -238,7 +238,7 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
       <publishTime>03/12/2020 20:25:59</publishTime>
     </File>
     <File Include="Web.config">
-      <publishTime>03/25/2024 16:10:22</publishTime>
+      <publishTime>05/06/2024 11:18:57</publishTime>
     </File>
   </ItemGroup>
 </Project>

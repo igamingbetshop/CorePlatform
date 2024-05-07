@@ -400,6 +400,7 @@
     <Compile Include="Controllers\KironBetShopGamesController.cs" />
     <Compile Include="Controllers\KironController.cs" />
     <Compile Include="Controllers\LuckyGamingController.cs" />
+    <Compile Include="Controllers\LuckyStreakController.cs" />
     <Compile Include="Controllers\MahjongController.cs" />
     <Compile Include="Controllers\MancalaController.cs" />
     <Compile Include="Controllers\InsicController.cs" />
@@ -410,6 +411,7 @@
     <Compile Include="Controllers\PragmaticPlayController.cs" />
     <Compile Include="Controllers\PropsBuilderController.cs" />
     <Compile Include="Controllers\RacebookController.cs" />
+    <Compile Include="Controllers\RiseUpController.cs" />
     <Compile Include="Controllers\SingularController.cs" />
     <Compile Include="Controllers\SkyCityController.cs" />
     <Compile Include="Controllers\SkyWindController.cs" />
@@ -469,6 +471,7 @@
     <Compile Include="Helpers\OutcomeBetHelpers.cs" />
     <Compile Include="Helpers\PlaynGoHelpers.cs" />
     <Compile Include="Helpers\PragmaticPlayHelpers.cs" />
+    <Compile Include="Helpers\RiseUpHelpers.cs" />
     <Compile Include="Helpers\RocabeeHelpers.cs" />
     <Compile Include="Helpers\SingularHelpers.cs" />
     <Compile Include="Helpers\SkyCityHelpers.cs" />
@@ -496,6 +499,7 @@
     <Compile Include="Models\AleaPlay\BetInput.cs" />
     <Compile Include="Models\AWC\BaseInput.cs" />
     <Compile Include="Models\AWC\BaseOutput.cs" />
+    <Compile Include="Models\RiseUp\BaseInput.cs" />
     <Compile Include="Models\BetGames\CombinationBetInput.cs" />
     <Compile Include="Models\BetGames\MultipleBetInput.cs" />
     <Compile Include="Models\BetGames\PromoWinInput.cs" />
@@ -513,6 +517,7 @@
     <Compile Include="Models\BGGames\BaseOutput.cs" />
     <Compile Include="Models\BlueOcean\BaseInput.cs" />
     <Compile Include="Models\BlueOcean\BaseOutput.cs" />
+    <Compile Include="Models\Common\PlaceBetOutput.cs" />
     <Compile Include="Models\DragonGaming\BaseInput.cs" />
     <Compile Include="Models\DragonGaming\BaseOutput.cs" />
     <Compile Include="Models\DragonGaming\BetInput.cs" />
@@ -525,8 +530,8 @@
     <Compile Include="Models\Endorphina\BetOutput.cs" />
     <Compile Include="Models\Endorphina\CheckInput.cs" />
     <Compile Include="Models\Endorphina\ErrorOutput.cs" />
-    <Compile Include="Models\Endorphina\SessionInput.cs" />
-    <Compile Include="Models\Endorphina\SessionOutput.cs" />
+    <Compile Include="Models\Endorphina\BaseInput.cs" />
+    <Compile Include="Models\Endorphina\BaseOutput.cs" />
     <Compile Include="Models\Endorphina\WinInput.cs" />
     <Compile Include="Models\ESport\BaseInput.cs" />
     <Compile Include="Models\ESport\BaseOutput.cs" />
@@ -625,6 +630,8 @@
     <Compile Include="Models\Racebook\ClientOutput.cs" />
     <Compile Include="Models\Racebook\BaseInput.cs" />
     <Compile Include="Models\Racebook\WinInput.cs" />
+    <Compile Include="Models\RiseUp\BaseOutput.cs" />
+    <Compile Include="Models\RiseUp\TransactionInput.cs" />
     <Compile Include="Models\SmartSoft\ActivateSessionInput.cs" />
     <Compile Include="Models\SmartSoft\TransactionInput.cs" />
     <Compile Include="Models\SoftGaming\BaseInput.cs" />

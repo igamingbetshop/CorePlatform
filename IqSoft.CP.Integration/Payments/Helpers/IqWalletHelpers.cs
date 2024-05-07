@@ -4,137 +4,162 @@ using IqSoft.CP.Common;
 using IqSoft.CP.Common.Enums;
 using IqSoft.CP.Common.Helpers;
 using IqSoft.CP.Common.Models;
+using IqSoft.CP.Common.Models.CacheModels;
 using IqSoft.CP.DAL;
 using IqSoft.CP.DAL.Models;
-using IqSoft.CP.Integration.Extensions;
+using IqSoft.CP.DAL.Models.Clients;
 using IqSoft.CP.Integration.Payments.Models;
-using IqSoft.CP.Integration.Payments.Models.IqWallet;
 using log4net;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
+using System.ServiceModel;
 
 namespace IqSoft.CP.Integration.Payments.Helpers
 {
-    public class IqWalletHelpers
+    public static class IqWalletHelpers
     {
-        public static PaymentResponse CallIqWalletApi(PaymentRequest input, SessionIdentity session, ILog log)
+        public static PaymentResponse CreatePayoutRequest(PaymentRequest paymentRequest, SessionIdentity session, ILog log)
         {
-            using (var paymentSystemBl = new PaymentSystemBll(session, log))
+            var paymentInfo = JsonConvert.DeserializeObject<PaymentInfo>(paymentRequest.Info);
+            if (!Int32.TryParse(paymentInfo.WalletNumber, out int toClientId))
+                throw BaseBll.CreateException(session.LanguageId, Constants.Errors.ClientNotFound);
+            var toClient = CacheManager.GetClientById(toClientId) ??
+                throw BaseBll.CreateException(session.LanguageId, Constants.Errors.ClientNotFound);
+            var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(toClient.PartnerId, paymentRequest.PaymentSystemId,
+                                                                               toClient.CurrencyId, (int)PaymentRequestTypes.Deposit) ??
+                throw BaseBll.CreateException(session.LanguageId, Constants.Errors.PartnerPaymentSettingNotFound);
+            if (partnerPaymentSetting.State == (int)PartnerPaymentSettingStates.Inactive)
+                throw BaseBll.CreateException(session.LanguageId, Constants.Errors.PartnerPaymentSettingBlocked);
+            var fromClient = CacheManager.GetClientById(paymentRequest.ClientId.Value);
+            var amount = paymentRequest.Amount - (paymentRequest.CommissionAmount ?? 0);
+            if (fromClient.CurrencyId != toClient.CurrencyId)
             {
-                using (var clientBl = new ClientBll(paymentSystemBl))
-                {
-                    var client = CacheManager.GetClientById(input.ClientId.Value);
-                    if (client == null)
-                        throw BaseBll.CreateException(session.LanguageId, Constants.Errors.ClientNotFound);
-                    if (string.IsNullOrEmpty(client.MobileNumber) || !client.IsMobileNumberVerified)
-                        throw BaseBll.CreateException(session.LanguageId, Constants.Errors.MobileNumberNotVerified);
-
-					var paymentsystem = CacheManager.GetPaymentSystemById(input.PaymentSystemId);
-                    if (paymentsystem == null)
-                        throw BaseBll.CreateException(session.LanguageId, Constants.Errors.PaymentSystemNotFound);
-                    var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId,
-                        input.PaymentSystemId, input.CurrencyId, (int)PaymentRequestTypes.Deposit);
-                    var url = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.IqWalletUrl).StringValue;
-                    var clientModel = clientBl.GetClientById(input.ClientId.Value);
-                    var partner = CacheManager.GetPartnerById(client.PartnerId);
-                    var paymentRequestInput = new PaymentInput
-                    {
-                        MerchantId = Convert.ToInt32(partnerPaymentSetting.UserName),
-                        MerchantPaymentId = input.Id,
-                        MobileNumber = client.MobileNumber,
-                        Currency = input.CurrencyId,
-                        Amount = string.Format("{0:N2}", input.Amount),
-                        MerchantClient = null
-                    };
-
-					paymentRequestInput.Sign = CommonFunctions.ComputeMd5(CommonFunctions.GetSortedValuesAsString(paymentRequestInput, ",") + partnerPaymentSetting.Password);
-					
-					paymentRequestInput.MerchantClient = clientModel.ToBllClient();
-					var httpRequestInput = new HttpRequestInput
-                    {
-                        ContentType = Constants.HttpContentTypes.ApplicationJson,
-                        RequestMethod = Constants.HttpRequestMethods.Post,
-                        Url = string.Format("{0}/PaymentRequest", url),
-                        PostData = JsonConvert.SerializeObject(paymentRequestInput)
-                    };
-                    var response = JsonConvert.DeserializeObject<PaymentOutput>(CommonFunctions.SendHttpRequest(httpRequestInput, out _));
-                    input.ExternalTransactionId = response.PaymentId.ToString();
-                    paymentSystemBl.ChangePaymentRequestDetails(input);
-
-					if (response.ErrorCode == Constants.SuccessResponseCode && response.Status == (int)PaymentRequestStates.Approved)
-                    {
-                        return new PaymentResponse
-                        {
-                            Status = PaymentRequestStates.Confirmed,
-                        };
-                    }
-                    return new PaymentResponse
-					{	
-                        Status = PaymentRequestStates.Failed,
-                        Description = response.ErrorDescription
-                    };
-                }
+                amount = BaseBll.ConvertCurrency(fromClient.CurrencyId, toClient.CurrencyId, amount);
+                if (amount < partnerPaymentSetting.MinAmount || amount > partnerPaymentSetting.MaxAmount)
+                    throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.PaymentRequestInValidAmount);
             }
+            if (toClient.State == (int)ClientStates.FullBlocked || toClient.State == (int)ClientStates.Disabled ||
+            toClient.State == (int)ClientStates.Suspended || toClient.State == (int)ClientStates.SuspendedWithWithdraw ||
+            toClient.State == (int)ClientStates.BlockedForDeposit)
+                throw BaseBll.CreateException(session.LanguageId, Constants.Errors.ClientBlocked);
+
+            using (var clientBl = new ClientBll(session, log))
+            using (var documentBl = new DocumentBll(clientBl))
+            using (var notificationBl = new NotificationBll(clientBl))
+            {
+                clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.PayPanding, string.Empty,
+                                                    null, null, true, paymentRequest.Parameters, documentBl, notificationBl, false);
+            }
+            return new PaymentResponse
+            {
+                Status = PaymentRequestStates.PayPanding,
+                Description = "Pay Panding"
+            };
         }
 
-        public static PaymentResponse CreatePayoutRequest(PaymentRequest input, SessionIdentity session, ILog log)
+        public static void ApprovePayoutRequest(PaymentRequest paymentRequest, SessionIdentity session, ILog log, out int toClientId)
         {
-            using (var paymentSystemBl = new PaymentSystemBll(session, log))
+            toClientId = 0;
+            if (paymentRequest.Type == (int)PaymentRequestTypes.Withdraw && paymentRequest.Status == (int)PaymentRequestStates.PayPanding)
             {
-                using (var clientBl = new ClientBll(paymentSystemBl))
+                try
                 {
-                    var client = CacheManager.GetClientById(input.ClientId.Value);
-                    if (client == null)
+                    var paymentInfo = JsonConvert.DeserializeObject<PaymentInfo>(paymentRequest.Info);
+                    if (!Int32.TryParse(paymentInfo.WalletNumber, out toClientId))
                         throw BaseBll.CreateException(session.LanguageId, Constants.Errors.ClientNotFound);
-                    if (!client.IsMobileNumberVerified)
-                        throw BaseBll.CreateException(session.LanguageId, Constants.Errors.MobileNumberNotVerified);
+                    var toClient = CacheManager.GetClientById(toClientId) ??
+                        throw BaseBll.CreateException(session.LanguageId, Constants.Errors.ClientNotFound);
+                    var fromClient = CacheManager.GetClientById(paymentRequest.ClientId.Value);
 
-                    var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, input.PaymentSystemId,
-                        input.CurrencyId, (int)PaymentRequestTypes.Withdraw);
-                    if (partnerPaymentSetting == null || string.IsNullOrEmpty(partnerPaymentSetting.UserName))
-                        throw BaseBll.CreateException(session.LanguageId, Constants.Errors.PartnerPaymentSettingNotFound);
-
-                    var url = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.IqWalletUrl).StringValue;
-                    var paymentInfo = JsonConvert.DeserializeObject<PaymentInfo>(input.Info);
-                    var clientModel = clientBl.GetClientById(input.ClientId.Value);
-                    var partner = CacheManager.GetPartnerById(client.PartnerId);
-                    var amount = input.Amount - (input.CommissionAmount ?? 0);
-                    var paymentRequestInput = new PaymentInput
+                    var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(toClient.PartnerId, paymentRequest.PaymentSystemId,
+                                                                                       toClient.CurrencyId, (int)PaymentRequestTypes.Deposit) ??
+                 throw BaseBll.CreateException(session.LanguageId, Constants.Errors.PartnerPaymentSettingNotFound);
+                    if (partnerPaymentSetting.State == (int)PartnerPaymentSettingStates.Inactive)
+                        throw BaseBll.CreateException(session.LanguageId, Constants.Errors.PartnerPaymentSettingBlocked);
+                    if (toClient.State == (int)ClientStates.FullBlocked || toClient.State == (int)ClientStates.Disabled ||
+                    toClient.State == (int)ClientStates.Suspended || toClient.State == (int)ClientStates.SuspendedWithWithdraw ||
+                    toClient.State == (int)ClientStates.BlockedForDeposit)
+                        throw BaseBll.CreateException(session.LanguageId, Constants.Errors.ClientBlocked);
+                    var parameters = string.IsNullOrEmpty(paymentRequest.Parameters) ? new Dictionary<string, string>() :
+                               JsonConvert.DeserializeObject<Dictionary<string, string>>(paymentRequest.Parameters);
+                    var amount = paymentRequest.Amount - (paymentRequest.CommissionAmount ?? 0);
+                    if (fromClient.CurrencyId != toClient.CurrencyId)
                     {
-                        MerchantId = Convert.ToInt32(partnerPaymentSetting.UserName),
-                        MerchantPaymentId = input.Id,
-                        MobileNumber = client.MobileNumber,
-                        Currency = input.CurrencyId,
-                        Amount = string.Format("{0:N2}", amount),
-                        MerchantClient = null
-                    };
-                    paymentRequestInput.Sign = CommonFunctions.ComputeMd5(CommonFunctions.GetSortedValuesAsString(paymentRequestInput, ",") +
-                                                                             partnerPaymentSetting.Password);
-                    paymentRequestInput.MerchantClient = clientModel.ToBllClient();
-                    var httpRequestInput = new HttpRequestInput
-                    {
-                        ContentType = Constants.HttpContentTypes.ApplicationJson,
-                        RequestMethod = Constants.HttpRequestMethods.Post,
-                        Url = string.Format("{0}/PayoutRequest", url),
-                        PostData = JsonConvert.SerializeObject(paymentRequestInput)
-                    };
-                    var response = JsonConvert.DeserializeObject<PaymentOutput>(CommonFunctions.SendHttpRequest(httpRequestInput, out _));
-                    input.ExternalTransactionId = response.PaymentId.ToString();
-                    paymentSystemBl.ChangePaymentRequestDetails(input);
-
-					if (response.ErrorCode == Constants.SuccessResponseCode && response.Status == (int)PaymentRequestStates.Approved)
-                    {
-                        return new PaymentResponse
-                        {
-                            Status = PaymentRequestStates.PayPanding,
-							Description = "Pay Panding"
-						};
+                        var rate = BaseBll.GetCurrenciesDifference(fromClient.CurrencyId, toClient.CurrencyId);
+                        amount = Math.Round(rate * paymentRequest.Amount, 2);
+                        if (!parameters.ContainsKey("Currency"))
+                            parameters.Add("Currency", toClient.CurrencyId);
+                        else
+                            parameters["Currency"] = toClient.CurrencyId;
+                        if (!parameters.ContainsKey("TransferedAmount"))
+                            parameters.Add("TransferedAmount", amount.ToString("F"));
+                        else
+                            parameters["TransferedAmount"] = amount.ToString("F");
+                        if (!parameters.ContainsKey("AppliedRate"))
+                            parameters.Add("AppliedRate", rate.ToString("F"));
+                        else
+                            parameters["AppliedRate"] = rate.ToString("F");
                     }
-                    return new PaymentResponse
+                    if (amount < partnerPaymentSetting.MinAmount || amount > partnerPaymentSetting.MaxAmount)
+                        throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.PaymentRequestInValidAmount);
+
+                    using (var transactionScope = CommonFunctions.CreateTransactionScope())
                     {
-                        Status = PaymentRequestStates.Failed,
-                        Description = response.ErrorDescription
-                    };
+                        using (var clientBl = new ClientBll(session, log))
+                        using (var documentBl = new DocumentBll(clientBl))
+                        using (var paymentSystemBl = new PaymentSystemBll(clientBl))
+                        using (var notificationBl = new NotificationBll(clientBl))
+                        {
+                            paymentRequest.Parameters = JsonConvert.SerializeObject(parameters);
+                            paymentSystemBl.ChangePaymentRequestDetails(paymentRequest);
+                            var resp = clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Approved,
+                                               string.Empty, null, null, false, paymentRequest.Parameters, documentBl, notificationBl);
+                            clientBl.PayWithdrawFromPaymentSystem(resp, documentBl, notificationBl);
+
+                            // creating deposit request for reciver
+                            var receiverPaymentRequest = new PaymentRequest
+                            {
+                                Type = (int)PaymentRequestTypes.Deposit,
+                                Amount = amount,
+                                ClientId = toClient.Id,
+                                CurrencyId = toClient.CurrencyId,
+                                PaymentSystemId = partnerPaymentSetting.PaymentSystemId,
+                                PartnerPaymentSettingId = partnerPaymentSetting.Id,
+                                ExternalTransactionId = paymentRequest.Id.ToString(),
+                                Parameters = "{}",
+                                Info = "{}"
+                            };
+                            var receiverRequest = clientBl.CreateDepositFromPaymentSystem(receiverPaymentRequest, out LimitInfo info, false);
+                            paymentRequest.ExternalTransactionId = receiverRequest.Id.ToString();
+                            paymentSystemBl.ChangePaymentRequestDetails(paymentRequest);
+                            clientBl.ApproveDepositFromPaymentSystem(receiverRequest, false, "Approved");
+                            transactionScope.Complete();
+                            CacheManager.RemoveClientBalance(toClientId);
+                            CacheManager.RemoveClientBalance(fromClient.Id);
+                        }
+                    }
+                }
+                catch (FaultException<BllFnErrorType> ex)
+                {
+                    log.Error(ex);
+                    using (var clientBl = new ClientBll(session, log))
+                    using (var documentBl = new DocumentBll(clientBl))
+                    using (var notificationBl = new NotificationBll(clientBl))
+                        clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed, ex.Detail.Message,
+                                         null, null, false, paymentRequest.Parameters, documentBl, notificationBl);
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    log.Error(ex);
+                    using (var clientBl = new ClientBll(session, log))
+                    using (var documentBl = new DocumentBll(clientBl))
+                    using (var notificationBl = new NotificationBll(clientBl))
+
+                        clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed, ex.Message,
+                                                            null, null, false, paymentRequest.Parameters, documentBl, notificationBl);
+                    throw;
                 }
             }
         }

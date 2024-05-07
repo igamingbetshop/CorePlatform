@@ -16,6 +16,7 @@
         SignupCode = 12,
         SegmentChange = 13,
         CompPointSpend = 14,
-        DailyDeposit = 15
+        DailyDeposit = 15, 
+        FreeSpinWin = 16
     }
 }

@@ -7,13 +7,12 @@ namespace IqSoft.CP.AdminWebApi.Models.ContentModels
         public int Id { get; set; }
         public int PartnerId { get; set; }
         public int EnvironmentTypeId { get; set; }
+        public int? DeviceType { get; set; }
         public string NickName { get; set; }
         public int Type { get; set; }
         public int State { get; set; }
         public string ImageName { get; set; }
         public string ImageData { get; set; }
-        public string MobileImageName { get; set; }
-        public string MobileImageData { get; set; }
         public long TranslationId { get; set; }
         public int Order { get; set; }
         public string Page { get; set; }

@@ -15,9 +15,12 @@ using Newtonsoft.Json;
 using IqSoft.CP.BLL.Helpers;
 using IqSoft.CP.Common.Models.Products;
 using ProductCategory = IqSoft.CP.DAL.ProductCategory;
+using GameProvider = IqSoft.CP.DAL.GameProvider;
+using Product = IqSoft.CP.DAL.Product;
 using System.Threading.Tasks;
 using IqSoft.CP.Common.Models;
 using IqSoft.CP.Common.Models.AdminModels;
+using IqSoft.CP.DataWarehouse;
 
 namespace IqSoft.CP.BLL.Services
 {
@@ -39,7 +42,7 @@ namespace IqSoft.CP.BLL.Services
 
         #endregion
 
-        public Product SaveProduct(fnProduct product, string comment, FtpModel model, out List<int> partners)
+        public Product SaveProduct(fnProduct product, string comment, FtpModel model)
         {
             var checkPermissionResult = GetPermissionsToObject(new CheckPermissionInput
             {
@@ -63,7 +66,6 @@ namespace IqSoft.CP.BLL.Services
 
             if (dbProduct == null)
             {
-                partners = new List<int>();
                 var t = CreateTranslation(new fnTranslation
                 {
                     ObjectTypeId = (int)ObjectTypes.Product,
@@ -139,17 +141,53 @@ namespace IqSoft.CP.BLL.Services
                 dbProduct.CategoryId = product.CategoryId;
                 dbProduct.RTP = product.RTP;
                 dbProduct.LastUpdateTime = currentDate;
+
+                var partners = Db.Partners.Where(x => x.State == (int)PartnerStates.Active).Select(x => x.Id).ToList();
+
                 if (product.ProductCountrySettings == null || !product.ProductCountrySettings.Any())
+                {
+                    var settings = Db.ProductCountrySettings.Where(x => x.ProductId == product.Id).Select(x => x.Region.IsoCode).ToList();
                     Db.ProductCountrySettings.Where(x => x.ProductId == product.Id).DeleteFromQuery();
+                    foreach (var s in settings)
+                    {
+                        CacheManager.RemoveFromCache(string.Format("{0}_{1}", Constants.CacheItems.ProductCountrySetting, s));
+                        foreach (var p in partners)
+                        {
+                            CacheManager.RemoveFromCache(string.Format("{0}_{1}_{2}_{3}", Constants.CacheItems.PartnerProductSettingPages, p, s, (int)DeviceTypes.Desktop));
+                            CacheManager.RemoveFromCache(string.Format("{0}_{1}_{2}_{3}", Constants.CacheItems.PartnerProductSettingPages, p, s, (int)DeviceTypes.Mobile));
+                        }
+                    }
+                }
                 else
                 {
                     var type = product.ProductCountrySettings.First().Type;
                     var countries = product.ProductCountrySettings.Select(x => x.CountryId).ToList();
+                    var settings = Db.ProductCountrySettings.Where(x => x.ProductId == dbProduct.Id && (x.Type != type || !countries.Contains(x.CountryId))).Select(x => x.Region.IsoCode).ToList();
                     Db.ProductCountrySettings.Where(x => x.ProductId == dbProduct.Id && (x.Type != type || !countries.Contains(x.CountryId))).DeleteFromQuery();
+                    foreach (var s in settings)
+                    {
+                        CacheManager.RemoveFromCache(string.Format("{0}_{1}", Constants.CacheItems.ProductCountrySetting, s));
+                        foreach (var p in partners)
+                        {
+                            CacheManager.RemoveFromCache(string.Format("{0}_{1}_{2}_{3}", Constants.CacheItems.PartnerProductSettingPages, p, s, (int)DeviceTypes.Desktop));
+                            CacheManager.RemoveFromCache(string.Format("{0}_{1}_{2}_{3}", Constants.CacheItems.PartnerProductSettingPages, p, s, (int)DeviceTypes.Mobile));
+                        }
+                    }
                     var dbCountries = Db.ProductCountrySettings.Where(x => x.ProductId == dbProduct.Id).Select(x => x.CountryId).ToList();
                     countries.RemoveAll(x => dbCountries.Contains(x));
                     foreach (var c in countries)
+                    {
                         Db.ProductCountrySettings.Add(new ProductCountrySetting { ProductId = dbProduct.Id, CountryId = c, Type = type });
+                        var region = CacheManager.GetRegionById(c, Constants.DefaultLanguageId);
+                        {
+                            CacheManager.RemoveFromCache(string.Format("{0}_{1}", Constants.CacheItems.ProductCountrySetting, region.IsoCode));
+                            foreach (var p in partners)
+                            {
+                                CacheManager.RemoveFromCache(string.Format("{0}_{1}_{2}_{3}", Constants.CacheItems.PartnerProductSettingPages, p, region.IsoCode, (int)DeviceTypes.Desktop));
+                                CacheManager.RemoveFromCache(string.Format("{0}_{1}_{2}_{3}", Constants.CacheItems.PartnerProductSettingPages, p, region.IsoCode, (int)DeviceTypes.Mobile));
+                            }
+                        }
+                    }
                 }
                 SaveChangesWithHistory((int)ObjectTypes.Product, dbProduct.Id, JsonConvert.SerializeObject(oldValue), comment);
                 if (isParentChanged)
@@ -174,8 +212,7 @@ namespace IqSoft.CP.BLL.Services
                     Db.SaveChanges();
                 }
                 CacheManager.DeleteProductFromCache(dbProduct.Id);
-                partners = Db.PartnerProductSettings.Where(x => x.ProductId == dbProduct.Id && x.State == (int)ProductStates.Active)
-                                                    .Select(x => x.PartnerId).Distinct().ToList();
+
 
                 var provider = CacheManager.GetGameProviderById(dbProduct.SubproviderId ?? dbProduct.GameProviderId ?? 0);
 
@@ -207,8 +244,14 @@ namespace IqSoft.CP.BLL.Services
             if (state.HasValue && !Enum.IsDefined(typeof(ProductStates), state.Value))
                 throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
             if (productCountrySettings == null || !productCountrySettings.Any())
+            {
+                var settings = Db.ProductCountrySettings.Where(x => productIds.Contains(x.ProductId)).Select(x => x.Region.IsoCode).ToList();
                 Db.ProductCountrySettings.Where(x => productIds.Contains(x.ProductId)).DeleteFromQuery();
-
+                foreach (var s in settings)
+                {
+                    CacheManager.RemoveFromCache(string.Format("{0}_{1}", Constants.CacheItems.ProductCountrySetting, s));
+                }
+            }
 
             var dbProducts = Db.Products.Include(x => x.ProductCountrySettings).Where(x => productIds.Contains(x.Id)).ToList();
             foreach (var product in dbProducts)
@@ -216,15 +259,26 @@ namespace IqSoft.CP.BLL.Services
                 var oldValue = product.ToProductInfo(LanguageId);
                 if (state.HasValue)
                     product.State = state.Value;
+                
                 if (productCountrySettings != null && productCountrySettings.Any())
                 {
                     var type = productCountrySettings.First().Type;
                     var countries = productCountrySettings.Select(x => x.CountryId).ToList();
+
+                    var settings = Db.ProductCountrySettings.Where(x => x.ProductId == product.Id && (x.Type != type || !countries.Contains(x.CountryId))).Select(x => x.Region.IsoCode).ToList();
                     Db.ProductCountrySettings.Where(x => x.ProductId == product.Id && (x.Type != type || !countries.Contains(x.CountryId))).DeleteFromQuery();
+                    foreach (var s in settings)
+                    {
+                        CacheManager.RemoveFromCache(string.Format("{0}_{1}", Constants.CacheItems.ProductCountrySetting, s));
+                    }
                     var dbCountries = Db.ProductCountrySettings.Where(x => x.ProductId == product.Id).Select(x => x.CountryId).ToList();
                     countries.RemoveAll(x => dbCountries.Contains(x));
                     foreach (var c in countries)
+                    {
                         Db.ProductCountrySettings.Add(new ProductCountrySetting { ProductId = product.Id, CountryId = c, Type = type });
+                        var region = CacheManager.GetRegionById(c, Constants.DefaultLanguageId);
+                        CacheManager.RemoveFromCache(string.Format("{0}_{1}", Constants.CacheItems.ProductCountrySetting, region.IsoCode));
+                    }
                 }
                 SaveChangesWithHistory((int)ObjectTypes.Product, product.Id, JsonConvert.SerializeObject(oldValue), "Bulk edit");
                 CacheManager.DeleteProductFromCache(product.Id);
@@ -760,7 +814,7 @@ namespace IqSoft.CP.BLL.Services
                     }
                 }
 
-                SaveChanges();
+                Db.SaveChanges();
             }
             else
             {
@@ -774,7 +828,7 @@ namespace IqSoft.CP.BLL.Services
                     if (apiGameProvider.IsActive.HasValue)
                         x.IsActive = apiGameProvider.IsActive.Value;
                 });
-                SaveChanges();
+                Db.SaveChanges();
             }
             if (apiGameProvider.Id.HasValue && apiGameProvider.Id> 0)
                 CacheManager.RemoveGameProviderFromCache(apiGameProvider.Id.Value, apiGameProvider.Name);
@@ -785,7 +839,12 @@ namespace IqSoft.CP.BLL.Services
                     CacheManager.RemoveKeysFromCache(string.Format("{0}_{1}", Constants.CacheItems.GameProviders, x.Name));
                 });
 
-            CacheManager.RemoveKeysFromCache(string.Format("{0}_", Constants.CacheItems.RestrictedGameProviders));
+            var cs = Db.Currencies.Select(x => x.Id).ToList();
+            foreach(var c in cs)
+            {
+                CacheManager.RemoveFromCache(string.Format("{0}_{1}", Constants.CacheItems.RestrictedGameProviders, c));
+            }
+
             return dbGameProviders;
         }
 
@@ -1062,7 +1121,7 @@ namespace IqSoft.CP.BLL.Services
                     dbProd.NickName = product.NickName;
                     dbProd.IsForDesktop = product.IsForDesktop;
                     dbProd.IsForMobile = product.IsForMobile;
-                    dbProd.SubproviderId = product.SubproviderId;
+                    dbProd.SubproviderId = product.SubproviderId ?? product.GameProviderId;
                     dbProd.HasDemo = product.HasDemo;
                     dbProd.LastUpdateTime = currentDate;
                     dbProd.Lines = product.Lines;
@@ -1109,9 +1168,18 @@ namespace IqSoft.CP.BLL.Services
             try
             {
                 if (removableCountrySettingIds.Any())
+                {
+                    var settings = Db.ProductCountrySettings.Where(x => removableCountrySettingIds.Any(y => y == x.Id)).Select(x => x.Region.IsoCode).ToList();
                     Db.ProductCountrySettings.Where(x => removableCountrySettingIds.Any(y => y == x.Id)).DeleteFromQuery();
+                    foreach(var s in settings)
+                    {
+                        CacheManager.RemoveFromCache(string.Format("{0}_{1}", Constants.CacheItems.ProductCountrySetting, s));
+                    }
+                }
                 if (insertableCountrySettings.Any())
+                {
                     Db.ProductCountrySettings.AddRange(insertableCountrySettings);
+                }
             }
             catch (Exception e)
             {
@@ -1152,7 +1220,7 @@ namespace IqSoft.CP.BLL.Services
                             Level = parent.Level + 1,
                             IsForDesktop = product.IsForDesktop,
                             IsForMobile = product.IsForMobile,
-                            SubproviderId = product.SubproviderId,
+                            SubproviderId = product.SubproviderId ?? product.GameProviderId,
                             HasDemo = product.HasDemo,
                             WebImageUrl = product.WebImageUrl,
                             MobileImageUrl = product.MobileImageUrl,
@@ -1186,8 +1254,8 @@ namespace IqSoft.CP.BLL.Services
                 }
             };
 
-            var updatingItems = allProducts.Where(x => !resp.Contains(x.Id) && x.Id != Constants.SportsbookProductId &&
-            x.ExternalId != "lobby" && (x.GameProvider.Name != Constants.GameProviders.EveryMatrix || !x.ExternalId.Contains("sport")) 
+            var updatingItems = allProducts.Where(x => !resp.Contains(x.Id) && x.Id != Constants.SportsbookProductId && x.ExternalId != "pregame" &&
+			x.ExternalId != "lobby" && (x.GameProvider.Name != Constants.GameProviders.EveryMatrix || !x.ExternalId.Contains("sport")) 
                                     && x.GameProvider.Name != Constants.GameProviders.VisionaryiGaming).ToList();
             Parallel.ForEach(updatingItems, i => { i.LastUpdateTime = currentDate; i.State = (int)ProductStates.DisabledByProvider; }) ; 
             Db.SaveChanges();
@@ -1220,6 +1288,7 @@ namespace IqSoft.CP.BLL.Services
             {
                 gameProviderSetting.Id = dbGameProviderSetting.Id;
                 dbGameProviderSetting.State = gameProviderSetting.State;
+                dbGameProviderSetting.Order = gameProviderSetting.Order;
                 dbGameProviderSetting.LastUpdateTime = currentDate;
             }
             Db.SaveChanges();

@@ -14,6 +14,7 @@ namespace IqSoft.CP.DAL.Filters
         public FiltersOperation Types { get; set; }
         public FiltersOperation Orders { get; set; }
         public FiltersOperation Pages { get; set; }
+        public FiltersOperation DeviceTypes { get; set; }
         public FiltersOperation StartDates { get; set; }
         public FiltersOperation FinishDates { get; set; }
         public FiltersOperation CreationTimes { get; set; }
@@ -31,6 +32,7 @@ namespace IqSoft.CP.DAL.Filters
             FilterByValue(ref objects, Types, "Type");
             FilterByValue(ref objects, Orders, "Order");
             FilterByValue(ref objects, Pages, "Page");
+            FilterByValue(ref objects, DeviceTypes, "DeviceType");
             FilterByValue(ref objects, StartDates, "StartDate");
             FilterByValue(ref objects, FinishDates, "FinishDate");
             FilterByValue(ref objects, CreationTimes, "CreationTime");

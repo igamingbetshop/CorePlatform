@@ -51,7 +51,7 @@ namespace IqSoft.CP.AdminWebApi.Controllers
                 var siteUrl = HttpContext.Current?.Request?.Headers?.Get("Origin");
                 if (!string.IsNullOrEmpty(siteUrl))
                     siteUrl = siteUrl.Replace("http://", string.Empty).Replace("https://", string.Empty);
-                var userIp = string.IsNullOrEmpty(ip) ? "127.0.0.1" : ip;
+                var userIp = string.IsNullOrEmpty(ip) ? Constants.DefaultIp : ip;
                 var input = JsonConvert.DeserializeObject<LoginDetails>(CommonFunctions.RSADecrypt(inp.Data));
                 action.Domain = siteUrl;
                 action.Country = ipCountry;
@@ -81,7 +81,8 @@ namespace IqSoft.CP.AdminWebApi.Controllers
                             loginResult.UserLogin = user.UserName;
                             loginResult.UserName = string.Format("{0} {1}", user.FirstName, user.LastName);
                             var userPermissions = CacheManager.GetUserPermissions(userIdentity.Id);
-                            loginResult.AdminMenu = contentBl.GetAdminMenus(userPermissions.Select(x => x.PermissionId).ToList(), userPermissions.Any(x => x.IsAdmin)).ToList();
+                            loginResult.AdminMenu = contentBl.GetAdminMenus(userPermissions.Select(x => x.PermissionId).ToList(), 
+                                userPermissions.Any(x => x.IsAdmin), (int)InterfaceTypes.Admin).ToList();
                         }
                     }
                 }
