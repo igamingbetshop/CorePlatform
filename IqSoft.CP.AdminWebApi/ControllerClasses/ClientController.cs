@@ -248,6 +248,8 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     return RemoveClientExclusion(JsonConvert.DeserializeObject<ApiExlusionModel>(request.RequestData), true, identity, log);
                 case "CheckClientExternalStatus":
                     return CheckClientExternalStatus(Convert.ToInt32(request.RequestData), identity, log);
+                case "GetClientSegments":
+                    return GetClientSegments(Convert.ToInt32(request.RequestData), identity, log);
                 case "GetSegmentClients":
                     return GetSegmentClients(JsonConvert.DeserializeObject<ApiFilterfnSegmentClient>(request.RequestData), identity, log);
                 case "ExportSegmentClients":
@@ -370,7 +372,6 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
 
         private static ApiResponseBase ChangeClientDetails(ChangeClientDetailsInput request, SessionIdentity identity, ILog log)
         {
-            bool isBonusAccepted = false;
             bool isSessionExpired = false;
 
             using (var clientBl = new ClientBll(identity, log))
@@ -384,15 +385,10 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     AffiliateId = request.AffiliateId ?? dbClient.AffiliateReferral?.AffiliateId,
                     RefId = request.RefId?? dbClient.AffiliateReferral?.RefId
                 };
-                clientBl.ChangeClientDetails(request.MapToClient(dbClient), affModel, out isBonusAccepted, out isSessionExpired, request.ReferralType);
+                clientBl.ChangeClientDetails(request.MapToClient(dbClient), affModel, out isSessionExpired, request.ReferralType);
             }
             CacheManager.RemoveClientFromCache(request.Id);
             Helpers.Helpers.InvokeMessage("RemoveClient", request.Id);
-            if (isBonusAccepted)
-            {
-                CacheManager.RemoveClientBalance(request.Id);
-                Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}", Constants.CacheItems.ClientBalance, request.Id));
-            }
             if (isSessionExpired)
                 Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}", Constants.CacheItems.ClientSessions, request.Id));
 
@@ -1509,6 +1505,17 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     }
                 }
                 return new ApiResponseBase();
+            }
+        }
+
+        private static ApiResponseBase GetClientSegments(int clientId, SessionIdentity identity, ILog log)
+        {
+            using (var clientBl = new ClientBll(identity, log))
+            {
+                return new ApiResponseBase
+                {
+                    ResponseObject = clientBl.GetClientSegments(clientId)
+                };
             }
         }
 

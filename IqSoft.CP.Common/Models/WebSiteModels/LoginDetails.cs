@@ -12,5 +12,6 @@
         public string USSDPin { get; set; }
         public string RefreshToken { get; set; }
         public string MobileNumber { get; set; }
+        public bool IAmAgent { get; set; }
     }
 }

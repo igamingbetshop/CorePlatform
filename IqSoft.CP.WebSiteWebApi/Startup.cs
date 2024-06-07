@@ -150,6 +150,10 @@ namespace IqSoft.CP.WebSiteWebApi
             {
                 Task.Run(() => BroadcastService.BroadcastPopup(data));
             });
+            _adminHubProxy.On<ApiWin>("BroadcastBalance", (data) =>
+            {
+                Task.Run(() => BroadcastService.BroadcastBalance(data.ClientId, data.ApiBalance));
+            });
 
             _productGatewayHubProxy.On<ApiWin>("BroadcastWin", (data) =>
             {
@@ -157,6 +161,7 @@ namespace IqSoft.CP.WebSiteWebApi
                 {
                     GameName = data.GameName,
                     ClientName = data.ClientName,
+                    BetAmount = data.BetAmount,
                     Amount = data.Amount,
                     CurrencyId = data.CurrencyId,
                     ProductId = data.ProductId,

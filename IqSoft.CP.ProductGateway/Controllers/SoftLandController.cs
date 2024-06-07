@@ -102,7 +102,6 @@ namespace IqSoft.CP.ProductGateway.Controllers
 							CurrencyId = client.CurrencyId,
 							RoundId = input.RoundId,
 							GameProviderId = providerId,
-							ExternalOperationId = null,
 							ExternalProductId = input.GameId.ToString(),
 							TransactionId = input.TransactionId.ToString(),
 							OperationItems = new List<OperationItemFromProduct>
@@ -234,7 +233,8 @@ namespace IqSoft.CP.ProductGateway.Controllers
 								GameName = product.NickName,
 								ClientId = client.Id,
 								ClientName = client.FirstName,
-								Amount = amount,
+                                BetAmount = betDocument?.Amount,
+                                Amount = amount,
 								CurrencyId = client.CurrencyId,
 								PartnerId = client.PartnerId,
 								ProductId = product.Id,
@@ -295,7 +295,6 @@ namespace IqSoft.CP.ProductGateway.Controllers
 					GameProviderId = providerId,
 					ExternalProductId = input.GameId.ToString(),
 					TransactionId = input.RoundOperations.FirstOrDefault().TransactionId.ToString(),
-					ExternalOperationId = null,
 					Info = inputString
 				};
 				using (var documentBl = new DocumentBll(new SessionIdentity(), WebApiApplication.DbLogger))

@@ -53,7 +53,6 @@ namespace IqSoft.CP.BLL.Services
                 ExternalTransactionId = operation.ExternalTransactionId,
                 Amount = operation.Amount,
                 CurrencyId = operation.CurrencyId,
-                ExternalOperationId = operation.ExternalOperationId,
                 TicketNumber = operation.TicketNumber,
                 TicketInfo = operation.TicketInfo,
                 CashDeskId = operation.CashDeskId,
@@ -91,17 +90,31 @@ namespace IqSoft.CP.BLL.Services
 
             bool isFromBonusBalance = false;
             decimal totalBonusAmount = 0;
+
+            long? accountId = null;
+            bool sameAccount = true;
             foreach (var operationItem in creditTrans)
             {
                 var transactions = CreateCreditTransaction(operationItem, (operation.BonusId.HasValue && operation.BonusId.Value > 0),
                     operation.FreezeBonusBalance ?? false, false, out bool fromBonusBalance, out decimal bonusAmount);
-                transactions.ForEach(x => document.Transactions.Add(x));
+                
+                foreach(var t in transactions)
+                {
+                    document.Transactions.Add(t);
+                    if (accountId == null)
+                        accountId = t.AccountId;
+                    else if (accountId != t.AccountId)
+                        sameAccount = false;
+                }
                 if (fromBonusBalance)
                 {
                     isFromBonusBalance = true;
                     totalBonusAmount += bonusAmount;
                 }
             }
+            if(sameAccount)
+                document.ExternalOperationId = accountId;
+
             if (isFromBonusBalance)
                 document.Info = JsonConvert.SerializeObject(new DocumentInfo
                 {
@@ -312,7 +325,8 @@ namespace IqSoft.CP.BLL.Services
 
         private Transaction CreateDebitTransaction(OperationItem operationItem)
         {
-            bool willBalanceChange = (operationItem.ObjectTypeId != (int)ObjectTypes.Partner && operationItem.ObjectTypeId != (int)ObjectTypes.PartnerProduct);
+            bool willBalanceChange = (operationItem.ObjectTypeId != (int)ObjectTypes.Partner && 
+                operationItem.ObjectTypeId != (int)ObjectTypes.PartnerProduct);
             Account account = null;
             if (operationItem.AccountId.HasValue)
             {
@@ -1152,6 +1166,67 @@ namespace IqSoft.CP.BLL.Services
                     }
                 }
                 resultList.Add(clientBonus);
+            }
+            Db.SaveChanges();
+            return resultList;
+        }
+
+        public List<int> CloseTournaments()
+        {
+            var currentTime = DateTime.UtcNow;
+            var resultList = new List<int>();
+            var tournaments = Db.Bonus.Where(x => x.Type == (int)BonusTypes.Tournament && 
+                x.Status == (int)ClientBonusStatuses.Active && x.FinishTime < currentTime).Take(100).ToList();
+            var currencies = Db.Currencies.ToDictionary(x => x.Id, x => x.CurrentRate);
+            foreach (var tournament in tournaments)
+            {
+                tournament.Status = (int)BonusStatuses.Closed;
+                CacheManager.RemoveGetTournamentLeaderboard(tournament.Id);
+                var leaderboard = CacheManager.GetTournamentLeaderboard(tournament.Id);
+                var percents = tournament.Info.Split(',').Select(x => Convert.ToDecimal(x)).ToList();
+                var finalAmount = tournament.MinAmount != null ? tournament.MinAmount.Value : 
+                    Math.Round(leaderboard.Sum(x => x.Points) * (tournament.Percent ?? 0) / 100, 2);
+                tournament.MinAmount = finalAmount;
+                var partner = CacheManager.GetPartnerById(tournament.PartnerId);
+
+                for (int i = 0; i < percents.Count; i++)
+                {
+                    var clientAmount = Math.Round(ConvertCurrency(partner.CurrencyId, leaderboard[i].CurrencyId, finalAmount * percents[i] / 100), 2);
+                    var client = Db.Clients.Include(x => x.Partner).FirstOrDefault(x => x.Id == leaderboard[i].Id);
+
+                    var input = new Operation
+                    {
+                        Amount = clientAmount,
+                        CurrencyId = client.CurrencyId,
+                        Type = (int)OperationTypes.BonusWin,
+                        ClientId = client.Id,
+                        OperationItems = new List<OperationItem>()
+
+                    };
+                    input.OperationItems.Add(new OperationItem
+                    {
+                        AccountTypeId = (int)AccountTypes.PartnerBalance,
+                        ObjectId = client.PartnerId,
+                        ObjectTypeId = (int)ObjectTypes.Partner,
+                        Amount = clientAmount,
+                        CurrencyId = client.CurrencyId,
+                        Type = (int)TransactionTypes.Credit,
+                        OperationTypeId = (int)OperationTypes.BonusWin
+                    });
+                    input.OperationItems.Add(new OperationItem
+                    {
+                        AccountTypeId = (int)AccountTypes.ClientUnusedBalance,
+                        ObjectId = client.Id,
+                        ObjectTypeId = (int)ObjectTypes.Client,
+                        Amount = clientAmount,
+                        CurrencyId = client.CurrencyId,
+                        Type = (int)TransactionTypes.Debit,
+                        OperationTypeId = (int)OperationTypes.BonusWin
+                    });
+                    var document = CreateDocument(input);
+
+                    resultList.Add(client.Id);
+                }
             }
             Db.SaveChanges();
             return resultList;

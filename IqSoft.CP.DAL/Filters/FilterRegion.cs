@@ -13,12 +13,17 @@ namespace IqSoft.CP.DAL.Filters
 
         public int? State { get; set; }
 
-        protected override IQueryable<fnRegion> CreateQuery(IQueryable<fnRegion> objects, Func<IQueryable<fnRegion>, IOrderedQueryable<fnRegion>> orderBy = null)
+        protected override IQueryable<fnRegion> CreateQuery(IQueryable<fnRegion> objects, Func<IQueryable<fnRegion>, 
+            IOrderedQueryable<fnRegion>> orderBy = null)
         {
             if (Id.HasValue)
                 objects = objects.Where(x => x.Id == Id);
+            
             if (ParentId.HasValue)
                 objects = objects.Where(x => x.ParentId == ParentId);
+            else if (!TypeId.HasValue)
+                objects = objects.Where(x => x.ParentId == null);
+
             if (TypeId.HasValue)
                 objects = objects.Where(x => x.TypeId == TypeId);
             if (State.HasValue)
@@ -27,7 +32,8 @@ namespace IqSoft.CP.DAL.Filters
             return base.FilteredObjects(objects, orderBy);
         }
 
-        public IQueryable<fnRegion> FilterObjects(IQueryable<fnRegion> fnRegions, Func<IQueryable<fnRegion>, IOrderedQueryable<fnRegion>> orderBy = null)
+        public IQueryable<fnRegion> FilterObjects(IQueryable<fnRegion> fnRegions, Func<IQueryable<fnRegion>, 
+            IOrderedQueryable<fnRegion>> orderBy = null)
         {
             fnRegions = CreateQuery(fnRegions, orderBy);
             return fnRegions;

@@ -653,6 +653,7 @@ namespace IqSoft.CP.Common
             public const int Bingo37 = 1001;
             public const int Colors = 1002;
             public const int Bingo48 = 1003;
+            public const int SpinAndWin = 1022; 
         }
 
         public static Dictionary<int, string> GamesExternalIds = new Dictionary<int, string>
@@ -1019,8 +1020,6 @@ namespace IqSoft.CP.Common
         {
             public const int CloseAccountPeriod = 1;
             public const int AddMoneyToPartnerAccount = 2;
-            public const int SendUnsendedPaymentRequests = 3;
-            public const int CheckNotPayedPaymentRequestStatesInPaymentSystem = 4;
             public const int ExpireUserSessions = 5;
             public const int ResetBetShopLimits = 6;
             public const int ResetBetShopDailyTicketNumber = 7;

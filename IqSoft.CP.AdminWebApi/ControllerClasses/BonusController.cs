@@ -346,15 +346,14 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                         throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.WrongInputParameters);
                     input.Condition = apiTriggerSetting.Sequence;
                 }
-                else if(apiTriggerSetting.Type == (int)TriggerTypes.ManualEvent && apiTriggerSetting.Activate.HasValue)
+                else if (apiTriggerSetting.Type == (int)TriggerTypes.ManualEvent && apiTriggerSetting.Activate.HasValue)
                 {
                     input.Condition = apiTriggerSetting.Activate.Value ? ((int)ManualEvenStatuses.Accepted).ToString() : ((int)ManualEvenStatuses.Rejected).ToString();
                 }
-                else if(apiTriggerSetting.Type == (int)TriggerTypes.DailyDeposit)
+                else if (apiTriggerSetting.Type == (int)TriggerTypes.DailyDeposit)
                 {
                     input.UpToAmount = apiTriggerSetting.Amount;
                 }
-
                 var resp = bonusBl.SaveTriggerSetting(input, apiTriggerSetting.Activate);
                 CacheManager.RemoveTriggerSetting(resp.Id);
                 Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}", Constants.CacheItems.TriggerSettings, resp.Id));

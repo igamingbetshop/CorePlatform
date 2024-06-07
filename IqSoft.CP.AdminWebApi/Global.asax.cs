@@ -9,6 +9,7 @@ using IqSoft.CP.BLL.Caching;
 using System;
 using IqSoft.CP.Common.Models.Enums;
 using IqSoft.CP.AdminWebApi.Hubs;
+using IqSoft.CP.Common.Models.WebSiteModels;
 
 namespace IqSoft.CP.AdminWebApi
 {
@@ -67,6 +68,10 @@ namespace IqSoft.CP.AdminWebApi
             JobHubProxy.On<int>("onPaymentRequst", (paymentRequestId) =>
             {               
                 BaseHub.PaymentRequst(paymentRequestId);
+            });
+            JobHubProxy.On<ApiWin>("BroadcastBalance", (balance) =>
+            {
+                WebSiteHub.BroadcastBalance(balance);
             });
 
             Timer = new Timer(Reconnect, null, 5000, 5000);

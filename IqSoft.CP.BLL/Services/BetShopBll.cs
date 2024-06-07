@@ -1160,7 +1160,6 @@ namespace IqSoft.CP.BLL.Services
                     UserId = correction.CashierId,
                     Amount = correction.Amount,
                     CurrencyId = correction.CurrencyId,
-                    ExternalOperationId = correction.ExternalOperationId,
                     ExternalTransactionId = correction.ExternalTransactionId,
                     OperationItems = new List<OperationItem>()
                 };
@@ -1218,7 +1217,6 @@ namespace IqSoft.CP.BLL.Services
                     UserId = correction.CashierId,
                     Amount = correction.Amount,
                     CurrencyId = correction.CurrencyId,
-                    ExternalOperationId = correction.ExternalOperationId,
                     ExternalTransactionId = correction.ExternalTransactionId,
                     OperationItems = new List<OperationItem>()
                 };
@@ -1302,7 +1300,6 @@ namespace IqSoft.CP.BLL.Services
                         PossibleWin = operationItemFromProduct.PossibleWin,
                         TypeId = transactions.TypeId,
                         ExternalTransactionId = transactions.TransactionId,
-                        ExternalOperationId = transactions.ExternalOperationId,
                         Info = transactions.Info,
                         OperationTypeId = operationTypeId
                     };
@@ -1359,7 +1356,6 @@ namespace IqSoft.CP.BLL.Services
 				UserId = transaction.ClientId,
 				Type = transaction.OperationTypeId,
 				ExternalTransactionId = transaction.ExternalTransactionId,
-				ExternalOperationId = transaction.ExternalOperationId,
 				TicketNumber = ticketNumber,
 				GameProviderId = transaction.GameProviderId,
 				PartnerProductId = transaction.PartnerProductId,
@@ -1622,7 +1618,6 @@ namespace IqSoft.CP.BLL.Services
 						ProductId = product.Id,
 						RoundId = transactions.RoundId,
 						ExternalTransactionId = transactions.TransactionId,
-						ExternalOperationId = transactions.ExternalOperationId,
 						Info = transactions.Info
 					};
 					response.Documents.Add(CreateWinToBetShop(clientOperation, documentBl));
@@ -1650,7 +1645,6 @@ namespace IqSoft.CP.BLL.Services
 				CurrencyId = transaction.CurrencyId,
 				Type = transaction.OperationTypeId,
 				ExternalTransactionId = transaction.ExternalTransactionId,
-				ExternalOperationId = transaction.ExternalOperationId,
 				CashDeskId = transaction.CashDeskId,
 				ParentId = transaction.ParentDocumentId,
 				ProductId = transaction.ProductId,

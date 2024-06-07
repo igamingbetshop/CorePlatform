@@ -10,13 +10,13 @@ namespace IqSoft.CP.DAL.Filters
         public int? PartnerId { get; set; }
         public int? State { get; set; }
         public bool? HasImages { get; set; }
+        public bool? IsForMobile { get; set; }
+        public bool? IsForDesktop { get; set; }
+        public bool? HasDemo { get; set; }
         public List<int> ProductSettingIds { get; set; }
         public int? ProviderId { get; set; }
         public int? ProductId { get; set; }
         public string CategoryIds { get; set; }
-        public FiltersOperation IsForMobile { get; set; }
-        public FiltersOperation IsForDesktop { get; set; }
-        public FiltersOperation HasDemo { get; set; }
         public FiltersOperation ProductIsLeaf { get; set; }
         public FiltersOperation Ids { get; set; }
         public FiltersOperation ProductIds { get; set; }
@@ -49,6 +49,13 @@ namespace IqSoft.CP.DAL.Filters
                 objects = objects.Where(x => ProductSettingIds.Contains(x.Id));
             if(HasImages.HasValue)
                 objects = objects.Where(x => x.HasImages == HasImages);
+            if (HasDemo.HasValue)
+                objects = objects.Where(x => x.HasDemo == HasDemo);
+            if (IsForDesktop.HasValue)
+                objects = objects.Where(x => x.IsForDesktop == IsForDesktop);
+            if (IsForMobile.HasValue)
+                objects = objects.Where(x => x.IsForMobile == IsForMobile);
+
             if (!string.IsNullOrEmpty(CategoryIds))
                 objects = objects.Where(x => x.CategoryIds.Contains("[" + CategoryIds + "]") || x.CategoryIds.Contains("," + CategoryIds + ",") ||
                                              x.CategoryIds.Contains("[" + CategoryIds + ",") || x.CategoryIds.Contains("," + CategoryIds + "]"));
@@ -56,8 +63,6 @@ namespace IqSoft.CP.DAL.Filters
             FilterByValue(ref objects, ProductIds, "ProductId");
             FilterByValue(ref objects, States, "State");
             FilterByValue(ref objects, OpenModes, "OpenMode");
-            FilterByValue(ref objects, IsForMobile, "IsForMobile");
-            FilterByValue(ref objects, IsForDesktop, "IsForDesktop");
             FilterByValue(ref objects, ProductIsLeaf, "ProductIsLeaf");
             FilterByValue(ref objects, Ratings, "Rating");
             FilterByValue(ref objects, RTPs, "RTP");
@@ -71,7 +76,6 @@ namespace IqSoft.CP.DAL.Filters
             FilterByValue(ref objects, ProductParents, "ProductParentId");
             FilterByValue(ref objects, Percents, "Percent");
             FilterByValue(ref objects, Jackpots, "Jackpot");
-            FilterByValue(ref objects, HasDemo, "HasDemo");
 
             return base.FilteredObjects(objects, orderBy);
         }

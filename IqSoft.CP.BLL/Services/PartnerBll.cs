@@ -253,6 +253,19 @@ namespace IqSoft.CP.BLL.Services
             return Db.PartnerKeys.Where(x => x.Name == nickName && x.PartnerId == partnerId).FirstOrDefault();
         }
 
+        public PartnerKey UpdatePartnerKey(PartnerKey input)
+        {
+            var key = Db.PartnerKeys.Where(x => x.Id == input.Id).FirstOrDefault();
+            if(key != null)
+            {
+                key.StringValue = input.StringValue;
+                key.NumericValue = input.NumericValue;
+                key.DateValue = input.DateValue;
+                Db.SaveChanges();
+            }
+            return key;
+        }
+
         public bool IsPartnerIdExists(int partnerId)
         {
             CheckPermission(Constants.Permissions.CreatePartner);
@@ -430,7 +443,7 @@ namespace IqSoft.CP.BLL.Services
 
         #region PartnerDocument
         // BetShop pay amount to partner or vice versa
-        public BetShopReconing PayBetShopDebt(int betShopId, decimal amount, string currencyId, long? externalOperationId)
+        public BetShopReconing PayBetShopDebt(int betShopId, decimal amount, string currencyId)
         {
             CheckPermission(Constants.Permissions.PayBetShopDebt);
             using (var betShopBl = new BetShopBll(this))
@@ -448,7 +461,6 @@ namespace IqSoft.CP.BLL.Services
                             Amount = operationAmount,
                             CurrencyId = currencyId,
                             Type = (int)OperationTypes.PayBetShopDebt,
-                            ExternalOperationId = externalOperationId,
                             OperationItems = new List<OperationItem>()
                         };
                         var betShopAcc = documentBl.GetOrCreateAccount(betShopId, (int)ObjectTypes.BetShop, betShop.CurrencyId,

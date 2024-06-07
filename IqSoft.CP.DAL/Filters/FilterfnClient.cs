@@ -7,17 +7,15 @@ namespace IqSoft.CP.DAL.Filters
     public class FilterfnClient : FilterBase<fnClient>
     {
         public int? PartnerId { get; set; }
-
-        public int? AgentId { get; set; }
-        
+        public int? AgentId { get; set; }        
         public int? AffiliateId { get; set; }
-
         public string RefId { get; set; }
+        public bool? IsDocumentVerified { get; set; }
+        public string UnderMonitoringTypes { get; set; }
 
         public DateTime? CreatedFrom { get; set; }
 
         public DateTime? CreatedBefore { get; set; }
-        public string UnderMonitoringTypes { get; set; }
 
         public FiltersOperation Ids { get; set; }
 
@@ -52,8 +50,6 @@ namespace IqSoft.CP.DAL.Filters
         public FiltersOperation ZipCodes { get; set; }
         
         public FiltersOperation Cities { get; set; }
-
-        public FiltersOperation IsDocumentVerifieds { get; set; }
 
         public FiltersOperation PhoneNumbers { get; set; }
 
@@ -111,7 +107,8 @@ namespace IqSoft.CP.DAL.Filters
                 objects = objects.Where(x => x.CreationTime < CreatedBefore.Value);
             if (!string.IsNullOrEmpty(UnderMonitoringTypes))
                 objects = objects.Where(x => x.UnderMonitoringTypes.Contains(UnderMonitoringTypes ));
-
+            if(IsDocumentVerified.HasValue)
+                objects = objects.Where(x => x.IsDocumentVerified == IsDocumentVerified);
 
             FilterByValue(ref objects, Ids, "Id");
             FilterByValue(ref objects, Emails, "Email");
@@ -129,7 +126,6 @@ namespace IqSoft.CP.DAL.Filters
             FilterByValue(ref objects, MobileNumbers, "MobileNumber");
             FilterByValue(ref objects, ZipCodes, "ZipCode");
             FilterByValue(ref objects, Cities, "City");
-            FilterByValue(ref objects, IsDocumentVerifieds, "IsDocumentVerified");
             FilterByValue(ref objects, PhoneNumbers, "PhoneNumber");
             FilterByValue(ref objects, RegionIds, "RegionId");
             FilterByValue(ref objects, CountryIds, "CountryId");

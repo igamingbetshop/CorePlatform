@@ -9,7 +9,7 @@ namespace IqSoft.CP.BLL.Interfaces
 {
     public interface IUserBll : IBaseBll
     {
-        SessionIdentity LoginUser(LoginUserInput loginInput, out string imageData);
+        SessionIdentity LoginUser(LoginInput loginInput, out string imageData);
 
         void LogoutUser(string token);
 

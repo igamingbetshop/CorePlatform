@@ -19,7 +19,6 @@ namespace IqSoft.CP.AdminWebApi.Models.ReportModels.Internet
         public int? PartnerProductId { get; set; }
         public int? GameProviderId { get; set; }
         public int? ClientId { get; set; }
-        public long? ExternalOperationId { get; set; }
         public long? TicketNumber { get; set; }
         public string TicketInfo { get; set; }
         public int? UserId { get; set; }

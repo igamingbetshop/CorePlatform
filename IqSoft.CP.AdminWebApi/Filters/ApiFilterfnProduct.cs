@@ -7,7 +7,8 @@
         public int? BonusId { get; set; }
         public string Pattern { get; set; }
         public bool? IsProviderActive { get; set; }
-
+        public bool? IsForMobile { get; set; }
+        public bool? IsForDesktop { get; set; }
         public ApiFiltersOperation Ids { get; set; }
 
         public ApiFiltersOperation Names { get; set; }
@@ -21,10 +22,6 @@
         public ApiFiltersOperation GameProviderIds { get; set; }
 
         public ApiFiltersOperation SubProviderIds { get; set; }
-
-        public ApiFiltersOperation IsForDesktops { get; set; }
-
-        public ApiFiltersOperation IsForMobiles { get; set; }
         
         public ApiFiltersOperation FreeSpinSupports { get; set; }
         

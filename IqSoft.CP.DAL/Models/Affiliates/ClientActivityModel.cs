@@ -6,6 +6,7 @@
         public int CustomerId { get; set; }
         public string CurrencyId { get; set; }
         public string BTag { get; set; }
+        public string AffiliateId { get; set; }
         public int Category { get; set; }
         public string ActivityDate { get; set; }
 

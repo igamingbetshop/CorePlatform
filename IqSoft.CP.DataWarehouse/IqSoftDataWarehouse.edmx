@@ -216,17 +216,6 @@
           <Property Name="ReuseNumber" Type="bigint" />
           <Property Name="Considered" Type="bit" />
         </EntityType>
-        <EntityType Name="ClientMatchHistory">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
-          <Property Name="DuplicateId" Type="bigint" Nullable="false" />
-          <Property Name="MatchedData" Type="nvarchar" MaxLength="500" Nullable="false" />
-          <Property Name="CreationDate" Type="datetime2" Precision="3" Nullable="false" />
-          <Property Name="LastUpdateDate" Type="datetime2" Precision="3" Nullable="false" />
-          <Property Name="MatchDate" Type="bigint" Nullable="false" />
-        </EntityType>
         <EntityType Name="ClientSession">
           <Key>
             <PropertyRef Name="Id" />
@@ -307,8 +296,19 @@
           </Key>
           <Property Name="Id" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="ClientId" Type="int" Nullable="false" />
-          <Property Name="MatchedClientId" Type="int" Nullable="false" />
-          <Property Name="MatchDate" Type="datetime2" Precision="3" Nullable="false" />
+          <Property Name="DuplicatedClientId" Type="int" Nullable="false" />
+          <Property Name="CreationTime" Type="datetime2" Precision="3" Nullable="false" />
+        </EntityType>
+        <EntityType Name="DuplicatedClientHistory">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="DuplicateId" Type="bigint" Nullable="false" />
+          <Property Name="DuplicatedData" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="CreationTime" Type="datetime2" Precision="3" Nullable="false" />
+          <Property Name="LastUpdateTime" Type="datetime2" Precision="3" Nullable="false" />
+          <Property Name="CreationDate" Type="bigint" Nullable="false" />
         </EntityType>
         <EntityType Name="GameProvider">
           <Key>
@@ -342,6 +342,7 @@
           <Property Name="TotalCreditCorrectionAmount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
           <Property Name="TotalCreditCorrectionCount" Type="int" Nullable="false" />
           <Property Name="ComplementaryBalance" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+          <Property Name="TotalBonusAmount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
         </EntityType>
         <EntityType Name="Gtd_Dashboard_Info">
           <Key>
@@ -445,6 +446,14 @@
           <Property Name="FunctionName" Type="varchar" MaxLength="50" Nullable="false" />
           <Property Name="Date" Type="bigint" Nullable="false" />
           <Property Name="ClientId" Type="int" />
+        </EntityType>
+        <EntityType Name="Opt_Document_Considered">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="DocumentId" Type="bigint" Nullable="false" />
+          <Property Name="Date" Type="bigint" Nullable="false" />
         </EntityType>
         <EntityType Name="Partner">
           <Key>
@@ -585,39 +594,15 @@
           <Property Name="LoginByNickName" Type="bit" />
           <Property Name="Phone" Type="varchar" MaxLength="50" />
         </EntityType>
-        <Association Name="FK_ClientMatchHistory_DuplicatedClient">
+        <Association Name="FK_DuplicatedClientHistory_DuplicatedClient">
           <End Role="DuplicatedClient" Type="Self.DuplicatedClient" Multiplicity="1" />
-          <End Role="ClientMatchHistory" Type="Self.ClientMatchHistory" Multiplicity="*" />
+          <End Role="DuplicatedClientHistory" Type="Self.DuplicatedClientHistory" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="DuplicatedClient">
               <PropertyRef Name="Id" />
             </Principal>
-            <Dependent Role="ClientMatchHistory">
+            <Dependent Role="DuplicatedClientHistory">
               <PropertyRef Name="DuplicateId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_DuplicatedClient_Client">
-          <End Role="Client" Type="Self.Client" Multiplicity="1" />
-          <End Role="DuplicatedClient" Type="Self.DuplicatedClient" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Client">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="DuplicatedClient">
-              <PropertyRef Name="ClientId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_DuplicatedClient_MatchedClient">
-          <End Role="Client" Type="Self.Client" Multiplicity="1" />
-          <End Role="DuplicatedClient" Type="Self.DuplicatedClient" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Client">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="DuplicatedClient">
-              <PropertyRef Name="MatchedClientId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -632,6 +617,33 @@
                 <Property Name="ClientId" Type="int" Nullable="false" />
                 <Property Name="TotalBetAmount" Type="decimal" Precision="38" Scale="16" />
                 <Property Name="TotalWinAmount" Type="decimal" Precision="38" Scale="16" />
+              </RowType>
+            </CollectionType>
+          </ReturnType>
+        </Function>
+        <Function Name="fn_AffiliateCorrection" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+          <ReturnType>
+            <CollectionType>
+              <RowType>
+                <Property Name="Id" Type="bigint" Nullable="false" />
+                <Property Name="PartnerId" Type="int" Nullable="false" />
+                <Property Name="AffiliateId" Type="int" Nullable="false" />
+                <Property Name="FirstName" Type="nvarchar" MaxLength="50" Nullable="false" />
+                <Property Name="LastName" Type="nvarchar" MaxLength="50" Nullable="false" />
+                <Property Name="Amount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+                <Property Name="CurrencyId" Type="varchar" MaxLength="5" Nullable="false" />
+                <Property Name="Creator" Type="int" />
+                <Property Name="CreationTime" Type="datetime2" Precision="3" Nullable="false" />
+                <Property Name="LastUpdateTime" Type="datetime2" Precision="3" Nullable="false" />
+                <Property Name="HasNote" Type="bit" />
+                <Property Name="Date" Type="bigint" />
+                <Property Name="OperationTypeName" Type="varchar" MaxLength="50" Nullable="false" />
+                <Property Name="CreatorFirstName" Type="nvarchar" MaxLength="50" Nullable="false" />
+                <Property Name="CreatorLastName" Type="nvarchar" MaxLength="50" Nullable="false" />
+                <Property Name="DocumentTypeId" Type="int" />
+                <Property Name="ClientId" Type="int" Nullable="false" />
+                <Property Name="ClientFirstName" Type="nvarchar" MaxLength="255" />
+                <Property Name="ClientLastName" Type="nvarchar" MaxLength="255" />
               </RowType>
             </CollectionType>
           </ReturnType>
@@ -738,6 +750,7 @@
                 <Property Name="DebitCorrectionsCount" Type="int" />
                 <Property Name="TotalCreditCorrection" Type="decimal" Precision="38" Scale="4" />
                 <Property Name="CreditCorrectionsCount" Type="int" />
+                <Property Name="TotalBonusAmount" Type="decimal" Precision="38" Scale="4" />
                 <Property Name="ComplementaryBalance" Type="decimal" Precision="18" Scale="4" />
               </RowType>
             </CollectionType>
@@ -821,9 +834,9 @@
               <RowType>
                 <Property Name="Id" Type="int" Nullable="false" />
                 <Property Name="ClientId" Type="int" Nullable="false" />
-                <Property Name="MatchedClientId" Type="int" Nullable="false" />
-                <Property Name="MatchedData" Type="nvarchar" MaxLength="500" Nullable="false" />
-                <Property Name="MatchDate" Type="datetime2" Precision="3" Nullable="false" />
+                <Property Name="DuplicatedClientId" Type="int" Nullable="false" />
+                <Property Name="DuplicatedData" Type="nvarchar" MaxLength="500" Nullable="false" />
+                <Property Name="LastUpdateTime" Type="datetime2" Precision="3" Nullable="false" />
                 <Property Name="PartnerId" Type="int" Nullable="false" />
               </RowType>
             </CollectionType>
@@ -1077,11 +1090,11 @@
           <EntitySet Name="Bonus" EntityType="Self.Bonus" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Client" EntityType="Self.Client" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="ClientBonus" EntityType="Self.ClientBonus" Schema="dbo" store:Type="Tables" />
-          <EntitySet Name="ClientMatchHistory" EntityType="Self.ClientMatchHistory" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="ClientSession" EntityType="Self.ClientSession" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Currency" EntityType="Self.Currency" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Document" EntityType="Self.Document" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="DuplicatedClient" EntityType="Self.DuplicatedClient" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="DuplicatedClientHistory" EntityType="Self.DuplicatedClientHistory" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="GameProvider" EntityType="Self.GameProvider" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Gtd_Client_Info" EntityType="Self.Gtd_Client_Info" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Gtd_Dashboard_Info" EntityType="Self.Gtd_Dashboard_Info" Schema="dbo" store:Type="Tables" />
@@ -1089,22 +1102,15 @@
           <EntitySet Name="Gtd_Provider_Bets" EntityType="Self.Gtd_Provider_Bets" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Gtd_Withdraw_Info" EntityType="Self.Gtd_Withdraw_Info" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="JobTrigger" EntityType="Self.JobTrigger" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Opt_Document_Considered" EntityType="Self.Opt_Document_Considered" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Partner" EntityType="Self.Partner" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="PaymentRequest" EntityType="Self.PaymentRequest" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Product" EntityType="Self.Product" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Setting" EntityType="Self.Setting" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="User" EntityType="Self.User" Schema="dbo" store:Type="Tables" />
-          <AssociationSet Name="FK_ClientMatchHistory_DuplicatedClient" Association="Self.FK_ClientMatchHistory_DuplicatedClient">
+          <AssociationSet Name="FK_DuplicatedClientHistory_DuplicatedClient" Association="Self.FK_DuplicatedClientHistory_DuplicatedClient">
             <End Role="DuplicatedClient" EntitySet="DuplicatedClient" />
-            <End Role="ClientMatchHistory" EntitySet="ClientMatchHistory" />
-          </AssociationSet>
-          <AssociationSet Name="FK_DuplicatedClient_Client" Association="Self.FK_DuplicatedClient_Client">
-            <End Role="Client" EntitySet="Client" />
-            <End Role="DuplicatedClient" EntitySet="DuplicatedClient" />
-          </AssociationSet>
-          <AssociationSet Name="FK_DuplicatedClient_MatchedClient" Association="Self.FK_DuplicatedClient_MatchedClient">
-            <End Role="Client" EntitySet="Client" />
-            <End Role="DuplicatedClient" EntitySet="DuplicatedClient" />
+            <End Role="DuplicatedClientHistory" EntitySet="DuplicatedClientHistory" />
           </AssociationSet>
         </EntityContainer>
       </Schema></edmx:StorageModels>
@@ -1250,31 +1256,25 @@
             <Parameter Name="FromDate" Mode="In" Type="Int64" />
             <Parameter Name="ToDate" Mode="In" Type="Int64" />
           </FunctionImport>
-					<EntitySet Name="DuplicatedClients" EntityType="DataWarehouseModel.DuplicatedClient" />
-					<AssociationSet Name="FK_DuplicatedClient_Client" Association="DataWarehouseModel.FK_DuplicatedClient_Client">
-						<End Role="Client" EntitySet="Clients" />
-						<End Role="DuplicatedClient" EntitySet="DuplicatedClients" />
-					</AssociationSet>
-					<AssociationSet Name="FK_DuplicatedClient_MatchedClient" Association="DataWarehouseModel.FK_DuplicatedClient_MatchedClient">
-						<End Role="Client" EntitySet="Clients" />
-						<End Role="DuplicatedClient" EntitySet="DuplicatedClients" />
-					</AssociationSet>
 					<FunctionImport Name="fn_ClientSession" IsComposable="true" ReturnType="Collection(DataWarehouseModel.fnClientSession)" />
 					<EntitySet Name="ClientSessions" EntityType="DataWarehouseModel.ClientSession" />
-					<EntitySet Name="ClientMatchHistories" EntityType="DataWarehouseModel.ClientMatchHistory" />
-					<AssociationSet Name="FK_ClientMatchHistory_DuplicatedClient" Association="DataWarehouseModel.FK_ClientMatchHistory_DuplicatedClient">
-						<End Role="DuplicatedClient" EntitySet="DuplicatedClients" />
-						<End Role="ClientMatchHistory" EntitySet="ClientMatchHistories" />
-					</AssociationSet>
-					<FunctionImport Name="fn_DuplicateClient" IsComposable="true" ReturnType="Collection(DataWarehouseModel.fnDuplicateClient)">
+          <EntitySet Name="AccountBalances" EntityType="DataWarehouseModel.AccountBalance" />
+          <EntitySet Name="DuplicatedClients" EntityType="DataWarehouseModel.DuplicatedClient" />
+          <EntitySet Name="DuplicatedClientHistories" EntityType="DataWarehouseModel.DuplicatedClientHistory" />
+          <AssociationSet Name="FK_DuplicatedClientHistory_DuplicatedClient" Association="DataWarehouseModel.FK_DuplicatedClientHistory_DuplicatedClient">
+            <End Role="DuplicatedClient" EntitySet="DuplicatedClients" />
+            <End Role="DuplicatedClientHistory" EntitySet="DuplicatedClientHistories" />
+          </AssociationSet>
+          <FunctionImport Name="fn_DuplicateClient" IsComposable="true" ReturnType="Collection(DataWarehouseModel.fnDuplicateClient)">
             <Parameter Name="FromDate" Mode="In" Type="Int64" />
             <Parameter Name="ToDate" Mode="In" Type="Int64" />
           </FunctionImport>
-          <EntitySet Name="AccountBalances" EntityType="DataWarehouseModel.AccountBalance" />
+          <FunctionImport Name="fn_AffiliateCorrection" IsComposable="true" ReturnType="Collection(DataWarehouseModel.fnAffiliateCorrection)" />
           <FunctionImport Name="fn_ClientReport" IsComposable="true" ReturnType="Collection(DataWarehouseModel.fnClientReport)">
             <Parameter Name="FromDate" Mode="In" Type="Int64" />
             <Parameter Name="ToDate" Mode="In" Type="Int64" />
           </FunctionImport>
+          <EntitySet Name="Opt_Document_Considered" EntityType="DataWarehouseModel.Opt_Document_Considered" />
 				</EntityContainer>
 				<EntityType Name="Product">
 					<Key>
@@ -1778,9 +1778,7 @@
 					<Property Name="QRCode" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
 					<Property Name="CountryId" Type="Int32" />
 					<Property Name="CharacterId" Type="Int32" />
-					<NavigationProperty Name="DuplicatedClients" Relationship="DataWarehouseModel.FK_DuplicatedClient_Client" FromRole="Client" ToRole="DuplicatedClient" />
-					<NavigationProperty Name="DuplicatedClients1" Relationship="DataWarehouseModel.FK_DuplicatedClient_MatchedClient" FromRole="Client" ToRole="DuplicatedClient" />
-				</EntityType>
+					</EntityType>
 				<ComplexType Name="fnProviderClientsCount">
 					<Property Type="Int32" Name="PartnerId" Nullable="false" />
 					<Property Type="Int32" Name="GameProviderId" Nullable="true" />
@@ -1927,6 +1925,7 @@
 					<Property Name="TotalCreditCorrectionAmount" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
 					<Property Name="TotalCreditCorrectionCount" Type="Int32" Nullable="false" />
           <Property Name="ComplementaryBalance" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
+          <Property Name="TotalBonusAmount" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
 				</EntityType>
 				<ComplexType Name="fnClientBets">
 					<Property Type="Int32" Name="ClientId" Nullable="true" />
@@ -1976,42 +1975,6 @@
 					<Property Type="Int32" Name="TotalUnsettledBetsCount" Nullable="true" />
 					<Property Type="Int32" Name="TotalDeletedBetsCount" Nullable="true" />
 				</ComplexType>
-				<EntityType Name="DuplicatedClient">
-					<Key>
-						<PropertyRef Name="Id" />
-					</Key>
-					<Property Name="Id" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-					<Property Name="ClientId" Type="Int32" Nullable="false" />
-					<Property Name="MatchedClientId" Type="Int32" Nullable="false" />
-					<Property Name="MatchDate" Type="DateTime" Nullable="false" Precision="3" />
-					<NavigationProperty Name="Client" Relationship="DataWarehouseModel.FK_DuplicatedClient_Client" FromRole="DuplicatedClient" ToRole="Client" />
-					<NavigationProperty Name="Client1" Relationship="DataWarehouseModel.FK_DuplicatedClient_MatchedClient" FromRole="DuplicatedClient" ToRole="Client" />
-					<NavigationProperty Name="ClientMatchHistories" Relationship="DataWarehouseModel.FK_ClientMatchHistory_DuplicatedClient" FromRole="DuplicatedClient" ToRole="ClientMatchHistory" />
-				</EntityType>
-				<Association Name="FK_DuplicatedClient_Client">
-					<End Type="DataWarehouseModel.Client" Role="Client" Multiplicity="1" />
-					<End Type="DataWarehouseModel.DuplicatedClient" Role="DuplicatedClient" Multiplicity="*" />
-					<ReferentialConstraint>
-						<Principal Role="Client">
-							<PropertyRef Name="Id" />
-						</Principal>
-						<Dependent Role="DuplicatedClient">
-							<PropertyRef Name="ClientId" />
-						</Dependent>
-					</ReferentialConstraint>
-				</Association>
-				<Association Name="FK_DuplicatedClient_MatchedClient">
-					<End Type="DataWarehouseModel.Client" Role="Client" Multiplicity="1" />
-					<End Type="DataWarehouseModel.DuplicatedClient" Role="DuplicatedClient" Multiplicity="*" />
-					<ReferentialConstraint>
-						<Principal Role="Client">
-							<PropertyRef Name="Id" />
-						</Principal>
-						<Dependent Role="DuplicatedClient">
-							<PropertyRef Name="MatchedClientId" />
-						</Dependent>
-					</ReferentialConstraint>
-				</Association>
 				<ComplexType Name="fnClientSession">
 					<Property Type="Int64" Name="Id" Nullable="false" />
 					<Property Type="Int32" Name="ClientId" Nullable="false" />
@@ -2058,38 +2021,6 @@
 					<Property Name="Type" Type="Int32" />
 					<Property Name="AccountId" Type="Int64" />
 				</EntityType>
-				<EntityType Name="ClientMatchHistory">
-					<Key>
-						<PropertyRef Name="Id" />
-					</Key>
-					<Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-					<Property Name="DuplicateId" Type="Int64" Nullable="false" />
-					<Property Name="MatchedData" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
-					<Property Name="CreationDate" Type="DateTime" Nullable="false" Precision="3" />
-					<Property Name="LastUpdateDate" Type="DateTime" Nullable="false" Precision="3" />
-					<Property Name="MatchDate" Type="Int64" Nullable="false" />
-					<NavigationProperty Name="DuplicatedClient" Relationship="DataWarehouseModel.FK_ClientMatchHistory_DuplicatedClient" FromRole="ClientMatchHistory" ToRole="DuplicatedClient" />
-				</EntityType>
-				<Association Name="FK_ClientMatchHistory_DuplicatedClient">
-					<End Type="DataWarehouseModel.DuplicatedClient" Role="DuplicatedClient" Multiplicity="1" />
-					<End Type="DataWarehouseModel.ClientMatchHistory" Role="ClientMatchHistory" Multiplicity="*" />
-					<ReferentialConstraint>
-						<Principal Role="DuplicatedClient">
-							<PropertyRef Name="Id" />
-						</Principal>
-						<Dependent Role="ClientMatchHistory">
-							<PropertyRef Name="DuplicateId" />
-						</Dependent>
-					</ReferentialConstraint>
-				</Association>
-				<ComplexType Name="fnDuplicateClient">
-					<Property Type="Int32" Name="Id" Nullable="false" />
-					<Property Type="Int32" Name="ClientId" Nullable="false" />
-					<Property Type="Int32" Name="MatchedClientId" Nullable="false" />
-					<Property Type="String" Name="MatchedData" Nullable="false" MaxLength="500" />
-					<Property Type="DateTime" Name="MatchDate" Nullable="false" Precision="23" />
-					<Property Type="Int32" Name="PartnerId" Nullable="false" />
-				</ComplexType>
         <EntityType Name="AccountBalance">
           <Key>
             <PropertyRef Name="Id" />
@@ -2103,6 +2034,69 @@
           <Property Name="Balance" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
           <Property Name="Date" Type="DateTime" Nullable="false" Precision="3" />
         </EntityType>
+        <EntityType Name="DuplicatedClient">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="ClientId" Type="Int32" Nullable="false" />
+          <Property Name="DuplicatedClientId" Type="Int32" Nullable="false" />
+          <Property Name="CreationTime" Type="DateTime" Nullable="false" Precision="3" />
+          <NavigationProperty Name="DuplicatedClientHistories" Relationship="DataWarehouseModel.FK_DuplicatedClientHistory_DuplicatedClient" FromRole="DuplicatedClient" ToRole="DuplicatedClientHistory" />
+        </EntityType>
+        <EntityType Name="DuplicatedClientHistory">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="DuplicateId" Type="Int64" Nullable="false" />
+          <Property Name="DuplicatedData" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="CreationTime" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="LastUpdateTime" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="CreationDate" Type="Int64" Nullable="false" />
+          <NavigationProperty Name="DuplicatedClient" Relationship="DataWarehouseModel.FK_DuplicatedClientHistory_DuplicatedClient" FromRole="DuplicatedClientHistory" ToRole="DuplicatedClient" />
+        </EntityType>
+        <Association Name="FK_DuplicatedClientHistory_DuplicatedClient">
+          <End Type="DataWarehouseModel.DuplicatedClient" Role="DuplicatedClient" Multiplicity="1" />
+          <End Type="DataWarehouseModel.DuplicatedClientHistory" Role="DuplicatedClientHistory" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="DuplicatedClient">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="DuplicatedClientHistory">
+              <PropertyRef Name="DuplicateId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <ComplexType Name="fnDuplicateClient">
+          <Property Type="Int32" Name="Id" Nullable="false" />
+          <Property Type="Int32" Name="ClientId" Nullable="false" />
+          <Property Type="Int32" Name="DuplicatedClientId" Nullable="false" />
+          <Property Type="String" Name="DuplicatedData" Nullable="false" MaxLength="500" />
+          <Property Type="DateTime" Name="LastUpdateTime" Nullable="false" Precision="23" />
+          <Property Type="Int32" Name="PartnerId" Nullable="false" />
+        </ComplexType>
+        <ComplexType Name="fnAffiliateCorrection">
+          <Property Type="Int64" Name="Id" Nullable="false" />
+          <Property Type="Int32" Name="PartnerId" Nullable="false" />
+          <Property Type="Int32" Name="AffiliateId" Nullable="false" />
+          <Property Type="String" Name="FirstName" Nullable="false" MaxLength="50" />
+          <Property Type="String" Name="LastName" Nullable="false" MaxLength="50" />
+          <Property Type="Decimal" Name="Amount" Nullable="false" Precision="18" Scale="4" />
+          <Property Type="String" Name="CurrencyId" Nullable="false" MaxLength="5" />
+          <Property Type="Int32" Name="Creator" Nullable="true" />
+          <Property Type="DateTime" Name="CreationTime" Nullable="false" Precision="23" />
+          <Property Type="DateTime" Name="LastUpdateTime" Nullable="false" Precision="23" />
+          <Property Type="Boolean" Name="HasNote" Nullable="true" />
+          <Property Type="Int64" Name="Date" Nullable="true" />
+          <Property Type="String" Name="OperationTypeName" Nullable="false" MaxLength="50" />
+          <Property Type="String" Name="CreatorFirstName" Nullable="false" MaxLength="50" />
+          <Property Type="String" Name="CreatorLastName" Nullable="false" MaxLength="50" />
+          <Property Type="Int32" Name="DocumentTypeId" Nullable="true" />
+          <Property Type="Int32" Name="ClientId" Nullable="false" />
+          <Property Type="String" Name="ClientFirstName" Nullable="true" MaxLength="255" />
+          <Property Type="String" Name="ClientLastName" Nullable="true" MaxLength="255" />
+        </ComplexType>
         <ComplexType Name="fnClientReport">
           <Property Type="Int32" Name="ClientId" Nullable="false" />
           <Property Type="String" Name="UserName" Nullable="false" MaxLength="50" />
@@ -2129,8 +2123,17 @@
           <Property Type="Int32" Name="DebitCorrectionsCount" Nullable="true" />
           <Property Type="Decimal" Name="TotalCreditCorrection" Nullable="true" Precision="38" Scale="4" />
           <Property Type="Int32" Name="CreditCorrectionsCount" Nullable="true" />
+          <Property Type="Decimal" Name="TotalBonusAmount" Nullable="true" Precision="38" Scale="4" />
           <Property Type="Decimal" Name="ComplementaryBalance" Nullable="true" Precision="18" Scale="4" />
         </ComplexType>
+        <EntityType Name="Opt_Document_Considered">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="DocumentId" Type="Int64" Nullable="false" />
+          <Property Name="Date" Type="Int64" Nullable="false" />
+        </EntityType>
 			</Schema>
 		</edmx:ConceptualModels>
 		<!-- C-S mapping content -->
@@ -2890,7 +2893,8 @@
 					<EntitySetMapping Name="Gtd_Client_Info">
 						<EntityTypeMapping TypeName="DataWarehouseModel.Gtd_Client_Info">
 							<MappingFragment StoreEntitySet="Gtd_Client_Info">
-								<ScalarProperty Name="ComplementaryBalance" ColumnName="ComplementaryBalance" />
+								<ScalarProperty Name="TotalBonusAmount" ColumnName="TotalBonusAmount" />
+                <ScalarProperty Name="ComplementaryBalance" ColumnName="ComplementaryBalance" />
                 <ScalarProperty Name="TotalCreditCorrectionCount" ColumnName="TotalCreditCorrectionCount" />
 								<ScalarProperty Name="TotalCreditCorrectionAmount" ColumnName="TotalCreditCorrectionAmount" />
 								<ScalarProperty Name="TotalDebitCorrectionCount" ColumnName="TotalDebitCorrectionCount" />
@@ -2980,16 +2984,6 @@
 							</ComplexTypeMapping>
 						</ResultMapping>
 					</FunctionImportMapping>
-					<EntitySetMapping Name="DuplicatedClients">
-						<EntityTypeMapping TypeName="DataWarehouseModel.DuplicatedClient">
-							<MappingFragment StoreEntitySet="DuplicatedClient">
-								<ScalarProperty Name="MatchDate" ColumnName="MatchDate" />
-								<ScalarProperty Name="MatchedClientId" ColumnName="MatchedClientId" />
-								<ScalarProperty Name="ClientId" ColumnName="ClientId" />
-								<ScalarProperty Name="Id" ColumnName="Id" />
-							</MappingFragment>
-						</EntityTypeMapping>
-					</EntitySetMapping>
 					<FunctionImportMapping FunctionImportName="fn_ClientSession" FunctionName="DataWarehouseModel.Store.fn_ClientSession">
 						<ResultMapping>
 							<ComplexTypeMapping TypeName="DataWarehouseModel.fnClientSession">
@@ -3041,30 +3035,6 @@
 							</MappingFragment>
 						</EntityTypeMapping>
 					</EntitySetMapping>
-					<EntitySetMapping Name="ClientMatchHistories">
-						<EntityTypeMapping TypeName="DataWarehouseModel.ClientMatchHistory">
-							<MappingFragment StoreEntitySet="ClientMatchHistory">
-								<ScalarProperty Name="MatchDate" ColumnName="MatchDate" />
-								<ScalarProperty Name="LastUpdateDate" ColumnName="LastUpdateDate" />
-								<ScalarProperty Name="CreationDate" ColumnName="CreationDate" />
-								<ScalarProperty Name="MatchedData" ColumnName="MatchedData" />
-								<ScalarProperty Name="DuplicateId" ColumnName="DuplicateId" />
-								<ScalarProperty Name="Id" ColumnName="Id" />
-							</MappingFragment>
-						</EntityTypeMapping>
-					</EntitySetMapping>
-					<FunctionImportMapping FunctionImportName="fn_DuplicateClient" FunctionName="DataWarehouseModel.Store.fn_DuplicateClient">
-						<ResultMapping>
-							<ComplexTypeMapping TypeName="DataWarehouseModel.fnDuplicateClient">
-								<ScalarProperty Name="Id" ColumnName="Id" />
-								<ScalarProperty Name="ClientId" ColumnName="ClientId" />
-								<ScalarProperty Name="MatchedClientId" ColumnName="MatchedClientId" />
-								<ScalarProperty Name="MatchedData" ColumnName="MatchedData" />
-								<ScalarProperty Name="MatchDate" ColumnName="MatchDate" />
-								<ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
-							</ComplexTypeMapping>
-						</ResultMapping>
-					</FunctionImportMapping>
           <EntitySetMapping Name="AccountBalances">
             <EntityTypeMapping TypeName="DataWarehouseModel.AccountBalance">
               <MappingFragment StoreEntitySet="AccountBalance">
@@ -3079,6 +3049,65 @@
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
+          <EntitySetMapping Name="DuplicatedClients">
+            <EntityTypeMapping TypeName="DataWarehouseModel.DuplicatedClient">
+              <MappingFragment StoreEntitySet="DuplicatedClient">
+                <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
+                <ScalarProperty Name="DuplicatedClientId" ColumnName="DuplicatedClientId" />
+                <ScalarProperty Name="ClientId" ColumnName="ClientId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="DuplicatedClientHistories">
+            <EntityTypeMapping TypeName="DataWarehouseModel.DuplicatedClientHistory">
+              <MappingFragment StoreEntitySet="DuplicatedClientHistory">
+                <ScalarProperty Name="CreationDate" ColumnName="CreationDate" />
+                <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
+                <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
+                <ScalarProperty Name="DuplicatedData" ColumnName="DuplicatedData" />
+                <ScalarProperty Name="DuplicateId" ColumnName="DuplicateId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <FunctionImportMapping FunctionImportName="fn_DuplicateClient" FunctionName="DataWarehouseModel.Store.fn_DuplicateClient">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="DataWarehouseModel.fnDuplicateClient">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="ClientId" ColumnName="ClientId" />
+                <ScalarProperty Name="DuplicatedClientId" ColumnName="DuplicatedClientId" />
+                <ScalarProperty Name="DuplicatedData" ColumnName="DuplicatedData" />
+                <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
+                <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <FunctionImportMapping FunctionImportName="fn_AffiliateCorrection" FunctionName="DataWarehouseModel.Store.fn_AffiliateCorrection">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="DataWarehouseModel.fnAffiliateCorrection">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+                <ScalarProperty Name="AffiliateId" ColumnName="AffiliateId" />
+                <ScalarProperty Name="FirstName" ColumnName="FirstName" />
+                <ScalarProperty Name="LastName" ColumnName="LastName" />
+                <ScalarProperty Name="Amount" ColumnName="Amount" />
+                <ScalarProperty Name="CurrencyId" ColumnName="CurrencyId" />
+                <ScalarProperty Name="Creator" ColumnName="Creator" />
+                <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
+                <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
+                <ScalarProperty Name="HasNote" ColumnName="HasNote" />
+                <ScalarProperty Name="Date" ColumnName="Date" />
+                <ScalarProperty Name="OperationTypeName" ColumnName="OperationTypeName" />
+                <ScalarProperty Name="CreatorFirstName" ColumnName="CreatorFirstName" />
+                <ScalarProperty Name="CreatorLastName" ColumnName="CreatorLastName" />
+                <ScalarProperty Name="DocumentTypeId" ColumnName="DocumentTypeId" />
+                <ScalarProperty Name="ClientId" ColumnName="ClientId" />
+                <ScalarProperty Name="ClientFirstName" ColumnName="ClientFirstName" />
+                <ScalarProperty Name="ClientLastName" ColumnName="ClientLastName" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
           <FunctionImportMapping FunctionImportName="fn_ClientReport" FunctionName="DataWarehouseModel.Store.fn_ClientReport">
             <ResultMapping>
               <ComplexTypeMapping TypeName="DataWarehouseModel.fnClientReport">
@@ -3107,10 +3136,20 @@
                 <ScalarProperty Name="DebitCorrectionsCount" ColumnName="DebitCorrectionsCount" />
                 <ScalarProperty Name="TotalCreditCorrection" ColumnName="TotalCreditCorrection" />
                 <ScalarProperty Name="CreditCorrectionsCount" ColumnName="CreditCorrectionsCount" />
+                <ScalarProperty Name="TotalBonusAmount" ColumnName="TotalBonusAmount" />
                 <ScalarProperty Name="ComplementaryBalance" ColumnName="ComplementaryBalance" />
               </ComplexTypeMapping>
             </ResultMapping>
           </FunctionImportMapping>
+          <EntitySetMapping Name="Opt_Document_Considered">
+            <EntityTypeMapping TypeName="DataWarehouseModel.Opt_Document_Considered">
+              <MappingFragment StoreEntitySet="Opt_Document_Considered">
+                <ScalarProperty Name="Date" ColumnName="Date" />
+                <ScalarProperty Name="DocumentId" ColumnName="DocumentId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
 				</EntityContainerMapping>
 			</Mapping>
 		</edmx:Mappings>

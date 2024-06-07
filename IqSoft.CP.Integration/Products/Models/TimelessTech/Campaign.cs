@@ -32,6 +32,6 @@ namespace IqSoft.CP.Integration.Products.Models.TimelessTech
 		public string currency_code { get; set; }
 		public int game_id { get; set; }
 		public string vendor { get; set; }
-		public List<double> limits { get; set; }
+		public List<decimal> limits { get; set; }
 	}
 }

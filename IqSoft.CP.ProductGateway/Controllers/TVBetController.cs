@@ -447,7 +447,6 @@ namespace IqSoft.CP.ProductGateway.Controllers
                         CurrencyId = client.CurrencyId,
                         GameProviderId = ProviderId,
                         OperationTypeId = (int)OperationTypes.Win,
-                        ExternalOperationId = null,
                         ProductId = betDocument.ProductId,
                         TransactionId = input.TransactionId.ToString(),
                         CreditTransactionId = betDocument.Id,
@@ -472,24 +471,26 @@ namespace IqSoft.CP.ProductGateway.Controllers
                         }
                         catch (Exception ex)
                         {
-                            WebApiApplication.DbLogger.Error(ex.Message);
-                            documentBl.RollbackProductTransactions(operationsFromProduct);
-                            throw;
+                            WebApiApplication.DbLogger.Error("DebitException_" + ex.Message);
                         }
                     }
-                    BaseHelpers.RemoveClientBalanceFromeCache(client.Id);
-                    BaseHelpers.BroadcastWin(new ApiWin
+                    else
                     {
-                        GameName = product.NickName,
-                        ClientId = client.Id,
-                        ClientName = client.FirstName,
-                        Amount = amount,
-                        CurrencyId = client.CurrencyId,
-                        PartnerId = client.PartnerId,
-                        ProductId = product.Id,
-                        ProductName = product.NickName,
-                        ImageUrl = product.WebImageUrl
-                    });
+                        BaseHelpers.RemoveClientBalanceFromeCache(client.Id);
+                        BaseHelpers.BroadcastWin(new ApiWin
+                        {
+                            GameName = product.NickName,
+                            ClientId = client.Id,
+                            ClientName = client.FirstName,
+                            BetAmount = betDocument?.Amount,
+                            Amount = amount,
+                            CurrencyId = client.CurrencyId,
+                            PartnerId = client.PartnerId,
+                            ProductId = product.Id,
+                            ProductName = product.NickName,
+                            ImageUrl = product.WebImageUrl
+                        });
+                    }
 
                     return new BaseModel
                     {
@@ -652,24 +653,26 @@ namespace IqSoft.CP.ProductGateway.Controllers
                         }
                         catch (Exception ex)
                         {
-                            WebApiApplication.DbLogger.Error(ex.Message);
-                            documentBl.RollbackProductTransactions(operationsFromProduct);
-                            throw;
+                            WebApiApplication.DbLogger.Error("DebitException_" + ex.Message);
                         }
                     }
-                    BaseHelpers.RemoveClientBalanceFromeCache(client.Id);
-                    BaseHelpers.BroadcastWin(new ApiWin
+                    else
                     {
-                        GameName = product.NickName,
-                        ClientId = client.Id,
-                        ClientName = client.FirstName,
-                        Amount = Convert.ToDecimal(input.Amount),
-                        CurrencyId = client.CurrencyId,
-                        PartnerId = client.PartnerId,
-                        ProductId = product.Id,
-                        ProductName = product.NickName,
-                        ImageUrl = product.WebImageUrl
-                    });
+                        BaseHelpers.RemoveClientBalanceFromeCache(client.Id);
+                        BaseHelpers.BroadcastWin(new ApiWin
+                        {
+                            GameName = product.NickName,
+                            ClientId = client.Id,
+                            ClientName = client.FirstName,
+                            BetAmount = betDocument?.Amount,
+                            Amount = Convert.ToDecimal(input.Amount),
+                            CurrencyId = client.CurrencyId,
+                            PartnerId = client.PartnerId,
+                            ProductId = product.Id,
+                            ProductName = product.NickName,
+                            ImageUrl = product.WebImageUrl
+                        });
+                    }
 
                     BaseHelpers.RemoveClientBalanceFromeCache(client.Id);
                     return new BaseModel

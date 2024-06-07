@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using IqSoft.CP.DataWarehouse;
-using System.Web.UI.WebControls;
 
 namespace IqSoft.CP.DataManager.Services
 {
@@ -52,19 +51,26 @@ namespace IqSoft.CP.DataManager.Services
             try
             {
                 var currentTime = DateTime.UtcNow;
-                var startTime = currentTime.AddDays(-40);
+                var startTime = currentTime.AddDays(-20);
                 var endTime = currentTime.AddHours(-2);
-
                 var fromDate = (long)startTime.Year * 1000000 + startTime.Month * 10000 + startTime.Day * 100 + startTime.Hour;
                 var toDate = (long)endTime.Year * 1000000 + endTime.Month * 10000 + endTime.Day * 100 + endTime.Hour;
                 using (var db = new IqSoftDataWarehouseEntities())
                 {
                     db.Database.CommandTimeout = 300;
-
-                    var documents = db.Documents.Where(x => x.Date > fromDate && x.Date < toDate && x.Considered == false).OrderBy(x => x.Id).Take(10000).ToList();
-                    var newLast = GroupDocuments(documents, db);
-                    Program.DbLogger.Info("CleanBets_Finished");
-                    return documents.Count;
+                    var rows = db.Opt_Document_Considered.Where(x => x.Date >= fromDate &&
+                        x.Date < toDate).OrderBy(x => x.Id).Take(5000).ToList();
+                    if (rows.Any())
+                    {
+                        var dIds = rows.Select(x => x.DocumentId).ToList();
+                        var documents = db.Documents.Where(x => dIds.Contains(x.Id)).ToList();
+                        var newLast = GroupDocuments(documents, db);
+                        db.Opt_Document_Considered.DeleteRangeByKey(rows);
+                        Program.DbLogger.Info("CleanBets_Finished");
+                        return documents.Count;
+                    }
+                    else
+                        return 0;
                 }
             }
             catch (Exception e)
@@ -80,7 +86,8 @@ namespace IqSoft.CP.DataManager.Services
             {
                 var currentTime = DateTime.UtcNow;
                 var currentDate = date == 0 ? (long)currentTime.Year * 10000 + (long)currentTime.Month * 100 + (long)currentTime.Day : date;
-                var currentDay = date == 0 ? new DateTime(currentTime.Year, currentTime.Month, currentTime.Day) : new DateTime((int)(date/10000), (int)((date%10000)/100), (int)(date % 100));
+                var currentDay = date == 0 ? new DateTime(currentTime.Year, currentTime.Month, currentTime.Day) : 
+                    new DateTime((int)(date/10000), (int)((date%10000)/100), (int)(date % 100));
                 var yesterday = currentDay.AddDays(-1);
                 var yesterdayDate = (long)yesterday.Year * 10000 + (long)yesterday.Month * 100 + (long)yesterday.Day;
                 var toDay = currentDay.AddDays(1);
@@ -559,6 +566,7 @@ namespace IqSoft.CP.DataManager.Services
                 var currentDay = date == 0 ? new DateTime(currentTime.Year, currentTime.Month, currentTime.Day) : new DateTime((int)(date / 10000), (int)((date % 10000) / 100), (int)(date % 100));
                 var yesterday = currentDay.AddDays(-1);
                 var yesterdayDate = (long)yesterday.Year * 10000 + (long)yesterday.Month * 100 + (long)yesterday.Day;
+
                 var toDay = currentDay.AddDays(1);
                 var fDate = (long)currentDay.Year * 1000000 + (long)currentDay.Month * 10000 + (long)currentDay.Day * 100 + (long)currentDay.Hour;
                 var tDate = (long)toDay.Year * 1000000 + (long)toDay.Month * 10000 + (long)toDay.Day * 100 + (long)toDay.Hour;
@@ -730,7 +738,41 @@ namespace IqSoft.CP.DataManager.Services
 
                     #endregion
 
+                    #region Bonuses
+
+                    var bQuery = db.Documents.Where(x => x.Date >= fDate && x.Date < tDate && x.OperationTypeId == (int)OperationTypes.WageringBonus);
+                    if (clientId > 0)
+                        bQuery = bQuery.Where(x => x.ClientId == clientId);
+
+                    var bonuses = bQuery.GroupBy(x => new { ClientId = x.ClientId.Value }).Select(x => new {
+                        ClientId = x.Key.ClientId,
+                        Amount = x.Sum(y => y.Amount),
+                        Count = x.Count()
+                    }).ToList();
+
+                    foreach (var b in bonuses)
+                    {
+                        var balance = db.AccountBalances.Where(x => x.ObjectTypeId == (int)ObjectTypes.Client &&
+                            x.ObjectId == b.ClientId && x.TypeId == (int)AccountTypes.ClientCoinBalance).OrderByDescending(x => x.Id).FirstOrDefault();
+                        var dayInfo = db.Gtd_Client_Info.FirstOrDefault(x => x.Date == currentDate && x.ClientId == b.ClientId);
+                        if (dayInfo == null)
+                        {
+                            dayInfo = new Gtd_Client_Info
+                            {
+                                Date = currentDate,
+                                ClientId = b.ClientId
+                            };
+                            db.Gtd_Client_Info.Add(dayInfo);
+                            db.SaveChanges();
+                        }
+                        dayInfo.ComplementaryBalance = balance == null ? 0 : balance.Balance;
+                        dayInfo.TotalBonusAmount = b.Amount;
+                    }
+
+                    #endregion
+
                     db.SaveChanges();
+
                     if (date == 0)
                     {
                         AddJobTrigger("CalculateClientInfo", yesterdayDate, null, db);
@@ -791,6 +833,8 @@ namespace IqSoft.CP.DataManager.Services
             long newLast = 0;
             var bets = new List<Bet>();
             var deletedBets = new List<Bet>();
+            var newConsideredDocuments = new List<long>();
+
             var currentTime = DateTime.UtcNow;
             foreach (var d in documents)
             {
@@ -928,6 +972,8 @@ namespace IqSoft.CP.DataManager.Services
                             }
                             bet.WinAmount += d.Amount;
                         }
+                        else
+                            continue;
                     }
                     else if (d.OperationTypeId == (int)OperationTypes.PayWinFromBetshop)
                     {
@@ -943,6 +989,8 @@ namespace IqSoft.CP.DataManager.Services
                             bet.PayDate = d.Date;
                             bet.LastUpdateTime = d.CreationTime;
                         }
+                        else
+                            continue;
                     }
                     else if (d.OperationTypeId == (int)OperationTypes.BetRollback)
                     {
@@ -969,6 +1017,8 @@ namespace IqSoft.CP.DataManager.Services
                             };
                             deletedBets.Add(deletedBet);
                         }
+                        else
+                            continue;
                     }
                     else if (d.OperationTypeId == (int)OperationTypes.WinRollback)
                     {
@@ -976,23 +1026,33 @@ namespace IqSoft.CP.DataManager.Services
                         if (bet == null)
                             bet = bets.FirstOrDefault(x => x.WinDocumentId == d.ParentId);
 
-                        if (bet != null && bet.State != (int)BetDocumentStates.Deleted)
+                        if (bet != null)
                         {
-                            bet.WinDocumentId = null;
-                            bet.WinAmount = 0;
-                            bet.State = (int)BetDocumentStates.Uncalculated;
-                            bet.CalculationTime = null;
-                            bet.CalculationDate = null;
-                            bet.LastUpdateTime = d.CreationTime;
+                            if (bet.State != (int)BetDocumentStates.Deleted)
+                            {
+                                bet.WinDocumentId = null;
+                                bet.WinAmount = 0;
+                                bet.State = (int)BetDocumentStates.Uncalculated;
+                                bet.CalculationTime = null;
+                                bet.CalculationDate = null;
+                                bet.LastUpdateTime = d.CreationTime;
+                            }
                         }
+                        else if(!db.Documents.Any(x => x.Id == d.ParentId && x.Considered == true))
+                            continue;
                     }
                 }
                 newLast = d.Id;
-                d.Considered = true;
+                {
+                    d.Considered = true;
+                    newConsideredDocuments.Add(d.Id);
+                }
             }
             if (bets.Any())
                 db.Bets.AddRange(bets);
             db.SaveChanges();
+
+            db.Opt_Document_Considered.Where(x => newConsideredDocuments.Contains(x.DocumentId)).DeleteFromQuery();
             return newLast;
         }
 

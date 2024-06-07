@@ -202,7 +202,8 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                     amount,
                     ipn_callback_url = string.Format("{0}/api/NOWPay/PayoutRequest", paymentGateway),
                     fiat_amount = amount,
-                    fiat_currency = client.CurrencyId
+                    fiat_currency = client.CurrencyId,
+                    unique_external_id = paymentRequest.Id.ToString()
                 };
                 List<object> withdrawals = new List<object>
                 {

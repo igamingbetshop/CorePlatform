@@ -1,5 +1,4 @@
-﻿
-using IqSoft.CP.BLL.Caching;
+﻿using IqSoft.CP.BLL.Caching;
 using IqSoft.CP.BLL.Services;
 using IqSoft.CP.Common;
 using IqSoft.CP.Common.Enums;
@@ -21,47 +20,44 @@ namespace IqSoft.CP.Integration.Payments.Helpers
     {
         public static string CallPay4FunApi(PaymentRequest input, string cashierPageUrl, SessionIdentity session, ILog log)
         {
-            using (var paymentSystemBl = new PaymentSystemBll(session, log))
+            var client = CacheManager.GetClientById(input.ClientId.Value);
+            var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId,
+                input.PaymentSystemId, input.CurrencyId, (int)PaymentRequestTypes.Deposit);
+            var url = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.Pay4FunApiUrl).StringValue;
+            var paymentGatewayUrl = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.PaymentGateway).StringValue;
+            var paymentRequestInput = new
             {
-                var client = CacheManager.GetClientById(input.ClientId.Value);
-                var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId,
-                    input.PaymentSystemId, input.CurrencyId, (int)PaymentRequestTypes.Deposit);
-                var url = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.Pay4FunApiUrl).StringValue;
-                var paymentGatewayUrl = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.PaymentGateway).StringValue;
-                var paymentRequestInput = new
-                {
-                    amount = Math.Round(input.Amount, 2),
-                    merchantInvoiceId = input.Id,
-                    language = CommonHelpers.LanguageISOCodes[session.LanguageId],
-                    currency = client.CurrencyId,
-                    okUrl = cashierPageUrl,
-                    notOkUrl = cashierPageUrl,
-                    confirmationUrl = string.Format("{0}/api/Pay4Fun/ApiRequest", paymentGatewayUrl)
-                };
-                var merchantKeys = partnerPaymentSetting.Password.Split(',');
-                if (merchantKeys.Length != 2)
-                    throw BaseBll.CreateException(session.LanguageId, Constants.Errors.InvalidSecretKey);
-                var merchantKey = merchantKeys[0];
-                var merchantSecret = merchantKeys[1];
-                var hash = string.Format("{0}{1}{2}{3}", partnerPaymentSetting.UserName, paymentRequestInput.amount * 100, input.Id, merchantSecret);
-                var headers = new Dictionary<string, string>
+                amount = Math.Round(input.Amount, 2),
+                merchantInvoiceId = input.Id,
+                language = CommonHelpers.LanguageISOCodes[session.LanguageId],
+                currency = client.CurrencyId,
+                okUrl = cashierPageUrl,
+                notOkUrl = cashierPageUrl,
+                confirmationUrl = string.Format("{0}/api/Pay4Fun/ApiRequest", paymentGatewayUrl)
+            };
+            var merchantKeys = partnerPaymentSetting.Password.Split(',');
+            if (merchantKeys.Length != 2)
+                throw BaseBll.CreateException(session.LanguageId, Constants.Errors.InvalidSecretKey);
+            var merchantKey = merchantKeys[0];
+            var merchantSecret = merchantKeys[1];
+            var hash = string.Format("{0}{1}{2}{3}", partnerPaymentSetting.UserName, paymentRequestInput.amount * 100, input.Id, merchantSecret);
+            var headers = new Dictionary<string, string>
                 {
                     {"merchantId", partnerPaymentSetting.UserName },
                     {"hash", CommonFunctions.ComputeHMACSha256(hash, merchantKey) }
                 };
-                var httpRequestInput = new HttpRequestInput
-                {
-                    ContentType = Constants.HttpContentTypes.ApplicationJson,
-                    RequestMethod = Constants.HttpRequestMethods.Post,
-                    RequestHeaders = headers,
-                    Url = string.Format("{0}/1.0/wallet/process/", url),
-                    PostData = JsonConvert.SerializeObject(paymentRequestInput)
-                };
-                var resp = JsonConvert.DeserializeObject<PaymentOutput>(CommonFunctions.SendHttpRequest(httpRequestInput, out _));
-                if (resp.Code != 201)
-                    throw new Exception(resp.Message);
-                return resp.Url;
-            }
+            var httpRequestInput = new HttpRequestInput
+            {
+                ContentType = Constants.HttpContentTypes.ApplicationJson,
+                RequestMethod = Constants.HttpRequestMethods.Post,
+                RequestHeaders = headers,
+                Url = string.Format("{0}/1.0/wallet/process/", url),
+                PostData = JsonConvert.SerializeObject(paymentRequestInput)
+            };
+            var resp = JsonConvert.DeserializeObject<PaymentOutput>(CommonFunctions.SendHttpRequest(httpRequestInput, out _));
+            if (resp.Code != 201)
+                throw new Exception(resp.Message);
+            return resp.Url;
         }
 
         public static PaymentResponse CreatePayoutRequest(PaymentRequest paymentRequest, SessionIdentity session, ILog log)

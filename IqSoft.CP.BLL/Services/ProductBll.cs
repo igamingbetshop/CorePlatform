@@ -414,11 +414,9 @@ namespace IqSoft.CP.BLL.Services
             filter.IsProviderActive = true;
             var languageId = string.IsNullOrEmpty(LanguageId) ? Constants.DefaultLanguageId : LanguageId;
 
-            var res = from p in Db.fn_Product(languageId)
-                      where p.GameProviderId != null
+            var res = from p in Db.fn_Product(languageId).Where(x => x.GameProviderId != null)
                       join pps in Db.PartnerProductSettings.Where(x => x.PartnerId == partnerId)
-                      on p.Id equals pps.ProductId
-                      into pp
+                      on p.Id equals pps.ProductId into pp
                       from x in pp.DefaultIfEmpty()
                       where x == null  
                       select p;
@@ -1095,8 +1093,8 @@ namespace IqSoft.CP.BLL.Services
             var allProducts = Db.Products.Include(x => x.GameProvider).Where(x => x.GameProviderId == gameProviderId &&
                                                                                   x.ExternalId.ToLower() != "lobby" &&
                                                                                   x.ExternalId.ToLower() != "promowin").ToList();
-            var maxId = allProducts.Count == 0 ? gameProviderId * 1000 : allProducts.Max(x => x.Id);
-            if (maxId == 1999)
+			var maxId = allProducts.Count == 0 ? gameProviderId * 1000 : allProducts.Max(x => x.Id);
+			if (maxId == 1999)
                 maxId = 100000;
             else if (maxId == 30000)
                 maxId = 75000;
@@ -1253,10 +1251,10 @@ namespace IqSoft.CP.BLL.Services
                     Log.Error(e);
                 }
             };
-
-            var updatingItems = allProducts.Where(x => !resp.Contains(x.Id) && x.Id != Constants.SportsbookProductId && x.ExternalId != "pregame" &&
+			var updatingItems = allProducts.Where(x => !resp.Contains(x.Id) && x.Id != Constants.SportsbookProductId && x.ExternalId != "pregame" &&
 			x.ExternalId != "lobby" && (x.GameProvider.Name != Constants.GameProviders.EveryMatrix || !x.ExternalId.Contains("sport")) 
-                                    && x.GameProvider.Name != Constants.GameProviders.VisionaryiGaming).ToList();
+                                    && x.GameProvider.Name != Constants.GameProviders.VisionaryiGaming
+                                    && (x.GameProvider.Name == Constants.GameProviders.RiseUp && x.GameProvider1?.Name != Constants.GameProviders.Evolution )).ToList();
             Parallel.ForEach(updatingItems, i => { i.LastUpdateTime = currentDate; i.State = (int)ProductStates.DisabledByProvider; }) ; 
             Db.SaveChanges();
             Log.Info("resp count:" + resp.Count().ToString());

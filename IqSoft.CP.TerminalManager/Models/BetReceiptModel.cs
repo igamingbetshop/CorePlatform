@@ -12,6 +12,9 @@
 
     public class BetData
     {
+        public string TotalCoefficientLabel { get; set; }
+        public string TotalCoefficient { get; set; }
+
         public string BetAmountLabel { get; set; }
         public string BetAmount { get; set; }
 
@@ -41,6 +44,8 @@
         public string MatchDate { get; set; }
         public string MatchTime { get; set; }
         public string MatchName { get; set; } // market name 
+        public string CompetitionName { get; set; } 
+        public string SportName { get; set; } 
         public string Coefficient { get; set; }
         public string Score { get; set; }
         public string CurrentTime { get; set; }

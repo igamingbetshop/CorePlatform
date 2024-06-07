@@ -12,8 +12,8 @@ namespace IqSoft.CP.DataWarehouse.Filters
         public int? ClientId { get; set; }
         public FiltersOperation PartnerIds { get; set; }
         public FiltersOperation ClientIds { get; set; }
-        public FiltersOperation MatchedClientIds { get; set; }
-        public FiltersOperation MatchedDatas { get; set; }
+        public FiltersOperation DuplicatedClientIds { get; set; }
+        public FiltersOperation DuplicatedDatas { get; set; }
         public FiltersOperation MatchDates { get; set; }
 
         public override void CreateQuery(ref IQueryable<fnDuplicateClient> objects, bool orderBy, bool orderByDate = false)
@@ -25,9 +25,9 @@ namespace IqSoft.CP.DataWarehouse.Filters
 
             FilterByValue(ref objects, PartnerIds, "PartnerId");
             FilterByValue(ref objects, ClientIds, "ClientId");
-            FilterByValue(ref objects, MatchedClientIds, "MatchedClientId");
-            FilterByValue(ref objects, MatchedDatas, "MatchedData");
-            FilterByValue(ref objects, MatchDates, "MatchDates");
+            FilterByValue(ref objects, DuplicatedClientIds, "DuplicatedClientId");
+            FilterByValue(ref objects, DuplicatedDatas, "DuplicatedData");
+            FilterByValue(ref objects, MatchDates, "LastUpdateTime");
             base.FilteredObjects(ref objects, orderBy, orderByDate, null);
         }
         public IQueryable<fnDuplicateClient> FilterObjects(IQueryable<fnDuplicateClient> duplicateClient, bool ordering)

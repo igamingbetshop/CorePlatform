@@ -1795,6 +1795,15 @@ namespace IqSoft.CP.BLL.Services
             Db.sp_CreateWebSiteMenuCopy(fromPartnerId, toPartnerId, menuItemId);
         }
 
+        public object GetClientQuickRegistrationFields(int partnerId)
+        {
+            return Db.WebSiteSubMenuItems.Where(x => x.WebSiteMenuItem.WebSiteMenu.PartnerId == partnerId &&
+                                                                x.WebSiteMenuItem.WebSiteMenu.Type == Constants.WebSiteConfiguration.Config &&
+                                                                x.WebSiteMenuItem.Title  == Constants.WebSiteConfiguration.QuickRegister)
+                                                    .Select(x => new { x.Title, x.Href }).ToList();
+
+
+        }
         public void GenerateWebSiteStylesFile(int partnerId, FtpModel ftpInput)
         {
             CheckPermission(Constants.Permissions.EditStyles);
@@ -2189,6 +2198,37 @@ namespace IqSoft.CP.BLL.Services
                    }).OrderBy(y => y.Order).ToList()
                }).ToList());
 
+            menu.AddRange(Db.WebSiteMenus.Where(x => x.PartnerId == partnerId && x.Type == Constants.WebSiteConfiguration.Config)
+                .Select(x => new BllMenu
+                {
+                    Id = x.Id,
+                    Type = Constants.WebSiteConfiguration.Login,
+                    StyleType = x.StyleType,
+                    Items = x.WebSiteMenuItems.Where(y => y.Title == "Login").Select(y => new BllMenuItem
+                    {
+                        Id = y.Id,
+                        Icon = y.Icon,
+                        Title = y.Title,
+                        Type = y.Type,
+                        StyleType = y.StyleType,
+                        Href = y.Href,
+                        OpenInRouting = y.OpenInRouting,
+                        Orientation = y.Orientation,
+                        Order = y.Order,
+                        SubMenu = y.WebSiteSubMenuItems.Select(z => new BllSubMenuItem
+                        {
+                            Id = z.Id,
+                            Icon = z.Icon,
+                            Title = z.Title,
+                            Type = z.Type,
+                            Href = z.Href,
+                            OpenInRouting = z.OpenInRouting,
+                            Order = z.Order,
+                            StyleType = z.Title == Constants.WebSiteConfiguration.DocumentType ? documentTypes : null
+                        }).OrderBy(z => z.Order).ToList()
+                    }).OrderBy(y => y.Order).ToList()
+                }).ToList());
+
             var result = new BllPartnerSettings
             {
                 MenuList = menu
@@ -2391,16 +2431,15 @@ namespace IqSoft.CP.BLL.Services
                 var ftpModel = partnerBl.GetPartnerEnvironments(partnerId).First();
 
                 var path = "ftp://" + ftpModel.Value.Url + "/coreplatform/website/" + partner.Name + "/";
-                if (menuItemName.ToLower() == Constants.WebSiteConfiguration.Root)
-                    path += imageName;
+
+                path += "assets/";
+                if (menuItemName.ToLower() == Constants.WebSiteConfiguration.Fonts.ToLower())
+                    path += "fonts/" + imageName;
+                else if (menuItemName.ToLower() == Constants.WebSiteConfiguration.Root)
+                    path += "root/" + imageName;
                 else
-                {
-                    path+= "assets/";
-                    if (menuItemName.ToLower() == "fonts")
-                        path += "fonts/" + imageName;
-                    else
-                        path += "images/";
-                }
+                    path += "images/";
+
                 if (menuItemName.StartsWith("Images"))
                     path += (menuItemName.ToLower() != "images" ? menuItemName.Split('_')[1].ToLower() + "/" + imageName : imageName);
                 else if (menuType == Constants.WebSiteConfiguration.AccountTabsList)

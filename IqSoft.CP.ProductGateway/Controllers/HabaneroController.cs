@@ -18,6 +18,7 @@ using System.Net.Http;
 using System.ServiceModel;
 using System.Text;
 using System.Web.Http;
+using TransferInput = IqSoft.CP.ProductGateway.Models.Habanero.TransferInput;
 
 namespace IqSoft.CP.ProductGateway.Controllers
 {
@@ -387,6 +388,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                                     GameName = product.NickName,
                                     ClientId = client.Id,
                                     ClientName = client.FirstName,
+                                    BetAmount = betDocument?.Amount,
                                     Amount = winTransfer.Amount,
                                     CurrencyId = client.CurrencyId,
                                     PartnerId = client.PartnerId,
@@ -488,6 +490,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                             GameName = product.NickName,
                             ClientId = client.Id,
                             ClientName = client.FirstName,
+                            BetAmount = betDocument?.Amount,
                             Amount = input.Amount,
                             CurrencyId = client.CurrencyId,
                             PartnerId = client.PartnerId,

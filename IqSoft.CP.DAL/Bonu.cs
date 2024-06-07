@@ -26,8 +26,9 @@ namespace IqSoft.CP.DAL
             this.BonusSegmentSettings = new HashSet<BonusSegmentSetting>();
             this.TriggerGroups = new HashSet<TriggerGroup>();
             this.AmountCurrencySettings = new HashSet<AmountCurrencySetting>();
-            this.ClientBonus = new HashSet<ClientBonu>();
             this.ClientBonusTriggers = new HashSet<ClientBonusTrigger>();
+            this.ClientBonus = new HashSet<ClientBonu>();
+            this.ClientBonus1 = new HashSet<ClientBonu>();
         }
     
         public int Id { get; set; }
@@ -94,8 +95,10 @@ namespace IqSoft.CP.DAL
         public virtual ICollection<AmountCurrencySetting> AmountCurrencySettings { get; set; }
         public virtual Translation Translation { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<ClientBonusTrigger> ClientBonusTriggers { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ClientBonu> ClientBonus { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<ClientBonusTrigger> ClientBonusTriggers { get; set; }
+        public virtual ICollection<ClientBonu> ClientBonus1 { get; set; }
     }
 }

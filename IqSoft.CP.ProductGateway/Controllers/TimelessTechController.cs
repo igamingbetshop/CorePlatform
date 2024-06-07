@@ -175,7 +175,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
 
 		private static object Authenticate(BllClient client)
 		{
-			var isExternalPlatformClient = ExternalPlatformHelpers.IsExternalPlatformClient(client, out DAL.Models.Cache.PartnerKey externalPlatformType);
+			var isExternalPlatformClient = ExternalPlatformHelpers.IsExternalPlatformClient(client, out PartnerKey externalPlatformType);
 			var balance = isExternalPlatformClient ? ExternalPlatformHelpers.GetClientBalance(Convert.ToInt32(externalPlatformType.StringValue), client.Id) :
 													 CacheManager.GetClientCurrentBalance(client.Id).AvailableBalance;
 			var regionPath = CacheManager.GetRegionPathById(client.RegionId);
@@ -192,7 +192,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
 
 		private static object Balance(BllClient client)
 		{
-			var isExternalPlatformClient = ExternalPlatformHelpers.IsExternalPlatformClient(client, out DAL.Models.Cache.PartnerKey externalPlatformType);
+			var isExternalPlatformClient = ExternalPlatformHelpers.IsExternalPlatformClient(client, out PartnerKey externalPlatformType);
 			var balance = isExternalPlatformClient ? ExternalPlatformHelpers.GetClientBalance(Convert.ToInt32(externalPlatformType.StringValue), client.Id) :
 													 CacheManager.GetClientCurrentBalance(client.Id).AvailableBalance;
 			return new
@@ -221,9 +221,12 @@ namespace IqSoft.CP.ProductGateway.Controllers
                     Rolleback(document.ExternalTransactionId, input.GameId.ToString(), client, providerId);
 				}
 			}
+			var isExternalPlatformClient = ExternalPlatformHelpers.IsExternalPlatformClient(client, out PartnerKey externalPlatformType);
+			var balance = isExternalPlatformClient ? ExternalPlatformHelpers.GetClientBalance(Convert.ToInt32(externalPlatformType.StringValue), client.Id) :
+													 CacheManager.GetClientCurrentBalance(client.Id).AvailableBalance;
 			return new
 			{
-				balance = CacheManager.GetClientCurrentBalance(client.Id).AvailableBalance,
+				balance,
 				currency_code = client.CurrencyId
 			};
 		}
@@ -353,7 +356,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
 							Amount = Convert.ToDecimal(input.Amount)
 						});
 						document = clientBl.CreateCreditFromClient(operationsFromProduct, documentBl, out LimitInfo info);
-						var isExternalPlatformClient = ExternalPlatformHelpers.IsExternalPlatformClient(client, out DAL.Models.Cache.PartnerKey externalPlatformType);
+						var isExternalPlatformClient = ExternalPlatformHelpers.IsExternalPlatformClient(client, out PartnerKey externalPlatformType);
 						if (isExternalPlatformClient)
 						{
 							try
@@ -421,7 +424,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
 							Amount = Convert.ToDecimal(input.Amount)
 						});
 						winDocument = clientBl.CreateDebitsToClients(operationsFromProduct, betDocument, documentBl)[0];
-						var isExternalPlatformClient = ExternalPlatformHelpers.IsExternalPlatformClient(client, out DAL.Models.Cache.PartnerKey externalPlatformType);
+						var isExternalPlatformClient = ExternalPlatformHelpers.IsExternalPlatformClient(client, out PartnerKey externalPlatformType);
 						if (isExternalPlatformClient)
 						{
 							try
@@ -431,30 +434,30 @@ namespace IqSoft.CP.ProductGateway.Controllers
 							}
 							catch (FaultException<BllFnErrorType> ex)
 							{
-								WebApiApplication.DbLogger.Error(ex.Detail?.Id + " _ " + ex.Detail?.Message);
-								documentBl.RollbackProductTransactions(operationsFromProduct);
-								throw;
+								WebApiApplication.DbLogger.Error("DebitException_" + ex.Detail?.Id + " _ " + ex.Detail?.Message);
 							}
 							catch (Exception ex)
 							{
-								WebApiApplication.DbLogger.Error(ex);
-								documentBl.RollbackProductTransactions(operationsFromProduct);
-								throw;
+								WebApiApplication.DbLogger.Error("DebitException_" + ex.Message);
 							}
 						}
-						BaseHelpers.RemoveClientBalanceFromeCache(client.Id);
-						BaseHelpers.BroadcastWin(new ApiWin
+						else
 						{
-							GameName = product.NickName,
-							ClientId = client.Id,
-							ClientName = client.FirstName,
-							Amount = Convert.ToDecimal(input.Amount),
-							CurrencyId = client.CurrencyId,
-							PartnerId = client.PartnerId,
-							ProductId = product.Id,
-							ProductName = product.NickName,
-							ImageUrl = product.WebImageUrl
-						});
+							BaseHelpers.RemoveClientBalanceFromeCache(client.Id);
+							BaseHelpers.BroadcastWin(new ApiWin
+							{
+								GameName = product.NickName,
+								ClientId = client.Id,
+								ClientName = client.FirstName,
+								BetAmount = betDocument?.Amount,
+								Amount = Convert.ToDecimal(input.Amount),
+								CurrencyId = client.CurrencyId,
+								PartnerId = client.PartnerId,
+								ProductId = product.Id,
+								ProductName = product.NickName,
+								ImageUrl = product.WebImageUrl
+							});
+						}
 					}
 				}
 			}

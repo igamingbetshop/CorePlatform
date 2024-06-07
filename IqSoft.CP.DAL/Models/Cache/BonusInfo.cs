@@ -33,7 +33,9 @@ namespace IqSoft.CP.DAL.Models.Cache
 		public int? Regularity { get; set; }
 		public int? DayOfWeek { get; set; }
 		public int? ReusingMaxCountInPeriod { get; set; }
-		public List<TriggerGroupInfo> TriggerGroups { get; set; }
+		public long TranslationId { get; set; }
+
+        public List<TriggerGroupInfo> TriggerGroups { get; set; }
 
 	}
 }

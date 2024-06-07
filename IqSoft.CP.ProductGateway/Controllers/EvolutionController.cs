@@ -330,15 +330,11 @@ namespace IqSoft.CP.ProductGateway.Controllers
                                         ResponseCode = ex.Detail.Id,
                                         Description = ex.Detail.Message
                                     };
-                                WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(message));
-                                documentBl.RollbackProductTransactions(operationsFromProduct);
-                                throw;
+                                WebApiApplication.DbLogger.Error("DebitException_" + JsonConvert.SerializeObject(message));
                             }
                             catch (Exception ex)
                             {
-                                WebApiApplication.DbLogger.Error(ex);
-                                documentBl.RollbackProductTransactions(operationsFromProduct);
-                                throw;
+                                WebApiApplication.DbLogger.Error("DebitException_" + ex.Message);
                             }
                         }
                         BaseHelpers.RemoveClientBalanceFromeCache(client.Id);
@@ -347,6 +343,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                             GameName = product.NickName,
                             ClientId = client.Id,
                             ClientName = client.FirstName,
+                            BetAmount = betDocument?.Amount,
                             Amount = request.Transaction.Amount,
                             CurrencyId = client.CurrencyId,
                             PartnerId = client.PartnerId,

@@ -51,12 +51,12 @@ namespace IqSoft.CP.BLL.Services
         
         #endregion
 
-        public SessionIdentity LoginUser(LoginUserInput loginInput, out string imageData)
+        public SessionIdentity LoginUser(LoginInput loginInput, out string imageData)
         {
             CheckCaptcha(loginInput.PartnerId, loginInput.ReCaptcha);
             var currentTime = GetServerDate();
-            var user = Db.Users.FirstOrDefault(x => ((x.UserName == loginInput.UserName && ((x.LoginByNickName.HasValue && !x.LoginByNickName.Value) || !x.LoginByNickName.HasValue)) ||
-            (x.LoginByNickName.HasValue && x.LoginByNickName.Value && x.NickName == loginInput.UserName)) && x.PartnerId == loginInput.PartnerId &&
+            var user = Db.Users.FirstOrDefault(x => ((x.UserName == loginInput.Identifier && ((x.LoginByNickName.HasValue && !x.LoginByNickName.Value) || !x.LoginByNickName.HasValue)) ||
+            (x.LoginByNickName.HasValue && x.LoginByNickName.Value && x.NickName == loginInput.Identifier)) && x.PartnerId == loginInput.PartnerId &&
             (x.Type == loginInput.UserType || (loginInput.UserType == (int)UserTypes.DownlineAgent && (x.Type == (int)UserTypes.CompanyAgent ||
             x.Type == (int)UserTypes.AgentEmployee || x.Type == (int)UserTypes.AdminUser))));
             if (user == null)
@@ -1764,7 +1764,7 @@ namespace IqSoft.CP.BLL.Services
             Db.SaveChanges();
         }
 
-        public Document CreateDebitOnUser(UserTransferInput transferInput, DocumentBll documentBl)
+        public Document CreateDebitOnUser(TransferInput transferInput, DocumentBll documentBl)
         {
             var user = CacheManager.GetUserById(transferInput.UserId.Value);
             var creator = CacheManager.GetUserById(transferInput.FromUserId ?? Identity.Id);
@@ -1841,7 +1841,7 @@ namespace IqSoft.CP.BLL.Services
             return document;
         }
 
-        public Document CreateCreditOnUser(UserTransferInput transferInput, DocumentBll documentBl)
+        public Document CreateCreditOnUser(TransferInput transferInput, DocumentBll documentBl)
         {
             var user = CacheManager.GetUserById(transferInput.UserId.Value);
             var creator = CacheManager.GetUserById(Identity.Id);
@@ -1913,7 +1913,7 @@ namespace IqSoft.CP.BLL.Services
             return document;
         }
 
-        public Document TransferToUser(UserTransferInput transferInput, DocumentBll documentBl)
+        public Document TransferToUser(TransferInput transferInput, DocumentBll documentBl)
         {
             var user = CacheManager.GetUserById(transferInput.UserId.Value);
             var operation = new Operation
@@ -2606,7 +2606,7 @@ namespace IqSoft.CP.BLL.Services
             else if (state == (int)UserStates.Disabled)
             {
                 var userBalance = GetUserBalance(user.Id);
-                var userTransferInput = new UserTransferInput
+                var userTransferInput = new TransferInput
                 {
                     FromUserId = userId,
                     UserId = user.ParentId,
@@ -2632,7 +2632,9 @@ namespace IqSoft.CP.BLL.Services
             var result = new List<CommissionItem>();
             using (var dwh = new IqSoftDataWarehouseEntities())
             {
+                var currentTime = DateTime.UtcNow;
                 var clients = dwh.fn_ProfitByClientProduct(fromDate, toDate).ToList();
+
                 foreach (var client in clients)
                 {
                     var clientCommissionTree = CacheManager.GetClientProductCommissionTree(client.ClientId, client.ProductId);
@@ -2651,7 +2653,6 @@ namespace IqSoft.CP.BLL.Services
                         }
                         var finalPercent = percent - previousItemInitialPercent;
                         previousItemInitialPercent = percent;
-
                         if (finalPercent > 0)
                         {
                             var item = result.FirstOrDefault(x => x.RecieverAgentId == clientCommissionTree[i].AgentId &&

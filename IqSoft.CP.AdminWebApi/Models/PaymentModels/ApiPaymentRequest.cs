@@ -21,6 +21,7 @@ namespace IqSoft.CP.AdminWebApi.Models.PaymentModels
         public string ClientDocumentNumber { get; set; }
         public string CurrencyId { get; set; }
         public decimal Amount { get; set; }
+        public decimal ConvertedAmount { get; set; }
         [NotExcelProperty]
         public int State { get; set; }
 

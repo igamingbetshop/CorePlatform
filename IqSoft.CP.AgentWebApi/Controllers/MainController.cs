@@ -75,10 +75,10 @@ namespace IqSoft.CP.AgentWebApi.Controllers
                         var partner = partnerBl.GetPartners(new FilterPartner { AdminSiteUrl = siteUrl }, false).FirstOrDefault() ??
                         throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.PartnerNotFound);
                         PartnerBll.CheckApiRestrictions(partner.Id, isAffiliate ? Constants.SystemModuleTypes.AffilliateSystem : Constants.SystemModuleTypes.AgentSystem);
-                        var loginInput = new LoginUserInput
+                        var loginInput = new LoginInput
                         {
                             PartnerId = partner.Id,
-                            UserName = input.UserName,
+                            Identifier = input.Identifier,
                             Password = input.Password,
                             Ip = ip,
                             LanguageId = requestInfo.LanguageId,

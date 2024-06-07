@@ -7,7 +7,7 @@ namespace IqSoft.CP.Common.Models
 {
     public class RegExProperty
     {
-        private readonly static string PossibleSymbols = "(){}[]|`¬¦!\"£$%^&*'<>:;#~_-+=,@/\\]";
+        private readonly static string PossibleSymbols = "!@#$%^&*()-+=~`[\\]{}\\\\|;:'\"\",<.>?";
         public int? PartnerId { get; set; }
         public bool Numeric { get; set; }
         public bool Lowercase { get; set; }
@@ -40,26 +40,13 @@ namespace IqSoft.CP.Common.Models
                 Numeric = true;
             if (!regEx.Contains("(?!.*[" + PossibleSymbols + "])"))
                 Symbol = true;
-            var lenghtRegEx = new Regex(@"\(\?=\^\.{(.*),(.*)}\$\)");
-            MinLength = Convert.ToInt32(lenghtRegEx.Matches(regEx)[0].Groups[1].Value);
-            MaxLength = Convert.ToInt32(lenghtRegEx.Matches(regEx)[0].Groups[2].Value);
+            var lengthRegEx = new Regex(@"\(\?=\^\.{(.*),(.*)}\$\)");
+            MinLength = Convert.ToInt32(lengthRegEx.Matches(regEx)[0].Groups[1].Value);
+            MaxLength = Convert.ToInt32(lengthRegEx.Matches(regEx)[0].Groups[2].Value);
         }
         public string GetExpression()
         {
             var expression = new StringBuilder("(?=^.{" + MinLength + "," + MaxLength + "}$)");
-            if ((Lowercase && !IsLowercaseRequired) || (Uppercase && !IsUppercaseRequired) || (Numeric && !IsDigitRequired))
-            {
-                expression.Append('[');
-                if (Lowercase && !IsLowercaseRequired)
-                    expression.Append("a-z");
-                if (Uppercase && !IsUppercaseRequired)
-                    expression.Append("A-Z");
-                if (Numeric && !IsDigitRequired)
-                    expression.Append("0-9");
-                if (Symbol && !IsSymbolRequired)
-                    expression.Append(PossibleSymbols);
-                expression.Append(']');
-            }
             if (IsLowercaseRequired)
                 expression.Append("(?=.*[a-z])");
             if (IsUppercaseRequired)
@@ -70,7 +57,19 @@ namespace IqSoft.CP.Common.Models
                 expression.Append("(?=.*[" + PossibleSymbols + "])");
             else if (!Symbol)
                 expression.Append("(?!.*[" + PossibleSymbols + "])");
-
+            if ((Lowercase && !IsLowercaseRequired) || (Uppercase && !IsUppercaseRequired) || (Numeric && !IsDigitRequired))
+            {
+                expression.Append('[');
+                if (Lowercase)
+                    expression.Append("a-z");
+                if (Uppercase)
+                    expression.Append("A-Z");
+                if (Numeric)
+                    expression.Append("0-9");
+                if (Symbol && !IsSymbolRequired)
+                    expression.Append(PossibleSymbols);
+                expression.Append(']');
+            }           
             return expression.ToString();
         }
 
@@ -88,11 +87,17 @@ namespace IqSoft.CP.Common.Models
                 possibleCharacters += digits;
             if (!pattern.Contains("(?!.*[" + PossibleSymbols + "])"))
                 possibleCharacters += PossibleSymbols;
-            var commaInd = pattern.IndexOf(",");
-            var minLength = Convert.ToInt32(pattern.Substring(6, commaInd - 6));
-            var maxLenght = Convert.ToInt32(pattern.Substring(commaInd + 1, pattern.IndexOf("}$)") - commaInd - 1));
+            var lengthRegex = new Regex(@"\{(\d+),(\d+)\}");
+            Match match = lengthRegex.Match(pattern);
+            var minLength = 0;
+            var maxLength = 0;
+            if (match.Success && match.Groups.Count == 3)
+            {
+                minLength = int.Parse(match.Groups[1].Value);
+                maxLength = int.Parse(match.Groups[2].Value);
+            }
             var r = new Random();
-            var resultLen = r.Next(minLength, maxLenght);
+            var resultLen = r.Next(minLength, maxLength);
             var random = new Random(Guid.NewGuid().GetHashCode());
             var result = new string(
                 Enumerable.Repeat(possibleCharacters, resultLen)

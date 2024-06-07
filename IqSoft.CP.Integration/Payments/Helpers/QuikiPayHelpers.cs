@@ -77,8 +77,35 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 				var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, paymentRequest.PaymentSystemId,
 																				   paymentRequest.CurrencyId, (int)PaymentRequestTypes.Withdraw);
 				var url = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.QuikiPayUrl).StringValue;
-				var amount = paymentRequest.Amount - (paymentRequest.CommissionAmount ?? 0);
-				var paymentInfo = JsonConvert.DeserializeObject<PaymentInfo>(paymentRequest.Info);				
+				var paymentInfo = JsonConvert.DeserializeObject<PaymentInfo>(paymentRequest.Info);
+				var payoutWalletInput = new PayoutWalletInput
+				{
+					name = client.Id.ToString(),
+					crypto_currency = paymentInfo.AccountType,
+					crypto_address = paymentInfo.WalletNumber,
+				};
+				var signature = GetObjectPropertyValuesAsString(payoutWalletInput, typeof(PayoutWalletInput));
+				payoutWalletInput.signature = CommonFunctions.ComputeSha256(signature + partnerPaymentSetting.Password);
+				var httpRequestInput = new HttpRequestInput
+				{
+					ContentType = Constants.HttpContentTypes.ApplicationJson,
+					RequestMethod = Constants.HttpRequestMethods.Post,
+					RequestHeaders = new Dictionary<string, string> { { "Api-Key", partnerPaymentSetting.UserName } },
+					Url = $"{url}/api/v1.1/create/crypto-address",
+					PostData = JsonConvert.SerializeObject(payoutWalletInput)
+				};
+				var res = string.Empty;
+				try
+				{
+					res = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
+				}
+				catch(Exception ex)
+				{
+					var output = JsonConvert.DeserializeObject<PayoutOutput>(ex.Message);
+					var message = JsonConvert.DeserializeObject<PayoutOutput>(output.message);
+					log.Info(message.message);
+				}
+				var amount = paymentRequest.Amount - (paymentRequest.CommissionAmount ?? 0);			
 				var paymentGateway = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.PaymentGateway).StringValue;
 				var payoutInput = new PayoutInput
 				{
@@ -96,9 +123,9 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 					auto = 0,
 					callback_url = $"{paymentGateway}/api/QuikiPay/PayoutRequest",
 				};
-				var signature = GetObjectPropertyValuesAsString(payoutInput, typeof(PayoutInput));
+				signature = GetObjectPropertyValuesAsString(payoutInput, typeof(PayoutInput));
 				payoutInput.signature = CommonFunctions.ComputeSha256(signature + partnerPaymentSetting.Password);
-				var httpRequestInput = new HttpRequestInput
+				httpRequestInput = new HttpRequestInput
 				{
 					ContentType = Constants.HttpContentTypes.ApplicationJson,
 					RequestMethod = Constants.HttpRequestMethods.Post,
@@ -106,7 +133,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 					Url = $"{url}/api/v1.1/withdrawal",
 					PostData = JsonConvert.SerializeObject(payoutInput)
 				};
-				var res = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
+				res = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
 				var paymentOutput = JsonConvert.DeserializeObject<PayoutOutput>(res);
 				if (paymentOutput.success)
 					return new PaymentResponse

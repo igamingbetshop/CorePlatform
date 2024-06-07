@@ -135,10 +135,10 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                     using (var betShopBl = new BetShopBll(userBl))
                     {
                         var authBase = Helpers.Helpers.CheckCashDeskHash(input.PartnerId, input.Hash, betShopBl);
-                        var loginInput = new LoginUserInput
+                        var loginInput = new LoginInput
                         {
                             PartnerId = input.PartnerId,
-                            UserName = input.UserName,
+                            Identifier = input.UserName,
                             Password = input.Password,
                             Ip = input.Ip,
                             LanguageId = input.LanguageId,
@@ -224,10 +224,10 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                     using (var betShopBl = new BetShopBll(userBl))
                     {
                         var authBase = Helpers.Helpers.CheckEncodedData(input.PartnerId, input.ExternalId, input.Hash, betShopBl);
-                        var loginInput = new LoginUserInput
+                        var loginInput = new LoginInput
                         {
                             PartnerId = input.PartnerId,
-                            UserName = input.UserName,
+                            Identifier = input.UserName,
                             Password = input.Password,
                             Ip = input.Ip,
                             LanguageId = input.LanguageId,
@@ -1155,7 +1155,6 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                         CurrencyId = input.CurrencyId,
                         CashDeskId = input.CashDeskId,
                         Info = input.Info,
-                        ExternalOperationId = input.ExternalOperationId,
                         CashierId = input.CashierId,
                         ExternalTransactionId = input.ExternalTransactionId
                     };
@@ -1196,7 +1195,6 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                         CurrencyId = input.CurrencyId,
                         CashDeskId = input.CashDeskId,
                         Info = input.Info,
-                        ExternalOperationId = input.ExternalOperationId,
                         CashierId = input.CashierId,
                         ExternalTransactionId = input.ExternalTransactionId
                     };

@@ -90,7 +90,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                     if (productId == Constants.SportsbookProductId)
                     {
                         var bonuses = clientBl.GetClientActiveBonuses(client.Id, (int)BonusTypes.CampaignFreeBet, languageId);
-                        response.Bonuses = bonuses.Select(x => new ApiBonus 
+                        response.Bonuses = bonuses.Select(x => new DAL.Models.Integration.ProductsIntegration.ApiBonus 
                         { 
                             Id = x.Id, 
                             BonusId = x.BonusId, 
@@ -212,7 +212,6 @@ namespace IqSoft.CP.ProductGateway.Controllers
 							CurrencyId = client.CurrencyId,
 							RoundId = input.RoundId,
 							GameProviderId = providerId,
-							ExternalOperationId = null,
 							ExternalProductId = input.GameId,
 							TransactionId = input.TransactionId,
 							OperationTypeId = input.OperationTypeId,
@@ -346,7 +345,6 @@ namespace IqSoft.CP.ProductGateway.Controllers
                         GameProviderId = providerId,
                         ExternalProductId = input.GameId,
                         TransactionId = input.RollbackTransactionId,
-                        ExternalOperationId = null,
                         Info = input.Info,
                         OperationTypeId = input.OperationTypeId
                     };
@@ -536,6 +534,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                             FinishTime = validUntil,
                             SpinCount = input.SpinCount,
                             ProductExternalId = partnerSetting.ProductExternalId,
+                            ProductId = partnerSetting.ProductId,
                             Lines = input.Lines,
                             Coins = input.Coins,
                             CoinValue = input.CoinValue,
@@ -668,7 +667,6 @@ namespace IqSoft.CP.ProductGateway.Controllers
                         RoundId = input.RoundId,
                         GameProviderId = providerId,
                         OperationTypeId = input.OperationTypeId,
-                        ExternalOperationId = null,
                         ExternalProductId = input.GameId,
                         TransactionId = input.TransactionId,
                         CreditTransactionId = (creditTransaction == null ? (long?)null : creditTransaction.Id),
@@ -712,6 +710,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                         GameName = product.NickName,
                         ClientId = client.Id,
                         ClientName = client.FirstName,
+                        BetAmount = creditTransaction?.Amount,
                         Amount = input.Amount,
                         CurrencyId = client.CurrencyId,
                         PartnerId = client.PartnerId,

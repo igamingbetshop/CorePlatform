@@ -7,7 +7,6 @@ using IqSoft.CP.PaymentGateway.Models.Flexepin;
 using IqSoft.CP.Common;
 using IqSoft.CP.BLL.Caching;
 using IqSoft.CP.Common.Enums;
-using IqSoft.CP.Common.Helpers;
 using System.ServiceModel;
 using System;
 using System.Net;

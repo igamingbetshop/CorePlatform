@@ -31,5 +31,6 @@ namespace IqSoft.CP.DAL
         public System.DateTime LastUpdateTime { get; set; }
         public int CommunicationType { get; set; }
         public string CommunicationTypeValue { get; set; }
+        public Nullable<int> ClientId { get; set; }
     }
 }

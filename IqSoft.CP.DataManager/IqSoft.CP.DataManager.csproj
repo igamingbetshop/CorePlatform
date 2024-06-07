@@ -95,7 +95,6 @@
     <Compile Include="DataManagerService.Designer.cs">
       <DependentUpon>DataManagerService.cs</DependentUpon>
     </Compile>
-    <Compile Include="Helpers\EntityExtension.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="ProjectInstaller.cs">
       <SubType>Component</SubType>

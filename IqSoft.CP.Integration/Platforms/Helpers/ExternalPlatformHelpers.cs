@@ -19,12 +19,12 @@ namespace IqSoft.CP.Integration.Platforms.Helpers
 {
     public class ExternalPlatformHelpers
     {
-        public static BllClient CreateClientSession(ClientLoginInput input, out string newToken, out int clientId, SessionIdentity sessionIdentity, ILog log)
+        public static BllClient CreateClientSession(LoginInput input, out string newToken, out int clientId, SessionIdentity sessionIdentity, ILog log)
         {
             switch (input.ExternalPlatformType.Value)
             {
                 case (int)ExternalPlatformTypes.CashCenter:
-                    var externalClient = CashCenterHelpers.LoginUser(input.PartnerId, input.ClientIdentifier, sessionIdentity, log);
+                    var externalClient = CashCenterHelpers.LoginUser(input.PartnerId, input.Identifier, sessionIdentity, log);
                     if (externalClient != null)
                     {
                         using (var clientBll = new ClientBll(sessionIdentity, LogManager.GetLogger("ADONetAppender")))
@@ -56,17 +56,17 @@ namespace IqSoft.CP.Integration.Platforms.Helpers
                     else
                     {
                         BllClient client = null;
-                        if (ClientBll.IsValidEmail(input.ClientIdentifier))
+                        if (ClientBll.IsValidEmail(input.Identifier))
                         {
-                            client = CacheManager.GetClientByEmail(input.PartnerId, input.ClientIdentifier.ToLower());
+                            client = CacheManager.GetClientByEmail(input.PartnerId, input.Identifier.ToLower());
                         }
-                        else if (ClientBll.IsMobileNumber(input.ClientIdentifier))
+                        else if (ClientBll.IsMobileNumber(input.Identifier))
                         {
-                            input.ClientIdentifier = "+" + input.ClientIdentifier.Replace("+", string.Empty).Replace(" ", string.Empty);
-                            client = CacheManager.GetClientByMobileNumber(input.PartnerId, input.ClientIdentifier);
+                            input.Identifier = "+" + input.Identifier.Replace("+", string.Empty).Replace(" ", string.Empty);
+                            client = CacheManager.GetClientByMobileNumber(input.PartnerId, input.Identifier);
                         }
                         else
-                            client = CacheManager.GetClientByUserName(input.PartnerId, input.ClientIdentifier);
+                            client = CacheManager.GetClientByUserName(input.PartnerId, input.Identifier);
                         if (client == null)
                             throw BaseBll.CreateException(input.LanguageId, Constants.Errors.WrongLoginParameters);
                         var resp = ClientBll.LoginClient(input, client, out newToken,out _, log);

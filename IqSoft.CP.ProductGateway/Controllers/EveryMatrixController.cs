@@ -399,6 +399,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                                 ClientId = client.Id,
                                 ClientName = client.FirstName,
                                 Amount = input.Amount,
+                                BetAmount = betDocument?.Amount,
                                 CurrencyId = client.CurrencyId,
                                 PartnerId = client.PartnerId,
                                 ProductId = product.Id,

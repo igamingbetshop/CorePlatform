@@ -106,6 +106,7 @@ namespace IqSoft.CP.BetShopWebApi.Common
 				case Constants.Games.Bingo37:
 				case Constants.Games.Colors:
 				case Constants.Games.Bingo48:
+				case Constants.Games.SpinAndWin:
 					url =Program.AppSetting. VirtualGamesBetShopWebApiUrl + "/" + requestMethod;
 					break;
 				case Constants.Games.Sportsbook:

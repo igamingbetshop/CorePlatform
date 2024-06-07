@@ -157,7 +157,6 @@ namespace IqSoft.CP.ProductGateway.Controllers
 							CurrencyId = input.CurrencyId,
 							RoundId = input.RoundId,
 							GameProviderId = CacheManager.GetGameProviderByName(Constants.GameProviders.IqSoft).Id,
-							ExternalOperationId = null,
 							ExternalProductId = input.GameId,
 							TransactionId = input.TransactionId,
 							TypeId = typeId,
@@ -262,7 +261,6 @@ namespace IqSoft.CP.ProductGateway.Controllers
 							RoundId = input.RoundId,
 							GameProviderId = CacheManager.GetGameProviderByName(Constants.GameProviders.IqSoft).Id,
 							CreditTransactionId = creditTransaction.Id,
-							ExternalOperationId = null,
 							OperationTypeId = input.OperationTypeId,
 							ExternalProductId = input.GameId,
 							TransactionId = input.TransactionId,
@@ -338,7 +336,6 @@ namespace IqSoft.CP.ProductGateway.Controllers
                         GameProviderId = CacheManager.GetGameProviderByName(Constants.GameProviders.IqSoft).Id,
                         TransactionId = input.TransactionId,
                         ExternalProductId = input.GameId,
-                        ExternalOperationId = null,
                         Info = input.Info
                     };
                     documentBl.RollbackProductTransactions(operationsFromProduct);

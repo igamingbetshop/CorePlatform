@@ -5,7 +5,7 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <_PublishTargetUrl>C:\inetpub\wwwroot\CP_Core\BetShopWebApi</_PublishTargetUrl>
-    <History>True|2024-04-04T08:21:33.4312502Z;True|2024-03-27T13:37:20.3875759+04:00;True|2024-03-15T14:34:48.9875417+04:00;True|2023-05-05T12:18:54.4002269+04:00;</History>
+    <History>True|2024-05-30T11:04:52.0019181Z;True|2024-05-30T15:04:42.0361751+04:00;True|2024-04-04T12:21:33.4312502+04:00;True|2024-03-27T13:37:20.3875759+04:00;True|2024-03-15T14:34:48.9875417+04:00;True|2023-05-05T12:18:54.4002269+04:00;</History>
     <LastFailureDetails />
   </PropertyGroup>
 </Project>

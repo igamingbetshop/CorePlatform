@@ -25,7 +25,6 @@ namespace IqSoft.CP.DAL
         public string ProductNickName { get; set; }
         public string ProductExternalId { get; set; }
         public string ProductName { get; set; }
-        public int ProductIsLeaf { get; set; }
         public Nullable<int> ProductGameProviderId { get; set; }
         public Nullable<int> ProductParentId { get; set; }
         public Nullable<int> PaymentSystemId { get; set; }

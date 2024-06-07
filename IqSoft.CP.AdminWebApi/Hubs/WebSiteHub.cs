@@ -1,10 +1,11 @@
-﻿using Microsoft.AspNet.SignalR;
+﻿using IqSoft.CP.Common.Models.WebSiteModels;
+using Microsoft.AspNet.SignalR;
 using Microsoft.AspNet.SignalR.Hubs;
 using System.Threading.Tasks;
 
 namespace IqSoft.CP.AdminWebApi.Hubs
 {
-	[HubName("WebSiteHub")]
+    [HubName("WebSiteHub")]
 	public class WebSiteHub : Hub
 	{
 		public override Task OnConnected()
@@ -24,5 +25,14 @@ namespace IqSoft.CP.AdminWebApi.Hubs
 
 			return base.OnDisconnected(true);
 		}
-	}
+
+
+        public static readonly dynamic _connectedClients =
+        GlobalHost.ConnectionManager.GetHubContext<WebSiteHub>().Clients.Group("WebSiteWebApi");
+
+        public static void BroadcastBalance(ApiWin clientBalance)
+        {
+            _connectedClients.BroadcastBalance(clientBalance);
+        }
+    }
 }

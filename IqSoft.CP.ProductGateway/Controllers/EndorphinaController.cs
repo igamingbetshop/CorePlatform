@@ -303,7 +303,6 @@ namespace IqSoft.CP.ProductGateway.Controllers
                                 RoundId = input.gameId.ToString(),
                                 GameProviderId = ProviderId,
                                 OperationTypeId = (int)OperationTypes.Win,
-                                ExternalOperationId = null,
                                 ExternalProductId = input.id.ToString(),
                                 ProductId = betDocument.ProductId,
                                 TransactionId = input.id.ToString(),
@@ -328,9 +327,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                                 }
                                 catch (Exception ex)
                                 {
-                                    WebApiApplication.DbLogger.Error(ex);
-                                    documentBl.RollbackProductTransactions(operationsFromProduct);
-                                    throw;
+                                    WebApiApplication.DbLogger.Error("DebitException_" + ex.Message);
                                 }
                             }
                             else
@@ -341,6 +338,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                                     GameName = product.NickName,
                                     ClientId = client.Id,
                                     ClientName = client.FirstName,
+                                    BetAmount = betDocument?.Amount,
                                     Amount = Convert.ToDecimal(amount),
                                     CurrencyId = client.CurrencyId,
                                     PartnerId = client.PartnerId,
@@ -629,7 +627,6 @@ namespace IqSoft.CP.ProductGateway.Controllers
                                 RoundId = transactionId,
                                 GameProviderId = ProviderId,
                                 OperationTypeId = (int)OperationTypes.Win,
-                                ExternalOperationId = null,
                                 ProductId = betDocument.ProductId,
                                 TransactionId = transactionId,
                                 CreditTransactionId = betDocument.Id,
@@ -651,9 +648,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                                 }
                                 catch (Exception ex)
                                 {
-                                    WebApiApplication.DbLogger.Error(ex.Message);
-                                    documentBl.RollbackProductTransactions(operationsFromProduct);
-                                    throw;
+                                    WebApiApplication.DbLogger.Error("DebitException_" + ex.Message);
                                 }
                             }
                             else
@@ -664,6 +659,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                                     GameName = product.NickName,
                                     ClientId = client.Id,
                                     ClientName = client.FirstName,
+                                    BetAmount = betDocument?.Amount,
                                     Amount = Convert.ToDecimal(input.amount) / Rate,
                                     CurrencyId = client.CurrencyId,
                                     PartnerId = client.PartnerId,
@@ -802,7 +798,6 @@ namespace IqSoft.CP.ProductGateway.Controllers
                                         RoundId = transactionId,
                                         GameProviderId = ProviderId,
                                         OperationTypeId = (int)OperationTypes.Win,
-                                        ExternalOperationId = null,
                                         ProductId = betDocument.ProductId,
                                         TransactionId = transactionId,
                                         CreditTransactionId = betDocument.Id,
@@ -825,9 +820,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                                         }
                                         catch (Exception ex)
                                         {
-                                            WebApiApplication.DbLogger.Error(ex);
-                                            documentBl.RollbackProductTransactions(operationsFromProduct);
-                                            throw;
+                                            WebApiApplication.DbLogger.Error("DebitException_" + ex.Message);
                                         }
                                     }
                                     else
@@ -838,6 +831,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                                             GameName = product.NickName,
                                             ClientId = client.Id,
                                             ClientName = client.FirstName,
+                                            BetAmount = betDocument?.Amount,
                                             Amount = input.bonusWin.Value/ Rate,
                                             CurrencyId = client.CurrencyId,
                                             PartnerId = client.PartnerId,

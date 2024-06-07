@@ -14,7 +14,6 @@
         PasswordRecoveryEmailKey = 10,
         AffiliateClientInvitationEmail = 11,
         AffiliateClientInvitationSMS = 12,
-        WelcomeBonusActivationKey = 13,
         NewIpLoginEmail = 14,
         PasswordRecoveryEmailSubject = 15,
         EmailVerificationSubject = 16,
@@ -66,6 +65,9 @@
         WithdrawVerificationEmail = 62,
 		AffiliateConfirmationEmail = 63,
         AffiliateClientInvitationEmailSubject = 64,
-        ResetPinCode = 65
+        ResetPinCode = 65,
+        KYCVerificationEmail = 66,
+        KYCVerificationTicket = 67,
+        KYCVerificationSubject = 68
     }
 }

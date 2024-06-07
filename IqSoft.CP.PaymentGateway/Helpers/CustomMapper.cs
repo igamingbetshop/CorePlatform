@@ -1,7 +1,5 @@
-﻿using IqSoft.CP.BLL.Caching;
-using IqSoft.CP.Common.Models.WebSiteModels;
+﻿using IqSoft.CP.Common.Models.WebSiteModels;
 using IqSoft.CP.DAL.Models.Cache;
-using IqSoft.CP.DAL.Models.Integration.ProductsIntegration;
 using System.Linq;
 
 namespace IqSoft.CP.PaymentGateway.Helpers

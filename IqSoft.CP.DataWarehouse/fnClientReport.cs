@@ -38,6 +38,7 @@ namespace IqSoft.CP.DataWarehouse
         public Nullable<int> DebitCorrectionsCount { get; set; }
         public Nullable<decimal> TotalCreditCorrection { get; set; }
         public Nullable<int> CreditCorrectionsCount { get; set; }
+        public Nullable<decimal> TotalBonusAmount { get; set; }
         public Nullable<decimal> ComplementaryBalance { get; set; }
     }
 }

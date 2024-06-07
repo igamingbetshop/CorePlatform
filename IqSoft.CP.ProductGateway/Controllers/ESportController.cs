@@ -347,7 +347,6 @@ namespace IqSoft.CP.ProductGateway.Controllers
                                 CurrencyId = client.CurrencyId,
                                 GameProviderId = ProviderId,
                                 OperationTypeId = (int)OperationTypes.Win,
-                                ExternalOperationId = null,
                                 ExternalProductId = Product.ExternalId,
                                 ProductId = betDocument.ProductId,
                                 TransactionId = input.Wallet_Id,

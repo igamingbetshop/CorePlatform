@@ -10,6 +10,7 @@ namespace IqSoft.CP.DAL.Models.Cache
         public int PartnerId { get; set; }
         public string NickName { get; set; }
         public int Type { get; set; }
+        public int? DeviceType { get; set; }
         public int State { get; set; }
         public long ContentTranslationId { get; set; }
         public string ImageName { get; set; }

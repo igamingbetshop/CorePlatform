@@ -23,6 +23,7 @@ namespace IqSoft.CP.AgentWebApi.Models.Affiliate
         public string CurrencyId { get; set; }
         public string Email { get; set; }
         public string MobileNumber { get; set; }
+        public int? ClientId { get; set; }
         public System.DateTime CreationTime { get; set; }
         public System.DateTime LastUpdateTime { get; set; }
         public FixedFeeCommission FixedFeeCommission { get; set; }

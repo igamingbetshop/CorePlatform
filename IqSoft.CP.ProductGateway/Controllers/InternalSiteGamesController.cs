@@ -97,11 +97,11 @@ namespace IqSoft.CP.ProductGateway.Controllers
 
                     if (productId == Constants.SportsbookProductId)
                     {
-                        response.Bonuses = new List<ApiBonus>();
+                        response.Bonuses = new List<DAL.Models.Integration.ProductsIntegration.ApiBonus>();
                         var bonuses = clientBl.GetClientActiveBonuses(client.Id, (int)BonusTypes.CampaignFreeBet, languageId);
                         foreach (var b in bonuses)
                         {
-                            response.Bonuses.Add(new ApiBonus
+                            response.Bonuses.Add(new DAL.Models.Integration.ProductsIntegration.ApiBonus
                             {
                                 Id = b.Id,
                                 BonusId = b.BonusId,
@@ -277,7 +277,6 @@ namespace IqSoft.CP.ProductGateway.Controllers
                             CurrencyId = client.CurrencyId,
                             RoundId = input.RoundId,
                             GameProviderId = providerId,
-                            ExternalOperationId = null,
                             ExternalProductId = input.GameId + (input.UnitId == null ? string.Empty : ("_" + input.UnitId)),
                             TransactionId = input.TransactionId,
                             OperationTypeId = input.OperationTypeId,
@@ -514,7 +513,6 @@ namespace IqSoft.CP.ProductGateway.Controllers
                         RoundId = input.RoundId,
                         GameProviderId = providerId,
                         OperationTypeId = input.OperationTypeId,
-                        ExternalOperationId = null,
                         ExternalProductId = input.GameId + (input.UnitId == null ? string.Empty : ("_" + input.UnitId)),
                         TransactionId = input.TransactionId,
                         CreditTransactionId = (creditTransaction == null ? (long?)null : creditTransaction.Id),
@@ -585,15 +583,11 @@ namespace IqSoft.CP.ProductGateway.Controllers
                                     ResponseCode = ex.Detail.Id,
                                     Description = ex.Detail.Message
                                 };
-                            WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(message));
-                            documentBl.RollbackProductTransactions(operationsFromProduct);
-                            throw;
+                            WebApiApplication.DbLogger.Error("DebitException_" + JsonConvert.SerializeObject(message));
                         }
                         catch (Exception ex)
                         {
-                            WebApiApplication.DbLogger.Error(ex.Message);
-                            documentBl.RollbackProductTransactions(operationsFromProduct);
-                            throw;
+                            WebApiApplication.DbLogger.Error("DebitException_" + ex.Message);
                         }
                     }
                     else
@@ -604,6 +598,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                             GameName = product.NickName,
                             ClientId = client.Id,
                             ClientName = client.FirstName,
+                            BetAmount = creditTransaction?.Amount,
                             Amount = input.Amount,
                             CurrencyId = client.CurrencyId,
                             PartnerId = client.PartnerId,
@@ -634,7 +629,6 @@ namespace IqSoft.CP.ProductGateway.Controllers
                         GameProviderId = providerId,
                         ExternalProductId = input.GameId + (input.UnitId == null ? string.Empty : ("_" + input.UnitId)),
                         TransactionId = input.TransactionId,
-                        ExternalOperationId = null,
                         Info = input.Info,
                         OperationTypeId = input.OperationTypeId
                     };

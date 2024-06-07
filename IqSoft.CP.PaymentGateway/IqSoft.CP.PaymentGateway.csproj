@@ -270,6 +270,7 @@
     <Compile Include="Controllers\FreeKassaController.cs" />
     <Compile Include="Controllers\FreelancemeController.cs" />
     <Compile Include="Controllers\FugaPayController.cs" />
+    <Compile Include="Controllers\GatewayPayController.cs" />
     <Compile Include="Controllers\GumballPayController.cs" />
     <Compile Include="Controllers\ImpayaController.cs" />
     <Compile Include="Controllers\InstapayController.cs" />
@@ -298,6 +299,7 @@
     <Compile Include="Controllers\PremierCashierController.cs" />
     <Compile Include="Controllers\QuikiPayController.cs" />
     <Compile Include="Controllers\SantimaPayController.cs" />
+    <Compile Include="Controllers\FreedomPayController.cs" />
     <Compile Include="Controllers\StripeController.cs" />
     <Compile Include="Controllers\TelebirrController.cs" />
     <Compile Include="Controllers\VevoPayController.cs" />
@@ -329,6 +331,7 @@
     <Compile Include="Controllers\PayBoxController.cs" />
     <Compile Include="Controllers\QiwiController.cs" />
     <Compile Include="Controllers\SkrillController.cs" />
+    <Compile Include="Controllers\XprizoController.cs" />
     <Compile Include="Controllers\YaspaController.cs" />
     <Compile Include="Controllers\ZippyController.cs" />
     <Compile Include="Helpers\ApcoHelpers.cs" />
@@ -389,6 +392,7 @@
     <Compile Include="Models\Flexepin\PaymentInput.cs" />
     <Compile Include="Models\Flexepin\BaseData.cs" />
     <Compile Include="Models\FugaPay\PaymentInput.cs" />
+    <Compile Include="Models\GatewayPay\PaymentInput.cs" />
     <Compile Include="Models\GumballPay\PaymentInput.cs" />
     <Compile Include="Models\Impaya\PaymentInput.cs" />
     <Compile Include="Models\Instapay\ExpressHavaleInput.cs" />
@@ -523,6 +527,7 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Models\FreedomPay\PaymentInput.cs" />
     <Compile Include="Models\Stripe\PaymentInput.cs" />
     <Compile Include="Models\Telebirr\PaymentInput.cs" />
     <Compile Include="Models\TotalProcessing\CheckPaymentStateOutput.cs" />
@@ -541,6 +546,7 @@
     <Compile Include="Models\Wooppay\WooppayTransactionInput.cs" />
     <Compile Include="Models\Wooppay\WooppayTransactionStatus.cs" />
     <Compile Include="Models\XcoinsPay\PaymentInput.cs" />
+    <Compile Include="Models\Xprizo\TransactionInput.cs" />
     <Compile Include="Models\Yaspa\PaymentInput.cs" />
     <Compile Include="Models\Zippy\RequestResultInput.cs" />
     <Compile Include="Models\Zippy\ResultResponse.cs" />

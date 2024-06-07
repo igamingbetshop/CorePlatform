@@ -9,8 +9,8 @@ using log4net;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace IqSoft.CP.Integration.Products.Helpers
 {
@@ -24,19 +24,23 @@ namespace IqSoft.CP.Integration.Products.Helpers
 				throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongProviderId);
 			var client = CacheManager.GetClientById(clientId);
 			var operatorName = CacheManager.GetGameProviderValueByKey(partnerId, provider.Id, Constants.PartnerKeys.LuckyStreakOperatorName);
-			var operatorClientName = CacheManager.GetGameProviderValueByKey(partnerId, provider.Id, Constants.PartnerKeys.LuckyStreakOperatorClientName);
-			var operatorClientSecret = CacheManager.GetGameProviderValueByKey(partnerId, provider.Id, Constants.PartnerKeys.LuckyStreakOperatorClientSecret);
-			var tokenUrl = CacheManager.GetGameProviderValueByKey(partnerId, provider.Id, Constants.PartnerKeys.LuckyStreakTokenUrl);
-			var autoCode = GetToken(operatorName, tokenUrl, operatorClientName, operatorClientSecret);
-			var baseUrl = product.ExternalId.Split(',');
-			var launchUrl = isForDemo ? baseUrl[1] :  baseUrl[1].Contains("providergateway") ?  $"{baseUrl[1]}&authCode={autoCode}&operatorName={operatorName}&userName={client.Id}"
-				                                                 : string.Format(baseUrl[1], client.Id, operatorName, autoCode);
+			var details = product.ExternalId.Split(','); 
+			var launchUrl = string.Empty;
+			var isProviderGame = details[0] == "providerGame";
+			if (!isForDemo)
+			{
+				var param = isProviderGame ? $"authCode={token}&operatorName={operatorName}&playerName={client.Id}&additionalParams={token}"
+										   : $"additionalParams={token}&PlayerName={client.Id}&OperatorName={operatorName}&AuthCode={token}&GameId={details[1]}&GameType={details[2]}";
+				launchUrl = isProviderGame ? $"{provider.GameLaunchUrl}/providergateway/{details[2]}/api/game/play?{details[3]}&{param}"
+											   : $"{provider.GameLaunchUrl}?{param}";
+			}
+			else
+				launchUrl = $"{provider.GameLaunchUrl}/providergateway/{details[2]}/api/game/play?{details[3]}&mode=demo";
 			return launchUrl;
 		}
 
 		public static List<Product> GetGames(int partnerId, int providerId, ILog log)
 		{
-			var games = new List<Game>();
 			var products = new List<Product>();
 			var provider = CacheManager.GetGameProviderById(providerId);
 			if (provider == null || provider.Name != Constants.GameProviders.LuckyStreak)
@@ -48,32 +52,30 @@ namespace IqSoft.CP.Integration.Products.Helpers
 			var operatorClientSecret = CacheManager.GetGameProviderValueByKey(partnerId, provider.Id, Constants.PartnerKeys.LuckyStreakOperatorClientSecret);
 			var token = GetToken(operatorName, url, operatorClientName, operatorClientSecret);
 			var providerGames = GetGames(token, $"{provider.GameLaunchUrl}/lobby/api/v4/lobby/providergames");
-			var lis = providerGames.GroupBy(x => x.providerId);
-			var type = providerGames.GroupBy(x => x.type);
-			games.AddRange(providerGames);
-			var lobbyGames = GetGames(token, $"{provider.GameLaunchUrl}/lobby/api/v4/lobby/games");
-			games.AddRange(lobbyGames);
 			var providerIds = new Dictionary<int, string>()
 			{
-				{0, "LuckyStreak" },
 				{3, "PragmaticPlay" },
 				{8, "Spinomenal" },
-				{9, "Fugaso" }
+				{9, "Fugaso" },
+				{13, "Yggdrasil" }
 			};
 			var key = 0;
-			foreach (var item in games)
+			foreach (var pg in providerGames)
 			{
 				try
-				{
-					key = item.providerId;
+				{ 
+					var match = Regex.Match(pg.launchUrl, @"providergateway/([^/]+)/");
+					var queryString = pg.launchUrl.Split('?')[1];
+					key = pg.providerId;
 					var product = new Product
 					{
-						id = item.id,
-						name = item.name,
+						id = pg.id,
+						name = pg.name,
 						provider = providerIds[key],
-						externalId = $"{item.id},{item.launchUrl},{item.demoUrl}",
-						type = item.type,
-						imageUrl = item.dealer?.avatarUrl
+						externalId = $"providerGame,{pg.id},{match.Groups[1].Value},{queryString}",  //providerName,gameId(for callbacks)
+						type = pg.type,
+						imageUrl = pg.dealer?.avatarUrl,
+						demoUrl = pg.demoUrl
 					};
 					products.Add(product);
 				}
@@ -83,7 +85,22 @@ namespace IqSoft.CP.Integration.Products.Helpers
 				}
 				continue;
 			}
-
+			var lobbyGames = GetGames(token, $"{provider.GameLaunchUrl}/lobby/api/v4/lobby/games");
+			foreach (var lg in lobbyGames)
+			{
+					var match = Regex.Match(lg.launchUrl, @"GameId=(\d+)&GameType=([^&]+)");
+					var product = new Product
+					{
+						id = lg.id,
+						name = lg.name,
+						provider = "LuckyStreak",
+						externalId = $"lobbyGame,{match.Groups[1].Value},{match.Groups[2].Value}",  // gameId,gameType
+						type = lg.type,
+						imageUrl = lg.dealer?.avatarUrl,
+						demoUrl = null
+					};
+					products.Add(product);
+			}
 			return products;
 		}
 
@@ -134,6 +151,16 @@ namespace IqSoft.CP.Integration.Products.Helpers
 			var res = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
 			var output = JsonConvert.DeserializeObject<AuthorizationOutput>(res);
 			return output.access_token;
+		}
+
+		public static string GetWidgetURL(int partnerId, int providerId, string timestamp, int clientId)
+		{
+			var widgetURL = CacheManager.GetGameProviderValueByKey(partnerId, providerId, Constants.PartnerKeys.SmarticoWidgetURL);
+			var saltKey = CacheManager.GetGameProviderValueByKey(partnerId, providerId, Constants.PartnerKeys.SmarticoSaltKey);
+			var brandKey = CacheManager.GetGameProviderValueByKey(partnerId, providerId, Constants.PartnerKeys.SmarticoBrandKey);
+			var labelKey = CacheManager.GetGameProviderValueByKey(partnerId, providerId, Constants.PartnerKeys.SmarticoLabelKey);
+			var hash = CommonFunctions.ComputeMd5($"{clientId}:{saltKey}:{timestamp}".ToLower());
+			return $"{widgetURL}?label_key={labelKey}&brand_key={brandKey}&user_ext_id={clientId}&user_hash={hash}:{timestamp}";
 		}
 	}
 }

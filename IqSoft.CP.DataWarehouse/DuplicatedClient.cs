@@ -16,16 +16,14 @@ namespace IqSoft.CP.DataWarehouse
     {
         public DuplicatedClient()
         {
-            this.ClientMatchHistories = new HashSet<ClientMatchHistory>();
+            this.DuplicatedClientHistories = new HashSet<DuplicatedClientHistory>();
         }
     
         public long Id { get; set; }
         public int ClientId { get; set; }
-        public int MatchedClientId { get; set; }
-        public System.DateTime MatchDate { get; set; }
+        public int DuplicatedClientId { get; set; }
+        public System.DateTime CreationTime { get; set; }
     
-        public virtual Client Client { get; set; }
-        public virtual Client Client1 { get; set; }
-        public virtual ICollection<ClientMatchHistory> ClientMatchHistories { get; set; }
+        public virtual ICollection<DuplicatedClientHistory> DuplicatedClientHistories { get; set; }
     }
 }

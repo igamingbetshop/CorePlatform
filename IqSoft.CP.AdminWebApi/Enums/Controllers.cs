@@ -22,5 +22,6 @@
         public const string Content = "Content";
         public const string Provider = "Provider";
         public const string Affiliate = "Affiliate";
+        public const string Agent = "Agent";
     }
 }

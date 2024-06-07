@@ -75,7 +75,7 @@ using Bonu = IqSoft.CP.DAL.Bonu;
 using AgentCommission = IqSoft.CP.DAL.AgentCommission;
 using fnClientSession = IqSoft.CP.DAL.fnClientSession;
 using PermissionModel = IqSoft.CP.AdminWebApi.Models.RoleModels.PermissionModel;
-
+using IqSoft.CP.AdminWebApi.Filters.Affiliate;
 
 namespace IqSoft.CP.AdminWebApi.Helpers
 {
@@ -2285,6 +2285,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 PartnerId = request.PartnerId ?? 0,
                 ClientId = request.ClientId,
                 Amount = request.Amount,
+                ConvertedAmount = Math.Round(request.ConvertedAmount, 2),
                 FinalAmount = request.FinalAmount ?? request.Amount,
                 CurrencyId = request.CurrencyId,
                 State = request.Status,
@@ -2553,8 +2554,6 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 ParentId = product.ParentId,
                 Name = product.Name,
                 Level = product.Level,
-                IsLeaf = product.IsLeaf,
-                IsLastProductGroup = product.IsLastProductGroup,
                 TranslationId = product.TranslationId,
                 ExternalId = product.ExternalId,
                 State = product.State,
@@ -2732,29 +2731,32 @@ namespace IqSoft.CP.AdminWebApi.Helpers
 
         public static PartnerPaymentSetting MapToPartnerPaymentSetting(this ApiPartnerPaymentSetting input)
         {
+            var dbSetting = CacheManager.GetPartnerPaymentSettings(input.PartnerId, input.PaymentSystemId, input.CurrencyId, input.Type);
             return new PartnerPaymentSetting
             {
                 Id = input.Id,
                 PartnerId = input.PartnerId,
                 PaymentSystemId = input.PaymentSystemId,
-                State = input.State,
+                State = input.State ?? (dbSetting?.State ?? 0),
                 CurrencyId = input.CurrencyId,
-                Commission = input.Commission ?? 0,
+                Commission = input.Commission ?? (dbSetting?.Commission ?? 0),
                 FixedFee = input.FixedFee ?? 0,
-                ApplyPercentAmount = input.ApplyPercentAmount,
+                ApplyPercentAmount = input.ApplyPercentAmount ??  (dbSetting?.ApplyPercentAmount ?? 0),
                 Type = input.Type,
-                Info = input.Info,
-                MinAmount = input.MinAmount,
-                MaxAmount = input.MaxAmount,
-                AllowMultipleClientsPerPaymentInfo = input.AllowMultipleClientsPerPaymentInfo,
-                AllowMultiplePaymentInfoes = input.AllowMultiplePaymentInfoes,
+                Info = input.Info ?? dbSetting?.Info,
+                MinAmount = input.MinAmount ?? (dbSetting?.MinAmount ?? 0),
+                MaxAmount = input.MaxAmount ?? (dbSetting?.MaxAmount ?? 0),
+                AllowMultipleClientsPerPaymentInfo = input.AllowMultipleClientsPerPaymentInfo ?? dbSetting?.AllowMultipleClientsPerPaymentInfo,
+                AllowMultiplePaymentInfoes = input.AllowMultiplePaymentInfoes ?? dbSetting?.AllowMultiplePaymentInfoes,
                 UserName = input.UserName,
                 Password = input.Password,
-                PaymentSystemPriority = input.Priority,
-                OpenMode = input.OpenMode,
-                OSTypes = input.OSTypes != null ? string.Join(",", input.OSTypes) : null,
-                ImageExtension = input.ImageExtension,
-                PartnerPaymentCountrySettings = input.Countries?.Select(x => new PartnerPaymentCountrySetting { CountryId = x }).ToList()
+                PaymentSystemPriority = input.Priority ?? (dbSetting?.Priority ?? 0),
+                OpenMode = input.OpenMode ?? dbSetting?.OpenMode,
+                OSTypes = input.OSTypes != null ? string.Join(",", input.OSTypes) : dbSetting?.OSTypesString,
+                ImageExtension = input.ImageExtension ?? dbSetting?.ImageExtension,
+                PartnerPaymentCountrySettings = input.Countries != null ?
+                                                input.Countries?.Select(x => new PartnerPaymentCountrySetting { CountryId = x }).ToList() :
+                                                dbSetting?.Countries?.Select(x => new PartnerPaymentCountrySetting { CountryId = x }).ToList()
             };
         }
 
@@ -2802,6 +2804,9 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 ProviderId = setting.ProviderId,
                 CategoryIds = setting.CategoryIds?.ToString(),
                 HasImages = setting.HasImages,
+                HasDemo = setting.HasDemo,
+                IsForDesktop = setting.IsForDesktop,
+                IsForMobile = setting.IsForMobile,
                 Ids = setting.Ids == null ? new FiltersOperation() : setting.Ids.MapToFiltersOperation(),
                 ProductIds = setting.ProductIds == null ? new FiltersOperation() : setting.ProductIds.MapToFiltersOperation(),
                 ProductDescriptions = setting.ProductDescriptions == null ? new FiltersOperation() : setting.ProductDescriptions.MapToFiltersOperation(),
@@ -2817,9 +2822,6 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 ExternalIds = setting.ExternalIds == null ? new FiltersOperation() : setting.ExternalIds.MapToFiltersOperation(),
                 Volatilities = setting.Volatilities == null ? new FiltersOperation() : setting.Volatilities.MapToFiltersOperation(),
                 Ratings = setting.Ratings == null ? new FiltersOperation() : setting.Ratings.MapToFiltersOperation(),
-                IsForMobile = setting.IsForMobile == null ? new FiltersOperation() : setting.IsForMobile.MapToFiltersOperation(),
-                IsForDesktop = setting.IsForDesktop == null ? new FiltersOperation() : setting.IsForDesktop.MapToFiltersOperation(),
-                HasDemo = setting.HasDemo == null ? new FiltersOperation() : setting.HasDemo.MapToFiltersOperation(),
                 ProductIsLeaf = setting.ProductIsLeaf == null ? new FiltersOperation() : setting.ProductIsLeaf.MapToFiltersOperation(),
                 OrderBy = setting.OrderBy,
                 FieldNameToOrderBy = setting.FieldNameToOrderBy
@@ -2833,6 +2835,8 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 SkipCount = setting.SkipCount,
                 TakeCount = setting.TakeCount,
                 HasImages = setting.HasImages,
+                IsForDesktop = setting.IsForDesktop,
+                IsForMobile = setting.IsForMobile,
                 Ids = setting.Ids == null ? new FiltersOperation() : setting.Ids.MapToFiltersOperation(),
                 Descriptions = setting.ProductDescriptions == null ? new FiltersOperation() : setting.ProductDescriptions.MapToFiltersOperation(),
                 Names = setting.ProductNames == null ? new FiltersOperation() : setting.ProductNames.MapToFiltersOperation(),
@@ -2842,9 +2846,6 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 States = setting.States == null ? new FiltersOperation() : setting.States.MapToFiltersOperation(),
                 Jackpots = setting.Jackpots == null ? new FiltersOperation() : setting.Jackpots.MapToFiltersOperation(),
                 RTPs = setting.RTPs == null ? new FiltersOperation() : setting.RTPs.MapToFiltersOperation(),
-                IsForMobiles = setting.IsForMobile == null ? new FiltersOperation() : setting.IsForMobile.MapToFiltersOperation(),
-                IsForDesktops = setting.IsForDesktop == null ? new FiltersOperation() : setting.IsForDesktop.MapToFiltersOperation(),
-                HasDemo = setting.HasDemo == null ? new FiltersOperation() : setting.HasDemo.MapToFiltersOperation()
             };
         }
 
@@ -3321,7 +3322,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                     }).ToList(),
                 Type = bonus.BonusTypeId,
                 TurnoverCount = bonus.TurnoverCount,
-                Info = bonus.LinkedCampaign == true ? "1" : (bonus.LinkedCampaign == false ? "" : bonus.Info),
+                Info = (bonus.LinkedCampaign == true ? "1" : bonus.Info),
                 MinAmount = bonus.MinAmount,
                 MaxAmount = bonus.MaxAmount,
                 Sequence = bonus.Sequence,
@@ -3397,7 +3398,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 FinalAmount = input.FinalAmount,
                 CalculationTime = input.CalculationTime?.GetGMTDateFromUTC(timeZone),
                 ValidUntil = input.ValidUntil?.GetGMTDateFromUTC(timeZone),
-                TriggerId = input.TriggerId,
+                LinkedBonusId = input.LinkedBonusId,
                 RemainingCredit = input.RemainingCredit,
                 ReuseNumber = input.ReuseNumber,
                 TriggerSettings = input.TriggerSettingItems?.Select(x => x.MapToApiTriggerSetting(timeZone, input.ClientId)).ToList()
@@ -4439,6 +4440,30 @@ namespace IqSoft.CP.AdminWebApi.Helpers
             };
         }
 
+        public static FilterReportByPopupStatistics MapToFilterReportByPopupStatistics(this ApiFilterReportByPopupStatistics filter)
+        {
+            return new FilterReportByPopupStatistics
+            {
+                PopupId = filter.PopupId,
+                FromDate = filter.FromDate,
+                ToDate = filter.ToDate,
+                Ids = filter.Ids == null ? new FiltersOperation() : filter.Ids.MapToFiltersOperation(),
+                PartnerIds = filter.PartnerIds == null ? new FiltersOperation() : filter.PartnerIds.MapToFiltersOperation(),
+                NickNames = filter.NickNames == null ? new FiltersOperation() : filter.NickNames.MapToFiltersOperation(),
+                Types = filter.Types == null ? new FiltersOperation() : filter.Types.MapToFiltersOperation(),
+                DeviceTypes = filter.DeviceTypes == null ? new FiltersOperation() : filter.DeviceTypes.MapToFiltersOperation(),
+                States = filter.States == null ? new FiltersOperation() : filter.States.MapToFiltersOperation(),
+                CreationTimes = filter.CreationTimes == null ? new FiltersOperation() : filter.CreationTimes.MapToFiltersOperation(),
+                LastUpdateTimes = filter.LastUpdateTimes == null ? new FiltersOperation() : filter.LastUpdateTimes.MapToFiltersOperation(),
+                ViewTypeIds = filter.ViewTypeIds == null ? new FiltersOperation() : filter.ViewTypeIds.MapToFiltersOperation(),
+                ViewCounts = filter.ViewCounts == null ? new FiltersOperation() : filter.ViewCounts.MapToFiltersOperation(),
+                SkipCount = filter.SkipCount,
+                TakeCount = filter.TakeCount,
+                OrderBy = filter.OrderBy,
+                FieldNameToOrderBy = filter.FieldNameToOrderBy
+            };
+        }
+
         #endregion
 
         #region Accounting Reports
@@ -4547,8 +4572,8 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 ClientId = filterClient.ClientId,
                 ClientIds = filterClient.ClientIds == null ? new FiltersOperation() : filterClient.ClientIds.MapToFiltersOperation(),
                 PartnerIds = filterClient.PartnerIds == null ? new FiltersOperation() : filterClient.PartnerIds.MapToFiltersOperation(),
-                MatchedClientIds = filterClient.MatchedClientIds == null ? new FiltersOperation() : filterClient.MatchedClientIds.MapToFiltersOperation(),
-                MatchedDatas = filterClient.MatchedDatas == null ? new FiltersOperation() : filterClient.MatchedDatas.MapToFiltersOperation(),
+                DuplicatedClientIds = filterClient.DuplicatedClientIds == null ? new FiltersOperation() : filterClient.DuplicatedClientIds.MapToFiltersOperation(),
+                DuplicatedDatas = filterClient.DuplicatedDatas == null ? new FiltersOperation() : filterClient.DuplicatedDatas.MapToFiltersOperation(),
                 MatchDates = filterClient.MatchDates == null ? new FiltersOperation() : filterClient.MatchDates.MapToFiltersOperation(),
                 SkipCount = filterClient.SkipCount,
                 TakeCount = filterClient.TakeCount,
@@ -4765,7 +4790,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 FromDate = filter.FromDate,
                 ToDate = filter.ToDate,
                 PartnerId = filter.PartnerId,
-                ParentId = filter.PartnerId,
+                ParentId = filter.ParentId,
                 Ids = filter.Ids == null ? new FiltersOperation() : filter.Ids.MapToFiltersOperation(),
                 FirstNames = filter.FirstNames == null ? new FiltersOperation() : filter.FirstNames.MapToFiltersOperation(),
                 LastNames = filter.LastNames == null ? new FiltersOperation() : filter.LastNames.MapToFiltersOperation(),
@@ -4936,6 +4961,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
             {
                 PartnerId = filterClient.PartnerId,
                 AgentId = filterClient.AgentId,
+                IsDocumentVerified = filterClient.IsDocumentVerified,
                 CreatedFrom = filterClient.CreatedFrom,
                 CreatedBefore = filterClient.CreatedBefore,
                 UnderMonitoringTypes = filterClient.UnderMonitoringTypes?.ToString(),
@@ -4956,7 +4982,6 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 MobileNumbers = filterClient.MobileNumbers == null ? new FiltersOperation() : filterClient.MobileNumbers.MapToFiltersOperation(),
                 ZipCodes = filterClient.ZipCodes == null ? new FiltersOperation() : filterClient.ZipCodes.MapToFiltersOperation(),
                 Cities = filterClient.Cities == null ? new FiltersOperation() : filterClient.Cities.MapToFiltersOperation(),
-                IsDocumentVerifieds = filterClient.IsDocumentVerifieds == null ? new FiltersOperation() : filterClient.IsDocumentVerifieds.MapToFiltersOperation(),
                 PhoneNumbers = filterClient.PhoneNumbers == null ? new FiltersOperation() : filterClient.PhoneNumbers.MapToFiltersOperation(),
                 RegionIds = filterClient.RegionIds == null ? new FiltersOperation() : filterClient.RegionIds.MapToFiltersOperation(),
                 CountryIds = filterClient.CountryIds == null ? new FiltersOperation() : filterClient.CountryIds.MapToFiltersOperation(),
@@ -4985,6 +5010,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
 
             };
         }
+
         public static FilterfnSegmentClient MapToFilterfnSegmentClient(this ApiFilterfnSegmentClient filterClient)
         {
             return new FilterfnSegmentClient
@@ -5048,7 +5074,36 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 CreationTimes = filterAffiliate.CreationTimes == null ? new FiltersOperation() : filterAffiliate.CreationTimes.MapToFiltersOperation()
             };
         }
-
+        public static FilterfnAffiliateCorrection MapToFilterAffiliateCorrection(this ApiFilterAffiliateCorrection filter)
+        {
+            return new FilterfnAffiliateCorrection
+            {
+                AffiliateId = filter.AffiliateId,
+                FromDate = filter.FromDate,
+                ToDate = filter.ToDate,
+                FieldNameToOrderBy = filter.FieldNameToOrderBy,
+                Ids = filter.Ids == null ? new FiltersOperation() : filter.Ids.MapToFiltersOperation(),
+                PartnerIds = filter.PartnerIds == null ? new FiltersOperation() : filter.PartnerIds.MapToFiltersOperation(),
+                AffiliateIds = filter.AffiliateIds == null ? new FiltersOperation() : filter.AffiliateIds.MapToFiltersOperation(),
+                FirstNames = filter.FirstNames == null ? new FiltersOperation() : filter.FirstNames.MapToFiltersOperation(),
+                LastNames = filter.LastNames == null ? new FiltersOperation() : filter.LastNames.MapToFiltersOperation(),
+                Amounts = filter.Amounts == null ? new FiltersOperation() : filter.Amounts.MapToFiltersOperation(),
+                CurrencyIds = filter.CurrencyIds == null ? new FiltersOperation() : filter.CurrencyIds.MapToFiltersOperation(),
+                Creators = filter.Creators == null ? new FiltersOperation() : filter.Creators.MapToFiltersOperation(),
+                CreationTimes = filter.CreationTimes == null ? new FiltersOperation() : filter.CreationTimes.MapToFiltersOperation(),
+                LastUpdateTimes = filter.LastUpdateTimes == null ? new FiltersOperation() : filter.LastUpdateTimes.MapToFiltersOperation(),
+                OperationTypeNames = filter.OperationTypeNames == null ? new FiltersOperation() : filter.OperationTypeNames.MapToFiltersOperation(),
+                CreatorFirstNames = filter.CreatorFirstNames == null ? new FiltersOperation() : filter.CreatorFirstNames.MapToFiltersOperation(),
+                CreatorLastNames = filter.CreatorLastNames == null ? new FiltersOperation() : filter.CreatorLastNames.MapToFiltersOperation(),
+                DocumentTypeIds = filter.DocumentTypeIds == null ? new FiltersOperation() : filter.DocumentTypeIds.MapToFiltersOperation(),
+                ClientIds = filter.ClientIds == null ? new FiltersOperation() : filter.ClientIds.MapToFiltersOperation(),
+                ClientFirstNames = filter.ClientFirstNames == null ? new FiltersOperation() : filter.ClientFirstNames.MapToFiltersOperation(),
+                ClientLastNames = filter.ClientLastNames == null ? new FiltersOperation() : filter.ClientLastNames.MapToFiltersOperation(),
+                TakeCount = filter.TakeCount,
+                SkipCount = filter.SkipCount,
+                OrderBy = filter.OrderBy
+            };
+        }
         #endregion
 
         #region Filter Client Correction
@@ -5347,6 +5402,8 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 ProductId = filter.ProductId,
                 Pattern = filter.Pattern,
                 IsProviderActive = filter.IsProviderActive,
+                IsForMobile = filter.IsForMobile,
+                IsForDesktop = filter.IsForDesktop,
                 Ids = filter.Ids == null ? new FiltersOperation() : filter.Ids.MapToFiltersOperation(),
                 Names = filter.Names == null ? new FiltersOperation() : filter.Names.MapToFiltersOperation(),
                 Descriptions = filter.Descriptions == null ? new FiltersOperation() : filter.Descriptions.MapToFiltersOperation(),
@@ -5354,8 +5411,6 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 States = filter.States == null ? new FiltersOperation() : filter.States.MapToFiltersOperation(),
                 GameProviderIds = filter.GameProviderIds == null ? new FiltersOperation() : filter.GameProviderIds.MapToFiltersOperation(),
                 SubProviderIds = filter.SubProviderIds == null ? new FiltersOperation() : filter.SubProviderIds.MapToFiltersOperation(),
-                IsForDesktops = filter.IsForDesktops == null ? new FiltersOperation() : filter.IsForDesktops.MapToFiltersOperation(),
-                IsForMobiles = filter.IsForMobiles == null ? new FiltersOperation() : filter.IsForMobiles.MapToFiltersOperation(),
                 FreeSpinSupports = filter.FreeSpinSupports == null ? new FiltersOperation() : filter.FreeSpinSupports.MapToFiltersOperation(),
                 Jackpots = filter.Jackpots == null ? new FiltersOperation() : filter.Jackpots.MapToFiltersOperation(),
                 RTPs = filter.RTPs == null ? new FiltersOperation() : filter.RTPs.MapToFiltersOperation(),
@@ -6113,7 +6168,8 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 TurnoverCommission = arg.TurnoverCommission,
                 GGRCommission = arg.GGRCommission,
                 CommunicationType = arg.CommunicationType,
-                CommunicationTypeValue = arg.CommunicationTypeValue
+                CommunicationTypeValue = arg.CommunicationTypeValue,
+                ClientId = arg.ClientId
             };
         }
 
@@ -6132,7 +6188,8 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 RegionId = arg.RegionId,
                 MobileNumber = arg.MobileNumber,
                 LanguageId = arg.LanguageId,
-                State = arg.State
+                State = arg.State,
+                ClientId = arg.ClientId
             };
         }
 

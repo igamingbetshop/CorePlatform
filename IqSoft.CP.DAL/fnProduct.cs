@@ -44,7 +44,5 @@ namespace IqSoft.CP.DAL
         public string GameProviderName { get; set; }
         public string SubproviderName { get; set; }
         public Nullable<bool> IsProviderActive { get; set; }
-        public int IsLeaf { get; set; }
-        public int IsLastProductGroup { get; set; }
     }
 }

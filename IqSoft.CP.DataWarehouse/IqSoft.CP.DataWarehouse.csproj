@@ -90,9 +90,6 @@
     <Compile Include="ClientBonu.cs">
       <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
     </Compile>
-    <Compile Include="ClientMatchHistory.cs">
-      <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
-    </Compile>
     <Compile Include="ClientSession.cs">
       <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
     </Compile>
@@ -105,8 +102,12 @@
     <Compile Include="DuplicatedClient.cs">
       <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
     </Compile>
+    <Compile Include="DuplicatedClientHistory.cs">
+      <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
+    </Compile>
     <Compile Include="Filters\FilterBase.cs" />
     <Compile Include="Filters\FilterBetShopBet.cs" />
+    <Compile Include="Filters\FilterfnAffiliateCorrection.cs" />
     <Compile Include="Filters\FilterfnClientDashboard.cs" />
     <Compile Include="Filters\FilterfnDocument.cs" />
     <Compile Include="Filters\FilterfnDuplicateClient.cs" />
@@ -116,6 +117,9 @@
     <Compile Include="Filters\FilterReportByProvider.cs" />
     <Compile Include="Filters\FilterWebSiteBet.cs" />
     <Compile Include="fnAffiliateClient.cs">
+      <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnAffiliateCorrection.cs">
       <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
     </Compile>
     <Compile Include="fnAgentProfit.cs">
@@ -217,7 +221,11 @@
     </Compile>
     <Compile Include="Models\BetShopBets.cs" />
     <Compile Include="Models\InternetBetsReport.cs" />
+    <Compile Include="Opt_Document_Considered.cs">
+      <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
+    </Compile>
     <Compile Include="PartialClasses\Bet.cs" />
+    <Compile Include="PartialClasses\fnAffiliateCorrection.cs" />
     <Compile Include="PartialClasses\fnBetShopBet.cs" />
     <Compile Include="PartialClasses\fnClientReport.cs" />
     <Compile Include="PartialClasses\fnDocument.cs" />

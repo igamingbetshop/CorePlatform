@@ -230,7 +230,6 @@ namespace IqSoft.CP.ProductGateway.Controllers
                                 RoundId = input.RoundId,
                                 GameProviderId = ProviderId,
                                 OperationTypeId = (int)OperationTypes.Win,
-                                ExternalOperationId = null,
                                 ExternalProductId = input.GameCode.ToString(),
                                 ProductId = betDocument.ProductId,
                                 TransactionId = input.Bet.ExternalTransactionId.ToString(),

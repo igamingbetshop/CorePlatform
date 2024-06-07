@@ -3,6 +3,7 @@
     public enum VerificationPlatforms
     {
         Insic = 1,
-        SOW = 2
+        SOW = 2,
+        KRA = 3
     }
 }

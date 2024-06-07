@@ -10,7 +10,7 @@ namespace IqSoft.CP.AdminWebApi.Models.ClientModels
         public string NickName { get; set; }
         public string Password { get; set; }
         public int PartnerId { get; set; }
-        public int Gender { get; set; }
+        public int? Gender { get; set; }
         public DateTime BirthDate { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }

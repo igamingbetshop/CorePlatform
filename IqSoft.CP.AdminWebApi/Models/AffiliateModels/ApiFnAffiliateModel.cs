@@ -30,5 +30,6 @@ namespace IqSoft.CP.AdminWebApi.ClientModels.Models
         public List<BetCommission> GGRCommission { get; set; }
 		public int CommunicationType { get; set; }
 		public string CommunicationTypeValue { get; set; }
-	}
+        public int? ClientId { get; set; }
+    }
 }

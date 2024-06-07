@@ -101,5 +101,6 @@ namespace IqSoft.CP.DAL
         public virtual ICollection<ProductLimit> ProductLimits { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<TriggerProductSetting> TriggerProductSettings { get; set; }
+        public virtual ProductCategory ProductCategory { get; set; }
     }
 }

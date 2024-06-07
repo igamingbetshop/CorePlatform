@@ -18,6 +18,7 @@ using System.ServiceModel;
 using System.Text;
 using System.Web.Http;
 using System.Xml.Serialization;
+using TransferInput = IqSoft.CP.ProductGateway.Models.Mahjong.TransferInput;
 
 namespace IqSoft.CP.ProductGateway.Controllers
 {
@@ -41,8 +42,8 @@ namespace IqSoft.CP.ProductGateway.Controllers
             {
                 WebApiApplication.DbLogger.Info("inputString " + inputString.Result);
                 BaseBll.CheckIp(WhitelistedIps);
-                var serializer = new XmlSerializer(typeof(LoginInput), new XmlRootAttribute("login"));
-                var input = (LoginInput)serializer.Deserialize(new StringReader(inputString.Result));
+                var serializer = new XmlSerializer(typeof(Models.Mahjong.LoginInput), new XmlRootAttribute("login"));
+                var input = (Models.Mahjong.LoginInput)serializer.Deserialize(new StringReader(inputString.Result));
                 var clientSession = ClientBll.GetClientProductSession(input.Token, Constants.DefaultLanguageId);
                 var client = CacheManager.GetClientById(clientSession.Id);
                 var secretKey = CacheManager.GetGameProviderValueByKey(client.PartnerId, ProviderId, Constants.PartnerKeys.MahjongSecretKey);
@@ -282,6 +283,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                             GameName = product.NickName,
                             ClientId = client.Id,
                             ClientName = client.FirstName,
+                            BetAmount = betDocument?.Amount,
                             Amount = amount / 100,
                             CurrencyId = client.CurrencyId,
                             PartnerId = client.PartnerId,

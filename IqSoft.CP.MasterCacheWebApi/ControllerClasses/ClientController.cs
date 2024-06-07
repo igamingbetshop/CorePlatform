@@ -5,6 +5,7 @@ using IqSoft.CP.Common.Enums;
 using IqSoft.CP.Common.Helpers;
 using IqSoft.CP.Common.Models;
 using IqSoft.CP.Common.Models.WebSiteModels;
+using IqSoft.CP.Common.Models.WebSiteModels.Bonuses;
 using IqSoft.CP.Common.Models.WebSiteModels.Clients;
 using IqSoft.CP.Common.Models.WebSiteModels.ComplimentaryPoint;
 using IqSoft.CP.Common.Models.WebSiteModels.Filters;
@@ -173,6 +174,8 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                     return ConfirmLimit(request.ClientId, JsonConvert.DeserializeObject<ConfirmLimitInput>(request.RequestData), session, log);
                 case "ViewPopup":
                     return ViewPopup(request.ClientId, JsonConvert.DeserializeObject<ApiPopupWeSiteModel>(request.RequestData), session, log);
+                case "SpinWheel":
+                    return SpinWheel(request.ClientId, JsonConvert.DeserializeObject<ApiClientBonusItem>(request.RequestData), session, log);
                 default:
                     throw BaseBll.CreateException(string.Empty, Constants.Errors.MethodNotFound);
             }
@@ -701,6 +704,7 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
             using (var clientBl = new ClientBll(session, log))
             {
                 clientBl.ChangeTicketStatus(ticketId, session.Id, MessageTicketState.Deleted);
+                Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}", Constants.CacheItems.ClientUnreadTicketsCount, session.Id));
                 return new ApiResponseBase
                 {
                     ResponseObject = ticketId
@@ -1214,7 +1218,7 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                     var bonus = documentBl.GetClientBonusById(input.BonusId, input.ReuseNumber);
                     return new ApiResponseBase
                     {
-                        ResponseObject = new { Bonus = bonus.ToApiClientBonusItem(identity.TimeZone), Triggers = resp }
+                        ResponseObject = new { Bonus = bonus.ToApiClientBonusItem(identity.TimeZone, identity.LanguageId), Triggers = resp }
                     };
                 }
             }
@@ -1520,8 +1524,18 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
         {
             using (var clientBl = new ClientBll(session, log))
             {
-                clientBl.ViewPopup(clientId, input.Id);
+                clientBl.ViewPopup(clientId, input.Id, input.ViewTypeId);
+                Helpers.Helpers.InvokeMessage("RemoveKeysFromCache", $"{Constants.CacheItems.ClientPopups}_{clientId}");
                 return new ApiResponseBase();
+            }
+        }
+
+        private static ApiResponseBase SpinWheel(int clientId, ApiClientBonusItem input, SessionIdentity session, ILog log)
+        {
+            using (var clientBl = new ClientBll(session, log))
+            {
+                var index = clientBl.SpinWheel(clientId, input.Id);
+                return new ApiResponseBase { ResponseCode = index };
             }
         }
     }

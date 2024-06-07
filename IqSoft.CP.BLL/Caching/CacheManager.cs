@@ -16,6 +16,7 @@ using IqSoft.CP.Common.Models.CacheModels;
 using IqSoft.CP.DataWarehouse;
 using ILog = log4net.ILog;
 using System.Runtime.InteropServices.ComTypes;
+using IqSoft.CP.Common.Models.WebSiteModels;
 
 namespace IqSoft.CP.BLL.Caching
 {
@@ -1104,6 +1105,7 @@ namespace IqSoft.CP.BLL.Caching
                         Password = x.Password,
                         PaymentSystemPriority = x.PaymentSystemPriority,
                         Type = x.Type,
+                        Priority = x.PaymentSystemPriority,
                         Commission = x.Commission,
                         FixedFee = x.FixedFee,
                         ApplyPercentAmount = x.ApplyPercentAmount ,
@@ -3511,6 +3513,7 @@ namespace IqSoft.CP.BLL.Caching
                     Regularity = x.Regularity,
                     DayOfWeek = x.DayOfWeek,
                     ReusingMaxCountInPeriod = x.ReusingMaxCountInPeriod,
+                    TranslationId = x.TranslationId ?? 0,
                     TriggerGroups = x.TriggerGroups.Select(y => new TriggerGroupInfo
                     {
                         Id = y.Id,
@@ -3846,6 +3849,7 @@ namespace IqSoft.CP.BLL.Caching
                                      PartnerId = x.PartnerId,
                                      NickName = x.NickName,
                                      Type = x.Type,
+                                     DeviceType = x.DeviceType,
                                      State = x.State,
                                      ContentTranslationId = x.ContentTranslationId,
                                      ImageName = x.ImageName,
@@ -3876,41 +3880,11 @@ namespace IqSoft.CP.BLL.Caching
         {
             using (var db = new IqSoftCorePlatformEntities())
             {
-                return db.ClientMessageStates.Where(x => x.ClientId == clientId && x.PopupId.HasValue && x.State == (int)ClientMessageStates.Readed)
+                return db.ClientMessageStates.Where(x => x.ClientId == clientId && x.PopupId.HasValue &&
+                                                        (x.State == (int)ClientMessageStates.Readed ||
+                                                         x.State == (int)ClientMessageStates.Used))
                                              .Select(x => x.PopupId.Value).ToList();
             }
-        }
-
-        #endregion
-
-        #region Settings
-
-        public static long GetLastProcessedBetDocumentId()
-        {
-            var key = Constants.PartnerKeys.LastProcessedBetDocumentId;
-            var oldValue = MemcachedCache.Get<long?>(key);
-            if (oldValue != null) return oldValue.Value;
-            var newValue = GetLastProcessedBetDocumentIdFromDb();
-            MemcachedCache.Store(StoreMode.Set, key, newValue, TimeSpan.FromDays(1d));
-            return newValue;
-        }
-
-        public static long GetLastProcessedBetDocumentIdFromDb()
-        {
-            using (var db = new IqSoftCorePlatformEntities())
-            {
-                var resp = db.PartnerKeys.Where(x => x.Name == Constants.PartnerKeys.LastProcessedBetDocumentId).Select(x => x.NumericValue).FirstOrDefault();
-                if (resp == null)
-                    return -1;
-
-                return Convert.ToInt64(resp.Value);
-            }
-        }
-
-        public static void RemoveLastProcessedBetDocumentId()
-        {
-            var key = Constants.PartnerKeys.LastProcessedBetDocumentId;
-            MemcachedCache.Remove(key);
         }
 
         #endregion
@@ -3967,6 +3941,19 @@ namespace IqSoft.CP.BLL.Caching
                     State = x.State,
                     LanguageId = x.LanguageId
                 }).FirstOrDefault();
+            }
+        }
+
+        public static void RemoveRegionFromCache(int id)
+        {
+            var languages = GetAvailableLanguages();
+            var region = GetRegionById(id, Constants.DefaultLanguageId);
+            foreach (var l in languages)
+            {
+                var key = string.Format("{0}_{1}_{2}", Constants.CacheItems.Region, id, l.Id);
+                MemcachedCache.Remove(key);
+                key = string.Format("{0}_{1}_{2}", Constants.CacheItems.Region, region.IsoCode, l.Id);
+                MemcachedCache.Remove(key);
             }
         }
 
@@ -4356,6 +4343,7 @@ namespace IqSoft.CP.BLL.Caching
 				return db.AdminMenus.FirstOrDefault(x => x.Id == adminMenuId);
 			}
 		}
+
         public static void RemoveMessageTemplate(int partnerId, int templateId)
         {
             var key = string.Format("{0}_{1}_{2}", Constants.CacheItems.MessageTemplates, partnerId, templateId);
@@ -4364,6 +4352,116 @@ namespace IqSoft.CP.BLL.Caching
             {
                 MemcachedCache.Remove(key + "_" + l.Id);
             }
+        }
+
+        public static List<BllBonus> GetActiveTournaments(int partnerId, string languageId)
+        {
+            var key = string.Format("{0}_{1}_{2}", Constants.CacheItems.Tournaments, partnerId, languageId);
+            var oldValue = MemcachedCache.Get<List<BllBonus>>(key);
+            if (oldValue != null) return oldValue;
+            var newValue = GetActiveTournamentsFromDb(partnerId, languageId);
+            MemcachedCache.Store(StoreMode.Set, key, newValue, TimeSpan.FromMinutes(10));
+            return newValue;
+        }
+
+        private static List<BllBonus> GetActiveTournamentsFromDb(int partnerId, string languageId)
+        {
+            using (var db = new IqSoftCorePlatformEntities())
+            {
+                var currentTime = DateTime.UtcNow;
+                return db.fn_Bonus(languageId).Where(x => x.PartnerId == partnerId && x.Type == (int)BonusTypes.Tournament &&
+                                                          x.Status == (int)BonusStatuses.Active &&
+                                                          x.StartTime <= currentTime && x.FinishTime >= currentTime)
+                     .Select(x => new BllBonus
+                     {
+                         Id = x.Id,
+                         PartnerId = x.PartnerId,
+                         Name = x.Name,
+                         Status = x.Status,
+                         StartTime = x.StartTime,
+                         FinishTime = x.FinishTime,
+                         Type = x.Type,
+                         Info = x.Info,
+                         Sequence = x.Sequence
+                     }).OrderBy(x => x.StartTime).ToList();
+            }
+        }
+
+        public static List<BllLeaderboardItem> GetTournamentLeaderboard(int tournamentId)
+        {
+            var key = string.Format("{0}_{1}", Constants.CacheItems.TournamentLeaderboards, tournamentId);
+            var oldValue = MemcachedCache.Get<List<BllLeaderboardItem>>(key);
+            if (oldValue != null) return oldValue;
+            var newValue = GetTournamentLeaderboardFromDb(tournamentId);
+            MemcachedCache.Store(StoreMode.Set, key, newValue, TimeSpan.FromMinutes(10));
+            return newValue;
+        }
+
+        private static List<BllLeaderboardItem> GetTournamentLeaderboardFromDb(int tournamentId)
+        {
+            var bonus = GetBonusById(tournamentId);
+            var fDate = (long)bonus.StartTime.Year * 1000000 + bonus.StartTime.Month * 10000 + bonus.StartTime.Day * 100 + bonus.StartTime.Hour;
+            var tDate = (long)bonus.FinishTime.Year * 1000000 + bonus.FinishTime.Month * 10000 + bonus.FinishTime.Day * 100 + bonus.FinishTime.Hour;
+
+            var bonusProducts = GetBonusProducts(tournamentId);
+            using (var dwh = new IqSoftDataWarehouseEntities())
+            {
+                var items = dwh.Bets.Where(x => x.BetDate >= fDate && x.BetDate < tDate && x.PartnerId == bonus.PartnerId).GroupBy(x => new { x.ClientId, x.CurrencyId, x.ProductId }).Select(x => new
+                {
+                    ClientId = (x.Key.ClientId ?? 0),
+                    x.Key.CurrencyId,
+                    x.Key.ProductId,
+                    Amount = x.Sum(y => y.BetAmount)
+                }).ToList();
+                var productIds = items.Select(x => x.ProductId).Distinct();
+                var currencyIds = items.Select(x => x.CurrencyId).Distinct();
+                var percents = new Dictionary<int, decimal>();
+                var currencies = new Dictionary<string, decimal>();
+                foreach (var pId in productIds)
+                {
+                    decimal percent = 0;
+                    var product = CacheManager.GetProductById(pId);
+                    while (true)
+                    {
+                        var pr = bonusProducts.FirstOrDefault(x => x.ProductId == product.Id);
+                        if (pr != null)
+                        {
+                            if (pr.Percent == 0)
+                                break;
+                            percent = pr.Percent ?? 0;
+                            break;
+                        }
+                        else
+                        {
+                            if (!product.ParentId.HasValue)
+                                break;
+                            product = CacheManager.GetProductById(product.ParentId.Value);
+                        }
+                    }
+
+                    percents.Add(pId, percent);
+                }
+                foreach(var c in currencyIds)
+                {
+                    currencies.Add(c, GetCurrencyById(c).CurrentRate);
+                }
+
+                var board = items.GroupBy(x => new { x.ClientId, x.CurrencyId }).Select(x => new BllLeaderboardItem
+                {
+                    Id = x.Key.ClientId,
+                    CurrencyId = x.Key.CurrencyId,
+                    CurrencyRate = currencies[x.Key.CurrencyId],
+                    Points = x.Sum(y => y.Amount * percents[y.ProductId] / 100)
+                }).OrderByDescending(x => x.Points * x.CurrencyRate).Take(20).ToList();
+
+                return board;
+            }
+        }
+
+        public static void RemoveGetTournamentLeaderboard(int tournamentId)
+        {
+            var key = string.Format("{0}_{1}", Constants.CacheItems.TournamentLeaderboards, tournamentId);
+            MemcachedCache.Remove(key);
         }
     }
 }

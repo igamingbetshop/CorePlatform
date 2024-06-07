@@ -310,9 +310,7 @@
         <AssociationConnector Association="IqSoftCorePlatformModel.FK_TranslationEntry_Translation" />
         <AssociationConnector Association="IqSoftCorePlatformModel.FK_WebSiteSubMenuItem_Translation" />
         <AssociationConnector Association="IqSoftCorePlatformModel.FK_TranslationEntry_UserSession" />
-        <EntityTypeShape EntityType="IqSoftCorePlatformModel.ClientBonu" Width="1.5" PointX="33.625" PointY="34.375" />
         <EntityTypeShape EntityType="IqSoftCorePlatformModel.ClientBonusTrigger" Width="1.5" PointX="23.625" PointY="25" />
-        <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientBonus_Bonus" />
         <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientBonusTrigger_Bonus" />
         <EntityTypeShape EntityType="IqSoftCorePlatformModel.PaymentRequest" Width="1.5" PointX="52.25" PointY="25.625" />
         <AssociationConnector Association="IqSoftCorePlatformModel.FK_PaymentRequest_Account" />
@@ -400,7 +398,6 @@
         <AssociationConnector Association="IqSoftCorePlatformModel.FK_Client_Region1" />
         <AssociationConnector Association="IqSoftCorePlatformModel.FK_Client_User" />
         <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientBankInfo_Client" />
-        <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientBonus_Client" />
         <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientBonusTrigger_Client" />
         <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientClassification_Client" />
         <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientClosedPeriod_Client" />
@@ -432,7 +429,6 @@
         <EntityTypeShape EntityType="IqSoftCorePlatformModel.TriggerSetting" Width="1.5" PointX="16.625" PointY="36" />
         <AssociationConnector Association="IqSoftCorePlatformModel.FK_AmountCurrencySetting_TriggerSetting" />
         <AssociationConnector Association="IqSoftCorePlatformModel.FK_BonusPaymentSystemSetting_TriggerSetting" />
-        <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientBonus_TriggerSetting" />
         <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientBonusTrigger_TriggerSetting" />
         <AssociationConnector Association="IqSoftCorePlatformModel.FK_TriggerSetting_Partner" />
         <AssociationConnector Association="IqSoftCorePlatformModel.FK_TriggerSetting_Segment" />
@@ -456,6 +452,12 @@
         <AssociationConnector Association="IqSoftCorePlatformModel.FK_Popup_Partner" />
         <AssociationConnector Association="IqSoftCorePlatformModel.FK_Popup_Translation" />
         <AssociationConnector Association="IqSoftCorePlatformModel.FK_PopupSetting_Popup" />
+        <AssociationConnector Association="IqSoftCorePlatformModel.FK_Affiliate_Client" />
+        <AssociationConnector Association="IqSoftCorePlatformModel.FK_Product_ProductCategory" />
+        <EntityTypeShape EntityType="IqSoftCorePlatformModel.ClientBonu" Width="1.5" PointX="44.5" PointY="8.375" />
+        <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientBonus_Bonus" />
+        <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientBonus_Bonus1" />
+        <AssociationConnector Association="IqSoftCorePlatformModel.FK_ClientBonus_Client" />
         </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

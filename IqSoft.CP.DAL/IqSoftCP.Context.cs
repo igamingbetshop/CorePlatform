@@ -148,7 +148,6 @@ namespace IqSoft.CP.DAL
         public virtual DbSet<Account> Accounts { get; set; }
         public virtual DbSet<Translation> Translations { get; set; }
         public virtual DbSet<TranslationEntry> TranslationEntries { get; set; }
-        public virtual DbSet<ClientBonu> ClientBonus { get; set; }
         public virtual DbSet<ClientBonusTrigger> ClientBonusTriggers { get; set; }
         public virtual DbSet<PaymentRequest> PaymentRequests { get; set; }
         public virtual DbSet<AnnouncementSetting> AnnouncementSettings { get; set; }
@@ -170,6 +169,7 @@ namespace IqSoft.CP.DAL
         public virtual DbSet<AdminMenu> AdminMenus { get; set; }
         public virtual DbSet<PartnerPaymentSetting> PartnerPaymentSettings { get; set; }
         public virtual DbSet<Popup> Popups { get; set; }
+        public virtual DbSet<ClientBonu> ClientBonus { get; set; }
     
         public virtual int sp_GetBetShopLock(Nullable<int> id)
         {
@@ -789,12 +789,6 @@ namespace IqSoft.CP.DAL
             return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnProductCommission>("[IqSoftCorePlatformEntities].[fn_ProductCommission](@productId, @agentId)", productIdParameter, agentIdParameter);
         }
     
-        [DbFunction("IqSoftCorePlatformEntities", "fn_Affiliate")]
-        public virtual IQueryable<fnAffiliate> fn_Affiliate()
-        {
-            return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnAffiliate>("[IqSoftCorePlatformEntities].[fn_Affiliate]()");
-        }
-    
         [DbFunction("IqSoftCorePlatformEntities", "fn_ReportByClientExclusion")]
         public virtual IQueryable<fnReportByClientExclusion> fn_ReportByClientExclusion()
         {
@@ -999,16 +993,6 @@ namespace IqSoft.CP.DAL
             return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnCharacter>("[IqSoftCorePlatformEntities].[fn_Character](@languageId)", languageIdParameter);
         }
     
-        [DbFunction("IqSoftCorePlatformEntities", "fn_PartnerProductSetting")]
-        public virtual IQueryable<fnPartnerProductSetting> fn_PartnerProductSetting(string languageId)
-        {
-            var languageIdParameter = languageId != null ?
-                new ObjectParameter("LanguageId", languageId) :
-                new ObjectParameter("LanguageId", typeof(string));
-    
-            return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnPartnerProductSetting>("[IqSoftCorePlatformEntities].[fn_PartnerProductSetting](@LanguageId)", languageIdParameter);
-        }
-    
         [DbFunction("IqSoftCorePlatformEntities", "fn_News")]
         public virtual IQueryable<fnNews> fn_News(string languageId, Nullable<bool> withContent)
         {
@@ -1021,26 +1005,6 @@ namespace IqSoft.CP.DAL
                 new ObjectParameter("withContent", typeof(bool));
     
             return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnNews>("[IqSoftCorePlatformEntities].[fn_News](@languageId, @withContent)", languageIdParameter, withContentParameter);
-        }
-    
-        [DbFunction("IqSoftCorePlatformEntities", "fn_ClientBonus")]
-        public virtual IQueryable<fnClientBonus> fn_ClientBonus(string languageId)
-        {
-            var languageIdParameter = languageId != null ?
-                new ObjectParameter("languageId", languageId) :
-                new ObjectParameter("languageId", typeof(string));
-    
-            return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnClientBonus>("[IqSoftCorePlatformEntities].[fn_ClientBonus](@languageId)", languageIdParameter);
-        }
-    
-        [DbFunction("IqSoftCorePlatformEntities", "fn_Product")]
-        public virtual IQueryable<fnProduct> fn_Product(string languageId)
-        {
-            var languageIdParameter = languageId != null ?
-                new ObjectParameter("LanguageId", languageId) :
-                new ObjectParameter("LanguageId", typeof(string));
-    
-            return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnProduct>("[IqSoftCorePlatformEntities].[fn_Product](@LanguageId)", languageIdParameter);
         }
     
         [DbFunction("IqSoftCorePlatformEntities", "fn_Promotion")]
@@ -1089,6 +1053,48 @@ namespace IqSoft.CP.DAL
         public virtual IQueryable<fnSegmentClient> fn_SegmentClient()
         {
             return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnSegmentClient>("[IqSoftCorePlatformEntities].[fn_SegmentClient]()");
+        }
+    
+        [DbFunction("IqSoftCorePlatformEntities", "fn_Affiliate")]
+        public virtual IQueryable<fnAffiliate> fn_Affiliate()
+        {
+            return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnAffiliate>("[IqSoftCorePlatformEntities].[fn_Affiliate]()");
+        }
+    
+        [DbFunction("IqSoftCorePlatformEntities", "fn_Product")]
+        public virtual IQueryable<fnProduct> fn_Product(string languageId)
+        {
+            var languageIdParameter = languageId != null ?
+                new ObjectParameter("LanguageId", languageId) :
+                new ObjectParameter("LanguageId", typeof(string));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnProduct>("[IqSoftCorePlatformEntities].[fn_Product](@LanguageId)", languageIdParameter);
+        }
+    
+        [DbFunction("IqSoftCorePlatformEntities", "fn_PartnerProductSetting")]
+        public virtual IQueryable<fnPartnerProductSetting> fn_PartnerProductSetting(string languageId)
+        {
+            var languageIdParameter = languageId != null ?
+                new ObjectParameter("LanguageId", languageId) :
+                new ObjectParameter("LanguageId", typeof(string));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnPartnerProductSetting>("[IqSoftCorePlatformEntities].[fn_PartnerProductSetting](@LanguageId)", languageIdParameter);
+        }
+    
+        [DbFunction("IqSoftCorePlatformEntities", "fn_PopupStatistics")]
+        public virtual IQueryable<fnPopupStatistics> fn_PopupStatistics()
+        {
+            return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnPopupStatistics>("[IqSoftCorePlatformEntities].[fn_PopupStatistics]()");
+        }
+    
+        [DbFunction("IqSoftCorePlatformEntities", "fn_ClientBonus")]
+        public virtual IQueryable<fnClientBonus> fn_ClientBonus(string languageId)
+        {
+            var languageIdParameter = languageId != null ?
+                new ObjectParameter("languageId", languageId) :
+                new ObjectParameter("languageId", typeof(string));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnClientBonus>("[IqSoftCorePlatformEntities].[fn_ClientBonus](@languageId)", languageIdParameter);
         }
     }
 }

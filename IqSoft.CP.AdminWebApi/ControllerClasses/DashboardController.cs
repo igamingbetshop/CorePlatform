@@ -53,6 +53,24 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 case Constants.RequestMethods.GetTopDamagingClients:
                     return GetTopDamagingClients(JsonConvert.DeserializeObject<ApiFilterDashboard>(request.RequestData),
                         identity, log);
+                case Constants.RequestMethods.GetTopDepositMethods:
+                    return GetTopDepositMethods(JsonConvert.DeserializeObject<ApiFilterDashboard>(request.RequestData),
+                        identity, log);
+                case Constants.RequestMethods.GetTopWithdrawMethods:
+                    return GetTopWithdrawMethods(JsonConvert.DeserializeObject<ApiFilterDashboard>(request.RequestData),
+                        identity, log);
+                case Constants.RequestMethods.GetTopBonusReceivers:
+                    return GetTopBonusReceivers(JsonConvert.DeserializeObject<ApiFilterDashboard>(request.RequestData),
+                        identity, log);
+                case Constants.RequestMethods.GetTopGrantedBonuses:
+                    return GetTopGrantedBonuses(JsonConvert.DeserializeObject<ApiFilterDashboard>(request.RequestData),
+                        identity, log);
+                case Constants.RequestMethods.GetTopProfitableAgents:
+                    return GetTopProfitableAgents(JsonConvert.DeserializeObject<ApiFilterDashboard>(request.RequestData),
+                        identity, log);
+                case Constants.RequestMethods.GetTopDamagingAgents:
+                    return GetTopDamagingAgents(JsonConvert.DeserializeObject<ApiFilterDashboard>(request.RequestData),
+                        identity, log);
                 case Constants.RequestMethods.ExportClientsInfoList:
                     return
                         ExportClientsInfoList(
@@ -193,6 +211,72 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 var response = new ApiResponseBase();
                 var filter = input.MapToFilterDashboard(identity.TimeZone);
                 response.ResponseObject = reportBl.GetTopDamagingClients(filter).ToList();
+                return response;
+            }
+        }
+
+        private static ApiResponseBase GetTopDepositMethods(ApiFilterDashboard input, SessionIdentity identity, ILog log)
+        {
+            using (var reportBl = new ReportBll(identity, log))
+            {
+                var response = new ApiResponseBase();
+                var filter = input.MapToFilterDashboard(identity.TimeZone);
+                response.ResponseObject = reportBl.GetTopDepositMethods(filter).ToList();
+                return response;
+            }
+        }
+
+        private static ApiResponseBase GetTopWithdrawMethods(ApiFilterDashboard input, SessionIdentity identity, ILog log)
+        {
+            using (var reportBl = new ReportBll(identity, log))
+            {
+                var response = new ApiResponseBase();
+                var filter = input.MapToFilterDashboard(identity.TimeZone);
+                response.ResponseObject = reportBl.GetTopWithdrawMethods(filter).ToList();
+                return response;
+            }
+        }
+
+        private static ApiResponseBase GetTopBonusReceivers(ApiFilterDashboard input, SessionIdentity identity, ILog log)
+        {
+            using (var reportBl = new ReportBll(identity, log))
+            {
+                var response = new ApiResponseBase();
+                var filter = input.MapToFilterDashboard(identity.TimeZone);
+                response.ResponseObject = reportBl.GetTopBonusReceivers(filter).ToList();
+                return response;
+            }
+        }
+
+        private static ApiResponseBase GetTopGrantedBonuses(ApiFilterDashboard input, SessionIdentity identity, ILog log)
+        {
+            using (var reportBl = new ReportBll(identity, log))
+            {
+                var response = new ApiResponseBase();
+                var filter = input.MapToFilterDashboard(identity.TimeZone);
+                response.ResponseObject = reportBl.GetTopGrantedBonuses(filter).ToList();
+                return response;
+            }
+        }
+
+        private static ApiResponseBase GetTopProfitableAgents(ApiFilterDashboard input, SessionIdentity identity, ILog log)
+        {
+            using (var reportBl = new ReportBll(identity, log))
+            {
+                var response = new ApiResponseBase();
+                var filter = input.MapToFilterDashboard(identity.TimeZone);
+                response.ResponseObject = reportBl.GetTopAgents(filter, true).ToList();
+                return response;
+            }
+        }
+
+        private static ApiResponseBase GetTopDamagingAgents(ApiFilterDashboard input, SessionIdentity identity, ILog log)
+        {
+            using (var reportBl = new ReportBll(identity, log))
+            {
+                var response = new ApiResponseBase();
+                var filter = input.MapToFilterDashboard(identity.TimeZone);
+                response.ResponseObject = reportBl.GetTopAgents(filter, false).ToList();
                 return response;
             }
         }

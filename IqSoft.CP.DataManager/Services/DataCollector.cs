@@ -1,5 +1,4 @@
-﻿using IqSoft.CP.DataManager.Helpers;
-using IqSoft.CP.DataWarehouse;
+﻿using IqSoft.CP.DataWarehouse;
 using System;
 using System.Configuration;
 using System.Data.Entity;
@@ -49,12 +48,8 @@ namespace IqSoft.CP.DataManager.Services
                     var paramId = new SqlParameter("@clientId", lastClientId);
                     var paramUpdateDate = new SqlParameter("@updateTime", updateTime);
                     var result = context.Database.SqlQuery<Client>(sqlString, paramId, paramUpdateDate).ToList();
-                    if (result.Count > 0)
-                    {
-                        foreach (var r in result)
-                            db.Clients.AddOrUpdate(r, x => x.Id == r.Id);
-                        db.SaveChanges();
-                    }
+                    db.Clients.AddOrUpdateExtension(result);
+                    db.SaveChanges();
                 }
             }
             catch (Exception ex)
@@ -295,15 +290,28 @@ namespace IqSoft.CP.DataManager.Services
                 var startTime = DateTime.UtcNow.AddHours(-1);
                 using (var db = new IqSoftDataWarehouseEntities())
                 {
-                    var sqlString = "SELECT * FROM [ClientSession] WHERE ProductId = 1 AND StartTime > @startTime or LastUpdateTime > @startTime";
+                    var sqlString = "SELECT * FROM [ClientSession] WHERE ProductId = 1 AND (StartTime > @startTime or LastUpdateTime > @startTime)";
                     var context = new DbContext(CorePlatformDbConnectionString);
                     var result = context.Database.SqlQuery<ClientSession>(sqlString, new SqlParameter("@startTime", startTime)).ToList();
                     if (result.Count > 0)
                     {
                         foreach (var r in result)
-                            db.ClientSessions.AddOrUpdate(r, x => x.Id == r.Id);
+                        {
+                            var old = db.ClientSessions.FirstOrDefault(x => x.Id == r.Id);
+                            if (old == null)
+                                db.ClientSessions.Add(r);
+                            else
+                            {
+                                old.LastUpdateTime = r.LastUpdateTime;
+                                old.EndTime = r.EndTime;
+                                old.State = r.State;
+                                old.LogoutType = r.LogoutType;
+                                old.AccountId = r.AccountId;
+                            }
+                        }
                         db.SaveChanges();
                     }
+                    db.ClientSessions.AddOrUpdateExtension(result);
                 }
             }
             catch (Exception ex)

@@ -18,7 +18,6 @@ namespace IqSoft.CP.AgentWebApi.Models
         public int? PartnerProductId { get; set; }
         public int? GameProviderId { get; set; }
         public int? ClientId { get; set; }
-        public long? ExternalOperationId { get; set; }
         public string TicketInfo { get; set; }
         public int? UserId { get; set; }
         public long SessionId { get; set; }

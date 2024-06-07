@@ -22,7 +22,8 @@ namespace IqSoft.CP.DAL.Filters
         public FiltersOperation ProductNames { get; set; }
         public FiltersOperation TransactionTypes { get; set; }
 
-        protected override IQueryable<fnAgentTransaction> CreateQuery(IQueryable<fnAgentTransaction> objects, Func<IQueryable<fnAgentTransaction>, IOrderedQueryable<fnAgentTransaction>> orderBy = null)
+        protected override IQueryable<fnAgentTransaction> CreateQuery(IQueryable<fnAgentTransaction> objects, 
+            Func<IQueryable<fnAgentTransaction>, IOrderedQueryable<fnAgentTransaction>> orderBy = null)
         {
             if (UserId.HasValue)
                 objects = objects.Where(x => x.ObjectId == UserId.Value);
@@ -43,7 +44,8 @@ namespace IqSoft.CP.DAL.Filters
             return base.FilteredObjects(objects, orderBy);
         }
 
-        public IQueryable<fnAgentTransaction> FilterObjects(IQueryable<fnAgentTransaction> documents, Func<IQueryable<fnAgentTransaction>, IOrderedQueryable<fnAgentTransaction>> orderBy = null)
+        public IQueryable<fnAgentTransaction> FilterObjects(IQueryable<fnAgentTransaction> documents, 
+            Func<IQueryable<fnAgentTransaction>, IOrderedQueryable<fnAgentTransaction>> orderBy = null)
         {
             documents = CreateQuery(documents, orderBy);
             return documents;

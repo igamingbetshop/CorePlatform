@@ -453,24 +453,26 @@ namespace IqSoft.CP.ProductGateway.Controllers
                             }
                             catch (Exception ex)
                             {
-                                WebApiApplication.DbLogger.Error(ex.Message);
-                                documentBl.RollbackProductTransactions(operationsFromProduct);
-                                throw;
+                                WebApiApplication.DbLogger.Error("DebitException_" + ex.Message);
                             }
                         }
-                        BaseHelpers.RemoveClientBalanceFromeCache(client.Id);
-                        BaseHelpers.BroadcastWin(new ApiWin
+                        else
                         {
-                            GameName = product.NickName,
-                            ClientId = client.Id,
-                            ClientName = client.FirstName,
-                            Amount = (decimal)input.Parameters.Amount / 100,
-                            CurrencyId = client.CurrencyId,
-                            PartnerId = client.PartnerId,
-                            ProductId = product.Id,
-                            ProductName = product.NickName,
-                            ImageUrl = product.WebImageUrl
-                        });
+                            BaseHelpers.RemoveClientBalanceFromeCache(client.Id);
+                            BaseHelpers.BroadcastWin(new ApiWin
+                            {
+                                GameName = product.NickName,
+                                ClientId = client.Id,
+                                ClientName = client.FirstName,
+                                BetAmount = betDocument?.Amount,
+                                Amount = (decimal)input.Parameters.Amount / 100,
+                                CurrencyId = client.CurrencyId,
+                                PartnerId = client.PartnerId,
+                                ProductId = product.Id,
+                                ProductName = product.NickName,
+                                ImageUrl = product.WebImageUrl
+                            });
+                        }
                         return false;
                     }
 
@@ -532,24 +534,26 @@ namespace IqSoft.CP.ProductGateway.Controllers
                             }
                             catch (Exception ex)
                             {
-                                WebApiApplication.DbLogger.Error(ex.Message);
-                                documentBl.RollbackProductTransactions(operationsFromProduct);
-                                throw;
+                                WebApiApplication.DbLogger.Error("DebitException_" + ex.Message);
                             }
                         }
-                        BaseHelpers.RemoveClientBalanceFromeCache(client.Id);
-                        BaseHelpers.BroadcastWin(new ApiWin
+                        else
                         {
-                            GameName = product.NickName,
-                            ClientId = client.Id,
-                            ClientName = client.FirstName,
-                            Amount = (decimal)input.Amount.Value / 100,
-                            CurrencyId = client.CurrencyId,
-                            PartnerId = client.PartnerId,
-                            ProductId = product.Id,
-                            ProductName = product.NickName,
-                            ImageUrl = product.WebImageUrl
-                        });
+                            BaseHelpers.RemoveClientBalanceFromeCache(client.Id);
+                            BaseHelpers.BroadcastWin(new ApiWin
+                            {
+                                GameName = product.NickName,
+                                ClientId = client.Id,
+                                ClientName = client.FirstName,
+                                BetAmount = betDocument?.Amount,
+                                Amount = (decimal)input.Amount.Value / 100,
+                                CurrencyId = client.CurrencyId,
+                                PartnerId = client.PartnerId,
+                                ProductId = product.Id,
+                                ProductName = product.NickName,
+                                ImageUrl = product.WebImageUrl
+                            });
+                        }
                         return false;
                     }
                     return true;
@@ -587,7 +591,6 @@ namespace IqSoft.CP.ProductGateway.Controllers
                             CurrencyId = client.CurrencyId,
                             GameProviderId = ProviderId,
                             OperationTypeId = (int)OperationTypes.Win,
-                            ExternalOperationId = null,
                             ProductId = betDocument.ProductId,
                             TransactionId = input.Parameters.PromoTransactionId,
                             CreditTransactionId = betDocument.Id,
@@ -608,6 +611,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                             GameName = product.NickName,
                             ClientId = client.Id,
                             ClientName = client.FirstName,
+                            BetAmount = betDocument?.Amount,
                             Amount = (decimal)input.Parameters.Amount / 100,
                             CurrencyId = client.CurrencyId,
                             PartnerId = client.PartnerId,

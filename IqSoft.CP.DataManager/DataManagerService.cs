@@ -132,7 +132,7 @@ namespace IqSoft.CP.DataManager
             _betCleaningTimer.Change(Timeout.Infinite, Timeout.Infinite);
             var count = DataCombiner.CleanBets(Program.DbLogger);
             if(count > 0)
-                _betCleaningTimer.Change(0, 60000);
+                _betCleaningTimer.Change(10000, 60000);
             else
                 _betCleaningTimer.Change(300000, 300000);
         }

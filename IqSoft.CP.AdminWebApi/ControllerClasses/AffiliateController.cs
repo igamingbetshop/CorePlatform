@@ -2,7 +2,6 @@
 using IqSoft.CP.AdminWebApi.Filters;
 using IqSoft.CP.AdminWebApi.Filters.Agent;
 using IqSoft.CP.AdminWebApi.Helpers;
-using IqSoft.CP.AdminWebApi.Models.AffiliateModels;
 using IqSoft.CP.AdminWebApi.Models.CommonModels;
 using IqSoft.CP.BLL.Caching;
 using IqSoft.CP.BLL.Services;
@@ -28,10 +27,17 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 case "UpdateAffiliate":
                     return UpdateAffiliate(
                         JsonConvert.DeserializeObject<ApiFnAffiliateModel>(request.RequestData), identity, log);
+                case "GetAffiliateAccounts":
+                    return GetAffiliateAccounts(JsonConvert.DeserializeObject<int>(request.RequestData), identity, log);
                 case "UpdateCommissionPlan":
                     return UpdateCommissionPlan(JsonConvert.DeserializeObject<Common.Models.AffiliateModels.ApiAffiliateCommission>(request.RequestData), identity, log);
                 case "GetTransactions":
                     return GetTransactions(JsonConvert.DeserializeObject<ApiFilterfnAgentTransaction>(request.RequestData), identity, log);
+                case "CreateDebitCorrection":
+                    return CreateDebitCorrection(JsonConvert.DeserializeObject<TransferInput>(request.RequestData), identity, log);
+                case "CreateCreditCorrection":
+                    return CreateCreditCorrection(JsonConvert.DeserializeObject<TransferInput>(request.RequestData), identity, log);
+
             }
             throw BaseBll.CreateException(string.Empty, Constants.Errors.MethodNotFound);
         }
@@ -72,6 +78,18 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             }
         }
 
+        public static ApiResponseBase GetAffiliateAccounts(int affiliateId, SessionIdentity identity, ILog log)
+        {
+            using (var affiliateService = new AffiliateService(identity, log))
+            {
+                var accounts = affiliateService.GetAffiliateAccounts(affiliateId).Select(x => x.ToFnAccountModel()).ToList();
+                return new ApiResponseBase
+                {
+                    ResponseObject = accounts
+                };
+            }
+        }
+
         private static ApiResponseBase UpdateCommissionPlan(Common.Models.AffiliateModels.ApiAffiliateCommission input, SessionIdentity identity, ILog log)
         {
             using (var affiliateBl = new AffiliateService(identity, log))
@@ -81,7 +99,51 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             }
         }
 
+        private static ApiResponseBase CreateDebitCorrection(TransferInput transferInput, SessionIdentity identity, ILog log)
+        {
+            using (var affiliateService = new AffiliateService(identity, log))
+            {
+                using (var documentBl = new DocumentBll(affiliateService))
+                {
+                    return new ApiResponseBase
+                    {
+                        ResponseObject = affiliateService.CreateDebitOnAffiliate(transferInput, documentBl).MapToDocumentModel(identity.TimeZone)
+                    };
+                }
+            }
+        }
+
+        private static ApiResponseBase CreateCreditCorrection(TransferInput transferInput, SessionIdentity identity, ILog log)
+        {
+            using (var affiliateService = new AffiliateService(identity, log))
+            {
+                using (var documentBl = new DocumentBll(affiliateService))
+                {
+                    return new ApiResponseBase
+                    {
+                        ResponseObject = affiliateService.CreateCreditOnAffiliate(transferInput, documentBl).MapToDocumentModel(identity.TimeZone)
+                    };
+                }
+            }
+        }
+
         private static ApiResponseBase GetTransactions(ApiFilterfnAgentTransaction apiFilter, SessionIdentity identity, ILog log)
+        {
+            using (var reportBl = new ReportBll(identity, log))
+            {
+                var result = reportBl.GetAffiliateTransactions(apiFilter.ToFilterfnAffiliateTransaction(), identity.Id);
+                return new ApiResponseBase
+                {
+                    ResponseObject = new
+                    {
+                        result.Count,
+                        Entities = result.Entities.Select(x => x.ToApifnAffiliateTransaction(identity.TimeZone)).ToList()
+                    }
+                };
+            }
+        }
+
+        private static ApiResponseBase GetAffiliateCorrections(ApiFilterfnAgentTransaction apiFilter, SessionIdentity identity, ILog log)
         {
             using (var reportBl = new ReportBll(identity, log))
             {

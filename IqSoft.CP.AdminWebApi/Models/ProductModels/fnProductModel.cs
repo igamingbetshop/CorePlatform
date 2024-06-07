@@ -41,12 +41,6 @@ namespace IqSoft.CP.AdminWebApi.Models.ProductModels
         public long TranslationId { get; set; }
 
         [NotExcelProperty]
-        public int IsLeaf { get; set; }
-
-        [NotExcelProperty]
-        public int IsLastProductGroup { get; set; }
-
-        [NotExcelProperty]
         public int? PaymentSystemId { get; set; }
         [NotExcelProperty]
         public int Level { get; set; }

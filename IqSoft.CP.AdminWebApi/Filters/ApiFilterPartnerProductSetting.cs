@@ -6,9 +6,9 @@
         public int? ProviderId { get; set; }
         public int? CategoryIds { get; set; }
         public bool? HasImages { get; set; }
-        public ApiFiltersOperation IsForMobile { get; set; }
-        public ApiFiltersOperation IsForDesktop { get; set; }
-        public ApiFiltersOperation HasDemo { get; set; }
+        public bool? IsForMobile { get; set; }
+        public bool? IsForDesktop { get; set; }
+        public bool? HasDemo { get; set; }
         public ApiFiltersOperation ProductIsLeaf { get; set; }
         public ApiFiltersOperation Ids { get; set; }
         public ApiFiltersOperation ProductIds { get; set; }

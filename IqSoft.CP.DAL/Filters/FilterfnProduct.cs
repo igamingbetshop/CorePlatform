@@ -12,6 +12,8 @@ namespace IqSoft.CP.DAL.Filters
         public bool? FreeSpinSupport { get; set; }
         public string Pattern { get; set; }
         public bool? HasImages { get; set; }
+        public bool? IsForMobile { get; set; }
+        public bool? IsForDesktop { get; set; }
         public bool? IsProviderActive { get; set; }
 
         public FiltersOperation Ids { get; set; }
@@ -27,10 +29,6 @@ namespace IqSoft.CP.DAL.Filters
         public FiltersOperation GameProviderIds { get; set; }
 
         public FiltersOperation SubProviderIds { get; set; }
-
-        public FiltersOperation IsForDesktops { get; set; }
-
-        public FiltersOperation IsForMobiles { get; set; }
         public FiltersOperation HasDemo { get; set; }
         
         public FiltersOperation FreeSpinSupports { get; set; }
@@ -50,7 +48,10 @@ namespace IqSoft.CP.DAL.Filters
                 objects = objects.Where(x => x.HasImages == HasImages.Value);
             if (IsProviderActive.HasValue)
                 objects = objects.Where(x => x.IsProviderActive == null || x.IsProviderActive == IsProviderActive.Value );
-
+            if (IsForDesktop.HasValue)
+                objects = objects.Where(x => x.IsForDesktop == IsForDesktop);
+            if (IsForMobile.HasValue)
+                objects = objects.Where(x => x.IsForMobile == IsForMobile);
             if (FreeSpinSupport.HasValue)
                 objects = objects.Where(x => x.GameProviderId == null || x.FreeSpinSupport == FreeSpinSupport.Value);
             if (!string.IsNullOrEmpty(Pattern))
@@ -63,8 +64,6 @@ namespace IqSoft.CP.DAL.Filters
             FilterByValue(ref objects, ExternalIds, "ExternalId");
             FilterByValue(ref objects, GameProviderIds, "GameProviderId");
             FilterByValue(ref objects, SubProviderIds, "SubproviderId");
-            FilterByValue(ref objects, IsForDesktops, "IsForDesktop");
-            FilterByValue(ref objects, IsForMobiles, "IsForMobile");
             FilterByValue(ref objects, FreeSpinSupports, "FreeSpinSupport");
             FilterByValue(ref objects, Jackpots, "Jackpot");
             FilterByValue(ref objects, RTPs, "RTP");

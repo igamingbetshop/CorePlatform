@@ -5,6 +5,7 @@ namespace IqSoft.CP.DAL
 {
     public partial class fnPaymentRequest : IBase
     {
+        public decimal ConvertedAmount { get; set; }
         public long ObjectId
         {
             get { return Id; }

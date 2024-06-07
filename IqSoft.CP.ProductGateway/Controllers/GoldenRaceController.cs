@@ -41,7 +41,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
             {
                 // BaseBll.CheckIp(WhitelistedIps);
                 WebApiApplication.DbLogger.Info(inputString);
-                var input = JsonConvert.DeserializeObject<LoginInput>(inputString);
+                var input = JsonConvert.DeserializeObject<Models.GoldenRace.LoginInput>(inputString);
                 var clientSession = ClientBll.GetClientProductSession(input.Action == "login" ? input.Token : input.SessionId, Constants.DefaultLanguageId);
                 var client = CacheManager.GetClientById(clientSession.Id);
                 privateKey = CacheManager.GetGameProviderValueByKey(client.PartnerId, ProviderId, Constants.PartnerKeys.GoldenRaceApiKey);
@@ -279,6 +279,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                                 GameName = product.NickName,
                                 ClientId = client.Id,
                                 ClientName = client.FirstName,
+                                BetAmount = betDocument?.Amount,
                                 Amount = input.TransactionAmount,
                                 CurrencyId = client.CurrencyId,
                                 PartnerId = client.PartnerId,

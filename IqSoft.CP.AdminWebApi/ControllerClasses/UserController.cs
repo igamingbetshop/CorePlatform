@@ -55,9 +55,9 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 case "UpdateUserState":
                     return UpdateUserState(JsonConvert.DeserializeObject<ApiUserState>(request.RequestData), identity, log);
                 case "CreateDebitCorrection":
-                    return CreateDebitCorrection(JsonConvert.DeserializeObject<UserTransferInput>(request.RequestData), identity, log);
+                    return CreateDebitCorrection(JsonConvert.DeserializeObject<TransferInput>(request.RequestData), identity, log);
                 case "CreateCreditCorrection":
-                    return CreateCreditCorrection(JsonConvert.DeserializeObject<UserTransferInput>(request.RequestData), identity, log);
+                    return CreateCreditCorrection(JsonConvert.DeserializeObject<TransferInput>(request.RequestData), identity, log);
                 case "GetCorrections":
                     return GetCorrections(JsonConvert.DeserializeObject<ApiFilterUserCorrection>(request.RequestData), identity, log);
                 case "GetCommissionPlan":
@@ -417,7 +417,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             }
         }
 
-        private static ApiResponseBase CreateDebitCorrection(UserTransferInput userCorrectionInput, SessionIdentity identity, ILog log)
+        private static ApiResponseBase CreateDebitCorrection(TransferInput userCorrectionInput, SessionIdentity identity, ILog log)
         {
             using (var userBl = new UserBll(identity, log))
             {
@@ -437,7 +437,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             }
         }
 
-        private static ApiResponseBase CreateCreditCorrection(UserTransferInput userCorrectionInput, SessionIdentity identity, ILog log)
+        private static ApiResponseBase CreateCreditCorrection(TransferInput userCorrectionInput, SessionIdentity identity, ILog log)
         {
             using (var userBl = new UserBll(identity, log))
             {

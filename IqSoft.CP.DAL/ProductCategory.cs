@@ -14,11 +14,19 @@ namespace IqSoft.CP.DAL
     
     public partial class ProductCategory
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public ProductCategory()
+        {
+            this.Products = new HashSet<Product>();
+        }
+    
         public int Id { get; set; }
         public string Name { get; set; }
         public int Type { get; set; }
         public long TranslationId { get; set; }
     
         public virtual Translation Translation { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Product> Products { get; set; }
     }
 }

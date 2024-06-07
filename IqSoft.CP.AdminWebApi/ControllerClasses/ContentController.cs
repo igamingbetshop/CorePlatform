@@ -559,9 +559,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     {
                         var ftpModel = partnerBl.GetPartnerEnvironments(apiPopupInput.PartnerId)[apiPopupInput.EnvironmentTypeId] ??
                             throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.PartnerKeyNotFound);
-                        var ext = apiPopupInput.ImageName.Split('.', '?');
-                        var extension = ext.Length > 1 ? "." + ext[1] : ".png";
-                        apiPopupInput.ImageName = dbPopup.Id.ToString() + extension;
+                        apiPopupInput.ImageName = dbPopup.ImageName;
                         var partner = CacheManager.GetPartnerById(apiPopupInput.PartnerId);
                         var path = "ftp://" + ftpModel.Url + "/coreplatform/website/" + partner.Name + "/assets/images/popup/";
                         try

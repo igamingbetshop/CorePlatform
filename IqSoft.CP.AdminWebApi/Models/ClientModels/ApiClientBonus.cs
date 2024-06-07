@@ -41,7 +41,7 @@ namespace IqSoft.CP.AdminWebApi.Models.ClientModels
         [NotExcelProperty]
         public decimal? WageringTarget { get; set; }
         [NotExcelProperty]
-        public int? TriggerId { get; set; }
+        public int? LinkedBonusId { get; set; }
         [NotExcelProperty]
         public int? BetCount { get; set; }
         [NotExcelProperty]

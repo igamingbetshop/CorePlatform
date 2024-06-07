@@ -341,7 +341,8 @@ namespace IqSoft.CP.AgentWebApi.Helpers
                 FixedFeeCommission = arg.FixedFeeCommission,
                 DepositCommission = arg.DepositCommission,
                 TurnoverCommission = arg.TurnoverCommission,
-                GGRCommission = arg.GGRCommission
+                GGRCommission = arg.GGRCommission,
+                ClientId = arg.ClientId
             };
         }
 
@@ -1270,8 +1271,6 @@ namespace IqSoft.CP.AgentWebApi.Helpers
                 ParentId = product.ParentId,
                 Name = product.Name,
                 Level = product.Level,
-                IsLeaf = product.IsLeaf,
-                IsLastProductGroup = product.IsLastProductGroup,
                 TranslationId = product.TranslationId,
                 ExternalId = product.ExternalId,
                 State = product.State,
@@ -1399,13 +1398,18 @@ namespace IqSoft.CP.AgentWebApi.Helpers
             };
         }
 
-        public static FilterDashboard MapToFilterDashboard(this ApiFilterDashboard filter)
+        public static FilterDashboard MapToFilterDashboard(this ApiFilterDashboard filter, double timeZone)
         {
+            var fromDate = filter.FromDate ?? DateTime.UtcNow;
+            var toDate = filter.ToDate ?? DateTime.UtcNow;
+
+            var fromDay = fromDate.AddHours(timeZone);
+            var toDay = toDate.AddHours(timeZone);
             return new FilterDashboard
             {
                 PartnerId = filter.PartnerId,
-                FromDate = filter.FromDate ?? DateTime.UtcNow,
-                ToDate = filter.ToDate ?? DateTime.UtcNow
+                FromDate = fromDay,
+                ToDate = toDay
             };
         }
 

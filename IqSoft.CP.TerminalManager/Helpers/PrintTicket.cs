@@ -92,7 +92,7 @@ namespace IqSoft.CP.TerminalManager.Helpers
             height += valWidth.Height;
             ev.Graphics.DrawString(line, normalFont, Brushes.Black, 10, height, DefaultStringFormat);
             height += lineSz.Height;
-
+            //---------------printing bet type section----------------------------
             valWidth = ev.Graphics.MeasureString(BetReceiptItem.BetType, normalFont);
             ev.Graphics.DrawString(BetReceiptItem.BetType, normalFont, Brushes.Black, 10, height, DefaultStringFormat);
             height += valWidth.Height;
@@ -105,17 +105,21 @@ namespace IqSoft.CP.TerminalManager.Helpers
                 foreach (var selection in BetReceiptItem.BetDetails.Selections)
                 {                    
                     if (!string.IsNullOrEmpty(selection.Team1))
-                    {
-                        ev.Graphics.DrawString(selection.Id, smallFont, Brushes.Black, 10, height, DefaultStringFormat);
-                        valWidth = ev.Graphics.MeasureString(selection.CurrentTime, smallFont);
-                        ev.Graphics.DrawString(selection.CurrentTime, smallFont, Brushes.Black, 257 - valWidth.Width, height, DefaultStringFormat);
+                    {                       
+                        ev.Graphics.DrawString(selection.SportName, smallFont, Brushes.Black, 10, height, DefaultStringFormat);
                         height += valWidth.Height==0 ? 15 : valWidth.Height;
 
+                        ev.Graphics.DrawString(selection.CompetitionName, smallFont, Brushes.Black, 10, height, DefaultStringFormat);
+                        height += valWidth.Height==0 ? 15 : valWidth.Height;
                         ev.Graphics.DrawString($"{selection.MatchDate}  {selection.Team1}", smallFont, Brushes.Black, 10, height, DefaultStringFormat);
                         valWidth = ev.Graphics.MeasureString(selection.Score, smallFont);
                         ev.Graphics.DrawString(selection.Score, smallFont, Brushes.Black, 257 - valWidth.Width, height, DefaultStringFormat);
                         height += valWidth.Height==0 ? 15 : valWidth.Height;
                         ev.Graphics.DrawString($"{selection.MatchTime}  {selection.Team2}", smallFont, Brushes.Black, 10, height, DefaultStringFormat);
+                        height += valWidth.Height==0 ? 15 : valWidth.Height;
+                        ev.Graphics.DrawString(selection.Id, smallFont, Brushes.Black, 10, height, DefaultStringFormat);
+                        valWidth = ev.Graphics.MeasureString(selection.CurrentTime, smallFont);
+                        ev.Graphics.DrawString(selection.CurrentTime, smallFont, Brushes.Black, 257 - valWidth.Width, height, DefaultStringFormat);
                         height += valWidth.Height==0 ? 15 : valWidth.Height;
                         ev.Graphics.DrawString(selection.MatchName, smallFont, Brushes.Black, 10, height, DefaultStringFormat);
                         height += valWidth.Height==0 ? 15 : valWidth.Height;
@@ -166,6 +170,16 @@ namespace IqSoft.CP.TerminalManager.Helpers
 
                     }
                 }
+                ev.Graphics.DrawString(line, normalFont, Brushes.Black, 10, height, DefaultStringFormat);
+                height += lineSz.Height;
+            }
+            //----Total Coefficient--------------------------
+            if (!string.IsNullOrEmpty(BetReceiptItem.BetDetails.TotalCoefficient))
+            {
+                valWidth = ev.Graphics.MeasureString(BetReceiptItem.BetDetails.TotalCoefficient, normalFont);
+                ev.Graphics.DrawString(BetReceiptItem.BetDetails.TotalCoefficientLabel, normalFont, Brushes.Black, 10, height, DefaultStringFormat);
+                ev.Graphics.DrawString(BetReceiptItem.BetDetails.TotalCoefficient, normalFont, Brushes.Black, 257 - valWidth.Width, height, DefaultStringFormat);
+                height += valWidth.Height;
                 ev.Graphics.DrawString(line, normalFont, Brushes.Black, 10, height, DefaultStringFormat);
                 height += lineSz.Height;
             }

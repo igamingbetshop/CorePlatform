@@ -8,6 +8,7 @@ namespace IqSoft.CP.Common.Models.Bonus
         public int ClientId { get; set; }
         public int BonusId { get; set; }
         public string ProductExternalId { get; set; }
+        public int ProductId { get; set; }
         public List<string> ProductExternalIds { get; set; }
         public int? SpinCount { get; set; }
         public decimal? Lines { get; set; }

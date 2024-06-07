@@ -204,24 +204,26 @@ namespace IqSoft.CP.ProductGateway.Controllers
 							}
 							catch (Exception ex)
 							{
-								WebApiApplication.DbLogger.Error(ex.Message);
-								documentBl.RollbackProductTransactions(operationsFromProduct);
-								throw;
+								WebApiApplication.DbLogger.Error("DebitException_" + ex.Message);
 							}
 						}
-						BaseHelpers.RemoveClientBalanceFromeCache(client.Id);
-						BaseHelpers.BroadcastWin(new ApiWin
+						else
 						{
-							GameName = product.NickName,
-							ClientId = client.Id,
-							ClientName = client.FirstName,
-							Amount = input.WinAmount,
-							CurrencyId = client.CurrencyId,
-							PartnerId = client.PartnerId,
-							ProductId = product.Id,
-							ProductName = product.NickName,
-							ImageUrl = product.WebImageUrl
-						});
+							BaseHelpers.RemoveClientBalanceFromeCache(client.Id);
+							BaseHelpers.BroadcastWin(new ApiWin
+							{
+								GameName = product.NickName,
+								ClientId = client.Id,
+								ClientName = client.FirstName,
+								BetAmount = betDocument?.Amount,
+								Amount = input.WinAmount,
+								CurrencyId = client.CurrencyId,
+								PartnerId = client.PartnerId,
+								ProductId = product.Id,
+								ProductName = product.NickName,
+								ImageUrl = product.WebImageUrl
+							});
+						}
 					}
 					return winDocument.Id.ToString();
 				}

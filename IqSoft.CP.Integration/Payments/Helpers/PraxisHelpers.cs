@@ -43,6 +43,10 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             var applicationKey = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.PraxisApplicationKey)?.StringValue;
             var returnUrl = string.Format("https://{0}/user/1/deposit?get=1", session.Domain);
             var paymentGatewayUrl = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.PaymentGateway).StringValue;
+            
+            var country = session.Country;
+            if (client.CountryId != null)
+                country = CacheManager.GetRegionById(client.CountryId.Value, Constants.DefaultLanguageId).IsoCode;
 
             var paymentRequestInput = new
             {
@@ -62,7 +66,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 requester_ip = session.LoginIp,
                 customer_data = new
                 {
-                    country = session.Country,
+                    country = country,
                     city = paymentInfo.City,
                     zip = client.ZipCode.Trim(), 
                     first_name = client.FirstName,

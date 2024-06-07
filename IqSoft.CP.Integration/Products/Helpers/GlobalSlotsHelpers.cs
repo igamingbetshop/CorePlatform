@@ -7,7 +7,6 @@ using IqSoft.CP.Common.Models;
 using IqSoft.CP.Common.Models.CacheModels;
 using IqSoft.CP.DAL.Models;
 using IqSoft.CP.DAL.Models.Clients;
-using IqSoft.CP.Integration.Products.Models.GlobalSlots;
 using log4net;
 using System;
 using System.Collections.Generic;
@@ -30,7 +29,7 @@ namespace IqSoft.CP.Integration.Products.Helpers
                     if (amount <= 0)
                         throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.LowBalance);                   
 
-                    var transferInput = new TransferInput
+                    var transferInput = new Models.GlobalSlots.TransferInput
                     {
                         key = dbClient.PasswordHash,
                         @event = "addmoney",
@@ -99,7 +98,7 @@ namespace IqSoft.CP.Integration.Products.Helpers
                 {
                     var client = clientBl.GetClientById(clientId);
                     var blClient = CacheManager.GetClientById(clientId);
-                    var transferInput = new TransferInput
+                    var transferInput = new Models.GlobalSlots.TransferInput
                     {
                         key = client.PasswordHash,
                         @event = "moneyout",

@@ -28,6 +28,7 @@ namespace IqSoft.CP.DAL.Models.Cache
         public bool? AllowMultipleClientsPerPaymentInfo { get; set; }
         public bool? AllowMultiplePaymentInfoes { get; set; }
         public int? OpenMode { get; set; }
+        public int Priority { get; set; }
         public List<int> Countries { get; set; }
         public string OSTypesString { get; set; }
         public string ImageExtension { get; set; }

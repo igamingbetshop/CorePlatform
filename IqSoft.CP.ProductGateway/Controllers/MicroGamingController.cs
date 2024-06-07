@@ -124,7 +124,6 @@ namespace IqSoft.CP.ProductGateway.Controllers
 
             if (document != null)
             {
-                var externalOperation = clientDocumentBl.GetExternalOperationByParentId(document.ExternalOperationId.Value);
                 var oldResponse = JsonConvert.DeserializeObject<Output>(externalOperation.Body);
                 response.MethodResponse.Result.AvailableBalance = oldResponse.MethodResponse.Result.AvailableBalance;
                 response.MethodResponse.Result.BonusBalance = oldResponse.MethodResponse.Result.BonusBalance;
@@ -136,7 +135,6 @@ namespace IqSoft.CP.ProductGateway.Controllers
                 CurrencyId = input.MethodCall.Call.Currency ?? client.CurrencyId,
                 RoundId = input.MethodCall.Call.GameId,
                 GameProviderId = CacheManager.GetGameProviderByName(Constants.GameProviders.MicroGaming).Id,
-                ExternalOperationId = log.Id,
                 ExternalProductId = input.MethodCall.Call.GameReference,
                 TransactionId = input.MethodCall.Call.ActionId,
                 Info = input.MethodCall.Call.ActionDesc,
@@ -165,7 +163,6 @@ namespace IqSoft.CP.ProductGateway.Controllers
 
             if (document != null)
             {
-                var externalOperation = clientDocumentBl.GetExternalOperationByParentId(document.ExternalOperationId.Value);
                 var oldResponse = JsonConvert.DeserializeObject<Output>(externalOperation.Body);
                 response.MethodResponse.Result.AvailableBalance = oldResponse.MethodResponse.Result.AvailableBalance;
                 response.MethodResponse.Result.BonusBalance = oldResponse.MethodResponse.Result.BonusBalance;
@@ -183,7 +180,6 @@ namespace IqSoft.CP.ProductGateway.Controllers
                 CurrencyId = input.MethodCall.Call.Currency ?? client.CurrencyId,
                 RoundId = input.MethodCall.Call.GameId,
                 GameProviderId = CacheManager.GetGameProviderByName(Constants.GameProviders.MicroGaming).Id,
-                ExternalOperationId = log.Id,
                 ExternalProductId = input.MethodCall.Call.GameReference,
                 TransactionId = input.MethodCall.Call.ActionId,
                 CreditTransactionId = betDocument.Id,
@@ -218,7 +214,6 @@ namespace IqSoft.CP.ProductGateway.Controllers
 
                 if (document != null)
                 {
-                    var externalOperation = clientDocumentBl.GetExternalOperationByParentId(document.ExternalOperationId.Value);
                     var oldResponse = JsonConvert.DeserializeObject<Output>(externalOperation.Body);
                     response.MethodResponse.Result.AvailableBalance = oldResponse.MethodResponse.Result.AvailableBalance;
                     response.MethodResponse.Result.BonusBalance = oldResponse.MethodResponse.Result.BonusBalance;
@@ -230,7 +225,6 @@ namespace IqSoft.CP.ProductGateway.Controllers
                 {
                     GameProviderId = CacheManager.GetGameProviderByName(Constants.GameProviders.MicroGaming).Id,
                     TransactionId = input.MethodCall.Call.ActionId,
-                    ExternalOperationId = log.Id,
                     Info = input.MethodCall.Call.ActionDesc
                 };
                 document = clientDocumentBl.RollbackProductTransactions(operationsFromProduct).FirstOrDefault();

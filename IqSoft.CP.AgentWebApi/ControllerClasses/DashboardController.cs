@@ -22,6 +22,8 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                     return GetClientsInfo(JsonConvert.DeserializeObject<ApiFilterDashboard>(request.RequestData), identity, log);
                 case Constants.RequestMethods.GetPaymentsInfo:
                     return GetPaymentsInfo(JsonConvert.DeserializeObject<ApiFilterDashboard>(request.RequestData), identity, log);
+                case Constants.RequestMethods.GetBetsInfo:
+                    return GetBetsInfo(JsonConvert.DeserializeObject<ApiFilterDashboard>(request.RequestData), identity, log);
             }
             throw BaseBll.CreateException(string.Empty, Constants.Errors.MethodNotFound);
         }
@@ -31,7 +33,7 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
             using (var reportBl = new ReportBll(identity, log))
             {
                 var response = new ApiResponseBase();                    
-                var filter = input.MapToFilterDashboard();
+                var filter = input.MapToFilterDashboard(identity.TimeZone);
                 if (!identity.IsAffiliate)
                     response.ResponseObject = reportBl.GetAgentMembersInfoForDashboard(filter);
                 else
@@ -48,13 +50,30 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
             using (var reportBl = new ReportBll(identity, log))
             {
                 var response = new ApiResponseBase();
-                var filter = input.MapToFilterDashboard();
+                var filter = input.MapToFilterDashboard(identity.TimeZone);
                 if (!identity.IsAffiliate)
                     response.ResponseObject = reportBl.GetAgentMemberPaymentsForDashboard(filter);
                 else
                 {
                     filter.PartnerId = identity.PartnerId;
                     response.ResponseObject = reportBl.GetAffiliateMemberPaymentsForDashboard(filter);
+                }
+                return response;
+            }
+        }
+
+        private static ApiResponseBase GetBetsInfo(ApiFilterDashboard input, SessionIdentity identity, ILog log)
+        {
+            using (var reportBl = new ReportBll(identity, log, 120))
+            {
+                var response = new ApiResponseBase();
+                var filter = input.MapToFilterDashboard(identity.TimeZone);
+                if (!identity.IsAffiliate)
+                    response.ResponseObject = reportBl.GetAgentMemberBetsInfoForDashboard(filter);
+                else
+                {
+                    filter.PartnerId = identity.PartnerId;
+                    //To Be Added
                 }
                 return response;
             }

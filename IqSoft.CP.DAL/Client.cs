@@ -19,7 +19,6 @@ namespace IqSoft.CP.DAL
         {
             this.AgentCommissions = new HashSet<AgentCommission>();
             this.AgentProfits = new HashSet<AgentProfit>();
-            this.ClientBonus = new HashSet<ClientBonu>();
             this.ClientBonusTriggers = new HashSet<ClientBonusTrigger>();
             this.ClientClassifications = new HashSet<ClientClassification>();
             this.ClientClosedPeriods = new HashSet<ClientClosedPeriod>();
@@ -38,6 +37,8 @@ namespace IqSoft.CP.DAL
             this.Tickets = new HashSet<Ticket>();
             this.TicketMessageStates = new HashSet<TicketMessageState>();
             this.ClientPaymentSettings = new HashSet<ClientPaymentSetting>();
+            this.Affiliates = new HashSet<Affiliate>();
+            this.ClientBonus = new HashSet<ClientBonu>();
         }
     
         public int Id { get; set; }
@@ -112,8 +113,6 @@ namespace IqSoft.CP.DAL
         public virtual User User { get; set; }
         public virtual ClientBankInfo ClientBankInfo { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<ClientBonu> ClientBonus { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ClientBonusTrigger> ClientBonusTriggers { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ClientClassification> ClientClassifications { get; set; }
@@ -149,5 +148,9 @@ namespace IqSoft.CP.DAL
         public virtual ICollection<TicketMessageState> TicketMessageStates { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ClientPaymentSetting> ClientPaymentSettings { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Affiliate> Affiliates { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<ClientBonu> ClientBonus { get; set; }
     }
 }

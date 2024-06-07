@@ -9,8 +9,9 @@ namespace IqSoft.CP.DAL.Models.Affiliates
         public string ClientName { get; set; }
         public int ClientStatus { get; set; }
         public DateTime ClientLastUpdateTime { get; set; }
-        public int AffiliateId { get; set; }
+        public int AffiliatePlatformId { get; set; }
         public string AffiliateName { get; set; }
+        public string AffiliateId { get; set; }
         public string ClickId { get; set; }
         public string RegistrationIp { get; set; }
         public System.DateTime RegistrationDate { get; set; }

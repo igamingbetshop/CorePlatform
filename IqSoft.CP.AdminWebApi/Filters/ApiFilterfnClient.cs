@@ -8,6 +8,7 @@ namespace IqSoft.CP.AdminWebApi.Filters
 
         public int? AgentId { get; set; }
         public int? UnderMonitoringTypes { get; set; }
+        public bool? IsDocumentVerified { get; set; }
 
         public DateTime? CreatedFrom { get; set; }
 
@@ -44,8 +45,6 @@ namespace IqSoft.CP.AdminWebApi.Filters
 
         public ApiFiltersOperation ZipCodes { get; set; }
         public ApiFiltersOperation Cities { get; set; }
-
-        public ApiFiltersOperation IsDocumentVerifieds { get; set; }
 
         public ApiFiltersOperation PhoneNumbers { get; set; }
 

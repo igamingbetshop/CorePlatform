@@ -480,7 +480,6 @@ namespace IqSoft.CP.WebSiteWebApi.Controllers
             return MasterCacheIntegration.SendMasterCacheRequest<ApiResponseBase>(partnerId, MethodBase.GetCurrentMethod().Name, request);
         }
 
-
         [HttpGet, HttpPost]
         public ApiResponseBase GetRegions(int partnerId, ApiFilterRegion request)
         {
@@ -507,7 +506,6 @@ namespace IqSoft.CP.WebSiteWebApi.Controllers
                 return resp;
             return MasterCacheIntegration.SendMasterCacheRequest<ApiResponseBase>(partnerId, MethodBase.GetCurrentMethod().Name, request);
         }
-
 
         [HttpGet, HttpPost]
         public ApiResponseBase GetReferralTypes(int partnerId, ApiRequestBase request)
@@ -799,7 +797,6 @@ namespace IqSoft.CP.WebSiteWebApi.Controllers
             return MasterCacheIntegration.SendMasterCacheRequest<ApiResponseBase>(partnerId, MethodBase.GetCurrentMethod().Name, input);
         }
 
-
 		[HttpPost]
 		public ApiResponseBase GetProviderData(int partnerId, ApiProviderData input)
 		{
@@ -835,6 +832,24 @@ namespace IqSoft.CP.WebSiteWebApi.Controllers
             if (resp.ResponseCode != Constants.SuccessResponseCode)
                 return resp;
             return MasterCacheIntegration.SendMasterCacheRequest<ApiResponseBase>(partnerId, MethodBase.GetCurrentMethod().Name, input);
+        }
+
+        [HttpGet]
+        public ApiResponseBase GetActiveTournaments(int partnerId, [FromQuery]ApiRequestBase request)
+        {
+            var resp = CheckRequestState(partnerId, request, MethodBase.GetCurrentMethod().Name);
+            if (resp.ResponseCode != Constants.SuccessResponseCode)
+                return resp;
+            return MasterCacheIntegration.SendMasterCacheRequest<ApiResponseBase>(partnerId, MethodBase.GetCurrentMethod().Name, request);
+        }
+
+        [HttpGet]
+        public ApiResponseBase GetTournamentLeaderboard(int partnerId, [FromQuery]RequestBase request)
+        {
+            var resp = CheckRequestState(partnerId, request, MethodBase.GetCurrentMethod().Name);
+            if (resp.ResponseCode != Constants.SuccessResponseCode)
+                return resp;
+            return MasterCacheIntegration.SendMasterCacheRequest<ApiResponseBase>(partnerId, MethodBase.GetCurrentMethod().Name, request);
         }
 
         #endregion

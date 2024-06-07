@@ -81,7 +81,9 @@ namespace IqSoft.CP.Integration.Products.Helpers
             { 914,"BeeFee" },
             { 912,"SolidGaming" },
             { 910,"RedRakeGaming" },
-            { 916,"PlayTech" }
+            { 916,"PlayTech" },
+            { 850,"Hacksaw" },
+            { 911,"PushGaming" }
         };
 
         private static readonly List<string> RedirectingProviders = new List<string>
@@ -342,6 +344,11 @@ namespace IqSoft.CP.Integration.Products.Helpers
             var operatorId = Convert.ToInt32(externalData[0]);
             if (!OperatorsList.ContainsKey(operatorId))
                 throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongInputParameters);
+            var tId = "ti" + freeSpinModel.BonusId + "pi" + freeSpinModel.ProductId;
+            var length = 30 - tId.Length;
+            for (int i = 0; i < length; i++)
+                tId += "F";
+
             var input = new
             {
                 Operator = OperatorsList[operatorId],
@@ -349,9 +356,10 @@ namespace IqSoft.CP.Integration.Products.Helpers
                 Games = externalData[1],
                 Count = freeSpinModel.SpinCount,
                 Expire = freeSpinModel.FinishTime.ToString("yyyy-MM-dd HH:mm:ss"),
-                TID = CommonFunctions.GetRandomString(30),
+                TID = tId,
                 BetLevel = freeSpinModel.BetValueLevel
             };
+
             var hostName = Dns.GetHostName();
             var serverIPs = Dns.GetHostEntry(hostName.Replace("https://", string.Empty).Replace("http://", string.Empty)).AddressList;
             var ip = serverIPs[serverIPs.Length - 1].ToString();
@@ -365,11 +373,20 @@ namespace IqSoft.CP.Integration.Products.Helpers
                 RequestMethod = Constants.HttpRequestMethods.Get,
                 Url = url
             };
-            if (freeSpinModel.BetValueLevel.HasValue)
-                log.Info("Softgaming_FreeSpin: " + JsonConvert.SerializeObject(httpRequestInput));
+
             var res = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
             if (res != "1")
-                throw new Exception(JsonConvert.SerializeObject(res));
+            {
+                log.Error(res + "_" + JsonConvert.SerializeObject(input));
+                var items = res.Split(',');
+                if (items[0] != "30" && items[1] != "Error: Can't add freerounds to user")
+                {
+                    var response = JsonConvert.DeserializeObject<Dictionary<string, string>>(items[1]);
+                    if (response.Any(x => x.Value != "User already have active freerounds for current game") &&
+                        response.Any(x => x.Value != "User not found"))
+                        throw new Exception(JsonConvert.SerializeObject(res));
+                }
+            }
         }
     }
 }

@@ -257,6 +257,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                                 GameName = product.NickName,
                                 ClientId = client.Id,
                                 ClientName = client.FirstName,
+                                BetAmount = betDocument?.Amount,
                                 Amount = input.Amount,
                                 CurrencyId = client.CurrencyId,
                                 PartnerId = client.PartnerId,

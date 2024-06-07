@@ -18,6 +18,7 @@ using IqSoft.CP.JobService;
 using IqSoft.CP.Common.Models.CacheModels;
 using IqSoft.CP.BLL.Caching;
 using IqSoft.CP.Common.Models.Bonus;
+using System.Threading.Tasks;
 
 namespace IqSoft.CP.WindowsServices.JobService
 {
@@ -25,166 +26,189 @@ namespace IqSoft.CP.WindowsServices.JobService
     {
         private IDisposable _server;
 
-        private readonly Timer _closeAccountPeriodTimer;
-        private readonly Timer _closeClientPeriodTimer;
-        private readonly Timer _addMoneyToPartnerAccountTimer;
-        private readonly Timer _expireUserSessionsTimer;
-        private readonly Timer _expireClientSessionsTimer;
-        private readonly Timer _resetBetShopDailyTicketNumberTimer;
-        private readonly Timer _expireClientVerificationKeysTimer;
-        private readonly Timer _calculateCashBackBonusesTimer;
-        private readonly Timer _awardCashBackBonusesTimer;
-        private readonly Timer _giveAffiliateBonusTimer;
-        private readonly Timer _giveFixedFeeCommissionTimer;
-        private readonly Timer _giveAffiliateCommissionTimer;
-        private readonly Timer _deletePaymentExpiredActiveRequestsTimer;
-        private readonly Timer _updateCurrenciesRateTimer;
-        private readonly Timer _sendActiveMailsTimer;
-        private readonly Timer _updateClientWageringBonusTimer;
-        private readonly Timer _finalizeWageringBonusTimer;
-        private readonly Timer _sendActiveMerchantRequestsTimer;
-        private readonly Timer _approveIqWalletConfirmedRequestsTimer;
-        private readonly Timer _sendAffiliateReportTimer;
-        private readonly Timer _calculateAgentsTurnoverProfitTimer;
-        private readonly Timer _calculateAgentsGGRProfitTimer;
-        private readonly Timer _triggerCRMTimer;
-        private readonly Timer _checkClientBlockedSessionsTimer;
-        private readonly Timer _checkUserBlockedSessionsTimer;
-        private readonly Timer _checkWithdrawRequestsStatusesTimer;
-        private readonly Timer _checkDepositRequestsStatusesTimer;
-        private readonly Timer _giveFreeSpinTimer;
-        private readonly Timer _giveJackpotWinTimer;
-        private readonly Timer _deactivateExiredKYCTimer;
-        private readonly Timer _triggerBonusTimer;
-        private readonly Timer _inactiveClientsTimer;
-        private readonly Timer _checkForceBlockedClientsTimer;
-        private readonly Timer _inactiveUsersTimer;
-        private readonly Timer _applyClientRestriction;
-        private readonly Timer _notifyIdentityExpirationTimer;
-        private readonly Timer _inactivateImpossiblBonuses;
-        private readonly Timer _updateJackpotFeed;
-        private readonly Timer _sendPartnerActivityReport;
-        private readonly Timer _reconsiderDynamicSegments;
-        private readonly Timer _fulfillDepositAction;
-        private readonly Timer _fairSegmentTriggers;
-        private readonly Timer _sendPartnerDailyReport;
-        private readonly Timer _sendPartnerWeeklyReport;
-        private readonly Timer _sendPartnerMonthlyReport;
-        private readonly Timer _calculateCompPoints;
-        private readonly Timer _settleBets;
-        private readonly Timer _restrictUnverifiedClients;
-        private readonly Timer _expireClientVerificationStatus;
-        private readonly Timer _checkDuplicateClients;
+        private readonly Timer _closeAccountPeriodTimer; //1
+        private readonly Timer _addMoneyToPartnerAccountTimer; //2
+        private readonly Timer _calculateCompPoints; //3
+        private readonly Timer _calculateJackpots; //4
+        private readonly Timer _expireUserSessionsTimer; //5
+        private readonly Timer _broadcastBets; //6
+        private readonly Timer _resetBetShopDailyTicketNumberTimer; //7
+        private readonly Timer _expireClientSessionsTimer; //9 
+        private readonly Timer _expireClientVerificationKeysTimer; //10
 
+        private readonly Timer _calculateCashBackBonusesTimer; //11
+        private readonly Timer _closeClientPeriodTimer; //12 
+        private readonly Timer _giveAffiliateBonusTimer; //13
+        private readonly Timer _deletePaymentExpiredActiveRequestsTimer; //14
+        private readonly Timer _updateCurrenciesRateTimer; //15
+        private readonly Timer _sendActiveEmailsTimer; //16
+        private readonly Timer _updateClientWageringBonusTimer; //17
+        private readonly Timer _finalizeWageringBonusTimer; //18
+        private readonly Timer _sendActiveMerchantRequestsTimer; //19
+        private readonly Timer _approveIqWalletConfirmedRequestsTimer; //20
+
+        private readonly Timer _sendAffiliateReportTimer; //21
+        private readonly Timer _calculateAgentsGGRProfitTimer; //22
+        private readonly Timer _calculateAgentsTurnoverProfitTimer; //23
+        private readonly Timer _triggerCRMTimer; //24
+        private readonly Timer _checkClientBlockedSessionsTimer; //25
+        private readonly Timer _checkWithdrawRequestsStatusesTimer; //26
+        private readonly Timer _deactivateExiredKYCTimer; //27
+        private readonly Timer _triggerBonusTimer; //28
+        private readonly Timer _checkUserBlockedSessionsTimer; //29
+        private readonly Timer _inactiveClientsTimer; //30
+
+        private readonly Timer _notifyIdentityExpirationTimer; //31
+        private readonly Timer _inactivateImpossiblBonuses; //32
+        private readonly Timer _updateJackpotFeed; //34
+        private readonly Timer _reconsiderDynamicSegments; //35
+        private readonly Timer _inactiveUsersTimer; //36
+        private readonly Timer _sendPartnerDailyReport; //37
+        private readonly Timer _sendPartnerWeeklyReport; //38
+        private readonly Timer _sendPartnerMonthlyReport; //39
+        private readonly Timer _awardCashBackBonusesTimer; //40
+
+        private readonly Timer _fairSegmentTriggers; //41
+        private readonly Timer _giveFreeSpinTimer; //42
+        private readonly Timer _giveJackpotWinTimer; //43
+        private readonly Timer _giveCompPoints; //44
+        private readonly Timer _checkDepositRequestsStatusesTimer; //45
+        private readonly Timer _checkForceBlockedClientsTimer; //47
+        private readonly Timer _giveFixedFeeCommissionTimer; //48
+        private readonly Timer _fulfillDepositAction; //49
+        private readonly Timer _applyClientRestriction; //50
+
+        private readonly Timer _settleBets; //51
+        private readonly Timer _restrictUnverifiedClients; //52
+        private readonly Timer _giveAffiliateCommissionTimer; //53
+        private readonly Timer _expireClientVerificationStatus; //54
+        private readonly Timer _checkDuplicateClients; //55
+        private readonly Timer _closeTournamentsTimer; //56
 
         public JobService()
         {
             InitializeComponent();
 
-            _closeAccountPeriodTimer = new Timer(CallJob, Constants.Jobs.CloseAccountPeriod, Timeout.Infinite, Timeout.Infinite);
-            _closeClientPeriodTimer = new Timer(CallJob, Constants.Jobs.CloseClientPeriod, Timeout.Infinite, Timeout.Infinite);
-            _addMoneyToPartnerAccountTimer = new Timer(CallJob, Constants.Jobs.AddMoneyToPartnerAccount, Timeout.Infinite, Timeout.Infinite);
-            _expireUserSessionsTimer = new Timer(CallJob, Constants.Jobs.ExpireUserSessions, Timeout.Infinite, Timeout.Infinite);
-            _expireClientSessionsTimer = new Timer(CallJob, Constants.Jobs.ExpireClientSessions, Timeout.Infinite, Timeout.Infinite);
-            _resetBetShopDailyTicketNumberTimer = new Timer(CallJob, Constants.Jobs.ResetBetShopDailyTicketNumber, Timeout.Infinite, Timeout.Infinite);
-            _expireClientVerificationKeysTimer = new Timer(CallJob, Constants.Jobs.ExpireClientVerificationKeys, Timeout.Infinite, Timeout.Infinite);
-            _calculateCashBackBonusesTimer = new Timer(CallJob, Constants.Jobs.CalculateCashBackBonuses, Timeout.Infinite, Timeout.Infinite);
-            _awardCashBackBonusesTimer = new Timer(CallJob, Constants.Jobs.AwardCashBackBonuses, Timeout.Infinite, Timeout.Infinite);
-            _giveAffiliateBonusTimer = new Timer(CallJob, Constants.Jobs.GiveAffiliateBonus, Timeout.Infinite, Timeout.Infinite);
-            _giveFixedFeeCommissionTimer = new Timer(CallJob, Constants.Jobs.GiveFixedFeeCommission, Timeout.Infinite, Timeout.Infinite);
-            _giveAffiliateCommissionTimer = new Timer(CallJob, Constants.Jobs.GiveAffiliateCommission, Timeout.Infinite, Timeout.Infinite);
-            _deletePaymentExpiredActiveRequestsTimer = new Timer(CallJob, Constants.Jobs.DeletePaymentExpiredActiveRequests, Timeout.Infinite, Timeout.Infinite);
-            _updateCurrenciesRateTimer = new Timer(CallJob, Constants.Jobs.UpdateCurrenciesRate, Timeout.Infinite, Timeout.Infinite);
-            _sendActiveMailsTimer = new Timer(CallJob, Constants.Jobs.SendActiveMails, Timeout.Infinite, Timeout.Infinite);
-            _updateClientWageringBonusTimer = new Timer(CallJob, Constants.Jobs.UpdateClientWageringBonus, Timeout.Infinite, Timeout.Infinite);
-            _finalizeWageringBonusTimer = new Timer(CallJob, Constants.Jobs.FinalizeWageringBonus, Timeout.Infinite, Timeout.Infinite);
-            _sendActiveMerchantRequestsTimer = new Timer(CallJob, Constants.Jobs.SendActiveMerchantRequests, Timeout.Infinite, Timeout.Infinite);
-            _approveIqWalletConfirmedRequestsTimer = new Timer(CallJob, Constants.Jobs.ApproveIqWalletConfirmedRequests, Timeout.Infinite, Timeout.Infinite);
-            _sendAffiliateReportTimer = new Timer(CallJob, Constants.Jobs.SendAffiliateReport, Timeout.Infinite, Timeout.Infinite);
-            _calculateAgentsTurnoverProfitTimer = new Timer(CallJob, Constants.Jobs.CalculateAgentsTurnoverProfit, Timeout.Infinite, Timeout.Infinite);
-            _calculateAgentsGGRProfitTimer = new Timer(CallJob, Constants.Jobs.CalculateAgentsGGRProfit, Timeout.Infinite, Timeout.Infinite);
-            _triggerCRMTimer = new Timer(CallJob, Constants.Jobs.TriggerCRM, Timeout.Infinite, Timeout.Infinite);
-            _checkClientBlockedSessionsTimer = new Timer(CallJob, Constants.Jobs.CheckClientBlockedSessions, Timeout.Infinite, Timeout.Infinite);
-            _checkUserBlockedSessionsTimer = new Timer(CallJob, Constants.Jobs.CheckUserBlockedSessions, Timeout.Infinite, Timeout.Infinite);
-            _checkWithdrawRequestsStatusesTimer = new Timer(CallJob, Constants.Jobs.CheckWithdrawRequestsStatuses, Timeout.Infinite, Timeout.Infinite);
-            _checkDepositRequestsStatusesTimer = new Timer(CallJob, Constants.Jobs.CheckDepositRequestsStatuses, Timeout.Infinite, Timeout.Infinite);
-            _giveFreeSpinTimer = new Timer(CallJob, Constants.Jobs.GiveFreeSpin, Timeout.Infinite, Timeout.Infinite);
-            _giveJackpotWinTimer = new Timer(CallJob, Constants.Jobs.GiveJackpotWin, Timeout.Infinite, Timeout.Infinite);
-            _deactivateExiredKYCTimer = new Timer(CallJob, Constants.Jobs.DeactivateExiredKYC, Timeout.Infinite, Timeout.Infinite);
-            _triggerBonusTimer = new Timer(CallJob, Constants.Jobs.TriggerBonus, Timeout.Infinite, Timeout.Infinite);
-            _inactiveClientsTimer = new Timer(CallJob, Constants.Jobs.CheckInactiveClients, Timeout.Infinite, Timeout.Infinite);
-            _checkForceBlockedClientsTimer = new Timer(CallJob, Constants.Jobs.CheckForceBlockedClients, Timeout.Infinite, Timeout.Infinite);
-            _inactiveUsersTimer = new Timer(CallJob, Constants.Jobs.CheckInactiveUsers, Timeout.Infinite, Timeout.Infinite);
-            _applyClientRestriction = new Timer(CallJob, Constants.Jobs.ApplyClientRestriction, Timeout.Infinite, Timeout.Infinite);
-            _notifyIdentityExpirationTimer = new Timer(CallJob, Constants.Jobs.NotifyIdentityExpiration, Timeout.Infinite, Timeout.Infinite);
-            _inactivateImpossiblBonuses = new Timer(CallJob, Constants.Jobs.InactivateImpossibleBonuses, Timeout.Infinite, Timeout.Infinite);
-            _updateJackpotFeed = new Timer(CallJob, Constants.Jobs.UpdateJackpotFeed, Timeout.Infinite, Timeout.Infinite);
-            _reconsiderDynamicSegments = new Timer(CallJob, Constants.Jobs.ReconsiderDynamicSegments, Timeout.Infinite, Timeout.Infinite);
-            _fulfillDepositAction = new Timer(CallJob, Constants.Jobs.FulfillDepositAction, Timeout.Infinite, Timeout.Infinite);
-            _fairSegmentTriggers = new Timer(CallJob, Constants.Jobs.FairSegmentTriggers, Timeout.Infinite, Timeout.Infinite);
-            _sendPartnerDailyReport = new Timer(CallJob, Constants.Jobs.SendPartnerDailyReport, Timeout.Infinite, Timeout.Infinite);
-            _sendPartnerWeeklyReport = new Timer(CallJob, Constants.Jobs.SendPartnerWeeklyReport, Timeout.Infinite, Timeout.Infinite);
-            _sendPartnerMonthlyReport = new Timer(CallJob, Constants.Jobs.SendPartnerMonthlyReport, Timeout.Infinite, Timeout.Infinite);
-            _calculateCompPoints = new Timer(CallJob, Constants.Jobs.CalculateCompPoints, Timeout.Infinite, Timeout.Infinite);
-            _sendPartnerActivityReport = new Timer(CallJob, Constants.Jobs.SendPartnerActivityReport, Timeout.Infinite, Timeout.Infinite);
-            _settleBets = new Timer(CallJob, Constants.Jobs.SettleBets, Timeout.Infinite, Timeout.Infinite);
-            _restrictUnverifiedClients = new Timer(CallJob, Constants.Jobs.RestrictUnverifiedClients, Timeout.Infinite, Timeout.Infinite);
-            _expireClientVerificationStatus = new Timer(CallJob, Constants.Jobs.ExpireClientVerificationStatus, Timeout.Infinite, Timeout.Infinite);
-            _checkDuplicateClients = new Timer(CallJob, Constants.Jobs.CheckDuplicateClients, Timeout.Infinite, Timeout.Infinite);
+            _closeAccountPeriodTimer = new Timer(CallJob, Constants.Jobs.CloseAccountPeriod, Timeout.Infinite, Timeout.Infinite);//1
+            _addMoneyToPartnerAccountTimer = new Timer(CallJob, Constants.Jobs.AddMoneyToPartnerAccount, Timeout.Infinite, Timeout.Infinite);//2
+            _calculateCompPoints = new Timer(CallJob, Constants.Jobs.CalculateCompPoints, Timeout.Infinite, Timeout.Infinite);//3
+            _calculateJackpots = new Timer(CallJob, Constants.Jobs.CalculateJackpots, Timeout.Infinite, Timeout.Infinite);//4
+            _expireUserSessionsTimer = new Timer(CallJob, Constants.Jobs.ExpireUserSessions, Timeout.Infinite, Timeout.Infinite);//5
+            _broadcastBets = new Timer(CallJob, Constants.Jobs.BroadcastBets, Timeout.Infinite, Timeout.Infinite);//6
+            _resetBetShopDailyTicketNumberTimer = new Timer(CallJob, Constants.Jobs.ResetBetShopDailyTicketNumber, Timeout.Infinite, Timeout.Infinite);//7
+            _expireClientSessionsTimer = new Timer(CallJob, Constants.Jobs.ExpireClientSessions, Timeout.Infinite, Timeout.Infinite);//9
+            _expireClientVerificationKeysTimer = new Timer(CallJob, Constants.Jobs.ExpireClientVerificationKeys, Timeout.Infinite, Timeout.Infinite);//10
+
+            _calculateCashBackBonusesTimer = new Timer(CallJob, Constants.Jobs.CalculateCashBackBonuses, Timeout.Infinite, Timeout.Infinite);//11
+            _closeClientPeriodTimer = new Timer(CallJob, Constants.Jobs.CloseClientPeriod, Timeout.Infinite, Timeout.Infinite);//12
+            _giveAffiliateBonusTimer = new Timer(CallJob, Constants.Jobs.GiveAffiliateBonus, Timeout.Infinite, Timeout.Infinite);//13
+            _deletePaymentExpiredActiveRequestsTimer = new Timer(CallJob, Constants.Jobs.DeletePaymentExpiredActiveRequests, Timeout.Infinite, Timeout.Infinite);//14
+            _updateCurrenciesRateTimer = new Timer(CallJob, Constants.Jobs.UpdateCurrenciesRate, Timeout.Infinite, Timeout.Infinite);//15
+            _sendActiveEmailsTimer = new Timer(CallJob, Constants.Jobs.SendActiveMails, Timeout.Infinite, Timeout.Infinite);//16
+            _updateClientWageringBonusTimer = new Timer(CallJob, Constants.Jobs.UpdateClientWageringBonus, Timeout.Infinite, Timeout.Infinite);//17
+            _finalizeWageringBonusTimer = new Timer(CallJob, Constants.Jobs.FinalizeWageringBonus, Timeout.Infinite, Timeout.Infinite);//18
+            _sendActiveMerchantRequestsTimer = new Timer(CallJob, Constants.Jobs.SendActiveMerchantRequests, Timeout.Infinite, Timeout.Infinite);//19
+            _approveIqWalletConfirmedRequestsTimer = new Timer(CallJob, Constants.Jobs.ApproveIqWalletConfirmedRequests, Timeout.Infinite, Timeout.Infinite);//20
+
+            _sendAffiliateReportTimer = new Timer(CallJob, Constants.Jobs.SendAffiliateReport, Timeout.Infinite, Timeout.Infinite);//21
+            _calculateAgentsGGRProfitTimer = new Timer(CallJob, Constants.Jobs.CalculateAgentsGGRProfit, Timeout.Infinite, Timeout.Infinite);//22
+            _calculateAgentsTurnoverProfitTimer = new Timer(CallJob, Constants.Jobs.CalculateAgentsTurnoverProfit, Timeout.Infinite, Timeout.Infinite);//23
+            _triggerCRMTimer = new Timer(CallJob, Constants.Jobs.TriggerCRM, Timeout.Infinite, Timeout.Infinite);//24
+            _checkClientBlockedSessionsTimer = new Timer(CallJob, Constants.Jobs.CheckClientBlockedSessions, Timeout.Infinite, Timeout.Infinite);//25
+            _checkWithdrawRequestsStatusesTimer = new Timer(CallJob, Constants.Jobs.CheckWithdrawRequestsStatuses, Timeout.Infinite, Timeout.Infinite);//26
+            _deactivateExiredKYCTimer = new Timer(CallJob, Constants.Jobs.DeactivateExiredKYC, Timeout.Infinite, Timeout.Infinite);//27
+            _triggerBonusTimer = new Timer(CallJob, Constants.Jobs.TriggerBonus, Timeout.Infinite, Timeout.Infinite);//28
+            _checkUserBlockedSessionsTimer = new Timer(CallJob, Constants.Jobs.CheckUserBlockedSessions, Timeout.Infinite, Timeout.Infinite);//29
+            _inactiveClientsTimer = new Timer(CallJob, Constants.Jobs.CheckInactiveClients, Timeout.Infinite, Timeout.Infinite);//30
+
+            _notifyIdentityExpirationTimer = new Timer(CallJob, Constants.Jobs.NotifyIdentityExpiration, Timeout.Infinite, Timeout.Infinite);//31
+            _inactivateImpossiblBonuses = new Timer(CallJob, Constants.Jobs.InactivateImpossibleBonuses, Timeout.Infinite, Timeout.Infinite);//32
+            _updateJackpotFeed = new Timer(CallJob, Constants.Jobs.UpdateJackpotFeed, Timeout.Infinite, Timeout.Infinite);//34
+            _reconsiderDynamicSegments = new Timer(CallJob, Constants.Jobs.ReconsiderDynamicSegments, Timeout.Infinite, Timeout.Infinite);//35
+            _inactiveUsersTimer = new Timer(CallJob, Constants.Jobs.CheckInactiveUsers, Timeout.Infinite, Timeout.Infinite);//36
+            _sendPartnerDailyReport = new Timer(CallJob, Constants.Jobs.SendPartnerDailyReport, Timeout.Infinite, Timeout.Infinite);//37
+            _sendPartnerWeeklyReport = new Timer(CallJob, Constants.Jobs.SendPartnerWeeklyReport, Timeout.Infinite, Timeout.Infinite);//38
+            _sendPartnerMonthlyReport = new Timer(CallJob, Constants.Jobs.SendPartnerMonthlyReport, Timeout.Infinite, Timeout.Infinite);//39
+            _awardCashBackBonusesTimer = new Timer(CallJob, Constants.Jobs.AwardCashBackBonuses, Timeout.Infinite, Timeout.Infinite);//40
+
+            _fairSegmentTriggers = new Timer(CallJob, Constants.Jobs.FairSegmentTriggers, Timeout.Infinite, Timeout.Infinite);//41
+            _giveFreeSpinTimer = new Timer(CallJob, Constants.Jobs.GiveFreeSpin, Timeout.Infinite, Timeout.Infinite);//42
+            _giveJackpotWinTimer = new Timer(CallJob, Constants.Jobs.GiveJackpotWin, Timeout.Infinite, Timeout.Infinite);//43
+            _giveCompPoints = new Timer(CallJob, Constants.Jobs.GiveCompPoints, Timeout.Infinite, Timeout.Infinite);//44
+            _checkDepositRequestsStatusesTimer = new Timer(CallJob, Constants.Jobs.CheckDepositRequestsStatuses, Timeout.Infinite, Timeout.Infinite);//45
+            _checkForceBlockedClientsTimer = new Timer(CallJob, Constants.Jobs.CheckForceBlockedClients, Timeout.Infinite, Timeout.Infinite);//47
+            _giveFixedFeeCommissionTimer = new Timer(CallJob, Constants.Jobs.GiveFixedFeeCommission, Timeout.Infinite, Timeout.Infinite);//48
+            _fulfillDepositAction = new Timer(CallJob, Constants.Jobs.FulfillDepositAction, Timeout.Infinite, Timeout.Infinite);//49
+            _applyClientRestriction = new Timer(CallJob, Constants.Jobs.ApplyClientRestriction, Timeout.Infinite, Timeout.Infinite);//50
+
+            _settleBets = new Timer(CallJob, Constants.Jobs.SettleBets, Timeout.Infinite, Timeout.Infinite);//51
+            _restrictUnverifiedClients = new Timer(CallJob, Constants.Jobs.RestrictUnverifiedClients, Timeout.Infinite, Timeout.Infinite);//52
+            _giveAffiliateCommissionTimer = new Timer(CallJob, Constants.Jobs.GiveAffiliateCommission, Timeout.Infinite, Timeout.Infinite);//53
+            _expireClientVerificationStatus = new Timer(CallJob, Constants.Jobs.ExpireClientVerificationStatus, Timeout.Infinite, Timeout.Infinite);//54
+            _checkDuplicateClients = new Timer(CallJob, Constants.Jobs.CheckDuplicateClients, Timeout.Infinite, Timeout.Infinite);//55
+            _closeTournamentsTimer = new Timer(CallJob, Constants.Jobs.CloseTournaments, Timeout.Infinite, Timeout.Infinite);//56
         }
 
         protected override void OnStart(string[] args)
         {
-            _closeAccountPeriodTimer.Change(20000, 20000);
-            _closeClientPeriodTimer.Change(20000, 20000);
-            _addMoneyToPartnerAccountTimer.Change(20000, 20000);
-            _expireUserSessionsTimer.Change(5000, 5000);
-            _expireClientSessionsTimer.Change(5000, 5000);
-            _resetBetShopDailyTicketNumberTimer.Change(20000, 20000);
-            _expireClientVerificationKeysTimer.Change(5000, 5000);
-            _calculateCashBackBonusesTimer.Change(60000, 60000);
-            _awardCashBackBonusesTimer.Change(60000, 60000);
-            _giveAffiliateBonusTimer.Change(60000, 60000);
-            _giveFixedFeeCommissionTimer.Change(60000, 60000);
-            _giveAffiliateCommissionTimer.Change(60000, 60000);
-            _deletePaymentExpiredActiveRequestsTimer.Change(60000, 60000);
-            _updateCurrenciesRateTimer.Change(60000, 600000);
-            _sendActiveMailsTimer.Change(1000, 1000);
-            _updateClientWageringBonusTimer.Change(1000, 1000);
-            _finalizeWageringBonusTimer.Change(1000, 1000);
-            _sendActiveMerchantRequestsTimer.Change(5000, 5000);
-            _approveIqWalletConfirmedRequestsTimer.Change(5000, 5000);
-            _sendAffiliateReportTimer.Change(60000, 60000);
-            _calculateAgentsTurnoverProfitTimer.Change(60000, 600000);
-            _calculateAgentsGGRProfitTimer.Change(60000, 3600000);
-            _triggerCRMTimer.Change(60000, 60000);
-            _checkClientBlockedSessionsTimer.Change(60000, 60000);
-            _checkUserBlockedSessionsTimer.Change(60000, 60000);
-            _checkWithdrawRequestsStatusesTimer.Change(60000, 60000);
-            _checkDepositRequestsStatusesTimer.Change(60000, 60000); //45
-            _giveFreeSpinTimer.Change(60000, 60000);
-            _giveJackpotWinTimer.Change(60000, 60000);
-            _deactivateExiredKYCTimer.Change(600000, 600000);
-            _triggerBonusTimer.Change(60000, 60000);
-            _inactiveClientsTimer.Change(300000, 300000);
-            _checkForceBlockedClientsTimer.Change(300000, 300000);
-            _inactiveUsersTimer.Change(300000, 300000);
-            _applyClientRestriction.Change(300000, 3600000);
-            _notifyIdentityExpirationTimer.Change(300000, 300000);
-            _inactivateImpossiblBonuses.Change(300000, 300000);
-            _updateJackpotFeed.Change(300000, 300000);
-            _reconsiderDynamicSegments.Change(20000, 20000); //35
-            _fulfillDepositAction.Change(20000, 20000);
-            _fairSegmentTriggers.Change(20000, 20000);
-            _sendPartnerDailyReport.Change(120000, 600000);
-            _sendPartnerWeeklyReport.Change(120000, 600000);
-            _sendPartnerMonthlyReport.Change(120000, 600000);
-            _calculateCompPoints.Change(30000, 30000);
-            _sendPartnerActivityReport.Change(60000, 600000);
-            _settleBets.Change(60000, 60000);
-            _restrictUnverifiedClients.Change(60000, 60000);
-            _expireClientVerificationStatus.Change(60000, 3600000);
-            _checkDuplicateClients.Change(60000, 3600000);
+            _closeAccountPeriodTimer.Change(20000, 20000);//1
+            _addMoneyToPartnerAccountTimer.Change(20000, 20000);//2
+            _calculateCompPoints.Change(10000, 10000);//3
+            _calculateJackpots.Change(10000, 10000);//4
+            _expireUserSessionsTimer.Change(5000, 5000);//5
+            _broadcastBets.Change(10000, 10000);//6
+            _resetBetShopDailyTicketNumberTimer.Change(20000, 20000);//7
+            _expireClientSessionsTimer.Change(5000, 5000);//9
+            _expireClientVerificationKeysTimer.Change(5000, 5000);//10
+
+            _calculateCashBackBonusesTimer.Change(60000, 60000);//11
+            _closeClientPeriodTimer.Change(20000, 20000);//12
+            _giveAffiliateBonusTimer.Change(60000, 60000);//13
+            _deletePaymentExpiredActiveRequestsTimer.Change(60000, 60000);//14
+            _updateCurrenciesRateTimer.Change(60000, 600000);//15
+            _sendActiveEmailsTimer.Change(1000, 1000);//16
+            _updateClientWageringBonusTimer.Change(1000, 1000);//17
+            _finalizeWageringBonusTimer.Change(1000, 1000);//18
+            _sendActiveMerchantRequestsTimer.Change(5000, 5000);//19
+            _approveIqWalletConfirmedRequestsTimer.Change(5000, 5000);//20
+
+            _sendAffiliateReportTimer.Change(60000, 60000);//21
+            _calculateAgentsGGRProfitTimer.Change(60000, 3600000);//22
+            _calculateAgentsTurnoverProfitTimer.Change(60000, 600000);//23
+            _triggerCRMTimer.Change(60000, 60000);//24
+            _checkClientBlockedSessionsTimer.Change(60000, 60000);//25
+            _checkWithdrawRequestsStatusesTimer.Change(60000, 60000);//26
+            _deactivateExiredKYCTimer.Change(600000, 600000);//27
+            _triggerBonusTimer.Change(60000, 60000);//28
+            _checkUserBlockedSessionsTimer.Change(60000, 60000);//29
+            _inactiveClientsTimer.Change(300000, 300000);//30
+
+            _notifyIdentityExpirationTimer.Change(300000, 300000);//31
+            _inactivateImpossiblBonuses.Change(300000, 300000);//32
+            _updateJackpotFeed.Change(300000, 300000);//34
+            _reconsiderDynamicSegments.Change(20000, 20000);//35
+            _inactiveUsersTimer.Change(300000, 300000);//36
+            _sendPartnerDailyReport.Change(120000, 600000);//37
+            _sendPartnerWeeklyReport.Change(120000, 600000);//38
+            _sendPartnerMonthlyReport.Change(120000, 600000);//39
+            _awardCashBackBonusesTimer.Change(60000, 60000);//40
+
+            _fairSegmentTriggers.Change(20000, 20000);//41
+            _giveFreeSpinTimer.Change(5000, 5000);//42
+            _giveJackpotWinTimer.Change(60000, 60000);//43
+            _giveCompPoints.Change(30000, 30000);//44
+            _checkDepositRequestsStatusesTimer.Change(60000, 60000);//45
+            _checkForceBlockedClientsTimer.Change(300000, 300000);//47
+            _giveFixedFeeCommissionTimer.Change(60000, 60000);//48
+            _fulfillDepositAction.Change(20000, 20000);//49
+            _applyClientRestriction.Change(300000, 3600000);//50
+
+            _settleBets.Change(60000, 60000);//51
+            _restrictUnverifiedClients.Change(60000, 60000);//52
+            _giveAffiliateCommissionTimer.Change(60000, 60000);//53
+            _expireClientVerificationStatus.Change(60000, 3600000);//54
+            _checkDuplicateClients.Change(60000, 3600000);//55
+            _closeTournamentsTimer.Change(60000, 60000);//56
 
             var startOptions = new StartOptions("http://*:9010/");
             _server = WebApp.Start<Startup>(startOptions);
@@ -192,56 +216,64 @@ namespace IqSoft.CP.WindowsServices.JobService
 
         protected override void OnStop()
         {
-            _closeAccountPeriodTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            _closeClientPeriodTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            _addMoneyToPartnerAccountTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            _expireUserSessionsTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            _expireClientSessionsTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            _resetBetShopDailyTicketNumberTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            _expireClientVerificationKeysTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            _calculateCashBackBonusesTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            _awardCashBackBonusesTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            _giveAffiliateBonusTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            _giveFixedFeeCommissionTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            _giveAffiliateCommissionTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            _deletePaymentExpiredActiveRequestsTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            _updateCurrenciesRateTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            _sendActiveMailsTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            _updateClientWageringBonusTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            _finalizeWageringBonusTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            _sendActiveMerchantRequestsTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            _approveIqWalletConfirmedRequestsTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            _sendAffiliateReportTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            _calculateAgentsTurnoverProfitTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            _calculateAgentsGGRProfitTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            _triggerCRMTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            _checkClientBlockedSessionsTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            _checkUserBlockedSessionsTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            _checkWithdrawRequestsStatusesTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            _checkDepositRequestsStatusesTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            _giveFreeSpinTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            _giveJackpotWinTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            _deactivateExiredKYCTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            _triggerBonusTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            _inactiveClientsTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            _applyClientRestriction.Change(Timeout.Infinite, Timeout.Infinite);
-            _checkForceBlockedClientsTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            _inactiveUsersTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            _notifyIdentityExpirationTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            _inactivateImpossiblBonuses.Change(Timeout.Infinite, Timeout.Infinite);
-            _updateJackpotFeed.Change(Timeout.Infinite, Timeout.Infinite);
-            _sendPartnerActivityReport.Change(Timeout.Infinite, Timeout.Infinite);
-            _reconsiderDynamicSegments.Change(Timeout.Infinite, Timeout.Infinite);
-            _fulfillDepositAction.Change(Timeout.Infinite, Timeout.Infinite);
-            _fairSegmentTriggers.Change(Timeout.Infinite, Timeout.Infinite);
-            _sendPartnerDailyReport.Change(Timeout.Infinite, Timeout.Infinite);
-            _sendPartnerWeeklyReport.Change(Timeout.Infinite, Timeout.Infinite);
-            _sendPartnerMonthlyReport.Change(Timeout.Infinite, Timeout.Infinite);
-            _calculateCompPoints.Change(Timeout.Infinite, Timeout.Infinite);
-            _settleBets.Change(Timeout.Infinite, Timeout.Infinite);
-            _restrictUnverifiedClients.Change(Timeout.Infinite, Timeout.Infinite);
-            _expireClientVerificationStatus.Change(Timeout.Infinite, Timeout.Infinite);
-            _checkDuplicateClients.Change(Timeout.Infinite, Timeout.Infinite);
+            _closeAccountPeriodTimer.Change(Timeout.Infinite, Timeout.Infinite);//1
+            _addMoneyToPartnerAccountTimer.Change(Timeout.Infinite, Timeout.Infinite);//2
+            _calculateCompPoints.Change(Timeout.Infinite, Timeout.Infinite);//3
+            _calculateJackpots.Change(Timeout.Infinite, Timeout.Infinite);//4
+            _expireUserSessionsTimer.Change(Timeout.Infinite, Timeout.Infinite);//5
+            _broadcastBets.Change(Timeout.Infinite, Timeout.Infinite);//6
+            _resetBetShopDailyTicketNumberTimer.Change(Timeout.Infinite, Timeout.Infinite);//7
+            _expireClientSessionsTimer.Change(Timeout.Infinite, Timeout.Infinite);//9
+            _expireClientVerificationKeysTimer.Change(Timeout.Infinite, Timeout.Infinite);//10
+
+            _calculateCashBackBonusesTimer.Change(Timeout.Infinite, Timeout.Infinite);//11
+            _closeClientPeriodTimer.Change(Timeout.Infinite, Timeout.Infinite);//12
+            _giveAffiliateBonusTimer.Change(Timeout.Infinite, Timeout.Infinite);//13
+            _deletePaymentExpiredActiveRequestsTimer.Change(Timeout.Infinite, Timeout.Infinite);//14
+            _updateCurrenciesRateTimer.Change(Timeout.Infinite, Timeout.Infinite);//15
+            _sendActiveEmailsTimer.Change(Timeout.Infinite, Timeout.Infinite);//16
+            _updateClientWageringBonusTimer.Change(Timeout.Infinite, Timeout.Infinite);//17
+            _finalizeWageringBonusTimer.Change(Timeout.Infinite, Timeout.Infinite);//18
+            _sendActiveMerchantRequestsTimer.Change(Timeout.Infinite, Timeout.Infinite);//19
+            _approveIqWalletConfirmedRequestsTimer.Change(Timeout.Infinite, Timeout.Infinite);//20
+
+            _sendAffiliateReportTimer.Change(Timeout.Infinite, Timeout.Infinite);//21
+            _calculateAgentsGGRProfitTimer.Change(Timeout.Infinite, Timeout.Infinite);//22
+            _calculateAgentsTurnoverProfitTimer.Change(Timeout.Infinite, Timeout.Infinite);//23
+            _triggerCRMTimer.Change(Timeout.Infinite, Timeout.Infinite);//24
+            _checkClientBlockedSessionsTimer.Change(Timeout.Infinite, Timeout.Infinite);//25
+            _checkWithdrawRequestsStatusesTimer.Change(Timeout.Infinite, Timeout.Infinite);//26
+            _deactivateExiredKYCTimer.Change(Timeout.Infinite, Timeout.Infinite);//27
+            _triggerBonusTimer.Change(Timeout.Infinite, Timeout.Infinite);//28
+            _checkUserBlockedSessionsTimer.Change(Timeout.Infinite, Timeout.Infinite);//29
+            _inactiveClientsTimer.Change(Timeout.Infinite, Timeout.Infinite);//30
+
+            _notifyIdentityExpirationTimer.Change(Timeout.Infinite, Timeout.Infinite);//31
+            _inactivateImpossiblBonuses.Change(Timeout.Infinite, Timeout.Infinite);//32
+            _updateJackpotFeed.Change(Timeout.Infinite, Timeout.Infinite);//34
+            _reconsiderDynamicSegments.Change(Timeout.Infinite, Timeout.Infinite);//35
+            _inactiveUsersTimer.Change(Timeout.Infinite, Timeout.Infinite);//36
+            _sendPartnerDailyReport.Change(Timeout.Infinite, Timeout.Infinite);//37
+            _sendPartnerWeeklyReport.Change(Timeout.Infinite, Timeout.Infinite);//38
+            _sendPartnerMonthlyReport.Change(Timeout.Infinite, Timeout.Infinite);//39
+            _awardCashBackBonusesTimer.Change(Timeout.Infinite, Timeout.Infinite);//40
+
+            _fairSegmentTriggers.Change(Timeout.Infinite, Timeout.Infinite);//41
+            _giveFreeSpinTimer.Change(Timeout.Infinite, Timeout.Infinite);//42
+            _giveJackpotWinTimer.Change(Timeout.Infinite, Timeout.Infinite);//43
+            _giveCompPoints.Change(Timeout.Infinite, Timeout.Infinite);//44
+            _checkDepositRequestsStatusesTimer.Change(Timeout.Infinite, Timeout.Infinite);//45
+            _checkForceBlockedClientsTimer.Change(Timeout.Infinite, Timeout.Infinite);//47
+            _giveFixedFeeCommissionTimer.Change(Timeout.Infinite, Timeout.Infinite);//48
+            _fulfillDepositAction.Change(Timeout.Infinite, Timeout.Infinite);//49
+            _applyClientRestriction.Change(Timeout.Infinite, Timeout.Infinite);//50
+
+            _settleBets.Change(Timeout.Infinite, Timeout.Infinite);//51
+            _restrictUnverifiedClients.Change(Timeout.Infinite, Timeout.Infinite);//52
+            _giveAffiliateCommissionTimer.Change(Timeout.Infinite, Timeout.Infinite);//53
+            _expireClientVerificationStatus.Change(Timeout.Infinite, Timeout.Infinite);//54
+            _checkDuplicateClients.Change(Timeout.Infinite, Timeout.Infinite);//55
+            _closeTournamentsTimer.Change(Timeout.Infinite, Timeout.Infinite);//56
 
             if (_server != null)
             {
@@ -253,209 +285,228 @@ namespace IqSoft.CP.WindowsServices.JobService
         {
             var jobId = Convert.ToInt32(sender);
             Timer timer = null;
+            bool usePeriodInSeconds = true;
             int duration = 1000;
 
             switch (jobId)
             {
-                case Constants.Jobs.CloseAccountPeriod:
+                case Constants.Jobs.CloseAccountPeriod://1
                     timer = _closeAccountPeriodTimer;
                     duration = 20000;
                     break;
-                case Constants.Jobs.CloseClientPeriod:
-                    timer = _closeClientPeriodTimer;
-                    duration = 20000;
-                    break;
-                case Constants.Jobs.AddMoneyToPartnerAccount:
+                case Constants.Jobs.AddMoneyToPartnerAccount://2
                     timer = _addMoneyToPartnerAccountTimer;
                     duration = 20000;
                     break;
-                case Constants.Jobs.ExpireUserSessions:
+                case Constants.Jobs.CalculateCompPoints://3
+                    timer = _calculateCompPoints;
+                    duration = 10000;
+                    break;
+                case Constants.Jobs.CalculateJackpots://4
+                    timer = _calculateJackpots;
+                    duration = 10000;
+                    break;
+                case Constants.Jobs.ExpireUserSessions://5
                     timer = _expireUserSessionsTimer;
                     duration = 5000;
                     break;
-                case Constants.Jobs.ExpireClientSessions:
-                    timer = _expireClientSessionsTimer;
-                    duration = 5000;
+                case Constants.Jobs.BroadcastBets://6
+                    timer = _broadcastBets;
+                    duration = 10000;
                     break;
-                case Constants.Jobs.ResetBetShopDailyTicketNumber:
+                case Constants.Jobs.ResetBetShopDailyTicketNumber://7
                     timer = _resetBetShopDailyTicketNumberTimer;
                     duration = 20000;
                     break;
-                case Constants.Jobs.ExpireClientVerificationKeys:
+                case Constants.Jobs.ExpireClientSessions://9
+                    timer = _expireClientSessionsTimer;
+                    duration = 5000;
+                    break;
+                case Constants.Jobs.ExpireClientVerificationKeys://10
                     timer = _expireClientVerificationKeysTimer;
                     duration = 5000;
                     break;
-                case Constants.Jobs.CalculateCashBackBonuses:
+
+                case Constants.Jobs.CalculateCashBackBonuses://11
                     timer = _calculateCashBackBonusesTimer;
                     duration = 60000;
                     break;
-                case Constants.Jobs.AwardCashBackBonuses:
-                    timer = _awardCashBackBonusesTimer;
-                    duration = 60000;
+                case Constants.Jobs.CloseClientPeriod://12
+                    timer = _closeClientPeriodTimer;
+                    duration = 20000;
                     break;
-                case Constants.Jobs.GiveAffiliateBonus:
+                case Constants.Jobs.GiveAffiliateBonus://13
                     timer = _giveAffiliateBonusTimer;
                     duration = 60000;
                     break;
-                case Constants.Jobs.GiveFixedFeeCommission:
-                    timer = _giveFixedFeeCommissionTimer;
-                    duration = 60000;
-                    break;
-                case Constants.Jobs.GiveAffiliateCommission:
-                    timer = _giveAffiliateCommissionTimer;
-                    duration = 60000;
-                    break;
-                case Constants.Jobs.DeletePaymentExpiredActiveRequests:
+                case Constants.Jobs.DeletePaymentExpiredActiveRequests://14
                     timer = _deletePaymentExpiredActiveRequestsTimer;
                     duration = 60000;
                     break;
-                case Constants.Jobs.UpdateCurrenciesRate:
+                case Constants.Jobs.UpdateCurrenciesRate://15
                     timer = _updateCurrenciesRateTimer;
                     duration = 600000;
                     break;
-                case Constants.Jobs.SendActiveMails:
-                    timer = _sendActiveMailsTimer;
+                case Constants.Jobs.SendActiveMails://16
+                    timer = _sendActiveEmailsTimer;
                     duration = 1000;
                     break;
-                case Constants.Jobs.UpdateClientWageringBonus:
+                case Constants.Jobs.UpdateClientWageringBonus://17
                     timer = _updateClientWageringBonusTimer;
                     duration = 1000;
                     break;
-                case Constants.Jobs.FinalizeWageringBonus:
+                case Constants.Jobs.FinalizeWageringBonus://18
                     timer = _finalizeWageringBonusTimer;
                     duration = 1000;
                     break;
-                case Constants.Jobs.SendActiveMerchantRequests:
+                case Constants.Jobs.SendActiveMerchantRequests://19
                     timer = _sendActiveMerchantRequestsTimer;
                     duration = 5000;
                     break;
-                case Constants.Jobs.ApproveIqWalletConfirmedRequests:
+                case Constants.Jobs.ApproveIqWalletConfirmedRequests://20
                     timer = _approveIqWalletConfirmedRequestsTimer;
                     duration = 5000;
                     break;
-                case Constants.Jobs.SendAffiliateReport:
+
+                case Constants.Jobs.SendAffiliateReport://21
                     timer = _sendAffiliateReportTimer;
                     duration = 60000;
                     break;
-                case Constants.Jobs.CalculateAgentsTurnoverProfit:
-                    timer = _calculateAgentsTurnoverProfitTimer;
-                    duration = 600000;
-                    break;
-                case Constants.Jobs.CalculateAgentsGGRProfit:
+                case Constants.Jobs.CalculateAgentsGGRProfit://22
                     timer = _calculateAgentsGGRProfitTimer;
                     duration = 3600000;
                     break;
-                case Constants.Jobs.TriggerCRM:
+                case Constants.Jobs.CalculateAgentsTurnoverProfit://23
+                    timer = _calculateAgentsTurnoverProfitTimer;
+                    duration = 600000;
+                    break;
+                case Constants.Jobs.TriggerCRM://24
                     timer = _triggerCRMTimer;
                     duration = 60000;
                     break;
-                case Constants.Jobs.CheckClientBlockedSessions:
+                case Constants.Jobs.CheckClientBlockedSessions://25
                     timer = _checkClientBlockedSessionsTimer;
                     duration = 60000;
                     break;
-                case Constants.Jobs.CheckUserBlockedSessions:
-                    timer = _checkUserBlockedSessionsTimer;
-                    duration = 60000;
-                    break;
-                case Constants.Jobs.CheckWithdrawRequestsStatuses:
+                case Constants.Jobs.CheckWithdrawRequestsStatuses://26
                     timer = _checkWithdrawRequestsStatusesTimer;
                     duration = 60000;
                     break;
-                case Constants.Jobs.CheckDepositRequestsStatuses:
-                    timer = _checkDepositRequestsStatusesTimer;
-                    duration = 60000;
-                    break;
-                case Constants.Jobs.GiveFreeSpin:
-                    timer = _giveFreeSpinTimer;
-                    duration = 60000;
-                    break;
-                case Constants.Jobs.GiveJackpotWin:
-                    timer = _giveJackpotWinTimer;
-                    duration = 60000;
-                    break;
-                case Constants.Jobs.DeactivateExiredKYC:
+                case Constants.Jobs.DeactivateExiredKYC://27
                     timer = _deactivateExiredKYCTimer;
                     duration = 60000;
                     break;
-                case Constants.Jobs.TriggerBonus:
+                case Constants.Jobs.TriggerBonus://28
                     timer = _triggerBonusTimer;
                     duration = 60000;
                     break;
-                case Constants.Jobs.CheckInactiveClients:
+                case Constants.Jobs.CheckUserBlockedSessions://29
+                    timer = _checkUserBlockedSessionsTimer;
+                    duration = 60000;
+                    break;
+                case Constants.Jobs.CheckInactiveClients://30
                     timer = _inactiveClientsTimer;
                     duration = 300000;
                     break;
-                case Constants.Jobs.CheckForceBlockedClients:
-                    timer = _checkForceBlockedClientsTimer;
-                    duration = 300000;
-                    break;
-                case Constants.Jobs.CheckInactiveUsers:
-                    timer = _inactiveUsersTimer;
-                    duration = 300000;
-                    break;
-                case Constants.Jobs.ApplyClientRestriction:
-                    timer = _applyClientRestriction;
-                    duration = 300000;
-                    break;
-                case Constants.Jobs.NotifyIdentityExpiration:
+
+                case Constants.Jobs.NotifyIdentityExpiration://31
                     timer = _notifyIdentityExpirationTimer;
                     duration = 300000;
                     break;
-                case Constants.Jobs.InactivateImpossibleBonuses:
+                case Constants.Jobs.InactivateImpossibleBonuses://32
                     timer = _inactivateImpossiblBonuses;
                     duration = 300000;
                     break;
-                case Constants.Jobs.UpdateJackpotFeed:
+                case Constants.Jobs.UpdateJackpotFeed://34
                     timer = _updateJackpotFeed;
                     duration = 300000;
                     break;
-                case Constants.Jobs.ReconsiderDynamicSegments:
+                case Constants.Jobs.ReconsiderDynamicSegments://35
                     timer = _reconsiderDynamicSegments;
                     duration = 20000;
                     break;
-                case Constants.Jobs.FulfillDepositAction:
-                    timer = _fulfillDepositAction;
-                    duration = 20000;
+                case Constants.Jobs.CheckInactiveUsers://36
+                    timer = _inactiveUsersTimer;
+                    duration = 300000;
                     break;
-                case Constants.Jobs.FairSegmentTriggers:
-                    timer = _fairSegmentTriggers;
-                    duration = 20000;
-                    break;
-                case Constants.Jobs.SendPartnerDailyReport:
+                case Constants.Jobs.SendPartnerDailyReport://37
                     timer = _sendPartnerDailyReport;
                     duration = 600000;
                     break;
-                case Constants.Jobs.SendPartnerWeeklyReport:
+                case Constants.Jobs.SendPartnerWeeklyReport://38
                     timer = _sendPartnerWeeklyReport;
                     duration = 600000;
                     break;
-                case Constants.Jobs.SendPartnerMonthlyReport:
+                case Constants.Jobs.SendPartnerMonthlyReport://39
                     timer = _sendPartnerMonthlyReport;
                     duration = 600000;
                     break;
-                case Constants.Jobs.CalculateCompPoints:
-                    timer = _calculateCompPoints;
-                    duration = 30000;
-                    break;
-                case Constants.Jobs.SendPartnerActivityReport:
-                    timer = _sendPartnerActivityReport;
-                    duration = 600000;
-                    break;
-                case Constants.Jobs.SettleBets:
-                    timer = _settleBets;
+                case Constants.Jobs.AwardCashBackBonuses://40
+                    timer = _awardCashBackBonusesTimer;
                     duration = 60000;
                     break;
-                case Constants.Jobs.RestrictUnverifiedClients:
+
+                case Constants.Jobs.FairSegmentTriggers://41
+                    timer = _fairSegmentTriggers;
+                    duration = 20000;
+                    break;
+                case Constants.Jobs.GiveFreeSpin://42
+                    timer = _giveFreeSpinTimer;
+                    duration = 5000;
+                    usePeriodInSeconds = false;
+                    break;
+                case Constants.Jobs.GiveJackpotWin://43
+                    timer = _giveJackpotWinTimer;
+                    duration = 60000;
+                    break;
+                case Constants.Jobs.GiveCompPoints://44
+                    timer = _giveCompPoints;
+                    duration = 30000;
+                    break;
+                case Constants.Jobs.CheckDepositRequestsStatuses://45
+                    timer = _checkDepositRequestsStatusesTimer;
+                    duration = 60000;
+                    break;
+                case Constants.Jobs.CheckForceBlockedClients://47
+                    timer = _checkForceBlockedClientsTimer;
+                    duration = 300000;
+                    break;
+                case Constants.Jobs.GiveFixedFeeCommission://48
+                    timer = _giveFixedFeeCommissionTimer;
+                    duration = 60000;
+                    break;
+                case Constants.Jobs.FulfillDepositAction://49
+                    timer = _fulfillDepositAction;
+                    duration = 20000;
+                    break;
+                case Constants.Jobs.ApplyClientRestriction://50
+                    timer = _applyClientRestriction;
+                    duration = 300000;
+                    break;
+
+                case Constants.Jobs.SettleBets://51
+                    timer = _settleBets;
+                    duration = 10000;
+                    break;
+                case Constants.Jobs.RestrictUnverifiedClients://52
                     timer = _restrictUnverifiedClients;
                     duration = 60000;
                     break;
-                case Constants.Jobs.ExpireClientVerificationStatus:
+                case Constants.Jobs.GiveAffiliateCommission://53
+                    timer = _giveAffiliateCommissionTimer;
+                    duration = 60000;
+                    break;
+                case Constants.Jobs.ExpireClientVerificationStatus://54
                     timer = _expireClientVerificationStatus;
                     duration = 60000;
                     break;
-                case Constants.Jobs.CheckDuplicateClients:
+                case Constants.Jobs.CheckDuplicateClients://55
                     timer = _checkDuplicateClients;
                     duration = 3600000;
+                    break;
+                case Constants.Jobs.CloseTournaments://56
+                    timer = _closeTournamentsTimer;
+                    duration = 60000;
                     break;
             }
 
@@ -500,7 +551,7 @@ namespace IqSoft.CP.WindowsServices.JobService
             {
                 JobBll.SaveJobResult(jobResult);
                 if (job.NextExecutionTime <= jobStartTime && success)
-                    job.NextExecutionTime = job.NextExecutionTime.AddSeconds(job.PeriodInSeconds);
+                    job.NextExecutionTime = (usePeriodInSeconds ? job.NextExecutionTime.AddSeconds(job.PeriodInSeconds) : DateTime.UtcNow);
                 job.Parameters = parameters;
                 JobBll.SaveJob(job);
             }
@@ -516,7 +567,7 @@ namespace IqSoft.CP.WindowsServices.JobService
             success = true;
             switch (job.Id)
             {
-                case Constants.Jobs.CloseAccountPeriod:
+                case Constants.Jobs.CloseAccountPeriod://1
                     {
                         var closePeriodInput = JsonConvert.DeserializeObject<ClosePeriodInput>(job.Parameters);
                         var result = JobBll.CloseAccountPeriod(closePeriodInput);
@@ -524,15 +575,7 @@ namespace IqSoft.CP.WindowsServices.JobService
                             closePeriodInput.EndTime = closePeriodInput.EndTime.AddHours(Constants.ClosePeriodPeriodicy);
                         return JsonConvert.SerializeObject(closePeriodInput);
                     }
-                case Constants.Jobs.CloseClientPeriod:
-                    {
-                        var closePeriodInput = JsonConvert.DeserializeObject<ClosePeriodInput>(job.Parameters);
-                        var result = JobBll.CloseClientPeriod(closePeriodInput);
-                        if (result)
-                            closePeriodInput.EndTime = closePeriodInput.EndTime.AddHours(Constants.ClosePeriodPeriodicy);
-                        return JsonConvert.SerializeObject(closePeriodInput);
-                    }
-                case Constants.Jobs.AddMoneyToPartnerAccount:
+                case Constants.Jobs.AddMoneyToPartnerAccount://2
                     {
                         var addMoneyToPartnerAccountInput =
                             JsonConvert.DeserializeObject<AddMoneyToPartnerAccountInput>(job.Parameters);
@@ -543,16 +586,22 @@ namespace IqSoft.CP.WindowsServices.JobService
                                     Constants.AddMoneyToPartnerAccountPeriodicy);
                         return JsonConvert.SerializeObject(addMoneyToPartnerAccountInput);
                     }
-                case Constants.Jobs.ExpireUserSessions:
+                case Constants.Jobs.CalculateCompPoints://3
+                    if (job.NextExecutionTime <= jobStartTime)
+                        JobBll.CalculateCompPoints(job.NextExecutionTime.AddSeconds(-job.PeriodInSeconds), Program.DbLogger);
+                    break;
+                case Constants.Jobs.CalculateJackpots://4
+                    if (job.NextExecutionTime <= jobStartTime)
+                        JobBll.CalculateJackpots(job.NextExecutionTime.AddSeconds(-job.PeriodInSeconds), Program.DbLogger);
+                    break;
+                case Constants.Jobs.ExpireUserSessions://5
                     JobBll.ExpireUserSessions();
                     break;
-                case Constants.Jobs.ExpireClientSessions:
-                    JobBll.ExpireClientSessions();
+                case Constants.Jobs.BroadcastBets://6
+                    if (job.NextExecutionTime <= jobStartTime)
+                        JobBll.BroadcastBets(job.NextExecutionTime.AddSeconds(-job.PeriodInSeconds), Program.DbLogger);
                     break;
-                case Constants.Jobs.ExpireClientVerificationStatus:
-                    JobBll.ExpireClientVerificationStatus();
-                    break;
-                case Constants.Jobs.ResetBetShopDailyTicketNumber:
+                case Constants.Jobs.ResetBetShopDailyTicketNumber://7
                     {
                         var resetBetShopDailyTicketNumberInput =
                             JsonConvert.DeserializeObject<ResetBetShopDailyTicketNumberInput>(job.Parameters);
@@ -569,135 +618,158 @@ namespace IqSoft.CP.WindowsServices.JobService
                         }
                         return JsonConvert.SerializeObject(resetBetShopDailyTicketNumberInput);
                     }
-                case Constants.Jobs.ExpireClientVerificationKeys:
+                case Constants.Jobs.ExpireClientSessions://9
+                    JobBll.ExpireClientSessions();
+                    break;
+                case Constants.Jobs.ExpireClientVerificationKeys://10
                     JobBll.ExpireClientVerificationKeys();
                     break;
-                case Constants.Jobs.CalculateCashBackBonuses:
+
+                case Constants.Jobs.CalculateCashBackBonuses://11
                     JobBll.CalculateCashBackBonuses(Program.DbLogger);
                     break;
-                case Constants.Jobs.AwardCashBackBonuses:
-                    JobBll.AwardCashBackBonuses(job.NextExecutionTime, Program.DbLogger);
-                    break;
-                case Constants.Jobs.GiveAffiliateBonus:
+                case Constants.Jobs.CloseClientPeriod://12
+                    {
+                        var closePeriodInput = JsonConvert.DeserializeObject<ClosePeriodInput>(job.Parameters);
+                        var result = JobBll.CloseClientPeriod(closePeriodInput);
+                        if (result)
+                            closePeriodInput.EndTime = closePeriodInput.EndTime.AddHours(Constants.ClosePeriodPeriodicy);
+                        return JsonConvert.SerializeObject(closePeriodInput);
+                    }
+                case Constants.Jobs.GiveAffiliateBonus://13
                     JobBll.GiveAffiliateBonus(Program.DbLogger);
                     break;
-                case Constants.Jobs.GiveAffiliateCommission:
-                    JobBll.GiveAffiliateCommission(job.NextExecutionTime, Program.DbLogger);
-                    break;
-                case Constants.Jobs.GiveFixedFeeCommission:
-                    JobBll.GiveFixedFeeCommission(Program.DbLogger);
-                    break;
-                case Constants.Jobs.DeletePaymentExpiredActiveRequests:
+                case Constants.Jobs.DeletePaymentExpiredActiveRequests://14
                     JobBll.DeletePaymentExpiredActiveRequests(Program.DbLogger);
                     break;
-                case Constants.Jobs.UpdateCurrenciesRate:
+                case Constants.Jobs.UpdateCurrenciesRate://15
                     if (job.NextExecutionTime <= jobStartTime)
                         JobBll.UpdateCurrentRate(Program.DbLogger);
                     break;
-                case Constants.Jobs.SendActiveMails:
+                case Constants.Jobs.SendActiveMails://16
                     JobBll.SendActiveMails(Program.DbLogger);
                     break;
-                case Constants.Jobs.UpdateClientWageringBonus:
+                case Constants.Jobs.UpdateClientWageringBonus://17
                     JobBll.UpdateClientWageringBonus();
                     break;
-                case Constants.Jobs.FinalizeWageringBonus:
+                case Constants.Jobs.FinalizeWageringBonus://18
                     JobBll.FinalizeWageringBonus(Program.DbLogger);
                     break;
-                case Constants.Jobs.SendActiveMerchantRequests:
+                case Constants.Jobs.SendActiveMerchantRequests://19
                     JobBll.SendActiveMerchantRequests(Program.DbLogger);
                     break;
-                case Constants.Jobs.ApproveIqWalletConfirmedRequests:
+                case Constants.Jobs.ApproveIqWalletConfirmedRequests://20
                     ApproveIqWalletConfirmedRequests();
                     break;
-                case Constants.Jobs.SendAffiliateReport:
+
+                case Constants.Jobs.SendAffiliateReport://21
                     if (job.NextExecutionTime <= jobStartTime)
                         JobBll.SendAffiliateReport(Program.DbLogger);
                     break;
-                case Constants.Jobs.CalculateAgentsTurnoverProfit:
-                    if (job.NextExecutionTime <= jobStartTime)
-                        success = JobBll.CalculateAgentsTurnoverProfit(job.NextExecutionTime, Program.DbLogger);
-                    break;
-                case Constants.Jobs.CalculateAgentsGGRProfit:
+                case Constants.Jobs.CalculateAgentsGGRProfit://22
                     if (job.NextExecutionTime <= jobStartTime)
                         success = JobBll.CalculateAgentsGGRProfit(job.NextExecutionTime, Program.DbLogger);
                     break;
-                case Constants.Jobs.TriggerCRM:
+                case Constants.Jobs.CalculateAgentsTurnoverProfit://23
+                    if (job.NextExecutionTime <= jobStartTime)
+                        success = JobBll.CalculateAgentsTurnoverProfit(job.NextExecutionTime, Program.DbLogger);
+                    break;
+                case Constants.Jobs.TriggerCRM://24
                     JobBll.TriggerMissedDepositCRM(job, Program.DbLogger);
                     break;
-                case Constants.Jobs.CheckClientBlockedSessions:
+                case Constants.Jobs.CheckClientBlockedSessions://25
                     JobBll.CheckClientBlockedSessions(Program.DbLogger);
                     break;
-                case Constants.Jobs.CheckUserBlockedSessions:
-                    JobBll.CheckUserBlockedSessions();
-                    break;
-                case Constants.Jobs.CheckWithdrawRequestsStatuses:
+                case Constants.Jobs.CheckWithdrawRequestsStatuses://26
                     CheckWithdrawRequestsStatuses(Program.DbLogger);
                     break;
-                case Constants.Jobs.CheckDepositRequestsStatuses:
-                    CheckDepositRequestsStatuses(Program.DbLogger);
-                    break;
-                case Constants.Jobs.GiveFreeSpin:
-                    GiveFreeSpin(Program.DbLogger);
-                    break;
-                case Constants.Jobs.GiveJackpotWin:
-                    JobBll.GiveJackpotWin(Program.DbLogger);
-                    break;
-                case Constants.Jobs.DeactivateExiredKYC:
+                case Constants.Jobs.DeactivateExiredKYC://27
                     JobBll.DeactivateExiredKYC(Program.DbLogger);
                     break;
-                case Constants.Jobs.TriggerBonus:
+                case Constants.Jobs.TriggerBonus://28
                     JobBll.AwardClientCampaignBonus(Program.DbLogger);
                     break;
-                case Constants.Jobs.CheckForceBlockedClients:
-                    JobBll.CheckForceBlockedClients();
+                case Constants.Jobs.CheckUserBlockedSessions://29
+                    JobBll.CheckUserBlockedSessions();
                     break;
-                case Constants.Jobs.CheckInactiveClients:
+                case Constants.Jobs.CheckInactiveClients://30
                     JobBll.CheckInactiveClients(Program.DbLogger);
                     break;
-                case Constants.Jobs.CheckInactiveUsers:
-                    JobBll.CheckInactiveUsers();
-                    break;
-                case Constants.Jobs.ApplyClientRestriction:
-                    JobBll.ApplyClientRestriction(Program.DbLogger);
-                    break;
-                case Constants.Jobs.NotifyIdentityExpiration:
+
+                case Constants.Jobs.NotifyIdentityExpiration://31
                     JobBll.NotifyIdentityExpiration(Program.DbLogger);
                     break;
-                case Constants.Jobs.InactivateImpossibleBonuses:
+                case Constants.Jobs.InactivateImpossibleBonuses://32
                     JobBll.InactivateImpossiblBonuses();
                     break;
-                case Constants.Jobs.UpdateJackpotFeed:
+                case Constants.Jobs.UpdateJackpotFeed://34
                     JobBll.UpdateJackpotFeed(Program.DbLogger);
                     break;
-                case Constants.Jobs.ReconsiderDynamicSegments:
+                case Constants.Jobs.ReconsiderDynamicSegments://35
                     JobBll.ReconsiderDynamicSegments(Program.DbLogger);
                     break;
-                case Constants.Jobs.FulfillDepositAction:
-                    JobBll.FulfillDepositAction(Program.DbLogger);
+                case Constants.Jobs.CheckInactiveUsers://36
+                    JobBll.CheckInactiveUsers();
                     break;
-                case Constants.Jobs.FairSegmentTriggers:
-                    JobBll.FairSegmentTriggers(Program.DbLogger);
-                    break;
-                case Constants.Jobs.SendPartnerDailyReport:
+                case Constants.Jobs.SendPartnerDailyReport://37
                     JobBll.SendPartnerDailyReport(Program.DbLogger);
                     break;
-                case Constants.Jobs.SendPartnerWeeklyReport:
+                case Constants.Jobs.SendPartnerWeeklyReport://38
                     JobBll.SendPartnerWeeklyReport(Program.DbLogger);
                     break;
-                case Constants.Jobs.SendPartnerMonthlyReport:
+                case Constants.Jobs.SendPartnerMonthlyReport://39
                     JobBll.SendPartnerMonthlyReport(Program.DbLogger);
                     break;
-                case Constants.Jobs.CalculateCompPoints:
-                    JobBll.CalculateCompPoints(Program.DbLogger);
+                case Constants.Jobs.AwardCashBackBonuses://40
+                    JobBll.AwardCashBackBonuses(job.NextExecutionTime, Program.DbLogger);
                     break;
-                case Constants.Jobs.SettleBets:
+
+                case Constants.Jobs.FairSegmentTriggers://41
+                    JobBll.FairSegmentTriggers(Program.DbLogger);
+                    break;
+                case Constants.Jobs.GiveFreeSpin://42
+                    if (job.NextExecutionTime <= jobStartTime)
+                        JobBll.GiveFreeSpin(Program.DbLogger);
+                    break;
+                case Constants.Jobs.GiveJackpotWin://43
+                    JobBll.GiveJackpotWin(Program.DbLogger);
+                    break;
+                case Constants.Jobs.GiveCompPoints://44
+                    JobBll.GiveCompPoints(Program.DbLogger);
+                    break;
+                case Constants.Jobs.CheckDepositRequestsStatuses://45
+                    CheckDepositRequestsStatuses(Program.DbLogger);
+                    break;
+                case Constants.Jobs.CheckForceBlockedClients://47
+                    JobBll.CheckForceBlockedClients();
+                    break;
+                case Constants.Jobs.GiveFixedFeeCommission://48
+                    JobBll.GiveFixedFeeCommission(Program.DbLogger);
+                    break;
+                case Constants.Jobs.FulfillDepositAction://49
+                    JobBll.FulfillDepositAction(Program.DbLogger);
+                    break;
+                case Constants.Jobs.ApplyClientRestriction://50
+                    JobBll.ApplyClientRestriction(Program.DbLogger);
+                    break;
+
+                case Constants.Jobs.SettleBets://51
                     JobBll.SettleBets(Program.DbLogger);
                     break;
-                case Constants.Jobs.RestrictUnverifiedClients:
+                case Constants.Jobs.RestrictUnverifiedClients://52
                     JobBll.RestrictUnverifiedClients(Program.DbLogger);
                     break;
-                case Constants.Jobs.CheckDuplicateClients:
+                case Constants.Jobs.GiveAffiliateCommission://53
+                    JobBll.GiveAffiliateCommission(job.NextExecutionTime, Program.DbLogger);
+                    break;
+                case Constants.Jobs.ExpireClientVerificationStatus://54
+                    JobBll.ExpireClientVerificationStatus();
+                    break;
+                case Constants.Jobs.CheckDuplicateClients://55
                     JobBll.CheckDuplicateClients(Program.DbLogger);
+                    break;
+                case Constants.Jobs.CloseTournaments://56
+                    JobBll.CloseTournaments(Program.DbLogger);
                     break;
             }
             return null;
@@ -705,7 +777,8 @@ namespace IqSoft.CP.WindowsServices.JobService
 
         public void ApproveIqWalletConfirmedRequests()
         {
-            if (JobBll.IqWalletId > 0)
+            var ps = CacheManager.GetPaymentSystemByName(Constants.PaymentSystems.IqWallet);
+            if (ps != null && ps.Id > 0)
             {
                 using (var clientBl = new ClientBll(new SessionIdentity(), Program.DbLogger))
                 {
@@ -715,7 +788,7 @@ namespace IqSoft.CP.WindowsServices.JobService
                         {
                             using (var notificationBl = new NotificationBll(documentBl))
                             {
-                                var confirmedRequests = paymentSystemBl.GetPaymentRequests(JobBll.IqWalletId, (int)PaymentRequestStates.Confirmed);
+                                var confirmedRequests = paymentSystemBl.GetPaymentRequests(ps.Id, (int)PaymentRequestStates.Confirmed);
                                 foreach (var r in confirmedRequests)
                                 {
                                     try
@@ -743,7 +816,6 @@ namespace IqSoft.CP.WindowsServices.JobService
                 }
             }
         }
-
         public void CheckWithdrawRequestsStatuses(ILog log)
         {
             var session = new SessionIdentity { LanguageId = Constants.DefaultLanguageId };
@@ -975,239 +1047,6 @@ namespace IqSoft.CP.WindowsServices.JobService
                 catch (Exception e)
                 {
                     log.Error(e);
-                }
-            }
-        }
-
-        public void GiveFreeSpin(ILog log) 
-        {
-            using (var db = new IqSoftCorePlatformEntities())
-            {
-                var activeFreeSpinBonuses = db.ClientBonus.Include(x => x.Bonu).Where(x => 
-                    (x.Bonu.Type == (int)BonusTypes.CampaignFreeSpin || 
-                    x.Bonu.Type == (int)BonusTypes.CampaignWagerCasino) &&
-                    x.Status == (int)ClientBonusStatuses.Active && x.Considered != true).GroupBy(x => x.BonusId).ToList();
-
-                var currentDate = DateTime.UtcNow;
-                foreach (var bonus in activeFreeSpinBonuses)
-                {
-                    var bonusProducts = db.BonusProducts.Where(x => x.Product.GameProvider != null &&
-                                                                    x.Product.FreeSpinSupport.HasValue && x.BonusId == bonus.Key &&
-                                                                    x.Product.FreeSpinSupport.Value && x.Count > 0)
-                                                        .GroupBy(x => x.Product.GameProvider.Name)
-                                                        .Select(x => new
-                                                        {
-                                                            GameProviderName = x.Key,
-                                                            Products = x.Select(y => new
-                                                            {
-                                                                y.Product.ExternalId,
-                                                                SpinCount = y.Count.Value,
-                                                                y.Lines,
-                                                                y.Coins,
-                                                                y.CoinValue,
-                                                                y.BetValueLevel
-                                                            }).ToList()
-                                                        }).ToList();
-
-                    if (!bonusProducts.Any())
-                    {
-                        bonus.All(x => 
-                            { 
-                                x.Status = (x.Bonu.Type == (int)BonusTypes.CampaignFreeSpin ? (int)ClientBonusStatuses.Finished : x.Status);
-                                x.Considered = true;
-                                return true; 
-                            });
-                        db.SaveChanges();
-                        continue;
-                    }
-                    foreach (var clientBonus in bonus)
-                    {
-                        if (clientBonus.Bonu.Type == (int)BonusTypes.CampaignFreeSpin)
-                        {
-                            if ((clientBonus.Bonu.MaxGranted.HasValue && clientBonus.Bonu.TotalGranted > clientBonus.Bonu.MaxGranted) ||
-                               (clientBonus.Bonu.MaxReceiversCount.HasValue && clientBonus.Bonu.TotalReceiversCount > clientBonus.Bonu.MaxReceiversCount))
-                            {
-                                bonus.All(x => { x.Status = (int)ClientBonusStatuses.Expired; return true; });
-                                clientBonus.Bonu.Status = (int)BonusStatuses.Inactive;
-                                db.SaveChanges();
-                                continue;
-                            }
-                        }
-                        bonusProducts.ForEach(x =>
-                        {
-                            var freespinModel = new FreeSpinModel
-                            {
-                                ClientId = clientBonus.ClientId,
-                                BonusId = bonus.Key,
-                                StartTime = currentDate,
-                                FinishTime = currentDate.AddHours(clientBonus.Bonu.ValidForSpending.Value),
-                            };
-                            try
-                            {
-                                switch (x.GameProviderName)
-                                {
-                                    case Constants.GameProviders.IqSoft:
-                                        x.Products.ForEach(y =>
-                                        {
-                                            freespinModel.ProductExternalId = y.ExternalId;
-                                            freespinModel.SpinCount = Convert.ToInt32(y.SpinCount);
-                                            freespinModel.Lines = y.Lines;
-                                            freespinModel.Coins = y.Coins;
-                                            freespinModel.CoinValue = y.CoinValue;
-                                            freespinModel.BetValueLevel = y.BetValueLevel;
-                                            Integration.Products.Helpers.IqSoftHelpers.AddFreeRound(freespinModel);
-                                        });
-                                        break;
-                                    case Constants.GameProviders.TwoWinPower:
-                                        Integration.Products.Helpers.TwoWinPowerHelpers.SetFreespin(clientBonus.ClientId, clientBonus.Id, bonus.Key, Program.DbLogger);
-                                        break;
-                                    case Constants.GameProviders.OutcomeBet:
-                                    case Constants.GameProviders.Mascot:
-                                        break;
-                                    case Constants.GameProviders.BlueOcean:
-                                        var productsBySpin = x.Products.GroupBy(s => s.SpinCount)
-                                            .Select(s => new { SpinCount = s.Key, ExternalIds = s.Select(e => e.ExternalId).ToList() });
-                                        foreach (var p in productsBySpin)
-                                        {
-                                            Integration.Products.Helpers.BlueOceanHelpers.AddFreeRound(clientBonus.ClientId, p.ExternalIds, Convert.ToInt32(p.SpinCount),
-                                                currentDate, currentDate.AddHours(clientBonus.Bonu.ValidForSpending.Value));
-                                        }
-                                        break;
-                                    case Constants.GameProviders.SoftGaming:
-                                        x.Products.ForEach(y =>
-                                        {
-                                            freespinModel.ProductExternalId = y.ExternalId;
-                                            freespinModel.SpinCount = Convert.ToInt32(y.SpinCount);
-                                            freespinModel.BetValueLevel = y.BetValueLevel;
-                                            Integration.Products.Helpers.SoftGamingHelpers.AddFreeRound(freespinModel, Program.DbLogger);
-                                        });
-                                        break;
-                                    case Constants.GameProviders.PragmaticPlay:
-                                        var pragmaticPlayBySpin = x.Products.GroupBy(s => s.SpinCount)
-                                        .Select(s => new { SpinCount = s.Key, ExternalIds = s.Select(e => e.ExternalId).ToList() });
-                                        foreach (var p in pragmaticPlayBySpin)
-                                        {
-                                            Integration.Products.Helpers.PragmaticPlayHelpers.AddFreeRound(clientBonus.ClientId, p.ExternalIds, Convert.ToInt32(p.SpinCount),
-                                              clientBonus.Id, currentDate, currentDate.AddHours(clientBonus.Bonu.ValidForSpending.Value));
-                                        }
-                                        break;
-                                    case Constants.GameProviders.Habanero:
-                                        var habaneroBySpin = x.Products.GroupBy(s => s.SpinCount)
-                                       .Select(s => new { SpinCount = s.Key, ExternalIds = s.Select(e => e.ExternalId).ToList() });
-                                        foreach (var p in habaneroBySpin)
-                                        {
-                                            Integration.Products.Helpers.HabaneroHelpers.AddFreeRound(clientBonus.ClientId, p.ExternalIds, Convert.ToInt32(p.SpinCount),
-                                            currentDate, currentDate.AddHours(clientBonus.Bonu.ValidForSpending.Value));
-                                        }
-                                        break;
-                                    case Constants.GameProviders.BetSoft:
-                                        var betSoftBySpin = x.Products.GroupBy(s => s.SpinCount)
-                                           .Select(s => new { SpinCount = s.Key, ExternalIds = s.Select(e => e.ExternalId).ToList() });
-                                        foreach (var p in betSoftBySpin)
-                                        {
-                                            Integration.Products.Helpers.BetSoftHelpers.AddFreeRound(clientBonus.ClientId, p.ExternalIds, Convert.ToInt32(p.SpinCount), bonus.Key,
-                                            currentDate, currentDate.AddHours(clientBonus.Bonu.ValidForSpending.Value));
-                                        }
-                                        break;
-                                    case Constants.GameProviders.SoftSwiss:
-                                        var softSwissBySpin = x.Products.GroupBy(s => s.SpinCount)
-                                           .Select(s => new { SpinCount = s.Key, ExternalIds = s.Select(e => e.ExternalId).ToList() });
-                                        foreach (var p in softSwissBySpin)
-                                        {
-                                            Integration.Products.Helpers.SoftSwissHelpers.AddFreeRound(clientBonus.ClientId, clientBonus.Id, p.ExternalIds, Convert.ToInt32(p.SpinCount),
-                                                                                                       currentDate.AddHours(clientBonus.Bonu.ValidForSpending.Value), log);
-                                        }
-                                        break;
-                                    case Constants.GameProviders.EveryMatrix:
-                                        x.Products.ForEach(y =>
-                                        {
-                                            freespinModel.ProductExternalId = y.ExternalId;
-                                            freespinModel.SpinCount = Convert.ToInt32(y.SpinCount);
-                                            freespinModel.Lines = y.Lines;
-                                            freespinModel.Coins = y.Coins;
-                                            freespinModel.CoinValue = y.CoinValue;
-                                            freespinModel.BetValueLevel = y.BetValueLevel;
-                                            freespinModel.BonusId = clientBonus.Id;
-                                            Integration.Products.Helpers.EveryMatrixHelpers.AwardFreeSpin(freespinModel, log);
-                                        });
-                                        break;
-                                    case Constants.GameProviders.PlaynGo:
-                                        x.Products.ForEach(y =>
-                                        {
-                                            freespinModel.ProductExternalIds = new List<string> { y.ExternalId };
-                                            freespinModel.SpinCount = Convert.ToInt32(y.SpinCount);
-                                            freespinModel.Lines = y.Lines;
-                                            freespinModel.Coins = y.Coins;
-                                            freespinModel.CoinValue = y.CoinValue;
-                                            freespinModel.BetValueLevel = y.BetValueLevel;
-                                            freespinModel.BonusId = clientBonus.Id;
-                                            Integration.Products.Helpers.PlaynGoHelpers.AddFreeRound(freespinModel, log);
-                                        });
-                                        break;
-                                    case Constants.GameProviders.AleaPlay:
-                                        x.Products.ForEach(y =>
-                                        {
-                                            freespinModel.ProductExternalId = y.ExternalId;
-                                            freespinModel.SpinCount = Convert.ToInt32(y.SpinCount);
-                                            freespinModel.BetValueLevel = y.BetValueLevel;
-                                            freespinModel.BonusId = clientBonus.Id;
-                                            Integration.Products.Helpers.AleaPlayHelpers.AddFreeRound(freespinModel, log);
-                                        });
-                                        break;
-                                    case Constants.GameProviders.TimelessTech:
-                                        x.Products.ForEach(y =>
-                                        {
-                                            freespinModel.ProductExternalId = y.ExternalId;
-                                            freespinModel.SpinCount = Convert.ToInt32(y.SpinCount);
-                                            freespinModel.BonusId = clientBonus.Id;
-											freespinModel.BetValueLevel = y.BetValueLevel;
-											Integration.Products.Helpers.TimelessTechHelpers.CreateCampaign(freespinModel, Constants.GameProviders.TimelessTech, log);
-                                        });
-                                        break;
-                                    case Constants.GameProviders.BCWGames:
-                                        x.Products.ForEach(y =>
-                                        {
-                                            freespinModel.ProductExternalId = y.ExternalId;
-                                            freespinModel.SpinCount = Convert.ToInt32(y.SpinCount);
-                                            freespinModel.BonusId = clientBonus.Id;
-											freespinModel.BetValueLevel = y.BetValueLevel;
-											Integration.Products.Helpers.TimelessTechHelpers.CreateCampaign(freespinModel, Constants.GameProviders.BCWGames, log);
-                                        });
-                                        break;
-                                    case Constants.GameProviders.Endorphina:
-                                        x.Products.ForEach(y =>
-                                        {
-                                            freespinModel.ProductExternalId = y.ExternalId;
-                                            freespinModel.SpinCount = Convert.ToInt32(y.SpinCount);
-                                            freespinModel.BetValueLevel = y.BetValueLevel;
-                                            freespinModel.CoinValue = y.CoinValue;
-                                            freespinModel.BonusId = clientBonus.Id;
-                                            Integration.Products.Helpers.EndorphinaHelpers.AddFreeRound(freespinModel, log);
-                                        });
-                                        break;
-
-                                    default:
-                                        break;
-                                }
-
-                                var spc = x.Products.Sum(b => b.SpinCount);
-
-                                if (clientBonus.Bonu.Type == (int)BonusTypes.CampaignFreeSpin)
-                                {
-                                    clientBonus.Status = (int)ClientBonusStatuses.Finished;
-                                    clientBonus.Bonu.TotalGranted += spc;
-                                    ++clientBonus.Bonu.TotalReceiversCount;
-                                    clientBonus.BonusPrize = spc;
-                                }
-                                clientBonus.Considered = true;
-                                db.SaveChanges();
-                            }
-                            catch (Exception e)
-                            {
-                                Program.DbLogger.Error(e);
-                            }
-                        });
-                    }
                 }
             }
         }

@@ -59,13 +59,12 @@ namespace IqSoft.CP.Integration.Products.Helpers
 			};
 			var res = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
 			var games = JsonConvert.DeserializeObject<Data>(res);
-			var limits = GetLimits(partnerId, providerId);
-			foreach ( var game in games.games )
-			{
-				game.betValue = limits.FirstOrDefault(x => x.game_id == game.id)?.limits != null
-					                                         ? string.Join(", ", limits.FirstOrDefault(x => x.game_id == game.id)?.limits) : null;
-			}
-			var list = games.games.GroupBy(x => x.vendor).Select(y => y.Key);
+			//var limits = GetLimits(partnerId, providerId);
+			//foreach ( var game in games.games )
+			//{
+			//	game.betValue = limits.FirstOrDefault(x => x.game_id == game.id)?.limits != null
+			//		                                         ? string.Join(", ", limits.FirstOrDefault(x => x.game_id == game.id)?.limits) : null;
+			//}
 			var lobbies = GetLobbies(partnerId, providerId);
 			games.games.AddRange(lobbies);
 			return games.games;
@@ -144,7 +143,7 @@ namespace IqSoft.CP.Integration.Products.Helpers
 															subProvider.ToLower().Replace("gaming", string.Empty).Replace("games", string.Empty) == x.ToLower().Replace("gaming", string.Empty) ||
 															subProvider.Length > 5 && x.Length > 5 && subProvider.ToLower().Substring(0, 6) == x.ToLower().Replace("-", string.Empty).Replace(" ", string.Empty).Substring(0, 6));
 
-			log.Info($"Vendor {vendor}");
+			decimal betValue = 1;
 			var data = new Campaign
 			{
 				vendor = vendor,
@@ -154,23 +153,37 @@ namespace IqSoft.CP.Integration.Products.Helpers
 				expires_at = ((DateTimeOffset)freespinModel.FinishTime).ToUnixTimeSeconds(),
 				currency_code = client.CurrencyId,
 				players = client.Id.ToString(),
-				games = new	List<GameModel>
-				{ 
-					new GameModel	
+				games = new List<GameModel>
+				{
+					new GameModel
 					{
 						game_id = Convert.ToInt32(freespinModel.ProductExternalId),
-					    total_bet = freespinModel.BetValueLevel.Value								
-					}					
+						total_bet = betValue
+					}
 				}
 			};
-			log.Info($"Data {JsonConvert.SerializeObject(data)}");
+			httpRequestInput = new HttpRequestInput
+			{
+				RequestMethod = Constants.HttpRequestMethods.Get,
+				RequestHeaders = headers,
+				Url = $"{url}/campaigns/vendors/limits?currencies={client.CurrencyId}&games={freespinModel.ProductExternalId}&vendor={vendor}"
+			};
+			res = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
+			var games = JsonConvert.DeserializeObject<GameLimits>(res);
+			if (games.data != null)
+			{
+				var limits = JsonConvert.DeserializeObject<List<Datum>>(JsonConvert.SerializeObject(games.data));
+				data.games.FirstOrDefault().total_bet = limits.FirstOrDefault().limits.FirstOrDefault();
+			}
+			var dataSring = JsonConvert.SerializeObject(data);
+			log.Info($"Data {dataSring}");
 			httpRequestInput = new HttpRequestInput
 			{
 				ContentType = Constants.HttpContentTypes.ApplicationJson,
 				RequestMethod = Constants.HttpRequestMethods.Post,
 				RequestHeaders = headers,
 				Url = $"{url}/campaigns/create",
-				PostData = JsonConvert.SerializeObject(data)
+				PostData = dataSring
 			};
 			res = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
 		}

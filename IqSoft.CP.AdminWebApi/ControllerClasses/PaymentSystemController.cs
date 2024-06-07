@@ -168,8 +168,6 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             }
         }
 
-
-
         private static ApiResponseBase UpdatePartnerPaymentSetting(ApiPartnerPaymentSetting apiPartnerPaymentSetting, SessionIdentity identity, ILog log)
         {
             using (var paymentSystemBl = new PaymentSystemBll(identity, log))

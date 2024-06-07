@@ -148,6 +148,7 @@
           <Property Name="CommunicationTypeValue" Type="varchar" MaxLength="50" Nullable="false" />
           <Property Name="CreationTime" Type="datetime2" Precision="3" Nullable="false" />
           <Property Name="LastUpdateTime" Type="datetime2" Precision="3" Nullable="false" />
+          <Property Name="ClientId" Type="int" />
         </EntityType>
         <EntityType Name="AffiliateCommission">
           <Key>
@@ -640,7 +641,7 @@
           <Property Name="FinalAmount" Type="decimal" Precision="18" Scale="4" />
           <Property Name="CalculationTime" Type="datetime2" Precision="3" />
           <Property Name="ValidUntil" Type="datetime2" Precision="3" />
-          <Property Name="TriggerId" Type="int" />
+          <Property Name="LinkedBonusId" Type="int" />
           <Property Name="CreationDate" Type="bigint" />
           <Property Name="ReuseNumber" Type="bigint" />
           <Property Name="Considered" Type="bit" />
@@ -2238,6 +2239,18 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_Affiliate_Client">
+          <End Role="Client" Type="Self.Client" Multiplicity="0..1" />
+          <End Role="Affiliate" Type="Self.Affiliate" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Client">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Affiliate">
+              <PropertyRef Name="ClientId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_Affiliate_Language">
           <End Role="Language" Type="Self.Language" Multiplicity="1" />
           <End Role="Affiliate" Type="Self.Affiliate" Multiplicity="*" />
@@ -3258,6 +3271,18 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_ClientBonus_Bonus1">
+          <End Role="Bonus" Type="Self.Bonus" Multiplicity="0..1" />
+          <End Role="ClientBonus" Type="Self.ClientBonus" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Bonus">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClientBonus">
+              <PropertyRef Name="LinkedBonusId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_ClientBonus_Client">
           <End Role="Client" Type="Self.Client" Multiplicity="1" />
           <End Role="ClientBonus" Type="Self.ClientBonus" Multiplicity="*" />
@@ -3267,18 +3292,6 @@
             </Principal>
             <Dependent Role="ClientBonus">
               <PropertyRef Name="ClientId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_ClientBonus_TriggerSetting">
-          <End Role="TriggerSetting" Type="Self.TriggerSetting" Multiplicity="0..1" />
-          <End Role="ClientBonus" Type="Self.ClientBonus" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="TriggerSetting">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="ClientBonus">
-              <PropertyRef Name="TriggerId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -4914,6 +4927,18 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_Product_ProductCategory">
+          <End Role="ProductCategory" Type="Self.ProductCategory" Multiplicity="0..1" />
+          <End Role="Product" Type="Self.Product" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ProductCategory">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Product">
+              <PropertyRef Name="CategoryId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_Product_Translation">
           <End Role="Translation" Type="Self.Translation" Multiplicity="1" />
           <End Role="Product" Type="Self.Product" Multiplicity="*" />
@@ -5900,6 +5925,7 @@
                 <Property Name="LastUpdateTime" Type="datetime2" Precision="3" Nullable="false" />
                 <Property Name="CommunicationType" Type="int" Nullable="false" />
                 <Property Name="CommunicationTypeValue" Type="varchar" MaxLength="50" Nullable="false" />
+                <Property Name="ClientId" Type="int" />
               </RowType>
             </CollectionType>
           </ReturnType>
@@ -6354,7 +6380,7 @@
                 <Property Name="FinalAmount" Type="decimal" Precision="18" Scale="4" />
                 <Property Name="CalculationTime" Type="datetime2" Precision="3" />
                 <Property Name="ValidUntil" Type="datetime2" Precision="3" />
-                <Property Name="TriggerId" Type="int" />
+                <Property Name="LinkedBonusId" Type="int" />
                 <Property Name="CreationDate" Type="bigint" />
                 <Property Name="ReuseNumber" Type="bigint" />
                 <Property Name="UserName" Type="varchar" MaxLength="50" />
@@ -6931,7 +6957,6 @@
                 <Property Name="ProductNickName" Type="varchar" MaxLength="50" Nullable="false" />
                 <Property Name="ProductExternalId" Type="varchar" MaxLength="100" />
                 <Property Name="ProductName" Type="nvarchar(max)" Nullable="false" />
-                <Property Name="ProductIsLeaf" Type="int" Nullable="false" />
                 <Property Name="ProductGameProviderId" Type="int" />
                 <Property Name="ProductParentId" Type="int" />
                 <Property Name="PaymentSystemId" Type="int" />
@@ -7010,6 +7035,24 @@
             </CollectionType>
           </ReturnType>
         </Function>
+        <Function Name="fn_PopupStatistics" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+          <ReturnType>
+            <CollectionType>
+              <RowType>
+                <Property Name="Id" Type="int" Nullable="false" />
+                <Property Name="PartnerId" Type="int" Nullable="false" />
+                <Property Name="NickName" Type="varchar" MaxLength="100" Nullable="false" />
+                <Property Name="Type" Type="int" Nullable="false" />
+                <Property Name="DeviceType" Type="int" />
+                <Property Name="State" Type="int" Nullable="false" />
+                <Property Name="CreationTime" Type="datetime2" Precision="3" Nullable="false" />
+                <Property Name="LastUpdateTime" Type="datetime2" Precision="3" Nullable="false" />
+                <Property Name="ViewTypeId" Type="int" />
+                <Property Name="ViewCount" Type="int" />
+              </RowType>
+            </CollectionType>
+          </ReturnType>
+        </Function>
         <Function Name="fn_Product" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
           <Parameter Name="LanguageId" Type="char" Mode="In" />
           <ReturnType>
@@ -7046,8 +7089,6 @@
                 <Property Name="GameProviderName" Type="varchar" MaxLength="50" />
                 <Property Name="SubproviderName" Type="varchar" MaxLength="50" />
                 <Property Name="IsProviderActive" Type="bit" />
-                <Property Name="IsLeaf" Type="int" Nullable="false" />
-                <Property Name="IsLastProductGroup" Type="int" Nullable="false" />
               </RowType>
             </CollectionType>
           </ReturnType>
@@ -7895,6 +7936,10 @@
             <End Role="Permission" EntitySet="Permission" />
             <End Role="AdminMenu" EntitySet="AdminMenu" />
           </AssociationSet>
+          <AssociationSet Name="FK_Affiliate_Client" Association="Self.FK_Affiliate_Client">
+            <End Role="Client" EntitySet="Client" />
+            <End Role="Affiliate" EntitySet="Affiliate" />
+          </AssociationSet>
           <AssociationSet Name="FK_Affiliate_Language" Association="Self.FK_Affiliate_Language">
             <End Role="Language" EntitySet="Language" />
             <End Role="Affiliate" EntitySet="Affiliate" />
@@ -8235,12 +8280,12 @@
             <End Role="Bonus" EntitySet="Bonus" />
             <End Role="ClientBonus" EntitySet="ClientBonus" />
           </AssociationSet>
-          <AssociationSet Name="FK_ClientBonus_Client" Association="Self.FK_ClientBonus_Client">
-            <End Role="Client" EntitySet="Client" />
+          <AssociationSet Name="FK_ClientBonus_Bonus1" Association="Self.FK_ClientBonus_Bonus1">
+            <End Role="Bonus" EntitySet="Bonus" />
             <End Role="ClientBonus" EntitySet="ClientBonus" />
           </AssociationSet>
-          <AssociationSet Name="FK_ClientBonus_TriggerSetting" Association="Self.FK_ClientBonus_TriggerSetting">
-            <End Role="TriggerSetting" EntitySet="TriggerSetting" />
+          <AssociationSet Name="FK_ClientBonus_Client" Association="Self.FK_ClientBonus_Client">
+            <End Role="Client" EntitySet="Client" />
             <End Role="ClientBonus" EntitySet="ClientBonus" />
           </AssociationSet>
           <AssociationSet Name="FK_ClientBonusTrigger_Bonus" Association="Self.FK_ClientBonusTrigger_Bonus">
@@ -8786,6 +8831,10 @@
           <AssociationSet Name="FK_Product_Product" Association="Self.FK_Product_Product">
             <End Role="Product" EntitySet="Product" />
             <End Role="Product1" EntitySet="Product" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Product_ProductCategory" Association="Self.FK_Product_ProductCategory">
+            <End Role="ProductCategory" EntitySet="ProductCategory" />
+            <End Role="Product" EntitySet="Product" />
           </AssociationSet>
           <AssociationSet Name="FK_Product_Translation" Association="Self.FK_Product_Translation">
             <End Role="Translation" EntitySet="Translation" />
@@ -9696,7 +9745,6 @@
 						<End Role="Partner" EntitySet="Partners" />
 						<End Role="Affiliate" EntitySet="Affiliates" />
 					</AssociationSet>
-					<FunctionImport Name="fn_Affiliate" IsComposable="true" ReturnType="Collection(IqSoftCorePlatformModel.fnAffiliate)" />
 					<EntitySet Name="AffiliateCommissions" EntityType="IqSoftCorePlatformModel.AffiliateCommission" />
 					<AssociationSet Name="FK_AffiliateCommission_Affiliate" Association="IqSoftCorePlatformModel.FK_AffiliateCommission_Affiliate">
 						<End Role="Affiliate" EntitySet="Affiliates" />
@@ -10171,12 +10219,7 @@
             <End Role="UserSession" EntitySet="UserSessions" />
             <End Role="TranslationEntry" EntitySet="TranslationEntries" />
           </AssociationSet>
-          <EntitySet Name="ClientBonus" EntityType="IqSoftCorePlatformModel.ClientBonu" />
           <EntitySet Name="ClientBonusTriggers" EntityType="IqSoftCorePlatformModel.ClientBonusTrigger" />
-          <AssociationSet Name="FK_ClientBonus_Bonus" Association="IqSoftCorePlatformModel.FK_ClientBonus_Bonus">
-            <End Role="Bonu" EntitySet="Bonus" />
-            <End Role="ClientBonu" EntitySet="ClientBonus" />
-          </AssociationSet>
           <AssociationSet Name="FK_ClientBonusTrigger_Bonus" Association="IqSoftCorePlatformModel.FK_ClientBonusTrigger_Bonus">
             <End Role="Bonu" EntitySet="Bonus" />
             <End Role="ClientBonusTrigger" EntitySet="ClientBonusTriggers" />
@@ -10308,9 +10351,6 @@
             <End Role="Segment" EntitySet="Segments" />
             <End Role="NewsSegmentSetting" EntitySet="NewsSegmentSettings" />
           </AssociationSet>
-          <FunctionImport Name="fn_PartnerProductSetting" IsComposable="true" ReturnType="Collection(IqSoftCorePlatformModel.fnPartnerProductSetting)">
-          <Parameter Name="LanguageId" Mode="In" Type="String" />
-          </FunctionImport>
           <EntitySet Name="GameProviders" EntityType="IqSoftCorePlatformModel.GameProvider" />
           <EntitySet Name="PaymentSystems" EntityType="IqSoftCorePlatformModel.PaymentSystem" />
           <AssociationSet Name="FK_Account_PaymentSystem" Association="IqSoftCorePlatformModel.FK_Account_PaymentSystem">
@@ -10365,9 +10405,6 @@
           <FunctionImport Name="fn_News" IsComposable="true" ReturnType="Collection(IqSoftCorePlatformModel.fnNews)">
             <Parameter Name="languageId" Mode="In" Type="String" />
             <Parameter Name="withContent" Mode="In" Type="Boolean" />
-          </FunctionImport>
-          <FunctionImport Name="fn_ClientBonus" IsComposable="true" ReturnType="Collection(IqSoftCorePlatformModel.fnClientBonus)">
-          <Parameter Name="languageId" Mode="In" Type="String" />
           </FunctionImport>
           <EntitySet Name="Products" EntityType="IqSoftCorePlatformModel.Product" />
           <AssociationSet Name="FK_AffiliateCommission_Product" Association="IqSoftCorePlatformModel.FK_AffiliateCommission_Product">
@@ -10450,9 +10487,6 @@
             <End Role="Product" EntitySet="Products" />
             <End Role="TriggerProductSetting" EntitySet="TriggerProductSettings" />
           </AssociationSet>
-          <FunctionImport Name="fn_Product" IsComposable="true" ReturnType="Collection(IqSoftCorePlatformModel.fnProduct)">
-          <Parameter Name="LanguageId" Mode="In" Type="String" />
-          </FunctionImport>
           <EntitySet Name="ClientMessageStates" EntityType="IqSoftCorePlatformModel.ClientMessageState" />
           <FunctionImport Name="fn_Promotion" IsComposable="true" ReturnType="Collection(IqSoftCorePlatformModel.fnPromotion)">
             <Parameter Name="languageId" Mode="In" Type="String" />
@@ -10510,10 +10544,6 @@
           <AssociationSet Name="FK_ClientBankInfo_Client" Association="IqSoftCorePlatformModel.FK_ClientBankInfo_Client">
             <End Role="Client" EntitySet="Clients" />
             <End Role="ClientBankInfo" EntitySet="ClientBankInfoes" />
-          </AssociationSet>
-          <AssociationSet Name="FK_ClientBonus_Client" Association="IqSoftCorePlatformModel.FK_ClientBonus_Client">
-            <End Role="Client" EntitySet="Clients" />
-            <End Role="ClientBonu" EntitySet="ClientBonus" />
           </AssociationSet>
           <AssociationSet Name="FK_ClientBonusTrigger_Client" Association="IqSoftCorePlatformModel.FK_ClientBonusTrigger_Client">
             <End Role="Client" EntitySet="Clients" />
@@ -10630,10 +10660,6 @@
             <End Role="TriggerSetting" EntitySet="TriggerSettings" />
             <End Role="BonusPaymentSystemSetting" EntitySet="BonusPaymentSystemSettings" />
           </AssociationSet>
-          <AssociationSet Name="FK_ClientBonus_TriggerSetting" Association="IqSoftCorePlatformModel.FK_ClientBonus_TriggerSetting">
-            <End Role="TriggerSetting" EntitySet="TriggerSettings" />
-            <End Role="ClientBonu" EntitySet="ClientBonus" />
-          </AssociationSet>
           <AssociationSet Name="FK_ClientBonusTrigger_TriggerSetting" Association="IqSoftCorePlatformModel.FK_ClientBonusTrigger_TriggerSetting">
             <End Role="TriggerSetting" EntitySet="TriggerSettings" />
             <End Role="ClientBonusTrigger" EntitySet="ClientBonusTriggers" />
@@ -10721,6 +10747,38 @@
             <End Role="Popup" EntitySet="Popups" />
             <End Role="PopupSetting" EntitySet="PopupSettings" />
           </AssociationSet>
+          <AssociationSet Name="FK_Affiliate_Client" Association="IqSoftCorePlatformModel.FK_Affiliate_Client">
+            <End Role="Client" EntitySet="Clients" />
+            <End Role="Affiliate" EntitySet="Affiliates" />
+          </AssociationSet>
+          <FunctionImport Name="fn_Affiliate" IsComposable="true" ReturnType="Collection(IqSoftCorePlatformModel.fnAffiliate)" />
+          <AssociationSet Name="FK_Product_ProductCategory" Association="IqSoftCorePlatformModel.FK_Product_ProductCategory">
+            <End Role="ProductCategory" EntitySet="ProductCategories" />
+            <End Role="Product" EntitySet="Products" />
+          </AssociationSet>
+          <FunctionImport Name="fn_Product" IsComposable="true" ReturnType="Collection(IqSoftCorePlatformModel.fnProduct)">
+          <Parameter Name="LanguageId" Mode="In" Type="String" />
+          </FunctionImport>
+          <FunctionImport Name="fn_PartnerProductSetting" IsComposable="true" ReturnType="Collection(IqSoftCorePlatformModel.fnPartnerProductSetting)">
+          <Parameter Name="LanguageId" Mode="In" Type="String" />
+          </FunctionImport>
+          <FunctionImport Name="fn_PopupStatistics" IsComposable="true" ReturnType="Collection(IqSoftCorePlatformModel.fnPopupStatistics)" />
+          <EntitySet Name="ClientBonus" EntityType="IqSoftCorePlatformModel.ClientBonu" />
+          <AssociationSet Name="FK_ClientBonus_Bonus" Association="IqSoftCorePlatformModel.FK_ClientBonus_Bonus">
+            <End Role="Bonu" EntitySet="Bonus" />
+            <End Role="ClientBonu" EntitySet="ClientBonus" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ClientBonus_Bonus1" Association="IqSoftCorePlatformModel.FK_ClientBonus_Bonus1">
+            <End Role="Bonu" EntitySet="Bonus" />
+            <End Role="ClientBonu" EntitySet="ClientBonus" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ClientBonus_Client" Association="IqSoftCorePlatformModel.FK_ClientBonus_Client">
+            <End Role="Client" EntitySet="Clients" />
+            <End Role="ClientBonu" EntitySet="ClientBonus" />
+          </AssociationSet>
+          <FunctionImport Name="fn_ClientBonus" IsComposable="true" ReturnType="Collection(IqSoftCorePlatformModel.fnClientBonus)">
+            <Parameter Name="languageId" Mode="In" Type="String" />
+          </FunctionImport>
           </EntityContainer>
 				<ComplexType Name="spObjectChangeHistory">
 					<Property Type="Int64" Name="Id" Nullable="false" />
@@ -11577,6 +11635,7 @@
 					<Property Name="Type" Type="Int32" Nullable="false" />
 					<Property Name="TranslationId" Type="Int64" Nullable="false" />
           <NavigationProperty Name="Translation" Relationship="IqSoftCorePlatformModel.FK_ProductCategory_Translation" FromRole="ProductCategory" ToRole="Translation" />
+          <NavigationProperty Name="Products" Relationship="IqSoftCorePlatformModel.FK_Product_ProductCategory" FromRole="ProductCategory" ToRole="Product" />
 				</EntityType>
 				<EntityType Name="ProductLimit">
 					<Key>
@@ -13799,6 +13858,8 @@
 					<NavigationProperty Name="Partner" Relationship="IqSoftCorePlatformModel.FK_Affiliate_Partner" FromRole="Affiliate" ToRole="Partner" />
 					<NavigationProperty Name="AffiliateCommissions" Relationship="IqSoftCorePlatformModel.FK_AffiliateCommission_Affiliate" FromRole="Affiliate" ToRole="AffiliateCommission" />
 					<NavigationProperty Name="UserSessions" Relationship="IqSoftCorePlatformModel.FK_UserSession_Affiliate" FromRole="Affiliate" ToRole="UserSession" />
+          <Property Name="ClientId" Type="Int32" />
+          <NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_Affiliate_Client" FromRole="Affiliate" ToRole="Client" />
 				</EntityType>
 				<Association Name="FK_Affiliate_Language">
 					<End Type="IqSoftCorePlatformModel.Language" Role="Language" Multiplicity="1" />
@@ -13824,26 +13885,6 @@
 						</Dependent>
 					</ReferentialConstraint>
 				</Association>
-				<ComplexType Name="fnAffiliate">
-					<Property Type="Int32" Name="Id" Nullable="false" />
-					<Property Type="Int32" Name="PartnerId" Nullable="false" />
-					<Property Type="String" Name="UserName" Nullable="false" MaxLength="50" />
-					<Property Type="String" Name="FirstName" Nullable="false" MaxLength="50" />
-					<Property Type="String" Name="LastName" Nullable="false" MaxLength="50" />
-					<Property Type="String" Name="NickName" Nullable="true" MaxLength="250" />
-					<Property Type="Int32" Name="Gender" Nullable="false" />
-					<Property Type="Int32" Name="RegionId" Nullable="false" />
-					<Property Type="String" Name="LanguageId" Nullable="false" MaxLength="2" />
-					<Property Type="String" Name="PasswordHash" Nullable="false" MaxLength="150" />
-					<Property Type="Int32" Name="Salt" Nullable="false" />
-					<Property Type="Int32" Name="State" Nullable="false" />
-					<Property Type="String" Name="Email" Nullable="false" MaxLength="50" />
-					<Property Type="String" Name="MobileNumber" Nullable="true" MaxLength="50" />
-					<Property Type="DateTime" Name="CreationTime" Nullable="false" Precision="23" />
-					<Property Type="DateTime" Name="LastUpdateTime" Nullable="false" Precision="23" />
-					<Property Type="Int32" Name="CommunicationType" Nullable="false" />
-					<Property Type="String" Name="CommunicationTypeValue" Nullable="false" MaxLength="50" />
-				</ComplexType>
 				<EntityType Name="AffiliateCommission">
 					<Key>
 						<PropertyRef Name="Id" />
@@ -14584,8 +14625,9 @@
           <NavigationProperty Name="TriggerGroups" Relationship="IqSoftCorePlatformModel.FK_TriggerGroup_Bonus" FromRole="Bonu" ToRole="TriggerGroup" />
           <NavigationProperty Name="AmountCurrencySettings" Relationship="IqSoftCorePlatformModel.FK_AmountCurrencySetting_Bonus" FromRole="Bonu" ToRole="AmountCurrencySetting" />
           <NavigationProperty Name="Translation" Relationship="IqSoftCorePlatformModel.FK_Bonus_Translation" FromRole="Bonu" ToRole="Translation" />
-          <NavigationProperty Name="ClientBonus" Relationship="IqSoftCorePlatformModel.FK_ClientBonus_Bonus" FromRole="Bonu" ToRole="ClientBonu" />
           <NavigationProperty Name="ClientBonusTriggers" Relationship="IqSoftCorePlatformModel.FK_ClientBonusTrigger_Bonus" FromRole="Bonu" ToRole="ClientBonusTrigger" />
+          <NavigationProperty Name="ClientBonus" Relationship="IqSoftCorePlatformModel.FK_ClientBonus_Bonus" FromRole="Bonu" ToRole="ClientBonu" />
+          <NavigationProperty Name="ClientBonus1" Relationship="IqSoftCorePlatformModel.FK_ClientBonus_Bonus1" FromRole="Bonu" ToRole="ClientBonu" />
         </EntityType>
         <Association Name="FK_Bonus_AccountType">
           <End Type="IqSoftCorePlatformModel.AccountType" Role="AccountType" Multiplicity="0..1" />
@@ -15987,29 +16029,6 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <EntityType Name="ClientBonu">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="BonusId" Type="Int32" Nullable="false" />
-          <Property Name="ClientId" Type="Int32" Nullable="false" />
-          <Property Name="Status" Type="Int32" Nullable="false" />
-          <Property Name="BonusPrize" Type="Decimal" Nullable="false" Precision="18" Scale="3" />
-          <Property Name="CreationTime" Type="DateTime" Nullable="false" Precision="3" />
-          <Property Name="AwardingTime" Type="DateTime" Precision="3" />
-          <Property Name="TurnoverAmountLeft" Type="Decimal" Precision="18" Scale="4" />
-          <Property Name="FinalAmount" Type="Decimal" Precision="18" Scale="4" />
-          <Property Name="CalculationTime" Type="DateTime" Precision="3" />
-          <Property Name="ValidUntil" Type="DateTime" Precision="3" />
-          <Property Name="TriggerId" Type="Int32" />
-          <Property Name="CreationDate" Type="Int64" />
-          <Property Name="ReuseNumber" Type="Int64" />
-          <Property Name="Considered" Type="Boolean" />
-          <NavigationProperty Name="Bonu" Relationship="IqSoftCorePlatformModel.FK_ClientBonus_Bonus" FromRole="ClientBonu" ToRole="Bonu" />
-          <NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_ClientBonus_Client" FromRole="ClientBonu" ToRole="Client" />
-          <NavigationProperty Name="TriggerSetting" Relationship="IqSoftCorePlatformModel.FK_ClientBonus_TriggerSetting" FromRole="ClientBonu" ToRole="TriggerSetting" />
-        </EntityType>
         <EntityType Name="ClientBonusTrigger">
           <Key>
             <PropertyRef Name="Id" />
@@ -16028,18 +16047,6 @@
           <NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_ClientBonusTrigger_Client" FromRole="ClientBonusTrigger" ToRole="Client" />
           <NavigationProperty Name="TriggerSetting" Relationship="IqSoftCorePlatformModel.FK_ClientBonusTrigger_TriggerSetting" FromRole="ClientBonusTrigger" ToRole="TriggerSetting" />
         </EntityType>
-        <Association Name="FK_ClientBonus_Bonus">
-          <End Type="IqSoftCorePlatformModel.Bonu" Role="Bonu" Multiplicity="1" />
-          <End Type="IqSoftCorePlatformModel.ClientBonu" Role="ClientBonu" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Bonu">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="ClientBonu">
-              <PropertyRef Name="BonusId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_ClientBonusTrigger_Bonus">
           <End Type="IqSoftCorePlatformModel.Bonu" Role="Bonu" Multiplicity="1" />
           <End Type="IqSoftCorePlatformModel.ClientBonusTrigger" Role="ClientBonusTrigger" Multiplicity="*" />
@@ -16601,38 +16608,6 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <ComplexType Name="fnPartnerProductSetting">
-          <Property Type="Int32" Name="Id" Nullable="false" />
-          <Property Type="Int32" Name="PartnerId" Nullable="false" />
-          <Property Type="Int32" Name="ProductId" Nullable="false" />
-          <Property Type="Decimal" Name="Percent" Nullable="false" Precision="18" Scale="4" />
-          <Property Type="Int32" Name="State" Nullable="false" />
-          <Property Type="Decimal" Name="Rating" Nullable="true" Precision="5" Scale="2" />
-          <Property Type="String" Name="CategoryIds" Nullable="true" MaxLength="50" />
-          <Property Type="Int32" Name="OpenMode" Nullable="true" />
-          <Property Type="Boolean" Name="HasDemo" Nullable="true" />
-          <Property Type="String" Name="ProductNickName" Nullable="false" MaxLength="50" />
-          <Property Type="String" Name="ProductExternalId" Nullable="true" MaxLength="100" />
-          <Property Type="String" Name="ProductName" Nullable="false" />
-          <Property Type="Int32" Name="ProductIsLeaf" Nullable="false" />
-          <Property Type="Int32" Name="ProductGameProviderId" Nullable="true" />
-          <Property Type="Int32" Name="ProductParentId" Nullable="true" />
-          <Property Type="Int32" Name="PaymentSystemId" Nullable="true" />
-          <Property Type="String" Name="GameProviderName" Nullable="true" MaxLength="50" />
-          <Property Type="Int32" Name="SubproviderId" Nullable="true" />
-          <Property Type="String" Name="SubproviderName" Nullable="true" MaxLength="50" />
-          <Property Type="Boolean" Name="IsForDesktop" Nullable="false" />
-          <Property Type="Boolean" Name="IsForMobile" Nullable="false" />
-          <Property Type="String" Name="Jackpot" Nullable="true" MaxLength="250" />
-          <Property Type="String" Name="MobileImageUrl" Nullable="true" MaxLength="250" />
-          <Property Type="String" Name="WebImageUrl" Nullable="true" MaxLength="250" />
-          <Property Type="Boolean" Name="HasImages" Nullable="true" />
-          <Property Type="Int32" Name="ProductState" Nullable="false" />
-          <Property Type="Decimal" Name="RTP" Nullable="true" Precision="5" Scale="2" />
-          <Property Type="Int32" Name="Volatility" Nullable="true" />
-          <Property Type="DateTime" Name="CreationTime" Nullable="false" Precision="23" />
-          <Property Type="DateTime" Name="LastUpdateTime" Nullable="false" Precision="23" />
-        </ComplexType>
         <EntityType Name="GameProvider">
           <Key>
             <PropertyRef Name="Id" />
@@ -16848,58 +16823,6 @@
           <Property Type="String" Name="Description" Nullable="false" />
           <Property Type="String" Name="Content" Nullable="true" />
         </ComplexType>
-        <ComplexType Name="fnClientBonus">
-          <Property Type="Int32" Name="Id" Nullable="false" />
-          <Property Type="Int32" Name="BonusId" Nullable="false" />
-          <Property Type="Int32" Name="ClientId" Nullable="false" />
-          <Property Type="Int32" Name="Status" Nullable="false" />
-          <Property Type="Decimal" Name="BonusPrize" Nullable="false" Precision="18" Scale="3" />
-          <Property Type="Decimal" Name="SpinsCount" Nullable="true" Precision="18" Scale="3" />
-          <Property Type="DateTime" Name="CreationTime" Nullable="false" Precision="23" />
-          <Property Type="DateTime" Name="AwardingTime" Nullable="true" Precision="23" />
-          <Property Type="Decimal" Name="TurnoverAmountLeft" Nullable="true" Precision="18" Scale="4" />
-          <Property Type="Decimal" Name="RemainingCredit" Nullable="true" Precision="18" Scale="4" />
-          <Property Type="Decimal" Name="WageringTarget" Nullable="true" Precision="29" Scale="3" />
-          <Property Type="Decimal" Name="FinalAmount" Nullable="true" Precision="18" Scale="4" />
-          <Property Type="DateTime" Name="CalculationTime" Nullable="true" Precision="23" />
-          <Property Type="DateTime" Name="ValidUntil" Nullable="true" Precision="23" />
-          <Property Type="Int32" Name="TriggerId" Nullable="true" />
-          <Property Type="Int64" Name="CreationDate" Nullable="true" />
-          <Property Type="Int64" Name="ReuseNumber" Nullable="true" />
-          <Property Type="String" Name="UserName" Nullable="true" MaxLength="50" />
-          <Property Type="String" Name="FirstName" Nullable="true" MaxLength="255" />
-          <Property Type="String" Name="LastName" Nullable="true" MaxLength="255" />
-          <Property Type="String" Name="CurrencyId" Nullable="true" MaxLength="5" />
-          <Property Type="String" Name="Email" Nullable="true" MaxLength="50" />
-          <Property Type="String" Name="MobileNumber" Nullable="true" MaxLength="50" />
-          <Property Type="String" Name="NickName" Nullable="false" MaxLength="255" />
-          <Property Type="String" Name="Name" Nullable="false" />
-          <Property Type="String" Name="Description" Nullable="true" MaxLength="500" />
-          <Property Type="Int32" Name="PartnerId" Nullable="false" />
-          <Property Type="Int32" Name="FinalAccountTypeId" Nullable="true" />
-          <Property Type="Int32" Name="BonusStatus" Nullable="false" />
-          <Property Type="DateTime" Name="StartTime" Nullable="false" Precision="23" />
-          <Property Type="DateTime" Name="FinishTime" Nullable="false" Precision="23" />
-          <Property Type="DateTime" Name="LastExecutionTime" Nullable="false" Precision="23" />
-          <Property Type="Int32" Name="Period" Nullable="false" />
-          <Property Type="Int32" Name="Type" Nullable="false" />
-          <Property Type="String" Name="Info" Nullable="true" MaxLength="1500" />
-          <Property Type="Int32" Name="TurnoverCount" Nullable="true" />
-          <Property Type="Decimal" Name="MinAmount" Nullable="true" Precision="18" Scale="4" />
-          <Property Type="Decimal" Name="MaxAmount" Nullable="true" Precision="18" Scale="4" />
-          <Property Type="Int32" Name="Sequence" Nullable="true" />
-          <Property Type="Int32" Name="Priority" Nullable="true" />
-          <Property Type="Int32" Name="WinAccountTypeId" Nullable="true" />
-          <Property Type="Int32" Name="ValidForAwarding" Nullable="true" />
-          <Property Type="Int32" Name="ValidForSpending" Nullable="true" />
-          <Property Type="Int32" Name="ReusingMaxCount" Nullable="true" />
-          <Property Type="Boolean" Name="ResetOnWithdraw" Nullable="true" />
-          <Property Type="DateTime" Name="BonusCreationTime" Nullable="true" Precision="23" />
-          <Property Type="DateTime" Name="BonusLastUpdateTime" Nullable="true" Precision="23" />
-          <Property Type="Boolean" Name="AllowSplit" Nullable="true" />
-          <Property Type="Boolean" Name="RefundRollbacked" Nullable="true" />
-          <Property Type="String" Name="Condition" Nullable="true" />
-        </ComplexType>
         <EntityType Name="Product">
           <Key>
             <PropertyRef Name="Id" />
@@ -16951,6 +16874,7 @@
           <NavigationProperty Name="ProductCountrySettings" Relationship="IqSoftCorePlatformModel.FK_ProductCountrySettings_Product" FromRole="Product" ToRole="ProductCountrySetting" />
           <NavigationProperty Name="ProductLimits" Relationship="IqSoftCorePlatformModel.FK_ProductLimit_Product" FromRole="Product" ToRole="ProductLimit" />
           <NavigationProperty Name="TriggerProductSettings" Relationship="IqSoftCorePlatformModel.FK_TriggerProductSetting_Product" FromRole="Product" ToRole="TriggerProductSetting" />
+          <NavigationProperty Name="ProductCategory" Relationship="IqSoftCorePlatformModel.FK_Product_ProductCategory" FromRole="Product" ToRole="ProductCategory" />
         </EntityType>
         <Association Name="FK_AffiliateCommission_Product">
           <End Type="IqSoftCorePlatformModel.Product" Role="Product" Multiplicity="0..1" />
@@ -17192,41 +17116,6 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <ComplexType Name="fnProduct">
-          <Property Type="Int32" Name="Id" Nullable="false" />
-          <Property Type="Int64" Name="TranslationId" Nullable="false" />
-          <Property Type="Int32" Name="GameProviderId" Nullable="true" />
-          <Property Type="Int32" Name="PaymentSystemId" Nullable="true" />
-          <Property Type="Int32" Name="Level" Nullable="false" />
-          <Property Type="String" Name="NickName" Nullable="false" MaxLength="50" />
-          <Property Type="Int32" Name="ParentId" Nullable="true" />
-          <Property Type="String" Name="ExternalId" Nullable="true" MaxLength="100" />
-          <Property Type="Int32" Name="State" Nullable="false" />
-          <Property Type="Boolean" Name="IsForDesktop" Nullable="false" />
-          <Property Type="Boolean" Name="IsForMobile" Nullable="false" />
-          <Property Type="Boolean" Name="HasDemo" Nullable="false" />
-          <Property Type="Int32" Name="SubproviderId" Nullable="true" />
-          <Property Type="String" Name="WebImageUrl" Nullable="true" MaxLength="250" />
-          <Property Type="String" Name="MobileImageUrl" Nullable="true" MaxLength="250" />
-          <Property Type="String" Name="BackgroundImageUrl" Nullable="true" MaxLength="250" />
-          <Property Type="Boolean" Name="FreeSpinSupport" Nullable="true" />
-          <Property Type="String" Name="Jackpot" Nullable="true" MaxLength="250" />
-          <Property Type="Int32" Name="CategoryId" Nullable="true" />
-          <Property Type="Decimal" Name="RTP" Nullable="true" Precision="5" Scale="2" />
-          <Property Type="String" Name="Lines" Nullable="true" MaxLength="500" />
-          <Property Type="String" Name="BetValues" Nullable="true" />
-          <Property Type="DateTime" Name="CreationTime" Nullable="false" Precision="23" />
-          <Property Type="DateTime" Name="LastUpdateTime" Nullable="false" Precision="23" />
-          <Property Type="String" Name="Volatility" Nullable="true" MaxLength="500" />
-          <Property Type="Boolean" Name="HasImages" Nullable="true" />
-          <Property Type="String" Name="Path" Nullable="true" />
-          <Property Type="String" Name="Name" Nullable="false" />
-          <Property Type="String" Name="GameProviderName" Nullable="true" MaxLength="50" />
-          <Property Type="String" Name="SubproviderName" Nullable="true" MaxLength="50" />
-          <Property Type="Boolean" Name="IsProviderActive" Nullable="true" />
-          <Property Type="Int32" Name="IsLeaf" Nullable="false" />
-          <Property Type="Int32" Name="IsLastProductGroup" Nullable="false" />
-        </ComplexType>
         <EntityType Name="ClientMessageState">
           <Key>
             <PropertyRef Name="Id" />
@@ -17332,7 +17221,6 @@
           <NavigationProperty Name="Region1" Relationship="IqSoftCorePlatformModel.FK_Client_Region1" FromRole="Client" ToRole="Region" />
           <NavigationProperty Name="User" Relationship="IqSoftCorePlatformModel.FK_Client_User" FromRole="Client" ToRole="User" />
           <NavigationProperty Name="ClientBankInfo" Relationship="IqSoftCorePlatformModel.FK_ClientBankInfo_Client" FromRole="Client" ToRole="ClientBankInfo" />
-          <NavigationProperty Name="ClientBonus" Relationship="IqSoftCorePlatformModel.FK_ClientBonus_Client" FromRole="Client" ToRole="ClientBonu" />
           <NavigationProperty Name="ClientBonusTriggers" Relationship="IqSoftCorePlatformModel.FK_ClientBonusTrigger_Client" FromRole="Client" ToRole="ClientBonusTrigger" />
           <NavigationProperty Name="ClientClassifications" Relationship="IqSoftCorePlatformModel.FK_ClientClassification_Client" FromRole="Client" ToRole="ClientClassification" />
           <NavigationProperty Name="ClientClosedPeriods" Relationship="IqSoftCorePlatformModel.FK_ClientClosedPeriod_Client" FromRole="Client" ToRole="ClientClosedPeriod" />
@@ -17351,6 +17239,8 @@
           <NavigationProperty Name="Tickets" Relationship="IqSoftCorePlatformModel.FK_Ticket_Client" FromRole="Client" ToRole="Ticket" />
           <NavigationProperty Name="TicketMessageStates" Relationship="IqSoftCorePlatformModel.FK_TicketMessageState_Client" FromRole="Client" ToRole="TicketMessageState" />
           <NavigationProperty Name="ClientPaymentSettings" Relationship="IqSoftCorePlatformModel.FK_ClientPaymentSetting_Client" FromRole="Client" ToRole="ClientPaymentSetting" />
+          <NavigationProperty Name="Affiliates" Relationship="IqSoftCorePlatformModel.FK_Affiliate_Client" FromRole="Client" ToRole="Affiliate" />
+          <NavigationProperty Name="ClientBonus" Relationship="IqSoftCorePlatformModel.FK_ClientBonus_Client" FromRole="Client" ToRole="ClientBonu" />
         </EntityType>
         <Association Name="FK_Client_AffiliateReferral">
           <End Type="IqSoftCorePlatformModel.AffiliateReferral" Role="AffiliateReferral" Multiplicity="0..1" />
@@ -17504,18 +17394,6 @@
               <PropertyRef Name="Id" />
             </Principal>
             <Dependent Role="ClientBankInfo">
-              <PropertyRef Name="ClientId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_ClientBonus_Client">
-          <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="1" />
-          <End Type="IqSoftCorePlatformModel.ClientBonu" Role="ClientBonu" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Client">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="ClientBonu">
               <PropertyRef Name="ClientId" />
             </Dependent>
           </ReferentialConstraint>
@@ -18022,7 +17900,6 @@
           <Property Name="ConsiderBonusBets" Type="Boolean" />
           <NavigationProperty Name="AmountCurrencySettings" Relationship="IqSoftCorePlatformModel.FK_AmountCurrencySetting_TriggerSetting" FromRole="TriggerSetting" ToRole="AmountCurrencySetting" />
           <NavigationProperty Name="BonusPaymentSystemSettings" Relationship="IqSoftCorePlatformModel.FK_BonusPaymentSystemSetting_TriggerSetting" FromRole="TriggerSetting" ToRole="BonusPaymentSystemSetting" />
-          <NavigationProperty Name="ClientBonus" Relationship="IqSoftCorePlatformModel.FK_ClientBonus_TriggerSetting" FromRole="TriggerSetting" ToRole="ClientBonu" />
           <NavigationProperty Name="ClientBonusTriggers" Relationship="IqSoftCorePlatformModel.FK_ClientBonusTrigger_TriggerSetting" FromRole="TriggerSetting" ToRole="ClientBonusTrigger" />
           <NavigationProperty Name="Partner" Relationship="IqSoftCorePlatformModel.FK_TriggerSetting_Partner" FromRole="TriggerSetting" ToRole="Partner" />
           <NavigationProperty Name="Segment" Relationship="IqSoftCorePlatformModel.FK_TriggerSetting_Segment" FromRole="TriggerSetting" ToRole="Segment" />
@@ -18050,18 +17927,6 @@
               <PropertyRef Name="Id" />
             </Principal>
             <Dependent Role="BonusPaymentSystemSetting">
-              <PropertyRef Name="TriggerId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_ClientBonus_TriggerSetting">
-          <End Type="IqSoftCorePlatformModel.TriggerSetting" Role="TriggerSetting" Multiplicity="0..1" />
-          <End Type="IqSoftCorePlatformModel.ClientBonu" Role="ClientBonu" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="TriggerSetting">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="ClientBonu">
               <PropertyRef Name="TriggerId" />
             </Dependent>
           </ReferentialConstraint>
@@ -18457,6 +18322,238 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_Affiliate_Client">
+          <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="0..1" />
+          <End Type="IqSoftCorePlatformModel.Affiliate" Role="Affiliate" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Client">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Affiliate">
+              <PropertyRef Name="ClientId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <ComplexType Name="fnAffiliate">
+          <Property Type="Int32" Name="Id" Nullable="false" />
+          <Property Type="Int32" Name="PartnerId" Nullable="false" />
+          <Property Type="String" Name="UserName" Nullable="false" MaxLength="50" />
+          <Property Type="String" Name="FirstName" Nullable="false" MaxLength="50" />
+          <Property Type="String" Name="LastName" Nullable="false" MaxLength="50" />
+          <Property Type="String" Name="NickName" Nullable="true" MaxLength="250" />
+          <Property Type="Int32" Name="Gender" Nullable="false" />
+          <Property Type="Int32" Name="RegionId" Nullable="false" />
+          <Property Type="String" Name="LanguageId" Nullable="false" MaxLength="2" />
+          <Property Type="String" Name="PasswordHash" Nullable="false" MaxLength="150" />
+          <Property Type="Int32" Name="Salt" Nullable="false" />
+          <Property Type="Int32" Name="State" Nullable="false" />
+          <Property Type="String" Name="Email" Nullable="false" MaxLength="50" />
+          <Property Type="String" Name="MobileNumber" Nullable="true" MaxLength="50" />
+          <Property Type="DateTime" Name="CreationTime" Nullable="false" Precision="23" />
+          <Property Type="DateTime" Name="LastUpdateTime" Nullable="false" Precision="23" />
+          <Property Type="Int32" Name="CommunicationType" Nullable="false" />
+          <Property Type="String" Name="CommunicationTypeValue" Nullable="false" MaxLength="50" />
+          <Property Type="Int32" Name="ClientId" Nullable="true" />
+        </ComplexType>
+        <Association Name="FK_Product_ProductCategory">
+          <End Type="IqSoftCorePlatformModel.ProductCategory" Role="ProductCategory" Multiplicity="0..1" />
+          <End Type="IqSoftCorePlatformModel.Product" Role="Product" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ProductCategory">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Product">
+              <PropertyRef Name="CategoryId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <ComplexType Name="fnProduct">
+          <Property Type="Int32" Name="Id" Nullable="false" />
+          <Property Type="Int64" Name="TranslationId" Nullable="false" />
+          <Property Type="Int32" Name="GameProviderId" Nullable="true" />
+          <Property Type="Int32" Name="PaymentSystemId" Nullable="true" />
+          <Property Type="Int32" Name="Level" Nullable="false" />
+          <Property Type="String" Name="NickName" Nullable="false" MaxLength="50" />
+          <Property Type="Int32" Name="ParentId" Nullable="true" />
+          <Property Type="String" Name="ExternalId" Nullable="true" MaxLength="100" />
+          <Property Type="Int32" Name="State" Nullable="false" />
+          <Property Type="Boolean" Name="IsForDesktop" Nullable="false" />
+          <Property Type="Boolean" Name="IsForMobile" Nullable="false" />
+          <Property Type="Boolean" Name="HasDemo" Nullable="false" />
+          <Property Type="Int32" Name="SubproviderId" Nullable="true" />
+          <Property Type="String" Name="WebImageUrl" Nullable="true" MaxLength="250" />
+          <Property Type="String" Name="MobileImageUrl" Nullable="true" MaxLength="250" />
+          <Property Type="String" Name="BackgroundImageUrl" Nullable="true" MaxLength="250" />
+          <Property Type="Boolean" Name="FreeSpinSupport" Nullable="true" />
+          <Property Type="String" Name="Jackpot" Nullable="true" MaxLength="250" />
+          <Property Type="Int32" Name="CategoryId" Nullable="true" />
+          <Property Type="Decimal" Name="RTP" Nullable="true" Precision="5" Scale="2" />
+          <Property Type="String" Name="Lines" Nullable="true" MaxLength="500" />
+          <Property Type="String" Name="BetValues" Nullable="true" />
+          <Property Type="DateTime" Name="CreationTime" Nullable="false" Precision="23" />
+          <Property Type="DateTime" Name="LastUpdateTime" Nullable="false" Precision="23" />
+          <Property Type="String" Name="Volatility" Nullable="true" MaxLength="500" />
+          <Property Type="Boolean" Name="HasImages" Nullable="true" />
+          <Property Type="String" Name="Path" Nullable="true" />
+          <Property Type="String" Name="Name" Nullable="false" />
+          <Property Type="String" Name="GameProviderName" Nullable="true" MaxLength="50" />
+          <Property Type="String" Name="SubproviderName" Nullable="true" MaxLength="50" />
+          <Property Type="Boolean" Name="IsProviderActive" Nullable="true" />
+        </ComplexType>
+        <ComplexType Name="fnPartnerProductSetting">
+          <Property Type="Int32" Name="Id" Nullable="false" />
+          <Property Type="Int32" Name="PartnerId" Nullable="false" />
+          <Property Type="Int32" Name="ProductId" Nullable="false" />
+          <Property Type="Decimal" Name="Percent" Nullable="false" Precision="18" Scale="4" />
+          <Property Type="Int32" Name="State" Nullable="false" />
+          <Property Type="Decimal" Name="Rating" Nullable="true" Precision="5" Scale="2" />
+          <Property Type="String" Name="CategoryIds" Nullable="true" MaxLength="50" />
+          <Property Type="Int32" Name="OpenMode" Nullable="true" />
+          <Property Type="Boolean" Name="HasDemo" Nullable="true" />
+          <Property Type="String" Name="ProductNickName" Nullable="false" MaxLength="50" />
+          <Property Type="String" Name="ProductExternalId" Nullable="true" MaxLength="100" />
+          <Property Type="String" Name="ProductName" Nullable="false" />
+          <Property Type="Int32" Name="ProductGameProviderId" Nullable="true" />
+          <Property Type="Int32" Name="ProductParentId" Nullable="true" />
+          <Property Type="Int32" Name="PaymentSystemId" Nullable="true" />
+          <Property Type="String" Name="GameProviderName" Nullable="true" MaxLength="50" />
+          <Property Type="Int32" Name="SubproviderId" Nullable="true" />
+          <Property Type="String" Name="SubproviderName" Nullable="true" MaxLength="50" />
+          <Property Type="Boolean" Name="IsForDesktop" Nullable="false" />
+          <Property Type="Boolean" Name="IsForMobile" Nullable="false" />
+          <Property Type="String" Name="Jackpot" Nullable="true" MaxLength="250" />
+          <Property Type="String" Name="MobileImageUrl" Nullable="true" MaxLength="250" />
+          <Property Type="String" Name="WebImageUrl" Nullable="true" MaxLength="250" />
+          <Property Type="Boolean" Name="HasImages" Nullable="true" />
+          <Property Type="Int32" Name="ProductState" Nullable="false" />
+          <Property Type="Decimal" Name="RTP" Nullable="true" Precision="5" Scale="2" />
+          <Property Type="Int32" Name="Volatility" Nullable="true" />
+          <Property Type="DateTime" Name="CreationTime" Nullable="false" Precision="23" />
+          <Property Type="DateTime" Name="LastUpdateTime" Nullable="false" Precision="23" />
+        </ComplexType>
+        <ComplexType Name="fnPopupStatistics">
+          <Property Type="Int32" Name="Id" Nullable="false" />
+          <Property Type="Int32" Name="PartnerId" Nullable="false" />
+          <Property Type="String" Name="NickName" Nullable="false" MaxLength="100" />
+          <Property Type="Int32" Name="Type" Nullable="false" />
+          <Property Type="Int32" Name="DeviceType" Nullable="true" />
+          <Property Type="Int32" Name="State" Nullable="false" />
+          <Property Type="DateTime" Name="CreationTime" Nullable="false" Precision="23" />
+          <Property Type="DateTime" Name="LastUpdateTime" Nullable="false" Precision="23" />
+          <Property Type="Int32" Name="ViewTypeId" Nullable="true" />
+          <Property Type="Int32" Name="ViewCount" Nullable="true" />
+        </ComplexType>
+        <EntityType Name="ClientBonu">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="BonusId" Type="Int32" Nullable="false" />
+          <Property Name="ClientId" Type="Int32" Nullable="false" />
+          <Property Name="Status" Type="Int32" Nullable="false" />
+          <Property Name="BonusPrize" Type="Decimal" Nullable="false" Precision="18" Scale="3" />
+          <Property Name="CreationTime" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="AwardingTime" Type="DateTime" Precision="3" />
+          <Property Name="TurnoverAmountLeft" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="FinalAmount" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="CalculationTime" Type="DateTime" Precision="3" />
+          <Property Name="ValidUntil" Type="DateTime" Precision="3" />
+          <Property Name="LinkedBonusId" Type="Int32" />
+          <Property Name="CreationDate" Type="Int64" />
+          <Property Name="ReuseNumber" Type="Int64" />
+          <Property Name="Considered" Type="Boolean" />
+          <NavigationProperty Name="Bonu" Relationship="IqSoftCorePlatformModel.FK_ClientBonus_Bonus" FromRole="ClientBonu" ToRole="Bonu" />
+          <NavigationProperty Name="Bonu1" Relationship="IqSoftCorePlatformModel.FK_ClientBonus_Bonus1" FromRole="ClientBonu" ToRole="Bonu" />
+          <NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_ClientBonus_Client" FromRole="ClientBonu" ToRole="Client" />
+        </EntityType>
+        <Association Name="FK_ClientBonus_Bonus">
+          <End Type="IqSoftCorePlatformModel.Bonu" Role="Bonu" Multiplicity="1" />
+          <End Type="IqSoftCorePlatformModel.ClientBonu" Role="ClientBonu" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Bonu">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClientBonu">
+              <PropertyRef Name="BonusId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ClientBonus_Bonus1">
+          <End Type="IqSoftCorePlatformModel.Bonu" Role="Bonu" Multiplicity="0..1" />
+          <End Type="IqSoftCorePlatformModel.ClientBonu" Role="ClientBonu" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Bonu">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClientBonu">
+              <PropertyRef Name="LinkedBonusId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ClientBonus_Client">
+          <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="1" />
+          <End Type="IqSoftCorePlatformModel.ClientBonu" Role="ClientBonu" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Client">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClientBonu">
+              <PropertyRef Name="ClientId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <ComplexType Name="fnClientBonus">
+          <Property Type="Int32" Name="Id" Nullable="false" />
+          <Property Type="Int32" Name="BonusId" Nullable="false" />
+          <Property Type="Int32" Name="ClientId" Nullable="false" />
+          <Property Type="Int32" Name="Status" Nullable="false" />
+          <Property Type="Decimal" Name="BonusPrize" Nullable="false" Precision="18" Scale="3" />
+          <Property Type="Decimal" Name="SpinsCount" Nullable="true" Precision="18" Scale="3" />
+          <Property Type="DateTime" Name="CreationTime" Nullable="false" Precision="23" />
+          <Property Type="DateTime" Name="AwardingTime" Nullable="true" Precision="23" />
+          <Property Type="Decimal" Name="TurnoverAmountLeft" Nullable="true" Precision="18" Scale="4" />
+          <Property Type="Decimal" Name="RemainingCredit" Nullable="true" Precision="18" Scale="4" />
+          <Property Type="Decimal" Name="WageringTarget" Nullable="true" Precision="29" Scale="3" />
+          <Property Type="Decimal" Name="FinalAmount" Nullable="true" Precision="18" Scale="4" />
+          <Property Type="DateTime" Name="CalculationTime" Nullable="true" Precision="23" />
+          <Property Type="DateTime" Name="ValidUntil" Nullable="true" Precision="23" />
+          <Property Type="Int32" Name="LinkedBonusId" Nullable="true" />
+          <Property Type="Int64" Name="CreationDate" Nullable="true" />
+          <Property Type="Int64" Name="ReuseNumber" Nullable="true" />
+          <Property Type="String" Name="UserName" Nullable="true" MaxLength="50" />
+          <Property Type="String" Name="FirstName" Nullable="true" MaxLength="255" />
+          <Property Type="String" Name="LastName" Nullable="true" MaxLength="255" />
+          <Property Type="String" Name="CurrencyId" Nullable="true" MaxLength="5" />
+          <Property Type="String" Name="Email" Nullable="true" MaxLength="50" />
+          <Property Type="String" Name="MobileNumber" Nullable="true" MaxLength="50" />
+          <Property Type="String" Name="NickName" Nullable="false" MaxLength="255" />
+          <Property Type="String" Name="Name" Nullable="false" />
+          <Property Type="String" Name="Description" Nullable="true" MaxLength="500" />
+          <Property Type="Int32" Name="PartnerId" Nullable="false" />
+          <Property Type="Int32" Name="FinalAccountTypeId" Nullable="true" />
+          <Property Type="Int32" Name="BonusStatus" Nullable="false" />
+          <Property Type="DateTime" Name="StartTime" Nullable="false" Precision="23" />
+          <Property Type="DateTime" Name="FinishTime" Nullable="false" Precision="23" />
+          <Property Type="DateTime" Name="LastExecutionTime" Nullable="false" Precision="23" />
+          <Property Type="Int32" Name="Period" Nullable="false" />
+          <Property Type="Int32" Name="Type" Nullable="false" />
+          <Property Type="String" Name="Info" Nullable="true" MaxLength="1500" />
+          <Property Type="Int32" Name="TurnoverCount" Nullable="true" />
+          <Property Type="Decimal" Name="MinAmount" Nullable="true" Precision="18" Scale="4" />
+          <Property Type="Decimal" Name="MaxAmount" Nullable="true" Precision="18" Scale="4" />
+          <Property Type="Int32" Name="Sequence" Nullable="true" />
+          <Property Type="Int32" Name="Priority" Nullable="true" />
+          <Property Type="Int32" Name="WinAccountTypeId" Nullable="true" />
+          <Property Type="Int32" Name="ValidForAwarding" Nullable="true" />
+          <Property Type="Int32" Name="ValidForSpending" Nullable="true" />
+          <Property Type="Int32" Name="ReusingMaxCount" Nullable="true" />
+          <Property Type="Boolean" Name="ResetOnWithdraw" Nullable="true" />
+          <Property Type="DateTime" Name="BonusCreationTime" Nullable="true" Precision="23" />
+          <Property Type="DateTime" Name="BonusLastUpdateTime" Nullable="true" Precision="23" />
+          <Property Type="Boolean" Name="AllowSplit" Nullable="true" />
+          <Property Type="Boolean" Name="RefundRollbacked" Nullable="true" />
+          <Property Type="String" Name="Condition" Nullable="true" />
+        </ComplexType>
         </Schema>
 		</edmx:ConceptualModels>
 		<!-- C-S mapping content -->
@@ -20484,7 +20581,8 @@
 					<EntitySetMapping Name="Affiliates">
 						<EntityTypeMapping TypeName="IqSoftCorePlatformModel.Affiliate">
 							<MappingFragment StoreEntitySet="Affiliate">
-								<ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
+								<ScalarProperty Name="ClientId" ColumnName="ClientId" />
+                <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
 								<ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
 								<ScalarProperty Name="CommunicationTypeValue" ColumnName="CommunicationTypeValue" />
 								<ScalarProperty Name="CommunicationType" ColumnName="CommunicationType" />
@@ -20505,30 +20603,6 @@
 							</MappingFragment>
 						</EntityTypeMapping>
 					</EntitySetMapping>
-					<FunctionImportMapping FunctionImportName="fn_Affiliate" FunctionName="IqSoftCorePlatformModel.Store.fn_Affiliate">
-						<ResultMapping>
-							<ComplexTypeMapping TypeName="IqSoftCorePlatformModel.fnAffiliate">
-								<ScalarProperty Name="Id" ColumnName="Id" />
-								<ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
-								<ScalarProperty Name="UserName" ColumnName="UserName" />
-								<ScalarProperty Name="FirstName" ColumnName="FirstName" />
-								<ScalarProperty Name="LastName" ColumnName="LastName" />
-								<ScalarProperty Name="NickName" ColumnName="NickName" />
-								<ScalarProperty Name="Gender" ColumnName="Gender" />
-								<ScalarProperty Name="RegionId" ColumnName="RegionId" />
-								<ScalarProperty Name="LanguageId" ColumnName="LanguageId" />
-								<ScalarProperty Name="PasswordHash" ColumnName="PasswordHash" />
-								<ScalarProperty Name="Salt" ColumnName="Salt" />
-								<ScalarProperty Name="State" ColumnName="State" />
-								<ScalarProperty Name="Email" ColumnName="Email" />
-								<ScalarProperty Name="MobileNumber" ColumnName="MobileNumber" />
-								<ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
-								<ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
-								<ScalarProperty Name="CommunicationType" ColumnName="CommunicationType" />
-								<ScalarProperty Name="CommunicationTypeValue" ColumnName="CommunicationTypeValue" />
-							</ComplexTypeMapping>
-						</ResultMapping>
-					</FunctionImportMapping>
 					<EntitySetMapping Name="AffiliateCommissions">
 						<EntityTypeMapping TypeName="IqSoftCorePlatformModel.AffiliateCommission">
 							<MappingFragment StoreEntitySet="AffiliateCommission">
@@ -21410,27 +21484,6 @@
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="ClientBonus">
-            <EntityTypeMapping TypeName="IqSoftCorePlatformModel.ClientBonu">
-              <MappingFragment StoreEntitySet="ClientBonus">
-                <ScalarProperty Name="Considered" ColumnName="Considered" />
-                <ScalarProperty Name="ReuseNumber" ColumnName="ReuseNumber" />
-                <ScalarProperty Name="CreationDate" ColumnName="CreationDate" />
-                <ScalarProperty Name="TriggerId" ColumnName="TriggerId" />
-                <ScalarProperty Name="ValidUntil" ColumnName="ValidUntil" />
-                <ScalarProperty Name="CalculationTime" ColumnName="CalculationTime" />
-                <ScalarProperty Name="FinalAmount" ColumnName="FinalAmount" />
-                <ScalarProperty Name="TurnoverAmountLeft" ColumnName="TurnoverAmountLeft" />
-                <ScalarProperty Name="AwardingTime" ColumnName="AwardingTime" />
-                <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
-                <ScalarProperty Name="BonusPrize" ColumnName="BonusPrize" />
-                <ScalarProperty Name="Status" ColumnName="Status" />
-                <ScalarProperty Name="ClientId" ColumnName="ClientId" />
-                <ScalarProperty Name="BonusId" ColumnName="BonusId" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="ClientBonusTriggers">
             <EntityTypeMapping TypeName="IqSoftCorePlatformModel.ClientBonusTrigger">
               <MappingFragment StoreEntitySet="ClientBonusTrigger">
@@ -21646,42 +21699,6 @@
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <FunctionImportMapping FunctionImportName="fn_PartnerProductSetting" FunctionName="IqSoftCorePlatformModel.Store.fn_PartnerProductSetting">
-            <ResultMapping>
-              <ComplexTypeMapping TypeName="IqSoftCorePlatformModel.fnPartnerProductSetting">
-                <ScalarProperty Name="Id" ColumnName="Id" />
-                <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
-                <ScalarProperty Name="ProductId" ColumnName="ProductId" />
-                <ScalarProperty Name="Percent" ColumnName="Percent" />
-                <ScalarProperty Name="State" ColumnName="State" />
-                <ScalarProperty Name="Rating" ColumnName="Rating" />
-                <ScalarProperty Name="CategoryIds" ColumnName="CategoryIds" />
-                <ScalarProperty Name="OpenMode" ColumnName="OpenMode" />
-                <ScalarProperty Name="HasDemo" ColumnName="HasDemo" />
-                <ScalarProperty Name="ProductNickName" ColumnName="ProductNickName" />
-                <ScalarProperty Name="ProductExternalId" ColumnName="ProductExternalId" />
-                <ScalarProperty Name="ProductName" ColumnName="ProductName" />
-                <ScalarProperty Name="ProductIsLeaf" ColumnName="ProductIsLeaf" />
-                <ScalarProperty Name="ProductGameProviderId" ColumnName="ProductGameProviderId" />
-                <ScalarProperty Name="ProductParentId" ColumnName="ProductParentId" />
-                <ScalarProperty Name="PaymentSystemId" ColumnName="PaymentSystemId" />
-                <ScalarProperty Name="GameProviderName" ColumnName="GameProviderName" />
-                <ScalarProperty Name="SubproviderId" ColumnName="SubproviderId" />
-                <ScalarProperty Name="SubproviderName" ColumnName="SubproviderName" />
-                <ScalarProperty Name="IsForDesktop" ColumnName="IsForDesktop" />
-                <ScalarProperty Name="IsForMobile" ColumnName="IsForMobile" />
-                <ScalarProperty Name="Jackpot" ColumnName="Jackpot" />
-                <ScalarProperty Name="MobileImageUrl" ColumnName="MobileImageUrl" />
-                <ScalarProperty Name="WebImageUrl" ColumnName="WebImageUrl" />
-                <ScalarProperty Name="HasImages" ColumnName="HasImages" />
-                <ScalarProperty Name="ProductState" ColumnName="ProductState" />
-                <ScalarProperty Name="RTP" ColumnName="RTP" />
-                <ScalarProperty Name="Volatility" ColumnName="Volatility" />
-                <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
-                <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
-              </ComplexTypeMapping>
-            </ResultMapping>
-          </FunctionImportMapping>
           <EntitySetMapping Name="GameProviders">
             <EntityTypeMapping TypeName="IqSoftCorePlatformModel.GameProvider">
               <MappingFragment StoreEntitySet="GameProvider">
@@ -21744,62 +21761,6 @@
               </ComplexTypeMapping>
             </ResultMapping>
           </FunctionImportMapping>
-          <FunctionImportMapping FunctionImportName="fn_ClientBonus" FunctionName="IqSoftCorePlatformModel.Store.fn_ClientBonus">
-            <ResultMapping>
-              <ComplexTypeMapping TypeName="IqSoftCorePlatformModel.fnClientBonus">
-                <ScalarProperty Name="Id" ColumnName="Id" />
-                <ScalarProperty Name="BonusId" ColumnName="BonusId" />
-                <ScalarProperty Name="ClientId" ColumnName="ClientId" />
-                <ScalarProperty Name="Status" ColumnName="Status" />
-                <ScalarProperty Name="BonusPrize" ColumnName="BonusPrize" />
-                <ScalarProperty Name="SpinsCount" ColumnName="SpinsCount" />
-                <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
-                <ScalarProperty Name="AwardingTime" ColumnName="AwardingTime" />
-                <ScalarProperty Name="TurnoverAmountLeft" ColumnName="TurnoverAmountLeft" />
-                <ScalarProperty Name="RemainingCredit" ColumnName="RemainingCredit" />
-                <ScalarProperty Name="WageringTarget" ColumnName="WageringTarget" />
-                <ScalarProperty Name="FinalAmount" ColumnName="FinalAmount" />
-                <ScalarProperty Name="CalculationTime" ColumnName="CalculationTime" />
-                <ScalarProperty Name="ValidUntil" ColumnName="ValidUntil" />
-                <ScalarProperty Name="TriggerId" ColumnName="TriggerId" />
-                <ScalarProperty Name="CreationDate" ColumnName="CreationDate" />
-                <ScalarProperty Name="ReuseNumber" ColumnName="ReuseNumber" />
-                <ScalarProperty Name="UserName" ColumnName="UserName" />
-                <ScalarProperty Name="FirstName" ColumnName="FirstName" />
-                <ScalarProperty Name="LastName" ColumnName="LastName" />
-                <ScalarProperty Name="CurrencyId" ColumnName="CurrencyId" />
-                <ScalarProperty Name="Email" ColumnName="Email" />
-                <ScalarProperty Name="MobileNumber" ColumnName="MobileNumber" />
-                <ScalarProperty Name="NickName" ColumnName="NickName" />
-                <ScalarProperty Name="Name" ColumnName="Name" />
-                <ScalarProperty Name="Description" ColumnName="Description" />
-                <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
-                <ScalarProperty Name="FinalAccountTypeId" ColumnName="FinalAccountTypeId" />
-                <ScalarProperty Name="BonusStatus" ColumnName="BonusStatus" />
-                <ScalarProperty Name="StartTime" ColumnName="StartTime" />
-                <ScalarProperty Name="FinishTime" ColumnName="FinishTime" />
-                <ScalarProperty Name="LastExecutionTime" ColumnName="LastExecutionTime" />
-                <ScalarProperty Name="Period" ColumnName="Period" />
-                <ScalarProperty Name="Type" ColumnName="Type" />
-                <ScalarProperty Name="Info" ColumnName="Info" />
-                <ScalarProperty Name="TurnoverCount" ColumnName="TurnoverCount" />
-                <ScalarProperty Name="MinAmount" ColumnName="MinAmount" />
-                <ScalarProperty Name="MaxAmount" ColumnName="MaxAmount" />
-                <ScalarProperty Name="Sequence" ColumnName="Sequence" />
-                <ScalarProperty Name="Priority" ColumnName="Priority" />
-                <ScalarProperty Name="WinAccountTypeId" ColumnName="WinAccountTypeId" />
-                <ScalarProperty Name="ValidForAwarding" ColumnName="ValidForAwarding" />
-                <ScalarProperty Name="ValidForSpending" ColumnName="ValidForSpending" />
-                <ScalarProperty Name="ReusingMaxCount" ColumnName="ReusingMaxCount" />
-                <ScalarProperty Name="ResetOnWithdraw" ColumnName="ResetOnWithdraw" />
-                <ScalarProperty Name="BonusCreationTime" ColumnName="BonusCreationTime" />
-                <ScalarProperty Name="BonusLastUpdateTime" ColumnName="BonusLastUpdateTime" />
-                <ScalarProperty Name="AllowSplit" ColumnName="AllowSplit" />
-                <ScalarProperty Name="RefundRollbacked" ColumnName="RefundRollbacked" />
-                <ScalarProperty Name="Condition" ColumnName="Condition" />
-              </ComplexTypeMapping>
-            </ResultMapping>
-          </FunctionImportMapping>
           <EntitySetMapping Name="Products">
             <EntityTypeMapping TypeName="IqSoftCorePlatformModel.Product">
               <MappingFragment StoreEntitySet="Product">
@@ -21832,45 +21793,6 @@
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <FunctionImportMapping FunctionImportName="fn_Product" FunctionName="IqSoftCorePlatformModel.Store.fn_Product">
-            <ResultMapping>
-              <ComplexTypeMapping TypeName="IqSoftCorePlatformModel.fnProduct">
-                <ScalarProperty Name="Id" ColumnName="Id" />
-                <ScalarProperty Name="TranslationId" ColumnName="TranslationId" />
-                <ScalarProperty Name="GameProviderId" ColumnName="GameProviderId" />
-                <ScalarProperty Name="PaymentSystemId" ColumnName="PaymentSystemId" />
-                <ScalarProperty Name="Level" ColumnName="Level" />
-                <ScalarProperty Name="NickName" ColumnName="NickName" />
-                <ScalarProperty Name="ParentId" ColumnName="ParentId" />
-                <ScalarProperty Name="ExternalId" ColumnName="ExternalId" />
-                <ScalarProperty Name="State" ColumnName="State" />
-                <ScalarProperty Name="IsForDesktop" ColumnName="IsForDesktop" />
-                <ScalarProperty Name="IsForMobile" ColumnName="IsForMobile" />
-                <ScalarProperty Name="HasDemo" ColumnName="HasDemo" />
-                <ScalarProperty Name="SubproviderId" ColumnName="SubproviderId" />
-                <ScalarProperty Name="WebImageUrl" ColumnName="WebImageUrl" />
-                <ScalarProperty Name="MobileImageUrl" ColumnName="MobileImageUrl" />
-                <ScalarProperty Name="BackgroundImageUrl" ColumnName="BackgroundImageUrl" />
-                <ScalarProperty Name="FreeSpinSupport" ColumnName="FreeSpinSupport" />
-                <ScalarProperty Name="Jackpot" ColumnName="Jackpot" />
-                <ScalarProperty Name="CategoryId" ColumnName="CategoryId" />
-                <ScalarProperty Name="RTP" ColumnName="RTP" />
-                <ScalarProperty Name="Lines" ColumnName="Lines" />
-                <ScalarProperty Name="BetValues" ColumnName="BetValues" />
-                <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
-                <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
-                <ScalarProperty Name="Volatility" ColumnName="Volatility" />
-                <ScalarProperty Name="HasImages" ColumnName="HasImages" />
-                <ScalarProperty Name="Path" ColumnName="Path" />
-                <ScalarProperty Name="Name" ColumnName="Name" />
-                <ScalarProperty Name="GameProviderName" ColumnName="GameProviderName" />
-                <ScalarProperty Name="SubproviderName" ColumnName="SubproviderName" />
-                <ScalarProperty Name="IsProviderActive" ColumnName="IsProviderActive" />
-                <ScalarProperty Name="IsLeaf" ColumnName="IsLeaf" />
-                <ScalarProperty Name="IsLastProductGroup" ColumnName="IsLastProductGroup" />
-              </ComplexTypeMapping>
-            </ResultMapping>
-          </FunctionImportMapping>
           <EntitySetMapping Name="ClientMessageStates">
             <EntityTypeMapping TypeName="IqSoftCorePlatformModel.ClientMessageState">
               <MappingFragment StoreEntitySet="ClientMessageState">
@@ -22323,6 +22245,196 @@
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
+          <FunctionImportMapping FunctionImportName="fn_Affiliate" FunctionName="IqSoftCorePlatformModel.Store.fn_Affiliate">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="IqSoftCorePlatformModel.fnAffiliate">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+                <ScalarProperty Name="UserName" ColumnName="UserName" />
+                <ScalarProperty Name="FirstName" ColumnName="FirstName" />
+                <ScalarProperty Name="LastName" ColumnName="LastName" />
+                <ScalarProperty Name="NickName" ColumnName="NickName" />
+                <ScalarProperty Name="Gender" ColumnName="Gender" />
+                <ScalarProperty Name="RegionId" ColumnName="RegionId" />
+                <ScalarProperty Name="LanguageId" ColumnName="LanguageId" />
+                <ScalarProperty Name="PasswordHash" ColumnName="PasswordHash" />
+                <ScalarProperty Name="Salt" ColumnName="Salt" />
+                <ScalarProperty Name="State" ColumnName="State" />
+                <ScalarProperty Name="Email" ColumnName="Email" />
+                <ScalarProperty Name="MobileNumber" ColumnName="MobileNumber" />
+                <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
+                <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
+                <ScalarProperty Name="CommunicationType" ColumnName="CommunicationType" />
+                <ScalarProperty Name="CommunicationTypeValue" ColumnName="CommunicationTypeValue" />
+                <ScalarProperty Name="ClientId" ColumnName="ClientId" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <FunctionImportMapping FunctionImportName="fn_Product" FunctionName="IqSoftCorePlatformModel.Store.fn_Product">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="IqSoftCorePlatformModel.fnProduct">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="TranslationId" ColumnName="TranslationId" />
+                <ScalarProperty Name="GameProviderId" ColumnName="GameProviderId" />
+                <ScalarProperty Name="PaymentSystemId" ColumnName="PaymentSystemId" />
+                <ScalarProperty Name="Level" ColumnName="Level" />
+                <ScalarProperty Name="NickName" ColumnName="NickName" />
+                <ScalarProperty Name="ParentId" ColumnName="ParentId" />
+                <ScalarProperty Name="ExternalId" ColumnName="ExternalId" />
+                <ScalarProperty Name="State" ColumnName="State" />
+                <ScalarProperty Name="IsForDesktop" ColumnName="IsForDesktop" />
+                <ScalarProperty Name="IsForMobile" ColumnName="IsForMobile" />
+                <ScalarProperty Name="HasDemo" ColumnName="HasDemo" />
+                <ScalarProperty Name="SubproviderId" ColumnName="SubproviderId" />
+                <ScalarProperty Name="WebImageUrl" ColumnName="WebImageUrl" />
+                <ScalarProperty Name="MobileImageUrl" ColumnName="MobileImageUrl" />
+                <ScalarProperty Name="BackgroundImageUrl" ColumnName="BackgroundImageUrl" />
+                <ScalarProperty Name="FreeSpinSupport" ColumnName="FreeSpinSupport" />
+                <ScalarProperty Name="Jackpot" ColumnName="Jackpot" />
+                <ScalarProperty Name="CategoryId" ColumnName="CategoryId" />
+                <ScalarProperty Name="RTP" ColumnName="RTP" />
+                <ScalarProperty Name="Lines" ColumnName="Lines" />
+                <ScalarProperty Name="BetValues" ColumnName="BetValues" />
+                <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
+                <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
+                <ScalarProperty Name="Volatility" ColumnName="Volatility" />
+                <ScalarProperty Name="HasImages" ColumnName="HasImages" />
+                <ScalarProperty Name="Path" ColumnName="Path" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="GameProviderName" ColumnName="GameProviderName" />
+                <ScalarProperty Name="SubproviderName" ColumnName="SubproviderName" />
+                <ScalarProperty Name="IsProviderActive" ColumnName="IsProviderActive" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <FunctionImportMapping FunctionImportName="fn_PartnerProductSetting" FunctionName="IqSoftCorePlatformModel.Store.fn_PartnerProductSetting">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="IqSoftCorePlatformModel.fnPartnerProductSetting">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+                <ScalarProperty Name="ProductId" ColumnName="ProductId" />
+                <ScalarProperty Name="Percent" ColumnName="Percent" />
+                <ScalarProperty Name="State" ColumnName="State" />
+                <ScalarProperty Name="Rating" ColumnName="Rating" />
+                <ScalarProperty Name="CategoryIds" ColumnName="CategoryIds" />
+                <ScalarProperty Name="OpenMode" ColumnName="OpenMode" />
+                <ScalarProperty Name="HasDemo" ColumnName="HasDemo" />
+                <ScalarProperty Name="ProductNickName" ColumnName="ProductNickName" />
+                <ScalarProperty Name="ProductExternalId" ColumnName="ProductExternalId" />
+                <ScalarProperty Name="ProductName" ColumnName="ProductName" />
+                <ScalarProperty Name="ProductGameProviderId" ColumnName="ProductGameProviderId" />
+                <ScalarProperty Name="ProductParentId" ColumnName="ProductParentId" />
+                <ScalarProperty Name="PaymentSystemId" ColumnName="PaymentSystemId" />
+                <ScalarProperty Name="GameProviderName" ColumnName="GameProviderName" />
+                <ScalarProperty Name="SubproviderId" ColumnName="SubproviderId" />
+                <ScalarProperty Name="SubproviderName" ColumnName="SubproviderName" />
+                <ScalarProperty Name="IsForDesktop" ColumnName="IsForDesktop" />
+                <ScalarProperty Name="IsForMobile" ColumnName="IsForMobile" />
+                <ScalarProperty Name="Jackpot" ColumnName="Jackpot" />
+                <ScalarProperty Name="MobileImageUrl" ColumnName="MobileImageUrl" />
+                <ScalarProperty Name="WebImageUrl" ColumnName="WebImageUrl" />
+                <ScalarProperty Name="HasImages" ColumnName="HasImages" />
+                <ScalarProperty Name="ProductState" ColumnName="ProductState" />
+                <ScalarProperty Name="RTP" ColumnName="RTP" />
+                <ScalarProperty Name="Volatility" ColumnName="Volatility" />
+                <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
+                <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <FunctionImportMapping FunctionImportName="fn_PopupStatistics" FunctionName="IqSoftCorePlatformModel.Store.fn_PopupStatistics">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="IqSoftCorePlatformModel.fnPopupStatistics">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+                <ScalarProperty Name="NickName" ColumnName="NickName" />
+                <ScalarProperty Name="Type" ColumnName="Type" />
+                <ScalarProperty Name="DeviceType" ColumnName="DeviceType" />
+                <ScalarProperty Name="State" ColumnName="State" />
+                <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
+                <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
+                <ScalarProperty Name="ViewTypeId" ColumnName="ViewTypeId" />
+                <ScalarProperty Name="ViewCount" ColumnName="ViewCount" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <EntitySetMapping Name="ClientBonus">
+            <EntityTypeMapping TypeName="IqSoftCorePlatformModel.ClientBonu">
+              <MappingFragment StoreEntitySet="ClientBonus">
+                <ScalarProperty Name="Considered" ColumnName="Considered" />
+                <ScalarProperty Name="ReuseNumber" ColumnName="ReuseNumber" />
+                <ScalarProperty Name="CreationDate" ColumnName="CreationDate" />
+                <ScalarProperty Name="LinkedBonusId" ColumnName="LinkedBonusId" />
+                <ScalarProperty Name="ValidUntil" ColumnName="ValidUntil" />
+                <ScalarProperty Name="CalculationTime" ColumnName="CalculationTime" />
+                <ScalarProperty Name="FinalAmount" ColumnName="FinalAmount" />
+                <ScalarProperty Name="TurnoverAmountLeft" ColumnName="TurnoverAmountLeft" />
+                <ScalarProperty Name="AwardingTime" ColumnName="AwardingTime" />
+                <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
+                <ScalarProperty Name="BonusPrize" ColumnName="BonusPrize" />
+                <ScalarProperty Name="Status" ColumnName="Status" />
+                <ScalarProperty Name="ClientId" ColumnName="ClientId" />
+                <ScalarProperty Name="BonusId" ColumnName="BonusId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <FunctionImportMapping FunctionImportName="fn_ClientBonus" FunctionName="IqSoftCorePlatformModel.Store.fn_ClientBonus">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="IqSoftCorePlatformModel.fnClientBonus">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="BonusId" ColumnName="BonusId" />
+                <ScalarProperty Name="ClientId" ColumnName="ClientId" />
+                <ScalarProperty Name="Status" ColumnName="Status" />
+                <ScalarProperty Name="BonusPrize" ColumnName="BonusPrize" />
+                <ScalarProperty Name="SpinsCount" ColumnName="SpinsCount" />
+                <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
+                <ScalarProperty Name="AwardingTime" ColumnName="AwardingTime" />
+                <ScalarProperty Name="TurnoverAmountLeft" ColumnName="TurnoverAmountLeft" />
+                <ScalarProperty Name="RemainingCredit" ColumnName="RemainingCredit" />
+                <ScalarProperty Name="WageringTarget" ColumnName="WageringTarget" />
+                <ScalarProperty Name="FinalAmount" ColumnName="FinalAmount" />
+                <ScalarProperty Name="CalculationTime" ColumnName="CalculationTime" />
+                <ScalarProperty Name="ValidUntil" ColumnName="ValidUntil" />
+                <ScalarProperty Name="LinkedBonusId" ColumnName="LinkedBonusId" />
+                <ScalarProperty Name="CreationDate" ColumnName="CreationDate" />
+                <ScalarProperty Name="ReuseNumber" ColumnName="ReuseNumber" />
+                <ScalarProperty Name="UserName" ColumnName="UserName" />
+                <ScalarProperty Name="FirstName" ColumnName="FirstName" />
+                <ScalarProperty Name="LastName" ColumnName="LastName" />
+                <ScalarProperty Name="CurrencyId" ColumnName="CurrencyId" />
+                <ScalarProperty Name="Email" ColumnName="Email" />
+                <ScalarProperty Name="MobileNumber" ColumnName="MobileNumber" />
+                <ScalarProperty Name="NickName" ColumnName="NickName" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+                <ScalarProperty Name="FinalAccountTypeId" ColumnName="FinalAccountTypeId" />
+                <ScalarProperty Name="BonusStatus" ColumnName="BonusStatus" />
+                <ScalarProperty Name="StartTime" ColumnName="StartTime" />
+                <ScalarProperty Name="FinishTime" ColumnName="FinishTime" />
+                <ScalarProperty Name="LastExecutionTime" ColumnName="LastExecutionTime" />
+                <ScalarProperty Name="Period" ColumnName="Period" />
+                <ScalarProperty Name="Type" ColumnName="Type" />
+                <ScalarProperty Name="Info" ColumnName="Info" />
+                <ScalarProperty Name="TurnoverCount" ColumnName="TurnoverCount" />
+                <ScalarProperty Name="MinAmount" ColumnName="MinAmount" />
+                <ScalarProperty Name="MaxAmount" ColumnName="MaxAmount" />
+                <ScalarProperty Name="Sequence" ColumnName="Sequence" />
+                <ScalarProperty Name="Priority" ColumnName="Priority" />
+                <ScalarProperty Name="WinAccountTypeId" ColumnName="WinAccountTypeId" />
+                <ScalarProperty Name="ValidForAwarding" ColumnName="ValidForAwarding" />
+                <ScalarProperty Name="ValidForSpending" ColumnName="ValidForSpending" />
+                <ScalarProperty Name="ReusingMaxCount" ColumnName="ReusingMaxCount" />
+                <ScalarProperty Name="ResetOnWithdraw" ColumnName="ResetOnWithdraw" />
+                <ScalarProperty Name="BonusCreationTime" ColumnName="BonusCreationTime" />
+                <ScalarProperty Name="BonusLastUpdateTime" ColumnName="BonusLastUpdateTime" />
+                <ScalarProperty Name="AllowSplit" ColumnName="AllowSplit" />
+                <ScalarProperty Name="RefundRollbacked" ColumnName="RefundRollbacked" />
+                <ScalarProperty Name="Condition" ColumnName="Condition" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
 				</EntityContainerMapping>
 			</Mapping>
 		</edmx:Mappings>

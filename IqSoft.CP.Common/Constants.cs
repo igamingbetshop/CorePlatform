@@ -54,6 +54,7 @@ namespace IqSoft.CP.Common
             public const string Translations = "Translations";
             public const string Styles = "Styles";
             public const string Registration = "Registration";
+            public const string Login = "Login";
             public const string News = "News";
             public const string Config = "Config";
             public const string Assets = "Assets";
@@ -651,6 +652,8 @@ namespace IqSoft.CP.Common
             public const string KralPayMefete = "KralPayMefete";
             public const string KralPayBankTransfer = "KralPayBankTransfer";
             public const string KralPayCrypto = "KralPayCrypto";
+            public const string GatewayPay = "GatewayPay";
+            public const string FreedomPay = "FreedomPay";
 
 
             public const string MoneyPayVisaMaster = "MoneyPayVisaMaster";
@@ -703,7 +706,10 @@ namespace IqSoft.CP.Common
             public const string CoinsPaidUSDTT = "CoinsPaidUSDTT";
             public const string CoinsPaidETH = "CoinsPaidETH";
             public const string CoinsPaidUSDC = "CoinsPaidUSDC";
-
+            public const string CoinsPaidLTC = "CoinsPaidLTC";
+            public const string CoinsPaidUSDTE = "CoinsPaidUSDTE";
+            public const string CoinsPaidXRP = "CoinsPaidXRP";
+            public const string CoinsPaidBNBBSC = "CoinsPaidBNBBSC";
             public const string Paylado = "Paylado";
             public const string VevoPayPapara = "VevoPayPapara";
             public const string VevoPayHavale = "VevoPayHavale";
@@ -740,6 +746,11 @@ namespace IqSoft.CP.Common
 
             public const string QuikiPay = "QuikiPay";
             public const string QuikiPayCrypto = "QuikiPayCrypto";
+
+            public const string XprizoCard = "XprizoCard";
+            public const string XprizoWallet = "XprizoWallet";
+            public const string XprizoMpesa = "XprizoMpesa";
+            public const string XprizoUPI = "XprizoUPI";
         }
 
         public static List<string> VoucherPaymentSystems { get; private set; } = new List<string>
@@ -1003,6 +1014,8 @@ namespace IqSoft.CP.Common
             public const string AdminMenu = "AdminMenu";
             public const string ListedKeys = "ListedKeys";
             public const string Characters = "Characters";
+            public const string Tournaments = "Tournaments";
+            public const string TournamentLeaderboards = "TournamentLeaderboards";
         }
 
         public static class Currencies
@@ -1037,6 +1050,7 @@ namespace IqSoft.CP.Common
             public const string CanadianDollar = "CAD";
             public const string TunisianDinar = "TND";
             public const string EthiopianBirr = "ETB";
+            public const string BritainPound = "GBP";
         }
 
         public static class Permissions
@@ -1220,6 +1234,7 @@ namespace IqSoft.CP.Common
             public const string ViewPromotion = "ViewPromotion";
             public const string ViewNews = "ViewNews";
             public const string ViewPopup= "ViewPopup";
+            public const string ViewPopupStatistics= "ViewPopupStatistics";
             public const string EditPromotions = "EditPromotions";
             public const string RemovePromotions = "RemovePromotions";
             public const string RemoveNews = "RemoveNews";
@@ -1232,6 +1247,8 @@ namespace IqSoft.CP.Common
 
             public const string CreateDebitCorrectionOnUser = "CreateDebitCorrectionOnUser";
             public const string CreateCreditCorrectionOnUser = "CreateCreditCorrectionOnUser";
+            public const string CreateDebitCorrectionOnAffiliate = "CreateDebitCorrectionOnAffiliate";
+            public const string CreateCreditCorrectionOnAffiliate = "CreateCreditCorrectionOnAffiliate";
 
             public const string EditCloudflare = "EditCloudflare";
             public const string EditCRMSetting = "EditCRMSetting";
@@ -1286,14 +1303,14 @@ namespace IqSoft.CP.Common
         {
             public const int CloseAccountPeriod = 1;
             public const int AddMoneyToPartnerAccount = 2;
-            public const int SendUnsendedPaymentRequests = 3;
-            public const int CheckNotPayedPaymentRequestStatesInPaymentSystem = 4;
+            public const int CalculateCompPoints = 3;
+            public const int CalculateJackpots = 4;
             public const int ExpireUserSessions = 5;
-            public const int ResetBetShopLimits = 6;
+            public const int BroadcastBets = 6;
             public const int ResetBetShopDailyTicketNumber = 7;
-            public const int SetInvalidUnpaidBets = 8;
             public const int ExpireClientSessions = 9;
             public const int ExpireClientVerificationKeys = 10;
+
             public const int CalculateCashBackBonuses = 11;
             public const int CloseClientPeriod = 12;
             public const int GiveAffiliateBonus = 13;
@@ -1304,6 +1321,7 @@ namespace IqSoft.CP.Common
             public const int FinalizeWageringBonus = 18;
             public const int SendActiveMerchantRequests = 19;
             public const int ApproveIqWalletConfirmedRequests = 20;
+
             public const int SendAffiliateReport = 21;
             public const int CalculateAgentsGGRProfit = 22;
             public const int CalculateAgentsTurnoverProfit = 23;
@@ -1314,9 +1332,9 @@ namespace IqSoft.CP.Common
             public const int TriggerBonus = 28;
             public const int CheckUserBlockedSessions = 29;
             public const int CheckInactiveClients = 30;
+
             public const int NotifyIdentityExpiration = 31;
             public const int InactivateImpossibleBonuses = 32;
-            public const int SendAffiseReport = 33;
             public const int UpdateJackpotFeed = 34;
             public const int ReconsiderDynamicSegments = 35;
             public const int CheckInactiveUsers = 36;
@@ -1324,22 +1342,23 @@ namespace IqSoft.CP.Common
             public const int SendPartnerWeeklyReport = 38;
             public const int SendPartnerMonthlyReport = 39;
             public const int AwardCashBackBonuses = 40;
+
             public const int FairSegmentTriggers = 41;
             public const int GiveFreeSpin = 42;
             public const int GiveJackpotWin = 43;
-            public const int CalculateCompPoints = 44;
+            public const int GiveCompPoints = 44;
             public const int CheckDepositRequestsStatuses = 45;
-            public const int SendPartnerActivityReport = 46;
             public const int CheckForceBlockedClients = 47;
             public const int GiveFixedFeeCommission = 48;
             public const int FulfillDepositAction = 49;
             public const int ApplyClientRestriction = 50;
+
             public const int SettleBets = 51;
             public const int RestrictUnverifiedClients = 52;
             public const int GiveAffiliateCommission = 53;
             public const int ExpireClientVerificationStatus = 54;
             public const int CheckDuplicateClients = 55;
-
+            public const int CloseTournaments = 56;
         }
 
         public static class EnumerationTypes
@@ -1490,8 +1509,11 @@ namespace IqSoft.CP.Common
             public const string TicketingSystemApiUrl = "TicketingSystemApiUrl";
             public const string TicketingSystemOpenUrl = "TicketingSystemOpenUrl";
             public const string TicketingSystemApiToken = "TicketingSystemApiToken";
-            public const string LastProcessedBetDocumentId = "LastProcessedBetDocumentId";           
-            public const string LastProcessedDocumentId = "LastProcessedDocumentId";           
+
+            public const string LastCompPointBetId = "LastCompPointBetId";
+            public const string LastJackpotBetId = "LastJackpotBetId";
+            public const string LastBroadcastedBetId = "LastBroadcastedBetId";
+            public const string LastProcessedBetDocumentId = "LastProcessedBetDocumentId";              
             public const string LastConsideredBetId = "LastConsideredBetId";
             public const string ControlSystemUrl = "ControlSystemUrl";
             public const string CashCenterApiUrl = "CashCenterApiUrl";
@@ -1510,6 +1532,8 @@ namespace IqSoft.CP.Common
             public const string AffiliateFtpUrl = "FtpUrl";
             public const string AffiliateFtpUsername = "FtpUsername";
             public const string AffiliateFtpPassword = "FtpPassword";
+            public const string AffiliateApiKey = "ApiKey";
+            public const string AffiliateSendPostback = "SendPostback";
             public const string ReportFtpUrl = "ReportFtpUrl";
             public const string ReportFtpUsername = "ReportFtpUsername";
             public const string ReportFtpPassword = "ReportFtpPassword";
@@ -1572,6 +1596,11 @@ namespace IqSoft.CP.Common
             public const string OASISIdentity = "OASISIdentity";
             public const string OASISPassword= "OASISPassword";
             public const string ExternalApiUrl= "ExternalApiUrl";
+            public const string KRAApiUrl= "KRAApiUrl";
+            public const string KRAOperatorPin= "KRAOperatorPin";
+            public const string KRAApiUsername= "KRAApiUsername";
+            public const string KRAApiPassword= "KRAApiPassword";
+            public const string KRATaxFee= "KRATaxFee";
 
             public const string UKSanctionsServiceUrl = "UKSanctionsServiceUrl";
 
@@ -1868,6 +1897,10 @@ namespace IqSoft.CP.Common
 			public const string LuckyStreakOperatorClientSecret = "LuckyStreakOperatorClientSecret";
 			public const string LuckyStreakTokenUrl = "LuckyStreakTokenUrl";
 
+			public const string SmarticoLabelKey = "SmarticoLabelKey";
+			public const string SmarticoBrandKey = "SmarticoBrandKey";
+			public const string SmarticoSaltKey = "SmarticoSaltKey";
+			public const string SmarticoWidgetURL = "SmarticoWidgetURL";
 			#endregion
 
 			#region PaymentSystems
@@ -1995,6 +2028,9 @@ namespace IqSoft.CP.Common
             public const string InternationalPSPApiUrl = "InternationalPSPApiUrl";
             public const string KralPayApiUrl = "KralPayApiUrl";
             public const string KralPayPayoutApiUrl = "KralPayPayoutApiUrl";
+            public const string GatewayPayApiUrl = "GatewayPayApiUrl";
+            public const string GatewayPayRedirectUrl = "GatewayPayRedirectUrl";
+            public const string FreedomPayApiUrl = "FreedomPayApiUrl";
 
             public const string LuckyPayWithdrawUrl = "LuckyPayWithdrawUrl";
             public const string LuckyPayDepositUrl = "LuckyPayDepositUrl";
@@ -2070,6 +2106,8 @@ namespace IqSoft.CP.Common
 
 			public const string QuikiPayUrl = "QuikiPayUrl";
 
+			public const string XprizoUrl = "XprizoUrl";
+
 			#endregion
 
 			#region Config
@@ -2108,6 +2146,12 @@ namespace IqSoft.CP.Common
             public const string GetTopTurnoverClients = "GetTopTurnoverClients";
             public const string GetTopProfitableClients = "GetTopProfitableClients";
             public const string GetTopDamagingClients = "GetTopDamagingClients";
+            public const string GetTopDepositMethods = "GetTopDepositMethods";
+            public const string GetTopWithdrawMethods = "GetTopWithdrawMethods";
+            public const string GetTopBonusReceivers = "GetTopBonusReceivers";
+            public const string GetTopGrantedBonuses = "GetTopGrantedBonuses";
+            public const string GetTopProfitableAgents = "GetTopProfitableAgents";
+            public const string GetTopDamagingAgents = "GetTopDamagingAgents";
         }
 
 
@@ -2238,7 +2282,8 @@ namespace IqSoft.CP.Common
             (int)ClientInfoTypes.FrozenWithdrawEmail,
             (int)ClientInfoTypes.InProcessWithdrawEmail,
             (int)ClientInfoTypes.PendingWithdrawEmail,
-            (int)ClientInfoTypes.AffiliateConfirmationEmail
+            (int)ClientInfoTypes.AffiliateConfirmationEmail,
+            (int)ClientInfoTypes.KYCVerificationEmail
 		};
 
         public static List<int> ClientInfoSmsTypes { get; private set; } = new List<int>
@@ -2320,7 +2365,8 @@ namespace IqSoft.CP.Common
             Sportsbook = 18,
             Slots = 19,
             Lottery = 22,
-            VirtualGames = 23
+            VirtualGames = 23,
+            CrashGames = 58
         }
 
         public enum RegisterTypes

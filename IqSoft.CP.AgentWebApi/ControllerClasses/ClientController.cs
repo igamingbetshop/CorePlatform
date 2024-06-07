@@ -19,6 +19,7 @@ using IqSoft.CP.DAL;
 using System.Linq;
 using IqSoft.CP.Common.Helpers;
 using IqSoft.CP.Common.Models.Commission;
+using static IqSoft.CP.Common.Constants;
 
 namespace IqSoft.CP.AgentWebApi.ControllerClasses
 {
@@ -56,6 +57,8 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                     return IsUserNameAvailable(JsonConvert.DeserializeObject<ApiUserNameInput>(request.RequestData), identity, log);
                 case "UpdateClientSettings":
                     return UpdateClientSettings(JsonConvert.DeserializeObject<NewClientModel>(request.RequestData), identity, log);
+                case "GetQuickRegistrationFields":
+                    return GetQuickRegistrationFields(identity, log);
             }
             throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.MethodNotFound);
         }
@@ -97,12 +100,12 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                     if ((!userSetting.AllowDoubleCommission && clientSetting.AllowDoubleCommission.Value)
                         || (!userSetting.AllowOutright && clientSetting.AllowOutright.Value))
                         throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.WrongInputParameters);
-                 
+
                     if (client.UserName.Length != 3 || client.UserName == "000")
                         throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.InvalidUserName);
                     userNamePrefix = UserBll.GenerateUserNamePrefix(user, (int)AgentLevels.Member, user.Type);
                 }
-                var parentLimits = (userSetting == null || userSetting.Id == 0) ? new List<CountLimit>() : 
+                var parentLimits = (userSetting == null || userSetting.Id == 0) ? new List<CountLimit>() :
                     JsonConvert.DeserializeObject<List<CountLimit>>(userSetting.CountLimits);
                 var countLimitByLevel = parentLimits.FirstOrDefault(x => x.Level == (int)AgentLevels.Member)?.Count;
                 if (countLimitByLevel != null)
@@ -179,8 +182,19 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                     else
                     {
                         client.UserName = userNamePrefix + client.UserName;
+                        bool generatedUsername = false;
+                        if (string.IsNullOrEmpty(client.UserName))
+                        {
+                            client.UserName = CommonFunctions.GetRandomString(10);
+                            generatedUsername = true;
+                        }
                         log.Info(JsonConvert.SerializeObject(client));
-                        client = RegisterClient(identity, new ClientRegistrationInput { ClientData = client, RegistrationType = (int)Constants.RegisterTypes.Email }, log);
+                        client = RegisterClient(identity, new ClientRegistrationInput
+                        {
+                            ClientData = client,
+                            RegistrationType = (int)Constants.RegisterTypes.Email,
+                            GeneratedUsername = generatedUsername
+                        }, log);
                         resultList.Add(client.MapTofnClientModel(identity.TimeZone));
                         var commissionPlan = new AgentCommission
                         {
@@ -197,12 +211,13 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                     }
                     transactionScope.Complete();
                 }
-                var shop = betShopBl.GetBetShopsByPartnerId(client.PartnerId, client.CurrencyId).Where(x => x.Name == "Agent").FirstOrDefault();
-                if (shop != null)
+                var paymentSystem = CacheManager.GetPaymentSystemByName(Constants.PaymentSystems.BetShop);
+                var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, paymentSystem.Id, client.CurrencyId, (int)PaymentRequestTypes.Deposit);
+                if (partnerPaymentSetting != null && partnerPaymentSetting.Id > 0)
                 {
                     foreach (var rl in resultList)
                     {
-                        clientBl.RegisterClientAccounts(rl.Id, rl.CurrencyId, shop.Id, null);
+                        clientBl.RegisterClientAccounts(rl.Id, rl.CurrencyId, null, new int?[] { paymentSystem.Id });
                     }
                 }
                 return new ApiResponseBase { ResponseObject = resultList };
@@ -545,7 +560,7 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                             transactionScope.Complete();
                             CacheManager.RemoveClientFromCache(client.Id);
                             Helpers.Helpers.InvokeMessage("RemoveClient", client.Id);
-                            
+
                             return new ApiResponseBase
                             {
                                 ResponseObject = new
@@ -837,5 +852,18 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                 };
             }
         }
-    }    
+
+        public static ApiResponseBase GetQuickRegistrationFields(SessionIdentity identity, ILog log)
+        {
+            using (var contentBl = new ContentBll(identity, log))
+            {
+                var user = CacheManager.GetUserById(identity.Id);
+
+                return new ApiResponseBase
+                {
+                    ResponseObject = contentBl.GetClientQuickRegistrationFields(user.PartnerId)
+                };
+            }
+        }
+    }
 }

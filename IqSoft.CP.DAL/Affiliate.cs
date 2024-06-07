@@ -39,6 +39,7 @@ namespace IqSoft.CP.DAL
         public string CommunicationTypeValue { get; set; }
         public System.DateTime CreationTime { get; set; }
         public System.DateTime LastUpdateTime { get; set; }
+        public Nullable<int> ClientId { get; set; }
     
         public virtual Language Language { get; set; }
         public virtual Partner Partner { get; set; }
@@ -46,5 +47,6 @@ namespace IqSoft.CP.DAL
         public virtual ICollection<AffiliateCommission> AffiliateCommissions { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<UserSession> UserSessions { get; set; }
+        public virtual Client Client { get; set; }
     }
 }

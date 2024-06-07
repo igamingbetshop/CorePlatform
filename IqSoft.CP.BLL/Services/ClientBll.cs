@@ -129,9 +129,8 @@ namespace IqSoft.CP.BLL.Services
                                     dbClient.AffiliateReferralId = affReferral.Id;
                             }
 
-                            VerifyClientFields(clientRegistrationInput.ClientData, partner, clientRegistrationInput.ReCaptcha, clientRegistrationInput.IsFromAdmin, clientRegistrationInput.RegistrationType, clientRegistrationInput.GeneratedUsername);
-                            var isWelcomeBonusOn = clientRegistrationInput.RegistrationType == (int)Constants.RegisterTypes.Full && 
-                                                  IsBonusTypeAvailableForPartner(partner.Id, (int)BonusTypes.SignupRealBonus);
+                            VerifyClientFields(clientRegistrationInput.ClientData, partner, clientRegistrationInput.ReCaptcha, clientRegistrationInput.IsFromAdmin, 
+                                clientRegistrationInput.RegistrationType, clientRegistrationInput.GeneratedUsername);
 
                             if (clientRegistrationInput.ClientData.RegionId == 0)
                                 clientRegistrationInput.ClientData.RegionId = Constants.DefaultRegionId;
@@ -201,10 +200,11 @@ namespace IqSoft.CP.BLL.Services
                                 dbClient.UserName = "U" + dbClient.Id;
                                 Db.SaveChanges();
                             }
-                            AutoClaim(bonusBl, dbClient.Id, (int)TriggerTypes.SignUp,
-                                      clientRegistrationInput.PromoCode, null, out int awardedStatus, 0, null);
-                            if (isWelcomeBonusOn)
-                                dbClient.WelcomeBonusActivationKey = CreateClientInfo(dbClient.Id, dbClient.PartnerId, (int)ClientInfoTypes.WelcomeBonusActivationKey);
+                            var promoCode = clientRegistrationInput.PromoCode;
+                            if (string.IsNullOrEmpty(clientRegistrationInput.PromoCode) && clientRegistrationInput?.ReferralData?.AffiliatePlatformId != null)
+                                promoCode = clientRegistrationInput?.ReferralData?.AffiliateId.ToString();
+                            AutoClaim(bonusBl, dbClient.Id, (int)TriggerTypes.SignUp, promoCode , null, out int awardedStatus, 0, null);
+
                             var currDate = currentTime.Year * 10000 + currentTime.Month * 100 + currentTime.Day;
                             var clientSettings = new ClientCustomSettings
                             {
@@ -2547,17 +2547,6 @@ namespace IqSoft.CP.BLL.Services
             }
         }
 
-        private bool IsBonusTypeAvailableForPartner(int partnerId, int type)
-        {
-            var currentTime = DateTime.UtcNow;
-            var bonus = Db.Bonus.Where(x => x.Status == (int)BonusStatuses.Active && x.PartnerId == partnerId &&
-                                       x.StartTime <= currentTime && x.FinishTime > currentTime &&
-                                      (!x.MaxGranted.HasValue || x.TotalGranted < x.MaxGranted) &&
-                                      (!x.MaxReceiversCount.HasValue || x.TotalReceiversCount < x.MaxReceiversCount) &&
-                                       x.Type == type).FirstOrDefault();
-            return (bonus != null);
-        }
-
         public bool EmailExists(string email, int partnerId)
         {
             if (string.IsNullOrEmpty(email))
@@ -3056,6 +3045,24 @@ namespace IqSoft.CP.BLL.Services
                 CheckClientKYCState(client.Id);
                 CacheManager.RemoveClientFromCache(input.ClientId);
             }
+            if (!string.IsNullOrEmpty(client.Email))
+            {
+                using (var notificationBll = new NotificationBll(Identity, Log))
+                {
+                    notificationBll.SendNotificationMessage(new NotificationModel
+                    {
+                        PartnerId = client.PartnerId,
+                        ObjectId = client.Id,
+                        ObjectTypeId = (int)ObjectTypes.Client,
+                        MobileOrEmail = client.Email,
+                        MessageType = (int)ClientMessageTypes.Email,
+                        ClientInfoType = (int)ClientInfoTypes.KYCVerificationEmail,
+                        SubjectType = (int)ClientInfoTypes.KYCVerificationSubject
+                    }, out int responseCode);
+                    notificationBll.SendInternalTicket(client.Id, (int)ClientInfoTypes.KYCVerificationTicket);
+                }
+            }
+
             return dbClientIdentity;
         }
 
@@ -3291,7 +3298,7 @@ namespace IqSoft.CP.BLL.Services
 
         #endregion
 
-        public void ChangeClientDetails(Client client, ClientAffiliateModel affInput, out bool isBonusAccepted, out bool isSessionExpired, int? referralType)
+        public void ChangeClientDetails(Client client, ClientAffiliateModel affInput, out bool isSessionExpired, int? referralType)
         {
             CheckPermission(Constants.Permissions.EditClient);
             VerifyClientFieldsByWebSettings(client, null, false);
@@ -3302,7 +3309,6 @@ namespace IqSoft.CP.BLL.Services
                     using (var transactionScope = CommonFunctions.CreateTransactionScope())
                     {
                         Db.sp_GetClientLock(client.Id);
-                        isBonusAccepted = false;
                         isSessionExpired = false;
                         var currentTime = DateTime.UtcNow;
                         var oldClient = Db.Clients.Where(c => c.Id == client.Id).First();
@@ -3413,10 +3419,7 @@ namespace IqSoft.CP.BLL.Services
                                 if (string.IsNullOrEmpty(oldClient.DocumentNumber) ||
                                 Db.Clients.Any(x => x.DocumentNumber == oldClient.DocumentNumber && x.IsDocumentVerified && x.PartnerId == oldClient.PartnerId && x.Id != client.Id))
                                     throw CreateException(LanguageId, Constants.Errors.WrongDocumentNumber);
-
                                 client.PartnerId = oldClient.PartnerId;
-                                bonusBl.GiveWelcomeRealBonus(client, documentBl);
-                                isBonusAccepted = true;
                             }
                             var oldSettings = GetClientSettings(client.Id, false);
                             SaveChangesWithHistory((int)ObjectTypes.ClientSetting, client.Id, JsonConvert.SerializeObject(oldSettings), string.Empty);
@@ -3682,7 +3685,7 @@ namespace IqSoft.CP.BLL.Services
             }
         }
         
-        public static BllClient LoginClient(ClientLoginInput input, BllClient client, out string newToken, out RegionTree regionDetails, ILog log)
+        public static BllClient LoginClient(LoginInput input, BllClient client, out string newToken, out RegionTree regionDetails, ILog log)
         {
             var sendEmail = false;
             CheckClientStatus(client, input.LanguageId);
@@ -3800,7 +3803,7 @@ namespace IqSoft.CP.BLL.Services
             return client;
         }
 
-        public static string CreateRefreshToken(ClientLoginInput input, BllClient client, ILog log)
+        public static string CreateRefreshToken(LoginInput input, BllClient client, ILog log)
         {
             var response = string.Empty;
 
@@ -3833,7 +3836,7 @@ namespace IqSoft.CP.BLL.Services
             return response;
         }
 
-        public static BllClient CreateToken(ClientLoginInput input, BllClient client, out string newToken, out RegionTree regionDetails, ILog log)
+        public static BllClient CreateToken(LoginInput input, BllClient client, out string newToken, out RegionTree regionDetails, ILog log)
         {
             CheckClientStatus(client, input.LanguageId);
             using (var clientBl = new ClientBll(new SessionIdentity { LanguageId = input.LanguageId }, log))
@@ -4189,7 +4192,41 @@ namespace IqSoft.CP.BLL.Services
             }
         }
 
-        public static List<int> GetClientSegments(int clientId)
+        public List<ApiClientSegment> GetClientSegments(int clientId)
+        {
+            CheckPermission(Constants.Permissions.ViewSegment);
+            var checkClientPermission = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewClient,
+                ObjectTypeId = ObjectTypes.Client
+            });
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewPartner,
+                ObjectTypeId = ObjectTypes.Partner
+            });
+            var client = CacheManager.GetClientById(clientId) ??  throw CreateException(LanguageId, Constants.Errors.ClientNotFound);
+            if ((!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != client.Id)) ||
+                (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId)))
+                throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
+
+
+            return Db.ClientClassifications.Where(x => x.ClientId == clientId && x.SegmentId.HasValue &&
+                                                       x.ProductId == (int)Constants.PlatformProductId)
+                                           .Select(x => new ApiClientSegment
+                                           {
+                                               Id = x.SegmentId.Value,
+                                               Name = x.Segment.Name,
+                                               PartnerId = x.Segment.PartnerId,
+                                               State = x.Segment.State,
+                                               Mode = x.Segment.Mode,
+                                               CreationDate = x.Segment.CreationTime.GetGMTDateFromUTC(Identity.TimeZone),
+                                               LastUpdateDate = x.Segment.LastUpdateTime.GetGMTDateFromUTC(Identity.TimeZone),
+                                               ConsideredDate = x.LastUpdateTime.GetGMTDateFromUTC(Identity.TimeZone)
+                                           }).ToList();
+        }
+
+        public static List<int> GetClientSegmentIds(int clientId)
         {
             var clientClassifications = CacheManager.GetClientClassifications(clientId);
             if (clientClassifications.Any())
@@ -4736,6 +4773,7 @@ namespace IqSoft.CP.BLL.Services
 
             ticket.Status = (int)ticketMessageState;
             Db.SaveChanges();
+            CacheManager.RemoveFromCache(string.Format("{0}_{1}", Constants.CacheItems.ClientUnreadTicketsCount, clientId));
         }
         public PagedModel<fnTicket> ExportReportByPartners(FilterTicket filter)
         {
@@ -5992,7 +6030,7 @@ namespace IqSoft.CP.BLL.Services
                     dbClientBonus.FinalAmount,
                     dbClientBonus.CalculationTime,
                     dbClientBonus.ValidUntil,
-                    dbClientBonus.TriggerId
+                    dbClientBonus.LinkedBonusId
                 };
                 SaveChangesWithHistory((int)ObjectTypes.ClientBonus, dbClientBonus.Id, JsonConvert.SerializeObject(oldValue), string.Empty);
                 var oldStatus = dbClientBonus.Status;
@@ -6088,7 +6126,7 @@ namespace IqSoft.CP.BLL.Services
                 dbClientBonus.FinalAmount,
                 dbClientBonus.CalculationTime,
                 dbClientBonus.ValidUntil,
-                dbClientBonus.TriggerId
+                dbClientBonus.LinkedBonusId
             };
             SaveChangesWithHistory((int)ObjectTypes.ClientBonus, dbClientBonus.Id, JsonConvert.SerializeObject(oldValue), string.Empty);
             dbClientBonus.Status = (int)ClientBonusStatuses.Closed;
@@ -7451,7 +7489,6 @@ namespace IqSoft.CP.BLL.Services
                         PartnerPaymentSettingId = request.PartnerPaymentSettingId,
                         ClientId = request.ClientId,
                         Info = request.Info,
-                        ExternalOperationId = null,
                         OperationItems = new List<OperationItem>()
                     };
                     var item = new OperationItem
@@ -7636,7 +7673,6 @@ namespace IqSoft.CP.BLL.Services
                             PartnerPaymentSettingId = partnerPaymentSettingId,
                             ClientId = client.Id,
                             Creator = affId,
-                            ExternalOperationId = null,
                             OperationItems = new List<OperationItem>()
                         };
                         cOperation.OperationItems.Add(new OperationItem
@@ -8059,7 +8095,6 @@ namespace IqSoft.CP.BLL.Services
                     ClientId = correction.ClientId,
                     Amount = correction.Amount,
                     CurrencyId = correction.CurrencyId,
-                    ExternalOperationId = correction.ExternalOperationId,
                     ExternalTransactionId = correction.ExternalTransactionId,
                     ProductId = correction.ProductId,
                     OperationItems = new List<OperationItem>()
@@ -8084,6 +8119,7 @@ namespace IqSoft.CP.BLL.Services
                     item.AccountId = account.Id;
                 }
                 operation.OperationItems.Add(item);
+                
                 var user = CacheManager.GetUserById(Identity.Id);
                 var userPermissions = CacheManager.GetUserPermissions(Identity.Id);
                 var permission = userPermissions.FirstOrDefault(x => x.PermissionId == Constants.Permissions.EditPartnerAccounts || x.IsAdmin);
@@ -8150,7 +8186,6 @@ namespace IqSoft.CP.BLL.Services
                     ClientId = correction.ClientId,
                     Amount = correction.Amount,
                     CurrencyId = correction.CurrencyId,
-                    ExternalOperationId = correction.ExternalOperationId,
                     ExternalTransactionId = correction.ExternalTransactionId,
                     ProductId = correction.ProductId,
                     OperationItems = new List<OperationItem>()
@@ -8247,7 +8282,6 @@ namespace IqSoft.CP.BLL.Services
                     CurrencyId = transaction.CurrencyId,
                     Type = operationTypeId,
                     ExternalTransactionId = transaction.TransactionId,
-                    ExternalOperationId = transaction.ExternalOperationId,
                     Info = transaction.Info,
                     ClientId = operationItemFromProduct.Client.Id,
                     GameProviderId = transaction.GameProviderId,
@@ -8394,6 +8428,7 @@ namespace IqSoft.CP.BLL.Services
                 CacheManager.RemoveClientBalance(operationItemFromProduct.Client.Id);
             }
             CacheManager.UpdateTotalBetAmount(operationItemFromProduct.Client.Id, transaction.BonusId > 0 ? 0 : initialOperationAmount);
+            CacheManager.UpdateTotalLossAmount(operationItemFromProduct.Client.Id, transaction.BonusId > 0 ? 0 : initialOperationAmount);
             return document;
         }
 
@@ -8511,7 +8546,6 @@ namespace IqSoft.CP.BLL.Services
                         ClientId = operationItemFromProduct.Client.Id,
                         PartnerProductId = partnerProductSetting.Id,
                         ExternalTransactionId = transactions.TransactionId,
-                        ExternalOperationId = transactions.ExternalOperationId,
                         Info = transactions.Info,
                         ProductId = product.Id,
                         RoundId = transactions.RoundId,
@@ -8566,7 +8600,6 @@ namespace IqSoft.CP.BLL.Services
                 Info = transaction.Info,
                 ClientId = transaction.ClientId,
                 PartnerProductId = transaction.PartnerProductId,
-                ExternalOperationId = transaction.ExternalOperationId,
                 ParentId = transaction.ParentDocumentId,
                 RoundId = transaction.RoundId,
                 ProductId = transaction.ProductId,
@@ -8771,11 +8804,11 @@ namespace IqSoft.CP.BLL.Services
             var systemLossLimitDaily = CacheManager.GetClientSettingByName(client.Id, nameof(clientSetting.SystemTotalLossLimitDaily));
             if ((lossLimitDaily != null && lossLimitDaily.NumericValue != null) || (systemLossLimitDaily != null && systemLossLimitDaily.NumericValue != null))
             {
-                decimal? limitAmount = null;
+                decimal? limitAmount = -1;
                 if (lossLimitDaily != null && lossLimitDaily.NumericValue != null)
                     limitAmount = lossLimitDaily.NumericValue.Value;
                 if (systemLossLimitDaily != null && systemLossLimitDaily.NumericValue != null)
-                    limitAmount = limitAmount == null ? systemLossLimitDaily.NumericValue.Value : Math.Min(limitAmount.Value, systemLossLimitDaily.NumericValue.Value);
+                    limitAmount = limitAmount == -1 ? systemLossLimitDaily.NumericValue.Value : Math.Min(limitAmount.Value, systemLossLimitDaily.NumericValue.Value);
 
                 var totalLossAmount = CacheManager.GetTotalLossAmounts(client.Id, (int)PeriodsOfTime.Daily);
                 if (totalLossAmount + amount > limitAmount)
@@ -10218,7 +10251,7 @@ namespace IqSoft.CP.BLL.Services
 
         #endregion
 
-        public void GiveComplimentaryPoint(List<Bet> bets)
+        public void CalculateCompPoint(List<Bet> bets)
         {
             var partnerGroupedList = bets.GroupBy(x => x.PartnerId ?? 0);
             foreach (var partnerBets in partnerGroupedList)
@@ -10248,18 +10281,17 @@ namespace IqSoft.CP.BLL.Services
 
         public void CancelComplimentaryPoint(List<Bet> deletedBets)
         {
+            
             var partnerGroupedList = deletedBets.GroupBy(x => x.PartnerId ?? 0);
             foreach (var partnerBets in partnerGroupedList)
             {
                 var partnerConfig = CacheManager.GetConfigKey(partnerBets.Key, Constants.PartnerKeys.CheckComplimentaryPoints);
                 if (string.IsNullOrEmpty(partnerConfig) || partnerConfig == "0")
                     continue;
-
                 var clientBets = partnerBets.GroupBy(x => x.ClientId).ToList();
                 foreach (var cBets in clientBets)
                 {
                     var betsByProduct = cBets.GroupBy(x => x.ProductId).ToList();
-                    var currencyId = cBets.First().CurrencyId;
                     foreach (var b in betsByProduct)
                     {
                         var complimentaryPoint = CacheManager.GetComplimentaryPointRate(partnerBets.Key, b.Key, b.First().CurrencyId);
@@ -10503,37 +10535,73 @@ namespace IqSoft.CP.BLL.Services
             return newPassword;
         }
 
-        public List<BllPopup> GetClientPopups(int clientId, int type)
+        public List<BllPopup> GetClientPopups(int clientId, int type, int deviceType )
         {
             if (!Enum.IsDefined(typeof(PopupTypes), type))
                 throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
             var currentTime = DateTime.UtcNow;
             var client = CacheManager.GetClientById(clientId);
-            var clientSegments = GetClientSegments(clientId);
+            var clientSegments = GetClientSegmentIds(clientId);
 
             var received = CacheManager.GetClientViewedPopups(clientId);
             var popups = CacheManager.GetPopups(client.PartnerId, type);
-            return popups.Where(x => x.State == (int)BaseStates.Active &&
-                                    x.StartDate <= currentTime && x.FinishDate >= currentTime &&
+            return popups.Where(x => x.State == (int)BaseStates.Active && (x.DeviceType == null || x.DeviceType == deviceType) &&
+                                     x.StartDate <= currentTime && x.FinishDate >= currentTime &&
                                    (!x.ClientIds.Any() || x.ClientIds.Any(y => y == clientId)) &&
                                    (!x.SegmentIds.Any() || x.SegmentIds.Intersect(clientSegments).Any()) &&  !received.Any(y => y == x.Id))
                          .OrderBy(x => x.Order).ToList();
         }
 
-        public void ViewPopup(int clientId, int popupId)
+        public void ViewPopup(int clientId, int popupId, int viewTypeId)
         {
-            if (!Db.ClientMessageStates.Any(x => x.ClientId == clientId && x.PopupId == popupId))
-            {
+            if (!Enum.IsDefined(typeof(ClientMessageStates), viewTypeId))
+                throw BaseBll.CreateException(LanguageId, Constants.Errors.WrongInputParameters);
+            var dbPopupAction = Db.ClientMessageStates.FirstOrDefault(x => x.ClientId == clientId && x.PopupId == popupId);
+            if(dbPopupAction == null)
                 Db.ClientMessageStates.Add(new ClientMessageState
                 {
                     ClientId = clientId,
                     PopupId = popupId,
-                    State = (int)ClientMessageStates.Readed,
+                    State = viewTypeId,
                     LastUpdateTime = DateTime.UtcNow
                 });
-                Db.SaveChanges();
-                CacheManager.RemoveKeysFromCache($"{Constants.CacheItems.ClientPopups}_{clientId}");
+            else
+            {
+                dbPopupAction.State = viewTypeId;
+                dbPopupAction.LastUpdateTime =  DateTime.UtcNow;
             }
+            Db.SaveChanges();
+            CacheManager.RemoveKeysFromCache($"{Constants.CacheItems.ClientPopups}_{clientId}");         
+        }
+
+        public int SpinWheel(int clientId, int clientBonusId)
+        {
+            var clientBonus = Db.ClientBonus.Include(x => x.Bonu).FirstOrDefault(x => x.Id == clientBonusId);
+            if(clientBonus == null || clientBonus.Bonu.Type != (int)BonusTypes.SpinWheel || clientId != clientBonus.ClientId)
+                throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
+            if(clientBonus.Status != (int)ClientBonusStatuses.Active)
+                throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
+            var items = clientBonus.Bonu.Info.Split(',').Select(x => Convert.ToInt32(x)).ToList();
+            var index = CommonFunctions.GetRandomNumbers(1, items.Count, 1)[0];
+            clientBonus.Status = (int)ClientBonusStatuses.Closed;
+            clientBonus.LinkedBonusId = items[index - 1];
+            clientBonus.CalculationTime = DateTime.UtcNow;
+            var currentDate = (long)clientBonus.CalculationTime.Value.Year * 100000000 + (long)clientBonus.CalculationTime.Value.Month * 1000000 +
+                 clientBonus.CalculationTime.Value.Day * 10000 + clientBonus.CalculationTime.Value.Hour * 100 + clientBonus.CalculationTime.Value.Minute;
+            var newBonus = CacheManager.GetBonusById(clientBonus.LinkedBonusId.Value);
+            var newClientBonus = new ClientBonu
+            {
+                BonusId = clientBonus.LinkedBonusId.Value,
+                ClientId = clientBonus.ClientId,
+                Status = (int)ClientBonusStatuses.NotAwarded,
+                CreationTime = clientBonus.CalculationTime.Value,
+                ValidUntil = newBonus.ValidForAwarding == null ? (DateTime?)null :
+                    clientBonus.CalculationTime.Value.AddHours(newBonus.ValidForAwarding.Value),
+                CreationDate = currentDate
+            };
+            Db.ClientBonus.Add(newClientBonus);
+            Db.SaveChanges();
+            return index - 1;
         }
 
         public ClientSetting StakeNFT(ApiNFTInfo input)

@@ -8,5 +8,6 @@
         public string ImageName { get; set; }
         public int Order { get; set; }
         public string Page { get; set; }
+        public int ViewTypeId { get; set; }
     }
 }

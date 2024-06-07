@@ -64,7 +64,10 @@ namespace IqSoft.CP.BLL.Services
             {
                 isParentChanged = dbRegion.ParentId != region.ParentId;
                 isNewStateBlocked = dbRegion.State != region.State && region.State == (int)RegionStates.Inactive;
-
+                bool isCountryChanged = false;
+                if (dbRegion.TypeId == (int)RegionTypes.Country && region.TypeId != (int)RegionTypes.Country)
+                    isCountryChanged = true;
+                var currentTime = DateTime.UtcNow;
                 dbRegion.ParentId = region.ParentId;
                 dbRegion.TypeId = region.TypeId;
                 dbRegion.NickName = region.NickName;
@@ -75,6 +78,12 @@ namespace IqSoft.CP.BLL.Services
                 dbRegion.LanguageId = region.LanguageId;
                 dbRegion.Info = region.Info;
                 Db.SaveChanges();
+                CacheManager.RemoveRegionFromCache(dbRegion.Id);
+                if(isCountryChanged)
+                {
+                    Db.Clients.Where(x => x.CountryId == dbRegion.Id).UpdateFromQuery(x => new Client { CountryId = null, LastUpdateTime = currentTime });
+                    Db.SaveChanges();
+                }
             }
 
             string parentPath = String.Empty;

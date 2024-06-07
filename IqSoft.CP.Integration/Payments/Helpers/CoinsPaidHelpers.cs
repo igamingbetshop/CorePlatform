@@ -30,7 +30,11 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             { Constants.PaymentSystems.CoinsPaidADA, "ADA" },  // CARDANO
             { Constants.PaymentSystems.CoinsPaidBNB, "BNB" },  // BEP2
             { Constants.PaymentSystems.CoinsPaidUSDC, "USDC" },  
-            { Constants.PaymentSystems.CoinsPaidTRX, "TRX" }
+            { Constants.PaymentSystems.CoinsPaidTRX, "TRX" },
+            { Constants.PaymentSystems.CoinsPaidLTC, "LTC" },
+            { Constants.PaymentSystems.CoinsPaidUSDTE, "USDTE" },
+            { Constants.PaymentSystems.CoinsPaidXRP, "XRP" },
+            { Constants.PaymentSystems.CoinsPaidBNBBSC, "BNB-BSC" },
         };
 
         //public static string PaymentRequest(PaymentRequest input, string cashierPageUrl, SessionIdentity session, ILog log)
@@ -66,16 +70,18 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 if (!CryptoCurrencies.ContainsKey(paymentSystem.Name))
                     throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.PaymentSystemNotFound);
                 var convertCurrency = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.CoinsPaidConvertCurrency).StringValue;
+                var convertTo = !string.IsNullOrWhiteSpace(convertCurrency) ? convertCurrency.Split(',')[0] : Constants.Currencies.Euro;
+                var isEqual = CryptoCurrencies[paymentSystem.Name] == convertTo;
 				var postData = new
                 {
                     currency = CryptoCurrencies[paymentSystem.Name],
-                    convert_to = !string.IsNullOrWhiteSpace(convertCurrency) ? convertCurrency : Constants.Currencies.Euro, //client.CurrencyId,
+                    convert_to = isEqual ? null : convertTo,
                     foreign_id = clientId.ToString()
                 };
                 var url = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.CoinsPaidUrl).StringValue;
-                var json = JsonConvert.SerializeObject(postData);
+                var json = JsonConvert.SerializeObject(postData, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
                 var signature = CommonFunctions.ComputeHMACSha512(json, partnerPaymentSetting.Password).ToLower();
-
+                log.Info(json);
                 var requestHeaders = new Dictionary<string, string>
                 {
                    { "X-Processing-Key", partnerPaymentSetting.UserName},
@@ -87,7 +93,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                     RequestMethod = Constants.HttpRequestMethods.Post,
                     Url = String.Format(url, "addresses/take"),
                     RequestHeaders = requestHeaders,
-                    PostData = JsonConvert.SerializeObject(postData)
+                    PostData = json
                 };
                 var response = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
                 var output = JsonConvert.DeserializeObject<PaymentOutput>(response);
@@ -100,6 +106,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             }
             return cryptoAddress;
         }
+
         public static PaymentResponse PayoutRequest(PaymentRequest input, SessionIdentity session, ILog log)
         {
             using (var paymentSystemBl = new PaymentSystemBll(session, log))
@@ -111,16 +118,18 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 var paymentInfo = JsonConvert.DeserializeObject<PaymentInfo>(input.Info);
                 var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, paymentSystem.Id, client.CurrencyId, (int)PaymentRequestTypes.Withdraw);
                 var amount = input.Amount - (input.CommissionAmount ?? 0);
-                if (input.CurrencyId != Constants.Currencies.Euro)
+				var convertCurrency = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.CoinsPaidConvertCurrency).StringValue;
+                var currency = !string.IsNullOrWhiteSpace(convertCurrency) ? convertCurrency.Split(',')[1] : Constants.Currencies.Euro;
+				if (input.CurrencyId != currency)
                 {
-                    var rate = BaseBll.GetCurrenciesDifference(client.CurrencyId, Constants.Currencies.Euro);
+                    var rate = BaseBll.GetCurrenciesDifference(client.CurrencyId, currency);
                     amount = Math.Round(rate * input.Amount, 2);
                     var parameters = string.IsNullOrEmpty(input.Parameters) ? new Dictionary<string, string>() :
                                   JsonConvert.DeserializeObject<Dictionary<string, string>>(input.Parameters);
                     if (parameters.ContainsKey("Currency"))
-                        parameters["Currency"] = Constants.Currencies.Euro;
+                        parameters["Currency"] = currency;
                     else
-                        parameters.Add("Currency", Constants.Currencies.Euro);
+                        parameters.Add("Currency", currency);
                     if (parameters.ContainsKey("AppliedRate"))
                         parameters["AppliedRate"] = rate.ToString("F");
                     else
@@ -133,7 +142,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 {
                     foreign_id = input.Id.ToString(),
                     amount,
-                    currency = Constants.Currencies.Euro,
+                    currency,
                     convert_to = CryptoCurrencies[paymentSystem.Name], 
                     address = paymentInfo.WalletNumber,
                     tag = string.IsNullOrWhiteSpace(paymentInfo.AccountType) ? null : paymentInfo.AccountType,
@@ -144,7 +153,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 						NullValueHandling = NullValueHandling.Ignore
 				});
                 var signature = CommonFunctions.ComputeHMACSha512(json, partnerPaymentSetting.Password).ToLower();
-
+                log.Info(json);
                 var requestHeaders = new Dictionary<string, string>
                 {
                    { "X-Processing-Key", partnerPaymentSetting.UserName},

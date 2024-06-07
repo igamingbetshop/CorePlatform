@@ -7,6 +7,7 @@
         public string CustomerName { get; set; }
         public string CustomerCurrencyId { get; set; }
         public string BTag { get; set; }
+        public string AffiliateId { get; set; }
         public string CountryCode { get; set; }
         public string RegistrationDate { get; set; }
         public string LanguageId { get; set; }

@@ -20,7 +20,7 @@ namespace IqSoft.CP.Integration.Products.Helpers
         {
             Constants.Currencies.USDT
         };
-        public static string GetSessionUrl(int partnerId, BllProduct product, string token, bool isForMobile, bool isForDemo, SessionIdentity session)
+        public static string GetSessionUrlOld(int partnerId, BllProduct product, string token, bool isForMobile, bool isForDemo, SessionIdentity session)
         {
             var casinoPageUrl = CacheManager.GetPartnerSettingByKey(partnerId, Constants.PartnerKeys.CasinoPageUrl).StringValue;
             if (string.IsNullOrEmpty(casinoPageUrl))
@@ -62,7 +62,7 @@ namespace IqSoft.CP.Integration.Products.Helpers
             return string.Format("{0}/gs2c/playGame.do?key={1}&stylename={2}", apiUrl, WebUtility.UrlEncode(CommonFunctions.GetUriDataFromObject(requestInput)), secureLogin);
         }
 
-        public static string GetSessionUrl1(int partnerId, BllProduct product, string token, bool isForMobile, bool isForDemo, SessionIdentity session)
+        public static string GetSessionUrl(int partnerId, BllProduct product, string token, bool isForMobile, bool isForDemo, SessionIdentity session)
         {
             var casinoPageUrl = CacheManager.GetPartnerSettingByKey(partnerId, Constants.PartnerKeys.CasinoPageUrl).StringValue;
             if (string.IsNullOrEmpty(casinoPageUrl))
@@ -207,6 +207,5 @@ namespace IqSoft.CP.Integration.Products.Helpers
             if (res.ErrorCode != 0)
                 throw new Exception(string.Format("Code {0}. {1}", res.ErrorCode, res.Description));
         }
-
     }
 }

@@ -338,7 +338,9 @@
     <Compile Include="Payments\Helpers\EwayHelpers.cs" />
     <Compile Include="Payments\Helpers\FinVertHelpers.cs" />
     <Compile Include="Payments\Helpers\FlexepinHelpers.cs" />
+    <Compile Include="Payments\Helpers\FreedomPayHelpers.cs" />
     <Compile Include="Payments\Helpers\FugaPayHelpers.cs" />
+    <Compile Include="Payments\Helpers\GatewayPayHelpers.cs" />
     <Compile Include="Payments\Helpers\GumballPayHelpers.cs" />
     <Compile Include="Payments\Helpers\ImpayaHelpers.cs" />
     <Compile Include="Payments\Helpers\InteracHelpers.cs" />
@@ -403,6 +405,7 @@
     <Compile Include="Payments\Helpers\TronLinkHelpers.cs" />
     <Compile Include="Payments\Helpers\VevoPayHelpers.cs" />
     <Compile Include="Payments\Helpers\XcoinsPayHelpers.cs" />
+    <Compile Include="Payments\Helpers\XprizoHelpers.cs" />
     <Compile Include="Payments\Helpers\YaspaHelpers.cs" />
     <Compile Include="Payments\Helpers\ZippyHelpers.cs" />
     <Compile Include="Payments\Models\ApcoPay\PaymentInput.cs" />
@@ -450,6 +453,7 @@
     <Compile Include="Payments\Models\FugaPay\PaymentInput.cs" />
     <Compile Include="Payments\Models\FugaPay\PaymentOutput.cs" />
     <Compile Include="Payments\Models\FugaPay\OutputBase.cs" />
+    <Compile Include="Payments\Models\GatewayPay\PaymentOutput.cs" />
     <Compile Include="Payments\Models\GumballPay\PaymentOutput.cs" />
     <Compile Include="Payments\Models\Impaya\InvoiceOutput.cs" />
     <Compile Include="Payments\Models\Interac\PaymentOutput.cs" />
@@ -587,9 +591,11 @@
     <Compile Include="Payments\Models\QuikiPay\PaymentOutput.cs" />
     <Compile Include="Payments\Models\QuikiPay\PayoutInput.cs" />
     <Compile Include="Payments\Models\QuikiPay\PayoutOutput.cs" />
+    <Compile Include="Payments\Models\QuikiPay\PayoutWalletInput.cs" />
     <Compile Include="Payments\Models\Runpay\PayoutOutput.cs" />
     <Compile Include="Payments\Models\SantimaPay\PayoutOutput.cs" />
     <Compile Include="Payments\Models\SantimaPay\PaymentOutput.cs" />
+    <Compile Include="Payments\Models\FreedomPay\PaymentOutput.cs" />
     <Compile Include="Payments\Models\Stripe\PaymentLinkInput.cs" />
     <Compile Include="Payments\Models\Stripe\PaymentLinkOutput.cs" />
     <Compile Include="Payments\Models\Stripe\ProductOutput.cs" />
@@ -601,6 +607,9 @@
     <Compile Include="Payments\Models\VevoPay\PaymentOutput.cs" />
     <Compile Include="Payments\Models\VevoPay\PayoutOutput.cs" />
     <Compile Include="Payments\Models\XcoinsPay\PaymentOutput.cs" />
+    <Compile Include="Payments\Models\Xprizo\PaymentInput.cs" />
+    <Compile Include="Payments\Models\Xprizo\PaymentOutput.cs" />
+    <Compile Include="Payments\Models\Xprizo\PayoutOutput.cs" />
     <Compile Include="Payments\Models\Yaspa\PaymentOutput.cs" />
     <Compile Include="Payments\Models\Yaspa\PayoutInput.cs" />
     <Compile Include="Payments\Models\Yaspa\PayoutOutput.cs" />
@@ -611,6 +620,7 @@
     <Compile Include="Platforms\Helpers\DigitalCustomerHelpers.cs" />
     <Compile Include="Platforms\Helpers\GreenIDHelpers.cs" />
     <Compile Include="Platforms\Helpers\InsicHelpers.cs" />
+    <Compile Include="Platforms\Helpers\KRAHelpers.cs" />
     <Compile Include="Platforms\Helpers\MGTComplianceHelpers.cs" />
     <Compile Include="Platforms\Helpers\OASISHelpers.cs" />
     <Compile Include="Platforms\Helpers\TicketingSystem.cs" />
@@ -668,6 +678,9 @@
     <Compile Include="Platforms\Models\Insic\UserInput.cs" />
     <Compile Include="Platforms\Models\Insic\UserModel.cs" />
     <Compile Include="Platforms\Models\Insic\UserOutput.cs" />
+    <Compile Include="Platforms\Models\KRA\AuthOutput.cs" />
+    <Compile Include="Platforms\Models\KRA\BaseOutput.cs" />
+    <Compile Include="Platforms\Models\KRA\BetItem.cs" />
     <Compile Include="Platforms\Models\MGTCompliance\ErrorOutput.cs" />
     <Compile Include="Platforms\Models\MGTCompliance\RegisterOutput.cs" />
     <Compile Include="Platforms\Models\MGTCompliance\TokenOutput.cs" />

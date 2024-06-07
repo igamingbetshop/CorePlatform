@@ -9,8 +9,8 @@ namespace IqSoft.CP.AdminWebApi.Filters.Clients
         public DateTime ToDate { get; set; }
         public ApiFiltersOperation PartnerIds { get; set; }
         public ApiFiltersOperation ClientIds { get; set; }
-        public ApiFiltersOperation MatchedClientIds { get; set; }
-        public ApiFiltersOperation MatchedDatas { get; set; }
+        public ApiFiltersOperation DuplicatedClientIds { get; set; }
+        public ApiFiltersOperation DuplicatedDatas { get; set; }
         public ApiFiltersOperation MatchDates { get; set; }
     }
 }

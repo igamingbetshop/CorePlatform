@@ -48,6 +48,10 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 case Constants.PaymentSystems.CoinsPaidUSDTT:
                 case Constants.PaymentSystems.CoinsPaidETH:
                 case Constants.PaymentSystems.CoinsPaidUSDC:
+                case Constants.PaymentSystems.CoinsPaidLTC:
+                case Constants.PaymentSystems.CoinsPaidUSDTE:
+                case Constants.PaymentSystems.CoinsPaidXRP:
+                case Constants.PaymentSystems.CoinsPaidBNBBSC:
                     return CoinsPaidHelpers.PaymentRequest(clientId, paymentSystemId, log);
                 default:
                     break;
@@ -510,6 +514,10 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 case Constants.PaymentSystems.CoinsPaidUSDTT:
                 case Constants.PaymentSystems.CoinsPaidETH:
                 case Constants.PaymentSystems.CoinsPaidUSDC:
+                case Constants.PaymentSystems.CoinsPaidLTC:
+                case Constants.PaymentSystems.CoinsPaidUSDTE:
+                case Constants.PaymentSystems.CoinsPaidXRP:
+                case Constants.PaymentSystems.CoinsPaidBNBBSC:
                     response = CoinsPaidHelpers.PayoutRequest(paymentRequest, session, log);
                     break;
                 case Constants.PaymentSystems.KralPayPapara:
@@ -588,6 +596,10 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 				case Constants.PaymentSystems.QuikiPayCrypto:
 					response = QuikiPayHelpers.CreatePayoutRequest(paymentRequest, session, log);
 					break;
+				case Constants.PaymentSystems.XprizoMpesa:
+				case Constants.PaymentSystems.XprizoWallet:
+					response = XprizoHelpers.CreatePayoutRequest(paymentRequest, session, log);
+					break;
 				default:
                     response.Status = PaymentRequestStates.Failed;
                     throw BaseBll.CreateException(session.LanguageId, Constants.Errors.PaymentSystemNotFound);
@@ -613,6 +625,9 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                         OASISHelpers.CheckClientStatus(CacheManager.GetClientById(paymentRequest.ClientId.Value), null, session.LanguageId, session, log);
                         InsicHelpers.PaymentModalityRegistration(partnerId, paymentRequest.ClientId.Value, paymentRequest.PaymentSystemId, session, log);
                         InsicHelpers.PaymentRequest(partnerId, paymentRequest.ClientId.Value, paymentRequest.Id, paymentRequest.Type, paymentRequest.Amount, log);
+                        break;
+                    case (int)VerificationPlatforms.KRA:
+                        KRAHelpers.SendPaymentsInfo(partnerId, paymentRequest.Amount, paymentRequest.CreationTime, log);
                         break;
                     default:
                         break;
@@ -1058,6 +1073,12 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 case Constants.PaymentSystems.KralPayBankTransfer:
                     paymentResponse.Url = KralPayHelpers.CallKralPayApi(paymentRequest, cashierPageUrl, session, log);
                     break;
+                case Constants.PaymentSystems.GatewayPay:
+                    paymentResponse.Url = GatewayPayHelpers.CallGatewayPayApi(paymentRequest, cashierPageUrl, session, log);
+                    break;
+                case Constants.PaymentSystems.FreedomPay:
+                    paymentResponse.Url = FreedomPayHelpers.CallFreedomPayApi(paymentRequest, cashierPageUrl, session, log);
+                    break;
                 case Constants.PaymentSystems.MoneyPayVisaMaster:
                 case Constants.PaymentSystems.MoneyPayAmericanExpress:
                     paymentResponse.Url = MoneyPayHelpers.CallMoneyPayApi(paymentRequest, cashierPageUrl, session, log);
@@ -1178,7 +1199,15 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 				case Constants.PaymentSystems.QuikiPayCrypto:
 					paymentResponse.Url = QuikiPayHelpers.PaymentRequest(paymentRequest, cashierPageUrl, session, log);
                     break;
-                default:
+				case Constants.PaymentSystems.XprizoWallet:
+				case Constants.PaymentSystems.XprizoMpesa:
+					paymentResponse.Description = XprizoHelpers.PaymentRequest(paymentRequest, cashierPageUrl, session, log);
+					break;
+				case Constants.PaymentSystems.XprizoCard:
+				case Constants.PaymentSystems.XprizoUPI:
+					paymentResponse.Url = XprizoHelpers.PaymentRequest(paymentRequest, cashierPageUrl, session, log);
+					break;
+				default:
                     throw BaseBll.CreateException(session.LanguageId, Constants.Errors.PaymentSystemNotFound);
 
             }

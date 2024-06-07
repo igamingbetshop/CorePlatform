@@ -163,7 +163,7 @@ namespace IqSoft.CP.BLL.Services
             return clientMessage;
         }
 
-        public void SendInternalTicket(int clientId, int? notificationType, string messageText = "", DAL.Models.Notification.PaymentNotificationInfo paymentInfo = null)
+        public void SendInternalTicket(int clientId, int? notificationType, string messageText = "", PaymentNotificationInfo paymentInfo = null)
         {
             var client = CacheManager.GetClientById(clientId);
             if (client == null)
@@ -901,21 +901,25 @@ namespace IqSoft.CP.BLL.Services
                     case AffiliatePlatforms.VipAffiliate:
                         if (!amount.HasValue)
                         {
-                            var client = CacheManager.GetClientById(clientId);
-                            var clientGroup = CacheManager.GetPartnerSettingByKey(partnerId, string.Format("{0}_{1}", Constants.PartnerKeys.AffiliateSecure, affiliatePlatform.Id)).StringValue;
-                            var apiUsername = CacheManager.GetPartnerSettingByKey(partnerId, string.Format("{0}_{1}", Constants.PartnerKeys.AffiliateUsername, affiliatePlatform.Id)).StringValue;
-                            var apiPassword = CacheManager.GetPartnerSettingByKey(partnerId, string.Format("{0}_{1}", Constants.PartnerKeys.AffiliatePassword, affiliatePlatform.Id)).StringValue;
-                            headers = new Dictionary<string, string> { { "Authorization", "Basic " + Convert.ToBase64String(Encoding.Default.GetBytes(apiUsername + ":" + apiPassword)) } };
-                            postData = CommonFunctions.GetSortedParamWithValuesAsString(new
+                            var sendPostback = CacheManager.GetPartnerSettingByKey(partnerId, $"{affiliatePlatform.Name}_{Constants.PartnerKeys.AffiliateSendPostback}").StringValue;
+                            if (sendPostback != "0")
                             {
-                                FEED_ID = 8,
-                                CLIENT_REFERENCE = clientId,
-                                CLIENT_GROUP = clientGroup,
-                                JOIN_DATE = client.CreationTime.ToString("yyyy-MM-dd"),
-                                DISPLAY_NAME = clientId,
-                                TOKEN = clickId,
-                                COUNTRY = Identity.Country
-                            }, "&");
+                                var client = CacheManager.GetClientById(clientId);
+                                var clientGroup = CacheManager.GetPartnerSettingByKey(partnerId, string.Format("{0}_{1}", Constants.PartnerKeys.AffiliateSecure, affiliatePlatform.Id)).StringValue;
+                                var apiUsername = CacheManager.GetPartnerSettingByKey(partnerId, string.Format("{0}_{1}", Constants.PartnerKeys.AffiliateUsername, affiliatePlatform.Id)).StringValue;
+                                var apiPassword = CacheManager.GetPartnerSettingByKey(partnerId, string.Format("{0}_{1}", Constants.PartnerKeys.AffiliatePassword, affiliatePlatform.Id)).StringValue;
+                                headers = new Dictionary<string, string> { { "Authorization", "Basic " + Convert.ToBase64String(Encoding.Default.GetBytes(apiUsername + ":" + apiPassword)) } };
+                                postData = CommonFunctions.GetSortedParamWithValuesAsString(new
+                                {
+                                    FEED_ID = 8,
+                                    CLIENT_REFERENCE = clientId,
+                                    CLIENT_GROUP = clientGroup,
+                                    JOIN_DATE = client.CreationTime.ToString("yyyy-MM-dd"),
+                                    DISPLAY_NAME = clientId,
+                                    TOKEN = clickId,
+                                    COUNTRY = Identity.Country
+                                }, "&");
+                            }
                         }
                         break;
                     case AffiliatePlatforms.Affilka:
@@ -946,7 +950,40 @@ namespace IqSoft.CP.BLL.Services
                         };
                         var resp = CommonFunctions.SendHttpRequest(httpInput, out _);
                         break;
-                    case AffiliatePlatforms.CustomerIo:
+
+                    case AffiliatePlatforms.Trackier:
+                        player = CacheManager.GetClientById(clientId);
+                        var brand = CacheManager.GetPartnerSettingByKey(player.PartnerId, AffiliatePlatforms.Trackier + Constants.PartnerKeys.AffiliateBrandId).StringValue;
+                        apiKey = CacheManager.GetPartnerSettingByKey(partnerId, AffiliatePlatforms.Trackier + Constants.PartnerKeys.AffiliateApiKey).StringValue;
+
+                        var currentTime = DateTime.UtcNow;
+                        long unixTime = ((DateTimeOffset)currentTime).ToUnixTimeSeconds(); 
+                        inputJson = JsonConvert.SerializeObject(new
+                        {
+                            customerId = player.Id.ToString(),
+                            customerName = player.UserName,
+                            timestamp = unixTime,
+                            date = currentTime.ToString("yyyy-MM-dd"),
+                            currency = player.CurrencyId.ToLower(),
+                            brandId = brand,
+                            productId = "1",
+                            trackingToken = clickId,
+                            country = Identity.Country.ToUpper(),
+                        });
+                        httpInput = new HttpRequestInput
+                        {
+                            RequestMethod = Constants.HttpRequestMethods.Post,
+                            ContentType = Constants.HttpContentTypes.ApplicationJson,
+                            Url = $"{url}/customers",
+                            RequestHeaders = new Dictionary<string, string> { { "x-api-key", apiKey } },
+                            PostData = inputJson
+                        };
+                        var r = CommonFunctions.SendHttpRequest(httpInput, out _);
+                        Log.Info("Trackier resp: " + r);
+                        break;
+
+
+                    case AffiliatePlatforms.CustomerIo: // too long, should be edited
                         var customer = CacheManager.GetClientById(clientId);
                         url = CacheManager.GetPartnerSettingByKey(partnerId, Constants.PartnerKeys.CustomerIoUrl).StringValue;
                         var partnerName = CacheManager.GetPartnerById(customer.PartnerId).Name;
@@ -1110,7 +1147,7 @@ namespace IqSoft.CP.BLL.Services
 							var am = CommonFunctions.SendHttpRequest(httpRequest, out _);
 						}
 						break;
-                    case AffiliatePlatforms.Smartico:
+                    case AffiliatePlatforms.Smartico: // too long, should be edited
                         var user = CacheManager.GetClientById(clientId);
                         var currentDate = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeMilliseconds();
 						var brandId = CacheManager.GetPartnerSettingByKey(partnerId, Constants.PartnerKeys.SmarticoBrandId).StringValue;

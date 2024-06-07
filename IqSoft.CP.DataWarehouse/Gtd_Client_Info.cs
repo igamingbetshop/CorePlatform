@@ -32,5 +32,6 @@ namespace IqSoft.CP.DataWarehouse
         public decimal TotalCreditCorrectionAmount { get; set; }
         public int TotalCreditCorrectionCount { get; set; }
         public decimal ComplementaryBalance { get; set; }
+        public decimal TotalBonusAmount { get; set; }
     }
 }

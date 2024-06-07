@@ -26,6 +26,7 @@ using IqSoft.CP.DataWarehouse;
 using Client = IqSoft.CP.DAL.Client;
 using Document = IqSoft.CP.DAL.Document;
 using PaymentRequest = IqSoft.CP.DAL.PaymentRequest;
+using IqSoft.CP.BLL.Services;
 
 namespace IqSoft.CP.MasterCacheWebApi.Helpers
 {
@@ -211,6 +212,29 @@ namespace IqSoft.CP.MasterCacheWebApi.Helpers
                 ResetPassword = affiliateLoginOut?.ResetPassword,
                 AcceptTermsConditions = affiliateLoginOut?.AcceptTermsConditions,
                 DocumentExpirationStatus = affiliateLoginOut?.DocumentExpirationStatus
+            };
+        }
+
+        public static ApiLoginClientOutput ToApiLoginClientOutput(this BllUser user, string newToken)
+        {
+            var currency = CacheManager.GetCurrencyById(user.CurrencyId);
+            return new ApiLoginClientOutput
+            {
+                Id = user.Id,
+                Email = user.Email,
+                CurrencyId = currency.Id,
+                CurrencyName = currency.Name,
+                UserName = user.UserName,
+                PartnerId = user.PartnerId,
+                Gender = user.Gender,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                NickName = user.NickName,
+                MobileNumber = user.MobileNumber,
+                CreationTime = user.CreationTime,
+                Token = newToken,
+                CurrencySymbol = currency.Symbol,
+                IsAgent = true
             };
         }
 
@@ -1044,9 +1068,21 @@ namespace IqSoft.CP.MasterCacheWebApi.Helpers
 
 		#region Bonus
 
-		public static ApiClientBonusItem ToApiClientBonusItem(this fnClientBonus bonus, double timeZone)
+		public static ApiClientBonusItem ToApiClientBonusItem(this fnClientBonus bonus, double timeZone, string languageId)
 		{
             var awardingTime = bonus.AwardingTime ?? bonus.CreationTime.AddHours(bonus.ValidForAwarding ?? 0);
+            List<string> connectedBonuses = null;
+            if(bonus.Type == (int)BonusTypes.SpinWheel)
+            {
+                var bonuses = bonus.Info.Split(',').Select(x => Convert.ToInt32(x)).ToList();
+                connectedBonuses = new List<string>();
+                foreach(var b in bonuses)
+                {
+                    var bs = CacheManager.GetBonusById(b);
+                    var name = CacheManager.GetTranslation(bs.TranslationId, languageId);
+                    connectedBonuses.Add(name);
+                }
+            }
             return new ApiClientBonusItem
             {
                 Id = bonus.Id,
@@ -1061,15 +1097,42 @@ namespace IqSoft.CP.MasterCacheWebApi.Helpers
                 AwardingTime = awardingTime.GetGMTDateFromUTC(timeZone),
                 CalculationTime = (bonus.CalculationTime ?? (bonus.AwardingTime == null ? (DateTime?)null : 
                     awardingTime.AddHours(bonus.ValidForSpending ?? 0))).GetGMTDateFromUTC(timeZone),
-                ReuseNumber = bonus.ReuseNumber
+                ReuseNumber = bonus.ReuseNumber,
+                ConnectedBonuses = connectedBonuses
             };
 		}
 
-		#endregion
+        public static ApiBonus ToApiBonus(this BllBonus bonus, double timeZone)
+        {
+            return new ApiBonus
+            {
+                Id = bonus.Id,
+                Name = bonus.Name,
+                PartnerId = bonus.PartnerId,
+                Status = bonus.Status,
+                StartTime = bonus.StartTime.GetGMTDateFromUTC(timeZone),
+                FinishTime = bonus.FinishTime.GetGMTDateFromUTC(timeZone),
+                Type = bonus.Type,
+                Info = bonus.Info,
+                Sequence = bonus.Sequence
+            };
+        }
 
-		#region WebSite
+        public static ApiLeaderboardItem ToApiLeaderboardItem(this BllLeaderboardItem item, string currencyId)
+        {
+            var client = CacheManager.GetClientById(item.Id);
+            return new ApiLeaderboardItem
+            {
+                Name = string.IsNullOrEmpty(client.FirstName) ? client.Id.ToString() : client.FirstName,
+                Points = Math.Round(BaseBll.ConvertCurrency(item.CurrencyId, currencyId, item.Points))
+            };
+        }
 
-		private static ApiMenuItem ToApiMenuItem(this BllMenuItem input)
+        #endregion
+
+        #region WebSite
+
+        private static ApiMenuItem ToApiMenuItem(this BllMenuItem input)
 		{
 			return new ApiMenuItem
 			{

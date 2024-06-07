@@ -144,6 +144,7 @@
     <Compile Include="Enums\MessageTemplateStates.cs" />
     <Compile Include="Models\AdminModels\ApiAdminClientSetting.cs" />
     <Compile Include="Models\AdminModels\ApiAnnouncement.cs" />
+    <Compile Include="Models\AdminModels\ApiClientSegment.cs" />
     <Compile Include="Models\AdminModels\ApiGameProvider.cs" />
     <Compile Include="Models\AdminModels\ApiNFTInfo.cs" />
     <Compile Include="Models\AdminModels\NFTInfo.cs" />
@@ -327,6 +328,7 @@
     <Compile Include="Models\Notification\PartnerNotificationData.cs" />
     <Compile Include="Models\Notification\SalesforceTokenOutput.cs" />
     <Compile Include="Models\Notification\SMSToOutput.cs" />
+    <Compile Include="Models\Notification\TrackierTokenOutput.cs" />
     <Compile Include="Models\Notification\UniSenderInput.cs" />
     <Compile Include="Models\Notification\XeRateResponse.cs" />
     <Compile Include="Models\PagedModel.cs" />
@@ -345,12 +347,12 @@
     <Compile Include="Models\Report\InternetBetByClient.cs" />
     <Compile Include="Models\UserModels\AgentEmployeePermissionModel.cs" />
     <Compile Include="Models\UserModels\AgentSubAccount.cs" />
-    <Compile Include="Models\UserModels\LoginUserInput.cs" />
     <Compile Include="Models\UserModels\UserMenuState.cs" />
     <Compile Include="Models\WebSiteModels\ApiAccount.cs" />
     <Compile Include="Models\WebSiteModels\ApiBalance.cs" />
     <Compile Include="Models\WebSiteModels\ApiBannerInput.cs" />
     <Compile Include="Models\WebSiteModels\ApiBannerOutput.cs" />
+    <Compile Include="Models\WebSiteModels\ApiBonus.cs" />
     <Compile Include="Models\WebSiteModels\ApiCharacter.cs" />
     <Compile Include="Models\WebSiteModels\ApiCharacterRelations.cs" />
     <Compile Include="Models\WebSiteModels\ApiClientBonusItem.cs" />
@@ -362,6 +364,7 @@
     <Compile Include="Models\WebSiteModels\ApiFilterRegion.cs" />
     <Compile Include="Models\WebSiteModels\ApiGameProvider.cs" />
     <Compile Include="Models\WebSiteModels\ApiGetPartnerByIdOutput.cs" />
+    <Compile Include="Models\WebSiteModels\ApiLeaderboardItem.cs" />
     <Compile Include="Models\WebSiteModels\ApiLoginClientOutput.cs" />
     <Compile Include="Models\WebSiteModels\ApiPartnerBankInfo.cs" />
     <Compile Include="Models\WebSiteModels\ApiPartnerProduct.cs" />

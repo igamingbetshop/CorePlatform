@@ -21,5 +21,6 @@ namespace IqSoft.CP.Common.Models.AffiliateModels
         public string CommunicationTypeValue { get; set; }
         public DateTime CreationTime { get; set; }
         public DateTime LastUpdateTime { get; set; }
+        public int? ClientId { get; set; }
     }
 }

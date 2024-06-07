@@ -24,6 +24,8 @@ using Document = IqSoft.CP.DAL.Document;
 using ClientBonu = IqSoft.CP.DAL.ClientBonu;
 using AffiliateReferral = IqSoft.CP.DAL.AffiliateReferral;
 using Bonu = IqSoft.CP.DAL.Bonu;
+using System.Transactions;
+using System.Reflection.Emit;
 
 namespace IqSoft.CP.BLL.Services
 {
@@ -64,8 +66,12 @@ namespace IqSoft.CP.BLL.Services
                     (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != bonus.PartnerId)))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
 
-                if ((bonus.Type == (int)BonusTypes.SignupRealBonus && !CheckBonusInfoValidity(bonus.Info)) ||
-                    !Enum.IsDefined(typeof(BonusStatuses), bonus.Status))
+                if(!Enum.IsDefined(typeof(BonusStatuses), bonus.Status))
+                    throw CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongInputParameters);
+
+                if (bonus.Type == (int)BonusTypes.Tournament && !CheckTournamentInfoValidity(bonus.Info))
+                    throw CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongInputParameters);
+                else if (bonus.Type == (int)BonusTypes.SpinWheel && !CheckSpinWheelInfoValidity(bonus.Info, bonus.PartnerId))
                     throw CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongInputParameters);
                 else if (bonus.Type == (int)BonusTypes.AffiliateBonus && (bonus.MinAmount == null ||
                      Db.Bonus.Any(x => x.Type == (int)BonusTypes.AffiliateBonus && x.Status == (int)BonusStatuses.Active &&
@@ -88,8 +94,12 @@ namespace IqSoft.CP.BLL.Services
                 }
                 else if (bonus.Type == (int)BonusTypes.CashBackBonus && !bonus.AutoApproveMaxAmount.HasValue)
                     throw CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongInputParameters);
-                else if (bonus.Type == (int)BonusTypes.AggregatedFreeSpin && 
-                    Db.Bonus.FirstOrDefault(x => x.Type == (int)BonusTypes.AggregatedFreeSpin && x.Status == (int)BonusStatuses.Active && x.PartnerId == bonus.PartnerId) != null)
+                else if ((bonus.Type == (int)BonusTypes.AggregatedFreeSpin &&
+                    Db.Bonus.FirstOrDefault(x => x.Type == (int)BonusTypes.AggregatedFreeSpin &&
+                    x.Status == (int)BonusStatuses.Active && x.PartnerId == bonus.PartnerId) != null) ||
+                    (bonus.Type == (int)BonusTypes.AffiliateBonus &&
+                    Db.Bonus.FirstOrDefault(x => x.Type == (int)BonusTypes.AffiliateBonus &&
+                    x.Status == (int)BonusStatuses.Active && x.PartnerId == bonus.PartnerId) != null))
                     throw CreateException(Constants.DefaultLanguageId, Constants.Errors.ClientAlreadyHasActiveBonus);
                 if (bonus.MinAmount.HasValue && bonus.MaxAmount.HasValue && bonus.MinAmount > bonus.MaxAmount)
                     throw CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongInputParameters);
@@ -106,17 +116,13 @@ namespace IqSoft.CP.BLL.Services
                 Db.Bonus.Add(bonus);
                 Db.SaveChanges();
 
-                if (bonus.Type == (int)BonusTypes.AffiliateBonus ||
-                    bonus.Type == (int)BonusTypes.CashBackBonus)
+                if (bonus.Type == (int)BonusTypes.AffiliateBonus || bonus.Type == (int)BonusTypes.CashBackBonus)
                     Db.BonusProducts.Add(new BonusProduct { BonusId = bonus.Id, ProductId = Constants.PlatformProductId, Percent = percent ?? 0 });
-                else if (bonus.Type == (int)BonusTypes.SignupRealBonus ||
-                         bonus.Type == (int)BonusTypes.CampaignCash ||
-                         bonus.Type == (int)BonusTypes.CampaignWagerCasino)
+                else if (bonus.Type == (int)BonusTypes.CampaignCash || bonus.Type == (int)BonusTypes.CampaignWagerCasino)
                     Db.BonusProducts.Add(new BonusProduct { BonusId = bonus.Id, ProductId = Constants.PlatformProductId, Percent = 100 });
-                else if (bonus.Type == (int)BonusTypes.CampaignWagerSport ||
-                         bonus.Type == (int)BonusTypes.CampaignFreeBet)
+                else if (bonus.Type == (int)BonusTypes.CampaignWagerSport || bonus.Type == (int)BonusTypes.CampaignFreeBet)
                     Db.BonusProducts.Add(new BonusProduct { BonusId = bonus.Id, ProductId = Constants.SportsbookProductId, Percent = 100 });
-                else if (bonus.Type == (int)BonusTypes.CampaignFreeSpin)
+                else if (bonus.Type == (int)BonusTypes.Tournament || bonus.Type == (int)BonusTypes.CampaignFreeSpin)
                     Db.BonusProducts.Add(new BonusProduct { BonusId = bonus.Id, ProductId = Constants.PlatformProductId });
                 Db.SaveChanges();
                 ts.Complete();
@@ -153,7 +159,8 @@ namespace IqSoft.CP.BLL.Services
                     (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != dbBonus.PartnerId)))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
                 var currentTime = DateTime.UtcNow;
-                if (dbBonus.Type == (int)BonusTypes.AggregatedFreeSpin && dbBonus.Status == (int)BonusStatuses.Active)
+                if ((dbBonus.Type == (int)BonusTypes.AggregatedFreeSpin ||dbBonus.Type == (int)BonusTypes.AffiliateBonus)
+                    && dbBonus.Status == (int)BonusStatuses.Active)
                     throw CreateException(LanguageId, Constants.Errors.ClientAlreadyHasActiveBonus);
                 var name = dbBonus.Name + "_" + ((long)currentTime.Year * 10000000000 + (long)currentTime.Month * 100000000 +
                     (long)currentTime.Day * 1000000 + (long)currentTime.Hour * 10000 + (long)currentTime.Minute * 100 + currentTime.Second);
@@ -231,8 +238,9 @@ namespace IqSoft.CP.BLL.Services
 
                 newBonus.BonusProducts = new List<BonusProduct>();
                 dbBonus.BonusProducts.ToList().ForEach(x => newBonus.BonusProducts.Add(
-                    new BonusProduct {
-                        BonusId = newBonus.Id, 
+                    new BonusProduct
+                    {
+                        BonusId = newBonus.Id,
                         ProductId = x.ProductId,
                         Percent = x.Percent,
                         Count = x.Count,
@@ -281,22 +289,44 @@ namespace IqSoft.CP.BLL.Services
             }
         }
 
-        private bool CheckBonusInfoValidity(string info)
+        private bool CheckTournamentInfoValidity(string info)
         {
-            bool isValid = false;
             try
             {
-                decimal[] prizeAmounts = info.Split(',').Select(x => Convert.ToDecimal(x)).ToArray();
-                foreach (var amount in prizeAmounts)
-                    if (amount < 0)
-                        return isValid;
-                isValid = true;
+                decimal[] prizePercents = info.Split(',').Select(x => Convert.ToDecimal(x)).ToArray();
+                foreach (var percent in prizePercents)
+                    if (percent < 0)
+                        return false;
+                return true;
             }
             catch (Exception ex)
             {
-                Log.Error(ex.Message);
+                Log.Error(ex.Message + "_" + info);
+                return false;
             }
-            return isValid;
+        }
+
+        private bool CheckSpinWheelInfoValidity(string info, int partnerId)
+        {
+            try
+            {
+                var bonusIds = info.Split(',').Select(x => Convert.ToInt32(x)).ToList();
+                foreach (var bId in bonusIds)
+                {
+                    var bonus = CacheManager.GetBonusById(bId);
+                    if (bonus == null || bonus.Id == 0 || bonus.PartnerId != partnerId || bonus.Status != (int)BonusStatuses.Active)
+                        return false;
+                }
+                if(bonusIds.Count < 3 || bonusIds.Count > 20)
+                    return false;
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex.Message + "_" + info);
+                return false;
+            }
         }
 
         public List<fnBonus> GetBonuses(int? partnerId, int? type, int? status)
@@ -406,6 +436,9 @@ namespace IqSoft.CP.BLL.Services
                 if (bon.BonusProducts != null)
                     throw CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongInputParameters);
             }
+            else if (dbBonus.Type == (int)BonusTypes.AffiliateBonus && bon.Status == (int)BonusStatuses.Active &&
+                    Db.Bonus.FirstOrDefault(x => x.Id != dbBonus.Id && x.Type == (int)BonusTypes.AffiliateBonus && x.Status == (int)BonusStatuses.Active) != null)
+                    throw CreateException(Constants.DefaultLanguageId, Constants.Errors.ClientAlreadyHasActiveBonus);            
 
             if (bon.BonusProducts == null)
             {
@@ -548,8 +581,7 @@ namespace IqSoft.CP.BLL.Services
                     }
                 }
 
-                if (dbBonus.Type == (int)BonusTypes.AffiliateBonus ||
-                    dbBonus.Type == (int)BonusTypes.SignupRealBonus)
+                if (dbBonus.Type == (int)BonusTypes.AffiliateBonus)
                 {
                     var per = bon.BonusProducts?.FirstOrDefault(x => x.ProductId == Constants.PlatformProductId)?.Percent ?? 0;
                     var p = bonusProducts.FirstOrDefault(x => x.ProductId == Constants.PlatformProductId);
@@ -586,7 +618,7 @@ namespace IqSoft.CP.BLL.Services
                 }
                 foreach (var bp in bon.BonusProducts)
                 {
-                    var p = bonusProducts.FirstOrDefault(x => x.Id == bp.Id);                        
+                    var p = bonusProducts.FirstOrDefault(x => x.Id == bp.Id);
                     if (p != null)
                     {
                         if ((!bp.Percent.HasValue || bp.Percent == -1) && dbBonus.Type != (int)BonusTypes.CampaignFreeSpin)
@@ -760,7 +792,7 @@ namespace IqSoft.CP.BLL.Services
                         }));
                         Db.SaveChanges();
                     }
-                    if(triggerSetting.AmountCurrencySettings != null)
+                    if (triggerSetting.AmountCurrencySettings != null)
                     {
                         triggerSetting.AmountCurrencySettings.ToList().ForEach(x => Db.AmountCurrencySettings.Add(new AmountCurrencySetting
                         {
@@ -777,7 +809,7 @@ namespace IqSoft.CP.BLL.Services
                 }
                 else
                 {
-                    if(triggerSetting.Status != (int)TriggerStatuses.Active &&
+                    if (triggerSetting.Status != (int)TriggerStatuses.Active &&
                         Db.Bonus.Any(x => x.Status == (int)BonusStatuses.Active && x.StartTime <= currentTime && x.FinishTime > currentTime &&
                                           x.TriggerGroups.Any(t => t.TriggerGroupSettings.Any(g => g.SettingId == dbTriggerSetting.Id))))
                         throw CreateException(LanguageId, Constants.Errors.NotAllowed);
@@ -838,7 +870,7 @@ namespace IqSoft.CP.BLL.Services
                 }
                 if (triggerSetting.Type == (int)TriggerTypes.ManualEvent && activate.HasValue && activate.Value)
                 {
-                    var bonuses = Db.Bonus.Where(x => x.Status == (int)BonusStatuses.Active && 
+                    var bonuses = Db.Bonus.Where(x => x.Status == (int)BonusStatuses.Active &&
                         x.TriggerGroups.Any(y => y.TriggerGroupSettings.Any(z => z.SettingId == triggerSetting.Id))).Select(x => x.Id).ToList();
                     foreach (var b in bonuses)
                     {
@@ -977,8 +1009,8 @@ namespace IqSoft.CP.BLL.Services
                  && x.StartTime <= currentTime
                  && x.FinishTime > currentTime
                  && x.TriggerGroups.Any(t => t.TriggerGroupSettings.Any(g => g.SettingId == triggerSettingId))).FirstOrDefault();
-            
-            if(relatedActiveBonus != null)
+
+            if (relatedActiveBonus != null)
                 throw CreateException(LanguageId, Constants.Errors.NotAllowed);
 
             triggerSetting.Status = (int)TriggerStatuses.Deleted;
@@ -1065,7 +1097,7 @@ namespace IqSoft.CP.BLL.Services
 
             if (id.HasValue)
                 queryTriggers = queryTriggers.Where(x => x.Id == id.Value);
-            
+
             var count = queryTriggers.Count();
             return new PagedModel<TriggerSetting>
             {
@@ -1191,12 +1223,12 @@ namespace IqSoft.CP.BLL.Services
             if (dbTriggerSetting.PartnerId != dbTriggerGroup.Bonu.PartnerId)
                 throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
             var triggerGroup = Db.TriggerGroups.Include(x => x.TriggerGroupSettings).FirstOrDefault(x => x.Id == triggerGroupId);
-            if(triggerGroup == null)
+            if (triggerGroup == null)
                 throw CreateException(LanguageId, Constants.Errors.TriggerGroupNotFound);
             if (triggerGroup.Priority == 0 && (triggerGroup.TriggerGroupSettings.Any() || !Constants.AutoclaimingTriggers.Contains(dbTriggerSetting.Type)))
-                throw CreateException(LanguageId, Constants.Errors.NotAllowed);            
+                throw CreateException(LanguageId, Constants.Errors.NotAllowed);
             if ((dbTriggerSetting.Type == (int)TriggerTypes.SignIn || dbTriggerSetting.Type == (int)TriggerTypes.SignUp) &&
-                (Db.TriggerGroups.Any(x => x.BonusId == dbTriggerGroup.BonusId && 
+                (Db.TriggerGroups.Any(x => x.BonusId == dbTriggerGroup.BonusId &&
                 x.TriggerGroupSettings.Any(y => y.TriggerSetting.Type == dbTriggerSetting.Type))))
                 throw CreateException(LanguageId, Constants.Errors.NotAllowed);
 
@@ -1302,7 +1334,7 @@ namespace IqSoft.CP.BLL.Services
                                   .GroupBy(x => x.PartnerId).ToList();
             var partnerIds = bonuses.Select(x => x.Key).ToList();
             var partners = Db.Partners.Where(x => partnerIds.Contains(x.Id)).ToDictionary(x => x.Id, x => x.CurrencyId);
-            
+
             using (var clientBl = new ClientBll(this))
             {
                 foreach (var partnerBonus in bonuses)
@@ -1323,7 +1355,7 @@ namespace IqSoft.CP.BLL.Services
                                               {
                                                   Status = (int)ClientBonusStatuses.Expired,
                                                   CalculationTime = currentTime
-                                              });   
+                                              });
                                 if (!bets.Any())
                                 {
                                     bonus.LastExecutionTime = finishTime;
@@ -1358,7 +1390,7 @@ namespace IqSoft.CP.BLL.Services
                                                               .GroupBy(x => x.ClientId)
                                                               .Select(x => new { ClientId = x.Key, WinAmount = x.Sum(y => y.Amount) })
                                                               .ToList();
-                                var bonusSegments = bonus.BonusSegmentSettings.Select(x => x.SegmentId).ToList();  
+                                var bonusSegments = bonus.BonusSegmentSettings.Select(x => x.SegmentId).ToList();
                                 var bonusCurrencies = bonus.BonusCurrencySettings.Select(x => x.CurrencyId).ToList();
 
                                 var betQuery = (from b in bets
@@ -1390,7 +1422,7 @@ namespace IqSoft.CP.BLL.Services
                                         ConvertCurrency(partnerCurrency, bonusAmountByCurrency.Key, bs.MinAmount.Value);
                                     var maxAmount = cItem != null && cItem.MaxAmount.HasValue ? cItem.MaxAmount.Value :
                                         ConvertCurrency(partnerCurrency, bonusAmountByCurrency.Key, bs.MaxAmount.Value);
-                                    
+
                                     var autoApprovedAmount = ConvertCurrency(partnerCurrency, bonusAmountByCurrency.Key, bs.AutoApproveMaxAmount.Value);
 
                                     foreach (var bonusAmount in bonusAmountByCurrency)
@@ -1553,136 +1585,78 @@ namespace IqSoft.CP.BLL.Services
             {
                 using (var documentBl = new DocumentBll(this))
                 {
-                    using (var dwh = new IqSoftDataWarehouseEntities())
+                    foreach (var bonus in bonuses)
                     {
-                        foreach (var bonus in bonuses)
+                        var toDate = bonus.LastExecutionTime.AddHours(bonus.Period);
+                        toDate = new DateTime(toDate.Year, toDate.Month, toDate.Day, toDate.Hour, 0, 0);
+                        var fromDate = bonus.LastExecutionTime;
+                        var tDate = (long)toDate.Year * 1000000 + (long)toDate.Month * 10000 + (long)toDate.Day * 100 + (long)toDate.Hour;
+                        var fDate = (long)fromDate.Year * 1000000 + (long)fromDate.Month * 10000 + (long)fromDate.Day * 100 + (long)fromDate.Hour;
+                        var affiliatesProfit = new List<fnAffiliateClient>();
+                        using (var dwh = new IqSoftDataWarehouseEntities()) // To be checked
                         {
-                            var toDate = bonus.LastExecutionTime.AddHours(bonus.Period);
-                            toDate = new DateTime(toDate.Year, toDate.Month, toDate.Day, toDate.Hour, 0, 0);
-                            var fromDate = bonus.LastExecutionTime;
-                            var tDate = (long)toDate.Year * 1000000 + (long)toDate.Month * 10000 + (long)toDate.Day * 100 + (long)toDate.Hour;
-                            var fDate = (long)fromDate.Year * 1000000 + (long)fromDate.Month * 10000 + (long)fromDate.Day * 100 + (long)fromDate.Hour;
-                            var affiliatesProfit = dwh.fn_AffiliateClient(fDate, tDate, bonus.PartnerId).ToList();
-
-                            using (var transactionScope = CommonFunctions.CreateTransactionScope(5))
+                            affiliatesProfit = dwh.fn_AffiliateClient(fDate, tDate, bonus.PartnerId).ToList();
+                        }
+                        using (var transactionScope = CommonFunctions.CreateTransactionScope(5))
+                        {
+                            var bonusProduct = Db.BonusProducts.FirstOrDefault(x => x.ProductId == Constants.PlatformProductId && x.BonusId == bonus.Id);
+                            if (bonusProduct == null || bonusProduct.Percent == null || bonusProduct.Percent == 0)
                             {
-                                var bonusProduct = Db.BonusProducts.FirstOrDefault(x => x.ProductId == Constants.PlatformProductId && x.BonusId == bonus.Id);
-                                if (bonusProduct == null || bonusProduct.Percent == null || bonusProduct.Percent == 0)
-                                {
-                                    bonus.LastExecutionTime = new DateTime(toDate.Year, toDate.Month, toDate.Day, toDate.Hour, 0, 0);
-                                    Db.SaveChanges();
-                                    transactionScope.Complete();
-                                    continue;
-                                }
-                                var percent = bonusProduct.Percent.Value;
-
-                                foreach (var aff in affiliatesProfit)
-                                {
-                                    if (int.TryParse(aff.AffiliateManagerId, out int affiliateManagerId))
-                                    {
-                                        var affManager = Db.Clients.FirstOrDefault(x => x.Id == affiliateManagerId);
-                                        if (affManager != null)
-                                        {
-                                            var ggr = (aff.TotalBetAmount - aff.TotalWinAmount) ?? 0;
-                                            if (ggr > 0)
-                                            {
-                                                var amount = ConvertCurrency(Constants.DefaultCurrencyId, affManager.CurrencyId, ggr) * percent / 100;
-                                                if (amount < ConvertCurrency(bonus.Partner.CurrencyId, affManager.CurrencyId, bonus.MinAmount.Value))
-                                                    continue;
-                                                amount = Math.Min(ConvertCurrency(bonus.Partner.CurrencyId, affManager.CurrencyId, bonus.MaxAmount.Value), amount);
-
-                                                var input = new ClientOperation
-                                                {
-                                                    ClientId = affiliateManagerId,
-                                                    Amount = amount,
-                                                    OperationTypeId = (int)OperationTypes.AffiliateBonus,
-                                                    PartnerId = bonus.PartnerId,
-                                                    Info = bonus.Id.ToString(),
-                                                    CurrencyId = affManager.CurrencyId,
-                                                    AccountTypeId = bonus.FinalAccountTypeId ?? (int)AccountTypes.ClientUsedBalance,
-                                                    Creator = aff.ClientId
-                                                };
-                                                clientBl.CreateDebitToClient(input, affiliateManagerId, string.Empty, documentBl, null);
-                                                clientIds.Add(affiliateManagerId);
-                                            }
-                                            Db.AffiliateReferrals.Where(x => x.AffiliatePlatformId == bonus.PartnerId * 100 &&
-                                                                             x.Type == (int)AffiliateReferralTypes.WebsiteInvitation &&
-                                                                             x.AffiliateId == affiliateManagerId.ToString()).
-                                            UpdateFromQuery(x => new AffiliateReferral { LastProcessedBonusTime = bonus.LastExecutionTime });
-                                            dwh.AffiliateReferrals.Where(x => x.AffiliatePlatformId == bonus.PartnerId * 100 &&
-                                                                             x.Type == (int)AffiliateReferralTypes.WebsiteInvitation &&
-                                                                             x.AffiliateId == affiliateManagerId.ToString()).
-                                            UpdateFromQuery(x => new AffiliateReferral { LastProcessedBonusTime = bonus.LastExecutionTime });
-                                        }
-                                    }
-                                }
                                 bonus.LastExecutionTime = new DateTime(toDate.Year, toDate.Month, toDate.Day, toDate.Hour, 0, 0);
                                 Db.SaveChanges();
                                 transactionScope.Complete();
+                                continue;
                             }
+                            var percent = bonusProduct.Percent.Value;
+
+                            foreach (var aff in affiliatesProfit)
+                            {
+                                if (int.TryParse(aff.AffiliateManagerId, out int affiliateManagerId))
+                                {
+                                    var affManager = Db.Clients.FirstOrDefault(x => x.Id == affiliateManagerId);
+                                    if (affManager != null)
+                                    {
+                                        var ggr = (aff.TotalBetAmount - aff.TotalWinAmount) ?? 0;
+                                        if (ggr > 0)
+                                        {
+                                            var amount = ConvertCurrency(Constants.DefaultCurrencyId, affManager.CurrencyId, ggr) * percent / 100;
+                                            if (amount < ConvertCurrency(bonus.Partner.CurrencyId, affManager.CurrencyId, bonus.MinAmount.Value))
+                                                continue;
+                                            amount = Math.Min(ConvertCurrency(bonus.Partner.CurrencyId, affManager.CurrencyId, bonus.MaxAmount.Value), amount);
+
+                                            var input = new ClientOperation
+                                            {
+                                                ClientId = affiliateManagerId,
+                                                Amount = amount,
+                                                OperationTypeId = (int)OperationTypes.AffiliateBonus,
+                                                PartnerId = bonus.PartnerId,
+                                                Info = bonus.Id.ToString(),
+                                                CurrencyId = affManager.CurrencyId,
+                                                AccountTypeId = bonus.FinalAccountTypeId ?? (int)AccountTypes.ClientUsedBalance,
+                                                Creator = aff.ClientId
+                                            };
+                                            clientBl.CreateDebitToClient(input, affiliateManagerId, string.Empty, documentBl, null);
+                                            clientIds.Add(affiliateManagerId);
+                                        }
+                                        Db.AffiliateReferrals.Where(x => x.AffiliatePlatformId == bonus.PartnerId * 100 &&
+                                                                         x.Type == (int)AffiliateReferralTypes.WebsiteInvitation &&
+                                                                         x.AffiliateId == affiliateManagerId.ToString()).
+                                        UpdateFromQuery(x => new AffiliateReferral { LastProcessedBonusTime = bonus.LastExecutionTime });
+                                        /*dwh.AffiliateReferrals.Where(x => x.AffiliatePlatformId == bonus.PartnerId * 100 &&
+                                                                         x.Type == (int)AffiliateReferralTypes.WebsiteInvitation &&
+                                                                         x.AffiliateId == affiliateManagerId.ToString()).
+                                        UpdateFromQuery(x => new DataWarehouse.AffiliateReferral { LastProcessedBonusTime = bonus.LastExecutionTime });*/
+                                    }
+                                }
+                            }
+                            bonus.LastExecutionTime = new DateTime(toDate.Year, toDate.Month, toDate.Day, toDate.Hour, 0, 0);
+                            Db.SaveChanges();
+                            transactionScope.Complete();
                         }
                     }
                 }
             }
             return clientIds;
-        }
-
-        public decimal[] ShuffleWelcomeBonusItems()
-        {
-            var currentTime = DateTime.UtcNow;
-
-            var bonus = Db.Bonus.FirstOrDefault(b => b.PartnerId == Identity.PartnerId && b.Type == (int)BonusTypes.SignupRealBonus && 
-                b.Status == (int)BonusStatuses.Active && b.StartTime <= currentTime && b.FinishTime > currentTime);
-            if (bonus == null || String.IsNullOrEmpty(bonus.Info))
-                throw CreateException(Identity.LanguageId, Constants.Errors.ProductNotFound);
-
-            decimal[] shuffledItems = JsonConvert.DeserializeObject<decimal[]>(bonus.Info);
-            var rand = new Random();
-            int length = shuffledItems.Length;
-            for (int i = 0; i < length - 1; i++)
-            {
-                int randNum = i + rand.Next(length - i);
-                decimal temp = shuffledItems[randNum];
-                shuffledItems[randNum] = shuffledItems[i];
-                shuffledItems[i] = temp;
-            }
-            return shuffledItems;
-        }
-
-        public void CreateSignupRealBonus(int clientId, decimal bonusPrize)
-        {
-            var currentDate = DateTime.UtcNow;
-            var bonus = Db.Bonus.FirstOrDefault(b => b.PartnerId == Identity.PartnerId && b.Type == (int)BonusTypes.SignupRealBonus &&
-                                                     b.Status == (int)BonusStatuses.Active && b.StartTime <= currentDate && b.FinishTime > currentDate &&
-                                                    (!b.MaxGranted.HasValue || b.TotalGranted < b.MaxGranted) &&
-                                                    (!b.MaxReceiversCount.HasValue || b.TotalReceiversCount < b.MaxReceiversCount));
-            if (bonus == null || String.IsNullOrEmpty(bonus.Info))
-                throw CreateException(Identity.LanguageId, Constants.Errors.BonusNotFound);
-
-            Db.ClientBonus.Add(new ClientBonu
-            {
-                BonusId = bonus.Id,
-                ClientId = clientId,
-                Status = (int)ClientBonusStatuses.Active,
-                BonusPrize = bonusPrize,
-                CreationTime = currentDate,
-                AwardingTime = currentDate,
-                CreationDate = (long)currentDate.Year * 100000000 + currentDate.Month * 1000000 + currentDate.Day * 10000 + currentDate.Hour * 100 + currentDate.Minute
-            });
-            Db.SaveChanges();
-        }
-
-        public void GiveWelcomeRealBonus(Client client, DocumentBll documentBl)
-        {
-            var bonus = Db.Bonus.FirstOrDefault(b => b.PartnerId == client.PartnerId && b.Type == (int)BonusTypes.SignupRealBonus);
-            if (bonus != null)
-            {
-                var clientBonus = Db.ClientBonus.FirstOrDefault(cb => cb.BonusId == bonus.Id && cb.ClientId == client.Id && cb.Status == (int)ClientBonusStatuses.Active);
-                if (clientBonus == null)
-                    return;
-                clientBonus.Status = (int)ClientBonusStatuses.Inactive;
-                documentBl.CreateBonusDocumnet(client, clientBonus.BonusPrize, (int)OperationTypes.WelcomeBonus, (int)AccountTypes.ClientUnusedBalance);
-            }
         }
 
         public void GiveWageringBonus(Bonu bi, Client client, decimal bonusAmount, long reuseNumber)
@@ -1796,7 +1770,7 @@ namespace IqSoft.CP.BLL.Services
             var currentTime = DateTime.UtcNow;
             if (bonus.StartTime > currentTime || bonus.FinishTime < currentTime)
                 throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.BonusNotFound);
-            
+
             if (validUntil < bonus.StartTime || validUntil > bonus.FinishTime)
                 throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.RequestExpired);
             var clientBonus = new ClientBonu
@@ -1824,7 +1798,7 @@ namespace IqSoft.CP.BLL.Services
             var activeBonuses = Db.ClientBonus.Where(x => x.ClientId == clientBonusItem.ClientId && x.BonusId == clientBonusItem.BonusId).ToList();
             long reuseNumber = 1;
             var bonus = CacheManager.GetBonusById(clientBonusItem.BonusId);
-            
+
             if (activeBonuses.Any())
             {
                 var max = activeBonuses.Select(x => x.ReuseNumber ?? 1).Max();
@@ -1839,7 +1813,7 @@ namespace IqSoft.CP.BLL.Services
             if (ab == null)
             {
                 var currentDate = GetServerDate();
-                if(bonus.Regularity != null)
+                if (bonus.Regularity != null)
                 {
                     if (bonus.DayOfWeek != null && (bonus.DayOfWeek.Value % 7) != (int)currentTime.DayOfWeek)
                     {
@@ -2006,13 +1980,13 @@ namespace IqSoft.CP.BLL.Services
             });
             if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != complimentaryRate.PartnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
-            
+
             var dbComplimentaryRate = Db.ComplimentaryPointRates.FirstOrDefault(x => x.PartnerId == complimentaryRate.PartnerId &&
                                                                                      x.ProductId == complimentaryRate.ProductId &&
                                                                                      x.CurrencyId == complimentaryRate.CurrencyId);
             if (dbComplimentaryRate == null)
             {
-                if(complimentaryRate.Rate == -1)
+                if (complimentaryRate.Rate == -1)
                     return complimentaryRate;
                 complimentaryRate.CreationDate = DateTime.UtcNow;
                 complimentaryRate.LastUpdateDate = DateTime.UtcNow;
@@ -2157,72 +2131,79 @@ namespace IqSoft.CP.BLL.Services
 
         #region Affiliate System
 
-        public void GiveFixedFeeCommission()
+        public void GiveFixedFeeCommission(ILog log)
         {
-            var fromDate = DateTime.UtcNow.AddMonths(-1);
-            var clients = Db.ClientSettings.OrderByDescending(x => x.Id).Include(x => x.Client.AffiliateReferral).
-                Where(x => x.Name == ClientSettings.AffiliateCommissionGranted && x.NumericValue == 0).Take(10000).ToList();
-            var affiliateClients = clients.GroupBy(x => new { AffiliateId = Convert.ToInt32(x.Client.AffiliateReferral.AffiliateId), PartnerId = x.Client.PartnerId }).ToList();
-            using (var affiliateService = new AffiliateService(this))
+            try
             {
-                using (var documentBl = new DocumentBll(this))
+                var fromDate = DateTime.UtcNow.AddMonths(-1);
+                var affiliateClients = Db.ClientSettings.OrderByDescending(x => x.Id)
+                                               .Include(x => x.Client.AffiliateReferral)
+                                               .Where(x => x.Name == ClientSettings.AffiliateCommissionGranted && x.NumericValue == 0)
+                                               .Take(10000).ToList()
+                                               .GroupBy(x => new { AffiliateId = Convert.ToInt32(x.Client.AffiliateReferral.AffiliateId), x.Client.PartnerId }).ToList();
+                using (var affiliateService = new AffiliateService(this))
                 {
-                    foreach (var ac in affiliateClients)
+                    using (var documentBl = new DocumentBll(this))
                     {
-                        using (var transactionScope = CommonFunctions.CreateTransactionScope(5))
+                        foreach (var client in affiliateClients)
                         {
-                            decimal totalGrantedAmount = 0;
-                            var commission = Db.AffiliateCommissions.FirstOrDefault(x => x.AffiliateId == ac.Key.AffiliateId && x.CommissionType == (int)AffiliateCommissionTypes.FixedFee);
-                           
-                            if (commission == null)
+                            using (var transactionScope = CommonFunctions.CreateTransactionScope(5))
                             {
-                                foreach (var c in ac)
-                                {
-                                    c.NumericValue = 1;
-                                }
-                            }
-                            else
-                            {
-                                foreach (var c in ac)
-                                {
-                                    if (commission.RequireVerification == null || commission.RequireVerification == false || 
-                                        (commission.RequireVerification == true && c.Client.IsDocumentVerified &&
-                                        c.Client.IsEmailVerified && c.Client.IsMobileNumberVerified))
-                                    {
-                                        var totalDeposit = ConvertCurrency(c.Client.CurrencyId, commission.CurrencyId, CacheManager.GetTotalDepositAmounts(c.ClientId, (int)PeriodsOfTime.All));
-                                        if (commission.TotalDepositAmount == null || totalDeposit >= commission.TotalDepositAmount)
-                                        {
-                                            c.NumericValue = 2;
-                                            if(commission.Amount != null)
-                                                totalGrantedAmount += commission.Amount.Value;
-                                        }
-                                    }
+                                decimal totalGrantedAmount = 0;
+                                var commission = Db.AffiliateCommissions.FirstOrDefault(x => x.AffiliateId == client.Key.AffiliateId && x.CommissionType == (int)AffiliateCommissionTypes.FixedFee);
 
-                                    if (c.NumericValue == 0 && c.Client.CreationTime < fromDate)
+                                if (commission == null)
+                                {
+                                    foreach (var c in client)
                                         c.NumericValue = 1;
                                 }
-                            }
-
-                            if (totalGrantedAmount > 0)
-                            {
-                                var currentDate = DateTime.UtcNow;
-                                var input = new ClientOperation
+                                else
                                 {
-                                    Amount = totalGrantedAmount,
-                                    ExternalTransactionId = (int)AffiliateCommissionTypes.FixedFee + "_" + (currentDate.Year * (int)1000000 + currentDate.Month * 10000 + currentDate.Day * 100 + currentDate.Hour),
-                                    OperationTypeId = (int)OperationTypes.AffiliateBonus,
-                                    PartnerId = ac.Key.PartnerId,
-                                    CurrencyId = commission.CurrencyId,
-                                    AccountTypeId = (int)AccountTypes.AffiliateManagerBalance,
-                                    Creator = ac.Key.AffiliateId
-                                };
-                                affiliateService.CreateDebitToAffiliate(ac.Key.AffiliateId, input, documentBl);
+                                    foreach (var c in client)
+                                    {
+                                        if (c.NumericValue == 0 && c.Client.CreationTime < fromDate)
+                                            c.NumericValue = 1;
+                                        if (commission.RequireVerification  == null || !commission.RequireVerification.Value ||
+                                            (commission.RequireVerification.Value && c.Client.IsDocumentVerified &&
+                                            c.Client.IsEmailVerified && c.Client.IsMobileNumberVerified))
+                                        {
+                                            var totalDeposit = CacheManager.GetTotalDepositAmounts(c.ClientId, (int)PeriodsOfTime.All);
+                                            if (!string.IsNullOrEmpty(commission.CurrencyId)) // default currency should be checked
+                                                totalDeposit = ConvertCurrency(c.Client.CurrencyId, commission.CurrencyId, totalDeposit);
+                                            if (commission.TotalDepositAmount == null || totalDeposit >= commission.TotalDepositAmount)
+                                            {
+                                                c.NumericValue = 2;
+                                                if (commission.Amount != null)
+                                                    totalGrantedAmount += commission.Amount.Value;
+                                            }
+                                        }
+                                    }
+                                }
+                                if (totalGrantedAmount > 0)
+                                {
+                                    var currentDate = DateTime.UtcNow;
+                                    var input = new ClientOperation
+                                    {
+                                        Amount = totalGrantedAmount,
+                                        ExternalTransactionId = (int)AffiliateCommissionTypes.FixedFee + "_" + (currentDate.Year * (int)1000000 + currentDate.Month * 10000 + currentDate.Day * 100 + currentDate.Hour),
+                                        OperationTypeId = (int)OperationTypes.AffiliateBonus,
+                                        PartnerId = client.Key.PartnerId,
+                                        CurrencyId = commission.CurrencyId,
+                                        AccountTypeId = (int)AccountTypes.AffiliateManagerBalance,
+                                        Creator = client.Key.AffiliateId
+                                    };
+                                    affiliateService.CreateDebitToAffiliate(client.Key.AffiliateId, input, documentBl);
+                                }
+                                Db.SaveChanges();
+                                transactionScope.Complete();
                             }
-                            Db.SaveChanges();
-                            transactionScope.Complete();
                         }
                     }
                 }
+            }
+            catch(Exception ex)
+            {
+                log.Error(ex);
             }
         }
 

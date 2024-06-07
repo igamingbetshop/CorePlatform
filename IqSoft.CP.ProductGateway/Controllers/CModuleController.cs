@@ -440,29 +440,31 @@ namespace IqSoft.CP.ProductGateway.Controllers
 							{
 								try
 								{
-									ExternalPlatformHelpers.DebitToClient(Convert.ToInt32(externalPlatformType.StringValue), client, betDocument.Id, 
+									ExternalPlatformHelpers.DebitToClient(Convert.ToInt32(externalPlatformType.StringValue), client, betDocument.Id,
 										operationsFromProduct, winDocuments[0], WebApiApplication.DbLogger);
 								}
 								catch (Exception ex)
 								{
-									WebApiApplication.DbLogger.Error(ex.Message);
-									documentBl.RollbackProductTransactions(operationsFromProduct);
-									throw;
+									WebApiApplication.DbLogger.Error("DebitException_" + ex.Message);
 								}
 							}
-							BaseHelpers.RemoveClientBalanceFromeCache(client.Id);
-							BaseHelpers.BroadcastWin(new ApiWin
+							else
 							{
-								GameName = product.NickName,
-								ClientId = client.Id,
-								ClientName = client.FirstName,
-								Amount = Convert.ToDecimal(input.amount / (LowRateCurrencies.Contains(client.CurrencyId) ? 1M : 100M)),
-								CurrencyId = client.CurrencyId,
-								PartnerId = client.PartnerId,
-								ProductId = product.Id,
-								ProductName = product.NickName,
-								ImageUrl = product.WebImageUrl
-							});
+								BaseHelpers.RemoveClientBalanceFromeCache(client.Id);
+								BaseHelpers.BroadcastWin(new ApiWin
+								{
+									GameName = product.NickName,
+									ClientId = client.Id,
+									ClientName = client.FirstName,
+									BetAmount = betDocument?.Amount,
+									Amount = Convert.ToDecimal(input.amount / (LowRateCurrencies.Contains(client.CurrencyId) ? 1M : 100M)),
+									CurrencyId = client.CurrencyId,
+									PartnerId = client.PartnerId,
+									ProductId = product.Id,
+									ProductName = product.NickName,
+									ImageUrl = product.WebImageUrl
+								});
+							}
 						}
 					}
 				}

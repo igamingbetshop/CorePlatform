@@ -232,7 +232,6 @@ namespace IqSoft.CP.ProductGateway.Controllers
                             CurrencyId = client.CurrencyId,
                             RoundId = input.roundnum.id.ToString(),
                             GameProviderId = CacheManager.GetGameProviderByName(Constants.GameProviders.Igromat).Id,
-                            ExternalOperationId = null,
                             ProductId = session.ProductId,
                             TransactionId = input.id.ToString(),
                             OperationItems = new List<OperationItemFromProduct>()
@@ -305,7 +304,6 @@ namespace IqSoft.CP.ProductGateway.Controllers
                             CurrencyId = client.CurrencyId,
                             RoundId = input.roundnum.id.ToString(),
                             GameProviderId = CacheManager.GetGameProviderByName(Constants.GameProviders.Igromat).Id,
-                            ExternalOperationId = null,
                             ProductId = session.ProductId,
                             TransactionId = input.id.ToString(),
                             CreditTransactionId = betDocument.Id,
@@ -400,8 +398,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                     var operationsFromProduct = new ListOfOperationsFromApi
                     {
                         SessionId = session.SessionId,
-                        GameProviderId = CacheManager.GetGameProviderByName(Constants.GameProviders.Igromat).Id,
-                        ExternalOperationId = input.id
+                        GameProviderId = CacheManager.GetGameProviderByName(Constants.GameProviders.Igromat).Id
                     };
 
                     documentBl.RollbackProductTransactions(operationsFromProduct);

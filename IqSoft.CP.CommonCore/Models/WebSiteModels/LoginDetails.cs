@@ -9,5 +9,6 @@
         public int? ExternalPlatformId { get; set; }
         public string TerminalId { get; set; }
         public int? BetShopId { get; set; }
+        public bool IAmAgent { get; set; }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using Serilog;
 using IqSoft.CP.TerminalManager.Models;
 using IqSoft.CP.TerminalManager.Helpers;
+using Newtonsoft.Json;
 
 namespace IqSoft.CP.TerminalManager.Hubs
 {
@@ -52,6 +53,7 @@ namespace IqSoft.CP.TerminalManager.Hubs
         {
             try
             {
+                Console.WriteLine("BetPrint InputData:" + JsonConvert.SerializeObject(receiptObject));
                 var printReceip = new PrintTicket(receiptObject, Enum.TicketTypes.Bet);
                 printReceip.PrintReceipt(receiptObject.PrinterName);
             }

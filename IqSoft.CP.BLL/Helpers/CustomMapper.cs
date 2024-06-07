@@ -43,7 +43,6 @@ namespace IqSoft.CP.BLL.Helpers
 				PartnerProductId = document.PartnerProductId,
 				GameProviderId = document.GameProviderId,
 				ClientId = document.ClientId,
-				ExternalOperationId = document.ExternalOperationId,
 				TicketNumber = document.TicketNumber,
 				TicketInfo = document.TicketInfo,
 				UserId = document.UserId,
@@ -79,6 +78,7 @@ namespace IqSoft.CP.BLL.Helpers
 				CommunicationTypeValue = input.CommunicationTypeValue,
 				CreationTime = input.CreationTime,
 				LastUpdateTime = input.LastUpdateTime,
+				ClientId = input.ClientId,
 				FixedFeeCommission = affiliateCommissions?.Where(x => x.CommissionType == (int)AffiliateCommissionTypes.FixedFee)
 														 .Select(x => new FixedFeeCommission
 														 {

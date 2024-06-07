@@ -1,8 +1,11 @@
-﻿using IqSoft.CP.JobService.Models;
+﻿using IqSoft.CP.BLL.Caching;
+using IqSoft.CP.Common.Models.WebSiteModels;
+using IqSoft.CP.JobService.Models;
 using Microsoft.AspNet.SignalR;
 using Microsoft.AspNet.SignalR.Hubs;
 using System;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace IqSoft.CP.JobService.Hubs
@@ -30,7 +33,31 @@ namespace IqSoft.CP.JobService.Hubs
             Caches.TryRemove(Context.ConnectionId, out MasterCacheIdentity item);
 			return base.OnDisconnected(true);
 		}
-		public void UpdateCacheItem(string key, object newValue, TimeSpan timeSpan)
+
+        public static void BroadcastBalance(int clientId)
+        {
+            var balance = CacheManager.GetClientCurrentBalance(clientId);
+
+            _connectedClients.Group("BaseHub").BroadcastBalance(new ApiWin
+            {
+                ClientId = clientId,
+                ApiBalance = new ApiBalance
+                {
+                    AvailableBalance = balance.AvailableBalance,
+                    Balances = balance.Balances.Select(x => new ApiAccount
+                    {
+                        Id = x.Id,
+                        TypeId = x.TypeId,
+                        CurrencyId = x.CurrencyId,
+                        Balance = x.Balance,
+                        BetShopId = x.BetShopId,
+                        PaymentSystemId = x.PaymentSystemId
+                    }).ToList()
+                }
+            });
+        }
+
+        public void UpdateCacheItem(string key, object newValue, TimeSpan timeSpan)
 		{
 			foreach (var item in Caches)
 			{

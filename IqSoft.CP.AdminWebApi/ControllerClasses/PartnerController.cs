@@ -43,8 +43,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 case "AddPartner":
                     return AddPartner(JsonConvert.DeserializeObject<Partner>(request.RequestData), identity, log);
                 case "PayBetShopDebt":
-                    return PayBetShopDebt(JsonConvert.DeserializeObject<PayBetShopDebtModel>(request.RequestData),
-                        request.ExternalOperationId, identity, log);
+                    return PayBetShopDebt(JsonConvert.DeserializeObject<PayBetShopDebtModel>(request.RequestData), identity, log);
                 case "ExportPartnersList":
                     return ExportPartnersList(JsonConvert.DeserializeObject<ApiFilterPartner>(request.RequestData),
                         identity, log);
@@ -186,12 +185,11 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             }
         }
 
-        private static ApiResponseBase PayBetShopDebt(PayBetShopDebtModel debtModel, long? externalOperationId, SessionIdentity identity, ILog log)
+        private static ApiResponseBase PayBetShopDebt(PayBetShopDebtModel debtModel, SessionIdentity identity, ILog log)
         {
             using (var partnerBl = new PartnerBll(identity, log))
             {
-                var recoing = partnerBl.PayBetShopDebt(debtModel.BetshopId, debtModel.Amount, debtModel.CurrencyId,
-                    externalOperationId);
+                var recoing = partnerBl.PayBetShopDebt(debtModel.BetshopId, debtModel.Amount, debtModel.CurrencyId);
 
                 return new ApiResponseBase
                 {

@@ -23,21 +23,11 @@
         public string Name { get; set; }
 
         public string GameProviderName { get; set; }
-
-        public int IsLeaf { get; set; }
-
-        public int IsLastProductGroup { get; set; }
-
         public int State { get; set; }
-
 		public bool IsForDesktop { get; set; }
-
 		public bool IsForMobile { get; set; }
-
 		public int? SubproviderId { get; set; }
-
         public string WebImageUrl { get; set; }
-
         public string MobileImageUrl { get; set; }
         public string BackgroundImageUrl { get; set; }
     }

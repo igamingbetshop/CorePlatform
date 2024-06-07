@@ -47,7 +47,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 				if (string.IsNullOrEmpty(url))
 					return null;
 
-                var loginInput = new LoginInput { Email = email, Password = password };
+                var loginInput = new Models.SerosPay.LoginInput { Email = email, Password = password };
                 var httpRequestInput = new HttpRequestInput
                 {
                     ContentType = Constants.HttpContentTypes.ApplicationJson,

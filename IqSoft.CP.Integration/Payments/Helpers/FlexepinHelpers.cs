@@ -173,11 +173,5 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             };
             return JsonConvert.DeserializeObject<VoucherOutput>(CommonFunctions.SendHttpRequest(httpRequestInput, out _));
         }
-
-        //private static void SwapVoucher()
-        //{
-        //    var url = CacheManager.GetPartnerPaymentSystemByKey(client.PartnerId, input.PaymentSystemId, Constants.PartnerKeys.FlexepinApiUrl);
-
-        //}
     }
 }

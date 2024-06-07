@@ -33,8 +33,10 @@ namespace IqSoft.CP.Common.Models.WebSiteModels.Bets
 		public string Description { get; set; }
 
 		public int Status { get; set; }
-		
-		public string State { get; set; }
+
+        public string MatchState { get; set; }
+
+        public string State { get; set; }
 		
 		public string StatusName { get; set; }
 

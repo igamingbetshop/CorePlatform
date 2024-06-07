@@ -303,7 +303,6 @@
     <Compile Include="Models\User\ChangeObjectStateInput.cs" />
     <Compile Include="Models\User\ChangePasswordInput.cs" />
     <Compile Include="Models\ApiResponseBase.cs" />
-    <Compile Include="Models\LoginInput.cs" />
     <Compile Include="Models\RequestBase.cs" />
     <Compile Include="Models\RequestInfo.cs" />
     <Compile Include="Models\User\NickNameInput.cs" />

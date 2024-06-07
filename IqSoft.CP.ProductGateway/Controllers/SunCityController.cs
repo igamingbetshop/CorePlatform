@@ -325,7 +325,6 @@ namespace IqSoft.CP.ProductGateway.Controllers
                                         RoundId = transaction.roundid,
                                         GameProviderId = ProviderId,
                                         OperationTypeId = (int)OperationTypes.Win,
-                                        ExternalOperationId = null,
                                         ExternalProductId = transaction.gamecode,
                                         ProductId = betDocument.ProductId,
                                         TransactionId = transaction.ptxid,

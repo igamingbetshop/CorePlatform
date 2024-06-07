@@ -27,7 +27,7 @@ namespace IqSoft.CP.DAL
         public Nullable<decimal> FinalAmount { get; set; }
         public Nullable<System.DateTime> CalculationTime { get; set; }
         public Nullable<System.DateTime> ValidUntil { get; set; }
-        public Nullable<int> TriggerId { get; set; }
+        public Nullable<int> LinkedBonusId { get; set; }
         public Nullable<long> CreationDate { get; set; }
         public Nullable<long> ReuseNumber { get; set; }
         public string UserName { get; set; }

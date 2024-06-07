@@ -21,6 +21,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Web.Http;
 using System.Web.Http.Cors;
+using TransferInput = IqSoft.CP.PaymentGateway.Models.Ngine.TransferInput;
 
 namespace IqSoft.CP.PaymentGateway.Controllers
 {

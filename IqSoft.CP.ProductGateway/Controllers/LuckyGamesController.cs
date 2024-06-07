@@ -146,7 +146,6 @@ namespace IqSoft.CP.ProductGateway.Controllers
                             CurrencyId = input.CurrencyId,
                             RoundId = input.RoundId,
                             GameProviderId = providerId,
-                            ExternalOperationId = null,
                             ExternalProductId = input.GameId,
                             TransactionId = input.TransactionId,
                             OperationTypeId = input.OperationTypeId,
@@ -274,7 +273,6 @@ namespace IqSoft.CP.ProductGateway.Controllers
                         GameProviderId = providerId,
                         ExternalProductId = input.GameId,
                         TransactionId = input.TransactionId,
-                        ExternalOperationId = null,
                         Info = input.Info
                     };
                     documentBl.RollbackProductTransactions(operationsFromProduct);
@@ -348,7 +346,6 @@ namespace IqSoft.CP.ProductGateway.Controllers
                         RoundId = input.RoundId,
                         GameProviderId = providerId,
                         OperationTypeId = input.OperationTypeId,
-                        ExternalOperationId = null,
                         ExternalProductId = input.GameId,
                         TransactionId = input.TransactionId,
                         CreditTransactionId = (creditTransaction == null ? (long?)null : creditTransaction.Id),

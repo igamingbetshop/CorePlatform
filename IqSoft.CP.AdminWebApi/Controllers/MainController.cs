@@ -66,10 +66,10 @@ namespace IqSoft.CP.AdminWebApi.Controllers
                             var partner = partnerBl.GetPartners(new FilterPartner { AdminSiteUrl = siteUrl }, false).FirstOrDefault() ??
                                 throw BaseBll.CreateException(string.Empty, Constants.Errors.PartnerNotFound);
                             PartnerBll.CheckApiRestrictions(partner.Id, Constants.SystemModuleTypes.ManagementSystem);                           
-                            var loginInput = new LoginUserInput
+                            var loginInput = new LoginInput
                             {
                                 PartnerId = partner.Id,
-                                UserName = input.UserName,
+                                Identifier = input.UserName,
                                 Password = input.Password,
                                 Ip = userIp,
                                 LanguageId = requestInfo.LanguageId,
@@ -335,6 +335,8 @@ namespace IqSoft.CP.AdminWebApi.Controllers
                     return ClientController.CallFunction(request, identity, WebApiApplication.DbLogger);
                 case Enums.Controllers.Affiliate:
                     return AffiliateController.CallFunction(request, identity, WebApiApplication.DbLogger);
+                case Enums.Controllers.Agent:
+                    return AgentController.CallFunction(request, identity, WebApiApplication.DbLogger);
                 case Enums.Controllers.BetShop:
                     return BetShopController.CallFunction(request, identity, WebApiApplication.DbLogger);
                 case Enums.Controllers.Document:
@@ -558,7 +560,7 @@ namespace IqSoft.CP.AdminWebApi.Controllers
                                                                PartnerId = x.PartnerId,
                                                                ClientId = x.Id,
                                                                ClientName = x.UserName,
-                                                               AffiliateId = x.AffiliateReferral.AffiliatePlatform.Id,
+                                                               AffiliatePlatformId = x.AffiliateReferral.AffiliatePlatform.Id,
                                                                AffiliateName = x.AffiliateReferral.AffiliatePlatform.Name,
                                                                ClickId = x.AffiliateReferral.RefId,
                                                                RegistrationIp = x.RegistrationIp,

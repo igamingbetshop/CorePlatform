@@ -10,7 +10,6 @@ namespace IqSoft.CP.AdminWebApi.Models.CommonModels
         public int? UserId { get; set; }
         public int? ClientId { get; set; }
         public string ApiKey { get; set; }
-        public long? ExternalOperationId { get; set; }
         public string RequestData { get { return JsonConvert.SerializeObject(RequestObject); } }
         public object RequestObject { get; set; }
     }

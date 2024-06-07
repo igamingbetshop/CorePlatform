@@ -46,6 +46,8 @@
         ComplimentaryPointWin = 43,
         ComplimentaryPointSpend = 44,
         ChargeBack = 45,
-        BonusExpiration = 46
+        BonusExpiration = 46,
+        DebitCorrectionOnAffiliate = 47,
+        CreditCorrectionOnAffiliate = 48
     }
 }

@@ -257,30 +257,31 @@ namespace IqSoft.CP.ProductGateway.Controllers
                             {
                                 try
                                 {
-                                    ExternalPlatformHelpers.DebitToClient(Convert.ToInt32(externalPlatformType.StringValue), client, 
+                                    ExternalPlatformHelpers.DebitToClient(Convert.ToInt32(externalPlatformType.StringValue), client,
                                         betDocument.Id, operationsFromProduct, winDocuments[0], WebApiApplication.DbLogger);
                                 }
                                 catch (Exception ex)
                                 {
-                                    WebApiApplication.DbLogger.Error(ex.Message);
-                                    documentBl.RollbackProductTransactions(operationsFromProduct);
-                                    throw;
+                                    WebApiApplication.DbLogger.Error("DebitException_" + ex.Message);
                                 }
                             }
-
-                            BaseHelpers.RemoveClientBalanceFromeCache(client.Id);
-                            BaseHelpers.BroadcastWin(new Common.Models.WebSiteModels.ApiWin
+                            else
                             {
-                                GameName = product.NickName,
-                                ClientId = client.Id,
-                                ClientName = client.FirstName,
-                                Amount = input.Amount,
-                                CurrencyId = client.CurrencyId,
-                                PartnerId = client.PartnerId,
-                                ProductId = product.Id,
-                                ProductName = product.NickName,
-                                ImageUrl = product.WebImageUrl
-                            });
+                                BaseHelpers.RemoveClientBalanceFromeCache(client.Id);
+                                BaseHelpers.BroadcastWin(new Common.Models.WebSiteModels.ApiWin
+                                {
+                                    GameName = product.NickName,
+                                    ClientId = client.Id,
+                                    ClientName = client.FirstName,
+                                    BetAmount = betDocument?.Amount,
+                                    Amount = input.Amount,
+                                    CurrencyId = client.CurrencyId,
+                                    PartnerId = client.PartnerId,
+                                    ProductId = product.Id,
+                                    ProductName = product.NickName,
+                                    ImageUrl = product.WebImageUrl
+                                });
+                            }
                             response.TransactionID = winDocuments[0].Id.ToString();
                         }
                         else

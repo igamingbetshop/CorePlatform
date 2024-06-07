@@ -334,6 +334,7 @@
     <Compile Include="Filters\Reporting\FilterReportByBonus.cs" />
     <Compile Include="Filters\Reporting\FilterReportByObjectChangeHistory.cs" />
     <Compile Include="Filters\Reporting\FilterReportByPaymentSystem.cs" />
+    <Compile Include="Filters\Reporting\FilterReportByPopupStatistics.cs" />
     <Compile Include="Filters\Reporting\FilterReportByProduct.cs" />
     <Compile Include="Filters\Reporting\FilterReportBySegment.cs" />
     <Compile Include="Filters\Reporting\FilterReportByUserTransaction.cs" />
@@ -478,6 +479,9 @@
       <DependentUpon>IqSoftCP.tt</DependentUpon>
     </Compile>
     <Compile Include="fnPaymentRequest.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnPopupStatistics.cs">
       <DependentUpon>IqSoftCP.tt</DependentUpon>
     </Compile>
     <Compile Include="fnProduct.cs">
@@ -629,9 +633,11 @@
     <Compile Include="Models\Affiliates\MyAffiliateClientActivityModel.cs" />
     <Compile Include="Models\Affiliates\NetreferActivityModel.cs" />
     <Compile Include="Models\Affiliates\RegistrationActivityModel.cs" />
+    <Compile Include="Models\Affiliates\TrackierActivityModel.cs" />
     <Compile Include="Models\Agents\AgentReportItem.cs" />
     <Compile Include="Models\BetShopReconingOutput.cs" />
     <Compile Include="Models\Cache\BllClientPaymentSetting.cs" />
+    <Compile Include="Models\Cache\BllLeaderboardItem.cs" />
     <Compile Include="Models\Cache\BllObjectSetting.cs" />
     <Compile Include="Models\Cache\BllPopup.cs" />
     <Compile Include="Models\Cache\BllTicker.cs" />
@@ -697,11 +703,12 @@
     <Compile Include="Models\Cache\TriggerProductInfo.cs" />
     <Compile Include="Models\Cache\TriggerSettingInfo.cs" />
     <Compile Include="Models\Clients\ClientCustomSettings.cs" />
-    <Compile Include="Models\Clients\ClientLoginInput.cs" />
+    <Compile Include="Models\LoginInput.cs" />
     <Compile Include="Models\Clients\ClientLoginOut.cs" />
     <Compile Include="Models\Clients\ClientPaymentSegment.cs" />
     <Compile Include="Models\Clients\ClientTriggerInput.cs" />
     <Compile Include="Models\Clients\LimitInfo.cs" />
+    <Compile Include="Models\Dashboard\DashboardBonusInfo.cs" />
     <Compile Include="Models\Dashboard\DashboardClientInfo.cs" />
     <Compile Include="Models\Dashboard\CountryClientsInfo.cs" />
     <Compile Include="Models\Integration\ProductsIntegration\ApiBonus.cs" />
@@ -795,7 +802,7 @@
     <Compile Include="Models\User\RolePermissionModel.cs" />
     <Compile Include="Models\User\TurnoverPercent.cs" />
     <Compile Include="Models\User\UserBalance.cs" />
-    <Compile Include="Models\User\UserTransferInput.cs" />
+    <Compile Include="Models\TransferInput.cs" />
     <Compile Include="Models\WebSite\WebSiteTranslation.cs" />
     <Compile Include="News.cs">
       <DependentUpon>IqSoftCP.tt</DependentUpon>
@@ -845,6 +852,7 @@
     <Compile Include="PartialClasses\fnAffiliate.cs" />
     <Compile Include="PartialClasses\fnCharacter.cs" />
     <Compile Include="PartialClasses\fnPartnerBankInfo.cs" />
+    <Compile Include="PartialClasses\fnPopupStatistics.cs" />
     <Compile Include="PartialClasses\fnReportByClientExclusion.cs" />
     <Compile Include="PartialClasses\fnReportByClientGame.cs" />
     <Compile Include="PartialClasses\fnReportByUserTransaction.cs" />

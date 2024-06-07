@@ -28,6 +28,7 @@ using System.Collections.Generic;
 using System.ServiceModel;
 using IqSoft.CP.Common.Models.CacheModels;
 using IqSoft.CP.AdminWebApi.Filters.Clients;
+using IqSoft.CP.AdminWebApi.Filters.Affiliate;
 
 namespace IqSoft.CP.AdminWebApi.ControllerClasses
 {
@@ -205,6 +206,12 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                         GetReportByClientsGamesPaging(JsonConvert.DeserializeObject<ApiFilterClientGame>(request.RequestData), identity, log);
                 case "GetDuplicateClients":
                     return GetDuplicateClients(JsonConvert.DeserializeObject<ApiFilterfnDuplicateClient>(request.RequestData), identity, log);
+                case "GetAffiliateCorrections":
+                    return GetAffiliateCorrections(JsonConvert.DeserializeObject<ApiFilterAffiliateCorrection>(request.RequestData), identity, log);
+                case "GetReportByPopupStatistics":
+                    return GetReportByPopupStatistics(JsonConvert.DeserializeObject<ApiFilterReportByPopupStatistics>(request.RequestData), identity, log);
+                case "ExportReportByPopupStatistics":
+                    return ExportReportByPopupStatistics(JsonConvert.DeserializeObject<ApiFilterReportByPopupStatistics>(request.RequestData), identity, log);
             }
             throw BaseBll.CreateException(string.Empty, Errors.MethodNotFound);
         }
@@ -1103,7 +1110,6 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                         {
                             SessionId = null,
                             CurrencyId = client.CurrencyId,
-                            ExternalOperationId = null,
                             ProductId = betDocument.ProductId,
                             CreditTransactionId = betDocument.Id,
                             State = betStatus,
@@ -1249,13 +1255,96 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                         {
                             x.PartnerId,
                             x.ClientId,
-                            x.MatchedClientId,
-                            x.MatchedData,
-                            MatchDate = x.MatchDate.GetGMTDateFromUTC(identity.TimeZone)
+                            x.DuplicatedClientId,
+                            x.DuplicatedData,
+                            MatchDate = x.LastUpdateTime.GetGMTDateFromUTC(identity.TimeZone)
                         }).ToList()
                     }
                 };
             }
         }
+
+        private static ApiResponseBase GetAffiliateCorrections(ApiFilterAffiliateCorrection input, SessionIdentity identity, ILog log)
+        {
+            using (var reportBl = new ReportBll(identity, log, 120))
+            {
+                var pageModel = reportBl.GetAffiliateCorrections(input.MapToFilterAffiliateCorrection());
+
+                return new ApiResponseBase
+                {
+                    ResponseObject = new
+                    {
+                        pageModel.Count,
+                        Entities = pageModel.Entities.Select(x => new
+                        {
+                            x.Id,
+                            x.PartnerId,
+                            x.AffiliateId,
+                            x.FirstName,
+                            x.LastName,
+                            x.Amount,
+                            x.CurrencyId,
+                            x.Creator,
+                            x.OperationTypeName,
+                            x.CreatorFirstName,
+                            x.CreatorLastName,
+                            x.DocumentTypeId,
+                            x.ClientId,
+                            x.ClientFirstName,
+                            x.ClientLastName,
+                            CreationTime = x.CreationTime.GetGMTDateFromUTC(identity.TimeZone),
+                            LastUpdateTime = x.CreationTime.GetGMTDateFromUTC(identity.TimeZone)
+                        }).ToList()
+                    }
+                };
+            }
+        }
+
+        private static ApiResponseBase GetReportByPopupStatistics(ApiFilterReportByPopupStatistics input, SessionIdentity identity, ILog log)
+        {
+            using (var reportBl = new ReportBll(identity, log, 120))
+            {
+                var pageModel = reportBl.GetReportByPopupStatistics(input.MapToFilterReportByPopupStatistics());
+
+                return new ApiResponseBase
+                {
+                    ResponseObject = new
+                    {
+                        pageModel.Count,
+                        Entities = pageModel.Entities.Select(x => new
+                        {
+                            x.Id,
+                            x.PartnerId,
+                            x.NickName,
+                            x.Type,
+                            x.DeviceType,
+                            x.State,
+                            CreationTime = x.CreationTime.GetGMTDateFromUTC(identity.TimeZone),
+                            LastUpdateTime = x.LastUpdateTime.GetGMTDateFromUTC(identity.TimeZone),
+                            x.ViewTypeId,
+                            x.ViewCount
+                        }).ToList()
+                    }
+                };
+            }
+        }
+        private static ApiResponseBase ExportReportByPopupStatistics(ApiFilterReportByPopupStatistics input, SessionIdentity identity, ILog log)
+        {
+            using (var reportBl = new ReportBll(identity, log, 120))
+            {
+                var result = reportBl.ExportReportByPopupStatistics(input.MapToFilterReportByPopupStatistics()).Entities.ToList();
+                var fileName = "ExportReportByPopupStatistics.csv";
+                var fileAbsPath = reportBl.ExportToCSV(fileName, result, input.FromDate, input.ToDate, identity.TimeZone, input.AdminMenuId);
+
+                return new ApiResponseBase
+                {
+                    ResponseObject = new
+                    {
+                        ExportedFilePath = fileAbsPath
+                    }
+                };
+            }
+        }
+
     }
 }

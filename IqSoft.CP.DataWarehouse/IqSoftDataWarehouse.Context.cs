@@ -48,10 +48,11 @@ namespace IqSoft.CP.DataWarehouse
         public DbSet<Bet> Bets { get; set; }
         public DbSet<Gtd_Client_Info> Gtd_Client_Info { get; set; }
         public DbSet<AgentCommission> AgentCommissions { get; set; }
-        public DbSet<DuplicatedClient> DuplicatedClients { get; set; }
         public DbSet<ClientSession> ClientSessions { get; set; }
-        public DbSet<ClientMatchHistory> ClientMatchHistories { get; set; }
         public DbSet<AccountBalance> AccountBalances { get; set; }
+        public DbSet<DuplicatedClient> DuplicatedClients { get; set; }
+        public DbSet<DuplicatedClientHistory> DuplicatedClientHistories { get; set; }
+        public DbSet<Opt_Document_Considered> Opt_Document_Considered { get; set; }
     
         public virtual int sp_InsertDocuments(Nullable<long> minId)
         {
@@ -308,6 +309,12 @@ namespace IqSoft.CP.DataWarehouse
                 new ObjectParameter("ToDate", typeof(long));
     
             return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnDuplicateClient>("[IqSoftDataWarehouseEntities].[fn_DuplicateClient](@FromDate, @ToDate)", fromDateParameter, toDateParameter);
+        }
+    
+        [DbFunction("IqSoftDataWarehouseEntities", "fn_AffiliateCorrection")]
+        public virtual IQueryable<fnAffiliateCorrection> fn_AffiliateCorrection()
+        {
+            return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnAffiliateCorrection>("[IqSoftDataWarehouseEntities].[fn_AffiliateCorrection]()");
         }
     
         [DbFunction("IqSoftDataWarehouseEntities", "fn_ClientReport")]

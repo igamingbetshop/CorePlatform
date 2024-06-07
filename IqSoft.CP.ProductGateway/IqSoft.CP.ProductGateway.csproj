@@ -499,6 +499,10 @@
     <Compile Include="Models\AleaPlay\BetInput.cs" />
     <Compile Include="Models\AWC\BaseInput.cs" />
     <Compile Include="Models\AWC\BaseOutput.cs" />
+    <Compile Include="Models\LuckyStreak\BalanceInput.cs" />
+    <Compile Include="Models\LuckyStreak\TransactionInput.cs" />
+    <Compile Include="Models\LuckyStreak\ValidateInput.cs" />
+    <Compile Include="Models\LuckyStreak\BaseOutput.cs" />
     <Compile Include="Models\RiseUp\BaseInput.cs" />
     <Compile Include="Models\BetGames\CombinationBetInput.cs" />
     <Compile Include="Models\BetGames\MultipleBetInput.cs" />

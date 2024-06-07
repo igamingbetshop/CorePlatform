@@ -29,6 +29,7 @@ namespace IqSoft.CP.DAL.Models.PlayersDashboard
         public decimal DebitCorrectionsCount { get; set; }
         public decimal TotalCreditCorrection { get; set; }
         public decimal CreditCorrectionsCount { get; set; }
+        public decimal TotalBonusAmount { get; set; }
         public decimal RealBalance { get; set; }
         public decimal BonusBalance { get; set; }
         public decimal ComplementaryBalance { get; set; }

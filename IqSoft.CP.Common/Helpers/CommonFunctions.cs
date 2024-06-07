@@ -40,11 +40,22 @@ namespace IqSoft.CP.Common.Helpers
                                         .ToArray());
         }
 
-        public static long GenerateRandomNumber()
+        public static List<int> GetRandomNumbers(int minValue, int maxValue, int count)
         {
-            byte[] gb = Guid.NewGuid().ToByteArray();
-            long longNumber = BitConverter.ToInt64(gb, 0);
-            return longNumber;
+            var numbers = new List<int>();
+            for (int i = 0; i <= maxValue - minValue; i++)
+            {
+                numbers.Add(minValue + i);
+            }
+            var result = new List<int>();
+            var random = new Random(Guid.NewGuid().GetHashCode());
+            for (int i = 0; i < count; i++)
+            {
+                var index = random.Next(maxValue - minValue + 1 - i);
+                result.Add(numbers[index]);
+                numbers.RemoveAt(index);
+            }
+            return result;
         }
 
         public static string ComputeSha512(string path)

@@ -21,9 +21,9 @@ using System.Data.Entity;
 using System.Linq;
 using Document = IqSoft.CP.DAL.Document;
 using AffiliateReferral = IqSoft.CP.DAL.AffiliateReferral;
-using static System.Data.Entity.Infrastructure.Design.Executor;
-using System.Security.Principal;
 using System.Text.RegularExpressions;
+using System.Transactions;
+using IqSoft.CP.DAL.Filters;
 
 namespace IqSoft.CP.BLL.Services
 {
@@ -210,7 +210,9 @@ namespace IqSoft.CP.BLL.Services
                 throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
 
             affiliate.State = input.State;
+            affiliate.ClientId = input.ClientId;
             Db.SaveChanges();
+            
             using (var notificationBll = new NotificationBll(Identity, Log))
             {
                 notificationBll.SendNotificationMessage(new NotificationModel
@@ -225,6 +227,36 @@ namespace IqSoft.CP.BLL.Services
             }
 
             return affiliate;
+        }
+
+        public List<fnAccount> GetAffiliateAccounts(int affiliateId)
+        {
+            var affiliate = Db.Affiliates.FirstOrDefault(x => x.Id == affiliateId) ??
+                throw CreateException(LanguageId, Constants.Errors.AffiliateNotFound);
+
+            GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewAffiliates
+            });
+            var affiliaeAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewAffiliates,
+                ObjectTypeId = ObjectTypes.Affiliate
+            });
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewPartner,
+                ObjectTypeId = ObjectTypes.Partner
+            });
+            if ((!affiliaeAccess.HaveAccessForAllObjects && affiliaeAccess.AccessibleObjects.All(x => x != affiliateId)) ||
+                (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != affiliate.PartnerId)))
+                throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
+
+            return GetfnAccounts(new FilterfnAccount
+            {
+                ObjectId = affiliateId,
+                ObjectTypeId = (int)ObjectTypes.Affiliate
+            });
         }
 
         public void UpdateCommissionPlan(ApiAffiliateCommission input)
@@ -256,51 +288,61 @@ namespace IqSoft.CP.BLL.Services
                      switch (commType)
                      {
                          case AffiliateCommissionTypes.FixedFee:
-                             var fixedFee = dbCommissions.FirstOrDefault(x => x.CommissionType == (int)commType);
-                             if (input.FixedFeeCommission.Amount < 0 || input.FixedFeeCommission.TotalDepositAmount <= 0)
-                                 throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
-                             if (fixedFee == null)
+                             if (input.FixedFeeCommission.GetType().GetProperties()
+                                                        .Any(y => y != null && !string.IsNullOrWhiteSpace(y.ToString()) &&
+                                                                  y.GetValue(input.FixedFeeCommission, null) != null))
                              {
-                                 Db.AffiliateCommissions.Add(new AffiliateCommission
+                                 var fixedFee = dbCommissions.FirstOrDefault(x => x.CommissionType == (int)commType);
+                                 if (input.FixedFeeCommission.Amount < 0 || input.FixedFeeCommission.TotalDepositAmount <= 0)
+                                     throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
+                                 if (fixedFee == null)
                                  {
-                                     AffiliateId = affiliate.Id,
-                                     CommissionType = (int)AffiliateCommissionTypes.FixedFee,
-                                     CurrencyId = input.FixedFeeCommission.CurrencyId,
-                                     Amount = input.FixedFeeCommission.Amount,
-                                     TotalDepositAmount = input.FixedFeeCommission.TotalDepositAmount,
-                                     RequireVerification = input.FixedFeeCommission.RequireVerification
-                                 });
-                             }
-                             else
-                             {
-                                 fixedFee.CurrencyId = input.FixedFeeCommission.CurrencyId;
-                                 fixedFee.Amount = input.FixedFeeCommission.Amount;
-                                 fixedFee.TotalDepositAmount = input.FixedFeeCommission.TotalDepositAmount;
-                                 fixedFee.RequireVerification = input.FixedFeeCommission.RequireVerification;
+                                     Db.AffiliateCommissions.Add(new AffiliateCommission
+                                     {
+                                         AffiliateId = affiliate.Id,
+                                         CommissionType = (int)AffiliateCommissionTypes.FixedFee,
+                                         CurrencyId = input.FixedFeeCommission.CurrencyId,
+                                         Amount = input.FixedFeeCommission.Amount,
+                                         TotalDepositAmount = input.FixedFeeCommission.TotalDepositAmount,
+                                         RequireVerification = input.FixedFeeCommission.RequireVerification
+                                     });
+                                 }
+                                 else
+                                 {
+                                     fixedFee.CurrencyId = input.FixedFeeCommission.CurrencyId;
+                                     fixedFee.Amount = input.FixedFeeCommission.Amount;
+                                     fixedFee.TotalDepositAmount = input.FixedFeeCommission.TotalDepositAmount;
+                                     fixedFee.RequireVerification = input.FixedFeeCommission.RequireVerification;
+                                 }
                              }
                              break;
                          case AffiliateCommissionTypes.Deposit:
-                             var deposit = dbCommissions.FirstOrDefault(x => x.CommissionType == (int)commType);
-                             if (!input.DepositCommission.Percent.HasValue || input.DepositCommission.Percent <= 0 || input.DepositCommission.UpToAmount <= 0)
-                                 throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
-                             if (deposit == null)
+                             if (input.DepositCommission.GetType().GetProperties()
+                                                        .Any(y => y != null && !string.IsNullOrWhiteSpace(y.ToString()) &&
+                                                                  y.GetValue(input.DepositCommission, null) != null))
                              {
-                                 Db.AffiliateCommissions.Add(new AffiliateCommission
+                                 var deposit = dbCommissions.FirstOrDefault(x => x.CommissionType == (int)commType);
+                                 if (!input.DepositCommission.Percent.HasValue || input.DepositCommission.Percent <= 0 || input.DepositCommission.UpToAmount <= 0)
+                                     throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
+                                 if (deposit == null)
                                  {
-                                     AffiliateId = affiliate.Id,
-                                     CommissionType = (int)AffiliateCommissionTypes.Deposit,
-                                     CurrencyId = input.DepositCommission.CurrencyId,
-                                     Percent = input.DepositCommission.Percent,
-                                     UpToAmount = input.DepositCommission.UpToAmount,
-                                     DepositCount = input.DepositCommission.DepositCount
-                                 });
-                             }
-                             else
-                             {
-                                 deposit.Percent = input.DepositCommission.Percent;
-                                 deposit.CurrencyId = input.DepositCommission.CurrencyId;
-                                 deposit.UpToAmount = input.DepositCommission.UpToAmount;
-                                 deposit.DepositCount = input.DepositCommission.DepositCount;
+                                     Db.AffiliateCommissions.Add(new AffiliateCommission
+                                     {
+                                         AffiliateId = affiliate.Id,
+                                         CommissionType = (int)AffiliateCommissionTypes.Deposit,
+                                         CurrencyId = input.DepositCommission.CurrencyId,
+                                         Percent = input.DepositCommission.Percent,
+                                         UpToAmount = input.DepositCommission.UpToAmount,
+                                         DepositCount = input.DepositCommission.DepositCount
+                                     });
+                                 }
+                                 else
+                                 {
+                                     deposit.Percent = input.DepositCommission.Percent;
+                                     deposit.CurrencyId = input.DepositCommission.CurrencyId;
+                                     deposit.UpToAmount = input.DepositCommission.UpToAmount;
+                                     deposit.DepositCount = input.DepositCommission.DepositCount;
+                                 }
                              }
                              break;
                          case AffiliateCommissionTypes.Turnover:
@@ -358,106 +400,132 @@ namespace IqSoft.CP.BLL.Services
                 {
                     using (var dwh = new IqSoftDataWarehouseEntities())
                     {
-
-                        var affiliates = Db.AffiliateCommissions.Where(x => (x.CommissionType == (int)AffiliateCommissionTypes.Turnover ||
+                        using (var transactionScope = new TransactionScope(TransactionScopeOption.Suppress))
+                        {
+                            var affiliates = Db.AffiliateCommissions.Where(x => (x.CommissionType == (int)AffiliateCommissionTypes.Turnover ||
                                                                          x.CommissionType == (int)AffiliateCommissionTypes.GGR ||
                                                                          x.CommissionType == (int)AffiliateCommissionTypes.NGR) && x.ProductId.HasValue)
                                                             .Select(x => x.AffiliateId.ToString()).Distinct().ToList();
-                        Db.AffiliateReferrals.Include(x => x.Clients).Where(x => x.Type == (int)AffiliateReferralTypes.InternalAffiliatePlatform &&
-                                                           x.AffiliatePlatformId % 100 == 0 && affiliates.Contains(x.AffiliateId))
-                                             .GroupBy(x => x.AffiliateId)
-                                             .Select(x => new { AffiliateId = x.Key, Clients = x.SelectMany(y => y.Clients.Select(z => z.Id)).ToList() }).ToList()
-                        .ForEach(affiliateClients =>
-                        {
-                            var activies = dwh.Bets.Where(x => affiliateClients.Clients.Contains(x.ClientId.Value) &&
-                                                          x.State != (int)BetDocumentStates.Deleted &&
-                                                          x.State != (int)BetDocumentStates.Uncalculated &&
-                                                          x.BetDate >= fDate && x.BetDate < tDate)
-                                                   .GroupBy(x => new { x.ProductId, x.CurrencyId })
-                                                   .Select(x => new
-                                                   {
-                                                       x.Key.ProductId,
-                                                       x.Key.CurrencyId,
-                                                       TotalBetAmount = x.Select(y => y.BetAmount).DefaultIfEmpty(0).Sum(),
-                                                       TotalWinAmount = x.Select(y => y.WinAmount).DefaultIfEmpty(0).Sum(),
-                                                       BonusBetAmount = x.Where(y => y.BonusId.HasValue && y.BonusId.Value > 0).Select(y => y.BonusAmount ?? 0).DefaultIfEmpty(0).Sum(),
-                                                       BonusWinAmount = x.Where(y => y.BonusId.HasValue && y.BonusId.Value > 0).Select(y => y.BonusWinAmount ?? 0).DefaultIfEmpty(0).Sum(),
-                                                   }).ToList();
-                            var affId = Convert.ToInt32(affiliateClients.AffiliateId);
-                            Db.AffiliateCommissions.Where(x => x.AffiliateId == affId && x.Percent > 0 && x.ProductId.HasValue &&
-                                                                               (x.CommissionType == (int)AffiliateCommissionTypes.Turnover ||
-                                                                                x.CommissionType == (int)AffiliateCommissionTypes.GGR ||
-                                                                                x.CommissionType == (int)AffiliateCommissionTypes.NGR))
-                                                                    .GroupBy(x => x.CommissionType)
-                                                                    .Select(x => new { CommissionType = x.Key, Commission = x.Select(y => new { y.ProductId, y.Percent }) }).ToList()
-                            .ForEach(commission =>
+                            Db.AffiliateReferrals.Include(x => x.Clients).Where(x => x.Type == (int)AffiliateReferralTypes.InternalAffiliatePlatform &&
+                                                               x.AffiliatePlatformId % 100 == 0 && affiliates.Contains(x.AffiliateId))
+                                                 .GroupBy(x => x.AffiliateId)
+                                                 .Select(x => new { AffiliateId = x.Key, Clients = x.SelectMany(y => y.Clients.Select(z => z.Id)).ToList() }).ToList()
+                            .ForEach(affiliateClients =>
                             {
-                                var currencyAmountPairs = new Dictionary<string, decimal>();
-                                var productCommission = commission.Commission;
-                                switch (commission.CommissionType)
+                                var activies = dwh.Bets.Where(x => affiliateClients.Clients.Contains(x.ClientId.Value) &&
+                                                              x.State != (int)BetDocumentStates.Deleted &&
+                                                              x.State != (int)BetDocumentStates.Uncalculated &&
+                                                              x.BetDate >= fDate && x.BetDate < tDate)
+                                                       .GroupBy(x => new { x.ProductId, x.CurrencyId })
+                                                       .Select(x => new
+                                                       {
+                                                           x.Key.ProductId,
+                                                           x.Key.CurrencyId,
+                                                           TotalBetAmount = x.Select(y => y.BetAmount).DefaultIfEmpty(0).Sum(),
+                                                           TotalWinAmount = x.Select(y => y.WinAmount).DefaultIfEmpty(0).Sum(),
+                                                           BonusBetAmount = x.Where(y => y.BonusId.HasValue && y.BonusId.Value > 0).Select(y => y.BonusAmount ?? 0).DefaultIfEmpty(0).Sum(),
+                                                           BonusWinAmount = x.Where(y => y.BonusId.HasValue && y.BonusId.Value > 0).Select(y => y.BonusWinAmount ?? 0).DefaultIfEmpty(0).Sum(),
+                                                       }).ToList();
+                                var affId = Convert.ToInt32(affiliateClients.AffiliateId);
+                                Db.AffiliateCommissions.Where(x => x.AffiliateId == affId && x.Percent > 0 && x.ProductId.HasValue &&
+                                                                                   (x.CommissionType == (int)AffiliateCommissionTypes.Turnover ||
+                                                                                    x.CommissionType == (int)AffiliateCommissionTypes.GGR ||
+                                                                                    x.CommissionType == (int)AffiliateCommissionTypes.NGR))
+                                                                        .GroupBy(x => x.CommissionType)
+                                                                        .Select(x => new { CommissionType = x.Key, Commission = x.Select(y => new { y.ProductId, y.Percent }) }).ToList()
+                                .ForEach(commission =>
                                 {
-                                    case (int)AffiliateCommissionTypes.Turnover:
-                                        foreach (var c in productCommission)
-                                        {
-                                            activies.Where(x => x.ProductId == c.ProductId.Value).Select(x => new { x.CurrencyId, Turnover = x.TotalBetAmount * c.Percent / 100 }).ToList()
-                                            .ForEach(tb =>
-                                            {
-                                                if (currencyAmountPairs.ContainsKey(tb.CurrencyId))
-                                                    currencyAmountPairs[tb.CurrencyId] += tb.Turnover ?? 0;
-                                                else
-                                                    currencyAmountPairs.Add(tb.CurrencyId, tb.Turnover ?? 0);
-                                            });
-                                        }
-
-                                        break;
-                                    case (int)AffiliateCommissionTypes.GGR:
-                                        foreach (var c in productCommission)
-                                            activies.Where(x => x.ProductId == c.ProductId.Value).Select(x => new { x.CurrencyId, GGR = (x.TotalBetAmount - x.TotalWinAmount) * c.Percent / 100 }).ToList()
-                                           .ForEach(tb =>
-                                           {
-                                               if (currencyAmountPairs.ContainsKey(tb.CurrencyId))
-                                                   currencyAmountPairs[tb.CurrencyId] += tb.GGR ?? 0;
-                                               else
-                                                   currencyAmountPairs.Add(tb.CurrencyId, tb.GGR ?? 0);
-                                           });
-                                        break;
-                                    case (int)AffiliateCommissionTypes.NGR:
-                                        foreach (var c in productCommission)
-                                            activies.Where(x => x.ProductId == c.ProductId.Value)
-                                                    .Select(x => new { x.CurrencyId, GGR = (x.TotalBetAmount - x.BonusBetAmount - (x.TotalWinAmount - x.BonusWinAmount)) * c.Percent / 100 })
-                                                    .ToList().ForEach(tb =>
-                                                    {
-                                                        if (currencyAmountPairs.ContainsKey(tb.CurrencyId))
-                                                            currencyAmountPairs[tb.CurrencyId] += tb.GGR ?? 0;
-                                                        else
-                                                            currencyAmountPairs.Add(tb.CurrencyId, tb.GGR ?? 0);
-                                                    });
-                                        break;
-                                }
-                                if (currencyAmountPairs.Any(x => x.Value > 0))
-                                {
-                                    var affiliate = Db.Affiliates.FirstOrDefault(x => x.Id == affId);
-                                    foreach (var ca in currencyAmountPairs)
+                                    var currencyAmountPairs = new Dictionary<string, decimal>();
+                                    var productCommission = commission.Commission;
+                                    switch (commission.CommissionType)
                                     {
-                                        if (ca.Value > 0)
-                                        {
-                                            var input = new ClientOperation
+                                        case (int)AffiliateCommissionTypes.Turnover:
+                                            foreach (var bets in activies)
                                             {
-                                                Amount = ca.Value,
-                                                ExternalTransactionId = commission.CommissionType + "_" + (currentTime.Year * (int)1000000 + currentTime.Month * 10000 + currentTime.Day * 100 + currentTime.Hour),
-                                                OperationTypeId = (int)OperationTypes.AffiliateBonus,
-                                                PartnerId = affiliate.PartnerId,
-                                                CurrencyId = ca.Key,
-                                                AccountTypeId = (int)AccountTypes.AffiliateManagerBalance,
-                                                Creator = affiliate.Id
-                                            };
-                                            CreateDebitToAffiliate(affiliate.Id, input, documentBl);
+                                                var productIds = CacheManager.GetProductById(bets.ProductId).Path.Split('/')
+                                                .Where(x => int.TryParse(x, out int i)).Select(x => Convert.ToInt32(x)).ToList();
+                                                for (int i = productIds.Count()-1; i>=0; --i)
+                                                {
+                                                    var c = productCommission.FirstOrDefault(x => x.ProductId == productIds[i]);
+                                                    if (c!= null)
+                                                    {
+                                                        var turnover = bets.TotalBetAmount * c.Percent / 100 ?? 0;
+                                                        if (currencyAmountPairs.ContainsKey(bets.CurrencyId))
+                                                            currencyAmountPairs[bets.CurrencyId] += turnover;
+                                                        else
+                                                            currencyAmountPairs.Add(bets.CurrencyId, turnover);
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                            break;
+                                        case (int)AffiliateCommissionTypes.GGR:
+                                            foreach (var bets in activies)
+                                            {
+                                                var productIds = CacheManager.GetProductById(bets.ProductId).Path.Split('/')
+                                              .Where(x => int.TryParse(x, out int i)).Select(x => Convert.ToInt32(x)).ToList();
+                                                for (int i = productIds.Count()-1; i>=0; --i)
+                                                {
+                                                    var c = productCommission.FirstOrDefault(x => x.ProductId == productIds[i]);
+                                                    if (c!= null)
+                                                    {
+                                                        var ggr = (bets.TotalBetAmount - bets.TotalWinAmount) * c.Percent / 100  ?? 0;
+                                                        if (currencyAmountPairs.ContainsKey(bets.CurrencyId))
+                                                            currencyAmountPairs[bets.CurrencyId] += ggr;
+                                                        else
+                                                            currencyAmountPairs.Add(bets.CurrencyId, ggr);
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                            break;
+                                        case (int)AffiliateCommissionTypes.NGR:
+                                            foreach (var bets in activies)
+                                            {
+                                                var productIds = CacheManager.GetProductById(bets.ProductId).Path.Split('/')
+                                                 .Where(x => int.TryParse(x, out int i)).Select(x => Convert.ToInt32(x)).ToList();
+                                                for (int i = productIds.Count()-1; i>=0; --i)
+                                                {
+                                                    var c = productCommission.FirstOrDefault(x => x.ProductId == productIds[i]);
+                                                    if (c!= null)
+                                                    {
+                                                        var ngr = bets.TotalBetAmount - bets.BonusBetAmount - (bets.TotalWinAmount - bets.BonusWinAmount) * c.Percent / 100  ?? 0;
+                                                        if (currencyAmountPairs.ContainsKey(bets.CurrencyId))
+                                                            currencyAmountPairs[bets.CurrencyId] += ngr;
+                                                        else
+                                                            currencyAmountPairs.Add(bets.CurrencyId, ngr);
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                            break;
+                                    }
+                                    if (currencyAmountPairs.Any(x => x.Value > 0))
+                                    {
+                                        var affiliate = Db.Affiliates.FirstOrDefault(x => x.Id == affId);
+                                        foreach (var ca in currencyAmountPairs)
+                                        {
+                                            if (ca.Value > 0)
+                                            {
+                                                var input = new ClientOperation
+                                                {
+                                                    Amount = ca.Value,
+                                                    ExternalTransactionId = commission.CommissionType + "_" + (currentTime.Year * (int)1000000 + currentTime.Month * 10000 + currentTime.Day * 100 + currentTime.Hour),
+                                                    OperationTypeId = (int)OperationTypes.AffiliateBonus,
+                                                    PartnerId = affiliate.PartnerId,
+                                                    CurrencyId = ca.Key,
+                                                    AccountTypeId = (int)AccountTypes.AffiliateManagerBalance,
+                                                    Creator = affiliate.Id
+                                                };
+                                                CreateDebitToAffiliate(affiliate.Id, input, documentBl);
+                                            }
                                         }
                                     }
-                                }
-                                Db.SaveChanges();
+                                    Db.SaveChanges();
+                                });
                             });
-                        });
+                            transactionScope.Complete();
+                        }
                     }
                 }
             }
@@ -468,10 +536,10 @@ namespace IqSoft.CP.BLL.Services
             }
         }
 
-        public SessionIdentity LoginAffiliate(LoginUserInput loginInput)
+        public SessionIdentity LoginAffiliate(LoginInput loginInput)
         {
             var currentTime = DateTime.UtcNow;
-            var affiliate = Db.Affiliates.FirstOrDefault(x => x.UserName == loginInput.UserName && x.PartnerId == loginInput.PartnerId);
+            var affiliate = Db.Affiliates.FirstOrDefault(x => x.UserName == loginInput.Identifier && x.PartnerId == loginInput.PartnerId);
             if (affiliate == null)
                 throw CreateException(loginInput.LanguageId, Constants.Errors.WrongLoginParameters);
             if (affiliate.State != (int)AffiliateStates.Active)
@@ -570,6 +638,25 @@ namespace IqSoft.CP.BLL.Services
             return affiliate;
         }
 
+        public void ChangeAffiliatePassword(int affiliateId, string oldPassword, string newPassword)
+        {
+            var dbAffiliate = Db.Affiliates.FirstOrDefault(x => x.Id == affiliateId);
+            if (dbAffiliate == null)
+                throw CreateException(LanguageId, Constants.Errors.AffiliateNotFound);
+            //Check regex
+            var newPasswordHash = CommonFunctions.ComputeUserPasswordHash(newPassword, dbAffiliate.Salt);
+            var oldPasswordHash = CommonFunctions.ComputeUserPasswordHash(oldPassword, dbAffiliate.Salt);
+            if (oldPasswordHash != dbAffiliate.PasswordHash)
+                throw CreateException(LanguageId, Constants.Errors.WrongPassword);
+            if (newPasswordHash == oldPasswordHash)
+                throw CreateException(LanguageId, Constants.Errors.PasswordMatches);
+            var currentTime = GetServerDate();
+            dbAffiliate.PasswordHash = newPasswordHash;
+            dbAffiliate.LastUpdateTime = currentTime;
+            dbAffiliate.LastUpdateTime = currentTime;
+            Db.SaveChanges();
+        }
+
         public Document CreateDebitToAffiliate(int affiliateId, ClientOperation transaction, DocumentBll documentBl)
         {
             var operation = new Operation
@@ -582,7 +669,6 @@ namespace IqSoft.CP.BLL.Services
                 Info = transaction.Info,
                 ClientId = transaction.ClientId,
                 PartnerProductId = transaction.PartnerProductId,
-                ExternalOperationId = transaction.ExternalOperationId,
                 ParentId = transaction.ParentDocumentId,
                 RoundId = transaction.RoundId,
                 ProductId = transaction.ProductId,
@@ -615,6 +701,184 @@ namespace IqSoft.CP.BLL.Services
                 OperationTypeId = transaction.OperationTypeId
             });
 
+            var document = documentBl.CreateDocument(operation);
+            Db.SaveChanges();
+            return document;
+        }
+
+        public Document CreateDebitToAffiliateClient(ClientCorrectionInput correction, DocumentBll documentBl)
+        {
+            var client = CacheManager.GetClientById(correction.ClientId);
+            if (client == null)
+                throw CreateException(LanguageId, Constants.Errors.ClientNotFound);
+            var acc = GetAccount(correction.AccountId.Value);
+            if(acc == null || acc.ObjectId != Identity.Id || acc.TypeId != (int)AccountTypes.AffiliateManagerBalance)
+                throw CreateException(LanguageId, Constants.Errors.AccountNotFound);
+            Document document = null;
+            using (var scope = CommonFunctions.CreateTransactionScope())
+            {
+                var operation = new Operation
+                {
+                    Type = (int)OperationTypes.DebitCorrectionOnClient,
+                    Creator = Identity.Id,
+                    Info = correction.Info,
+                    ClientId = correction.ClientId,
+                    Amount = correction.Amount,
+                    CurrencyId = acc.CurrencyId,
+                    ExternalTransactionId = correction.ExternalTransactionId,
+                    ProductId = correction.ProductId,
+                    OperationItems = new List<OperationItem>()
+                };
+
+                var item = new OperationItem
+                {
+                    AccountTypeId = (int)AccountTypes.ClientUnusedBalance,
+                    ObjectId = client.Id,
+                    ObjectTypeId = (int)ObjectTypes.Client,
+                    Amount = ConvertCurrency(acc.CurrencyId, client.CurrencyId, correction.Amount),
+                    CurrencyId = client.CurrencyId,
+                    Type = (int)TransactionTypes.Debit,
+                    OperationTypeId = (int)OperationTypes.DebitCorrectionOnClient
+                };
+                operation.OperationItems.Add(item);
+
+                var affiliate = Db.Affiliates.FirstOrDefault(x => x.Id == Identity.Id);
+                if (affiliate == null)
+                    throw CreateException(LanguageId, Constants.Errors.AffiliateNotFound);
+
+                item = new OperationItem
+                {
+                    AccountTypeId = (int)AccountTypes.AffiliateManagerBalance,
+                    ObjectId = Identity.Id,
+                    ObjectTypeId = (int)ObjectTypes.Affiliate,
+                    Amount = correction.Amount,
+                    CurrencyId = acc.CurrencyId,
+                    Type = (int)TransactionTypes.Credit,
+                    OperationTypeId = (int)OperationTypes.DebitCorrectionOnClient
+                };
+                operation.OperationItems.Add(item);
+                document = documentBl.CreateDocument(operation);
+                Db.SaveChanges();
+                scope.Complete();
+            }
+            return document;
+        }
+
+        public Document CreateDebitOnAffiliate(TransferInput transferInput, DocumentBll documentBl)
+        {
+            var affiliate = Db.Affiliates.FirstOrDefault(x => x.Id == transferInput.AffiliateId.Value) ??
+               throw CreateException(LanguageId, Constants.Errors.AffiliateNotFound);
+            CheckPermission(Constants.Permissions.CreateDebitCorrectionOnAffiliate);
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewPartner,
+                ObjectTypeId = ObjectTypes.Partner
+            });
+            var checkAffPermission = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewAffiliate,
+                ObjectTypeId = ObjectTypes.Affiliate
+            });
+            if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != affiliate.PartnerId))
+                throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
+            if (!checkAffPermission.HaveAccessForAllObjects && checkAffPermission.AccessibleObjects.All(x => x != transferInput.AffiliateId))
+                throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
+            var userPermissions = CacheManager.GetUserPermissions(Identity.Id);
+            var permission = userPermissions.FirstOrDefault(x => x.PermissionId == Constants.Permissions.EditPartnerAccounts || x.IsAdmin);
+
+            var operation = new Operation
+            {
+                Type = (int)OperationTypes.DebitCorrectionOnAffiliate,
+                Creator = Identity.Id,
+                UserId = transferInput.AffiliateId,
+                Amount = transferInput.Amount,
+                CurrencyId = transferInput.CurrencyId,
+                OperationItems = new List<OperationItem>()
+            };
+            var item = new OperationItem
+            {
+                AccountTypeId = (int)AccountTypes.AffiliateManagerBalance,
+                ObjectId = affiliate.Id,
+                ObjectTypeId = (int)ObjectTypes.Affiliate,
+                Amount = transferInput.Amount,
+                CurrencyId = transferInput.CurrencyId,
+                Type = (int)TransactionTypes.Debit,
+                OperationTypeId = (int)OperationTypes.DebitCorrectionOnAffiliate
+            };
+            operation.OperationItems.Add(item);
+
+            item = new OperationItem
+            {
+                AccountTypeId = permission != null ? (int)AccountTypes.PartnerBalance : (int)AccountTypes.UserBalance,
+                ObjectId = permission != null ? Identity.PartnerId : Identity.Id,
+                ObjectTypeId = permission != null ? (int)ObjectTypes.Partner : (int)ObjectTypes.User,
+                Amount = transferInput.Amount,
+                CurrencyId = transferInput.CurrencyId,
+                Type = (int)TransactionTypes.Credit,
+                OperationTypeId = (int)OperationTypes.DebitCorrectionOnUser
+            };
+            operation.OperationItems.Add(item);
+            var document = documentBl.CreateDocument(operation);
+            Db.SaveChanges();
+            return document;
+        }
+
+        public Document CreateCreditOnAffiliate(TransferInput transferInput, DocumentBll documentBl)
+        {
+            var affiliate = Db.Affiliates.FirstOrDefault(x => x.Id == transferInput.AffiliateId.Value) ??
+               throw CreateException(LanguageId, Constants.Errors.AffiliateNotFound);
+            var creator = CacheManager.GetUserById(Identity.Id);
+            CheckPermission(Constants.Permissions.CreateDebitCorrectionOnAffiliate);
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewPartner,
+                ObjectTypeId = ObjectTypes.Partner
+            });
+            var checkAffPermission = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewAffiliate,
+                ObjectTypeId = ObjectTypes.Affiliate
+            });
+            if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != affiliate.PartnerId))
+                throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
+            if (!checkAffPermission.HaveAccessForAllObjects && checkAffPermission.AccessibleObjects.All(x => x != transferInput.AffiliateId))
+                throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
+
+            var userPermissions = CacheManager.GetUserPermissions(Identity.Id);
+            var permission = userPermissions.FirstOrDefault(x => x.PermissionId == Constants.Permissions.EditPartnerAccounts || x.IsAdmin);
+
+            var operation = new Operation
+            {
+                Type = (int)OperationTypes.CreditCorrectionOnAffiliate,
+                Creator = Identity.Id,
+                Info = transferInput.Info,
+                UserId = transferInput.AffiliateId,
+                Amount = transferInput.Amount,
+                CurrencyId = transferInput.CurrencyId,
+                OperationItems = new List<OperationItem>()
+            };
+            var item = new OperationItem
+            {
+                AccountTypeId = permission != null ? (int)AccountTypes.PartnerBalance : (int)AccountTypes.UserBalance,
+                ObjectId = permission != null ? Identity.PartnerId : Identity.Id,
+                ObjectTypeId = permission != null ? (int)ObjectTypes.Partner : (int)ObjectTypes.User,
+                Amount = transferInput.Amount,
+                CurrencyId = transferInput.CurrencyId,
+                Type = (int)TransactionTypes.Debit,
+                OperationTypeId = (int)OperationTypes.CreditCorrectionOnAffiliate
+            };
+            operation.OperationItems.Add(item);
+            item = new OperationItem
+            {
+                AccountTypeId = (int)AccountTypes.AffiliateManagerBalance,
+                ObjectId = affiliate.Id,
+                ObjectTypeId = (int)ObjectTypes.User,
+                Amount = transferInput.Amount,
+                CurrencyId = transferInput.CurrencyId,
+                Type = (int)TransactionTypes.Credit,
+                OperationTypeId = (int)OperationTypes.CreditCorrectionOnAffiliate
+            };
+            operation.OperationItems.Add(item);
             var document = documentBl.CreateDocument(operation);
             Db.SaveChanges();
             return document;
@@ -825,6 +1089,7 @@ namespace IqSoft.CP.BLL.Services
                     {
                         CustomerId = client.ClientId,
                         BTag = client.ClickId,
+                        AffiliateId = client.AffiliateId,
                         ActivityDate = dateString,
                         BrandId = brandId,
                         CurrencyId = client.CurrencyId
@@ -1031,6 +1296,63 @@ namespace IqSoft.CP.BLL.Services
                 ToDate = upToDate.ToString("yyyy-MM-dd'T'HH:mm:ss.fffffff'Z'"),
                 Items = affiliateClientActivies
             };
+        }
+      
+        public TrackierActivityModel GetTrackierClientActivity(string brandId, AffiliatePlatformModel client, DateTime fromDate, DateTime upToDate)
+        {
+            var currentDate = DateTime.UtcNow;
+            var affiliateClientActivies = new List<ActivityItem>();
+            var fDate = fromDate.Year * (long)1000000 + fromDate.Month * 10000 + fromDate.Day * 100 + fromDate.Hour;
+            var fPaymentDate = fromDate.Year * (long)100000000 + fromDate.Month * 1000000 + fromDate.Day * 10000 + fromDate.Hour * 100 + fromDate.Minute;
+            var tDate = upToDate.Year * (long)1000000 + upToDate.Month * 10000 + upToDate.Day * 100 + upToDate.Hour;
+            var tPaymentDate = upToDate.Year * (long)100000000 + upToDate.Month * 1000000 + upToDate.Day * 10000 + upToDate.Hour * 100 + upToDate.Minute;
+            var trackierActivityModel = new TrackierActivityModel
+            {
+                CustomerId = client.ClientId.ToString(),
+                Currency = client.CurrencyId,
+                Timestamp = ((DateTimeOffset)currentDate).ToUnixTimeSeconds(),
+                Date = currentDate.ToString("yyyy-MM-dd"),
+                ProductId = "1",
+                BrandId = brandId
+            };
+            using (var dwh = new IqSoftDataWarehouseEntities())
+            {              
+                var paymentData = Db.PaymentRequests.Where(x => x.ClientId == client.ClientId &&
+                                                                   (x.Status == (int)PaymentRequestStates.Approved ||
+                                                                    x.Status == (int)PaymentRequestStates.ApprovedManually) &&
+                                                                    x.Date >= fPaymentDate && x.Date < tPaymentDate)
+                                                        .GroupBy(x => x.Type)
+                                                        .Select(x => new
+                                                        {
+                                                            Type = x.Key,
+                                                            Amount = x.Sum(y => y.Amount),
+                                                            Count = x.Count()
+                                                        }).ToList();
+                if (paymentData.Count != 0)
+                {
+                    trackierActivityModel.Deposits = paymentData.Where(x => x.Type == (int)PaymentRequestTypes.Deposit).Select(x => x.Amount).DefaultIfEmpty(0).Sum();
+                    trackierActivityModel.Withdrawls = paymentData.Where(x => x.Type == (int)PaymentRequestTypes.Withdraw).Select(x => x.Amount).DefaultIfEmpty(0).Sum();
+                }
+
+                var activies = dwh.Bets.Where(x => x.ClientId == client.ClientId &&
+                                  x.State != (int)BetDocumentStates.Deleted &&
+                                  x.State != (int)BetDocumentStates.Uncalculated &&
+                                  x.BetDate >= fDate && x.BetDate < tDate)
+                      .Select(x => new
+                      {
+                          BetAmount = (x.BonusId == null || x.BonusId == 0) ? x.BetAmount : 0,
+                          WinAmount = (x.BonusId == null || x.BonusId == 0) ? x.WinAmount : 0,
+                          BonusBetAmount = x.BonusAmount,
+                          BonusWinAmount = x.BonusWinAmount
+                      });
+                if (activies.Count() != 0)
+                {
+                    trackierActivityModel.Bets =  activies.Select(y => y.BetAmount).DefaultIfEmpty(0).Sum();
+                    trackierActivityModel.Wins =  activies.Select(y => y.WinAmount).DefaultIfEmpty(0).Sum();
+                    trackierActivityModel.Bonuses = activies.Select(y => y.BonusBetAmount).DefaultIfEmpty(0).Sum() ?? 0;
+                }
+            }
+            return trackierActivityModel;
         }
 
         /* public AffilkaActivityModel GetAffiseClientActivity(List<AffiliatePlatformModel> affClients, DateTime fromDate, DateTime upToDate)

@@ -8,6 +8,9 @@ using IqSoft.CP.AgentWebApi.Models;
 using log4net;
 using System.Linq;
 using System;
+using Newtonsoft.Json;
+using IqSoft.CP.AgentWebApi.Models.User;
+using IqSoft.CP.DAL.Models.User;
 
 namespace IqSoft.CP.AgentWebApi.ControllerClasses
 {
@@ -25,6 +28,10 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                     return GetAffiliateById(identity, log);
                 case "GetBalance":
                     return GetBalance(identity, log);
+                case "ChangePassword":
+                    return ChangePassword(JsonConvert.DeserializeObject<ChangePasswordInput>(request.RequestData), identity, log);
+                case "CreatePayoutRequest":
+                    return CreatePayoutRequest(JsonConvert.DeserializeObject<ClientCorrectionInput>(request.RequestData), identity, log);
             }
             throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.MethodNotFound);
         }
@@ -60,7 +67,7 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                 };
             }
         }
-
+      
         private static ApiResponseBase GetAffiliateById(SessionIdentity identity, ILog log)
         {
             using (var affiliateBl = new AffiliateService(identity, log))
@@ -93,6 +100,35 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                 {
                     ResponseCode = Constants.Errors.AffiliateNotFound
                 };
+            }
+        }
+
+        private static ApiResponseBase ChangePassword(ChangePasswordInput changePasswordInput, SessionIdentity identity, ILog log)
+        {
+            using (var affiliateBl = new AffiliateService(identity, log))
+            {
+                affiliateBl.ChangeAffiliatePassword(identity.Id, changePasswordInput.OldPassword, changePasswordInput.NewPassword);
+                CacheManager.RemoveUserFromCache(identity.Id);
+                Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}", Constants.CacheItems.User, identity.Id));
+                return new ApiResponseBase();
+            }
+        }
+
+        private static ApiResponseBase CreatePayoutRequest(ClientCorrectionInput clientCorrectionInput, SessionIdentity identity, ILog log)
+        {
+            using (var affiliateBl = new AffiliateService(identity, log))
+            {
+                using (var documentBl = new DocumentBll(affiliateBl))
+                {
+                    var affiliate = affiliateBl.GetAffiliateById(identity.Id, false);
+                    if (affiliate.ClientId == null)
+                        throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.ClientNotFound);
+                    clientCorrectionInput.ClientId = affiliate.ClientId.Value;
+                    return new ApiResponseBase
+                    {
+                        ResponseObject = affiliateBl.CreateDebitToAffiliateClient(clientCorrectionInput, documentBl).MapToDocumentModel(identity.TimeZone)
+                    };
+                }
             }
         }
     }

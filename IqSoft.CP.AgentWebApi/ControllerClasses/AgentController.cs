@@ -78,11 +78,11 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                 case "IsUserNameAvailable":
                     return IsUserNameAvailable(JsonConvert.DeserializeObject<ApiUserNameInput>(request.RequestData), identity, log);
                 case "CreateDebitCorrection":
-                    return CreateDebitCorrection(JsonConvert.DeserializeObject<UserTransferInput>(request.RequestData), identity, log);
+                    return CreateDebitCorrection(JsonConvert.DeserializeObject<TransferInput>(request.RequestData), identity, log);
                 case "ChangeAgentMaxCredit":
-                    return ChangeAgentMaxCredit(JsonConvert.DeserializeObject<UserTransferInput>(request.RequestData), identity, log);
+                    return ChangeAgentMaxCredit(JsonConvert.DeserializeObject<TransferInput>(request.RequestData), identity, log);
                 case "CreateCreditCorrection":
-                    return CreateCreditCorrection(JsonConvert.DeserializeObject<UserTransferInput>(request.RequestData), identity, log);
+                    return CreateCreditCorrection(JsonConvert.DeserializeObject<TransferInput>(request.RequestData), identity, log);
                 case "GetCorrections":
                     return GetCorrections(JsonConvert.DeserializeObject<ApiFilterUserCorrection>(request.RequestData), identity, log);
                 case "GetAgentsCreditInfo":
@@ -485,7 +485,7 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                         }
                         commissionSettings = JsonConvert.SerializeObject(request.CommissionPlan);
                     }
-                    var userTransferInput = new UserTransferInput
+                    var userTransferInput = new TransferInput
                     {
                         FromUserId = user.Id,
                         Amount = request.MaxCredit ?? 0,
@@ -638,7 +638,7 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                         userBl.UpdateAgentCommission(commissionPlan);
                         if (request.MaxCredit.Value != 0)
                         {
-                            var userTransferInput = new UserTransferInput
+                            var userTransferInput = new TransferInput
                             {
                                 UserId = newUser.Id,
                                 FromUserId = user.Id,
@@ -763,7 +763,7 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                         var parentBalance = userBl.GetUserBalance(user.Id);
                         var childBalance = userBl.GetUserBalance(subAgent.Id);
 
-                        var userTransferInput = new UserTransferInput
+                        var userTransferInput = new TransferInput
                         {
                             FromUserId = user.Id,
                             UserId = input.Id,
@@ -1028,7 +1028,7 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
             }
         }
 
-        private static ApiResponseBase CreateDebitCorrection(UserTransferInput userCorrectionInput, SessionIdentity identity, ILog log)
+        private static ApiResponseBase CreateDebitCorrection(TransferInput userCorrectionInput, SessionIdentity identity, ILog log)
         {
             using (var userBl = new UserBll(identity, log))
             {
@@ -1050,7 +1050,7 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
             }
         }
 
-        private static ApiResponseBase ChangeAgentMaxCredit(UserTransferInput userCorrectionInput, SessionIdentity identity, ILog log)
+        private static ApiResponseBase ChangeAgentMaxCredit(TransferInput userCorrectionInput, SessionIdentity identity, ILog log)
         {
             using (var userBl = new UserBll(identity, log))
             {
@@ -1174,7 +1174,7 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
             }
         }
 
-        private static ApiResponseBase CreateCreditCorrection(UserTransferInput userCorrectionInput, SessionIdentity identity, ILog log)
+        private static ApiResponseBase CreateCreditCorrection(TransferInput userCorrectionInput, SessionIdentity identity, ILog log)
         {
             using (var userBl = new UserBll(identity, log))
             {

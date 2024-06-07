@@ -481,12 +481,12 @@ namespace IqSoft.CP.BLL.Services
                                  }).ToList();
 
             // var newFilter = filter.Copy(); ??
-            var entries = filter.FilterObjects(Db.fn_PaymentRequest(), orderBy);
+            var entries = filter.FilterObjects(Db.fn_PaymentRequest(), orderBy).ToList();
             if (convertCurrency)
             {
                 foreach (var e in entries)
                 {
-                    e.Amount = ConvertCurrency(e.CurrencyId, CurrencyId, e.Amount);
+                    e.ConvertedAmount = ConvertCurrency(e.CurrencyId, CurrencyId, e.Amount);
                 }
             }
             return new PaymentRequestsReport

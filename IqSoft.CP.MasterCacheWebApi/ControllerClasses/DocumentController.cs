@@ -122,6 +122,8 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                     return GetTypesEnumByType(nameof(PaymentAccountTypes), session);
                 case "GetBankAccountTypes": 
                     return GetTypesEnumByType(nameof(BankAccountTypes), session);
+                case "GetClientStatuses":
+                    return GetTypesEnumByType(nameof(ClientStates), session);
                 default:
                     throw BaseBll.CreateException(string.Empty, Constants.Errors.MethodNotFound);
             }
@@ -724,7 +726,7 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                         {
                             ResponseObject = resp.Select(x =>
                             {
-                                var r = x.ToApiClientBonusItem(session.TimeZone);
+                                var r = x.ToApiClientBonusItem(session.TimeZone, session.LanguageId);
                                 r.StateName = bonusStates.ContainsKey(x.Status) ? bonusStates[x.Status] : string.Empty;
                                 r.TypeName = bonusTypes.ContainsKey(x.Type) ? bonusTypes[x.Type] : string.Empty;
                                 return r;
@@ -889,7 +891,7 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                         CacheManager.RemoveClientBonus(clientBonus.ClientId, clientBonus.BonusId);
                         Helpers.Helpers.InvokeMessage("ClientBonus", clientBonus.ClientId);
 
-                        var resp = clientBonus.ToApiClientBonusItem(identity.TimeZone);
+                        var resp = clientBonus.ToApiClientBonusItem(identity.TimeZone, identity.LanguageId);
                         resp.StateName = bonusStates[clientBonus.Status];
 
                         return new ApiResponseBase

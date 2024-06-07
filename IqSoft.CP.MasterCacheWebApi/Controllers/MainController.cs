@@ -30,6 +30,7 @@ using System.Linq;
 using System.ServiceModel;
 using System.Text;
 using System.Threading;
+using System.Web;
 using System.Web.Http;
 using System.Web.Http.Cors;
 using static IqSoft.CP.Common.Constants;
@@ -44,7 +45,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
         [HttpPost]
         public ApiResponseBase OpenGame(OpenGameInput input)
         {
-            var response = new ApiResponseBase();
+			var response = new ApiResponseBase();
             string authResponse = String.Empty;
             try
             {
@@ -277,6 +278,10 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                 {
                     case Constants.GameProviders.TimelessTech:
                         var key = Integration.Products.Helpers.TimelessTechHelpers.GetSignature(request.PartnerId, provider.Id, request.RequestData, client.Id, client.CurrencyId);
+						response.ResponseObject = new { key };
+						break;
+                    case Constants.GameProviders.LuckyStreak:
+                        key = Integration.Products.Helpers.LuckyStreakHelpers.GetWidgetURL(request.PartnerId, provider.Id, request.RequestData, client.Id);
 						response.ResponseObject = new { key };
 						break;
                 }
@@ -589,6 +594,15 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
         {
             try
             {
+                if (request.IsAgent)
+                {
+                    using (var userBl = new UserBll(new SessionIdentity(), WebApiApplication.DbLogger))
+                    {
+                        var session = userBl.GetUserSession(request.Token);
+                        var b = userBl.GetUserBalance(session.UserId.Value);
+                        return new Common.Models.WebSiteModels.GetBalanceOutput { AvailableBalance = b.Balance, CurrencyId = b.CurrencyId };
+                    }
+                }
                 Helpers.Helpers.CheckToken(request.Token, request.ClientId, request.TimeZone);
                 return DocumentController.GetClientBalance(request.ClientId);
             }
@@ -1165,13 +1179,12 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                     Integration.Products.Helpers.GlobalSlotsHelpers.TransferFromProvider(tClient.Id, sessionIdentity, WebApiApplication.DbLogger);
                     return tClient;
                 }
-
                 input.ClientIdentifier = input.ClientIdentifier.Replace(" ", string.Empty);
                 input.Password = input.Password?.Trim();
-                var loginInput = new ClientLoginInput
+                var loginInput = new LoginInput
                 {
                     PartnerId = input.PartnerId,
-                    ClientIdentifier = input.ClientIdentifier,
+                    Identifier = input.ClientIdentifier,
                     Password = input.Password,
                     Ip = input.Ip,
                     DeviceType = (input.DeviceType == null || input.DeviceType < (int)DeviceTypes.Desktop || input.DeviceType > (int)DeviceTypes.BetShop) ?
@@ -1181,6 +1194,18 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                     Source = input.Source,
                     TimeZone = input.TimeZone
                 };
+                if(input.IAmAgent)
+                {
+                    using (var userBl = new UserBll(new SessionIdentity { LanguageId = input.LanguageId }, WebApiApplication.DbLogger))
+                    {
+                        loginInput.UserType = (int)UserTypes.DownlineAgent;
+                        var userIdentity = userBl.LoginUser(loginInput, out string imageData);
+                        var user = CacheManager.GetUserById(userIdentity.Id);
+                        var parentLevel = user.ParentId.HasValue ? CacheManager.GetUserById(user.ParentId.Value)?.Level : 0;
+                        var userSetting = CacheManager.GetUserSetting(user.Id);
+                        return user.ToApiLoginClientOutput(userIdentity.Token);
+                    }
+                }
                 string newToken;
 
                 if (input.ExternalPlatformId.HasValue)
@@ -1312,10 +1337,10 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
 
                 input.ClientIdentifier = input.ClientIdentifier.Replace(" ", string.Empty);
                 input.Password = input.Password?.Trim();
-                var loginInput = new ClientLoginInput
+                var loginInput = new LoginInput
                 {
                     PartnerId = input.PartnerId,
-                    ClientIdentifier = input.ClientIdentifier,
+                    Identifier = input.ClientIdentifier,
                     Password = input.Password,
                     Ip = input.Ip,
                     DeviceType = input.DeviceType.Value,
@@ -1413,10 +1438,10 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                     LanguageId = input.LanguageId,
                     TimeZone = input.TimeZone
                 };
-                var loginInput = new ClientLoginInput
+                var loginInput = new LoginInput
                 {
                     PartnerId = input.PartnerId,
-                    ClientIdentifier = input.ClientIdentifier,
+                    Identifier = input.ClientIdentifier,
                     Password = input.Password,
                     Ip = input.Ip,
                     DeviceType = (input.DeviceType == null || input.DeviceType < (int)DeviceTypes.Desktop || input.DeviceType > (int)DeviceTypes.BetShop) ?
@@ -1577,30 +1602,40 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
             {
                 using (var clientBl = new ClientBll(new SessionIdentity { Domain = request.Domain }, WebApiApplication.DbLogger))
                 {
-                    var client = clientBl.GetClientByToken(request.Token, out ClientLoginOut clientLoginOut, request.LanguageId);
-                    var dbClient = clientBl.GetClientById(client.Id);
-                    var currency = CacheManager.GetCurrencyById(client.CurrencyId);
-                    dbClient.CurrencySymbol = currency.Symbol;
-                    dbClient.Token = clientLoginOut.NewToken;
-                    var responseClient = dbClient.MapToApiLoginClientOutput(request.TimeZone, clientLoginOut);
-                    responseClient.Popups = clientBl.GetClientPopups(client.Id, (int)PopupTypes.NextLogin)
-                        .Select(x => new ApiPopupWeSiteModel
+                    using (var userBl = new UserBll(clientBl))
+                    {
+                        if (request.IsAgent)
                         {
-                            Id = x.Id,
-                            PartnerId = x.PartnerId,
-                            Type = x.Type,
-                            ImageName = x.ImageName,
-                            Page = x.Page,
-                            Order = x.Order
-                        }).ToList();
-                    if (request.Token != clientLoginOut.NewToken)
-                        Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}", Constants.CacheItems.ClientSessions, request.Token));
-                    return responseClient;
+                            var session = userBl.GetUserSession(request.Token);
+                            var user = CacheManager.GetUserById(session.UserId.Value);
+                            return user.ToApiLoginClientOutput(session.Token);
+                        }
+                        var client = clientBl.GetClientByToken(request.Token, out ClientLoginOut clientLoginOut, request.LanguageId);
+                        var dbClient = clientBl.GetClientById(client.Id);
+                        var currency = CacheManager.GetCurrencyById(client.CurrencyId);
+                        dbClient.CurrencySymbol = currency.Symbol;
+                        dbClient.Token = clientLoginOut.NewToken;
+                        var responseClient = dbClient.MapToApiLoginClientOutput(request.TimeZone, clientLoginOut);
+                        responseClient.Popups = clientBl.GetClientPopups(client.Id, (int)PopupTypes.NextLogin,
+                                                request.OSType == (int)OSTypes.Windows ? (int)DeviceTypes.Desktop : (int)DeviceTypes.Mobile)
+                            .Select(x => new ApiPopupWeSiteModel
+                            {
+                                Id = x.Id,
+                                PartnerId = x.PartnerId,
+                                Type = x.Type,
+                                ImageName = x.ImageName,
+                                Page = x.Page,
+                                Order = x.Order
+                            }).ToList();
+                        if (request.Token != clientLoginOut.NewToken)
+                            Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}", Constants.CacheItems.ClientSessions, request.Token));
+                        return responseClient;
+                    }
                 }
             }
             catch (FaultException<BllFnErrorType> ex)
             {
-                WebApiApplication.DbLogger.Error(ex);
+                WebApiApplication.DbLogger.Error(ex.Detail);
                 var response = new ApiLoginClientOutput
                 {
                     ResponseCode = ex.Detail.Id,
@@ -2107,57 +2142,6 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
         }
 
         [HttpPost]
-        public ApiResponseBase GetWelcomeBonus(ApiRegBonusInput input)
-        {
-            try
-            {
-                var identity = new SessionIdentity { LanguageId = input.LanguageId, PartnerId = input.PartnerId };
-                using (var clientBl = new ClientBll(identity, WebApiApplication.DbLogger))
-                {
-                    var info = clientBl.GetClientInfoByKey(input.ActivationKey, (int)ClientInfoTypes.WelcomeBonusActivationKey, true);
-                    var client = CacheManager.GetClientById(info.ObjectId ?? 0);
-                    identity = new SessionIdentity { LanguageId = input.LanguageId, PartnerId = client.PartnerId };
-                    using (var bonusBl = new BonusService(identity, WebApiApplication.DbLogger))
-                    {
-                        var currentDate = DateTime.UtcNow;
-                        var shuffledItems = bonusBl.ShuffleWelcomeBonusItems();
-                        if (input.Index >= shuffledItems.Length)
-                            throw BaseBll.CreateException(input.LanguageId, Constants.Errors.WrongInputParameters);
-
-                        decimal bonusPrize = shuffledItems[input.Index];
-                        if (bonusPrize > 0)
-                            bonusBl.CreateSignupRealBonus(client.Id, bonusPrize);
-
-                        return new ApiResponseBase
-                        {
-                            ResponseObject = shuffledItems
-                        };
-                    }
-                }
-            }
-            catch (FaultException<BllFnErrorType> ex)
-            {
-                var response = new ApiResponseBase
-                {
-                    ResponseCode = ex.Detail.Id,
-                    Description = ex.Detail.Message
-                };
-                WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(response));
-                return response;
-            }
-            catch (Exception ex)
-            {
-                WebApiApplication.DbLogger.Error(ex);
-                var response = new ApiResponseBase
-                {
-                    ResponseCode = Constants.Errors.GeneralException,
-                    Description = ex.Message
-                };
-                return response;
-            }
-        }
-
-        [HttpPost]
         public ApiResponseBase GetBanners(ApiBannerInput input)
         {
             try
@@ -2322,7 +2306,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                 if (!string.IsNullOrEmpty(input.Token))
                 {
                     Helpers.Helpers.CheckToken(input.Token, input.ClientId, input.TimeZone);
-                    var clientSegments = ClientBll.GetClientSegments(input.ClientId);
+                    var clientSegments = ClientBll.GetClientSegmentIds(input.ClientId);
                     tickers = tickers.Where(x => (!x.ClientIds.Any() || x.ClientIds.Contains(input.ClientId)) &&
                                                  (!x.SegmentIds.Any() || x.SegmentIds.All(y=> clientSegments.Contains(y)))).ToList();
                 }
@@ -3444,7 +3428,8 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
 				if (partner == null)
 					throw BaseBll.CreateException(input.LanguageId, Constants.Errors.PartnerNotFound);
 
-				var response = CacheManager.GetCharacters(input.PartnerId, input.LanguageId).Where(x => x.ParentId == null).OrderBy(x => x.Order).Select(x => x.MapToApiCharacter());
+				var response = CacheManager.GetCharacters(input.PartnerId, input.LanguageId).
+                    Where(x => x.ParentId == null).OrderBy(x => x.Order).Select(x => x.MapToApiCharacter());
 
 				return new ApiResponseBase
 				{
@@ -3521,7 +3506,83 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
             }
         }
 
-		private ApiResponseBase GetCommentTypes(ApiRequestBase input, int commentTypeId)
+        [HttpPost]
+        public ApiResponseBase GetActiveTournaments(ApiRequestBase input)
+        {
+            try
+            {
+                var partner = CacheManager.GetPartnerById(input.PartnerId);
+                if (partner == null)
+                    throw BaseBll.CreateException(input.LanguageId, Constants.Errors.PartnerNotFound);
+
+                var response = CacheManager.GetActiveTournaments(input.PartnerId, input.LanguageId).Select(x => x.ToApiBonus(input.TimeZone)).ToList();
+
+                return new ApiResponseBase
+                {
+                    ResponseObject = response
+                };
+            }
+            catch (FaultException<BllFnErrorType> ex)
+            {
+                var response = new ApiResponseBase
+                {
+                    ResponseCode = ex.Detail.Id,
+                    Description = ex.Detail.Message
+                };
+                WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(response));
+                return response;
+            }
+            catch (Exception ex)
+            {
+                WebApiApplication.DbLogger.Error(ex);
+                var response = new ApiResponseBase
+                {
+                    ResponseCode = Constants.Errors.GeneralException,
+                    Description = ex.Message
+                };
+                return response;
+            }
+        }
+
+        [HttpPost]
+        public ApiResponseBase GetTournamentLeaderboard(RequestBase input)
+        {
+            try
+            {
+                var partner = CacheManager.GetPartnerById(input.PartnerId);
+                if (partner == null)
+                    throw BaseBll.CreateException(input.LanguageId, Constants.Errors.PartnerNotFound);
+
+                var response = CacheManager.GetTournamentLeaderboard(Convert.ToInt32(input.RequestData));
+
+                return new ApiResponseBase
+                {
+                    ResponseObject = response.Select(x => x.ToApiLeaderboardItem(partner.CurrencyId)).ToList()
+                };
+            }
+            catch (FaultException<BllFnErrorType> ex)
+            {
+                var response = new ApiResponseBase
+                {
+                    ResponseCode = ex.Detail.Id,
+                    Description = ex.Detail.Message
+                };
+                WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(response));
+                return response;
+            }
+            catch (Exception ex)
+            {
+                WebApiApplication.DbLogger.Error(ex);
+                var response = new ApiResponseBase
+                {
+                    ResponseCode = Constants.Errors.GeneralException,
+                    Description = ex.Message
+                };
+                return response;
+            }
+        }
+
+        private ApiResponseBase GetCommentTypes(ApiRequestBase input, int commentTypeId)
         {
             try
             {

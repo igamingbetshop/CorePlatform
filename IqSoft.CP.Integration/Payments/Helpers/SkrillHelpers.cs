@@ -81,7 +81,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                     throw new Exception(prepareOutput.ErrorObj.ErrorMessage);
                 paymentRequest.ExternalTransactionId = prepareOutput.Sid;
                 paymentSystemBl.ChangePaymentRequestDetails(paymentRequest);
-                var transferInput = new TransferInput { action = SkrillActions.Transfer, sid = prepareOutput.Sid };
+                var transferInput = new Models.Skrill.TransferInput { action = SkrillActions.Transfer, sid = prepareOutput.Sid };
                 var transferOutput = SkrillAction(transferInput);
                 if (transferOutput.TransactionData.Status == 2)
                     return new PaymentResponse

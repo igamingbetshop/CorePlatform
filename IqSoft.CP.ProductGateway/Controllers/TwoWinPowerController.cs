@@ -156,7 +156,6 @@ namespace IqSoft.CP.ProductGateway.Controllers
                                 CurrencyId = client.CurrencyId,
                                 GameProviderId = ProviderId,
                                 OperationTypeId = (int)OperationTypes.Win,
-                                ExternalOperationId = null,
                                 ExternalProductId = input.game_uuid,
                                 ProductId = clientSession.ProductId,
                                 TransactionId = input.transaction_id + "_win",
@@ -258,7 +257,6 @@ namespace IqSoft.CP.ProductGateway.Controllers
                             CurrencyId = client.CurrencyId,
                             GameProviderId = ProviderId,
                             OperationTypeId = (int)OperationTypes.Win,
-                            ExternalOperationId = null,
                             ExternalProductId = input.game_uuid,
                             ProductId = betDocument.ProductId,
                             TransactionId = input.transaction_id,
@@ -285,9 +283,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                             }
                             catch (Exception ex)
                             {
-                                WebApiApplication.DbLogger.Error(ex.Message);
-                                documentBl.RollbackProductTransactions(operationsFromProduct);
-                                throw;
+                                WebApiApplication.DbLogger.Error("DebitException_" + ex.Message);
                             }
                         }
                         else
@@ -300,6 +296,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                             GameName = product.NickName,
                             ClientId = client.Id,
                             ClientName = client.FirstName,
+                            BetAmount = betDocument?.Amount,
                             Amount = amount,
                             CurrencyId = client.CurrencyId,
                             PartnerId = partnerId,
