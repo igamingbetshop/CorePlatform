@@ -6,7 +6,6 @@ using IqSoft.CP.Common.Enums;
 using IqSoft.CP.Common.Helpers;
 using IqSoft.CP.Common.Models;
 using IqSoft.CP.Common.Models.AffiliateModels;
-using IqSoft.CP.Common.Models.UserModels;
 using IqSoft.CP.DAL;
 using IqSoft.CP.DAL.Filters.Affiliate;
 using IqSoft.CP.DAL.Models;
@@ -24,6 +23,7 @@ using AffiliateReferral = IqSoft.CP.DAL.AffiliateReferral;
 using System.Text.RegularExpressions;
 using System.Transactions;
 using IqSoft.CP.DAL.Filters;
+using Client = IqSoft.CP.DAL.Client;
 
 namespace IqSoft.CP.BLL.Services
 {
@@ -117,7 +117,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnAffiliate>>
@@ -175,7 +175,7 @@ namespace IqSoft.CP.BLL.Services
                 var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
                 if (!partnerAccess.HaveAccessForAllObjects && !partnerAccess.AccessibleIntegerObjects.Contains(affiliate.PartnerId))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -197,7 +197,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             var affiliate = Db.Affiliates.FirstOrDefault(x => x.Id == input.Id);
@@ -241,12 +241,12 @@ namespace IqSoft.CP.BLL.Services
             var affiliaeAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewAffiliates,
-                ObjectTypeId = ObjectTypes.Affiliate
+                ObjectTypeId = (int)ObjectTypes.Affiliate
             });
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if ((!affiliaeAccess.HaveAccessForAllObjects && affiliaeAccess.AccessibleObjects.All(x => x != affiliateId)) ||
                 (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != affiliate.PartnerId)))
@@ -273,7 +273,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             var affiliate = Db.Affiliates.FirstOrDefault(x => x.Id == input.AffiliateId) ??
@@ -391,7 +391,7 @@ namespace IqSoft.CP.BLL.Services
         public void GiveCommission(DateTime toDate, ILog log)
         {
             var currentTime = DateTime.UtcNow;
-            var fromDate = DateTime.UtcNow.AddMonths(-1); // ??
+            var fromDate = DateTime.UtcNow.AddDays(-1); // ?? for testing
             var tDate = toDate.Year * (int)1000000 + toDate.Month * 10000 + toDate.Day * 100 + toDate.Hour;
             var fDate = fromDate.Year * (int)1000000 + fromDate.Month * 10000 + fromDate.Day * 100 + fromDate.Hour;
             try
@@ -515,7 +515,7 @@ namespace IqSoft.CP.BLL.Services
                                                     PartnerId = affiliate.PartnerId,
                                                     CurrencyId = ca.Key,
                                                     AccountTypeId = (int)AccountTypes.AffiliateManagerBalance,
-                                                    Creator = affiliate.Id
+                                                    UserId = affiliate.Id
                                                 };
                                                 CreateDebitToAffiliate(affiliate.Id, input, documentBl);
                                             }
@@ -674,6 +674,7 @@ namespace IqSoft.CP.BLL.Services
                 ProductId = transaction.ProductId,
                 State = transaction.State,
                 TicketInfo = transaction.Info,
+                UserId = transaction.UserId,
                 Creator = transaction.Creator,
                 OperationItems = new List<OperationItem>()
             };
@@ -772,12 +773,12 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var checkAffPermission = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewAffiliate,
-                ObjectTypeId = ObjectTypes.Affiliate
+                ObjectTypeId = (int)ObjectTypes.Affiliate
             });
             if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != affiliate.PartnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -815,7 +816,7 @@ namespace IqSoft.CP.BLL.Services
                 Amount = transferInput.Amount,
                 CurrencyId = transferInput.CurrencyId,
                 Type = (int)TransactionTypes.Credit,
-                OperationTypeId = (int)OperationTypes.DebitCorrectionOnUser
+                OperationTypeId = (int)OperationTypes.DebitCorrectionOnAffiliate
             };
             operation.OperationItems.Add(item);
             var document = documentBl.CreateDocument(operation);
@@ -832,12 +833,12 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var checkAffPermission = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewAffiliate,
-                ObjectTypeId = ObjectTypes.Affiliate
+                ObjectTypeId = (int)ObjectTypes.Affiliate
             });
             if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != affiliate.PartnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -885,6 +886,11 @@ namespace IqSoft.CP.BLL.Services
         }
 
         #region ExternalAffiliates
+        public DAL.AffiliatePlatform GetAffiliatePlatform(int partnerId, string affiliateName)
+        {
+            return Db.AffiliatePlatforms.FirstOrDefault(x => x.Name == affiliateName && x.PartnerId == partnerId);
+        }
+
 
         public IQueryable<DAL.AffiliatePlatform> GetAffiliatePlatforms()
         {
@@ -893,9 +899,16 @@ namespace IqSoft.CP.BLL.Services
 
         public IQueryable<DAL.Client> GetClients(List<int> affiliatePlatforms, DateTime fromDate, DateTime toDate)
         {
-            var currentTime = DateTime.UtcNow;
             return Db.Clients.Where(x => affiliatePlatforms.Contains(x.AffiliateReferral.AffiliatePlatform.Id) &&
                                                                        x.CreationTime > fromDate && x.CreationTime < toDate);
+        }
+
+        public List<Client> GetAffiliateClients(int affiliateId, DateTime? creationDate)
+        {
+            var query = Db.Clients.Include(x => x.AffiliateReferral.AffiliatePlatform).Where(x => x.AffiliateReferral.AffiliatePlatformId == affiliateId);
+            if (creationDate.HasValue)
+                query = query.Where(x => x.CreationTime >= creationDate);
+            return query.ToList();
         }
 
         public List<ClientActivityModel> GetClientActivity(List<AffiliatePlatformModel> affClients, int brandId, DateTime fromDate, DateTime upToDate)
@@ -1055,34 +1068,98 @@ namespace IqSoft.CP.BLL.Services
             return affiliateClientActivies;
         }
 
-        public List<MyAffiliateClientActivityModel> GetMyAffiliateClientActivity(List<AffiliatePlatformModel> affClients, int brandId, DateTime fromDate, DateTime upToDate)
+        public List<MyAffiliateClientActivityModel> GetMyAffiliateClientActivity(int affiliatePlatformId, List<AffiliatePlatformModel> affClients, int brandId, DateTime fromDate, DateTime upToDate)
         {
+            var currentTime = DateTime.UtcNow;
             var affiliateClientActivies = new List<MyAffiliateClientActivityModel>();
             var fDate = fromDate.Year * (long)1000000 + fromDate.Month * 10000 + fromDate.Day * 100 + fromDate.Hour;
             var fPaymentDate = fromDate.Year * (long)100000000 + fromDate.Month * 1000000 + fromDate.Day * 10000 + fromDate.Hour * 100 + fromDate.Minute;
             var tDate = upToDate.Year * (long)1000000 + upToDate.Month * 10000 + upToDate.Day * 100 + upToDate.Hour;
             var tPaymentDate = upToDate.Year * (long)100000000 + upToDate.Month * 1000000 + upToDate.Day * 10000 + upToDate.Hour * 100 + upToDate.Minute;
-            var clientIds = affClients.Select(x => x.ClientId).ToList();
-            var clientTransactions = Db.Documents.Where(x => clientIds.Contains(x.ClientId.Value) &&
-                                             (x.OperationTypeId == (int)OperationTypes.BonusWin ||
-                                              x.OperationTypeId == (int)OperationTypes.CreditCorrectionOnClient ||
-                                              x.OperationTypeId == (int)OperationTypes.DebitCorrectionOnClient) &&
-                                              x.Date > fDate && x.Date <= tDate)
-                                  .GroupBy(x => x.ClientId)
-                                  .ToDictionary(x => x.Key, x =>
-                                  new
-                                  {
-                                      BonusWin = x.Where(y => y.OperationTypeId == (int)OperationTypes.BonusWin).Select(y => y.Amount).DefaultIfEmpty(0).Sum(),
-                                      CreditCorrectionOnClient = x.Where(y => y.OperationTypeId == (int)OperationTypes.CreditCorrectionOnClient && y.TypeId != (int)OperationTypes.ChargeBack)
-                                                                  .Select(y => y.Amount).DefaultIfEmpty(0).Sum(),
-                                      DebitCorrectionOnClient = x.Where(y => y.OperationTypeId == (int)OperationTypes.DebitCorrectionOnClient)
-                                                                 .Select(y => y.Amount).DefaultIfEmpty(0).Sum(),
-                                      ChargeBack = x.Where(y => y.OperationTypeId == (int)OperationTypes.CreditCorrectionOnClient && y.TypeId == (int)OperationTypes.ChargeBack)
-                                                    .Select(y => y.Amount).DefaultIfEmpty(0).Sum()
-                                  });
-            var dateString = fromDate.ToString("yyyy-MM-dd");
+
+            var allPaymentsData = Db.PaymentRequests.Where(x => (x.Status == (int)PaymentRequestStates.Approved ||
+                                                                x.Status == (int)PaymentRequestStates.ApprovedManually) &&
+                                                                x.Date >= fPaymentDate && x.Date < tPaymentDate && x.Client.AffiliateReferral.AffiliatePlatformId == affiliatePlatformId)
+                                                    .GroupBy(x => new { x.Type, x.ClientId })
+                                                    .Select(x => new
+                                                    {
+                                                        Type = x.Key.Type,
+                                                        ClientId = x.Key.ClientId,
+                                                        Amount = x.Sum(y => y.Amount),
+                                                        Count = x.Count()
+                                                    }).ToList();
             using (var dwh = new IqSoftDataWarehouseEntities())
             {
+                dwh.Database.CommandTimeout = 300;
+
+                var allBets = (from b in dwh.Bets
+                               join p in dwh.Products on b.ProductId equals p.Id
+                               join c in dwh.Clients on b.ClientId equals c.Id
+                               join ar in dwh.AffiliateReferrals on c.AffiliateReferralId equals ar.Id
+                               where b.State != (int)BetDocumentStates.Deleted &&
+                                      b.State != (int)BetDocumentStates.Uncalculated && b.CalculationDate.HasValue &&
+                                      b.CalculationDate >= fDate && b.CalculationDate < tDate && ar.AffiliatePlatformId == affiliatePlatformId
+                               group b by new { b.ClientId, IsSport = p.ExternalId == "sports-betting" || p.ExternalId == "live-sports" || p.ExternalId == "esports" } into g
+                               select new
+                               {
+                                   ClientId = g.Key.ClientId,
+                                   ProductId = g.Key.IsSport ? 1 : 2,
+                                   TotalBetAmount = g.Sum(y => y.BetAmount),
+                                   TotalWinAmount = g.Sum(y => y.WinAmount),
+                                   BonusBetAmount = g.Sum(y => y.BonusAmount),
+                                   BonusWinAmount = g.Sum(y => y.BonusWinAmount),
+                                   Count = g.Count()
+                               }).ToList();
+                var allConvertedBonusAmounts = (from d in dwh.Documents
+                                                join c in dwh.Clients on d.ClientId equals c.Id
+                                                join ar in dwh.AffiliateReferrals on c.AffiliateReferralId equals ar.Id
+                                                where d.OperationTypeId == (int)OperationTypes.BonusWin && d.Date >= fDate && d.CreationTime < upToDate &&
+                                                ar.AffiliatePlatformId == affiliatePlatformId
+                                                group d by d.ClientId into g
+                                                select new
+                                                {
+                                                    ClientId = g.Key,
+                                                    Amount = g.Sum(y => y.Amount)
+                                                }).ToList();
+                var allCreditCorrectionsOnClients = (from d in dwh.Documents
+                                                     join c in dwh.Clients on d.ClientId equals c.Id
+                                                     join ar in dwh.AffiliateReferrals on c.AffiliateReferralId equals ar.Id
+                                                     where d.OperationTypeId == (int)OperationTypes.CreditCorrectionOnClient && d.TypeId != (int)OperationTypes.ChargeBack &&
+                                                     d.Date >= fDate && d.CreationTime < upToDate &&
+                                                     ar.AffiliatePlatformId == affiliatePlatformId
+                                                     group d by d.ClientId into g
+                                                     select new
+                                                     {
+                                                         ClientId = g.Key,
+                                                         Amount = g.Sum(y => y.Amount)
+                                                     }).ToList();
+                var allDebitCorrectionsOnClients = (from d in dwh.Documents
+                                                    join c in dwh.Clients on d.ClientId equals c.Id
+                                                    join ar in dwh.AffiliateReferrals on c.AffiliateReferralId equals ar.Id
+                                                    where d.OperationTypeId == (int)OperationTypes.DebitCorrectionOnClient &&
+                                                    d.Date >= fDate && d.CreationTime < upToDate &&
+                                                    ar.AffiliatePlatformId == affiliatePlatformId
+                                                    group d by d.ClientId into g
+                                                    select new
+                                                    {
+                                                        ClientId = g.Key,
+                                                        Amount = g.Sum(y => y.Amount)
+                                                    }).ToList();
+                var allChargeBacks = (from d in dwh.Documents
+                                      join c in dwh.Clients on d.ClientId equals c.Id
+                                      join ar in dwh.AffiliateReferrals on c.AffiliateReferralId equals ar.Id
+                                      where d.OperationTypeId == (int)OperationTypes.CreditCorrectionOnClient && d.TypeId == (int)OperationTypes.ChargeBack &&
+                                      d.Date >= fDate && d.CreationTime < upToDate &&
+                                      ar.AffiliatePlatformId == affiliatePlatformId
+                                      group d by d.ClientId into g
+                                      select new
+                                      {
+                                          ClientId = g.Key,
+                                          Amount = g.Sum(y => y.Amount)
+                                      }).ToList();
+
+                var dateString = fromDate.ToString("yyyy-MM-dd");
+
                 foreach (var client in affClients)
                 {
                     var clientActivityModel = new MyAffiliateClientActivityModel
@@ -1095,17 +1172,8 @@ namespace IqSoft.CP.BLL.Services
                         CurrencyId = client.CurrencyId
                     };
 
-                    var paymentData = Db.PaymentRequests.Where(x => x.ClientId == client.ClientId &&
-                                                                   (x.Status == (int)PaymentRequestStates.Approved ||
-                                                                    x.Status == (int)PaymentRequestStates.ApprovedManually) &&
-                                                                    x.Date >= fPaymentDate && x.Date < tPaymentDate)
-                                                        .GroupBy(x => x.Type)
-                                                        .Select(x => new
-                                                        {
-                                                            Type = x.Key,
-                                                            Amount = x.Sum(y => y.Amount),
-                                                            Count = x.Count()
-                                                        }).ToList();
+                    var paymentData = allPaymentsData.Where(x => x.ClientId == client.ClientId).ToList();
+
                     if (paymentData.Count != 0)
                     {
                         clientActivityModel.TotalDepositsAmount = paymentData.Where(x => x.Type == (int)PaymentRequestTypes.Deposit).Select(x => x.Amount).DefaultIfEmpty(0).Sum();
@@ -1114,43 +1182,30 @@ namespace IqSoft.CP.BLL.Services
                         clientActivityModel.TotalDepositsCount = paymentData.Where(x => x.Type == (int)PaymentRequestTypes.Deposit || x.Type == (int)PaymentRequestTypes.ManualDeposit)
                                                                            .Select(x => x.Count).DefaultIfEmpty(0).Sum();
                     }
-                    var activies = from b in dwh.Bets
-                                   join p in dwh.Products on b.ProductId equals p.Id
-                                   where b.ClientId == client.ClientId && b.State != (int)BetDocumentStates.Deleted &&
-                                         b.State != (int)BetDocumentStates.Uncalculated && b.CalculationDate.HasValue &&
-                                         b.CalculationDate >= fDate && b.CalculationDate < tDate
-                                   group b by ((p.ExternalId == "sports-betting" || p.ExternalId == "live-sports" || p.ExternalId == "esports") ? 1 : 2) into g
-                                   select new
-                                   {
-                                       ProductId = g.Key,
-                                       TotalBetAmount = g.Select(y => y.BetAmount).DefaultIfEmpty(0).Sum(),
-                                       TotalWinAmount = g.Select(y => y.WinAmount).DefaultIfEmpty(0).Sum(),
-                                       BonusBetAmount = g.Where(y => y.BonusId.HasValue && y.BonusId.Value > 0).Select(y => y.BonusAmount ?? 0).DefaultIfEmpty(0).Sum(),
-                                       BonusWinAmount = g.Where(y => y.BonusId.HasValue && y.BonusId.Value > 0).Select(y => y.BonusWinAmount ?? 0).DefaultIfEmpty(0).Sum(),
-                                       Count = g.Count()
-                                   };
 
+                    var activies = allBets.Where(x => x.ClientId == client.ClientId).ToList();
                     if (activies.Count() != 0)
                     {
                         clientActivityModel.SportTotalBetsAmount = activies.Where(y => y.ProductId == 1).Select(y => y.TotalBetAmount).DefaultIfEmpty(0).Sum();
-                        clientActivityModel.SportBonusBetsAmount = activies.Where(y => y.ProductId == 1).Select(y => y.BonusBetAmount).DefaultIfEmpty(0).Sum();
+                        clientActivityModel.SportBonusBetsAmount = activies.Where(y => y.ProductId == 1).Select(y => y.BonusBetAmount ?? 0).DefaultIfEmpty(0).Sum();
                         clientActivityModel.SportTotalWinsAmount = activies.Where(y => y.ProductId == 1).Select(y => y.TotalWinAmount).DefaultIfEmpty(0).Sum();
-                        clientActivityModel.SportBonusWinsAmount = activies.Where(y => y.ProductId == 1).Select(y => y.BonusWinAmount).DefaultIfEmpty(0).Sum();
+                        clientActivityModel.SportBonusWinsAmount = activies.Where(y => y.ProductId == 1).Select(y => y.BonusWinAmount ?? 0).DefaultIfEmpty(0).Sum();
                         clientActivityModel.SportGrossRevenue = clientActivityModel.SportTotalBetsAmount - clientActivityModel.SportTotalWinsAmount;
 
                         clientActivityModel.CasinoTotalBetsAmount = activies.Where(y => y.ProductId == 2).Select(y => y.TotalBetAmount).DefaultIfEmpty(0).Sum();
-                        clientActivityModel.CasinoBonusBetsAmount = activies.Where(y => y.ProductId == 2).Select(y => y.BonusBetAmount).DefaultIfEmpty(0).Sum();
+                        clientActivityModel.CasinoBonusBetsAmount = activies.Where(y => y.ProductId == 2).Select(y => y.BonusBetAmount ?? 0).DefaultIfEmpty(0).Sum();
                         clientActivityModel.CasinoTotalWinsAmount = activies.Where(y => y.ProductId == 2).Select(y => y.TotalWinAmount).DefaultIfEmpty(0).Sum();
-                        clientActivityModel.CasinoBonusWinsAmount = activies.Where(y => y.ProductId == 2).Select(y => y.BonusWinAmount).DefaultIfEmpty(0).Sum();
+                        clientActivityModel.CasinoBonusWinsAmount = activies.Where(y => y.ProductId == 2).Select(y => y.BonusWinAmount ?? 0).DefaultIfEmpty(0).Sum();
                         clientActivityModel.CasinoGrossRevenue = clientActivityModel.CasinoTotalBetsAmount - clientActivityModel.CasinoTotalWinsAmount;
 
                         clientActivityModel.TotalBetsCount = activies.Select(y => y.Count).DefaultIfEmpty(0).Sum();
                     }
-                    var transactions = clientTransactions.ContainsKey(client.ClientId) ? clientTransactions[client.ClientId] : null;
-                    clientActivityModel.ConvertedBonusAmount = transactions?.BonusWin ?? 0;
-                    clientActivityModel.CreditCorrectionOnClient = transactions?.CreditCorrectionOnClient ?? 0;
-                    clientActivityModel.DebitCorrectionOnClient = transactions?.DebitCorrectionOnClient ?? 0;
-                    clientActivityModel.ChargeBack = transactions?.ChargeBack ?? 0;
+
+                    clientActivityModel.ConvertedBonusAmount = allConvertedBonusAmounts.Where(x => x.ClientId == client.ClientId).Select(y => y.Amount).FirstOrDefault();
+                    clientActivityModel.CreditCorrectionOnClient = allCreditCorrectionsOnClients.Where(x => x.ClientId == client.ClientId).Select(y => y.Amount).FirstOrDefault();
+                    clientActivityModel.DebitCorrectionOnClient = allDebitCorrectionsOnClients.Where(x => x.ClientId == client.ClientId).Select(y => y.Amount).FirstOrDefault();
+                    clientActivityModel.ChargeBack = allChargeBacks.Where(x => x.ClientId == client.ClientId).Select(y => y.Amount).FirstOrDefault();
+
                     var balances = CacheManager.GetClientCurrentBalance(client.ClientId).Balances;
 
                     var balance = balances.Where(x => x.TypeId != (int)AccountTypes.ClientBonusBalance && x.TypeId != (int)AccountTypes.ClientCompBalance)
@@ -1178,8 +1233,10 @@ namespace IqSoft.CP.BLL.Services
                     affiliateClientActivies.Add(clientActivityModel);
                 }
             }
+            Log.Info("GetMyAffiliateClientActivity_Duration_" + (DateTime.UtcNow - currentTime).TotalSeconds);
+
             return affiliateClientActivies;
-        }
+        }            
 
         public AffilkaActivityModel GetAffilkaClientActivity(List<AffiliatePlatformModel> affClients, DateTime fromDate, DateTime upToDate)
         {
@@ -1214,17 +1271,17 @@ namespace IqSoft.CP.BLL.Services
                                                x.Date > fDate && x.Date <= tDate).GroupBy(x => x.OperationTypeId)
                                                .ToDictionary(x => x.Key, x => x.Select(y => y.Amount).DefaultIfEmpty(0).Sum());
                     var deposits = Db.PaymentRequests.Where(x => x.ClientId == client.ClientId &&
-                                                                   (x.Type == (int)PaymentRequestTypes.Deposit ||
-                                                                    x.Type == (int)PaymentRequestTypes.ManualDeposit) &&
-                                                                   (x.Status == (int)PaymentRequestStates.Approved ||
-                                                                    x.Status == (int)PaymentRequestStates.ApprovedManually) &&
-                                                                    x.Date >= fPaymentDate && x.Date < tPaymentDate)
-                                                        .Select(x => new DepositModel
-                                                        {
-                                                            Id = x.Id.ToString(),
-                                                            Amount = (int)(x.Amount * 100),
-                                                            ProcessedAt = x.LastUpdateTime.ToString()
-                                                        }).ToList();
+                                                                (x.Type == (int)PaymentRequestTypes.Deposit ||
+                                                                 x.Type == (int)PaymentRequestTypes.ManualDeposit) &&
+                                                                (x.Status == (int)PaymentRequestStates.Approved ||
+                                                                 x.Status == (int)PaymentRequestStates.ApprovedManually) &&
+                                                                 x.Date >= fPaymentDate && x.Date < tPaymentDate)
+                                                     .Select(x => new DepositModel
+                                                     {
+                                                         Id = x.Id.ToString(),
+                                                         Amount = (int)(x.Amount * 100),
+                                                         ProcessedAt = x.LastUpdateTime.ToString()
+                                                     }).ToList();
                     if (deposits.Any())
                     {
                         addItem = true;
@@ -1234,10 +1291,10 @@ namespace IqSoft.CP.BLL.Services
                     }
                     else affilkaActivityModel.Deposits = new List<DepositModel>();
                     var withdrawals = Db.PaymentRequests.Where(x => x.ClientId == client.ClientId &&
-                                                                 x.Type == (int)PaymentRequestTypes.Withdraw &&
-                                                                 (x.Status == (int)PaymentRequestStates.Approved ||
-                                                                  x.Status == (int)PaymentRequestStates.ApprovedManually) &&
-                                                                  x.Date >= fPaymentDate && x.Date < tPaymentDate);
+                                                                    x.Type == (int)PaymentRequestTypes.Withdraw &&
+                                                                   (x.Status == (int)PaymentRequestStates.Approved ||
+                                                                    x.Status == (int)PaymentRequestStates.ApprovedManually) &&
+                                                                    x.Date >= fPaymentDate && x.Date < tPaymentDate);
                     if (withdrawals.Any())
                     {
                         addItem = true;
@@ -1298,10 +1355,9 @@ namespace IqSoft.CP.BLL.Services
             };
         }
       
-        public TrackierActivityModel GetTrackierClientActivity(string brandId, AffiliatePlatformModel client, DateTime fromDate, DateTime upToDate)
+        public TrackierActivityModel GetTrackierClientActivity(AffiliatePlatformModel client, DateTime fromDate, DateTime upToDate)
         {
             var currentDate = DateTime.UtcNow;
-            var affiliateClientActivies = new List<ActivityItem>();
             var fDate = fromDate.Year * (long)1000000 + fromDate.Month * 10000 + fromDate.Day * 100 + fromDate.Hour;
             var fPaymentDate = fromDate.Year * (long)100000000 + fromDate.Month * 1000000 + fromDate.Day * 10000 + fromDate.Hour * 100 + fromDate.Minute;
             var tDate = upToDate.Year * (long)1000000 + upToDate.Month * 10000 + upToDate.Day * 100 + upToDate.Hour;
@@ -1310,10 +1366,8 @@ namespace IqSoft.CP.BLL.Services
             {
                 CustomerId = client.ClientId.ToString(),
                 Currency = client.CurrencyId,
-                Timestamp = ((DateTimeOffset)currentDate).ToUnixTimeSeconds(),
                 Date = currentDate.ToString("yyyy-MM-dd"),
-                ProductId = "1",
-                BrandId = brandId
+                ProductId = "1"
             };
             using (var dwh = new IqSoftDataWarehouseEntities())
             {              
@@ -1355,38 +1409,110 @@ namespace IqSoft.CP.BLL.Services
             return trackierActivityModel;
         }
 
-        /* public AffilkaActivityModel GetAffiseClientActivity(List<AffiliatePlatformModel> affClients, DateTime fromDate, DateTime upToDate)
-         {
-             var affiliateClientActivies = new List<ActivityItem>();
-             var fDate = fromDate.Year * (long)1000000 + fromDate.Month * 10000 + fromDate.Day * 100 + fromDate.Hour;
-             var fPaymentDate = fromDate.Year * (long)100000000 + fromDate.Month * 1000000 + fromDate.Day * 10000 + fromDate.Hour*100 + fromDate.Minute;
-             var tDate = upToDate.Year * (long)1000000 + upToDate.Month * 10000 + upToDate.Day * 100 + upToDate.Hour;
-             var tPaymentDate = upToDate.Year * (long)100000000 + upToDate.Month * 1000000 + upToDate.Day * 10000 + upToDate.Hour*100 + upToDate.Minute;
+        public List<WyntaActivityItem> GetWyntaClientActivity(int affiliatePlatformId, List<AffiliatePlatformModel> affClients, DateTime fromDate, DateTime upToDate)
+        {
+            var currentDate = DateTime.UtcNow;
+            var affiliateClientActivies = new List<WyntaActivityItem>();
+            var fDate = fromDate.Year * (long)1000000 + fromDate.Month * 10000 + fromDate.Day * 100 + fromDate.Hour;
+            var fPaymentDate = fromDate.Year * (long)100000000 + fromDate.Month * 1000000 + fromDate.Day * 10000 + fromDate.Hour * 100 + fromDate.Minute;
+            var tDate = upToDate.Year * (long)1000000 + upToDate.Month * 10000 + upToDate.Day * 100 + upToDate.Hour;
+            var tPaymentDate = upToDate.Year * (long)100000000 + upToDate.Month * 1000000 + upToDate.Day * 10000 + upToDate.Hour * 100 + upToDate.Minute;
 
-             foreach (var client in affClients)
-             {
-                 var affisectivityModel = new AffiseActivityModel
-                 {
-                     Tag= client.ClickId,
-                     ClientId = client.ClientId.ToString(),
-                     Currency = client.CurrencyId
-                 };
-                 var activies = Db.Bets.Where(x => x.ClientId == client.ClientId &&
-                                                   x.State != (int)BetDocumentStates.Deleted &&
-                                                   x.State != (int)BetDocumentStates.Uncalculated &&
-                                                   (!x.BonusId.HasValue || x.BonusId.Value== 0 ) &&
-                                                   x.BetDate >= fDate && x.BetDate < tDate)
-                                       .Select(x => x.BetAmount - x.WinAmount).DefaultIfEmpty(0).Sum();
+            var allPaymentsData = Db.PaymentRequests.Where(x => (x.Status == (int)PaymentRequestStates.Approved ||
+                                                                 x.Status == (int)PaymentRequestStates.ApprovedManually) &&
+                                                                 (x.Type ==(int)PaymentRequestTypes.Deposit || x.Type ==(int)PaymentRequestTypes.ManualDeposit) &&
+                                                                 x.Date >= fPaymentDate && x.Date < tPaymentDate &&
+                                                                 x.Client.AffiliateReferral.AffiliatePlatformId == affiliatePlatformId)
+                                                             .GroupBy(x => x.ClientId)
+                                                             .Select(x => new
+                                                             {
+                                                                 ClientId = x.Key,
+                                                                 Amount = x.Sum(y => y.Amount)
+                                                             }).ToList();
+            var allFirstPaymentData = Db.PaymentRequests.Where(x => (x.Status == (int)PaymentRequestStates.Approved ||
+                                                     x.Status == (int)PaymentRequestStates.ApprovedManually) &&
+                                                     (x.Type ==(int)PaymentRequestTypes.Deposit || x.Type ==(int)PaymentRequestTypes.ManualDeposit) &&
+                                                     x.Date >= fPaymentDate && x.Date < tPaymentDate &&
+                                                     x.Client.AffiliateReferral.AffiliatePlatformId == affiliatePlatformId)
+                                                 .GroupBy(x => x.ClientId)
+                                                 .Select(x => new
+                                                 {
+                                                     ClientId = x.Key,
+                                                     FistDeposit = x.OrderBy(y => y.Id).FirstOrDefault()
+                                                 }).ToList();
+            using (var dwh = new IqSoftDataWarehouseEntities())
+            {
+                var allConvertedBonusAmounts = (from d in dwh.Documents
+                                                join c in dwh.Clients on d.ClientId equals c.Id
+                                                join ar in dwh.AffiliateReferrals on c.AffiliateReferralId equals ar.Id
+                                                where d.OperationTypeId == (int)OperationTypes.BonusWin && d.Date >= fDate && d.CreationTime < upToDate &&
+                                                ar.AffiliatePlatformId == affiliatePlatformId
+                                                group d by d.ClientId into g
+                                                select new
+                                                {
+                                                    ClientId = g.Key,
+                                                    Amount = g.Sum(y => y.Amount)
+                                                }).ToList();
+
+                var allChargeBacks = (from d in dwh.Documents
+                                      join c in dwh.Clients on d.ClientId equals c.Id
+                                      join ar in dwh.AffiliateReferrals on c.AffiliateReferralId equals ar.Id
+                                      where d.OperationTypeId == (int)OperationTypes.CreditCorrectionOnClient && d.TypeId == (int)OperationTypes.ChargeBack &&
+                                      d.Date >= fDate && d.CreationTime < upToDate &&
+                                      ar.AffiliatePlatformId == affiliatePlatformId
+                                      group d by d.ClientId into g
+                                      select new
+                                      {
+                                          ClientId = g.Key,
+                                          Amount = g.Sum(y => y.Amount)
+                                      }).ToList();
+
+                var allBets = (from b in dwh.Bets
+                               join c in dwh.Clients on b.ClientId equals c.Id
+                               join ar in dwh.AffiliateReferrals on c.AffiliateReferralId equals ar.Id
+                               where b.State != (int)BetDocumentStates.Deleted &&
+                                     b.State != (int)BetDocumentStates.Uncalculated && b.CalculationDate.HasValue &&
+                                     (b.BonusId == null || b.BonusId == 0) &&
+                                     b.CalculationDate >= fDate && b.CalculationDate < tDate && ar.AffiliatePlatformId == affiliatePlatformId
+                               group b by b.ClientId into g
+                               select new
+                               {
+                                   ClientId = g.Key,
+                                   BetAmount = g.Sum(y => y.BetAmount),
+                                   WinAmount = g.Sum(y => y.WinAmount)
+                               }).ToList();
+
+                foreach (var client in affClients)
+                {
+                    var wyntaActivityItem = new WyntaActivityItem
+                    {
+                        Playerid = client.ClientId,
+                        WhitelabelId = client.PartnerId.ToString(),
+                        ClickID = client.ClickId,
+                        Date = currentDate.ToString("yyyy-MM-ddTHH:mm:ss"),
+                        FirstDepositDate = client.FirstDepositDate.HasValue ? client.FirstDepositDate.Value.ToString("yyyy-MM-ddTHH:mm:ss") : ""
+                    };
+                    wyntaActivityItem.FirstDepositAmount = ConvertCurrency(client.CurrencyId, Constants.Currencies.Euro,
+                                                                           allFirstPaymentData.FirstOrDefault(x => x.ClientId == client.ClientId)?.FistDeposit?.Amount ?? 0);
+                    wyntaActivityItem.Deposits = ConvertCurrency(client.CurrencyId, Constants.Currencies.Euro,
+                                                                           allPaymentsData.FirstOrDefault(x => x.ClientId == client.ClientId)?.Amount ?? 0);
+                    wyntaActivityItem.Bonuses = ConvertCurrency(client.CurrencyId, Constants.Currencies.Euro,
+                                                allConvertedBonusAmounts.Where(x => x.ClientId == client.ClientId).FirstOrDefault()?.Amount ?? 0);
+                    wyntaActivityItem.Chargebacks = ConvertCurrency(client.CurrencyId, Constants.Currencies.Euro,
+                                                    allChargeBacks.Where(x => x.ClientId == client.ClientId).FirstOrDefault()?.Amount ?? 0);
 
 
-             }
-             return new AffilkaActivityModel
-             {
-                 FromDate = fromDate.ToString("yyyy-MM-dd'T'HH:mm:ss.fffffff'Z'"),
-                 ToDate = upToDate.ToString("yyyy-MM-dd'T'HH:mm:ss.fffffff'Z'"),
-                 Items = affiliateClientActivies
-             };
-         }*/
+                    wyntaActivityItem.Sidegamesbets = ConvertCurrency(client.CurrencyId, Constants.Currencies.Euro,
+                                                                      allBets.FirstOrDefault(x => x.ClientId == client.ClientId)?.BetAmount ?? 0);
+                    wyntaActivityItem.Sidegameswins = ConvertCurrency(client.CurrencyId, Constants.Currencies.Euro,
+                                                                      allBets.FirstOrDefault(x => x.ClientId == client.ClientId)?.WinAmount ?? 0);
+                    wyntaActivityItem.Revenue = ConvertCurrency(client.CurrencyId, Constants.Currencies.Euro, wyntaActivityItem.Sidegamesbets  - wyntaActivityItem.Sidegameswins);
+
+                    affiliateClientActivies.Add(wyntaActivityItem);
+                }
+            }
+            return affiliateClientActivies;
+        }
 
         public List<DIMClientActivityModel> GetDIMClientActivity(List<AffiliatePlatformModel> affClients, int brandId, DateTime fromDate, DateTime upToDate)
         {

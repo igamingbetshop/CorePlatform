@@ -36,12 +36,11 @@ namespace IqSoft.CP.Common.Models.WebSiteModels
 
         public string DocumentNumber { get; set; }
 
-        public string PhoneNumber { get; set; }
-
         public string DocumentIssuedBy { get; set; }
 
         public string Address { get; set; }
 
+        public string MobileCode { get; set; }
         public string MobileNumber { get; set; }
 
         public bool IsMobileNumberVerified { get; set; }

@@ -355,7 +355,6 @@
     <Compile Include="ControllerClasses\UtilController.cs" />
     <Compile Include="Filters\Affiliate\ApiFilterAffiliateCorrection.cs" />
     <Compile Include="Filters\Affiliate\ApiFilterfnAffiliate.cs" />
-    <Compile Include="Filters\Agent\ApiFilterfnAgent.cs" />
     <Compile Include="Filters\ApiFilterAnnouncement.cs" />
     <Compile Include="Filters\ApiFilterBanner.cs" />
     <Compile Include="Filters\ApiFilterCharacter.cs" />
@@ -363,21 +362,19 @@
     <Compile Include="Filters\ApiFilterBetShopGroup.cs" />
     <Compile Include="Filters\ApiFilterBetShopReconing.cs" />
     <Compile Include="Filters\ApiFilterCashDeskTransaction.cs" />
-    <Compile Include="Filters\ApiFilterClientCorrection.cs" />
     <Compile Include="Filters\ApiFilterClientLog.cs" />
-    <Compile Include="Filters\ApiFilterClientMessage.cs" />
+    <Compile Include="Filters\ApiFilterObjectMessage.cs" />
     <Compile Include="Filters\ApiFilterEmail.cs" />
-    <Compile Include="Filters\Agent\ApiFilterFnAgentTransaction.cs" />
     <Compile Include="Filters\ApiFilterPaymentSystem.cs" />
     <Compile Include="Filters\ApiFilterPopup.cs" />
     <Compile Include="Filters\ApiFilterReportByLog.cs" />
     <Compile Include="Filters\ApiFilterMessageTemplate.cs" />
     <Compile Include="Filters\ApiFilterPartnerKey.cs" />
     <Compile Include="Filters\ApiFilterPartnerProductSetting.cs" />
-    <Compile Include="Filters\ApiFiltersOperation.cs" />
     <Compile Include="Filters\ApiFilterUserCorrection.cs" />
     <Compile Include="Filters\Clients\ApiFilterfnDuplicateClient.cs" />
     <Compile Include="Filters\Reporting\ApiFilterClientGame.cs" />
+    <Compile Include="Filters\Reporting\ApiFilterClientSession.cs" />
     <Compile Include="Filters\Reporting\ApiFilterfnDocument.cs" />
     <Compile Include="Filters\Clients\ApiFilterfnSegmentClient.cs" />
     <Compile Include="Filters\Reporting\ApiFilterReportByClientExclusion.cs" />
@@ -484,7 +481,6 @@
     <Compile Include="Models\ClientModels\AffiliateClientsOfManagerInput.cs" />
     <Compile Include="Models\ClientModels\ApiClientBonusInput.cs" />
     <Compile Include="Models\ClientModels\ApiClientBonus.cs" />
-    <Compile Include="Models\ClientModels\ApiClientCorrections.cs" />
     <Compile Include="Models\ClientModels\ApiClientPaymentInfo.cs" />
     <Compile Include="Models\ClientModels\ApiCreateMessageInput.cs" />
     <Compile Include="Models\ClientModels\ApiOpenTicketInput.cs" />
@@ -572,7 +568,6 @@
     <Compile Include="Models\PaymentModels\GetPaymentRequestHistoriesInput.cs" />
     <Compile Include="Models\BetShopModels\BetshopGroupModel.cs" />
     <Compile Include="Models\BetShopModels\CashDeskModel.cs" />
-    <Compile Include="Models\NotificationModels\ClientMessageModel.cs" />
     <Compile Include="Models\ClientModels\ClientModel.cs" />
     <Compile Include="Models\CommonModels\EnumerationModel.cs" />
     <Compile Include="Models\ReportModels\BetShop\BetShopBetModel.cs" />

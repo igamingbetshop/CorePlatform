@@ -242,6 +242,34 @@ namespace IqSoft.CP.BLL.Services
             return userSession;
         }
 
+        public SessionIdentity CheckToken(string token, double timeZone)
+        {
+            var session = Db.UserSessions.Include(x => x.Users).FirstOrDefault(x => x.Token == token);
+            if (session == null)
+                throw CreateException(LanguageId, Constants.Errors.SessionNotFound);
+            if (session.State != (int)SessionStates.Active)
+                throw CreateException(LanguageId, Constants.Errors.SessionExpired, session.CashDeskId, integerInfo: session.LogoutType);
+            if (session.State == (int)SessionStates.Active)
+                session.LastUpdateTime = GetServerDate();
+
+            return new SessionIdentity
+            {
+                Id = session.UserId.Value,
+                LoginIp = session.Ip,
+                LanguageId = session.LanguageId,
+                SessionId = session.Id,
+                Token = session.Token,
+                ProductId = session.ProductId ?? Constants.PlatformProductId,
+                StartTime = session.StartTime,
+                LastUpdateTime = session.LastUpdateTime,
+                State = session.State,
+                ParentId = session.ParentId,
+                CurrencyId = session.User.CurrencyId,
+                TimeZone = timeZone,
+                IsAgent = true
+            };
+        }
+
         public UserSession GetUserSessionById(long id)
         {
             return Db.UserSessions.FirstOrDefault(x => x.Id == id);
@@ -435,7 +463,7 @@ namespace IqSoft.CP.BLL.Services
                 var checkResult = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.CreateUser,
-                    ObjectTypeId = ObjectTypes.User,
+                    ObjectTypeId = (int)ObjectTypes.User,
                     ObjectId = user.Id
                 });
                 if (!checkResult.HaveAccessForAllObjects && checkResult.AccessibleObjects.All(x => x != user.Id))
@@ -491,7 +519,7 @@ namespace IqSoft.CP.BLL.Services
                 Db.AccessObjects.Add(new AccessObject
                 {
                     ObjectTypeId = (int)ObjectTypes.Partner,
-                    ObjectId = user.PartnerId,
+                    ObjectId = user.PartnerId.ToString(),
                     UserId = user.Id,
                     PermissionId = Constants.Permissions.ViewPartner
                 });
@@ -534,7 +562,7 @@ namespace IqSoft.CP.BLL.Services
                         Db.AccessObjects.Add(new AccessObject
                         {
                             ObjectTypeId = (int)ObjectTypes.Partner,
-                            ObjectId = partnerId,
+                            ObjectId = partnerId.ToString(),
                             UserId = userId,
                             PermissionId = Constants.Permissions.ViewReportByUserLog
                         });
@@ -544,7 +572,7 @@ namespace IqSoft.CP.BLL.Services
                         Db.AccessObjects.Add(new AccessObject
                         {
                             ObjectTypeId = (int)ObjectTypes.Partner,
-                            ObjectId = partnerId,
+                            ObjectId = partnerId.ToString(),
                             UserId = userId,
                             PermissionId = Constants.Permissions.ViewReportByTransaction
                         });
@@ -554,7 +582,7 @@ namespace IqSoft.CP.BLL.Services
                         Db.AccessObjects.Add(new AccessObject
                         {
                             ObjectTypeId = (int)ObjectTypes.Partner,
-                            ObjectId = partnerId,
+                            ObjectId = partnerId.ToString(),
                             UserId = userId,
                             PermissionId = Constants.Permissions.ViewInternetBets//??
                         });
@@ -564,7 +592,7 @@ namespace IqSoft.CP.BLL.Services
                         Db.AccessObjects.Add(new AccessObject
                         {
                             ObjectTypeId = (int)ObjectTypes.Partner,
-                            ObjectId = partnerId,
+                            ObjectId = partnerId.ToString(),
                             UserId = userId,
                             PermissionId = Constants.Permissions.ViewUserReport
                         });
@@ -574,7 +602,7 @@ namespace IqSoft.CP.BLL.Services
                         Db.AccessObjects.Add(new AccessObject
                         {
                             ObjectTypeId = (int)ObjectTypes.Partner,
-                            ObjectId = partnerId,
+                            ObjectId = partnerId.ToString(),
                             UserId = userId,
                             PermissionId = Constants.Permissions.ViewInternetBets
                         });
@@ -593,14 +621,14 @@ namespace IqSoft.CP.BLL.Services
                         Db.AccessObjects.Add(new AccessObject
                         {
                             ObjectTypeId = (int)ObjectTypes.Role,
-                            ObjectId = partnerId,
+                            ObjectId = partnerId.ToString(),
                             UserId = userId,
                             PermissionId = Constants.Permissions.ViewRole
                         });
                         Db.AccessObjects.Add(new AccessObject
                         {
                             ObjectTypeId = (int)ObjectTypes.User,
-                            ObjectId = partnerId,
+                            ObjectId = partnerId.ToString(),
                             UserId = userId,
                             PermissionId = Constants.Permissions.CreateUserRole
                         });
@@ -618,7 +646,7 @@ namespace IqSoft.CP.BLL.Services
                         Db.AccessObjects.Add(new AccessObject
                         {
                             ObjectTypeId = (int)ObjectTypes.Partner,
-                            ObjectId = partnerId,
+                            ObjectId = partnerId.ToString(),
                             UserId = userId,
                             PermissionId = Constants.Permissions.ViewPartner
                         });
@@ -935,7 +963,7 @@ namespace IqSoft.CP.BLL.Services
                 var checkResult = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.CreateUser,
-                    ObjectTypeId = ObjectTypes.User,
+                    ObjectTypeId = (int)ObjectTypes.User,
                     ObjectId = user.Id
                 });
                 if (!checkResult.HaveAccessForAllObjects && checkResult.AccessibleObjects.All(x => x != user.Id))
@@ -1040,7 +1068,7 @@ namespace IqSoft.CP.BLL.Services
                     Db.AccessObjects.Add(new AccessObject
                     {
                         ObjectTypeId = (int)ObjectTypes.Partner,
-                        ObjectId = user.PartnerId,
+                        ObjectId = user.PartnerId.ToString(),
                         UserId = user.Id,
                         PermissionId = Constants.Permissions.ViewInternetBets
                     });
@@ -1050,7 +1078,7 @@ namespace IqSoft.CP.BLL.Services
                     Db.AccessObjects.Add(new AccessObject
                     {
                         ObjectTypeId = (int)ObjectTypes.Partner,
-                        ObjectId = user.PartnerId,
+                        ObjectId = user.PartnerId.ToString(),
                         UserId = user.Id,
                         PermissionId = Constants.Permissions.ViewUserReport
                     });
@@ -1060,7 +1088,7 @@ namespace IqSoft.CP.BLL.Services
                     Db.AccessObjects.Add(new AccessObject
                     {
                         ObjectTypeId = (int)ObjectTypes.Partner,
-                        ObjectId = user.PartnerId,
+                        ObjectId = user.PartnerId.ToString(),
                         UserId = user.Id,
                         PermissionId = Constants.Permissions.ViewInternetBets
                     });
@@ -1070,7 +1098,7 @@ namespace IqSoft.CP.BLL.Services
                     Db.AccessObjects.Add(new AccessObject
                     {
                         ObjectTypeId = (int)ObjectTypes.Partner,
-                        ObjectId = user.PartnerId,
+                        ObjectId = user.PartnerId.ToString(),
                         UserId = user.Id,
                         PermissionId = Constants.Permissions.ViewReportByTransaction
                     });
@@ -1080,7 +1108,7 @@ namespace IqSoft.CP.BLL.Services
                     Db.AccessObjects.Add(new AccessObject
                     {
                         ObjectTypeId = (int)ObjectTypes.Partner,
-                        ObjectId = user.PartnerId,
+                        ObjectId = user.PartnerId.ToString(),
                         UserId = user.Id,
                         PermissionId = Constants.Permissions.ViewReportByUserLog
                     });
@@ -1210,7 +1238,7 @@ namespace IqSoft.CP.BLL.Services
                 var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
                 if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != partnerId))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -1337,12 +1365,12 @@ namespace IqSoft.CP.BLL.Services
             var userAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewUser,
-                ObjectTypeId = ObjectTypes.User
+                ObjectTypeId = (int)ObjectTypes.User
             });
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnUser>>
@@ -1684,13 +1712,13 @@ namespace IqSoft.CP.BLL.Services
             var checkClientPermission = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewUser,
-                ObjectTypeId = ObjectTypes.User
+                ObjectTypeId = (int)ObjectTypes.User
             });
 
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if ((!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != filter.UserId)) ||
                 (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != user.PartnerId)))
@@ -1784,12 +1812,12 @@ namespace IqSoft.CP.BLL.Services
                 var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
                 var checkClientPermission = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewUser,
-                    ObjectTypeId = ObjectTypes.User
+                    ObjectTypeId = (int)ObjectTypes.User
                 });
                 if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != user.PartnerId))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -1861,7 +1889,7 @@ namespace IqSoft.CP.BLL.Services
                 var checkClientPermission = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewUser,
-                    ObjectTypeId = ObjectTypes.User
+                    ObjectTypeId = (int)ObjectTypes.User
                 });
 
                 if (!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != transferInput.UserId))
@@ -2031,7 +2059,7 @@ namespace IqSoft.CP.BLL.Services
                 GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
 
                 filter.CheckPermissionResuts.Add(new CheckPermissionOutput<fnUserCorrection>
@@ -2059,12 +2087,12 @@ namespace IqSoft.CP.BLL.Services
             var checkPermission = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewUser,
-                ObjectTypeId = ObjectTypes.User
+                ObjectTypeId = (int)ObjectTypes.User
             });
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             var exportAccess = GetPermissionsToObject(new CheckPermissionInput
@@ -2134,7 +2162,7 @@ namespace IqSoft.CP.BLL.Services
                 var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
 
                 if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != partnerId))
@@ -2461,6 +2489,7 @@ namespace IqSoft.CP.BLL.Services
 
         public fnAgent UpdateAgent(int subAgentId, int state, string pass, out List<int> clientIds)
         {
+            var currentDate = DateTime.UtcNow;
             var user = CacheManager.GetUserById(Identity.Id);
             if (user.Type == (int)UserTypes.AgentEmployee)
             {
@@ -2470,42 +2499,95 @@ namespace IqSoft.CP.BLL.Services
             var subAgent = GetUserById(subAgentId);
             if (subAgent == null)
                 throw CreateException(Identity.LanguageId, Constants.Errors.UserNotFound);
-            var subAgentState = subAgent.State;
-            var parentState = CacheManager.GetUserSetting(subAgentId)?.ParentState;
-            if (parentState.HasValue && CustomHelper.Greater((UserStates)parentState.Value, (UserStates)subAgentState))
-                subAgentState = parentState.Value;
+
             var parentAgent = CacheManager.GetUserById(subAgent.ParentId.Value);
-
-            var parentAgentState = parentAgent.State;
-            var parentSetting = CacheManager.GetUserSetting(parentAgent.Id);
-            if (parentSetting != null && parentSetting.ParentState.HasValue && CustomHelper.Greater((UserStates)parentSetting.ParentState.Value, (UserStates)parentAgentState))
-                parentAgentState = parentSetting.ParentState.Value;
-
             if (!Enum.IsDefined(typeof(UserStates), state) || 
                 !subAgent.Path.Contains("/" + user.Id.ToString() + "/") ||
-                subAgentState == (int)UserStates.Disabled || 
-               (state == (int)UserStates.Disabled && subAgentState != (int)UserStates.Closed && subAgentState != (int)UserStates.InactivityClosed) || 
-               (parentAgentState!=state && (parentAgentState != (int)UserStates.ForceBlock && parentAgentState != (int)UserStates.ForceBlockBySecurityCode) &&
-                CustomHelper.Greater((UserStates)parentAgentState, (UserStates)state))
-              )
+                subAgent.State == (int)UserStates.Disabled || 
+               (state == (int)UserStates.Disabled && subAgent.State != (int)UserStates.Closed && subAgent.State != (int)UserStates.InactivityClosed) || 
+               (parentAgent.State != state && (parentAgent.State != (int)UserStates.ForceBlock && parentAgent.State != (int)UserStates.ForceBlockBySecurityCode) &&
+                CustomHelper.Greater((UserStates)parentAgent.State, (UserStates)state)))
                 throw CreateException(Identity.LanguageId, Constants.Errors.NotAllowed);
+
             clientIds = new List<int>();
             using (var documentBll = new DocumentBll(this))
             {
                 using (var clientBll = new ClientBll(this))
                 {
-                    if (subAgentState != state)
+                    if (subAgent.State != state)
                     {
-                        if ((subAgentState != (int)UserStates.Closed && subAgentState != (int)UserStates.InactivityClosed) || state == (int)UserStates.Disabled)
-                            ChangeUserState(subAgentId, state, documentBll, clientBll, clientIds);
-                        subAgent.State = state;
-                        Db.UserSettings.Where(x => x.UserId == subAgent.Id).UpdateFromQuery(x => new UserSetting { ParentState = state });
-                        Db.SaveChanges();
-                        CacheManager.RemoveUserSetting(subAgent.Id);
-                        if (subAgentState == (int)UserStates.ForceBlock)
-                            CacheManager.RemoveUserFailedLoginCountFromCache(subAgent.Id);
-                        else if(subAgentState == (int)UserStates.ForceBlockBySecurityCode)
-                            CacheManager.RemoveUserSecurityCodeCountFromCache(subAgent.Id);
+                        if ((subAgent.State != (int)UserStates.Closed && subAgent.State != (int)UserStates.InactivityClosed) || state == (int)UserStates.Disabled)
+                        {
+                            subAgent.State = state;
+                            Db.SaveChanges();
+                            if (state == (int)UserStates.Closed)
+                            {
+                                Db.UserSessions.Where(x => x.UserId == subAgent.Id && x.State == (int)SessionStates.Active).
+                                     UpdateFromQuery(x => new UserSession { State = (int)SessionStates.Inactive, EndTime = currentDate, LogoutType = (int)LogoutTypes.System });
+                            }
+                            else if (state == (int)UserStates.Disabled)
+                            {
+                                var userBalance = GetUserBalance(subAgent.Id);
+                                var userTransferInput = new TransferInput
+                                {
+                                    FromUserId = subAgent.Id,
+                                    UserId = subAgent.ParentId,
+                                    Amount = userBalance.Balance,
+                                    CurrencyId = subAgent.CurrencyId
+                                };
+                                CreateDebitOnUser(userTransferInput, documentBll);
+                                var levelLimits = JsonConvert.SerializeObject(Enum.GetValues(typeof(AgentLevels)).Cast<int>()
+                                                 .Where(x => x >= user.Level).Select(x => new { Level = x, Limit = 0 }).ToList());
+                                Db.UserSettings.Where(x => x.UserId == subAgent.Id).UpdateFromQuery(x => new UserSetting { LevelLimits = levelLimits, AgentMaxCredit = 0 });
+                            }
+                            Db.SaveChanges();
+
+                            CacheManager.RemoveUserSetting(subAgent.Id);
+                            if (subAgent.State == (int)UserStates.ForceBlock)
+                                CacheManager.RemoveUserFailedLoginCountFromCache(subAgent.Id);
+                            else if (subAgent.State == (int)UserStates.ForceBlockBySecurityCode)
+                                CacheManager.RemoveUserSecurityCodeCountFromCache(subAgent.Id);
+                            
+                            CacheManager.RemoveUserFromCache(subAgentId);
+                            subAgent = GetUserById(subAgentId);
+                            
+                            var clients = Db.Clients.Where(x => x.UserId == subAgent.Id && x.State != (int)ClientStates.Disabled).ToList();
+                            clients.ForEach(x =>
+                            {
+                                var cState = CustomHelper.MapUserStateToClient[subAgent.State];
+                                clientBll.SaveClientSetting(new ClientCustomSettings
+                                {
+                                    ClientId = x.Id,
+                                    ParentState = cState
+                                });
+                                if (cState == (int)ClientStates.Disabled)
+                                {
+                                    var balance = CacheManager.GetClientCurrentBalance(x.Id).Balances
+                                    .Where(y => y.TypeId != (int)AccountTypes.ClientBonusBalance &&
+                                                y.TypeId != (int)AccountTypes.ClientCompBalance &&
+                                                y.TypeId != (int)AccountTypes.ClientCoinBalance)
+                                    .Sum(y => y.Balance);
+                                    var clientCorrectionInput = new ClientCorrectionInput
+                                    {
+                                        Amount = balance,
+                                        CurrencyId = x.CurrencyId,
+                                        ClientId = x.Id
+                                    };
+                                    clientBll.CreateCreditCorrectionOnClient(clientCorrectionInput, documentBll, false);
+                                    clientBll.SaveClientSetting(new ClientCustomSettings
+                                    {
+                                        ClientId = x.Id,
+                                        MaxCredit = 0
+                                    });
+                                }
+                                else if (cState == (int)ClientStates.FullBlocked)
+                                    clientBll.LogoutClientById(x.Id, (int)LogoutTypes.Admin);
+                            });
+                            clientIds.AddRange(clients.Select(x => x.Id).ToList());
+
+                            UpdateDownlineStates(subAgentId, documentBll, clientBll, out List<int> dClientIds);
+                            clientIds.AddRange(dClientIds);
+                        }
 
                     }
                     if (!string.IsNullOrEmpty(pass))
@@ -2513,8 +2595,8 @@ namespace IqSoft.CP.BLL.Services
                         subAgent.PasswordHash = CommonFunctions.ComputeUserPasswordHash(pass, subAgent.Salt);
                         subAgent.PasswordChangedDate = GetServerDate();
                         Db.SaveChanges();
+                        CacheManager.RemoveUserFromCache(subAgentId);
                     }
-                    CacheManager.RemoveUserFromCache(subAgentId);
                     return Db.fn_Agent(subAgentId).FirstOrDefault(x => x.Id == subAgentId);
                 }
             }
@@ -2525,106 +2607,82 @@ namespace IqSoft.CP.BLL.Services
             return Db.fn_Agent(agentId).FirstOrDefault(x => x.Id == agentId);
         }
 
-        private void ChangeUserState(int userId, int state, DocumentBll documentBll, ClientBll clientBll, List<int> clientIds)
+        private void UpdateDownlineStates(int userId, DocumentBll documentBll, ClientBll clientBll, out List<int> clientIds)
         {
-            var user = GetUserById(userId);
-            var currentState = user.State;
-            var clientState = CustomHelper.MapUserStateToClient[state];
-            var subUsers = Db.Users.Where(x => x.ParentId == userId && x.State != (int)UserStates.Disabled).ToList();
             var currentDate = DateTime.UtcNow;
-            foreach (var subUser in subUsers)
+            var user = GetUserById(userId);
+            var path = "/" + userId + "/";
+            var downline = Db.Users.Where(x => x.Id != userId && x.Path.Contains(path)).ToList();
+            clientIds = new List<int>();
+            foreach (var agent in downline)
             {
-                var subUserState = subUser.State;
-                var parentState = CacheManager.GetUserSetting(subUser.Id)?.ParentState;
-                if (parentState.HasValue && CustomHelper.Greater((UserStates)parentState.Value, (UserStates)subUserState))
-                    subUserState = parentState.Value;
-
-                if ((state == (int)UserStates.Active && parentState.HasValue && parentState.Value == (int)UserStates.Suspended && subUser.State != (int)UserStates.Suspended) ||
-                    (state == (int)UserStates.Suspended && (subUserState == (int)UserStates.Active ||
-                    subUserState == (int)UserStates.Suspended ||
-                    subUserState == (int)UserStates.ForceBlock || subUserState == (int)UserStates.ForceBlockBySecurityCode)) ||
-                   ((state == (int)UserStates.Closed || state == (int)UserStates.InactivityClosed) && subUserState != (int)UserStates.Disabled) ||
-                     state == (int)UserStates.Disabled)
+                var us = Db.UserSettings.Where(x => x.UserId == agent.Id).FirstOrDefault();
+                if (us == null)
                 {
-                    Db.UserSettings.Where(x => x.UserId == subUser.Id).UpdateFromQuery(x => new UserSetting { ParentState = state });
-                    ChangeUserState(subUser.Id, state, documentBll, clientBll, clientIds);
-                    if (state == (int)UserStates.Disabled)
-                        Db.UserSessions.Where(x => x.UserId == subUser.Id && x.State == (int)SessionStates.Active).
+                    us = new UserSetting { UserId = agent.Id, AllowOutright = false, AllowDoubleCommission = false };
+                    Db.UserSettings.Add(us);
+                }
+                var initialState = us.ParentState;
+                var parents = agent.Path.Split('/');
+                foreach (var sPId in parents)
+                {
+                    if (int.TryParse(sPId, out int pId) && pId != agent.Id)
+                    {
+                        var p = CacheManager.GetUserById(Convert.ToInt32(pId));
+                        if (us.ParentState == null || CustomHelper.Greater((UserStates)p.State, (UserStates)us.ParentState.Value))
+                            us.ParentState = p.State;
+                    }
+                }
+                Db.SaveChanges();
+                if(initialState != us.ParentState && us.ParentState == (int)UserStates.Disabled)
+                {
+                    Db.UserSessions.Where(x => x.UserId == agent.Id && x.State == (int)SessionStates.Active).
                         UpdateFromQuery(x => new UserSession { State = (int)SessionStates.Inactive, EndTime = currentDate, LogoutType = (int)LogoutTypes.System });
                 }
-            }
-            
-            var clients = Db.Clients.Where(x => x.UserId == userId && x.State != (int)ClientStates.Disabled).ToList();
-            clients.ForEach(x =>
-            {
-                var currState = x.State;
-                var st = CacheManager.GetClientSettingByName(x.Id, ClientSettings.ParentState);
-                if (st.NumericValue.HasValue && CustomHelper.Greater((ClientStates)st.NumericValue, (ClientStates)currState))
-                    currState = Convert.ToInt32(st.NumericValue.Value);
 
-                if ((clientState == (int)ClientStates.Active && currState == (int)ClientStates.Suspended && x.State != (int)ClientStates.Suspended) ||
-                (clientState == (int)ClientStates.Suspended && (currState == (int)ClientStates.Active || currState == (int)ClientStates.ForceBlock)) ||
-                  ((clientState == (int)ClientStates.FullBlocked) && currState != (int)ClientStates.Disabled) ||
-                    clientState == (int)ClientStates.Disabled)
+                CacheManager.RemoveUserSetting(agent.Id);
+                if (us.ParentState == (int)UserStates.ForceBlock)
+                    CacheManager.RemoveUserFailedLoginCountFromCache(agent.Id);
+                else if (us.ParentState == (int)UserStates.ForceBlockBySecurityCode)
+                    CacheManager.RemoveUserSecurityCodeCountFromCache(agent.Id);
+
+                CacheManager.RemoveUserFromCache(agent.Id);
+                var subAgent = GetUserById(agent.Id);
+
+                var clients = Db.Clients.Where(x => x.UserId == subAgent.Id && x.State != (int)ClientStates.Disabled).ToList();
+                clients.ForEach(x =>
                 {
-                    var clientSetting = new ClientCustomSettings
+                    var cState = CustomHelper.MapUserStateToClient[subAgent.State];
+                    clientBll.SaveClientSetting(new ClientCustomSettings
                     {
                         ClientId = x.Id,
-                        ParentState = clientState
-                    };
-                    clientBll.SaveClientSetting(clientSetting);
-                }
-                if (clientState == (int)ClientStates.Disabled)
-                {
-                    var balance = CacheManager.GetClientCurrentBalance(x.Id).Balances
-                    .Where(y => y.TypeId != (int)AccountTypes.ClientBonusBalance &&
-                                y.TypeId != (int)AccountTypes.ClientCompBalance &&
-                                y.TypeId != (int)AccountTypes.ClientCoinBalance)
-                    .Sum(y => y.Balance);
-                    var clientCorrectionInput = new ClientCorrectionInput
+                        ParentState = cState
+                    });
+                    if (cState == (int)ClientStates.Disabled)
                     {
-                        Amount = balance,
-                        CurrencyId = x.CurrencyId,
-                        ClientId = x.Id
-                    };
-                    clientBll.CreateCreditCorrectionOnClient(clientCorrectionInput, documentBll, false);
-                    var clientSetting = new ClientCustomSettings
-                    {
-                        ClientId = x.Id,
-                        MaxCredit = 0
-                    };
-                    clientBll.SaveClientSetting(clientSetting);
-                }
-                else if (clientState == (int)ClientStates.FullBlocked)
-                    clientBll.LogoutClientById(x.Id, (int)LogoutTypes.Admin);
-            });
-            if (state == (int)UserStates.Closed)
-            {
-                Db.UserSessions.Where(x => x.UserId == userId && x.State == (int)SessionStates.Active).
-                     UpdateFromQuery(x => new UserSession { State = (int)SessionStates.Inactive, EndTime = currentDate, LogoutType = (int)LogoutTypes.System });
+                        var balance = CacheManager.GetClientCurrentBalance(x.Id).Balances
+                        .Where(y => y.TypeId != (int)AccountTypes.ClientBonusBalance &&
+                                    y.TypeId != (int)AccountTypes.ClientCompBalance &&
+                                    y.TypeId != (int)AccountTypes.ClientCoinBalance)
+                        .Sum(y => y.Balance);
+                        var clientCorrectionInput = new ClientCorrectionInput
+                        {
+                            Amount = balance,
+                            CurrencyId = x.CurrencyId,
+                            ClientId = x.Id
+                        };
+                        clientBll.CreateCreditCorrectionOnClient(clientCorrectionInput, documentBll, false);
+                        clientBll.SaveClientSetting(new ClientCustomSettings
+                        {
+                            ClientId = x.Id,
+                            MaxCredit = 0
+                        });
+                    }
+                    else if (cState == (int)ClientStates.FullBlocked)
+                        clientBll.LogoutClientById(x.Id, (int)LogoutTypes.Admin);
+                });
+                clientIds.AddRange(clients.Select(x => x.Id).ToList());
             }
-            else if (state == (int)UserStates.Disabled)
-            {
-                var userBalance = GetUserBalance(user.Id);
-                var userTransferInput = new TransferInput
-                {
-                    FromUserId = userId,
-                    UserId = user.ParentId,
-                    Amount = userBalance.Balance,
-                    CurrencyId = user.CurrencyId
-                };
-                CreateDebitOnUser(userTransferInput, documentBll);
-                var levelLimits = JsonConvert.SerializeObject(Enum.GetValues(typeof(AgentLevels)).Cast<int>()
-                                 .Where(x => x >= user.Level).Select(x => new { Level = x, Limit = 0 }).ToList());
-                Db.UserSettings.Where(x => x.UserId == userId).UpdateFromQuery(x => new UserSetting { LevelLimits = levelLimits, AgentMaxCredit = 0 });
-            }
-            Db.SaveChanges();
-            if (currentState == (int)UserStates.ForceBlock)
-                CacheManager.RemoveUserFailedLoginCountFromCache(userId);
-            else if (currentState == (int)UserStates.ForceBlockBySecurityCode)
-                CacheManager.RemoveUserSecurityCodeCountFromCache(userId);
-
-            CacheManager.RemoveUserSetting(userId);
         }
 
         public List<CommissionItem> GetAgentTurnoverProfit(long fromDate, long toDate)
@@ -2735,7 +2793,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var user = CacheManager.GetUserById(userId);
             if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != user.PartnerId))
@@ -2750,7 +2808,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var user = CacheManager.GetUserById(userId);
             if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != user.PartnerId))

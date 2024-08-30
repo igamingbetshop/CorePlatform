@@ -1,4 +1,5 @@
-﻿using System;
+﻿using IqSoft.CP.Common.Models.Filters;
+using System;
 
 namespace IqSoft.CP.AdminWebApi.Filters.Affiliate
 {

@@ -1,4 +1,6 @@
 ﻿using IqSoft.CP.Common.Models.AdminModels;
+using System;
+using System.Collections.Generic;
 
 namespace IqSoft.CP.Common.Models.WebSiteModels
 {
@@ -15,5 +17,9 @@ namespace IqSoft.CP.Common.Models.WebSiteModels
         public int? ParentId { get; set; }
         public string StyleType { get; set; }
         public int? DeviceType { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime FinishDate { get; set; }
+        public string VisibilityInfo { get; set; }
+        public List<int> Visibility { get; set; }
     }
 }

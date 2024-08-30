@@ -18,6 +18,7 @@ namespace IqSoft.CP.DAL
         public AffiliatePlatform()
         {
             this.AffiliateReferrals = new HashSet<AffiliateReferral>();
+            this.NotificationTriggers = new HashSet<NotificationTrigger>();
         }
     
         public int Id { get; set; }
@@ -32,5 +33,7 @@ namespace IqSoft.CP.DAL
         public virtual Partner Partner { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<AffiliateReferral> AffiliateReferrals { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<NotificationTrigger> NotificationTriggers { get; set; }
     }
 }

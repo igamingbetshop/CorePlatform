@@ -25,10 +25,10 @@ namespace IqSoft.CP.Common.Models.WebSiteModels
         public string LastName { get; set; }
         public string NickName { get; set; }
         public string DocumentNumber { get; set; }
-        public string PhoneNumber { get; set; }
         public string DocumentIssuedBy { get; set; }
         public string Address { get; set; }
         public string MobileNumber { get; set; }
+        public string MobileCode { get; set; }
         public bool IsMobileNumberVerified { get; set; }
         public string LanguageId { get; set; }
         public string RegistrationIp { get; set; }
@@ -69,6 +69,6 @@ namespace IqSoft.CP.Common.Models.WebSiteModels
         public bool IsTwoFactorEnabled { get; set; }
         public string IframeUrl { get; set; }
         public bool IsAgent { get; set; }
-        public List<ApiPopupWeSiteModel> Popups { get; set; }
+        public List<ApiPopupWebSiteModel> Popups { get; set; }
     }
 }

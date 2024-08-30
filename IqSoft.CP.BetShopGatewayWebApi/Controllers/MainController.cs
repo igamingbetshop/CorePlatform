@@ -16,7 +16,6 @@ using IqSoft.CP.BetShopGatewayWebApi.Models;
 using IqSoft.CP.BetShopGatewayWebApi.Helpers;
 using IqSoft.CP.BetShopGatewayWebApi.Models.Reports;
 using Newtonsoft.Json;
-using IqSoft.CP.Common.Models.UserModels;
 using IqSoft.CP.DAL.Models.Clients;
 using IqSoft.CP.Common.Models.CacheModels;
 using System.Threading;
@@ -24,6 +23,7 @@ using IqSoft.CP.Integration.Platforms.Helpers;
 using IqSoft.CP.DAL.Models.Payments;
 using IqSoft.CP.Common.Models;
 using static IqSoft.CP.Common.Constants;
+using ApiRequestBase = IqSoft.CP.BetShopGatewayWebApi.Models.ApiRequestBase;
 
 namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
 {
@@ -559,23 +559,27 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
         {
             try
             {
+                var identity = CheckToken(apiRequestBase.Token, apiRequestBase.CashDeskId);
                 var input = JsonConvert.DeserializeObject<ClientModel>(apiRequestBase.RequestObject);
-                var identity = CheckToken(input.Token, apiRequestBase.CashDeskId);
 
                 bool generatedUsername = false;
-                if (string.IsNullOrWhiteSpace(input.UserName))
+                if (string.IsNullOrEmpty(input.UserName?.Trim()))
                 {
                     input.UserName = CommonFunctions.GetRandomString(10);
                     generatedUsername = true;
                 }
+                input.PartnerId = identity.PartnerId;
+                input.CurrencyId = identity.CurrencyId;
                 using (var clientBl = new ClientBll(identity, WebApiApplication.DbLogger))
                 {
-                    var bd = new DateTime(input.BirthYear ?? DateTime.MinValue.Year, input.BirthMonth ?? DateTime.MinValue.Month,
-                        input.BirthDay ?? DateTime.MinValue.Day);
-                    if (string.IsNullOrEmpty(input.FirstName) || string.IsNullOrEmpty(input.LastName) || bd == null || bd == DateTime.MinValue)
-                        throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.WrongInputParameters);
-
-                    var existingClient = clientBl.GetClientByName(identity.PartnerId, input.FirstName, input.LastName, bd);
+                    DAL.Client existingClient = null;
+                    var partnerSetting = CacheManager.GetConfigKey(input.PartnerId, Constants.PartnerKeys.FirstLastBirthUnique);
+                    if (partnerSetting == "1")
+                    {
+                        var clientBirthDate = new DateTime(input.BirthYear ?? DateTime.MinValue.Year, input.BirthMonth ?? DateTime.MinValue.Month,
+                                              input.BirthDay ?? DateTime.MinValue.Day);
+                        existingClient = clientBl.GetClientByName(input.PartnerId, input.FirstName, input.LastName, clientBirthDate);
+                    }
                     if (existingClient == null)
                     {
                         var clientRegistrationInput = new ClientRegistrationInput
@@ -632,6 +636,41 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                 });
             }
         }
+
+        [HttpPost]
+        public IHttpActionResult GetClientRegistrationFields(ApiRequestBase apiRequestBase)
+        {
+            try
+            {
+                var identity = CheckToken(apiRequestBase.Token, apiRequestBase.CashDeskId);
+                using (var contentBl = new ContentBll(identity, WebApiApplication.DbLogger))
+                {
+                    return Ok(new ApiResponseBase
+                    {
+                        ResponseObject = contentBl.GetClientRegistrationFields(identity.PartnerId, (int)SystemModuleTypes.BetShop)
+                    });
+                }
+            }
+            catch (FaultException<BllFnErrorType> ex)
+            {
+                var response = new ApiResponseBase
+                {
+                    ResponseCode = Convert.ToInt32(ex.Detail.Id),
+                    Description = ex.Detail.Message
+                };
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                WebApiApplication.DbLogger.Error(ex);
+                return Ok(new ApiResponseBase
+                {
+                    ResponseCode = Constants.Errors.GeneralException,
+                    Description = ex.Message
+                });
+            }
+        }
+
 
         [HttpPost]
         public IHttpActionResult GetClients(ApiRequestBase apiRequestBase)

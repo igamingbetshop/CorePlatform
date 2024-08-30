@@ -76,8 +76,8 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                         else if (paymentRequest.Type == (int)PaymentRequestTypes.Withdraw)
                         {
 
-                            var resp = clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Approved, string.Empty,
-                                                                           null, null, false, string.Empty, documentBl, notificationBl);
+                            var resp = clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Approved, input.TransactionDetails.Status,
+                                                                           null, null, false, paymentRequest.Parameters, documentBl, notificationBl);
                             clientBl.PayWithdrawFromPaymentSystem(resp, documentBl, notificationBl);
                         }
                         PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
@@ -88,7 +88,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                         clientBl.ChangeDepositRequestState(paymentRequest.Id, PaymentRequestStates.Deleted, input.Desc, notificationBl);
                     else if(paymentRequest.Type == (int)PaymentRequestTypes.Withdraw)
                             clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed, input.Desc, null, null, 
-                                                                false, string.Empty, documentBl, notificationBl);
+                                                                false, paymentRequest.Parameters, documentBl, notificationBl);
                     response = "OK";
                 }
             }

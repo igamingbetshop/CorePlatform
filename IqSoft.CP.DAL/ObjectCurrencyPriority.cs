@@ -20,7 +20,7 @@ namespace IqSoft.CP.DAL
         public string CurrencyId { get; set; }
         public int Priority { get; set; }
     
-        public virtual Currency Currency { get; set; }
         public virtual ObjectType ObjectType { get; set; }
+        public virtual Currency Currency { get; set; }
     }
 }

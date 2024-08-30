@@ -23,9 +23,9 @@ namespace IqSoft.CP.DAL
         public Nullable<long> PaymentRequestId { get; set; }
         public string Info { get; set; }
     
-        public virtual Jackpot Jackpot { get; set; }
-        public virtual Segment Segment { get; set; }
         public virtual PaymentRequest PaymentRequest { get; set; }
         public virtual Client Client { get; set; }
+        public virtual Jackpot Jackpot { get; set; }
+        public virtual Segment Segment { get; set; }
     }
 }

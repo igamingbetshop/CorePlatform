@@ -171,8 +171,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
             if (sign.ToLower() !=  inputSignature.ToLower())
                 throw BaseBll.CreateException(string.Empty, Constants.Errors.WrongHash);
             if (client.State == (int)ClientStates.BlockedForDeposit || client.State == (int)ClientStates.FullBlocked ||
-                client.State == (int)ClientStates.Suspended || client.State == (int)ClientStates.SuspendedWithWithdraw || 
-                client.State == (int)ClientStates.Disabled)
+                client.State == (int)ClientStates.Suspended || client.State == (int)ClientStates.Disabled)
                 throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.ClientBlocked);
             if (paymentInput.Details.ReceivedAmount < 0)
                 throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongInputParameters);

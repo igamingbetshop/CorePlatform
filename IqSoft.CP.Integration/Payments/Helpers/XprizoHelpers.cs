@@ -15,7 +15,7 @@ using System.Collections.Generic;
 
 namespace IqSoft.CP.Integration.Payments.Helpers
 {
-	public class XprizoHelpers
+	public static class XprizoHelpers
 	{
 		public static string PaymentRequest(PaymentRequest input, string cashierPageUrl, SessionIdentity session, ILog log)
 		{
@@ -31,37 +31,37 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 			};
 			switch (paymentSystem.Name)
 			{
-				case "XprizoCard":
+				case Constants.PaymentSystems.XprizoCard:
 					data.accountId = Convert.ToInt64(partnerPaymentSetting.UserName);
 					data.customer = client.Id.ToString();
 					data.currencyCode = client.CurrencyId;
 					data.redirect = cashierPageUrl;
 					url = $"{url}/Transaction/CardDeposit";
 					break;
-				case "XprizoWallet":
+				case Constants.PaymentSystems.XprizoWallet:
 					data.fromAccountId = Convert.ToInt64(paymentInfo.CardNumber);
 					data.toAccountId = Convert.ToInt64(partnerPaymentSetting.UserName);
 					url = $"{url}/Transaction/RequestPayment";
 					break;
-				case "XprizoMpesa":
+				case Constants.PaymentSystems.XprizoMpesa:
 					data.mobileNumber = paymentInfo.MobileNumber;
 					data.accountId = Convert.ToInt64(partnerPaymentSetting.UserName);
 					//data.description = "Pass";
 					url = $"{url}/Transaction/MPesaDeposit";
 					break;
-				case "XprizoUPI":
+				case Constants.PaymentSystems.XprizoUPI:
 					data.accountId = Convert.ToInt64(partnerPaymentSetting.UserName);
 					url = $"{url}/Transaction/UpiDeposit";
 					break;
-				default: 
-					throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongInputParameters);
+				default:
+					throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.PaymentSystemNotFound);
 			}
 			var httpRequestInput = new HttpRequestInput
 			{
 				ContentType = Constants.HttpContentTypes.ApplicationJson,
 				RequestMethod = Constants.HttpRequestMethods.Post,
 				RequestHeaders = new Dictionary<string, string> { { "x-api-key", partnerPaymentSetting.Password.Split(',')[0] },
-					                                              { "x-api-version", partnerPaymentSetting.Password.Split(',')[1] } },
+																  { "x-api-version", partnerPaymentSetting.Password.Split(',')[1] } },
 				Url = url,
 				PostData = JsonConvert.SerializeObject(data, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore })
 			};
@@ -71,18 +71,18 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 
 			switch (paymentSystem.Name)
 			{
-				case "XprizoCard":
+				case Constants.PaymentSystems.XprizoCard:
 					return output.value;
-				case "XprizoWallet":
+				case Constants.PaymentSystems.XprizoWallet:
 					return "ConfirmationCode";
-				case "XprizoMpesa":
-					if(output.status == "Pending")
+				case Constants.PaymentSystems.XprizoMpesa:
+					if (output.status == "Pending")
 						return "ConfirmationCode";
-					else if(output.status == "Active")
+					else if (output.status == "Active")
 						return null;
-					else 
+					else
 						throw new Exception($"Error: {output.status} {output.value} ");
-				case "XprizoUPI":
+				case Constants.PaymentSystems.XprizoUPI:
 					return output.value;
 				default:
 					throw new Exception($"Error: {response} ");
@@ -97,10 +97,14 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 				var client = CacheManager.GetClientById(paymentRequest.ClientId.Value);
 				var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, paymentRequest.PaymentSystemId,
 																				   paymentRequest.CurrencyId, (int)PaymentRequestTypes.Withdraw);
+				if (!Int64.TryParse(partnerPaymentSetting.UserName, out long accountId))
+					throw BaseBll.CreateException(session.LanguageId, Constants.Errors.WrongApiCredentials);
+
 				var baseUrl = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.XprizoUrl).StringValue;
 				var url = $"{baseUrl}/Transaction/SendPayment?action=1";
 				var amount = paymentRequest.Amount - (paymentRequest.CommissionAmount ?? 0);
 				var paymentInfo = JsonConvert.DeserializeObject<PaymentInfo>(!string.IsNullOrEmpty(paymentRequest.Info) ? paymentRequest.Info : "{}");
+
 				var paymentSystem = CacheManager.GetPaymentSystemById(paymentRequest.PaymentSystemId);
 				var data = new PaymentInput
 				{
@@ -109,36 +113,65 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 				};
 				switch (paymentSystem.Name)
 				{
-					case "XprizoWallet":
-						data.toAccountId = Convert.ToInt64(paymentInfo.WalletNumber);
-						data.fromAccountId = Convert.ToInt64(partnerPaymentSetting.UserName); 
+					case Constants.PaymentSystems.XprizoWallet:
+						if (!Int64.TryParse(paymentInfo.WalletNumber, out long walletNamber))
+						{
+							using (var clientBl = new ClientBll(paymentSystemBl))
+							using (var documentBl = new DocumentBll(paymentSystemBl))
+							using (var notificationBl = new NotificationBll(paymentSystemBl))
+							{
+								clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed, nameof(Constants.Errors.WrongInputParameters),
+																	null, null, false, paymentRequest.Parameters, documentBl, notificationBl);
+
+								throw BaseBll.CreateException(session.LanguageId, Constants.Errors.WrongInputParameters);
+							}
+						}
+						data.toAccountId = walletNamber;
+						data.fromAccountId = accountId;
 						break;
-					case "XprizoMpesa":
+					case Constants.PaymentSystems.XprizoMpesa:
 						data.mobileNumber = paymentInfo.MobileNumber;
-						data.accountId = Convert.ToInt64(partnerPaymentSetting.UserName);
+						data.accountId = accountId;
 						break;
 					default:
-						throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongInputParameters);
+						throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.PaymentSystemNotFound);
 				}
 				var httpRequestInput = new HttpRequestInput
 				{
 					ContentType = Constants.HttpContentTypes.ApplicationJson,
 					RequestMethod = Constants.HttpRequestMethods.Post,
 					RequestHeaders = new Dictionary<string, string> { { "x-api-key", partnerPaymentSetting.Password.Split(',')[0] },
-																    { "x-api-version", partnerPaymentSetting.Password.Split(',')[1] } },
+																	  { "x-api-version", partnerPaymentSetting.Password.Split(',')[1] } },
 					Url = url,
 					PostData = JsonConvert.SerializeObject(data, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore })
 				};
 				log.Info(JsonConvert.SerializeObject(data));
-				var response = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
-				var output = JsonConvert.DeserializeObject<PayoutOutput>(response);
-				paymentRequest.ExternalTransactionId = output.id.ToString();
-				paymentSystemBl.ChangePaymentRequestDetails(paymentRequest);
-				return new PaymentResponse
+				try
 				{
-					Status = PaymentRequestStates.Approved,
-				};
-				throw new Exception();
+					var response = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
+					var output = JsonConvert.DeserializeObject<PayoutOutput>(response);
+					paymentRequest.ExternalTransactionId = output.id.ToString();
+					paymentSystemBl.ChangePaymentRequestDetails(paymentRequest);
+					return new PaymentResponse
+					{
+						Status = PaymentRequestStates.Approved,
+						Description = output.description
+					};
+				}
+				catch (Exception ex)
+				{
+					using (var clientBl = new ClientBll(paymentSystemBl))
+					using (var documentBl = new DocumentBll(paymentSystemBl))
+					using (var notificationBl = new NotificationBll(paymentSystemBl))
+					{
+						clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed, ex.Message,
+															null, null, false, paymentRequest.Parameters, documentBl, notificationBl);
+                        return new PaymentResponse
+                        {
+                            Status = PaymentRequestStates.Failed,
+                        };
+                    }
+				}
 			}
 		}
 	}

@@ -25,7 +25,6 @@ namespace IqSoft.CP.PaymentGateway
         protected void Application_Start()
         {
 			GlobalConfiguration.Configuration.Formatters.JsonFormatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue("application/vnd.okto-merchant-api.payment-notification.v1+json"));
-			GlobalConfiguration.Configuration.Formatters.JsonFormatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue("application/vnd.okto-merchant-api.consent-notification.v1+json"));
 			GlobalConfiguration.Configure(WebApiConfig.Register);
             XmlConfigurator.Configure();
             DbLogger = LogManager.GetLogger("DbLogAppender");

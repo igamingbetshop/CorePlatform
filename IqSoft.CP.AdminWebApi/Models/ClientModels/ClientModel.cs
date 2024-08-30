@@ -21,6 +21,7 @@ namespace IqSoft.CP.AdminWebApi.ClientModels.Models
         public string DocumentIssuedBy { get; set; }
         public string Address { get; set; }
         public string MobileNumber { get; set; }
+        public string MobileCode { get; set; }
         public bool IsMobileNumberVerified { get; set; }
         public string LanguageId { get; set; }
         public DateTime CreationTime { get; set; }
@@ -38,7 +39,6 @@ namespace IqSoft.CP.AdminWebApi.ClientModels.Models
         public int? Citizenship { get; set; }
         public int? JobArea { get; set; }
         public bool IsDocumentVerified { get; set; }
-        public string PhoneNumber { get; set; }
         public bool CallToPhone { get; set; }
         public bool SendPromotions { get; set; }
         public int State { get; set; }
@@ -56,6 +56,7 @@ namespace IqSoft.CP.AdminWebApi.ClientModels.Models
         public string SecondSurname { get; set; }
         public int? Title { get; set; }
         public List<int> UnderMonitoringTypes { get; set; }
+        public bool? Duplicated { get; set; }
 
         public string BuildingNumber { get; set; }
         public string Apartment { get; set; }

@@ -1,4 +1,5 @@
 ﻿using IqSoft.CP.AgentWebApi.Filters;
+using IqSoft.CP.Common.Models.Filters;
 
 namespace IqSoft.CP.AgentWebApi.Models.Affiliate
 {

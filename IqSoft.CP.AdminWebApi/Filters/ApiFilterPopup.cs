@@ -1,4 +1,6 @@
-﻿namespace IqSoft.CP.AdminWebApi.Filters
+﻿using IqSoft.CP.Common.Models.Filters;
+
+namespace IqSoft.CP.AdminWebApi.Filters
 {
     public class ApiFilterPopup : ApiFilterBase
     {

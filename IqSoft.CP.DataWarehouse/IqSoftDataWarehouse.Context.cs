@@ -32,7 +32,6 @@ namespace IqSoft.CP.DataWarehouse
         public DbSet<Product> Products { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<GameProvider> GameProviders { get; set; }
-        public DbSet<Currency> Currencies { get; set; }
         public DbSet<ClientBonu> ClientBonus { get; set; }
         public DbSet<Gtd_Dashboard_Info> Gtd_Dashboard_Info { get; set; }
         public DbSet<Gtd_Provider_Bets> Gtd_Provider_Bets { get; set; }
@@ -46,13 +45,14 @@ namespace IqSoft.CP.DataWarehouse
         public DbSet<Bonu> Bonus { get; set; }
         public DbSet<Client> Clients { get; set; }
         public DbSet<Bet> Bets { get; set; }
-        public DbSet<Gtd_Client_Info> Gtd_Client_Info { get; set; }
         public DbSet<AgentCommission> AgentCommissions { get; set; }
         public DbSet<ClientSession> ClientSessions { get; set; }
         public DbSet<AccountBalance> AccountBalances { get; set; }
         public DbSet<DuplicatedClient> DuplicatedClients { get; set; }
         public DbSet<DuplicatedClientHistory> DuplicatedClientHistories { get; set; }
         public DbSet<Opt_Document_Considered> Opt_Document_Considered { get; set; }
+        public DbSet<Gtd_Client_Info> Gtd_Client_Info { get; set; }
+        public DbSet<Currency> Currencies { get; set; }
     
         public virtual int sp_InsertDocuments(Nullable<long> minId)
         {
@@ -127,20 +127,6 @@ namespace IqSoft.CP.DataWarehouse
                 new ObjectParameter("ToDate", typeof(long));
     
             return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnReportByPartner>("[IqSoftDataWarehouseEntities].[fn_ReportByPartner](@FromDate, @ToDate)", fromDateParameter, toDateParameter);
-        }
-    
-        [DbFunction("IqSoftDataWarehouseEntities", "fn_ReportByProvider")]
-        public virtual IQueryable<fnReportByProvider> fn_ReportByProvider(Nullable<long> fromDate, Nullable<long> toDate)
-        {
-            var fromDateParameter = fromDate.HasValue ?
-                new ObjectParameter("FromDate", fromDate) :
-                new ObjectParameter("FromDate", typeof(long));
-    
-            var toDateParameter = toDate.HasValue ?
-                new ObjectParameter("ToDate", toDate) :
-                new ObjectParameter("ToDate", typeof(long));
-    
-            return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnReportByProvider>("[IqSoftDataWarehouseEntities].[fn_ReportByProvider](@FromDate, @ToDate)", fromDateParameter, toDateParameter);
         }
     
         [DbFunction("IqSoftDataWarehouseEntities", "fn_Document")]
@@ -225,20 +211,6 @@ namespace IqSoft.CP.DataWarehouse
             return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnInternetBet>("[IqSoftDataWarehouseEntities].[fn_InternetBet]()");
         }
     
-        [DbFunction("IqSoftDataWarehouseEntities", "fn_ClientBets")]
-        public virtual IQueryable<fnClientBets> fn_ClientBets(Nullable<long> fromDate, Nullable<long> toDate)
-        {
-            var fromDateParameter = fromDate.HasValue ?
-                new ObjectParameter("FromDate", fromDate) :
-                new ObjectParameter("FromDate", typeof(long));
-    
-            var toDateParameter = toDate.HasValue ?
-                new ObjectParameter("ToDate", toDate) :
-                new ObjectParameter("ToDate", typeof(long));
-    
-            return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnClientBets>("[IqSoftDataWarehouseEntities].[fn_ClientBets](@FromDate, @ToDate)", fromDateParameter, toDateParameter);
-        }
-    
         [DbFunction("IqSoftDataWarehouseEntities", "fn_AgentProfit")]
         public virtual IQueryable<fnAgentProfit> fn_AgentProfit(Nullable<long> fromDate, Nullable<long> toDate)
         {
@@ -297,8 +269,8 @@ namespace IqSoft.CP.DataWarehouse
             return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnClientSession>("[IqSoftDataWarehouseEntities].[fn_ClientSession]()");
         }
     
-        [DbFunction("IqSoftDataWarehouseEntities", "fn_DuplicateClient")]
-        public virtual IQueryable<fnDuplicateClient> fn_DuplicateClient(Nullable<long> fromDate, Nullable<long> toDate)
+        [DbFunction("IqSoftDataWarehouseEntities", "fn_ClientBets")]
+        public virtual IQueryable<fnClientBets> fn_ClientBets(Nullable<long> fromDate, Nullable<long> toDate)
         {
             var fromDateParameter = fromDate.HasValue ?
                 new ObjectParameter("FromDate", fromDate) :
@@ -308,13 +280,7 @@ namespace IqSoft.CP.DataWarehouse
                 new ObjectParameter("ToDate", toDate) :
                 new ObjectParameter("ToDate", typeof(long));
     
-            return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnDuplicateClient>("[IqSoftDataWarehouseEntities].[fn_DuplicateClient](@FromDate, @ToDate)", fromDateParameter, toDateParameter);
-        }
-    
-        [DbFunction("IqSoftDataWarehouseEntities", "fn_AffiliateCorrection")]
-        public virtual IQueryable<fnAffiliateCorrection> fn_AffiliateCorrection()
-        {
-            return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnAffiliateCorrection>("[IqSoftDataWarehouseEntities].[fn_AffiliateCorrection]()");
+            return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnClientBets>("[IqSoftDataWarehouseEntities].[fn_ClientBets](@FromDate, @ToDate)", fromDateParameter, toDateParameter);
         }
     
         [DbFunction("IqSoftDataWarehouseEntities", "fn_ClientReport")]
@@ -329,6 +295,58 @@ namespace IqSoft.CP.DataWarehouse
                 new ObjectParameter("ToDate", typeof(long));
     
             return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnClientReport>("[IqSoftDataWarehouseEntities].[fn_ClientReport](@FromDate, @ToDate)", fromDateParameter, toDateParameter);
+        }
+    
+        [DbFunction("IqSoftDataWarehouseEntities", "fn_DuplicateClient")]
+        public virtual IQueryable<fnDuplicateClient> fn_DuplicateClient(Nullable<int> clientId)
+        {
+            var clientIdParameter = clientId.HasValue ?
+                new ObjectParameter("ClientId", clientId) :
+                new ObjectParameter("ClientId", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnDuplicateClient>("[IqSoftDataWarehouseEntities].[fn_DuplicateClient](@ClientId)", clientIdParameter);
+        }
+    
+        [DbFunction("IqSoftDataWarehouseEntities", "fn_AffiliateCorrection")]
+        public virtual IQueryable<fnAffiliateCorrection> fn_AffiliateCorrection()
+        {
+            return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnAffiliateCorrection>("[IqSoftDataWarehouseEntities].[fn_AffiliateCorrection]()");
+        }
+    
+        [DbFunction("IqSoftDataWarehouseEntities", "fn_AffiliateTransaction")]
+        public virtual IQueryable<fnAffiliateTransaction> fn_AffiliateTransaction(Nullable<long> fromDate, Nullable<long> toDate, Nullable<int> affiliateId)
+        {
+            var fromDateParameter = fromDate.HasValue ?
+                new ObjectParameter("FromDate", fromDate) :
+                new ObjectParameter("FromDate", typeof(long));
+    
+            var toDateParameter = toDate.HasValue ?
+                new ObjectParameter("ToDate", toDate) :
+                new ObjectParameter("ToDate", typeof(long));
+    
+            var affiliateIdParameter = affiliateId.HasValue ?
+                new ObjectParameter("AffiliateId", affiliateId) :
+                new ObjectParameter("AffiliateId", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnAffiliateTransaction>("[IqSoftDataWarehouseEntities].[fn_AffiliateTransaction](@FromDate, @ToDate, @AffiliateId)", fromDateParameter, toDateParameter, affiliateIdParameter);
+        }
+    
+        [DbFunction("IqSoftDataWarehouseEntities", "fn_ReportByProvider")]
+        public virtual IQueryable<fnReportByProvider> fn_ReportByProvider(Nullable<long> fromDate, Nullable<long> toDate, Nullable<int> agentId)
+        {
+            var fromDateParameter = fromDate.HasValue ?
+                new ObjectParameter("FromDate", fromDate) :
+                new ObjectParameter("FromDate", typeof(long));
+    
+            var toDateParameter = toDate.HasValue ?
+                new ObjectParameter("ToDate", toDate) :
+                new ObjectParameter("ToDate", typeof(long));
+    
+            var agentIdParameter = agentId.HasValue ?
+                new ObjectParameter("AgentId", agentId) :
+                new ObjectParameter("AgentId", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnReportByProvider>("[IqSoftDataWarehouseEntities].[fn_ReportByProvider](@FromDate, @ToDate, @AgentId)", fromDateParameter, toDateParameter, agentIdParameter);
         }
     }
 }

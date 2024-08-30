@@ -15,9 +15,11 @@ namespace IqSoft.CP.DataWarehouse
     {
         public Nullable<int> ClientId { get; set; }
         public Nullable<decimal> BetAmount { get; set; }
+        public Nullable<decimal> BonusBetAmount { get; set; }
         public Nullable<int> TotalBetsCount { get; set; }
         public Nullable<int> SportBetsCount { get; set; }
         public Nullable<decimal> WinAmount { get; set; }
+        public Nullable<decimal> BonusWinAmount { get; set; }
         public Nullable<int> WinCount { get; set; }
     }
 }

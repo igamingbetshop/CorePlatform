@@ -2,11 +2,14 @@
 using IqSoft.CP.Common;
 using IqSoft.CP.Common.Helpers;
 using IqSoft.CP.Common.Models;
+using IqSoft.CP.Common.Models.Bonus;
 using IqSoft.CP.Common.Models.CacheModels;
 using IqSoft.CP.DAL.Models;
 using IqSoft.CP.Integration.Products.Models.PragmaticPlay;
+using log4net;
 using Newtonsoft.Json;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -136,34 +139,72 @@ namespace IqSoft.CP.Integration.Products.Helpers
                 Url = string.Format("{0}/IntegrationService/v3/http/CasinoGameAPI/getCasinoGames/", domain),
                 PostData = string.Format("{0}&hash={1}", inputString, CommonFunctions.ComputeMd5(inputString + secureKey))
             };
-            var res = JsonConvert.DeserializeObject<GamesOutput>(CommonFunctions.SendHttpRequest(httpRequestInput, out _));
-            if (res.ErrorCode != 0)
-                throw new Exception(string.Format("Code {0}. {1}", res.ErrorCode, res.Description));
-            return res.GamesList;
+            var gamesOutput = JsonConvert.DeserializeObject<GamesOutput>(CommonFunctions.SendHttpRequest(httpRequestInput, out _));
+            if (gamesOutput.ErrorCode != 0)
+                throw new Exception(string.Format("Code {0}. {1}", gamesOutput.ErrorCode, gamesOutput.Description));
+
+            var gamesIds = gamesOutput.GamesList.Select(x => x.GameId).ToList();
+            inputString =  CommonFunctions.GetSortedParamWithValuesAsString(new
+            {
+                secureLogin,
+                gameIDs = string.Join(",", gamesIds)
+            }, "&", false);
+            httpRequestInput.Url = string.Format("{0}/IntegrationService/v3/http/CasinoGameAPI/getBetScales/", domain);
+            httpRequestInput.PostData = string.Format("{0}&hash={1}", inputString, CommonFunctions.ComputeMd5(inputString + secureKey));
+            var gameBetValueOutput = JsonConvert.DeserializeObject<GameBetValueOutput>(CommonFunctions.SendHttpRequest(httpRequestInput, out _));
+            if (gameBetValueOutput.ErrorCode != 0)
+                throw new Exception(string.Format("Code {0}. {1}", gamesOutput.ErrorCode, gamesOutput.Description));
+
+            var betScalesByGame = gameBetValueOutput.GamesList.ToDictionary(x => x.GameId, x => x.BetScaleList);
+            var gamesList = gamesOutput.GamesList.Select(x =>
+            {
+                if(betScalesByGame.TryGetValue(x.GameId, out var betScales))
+                x.BetScaleList = betScales.ToDictionary(k=> k.Currency, v=> v.TotalBetScales); return x;
+            }).ToList();
+            
+            return gamesList;
         }
 
-        public static void AddFreeRound(int clientId, List<string> productExternalIds, int spinCount, int clientBonusId, DateTime startTime, DateTime finishTime)
+        public static bool AddFreeRound(FreeSpinModel freeSpinModel, ILog log)
         {
-            var client = CacheManager.GetClientById(clientId);
+            var client = CacheManager.GetClientById(freeSpinModel.ClientId);
             var apiUrl = CacheManager.GetGameProviderValueByKey(client.PartnerId, Provider.Id, Constants.PartnerKeys.PragmaticPlayCasinoApiUrl);
             var secureLogin = CacheManager.GetGameProviderValueByKey(client.PartnerId, Provider.Id, Constants.PartnerKeys.PragmaticPlaySecureLogin);
             var secureKey = CacheManager.GetGameProviderValueByKey(client.PartnerId, Provider.Id, Constants.PartnerKeys.PragmaticPlaySecureKey);
             var currency = NotSupportedCurrencies.Contains(client.CurrencyId) ? Constants.Currencies.USADollar : client.CurrencyId;
+            var product = CacheManager.GetProductByExternalId(Provider.Id, freeSpinModel.ProductExternalId);
+
+            decimal? bValue = null;
+            if (!string.IsNullOrEmpty(freeSpinModel.BetValues))
+            {
+                var bv = JsonConvert.DeserializeObject<Dictionary<string, decimal>>(freeSpinModel.BetValues);
+                if (bv.ContainsKey(client.CurrencyId))
+                    bValue = bv[client.CurrencyId];
+            }
+            if (bValue == null && !string.IsNullOrEmpty(product.BetValues))
+            {
+                var bv = JsonConvert.DeserializeObject<Dictionary<string, List<decimal>>>(product.BetValues);
+                if (bv.ContainsKey(client.CurrencyId) && bv[client.CurrencyId].Any())
+                    bValue = bv[client.CurrencyId][0];
+            }
+            if (bValue == null)
+                return false;
+
             var input = new
             {
                 secureLogin,
-                bonusCode = clientBonusId,
-                startDate = ((DateTimeOffset)startTime).ToUnixTimeSeconds(),
-                expirationDate = ((DateTimeOffset)finishTime).ToUnixTimeSeconds(),
-                rounds = spinCount,
-                playerId = clientId,
+                bonusCode = freeSpinModel.BonusId,
+                startDate = ((DateTimeOffset)freeSpinModel.StartTime).ToUnixTimeSeconds(),
+                expirationDate = ((DateTimeOffset)freeSpinModel.FinishTime).ToUnixTimeSeconds(),
+                rounds = freeSpinModel.SpinCount,
+                playerId = freeSpinModel.ClientId,
                 currency
             };
-            var games = productExternalIds.Select(x => new
+            var games = freeSpinModel.ProductExternalIds.Select(x => new
             {
                 gameId = x,
                 betValues = new List<object> {
-                    new { totalBet = 0.2, currency }
+                    new { totalBet = bValue.Value, currency }
                 }
             }).ToList();
 
@@ -179,7 +220,11 @@ namespace IqSoft.CP.Integration.Products.Helpers
             };
             var res = JsonConvert.DeserializeObject<BaseOutput>(CommonFunctions.SendHttpRequest(httpRequestInput, out _));
             if (res.ErrorCode != 0)
-                throw new Exception(string.Format("Code {0}. {1}", res.ErrorCode, res.Description));
+            {
+                log.Error($"Input: {JsonConvert.SerializeObject(gameList)},  Output: {res}");
+                return false;
+            }
+            return true;
         }
 
         public static void CancelFreeRound(int clientId, int bonusId)

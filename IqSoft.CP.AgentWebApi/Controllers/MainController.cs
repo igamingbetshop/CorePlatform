@@ -18,7 +18,6 @@ using System.Web;
 using System.Web.Http;
 using System.Web.Http.Cors;
 using IqSoft.CP.Common.Helpers;
-using IqSoft.CP.Common.Models.UserModels;
 using IqSoft.CP.Common.Models.CacheModels;
 using IqSoft.CP.AgentWebApi.Models.Affiliate;
 
@@ -148,7 +147,7 @@ namespace IqSoft.CP.AgentWebApi.Controllers
             }
             catch (FaultException<BllFnErrorType> e)
             {
-                WebApiApplication.DbLogger.Error(e);
+               
                 if (e.Detail != null && e.Detail.Id == Constants.Errors.DontHavePermission)
                     WebApiApplication.DbLogger.Error($"Ip: {HttpContext.Current.Request.Headers.Get("CF-Connecting-IP")}, " +
                                                      $"Country: {HttpContext.Current.Request.Headers.Get("CF-IPCountry")} " + e);
@@ -157,6 +156,7 @@ namespace IqSoft.CP.AgentWebApi.Controllers
                     ResponseCode = e.Detail.Id,
                     Description = e.Detail.Message
                 };
+                WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(loginResult));
             }
             catch (Exception e)
             {
@@ -590,6 +590,77 @@ namespace IqSoft.CP.AgentWebApi.Controllers
                 {
                     ResponseObject = new { ActivePeriodInMinutes = activePeriodInMinutes }
                 };
+            }
+            catch (FaultException<BllFnErrorType> ex)
+            {
+                var response = new ApiResponseBase
+                {
+                    ResponseCode = ex.Detail.Id,
+                    Description = ex.Detail.Message
+                };
+                WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(response));
+                return response;
+            }
+            catch (Exception ex)
+            {
+                WebApiApplication.DbLogger.Error(ex);
+                return new ApiResponseBase
+                {
+                    ResponseCode = Constants.Errors.GeneralException,
+                    Description = ex.Message
+                };
+            }
+        }
+
+        [HttpPost]
+        public ApiResponseBase GetRegions(Common.Models.WebSiteModels.ApiFilterRegion input)
+        {
+            var actionLog = new DAL.ActionLog
+            {
+                Page = string.Empty,
+                ObjectTypeId = (int)ObjectTypes.User,
+                ResultCode = 0,
+                Language = input.LanguageId
+            };
+            try
+            {
+                var isAffiliate = false;
+                var origin = HttpContext.Current.Request.Headers.Get("Origin");
+                actionLog.Source = Request.Headers.UserAgent.ToString();
+                actionLog.Ip = HttpContext.Current.Request.Headers.Get("CF-Connecting-IP") ?? "127.0.0.1";
+                actionLog.Domain = origin;
+                actionLog.Country = HttpContext.Current.Request.Headers.Get("CF-IPCountry");
+                var action = CacheManager.GetAction(MethodBase.GetCurrentMethod().Name) ??
+                    throw BaseBll.CreateException(input.LanguageId, Constants.Errors.ActionNotFound);
+                if (origin.Contains("affiliate") || origin == "http://ag.com" || origin == "http://localhost:4201" || origin == "http://localhost:4200" || origin== "http://10.50.17.10:10006") // development 
+                    isAffiliate = true;
+                var siteUrl = origin.Replace("http://", string.Empty).Replace("https://", string.Empty).Replace("agent", "admin").Replace("affiliate", "admin");
+                using (var partnerBl = new PartnerBll(new SessionIdentity(), WebApiApplication.DbLogger))
+                using (var notificationBll = new NotificationBll(partnerBl))
+                {
+                    var partner = partnerBl.GetPartners(new FilterPartner { AdminSiteUrl = siteUrl }, false).FirstOrDefault() ??
+                      throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.PartnerNotFound);
+                    PartnerBll.CheckApiRestrictions(partner.Id, isAffiliate ? Constants.SystemModuleTypes.AffilliateSystem : Constants.SystemModuleTypes.AgentSystem);
+
+                    using (var regionBl = new RegionBll(new SessionIdentity(), WebApiApplication.DbLogger))
+                    {
+                        return new ApiResponseBase
+                        {
+                            ResponseObject = regionBl.GetfnRegions(new FilterRegion { ParentId = input.ParentId, TypeId = input.TypeId }, input.LanguageId,
+                                                                   false, input.PartnerId, input.ClientId)
+                                                     .Where(x => x.State == (int)RegionStates.Active)
+                                                     .OrderBy(x => x.Name)
+                                                     .Select(x => new Common.Models.WebSiteModels.RegionModel
+                                                     {
+                                                         Id = x.Id,
+                                                         Name = x.Name,
+                                                         NickName = x.NickName,
+                                                         IsoCode = x.IsoCode,
+                                                         IsoCode3 = x.IsoCode3
+                                                     }).ToList()
+                        };
+                    }
+                }
             }
             catch (FaultException<BllFnErrorType> ex)
             {

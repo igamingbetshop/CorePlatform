@@ -45,6 +45,7 @@ namespace IqSoft.CP.DAL
         public Nullable<decimal> UpToAmount { get; set; }
         public Nullable<int> Status { get; set; }
         public Nullable<bool> ConsiderBonusBets { get; set; }
+        public Nullable<decimal> Amount { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<AmountCurrencySetting> AmountCurrencySettings { get; set; }
@@ -53,11 +54,11 @@ namespace IqSoft.CP.DAL
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ClientBonusTrigger> ClientBonusTriggers { get; set; }
         public virtual Partner Partner { get; set; }
-        public virtual Segment Segment { get; set; }
         public virtual Translation Translation { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<TriggerGroupSetting> TriggerGroupSettings { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<TriggerProductSetting> TriggerProductSettings { get; set; }
+        public virtual Segment Segment { get; set; }
     }
 }

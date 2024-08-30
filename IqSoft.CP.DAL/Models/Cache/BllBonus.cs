@@ -14,6 +14,7 @@ namespace IqSoft.CP.DAL.Models.Cache
         public int Type { get; set; }
         public string Info { get; set; }       
         public int? Sequence { get; set; }
-       
+        public decimal? MinAmount { get; set; }
+        public decimal? Percent { get; set; }
     }
 }

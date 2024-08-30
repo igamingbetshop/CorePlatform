@@ -28,7 +28,8 @@ namespace IqSoft.CP.AdminWebApi.ClientModels.Models
         [JsonProperty(PropertyName = "Gender"), JsonIgnore]
         public string GenderName { get; set; }
         public string MobileNumber { get; set; }
-        public string PhoneNumber { get; set; }
+        [NotExcelProperty]
+        public string MobileCode { get; set; }
         public string ZipCode { get; set; }
         public string BirthDate { get; set; }
         public int Age { get; set; }
@@ -71,6 +72,7 @@ namespace IqSoft.CP.AdminWebApi.ClientModels.Models
         public string CountryState { get; set; }
         [NotExcelProperty]
         public List<int> UnderMonitoringTypes { get; set; }
+        public bool? Duplicated { get; set; }
 
         [NotExcelProperty]
         public bool SendMail { get; set; }

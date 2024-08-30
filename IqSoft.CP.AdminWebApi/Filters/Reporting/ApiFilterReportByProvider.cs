@@ -1,9 +1,12 @@
-﻿using System;
+﻿using IqSoft.CP.Common.Models.Filters;
+using System;
 
 namespace IqSoft.CP.AdminWebApi.Filters.Reporting
 {
     public class ApiFilterReportByProvider : ApiFilterBase
     {
+        public int? AgentId { get; set; }
+
         public DateTime FromDate { get; set; }
 
         public DateTime ToDate { get; set; }

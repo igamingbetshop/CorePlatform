@@ -67,5 +67,7 @@ namespace IqSoft.CP.AdminWebApi.Models.PartnerModels
 
         [NotExcelProperty]
         public RegExProperty PasswordRegExProperty { get; set; }
+
+        public int VipLevel { get; set; }
     }
 }

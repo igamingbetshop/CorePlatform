@@ -1,4 +1,5 @@
-﻿using System;
+﻿using IqSoft.CP.Common.Models.CacheModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -29,7 +30,8 @@ namespace IqSoft.CP.DAL.Models.Cache
         public bool? AllowMultiplePaymentInfoes { get; set; }
         public int? OpenMode { get; set; }
         public int Priority { get; set; }
-        public List<int> Countries { get; set; }
+        public BllSetting Countries { get; set; }
+        public BllSetting Segments { get; set; }
         public string OSTypesString { get; set; }
         public string ImageExtension { get; set; }
         public List<int> OSTypes

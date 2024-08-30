@@ -7,6 +7,7 @@ namespace IqSoft.CP.AdminWebApi.Models.CRM
     {
         public int? Id { get; set; }
         public int? PartnerId { get; set; }
+        public bool ShowInactives { get; set; } = true;
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
     }

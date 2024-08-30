@@ -33,6 +33,7 @@ namespace IqSoft.CP.Common.Models.WebSiteModels.Clients
         public string Code { get; set; }
 
         public string WalletNumber { get; set; }
+
         public int? State { get; set; }
     }
 }

@@ -22,13 +22,13 @@ namespace IqSoft.CP.DAL
             this.BonusCurrencySettings = new HashSet<BonusCurrencySetting>();
             this.BonusLanguageSettings = new HashSet<BonusLanguageSetting>();
             this.BonusPaymentSystemSettings = new HashSet<BonusPaymentSystemSetting>();
-            this.BonusProducts = new HashSet<BonusProduct>();
             this.BonusSegmentSettings = new HashSet<BonusSegmentSetting>();
             this.TriggerGroups = new HashSet<TriggerGroup>();
             this.AmountCurrencySettings = new HashSet<AmountCurrencySetting>();
             this.ClientBonusTriggers = new HashSet<ClientBonusTrigger>();
             this.ClientBonus = new HashSet<ClientBonu>();
             this.ClientBonus1 = new HashSet<ClientBonu>();
+            this.BonusProducts = new HashSet<BonusProduct>();
         }
     
         public int Id { get; set; }
@@ -86,8 +86,6 @@ namespace IqSoft.CP.DAL
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<BonusPaymentSystemSetting> BonusPaymentSystemSettings { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<BonusProduct> BonusProducts { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<BonusSegmentSetting> BonusSegmentSettings { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<TriggerGroup> TriggerGroups { get; set; }
@@ -100,5 +98,7 @@ namespace IqSoft.CP.DAL
         public virtual ICollection<ClientBonu> ClientBonus { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ClientBonu> ClientBonus1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<BonusProduct> BonusProducts { get; set; }
     }
 }

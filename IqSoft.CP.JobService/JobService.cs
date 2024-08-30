@@ -84,6 +84,7 @@ namespace IqSoft.CP.WindowsServices.JobService
         private readonly Timer _expireClientVerificationStatus; //54
         private readonly Timer _checkDuplicateClients; //55
         private readonly Timer _closeTournamentsTimer; //56
+        private readonly Timer _notifyAffiliator; //57
 
         public JobService()
         {
@@ -147,6 +148,7 @@ namespace IqSoft.CP.WindowsServices.JobService
             _expireClientVerificationStatus = new Timer(CallJob, Constants.Jobs.ExpireClientVerificationStatus, Timeout.Infinite, Timeout.Infinite);//54
             _checkDuplicateClients = new Timer(CallJob, Constants.Jobs.CheckDuplicateClients, Timeout.Infinite, Timeout.Infinite);//55
             _closeTournamentsTimer = new Timer(CallJob, Constants.Jobs.CloseTournaments, Timeout.Infinite, Timeout.Infinite);//56
+            _notifyAffiliator = new Timer(CallJob, Constants.Jobs.NotifyAffiliator, Timeout.Infinite, Timeout.Infinite);//57
         }
 
         protected override void OnStart(string[] args)
@@ -207,8 +209,9 @@ namespace IqSoft.CP.WindowsServices.JobService
             _restrictUnverifiedClients.Change(60000, 60000);//52
             _giveAffiliateCommissionTimer.Change(60000, 60000);//53
             _expireClientVerificationStatus.Change(60000, 3600000);//54
-            _checkDuplicateClients.Change(60000, 3600000);//55
+            _checkDuplicateClients.Change(60000, 60000);//55
             _closeTournamentsTimer.Change(60000, 60000);//56
+            _notifyAffiliator.Change(60000, 60000);//57
 
             var startOptions = new StartOptions("http://*:9010/");
             _server = WebApp.Start<Startup>(startOptions);
@@ -274,6 +277,7 @@ namespace IqSoft.CP.WindowsServices.JobService
             _expireClientVerificationStatus.Change(Timeout.Infinite, Timeout.Infinite);//54
             _checkDuplicateClients.Change(Timeout.Infinite, Timeout.Infinite);//55
             _closeTournamentsTimer.Change(Timeout.Infinite, Timeout.Infinite);//56
+            _notifyAffiliator.Change(Timeout.Infinite, Timeout.Infinite);//57
 
             if (_server != null)
             {
@@ -313,6 +317,7 @@ namespace IqSoft.CP.WindowsServices.JobService
                 case Constants.Jobs.BroadcastBets://6
                     timer = _broadcastBets;
                     duration = 10000;
+                    usePeriodInSeconds = false;
                     break;
                 case Constants.Jobs.ResetBetShopDailyTicketNumber://7
                     timer = _resetBetShopDailyTicketNumberTimer;
@@ -502,10 +507,14 @@ namespace IqSoft.CP.WindowsServices.JobService
                     break;
                 case Constants.Jobs.CheckDuplicateClients://55
                     timer = _checkDuplicateClients;
-                    duration = 3600000;
+                    duration = 60000;
                     break;
                 case Constants.Jobs.CloseTournaments://56
                     timer = _closeTournamentsTimer;
+                    duration = 60000;
+                    break;
+                case Constants.Jobs.NotifyAffiliator://57
+                    timer = _notifyAffiliator;
                     duration = 60000;
                     break;
             }
@@ -599,7 +608,7 @@ namespace IqSoft.CP.WindowsServices.JobService
                     break;
                 case Constants.Jobs.BroadcastBets://6
                     if (job.NextExecutionTime <= jobStartTime)
-                        JobBll.BroadcastBets(job.NextExecutionTime.AddSeconds(-job.PeriodInSeconds), Program.DbLogger);
+                        JobBll.BroadcastBets(Program.DbLogger);
                     break;
                 case Constants.Jobs.ResetBetShopDailyTicketNumber://7
                     {
@@ -770,6 +779,9 @@ namespace IqSoft.CP.WindowsServices.JobService
                     break;
                 case Constants.Jobs.CloseTournaments://56
                     JobBll.CloseTournaments(Program.DbLogger);
+                    break;
+                case Constants.Jobs.NotifyAffiliator://57
+                    JobBll.NotifyAffiliator(Program.DbLogger);
                     break;
             }
             return null;
@@ -958,14 +970,12 @@ namespace IqSoft.CP.WindowsServices.JobService
                                             if (partnerAutoApproveWithdrawMaxAmount > pr.Amount)
 											{
 												var response = PaymentHelpers.SendPaymentWithdrawalsRequest(pr, session, log);
-                                                var changeFromPaymentSystem = response.Status == PaymentRequestStates.Approved;
-
 												if (response.Status == PaymentRequestStates.Approved || 
                                                     response.Status == PaymentRequestStates.ApprovedManually || 
                                                     response.Status == PaymentRequestStates.PayPanding)
                                                 {
-                                                    var resp = clientBl.ChangeWithdrawRequestState(pr.Id, response.Status,
-                                                        String.Empty, null, null, false, pr.Parameters, documentBl, notificationBl, false, changeFromPaymentSystem);
+                                                    var resp = clientBl.ChangeWithdrawRequestState(pr.Id, response.Status, response.Description, null, null, false,
+                                                                                                   pr.Parameters, documentBl, notificationBl, false, true);
                                                     if (response.Status != PaymentRequestStates.PayPanding)
                                                         clientBl.PayWithdrawFromPaymentSystem(resp, documentBl, notificationBl);
                                                     JobBll.BroadcastRemoveCache(string.Format("{0}_{1}", Constants.CacheItems.ClientBalance, pr.ClientId));
@@ -1039,6 +1049,10 @@ namespace IqSoft.CP.WindowsServices.JobService
                         case Constants.PaymentSystems.InternationalPSP:
                             InternationalPSPHelpers.CheckPaymentRequestStatus(paymentRequest, session, log);
                             break;
+                        //doesn't work 'The GET method is not supported '
+                        //case Constants.PaymentSystems.Huch: 
+                        //    HuchHelpers.GetPaymentRequestStatus(paymentRequest,session, log);
+                        //    break;
                         default:
                             break;
                     }

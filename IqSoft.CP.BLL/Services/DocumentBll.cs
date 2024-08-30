@@ -92,6 +92,8 @@ namespace IqSoft.CP.BLL.Services
             decimal totalBonusAmount = 0;
 
             long? accountId = null;
+            int? accountShopId = null;
+            int? accountPaymentSystemId = null;
             bool sameAccount = true;
             foreach (var operationItem in creditTrans)
             {
@@ -102,7 +104,11 @@ namespace IqSoft.CP.BLL.Services
                 {
                     document.Transactions.Add(t);
                     if (accountId == null)
+                    {
                         accountId = t.AccountId;
+                        accountShopId = t.AccountBetShopId;
+                        accountPaymentSystemId = t.AccountPaymentSystemId;
+                    }
                     else if (accountId != t.AccountId)
                         sameAccount = false;
                 }
@@ -112,7 +118,7 @@ namespace IqSoft.CP.BLL.Services
                     totalBonusAmount += bonusAmount;
                 }
             }
-            if(sameAccount)
+            if(sameAccount && (accountShopId != null || accountPaymentSystemId != null))
                 document.ExternalOperationId = accountId;
 
             if (isFromBonusBalance)
@@ -187,6 +193,7 @@ namespace IqSoft.CP.BLL.Services
                 PartnerPaymentSettingId = doc.PartnerPaymentSettingId,
                 PartnerProductId = doc.PartnerProductId,
                 GameProviderId = doc.GameProviderId,
+                ProductId = doc.ProductId,                
                 ClientId = doc.ClientId,
                 CreationTime = currentDate,
                 LastUpdateTime = currentDate,
@@ -535,7 +542,9 @@ namespace IqSoft.CP.BLL.Services
                         Type = operationItem.Type,
                         CreationTime = currentTime,
                         Date = currentTime.Year * 1000000 + currentTime.Month * 10000 + currentTime.Day * 100 + currentTime.Hour,
-                        AccountTypeId = accounts[i].TypeId
+                        AccountTypeId = accounts[i].TypeId,
+                        AccountBetShopId = accounts[i].BetShopId,
+                        AccountPaymentSystemId = accounts[i].PaymentSystemId
                     };
                     transactions.Add(transaction);
                     ChangeAccountBalance(transactionAmount * -1, accounts[i]);
@@ -555,7 +564,9 @@ namespace IqSoft.CP.BLL.Services
                         Type = operationItem.Type,
                         CreationTime = currentTime,
                         Date = currentTime.Year * 1000000 + currentTime.Month * 10000 + currentTime.Day * 100 + currentTime.Hour,
-                        AccountTypeId = (int)AccountTypes.ClientBonusBalance
+                        AccountTypeId = (int)AccountTypes.ClientBonusBalance,
+                        AccountBetShopId = accounts[0].BetShopId,
+                        AccountPaymentSystemId = accounts[0].PaymentSystemId
                     };
                     transactions.Add(transaction);
                 }
@@ -621,6 +632,18 @@ namespace IqSoft.CP.BLL.Services
             if (clearCache)
                 CacheManager.RemoveAccountsInfo(objectTypeId, objectId, currency);
             return account.Id;
+        }
+
+        public Account GetAccountIfExists(int objectId, int objectTypeId, string currency, int accountType, int? betShopId, int? paymentSystemId)
+        {
+            var query = Db.Accounts.Where(x => x.ObjectId == objectId && x.ObjectTypeId == objectTypeId &&
+                                               x.CurrencyId == currency && x.TypeId == accountType);
+            if (betShopId.HasValue)
+                query = query.Where(x => x.BetShopId == betShopId);
+            if (paymentSystemId.HasValue)
+                query = query.Where(x => x.PaymentSystemId == paymentSystemId);
+
+            return query.FirstOrDefault();
         }
 
         public Document GetDocumentById(long id)
@@ -848,7 +871,7 @@ namespace IqSoft.CP.BLL.Services
             return Db.fn_ClientBonus(Identity.LanguageId).Where(x => x.ClientId == Identity.Id).ToList();
         }
 
-        public fnClientBonus GetClientBonusById(int bonusId, long? reuseNumber)
+        public fnClientBonus GetClientBonus(int bonusId, long? reuseNumber)
         {
             if (reuseNumber == null)
                 reuseNumber = 1;
@@ -856,6 +879,12 @@ namespace IqSoft.CP.BLL.Services
             return Db.fn_ClientBonus(Identity.LanguageId).Where(x => x.ClientId == Identity.Id && 
                 x.BonusId == bonusId && x.ReuseNumber == reuseNumber).FirstOrDefault();
         }
+
+        public fnClientBonus GetClientBonusById(int clientBonusId)
+        {
+            return Db.fn_ClientBonus(Identity.LanguageId).Where(x => x.Id == clientBonusId).FirstOrDefault();
+        }
+
 
         public List<ClientBonu> GetClientBonuses(int clientId)
         {
@@ -879,60 +908,6 @@ namespace IqSoft.CP.BLL.Services
                 scope.Complete();
                 return documents;
             }
-        }
-
-        public Document CreateBonusDocumnet(Client client, decimal bonusPrice, int bonusOperationType, int accountTypeId)
-        {
-            if (!Enum.IsDefined(typeof(AccountTypes), accountTypeId) && !Enum.IsDefined(typeof(OperationTypes), accountTypeId))
-                throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
-
-            var doc = new Document
-            {
-                Amount = bonusPrice,
-                CurrencyId = client.CurrencyId,
-                State = (int)BetDocumentStates.Paid,
-                OperationTypeId = bonusOperationType,
-                TypeId = (int)TransactionTypes.Debit,
-                ClientId = client.Id,
-                CreationTime = DateTime.UtcNow,
-                LastUpdateTime = DateTime.UtcNow
-            };
-            var operation = new Operation
-            {
-                Type = (int)OperationTypes.WelcomeBonus,
-                Info = doc.Info,
-                ClientId = doc.ClientId,
-                Amount = doc.Amount,
-                CurrencyId = doc.CurrencyId,
-                ExternalTransactionId = doc.ExternalTransactionId,
-                OperationItems = new List<OperationItem>()
-            };
-
-            var item = new OperationItem
-            {
-                AccountTypeId = (int)AccountTypes.ClientUnusedBalance,
-                ObjectId = client.Id,
-                ObjectTypeId = (int)ObjectTypes.Client,
-                Amount = doc.Amount,
-                CurrencyId = doc.CurrencyId,
-                Type = (int)TransactionTypes.Debit,
-                OperationTypeId = (int)OperationTypes.WelcomeBonus
-            };
-            operation.OperationItems.Add(item);
-            item = new OperationItem
-            {
-                AccountTypeId = (int)AccountTypes.PartnerBalance,
-                ObjectId = client.PartnerId,
-                ObjectTypeId = (int)ObjectTypes.Partner,
-                Amount = doc.Amount,
-                CurrencyId = doc.CurrencyId,
-                Type = (int)TransactionTypes.Credit,
-                OperationTypeId = (int)OperationTypes.WelcomeBonus
-            };
-            operation.OperationItems.Add(item);
-            var document = CreateDocument(operation);
-            Db.SaveChanges();
-            return document;
         }
 
         public List<ClientBonu> FinalizeWageringBonusDocument()
@@ -1181,7 +1156,7 @@ namespace IqSoft.CP.BLL.Services
             foreach (var tournament in tournaments)
             {
                 tournament.Status = (int)BonusStatuses.Closed;
-                CacheManager.RemoveGetTournamentLeaderboard(tournament.Id);
+                CacheManager.RemoveTournamentLeaderboard(tournament.Id);
                 var leaderboard = CacheManager.GetTournamentLeaderboard(tournament.Id);
                 var percents = tournament.Info.Split(',').Select(x => Convert.ToDecimal(x)).ToList();
                 var finalAmount = tournament.MinAmount != null ? tournament.MinAmount.Value : 
@@ -1191,8 +1166,9 @@ namespace IqSoft.CP.BLL.Services
 
                 for (int i = 0; i < percents.Count; i++)
                 {
-                    var clientAmount = Math.Round(ConvertCurrency(partner.CurrencyId, leaderboard[i].CurrencyId, finalAmount * percents[i] / 100), 2);
-                    var client = Db.Clients.Include(x => x.Partner).FirstOrDefault(x => x.Id == leaderboard[i].Id);
+                    var leaderboardItem = leaderboard[i];
+                    var clientAmount = Math.Round(ConvertCurrency(partner.CurrencyId, leaderboardItem.CurrencyId, finalAmount * percents[i] / 100), 2);
+                    var client = Db.Clients.Include(x => x.Partner).FirstOrDefault(x => x.Id == leaderboardItem.Id);
 
                     var input = new Operation
                     {
@@ -1215,7 +1191,7 @@ namespace IqSoft.CP.BLL.Services
                     });
                     input.OperationItems.Add(new OperationItem
                     {
-                        AccountTypeId = (int)AccountTypes.ClientUnusedBalance,
+                        AccountTypeId = (int)AccountTypes.ClientUnusedBalance, //FinalAccountTypeId ??
                         ObjectId = client.Id,
                         ObjectTypeId = (int)ObjectTypes.Client,
                         Amount = clientAmount,
@@ -1252,6 +1228,33 @@ namespace IqSoft.CP.BLL.Services
 
                 return bet.State;
             }
+        }
+
+        public fnClientBonus CollectBonus(int clientBonusId)
+        {
+            var bonus = Db.ClientBonus.Include(x => x.Bonu).Where(x => x.Id == clientBonusId).FirstOrDefault();
+            if (bonus == null || bonus.Bonu.Type != (int)BonusTypes.CashBackBonus)
+                throw CreateException(Identity.LanguageId, Constants.Errors.BonusNotFound);
+            if (bonus.Status != (int)ClientBonusStatuses.NotAwarded || bonus.ValidUntil == null || bonus.ValidUntil.Value < DateTime.UtcNow)
+                throw CreateException(Identity.LanguageId, Constants.Errors.NotAllowed);
+            var oldValue = new
+            {
+                bonus.Id,
+                bonus.BonusId,
+                bonus.ClientId,
+                bonus.Status,
+                bonus.BonusPrize,
+                bonus.CreationTime,
+                bonus.AwardingTime,
+                bonus.FinalAmount,
+                bonus.CalculationTime,
+                bonus.ValidUntil
+            };
+            SaveChangesWithHistory((int)ObjectTypes.ClientBonus, bonus.Id, JsonConvert.SerializeObject(oldValue), string.Empty);
+            bonus.Status = (int)ClientBonusStatuses.Active;
+            Db.SaveChanges();
+
+            return GetClientBonusById(clientBonusId);
         }
     }
 }

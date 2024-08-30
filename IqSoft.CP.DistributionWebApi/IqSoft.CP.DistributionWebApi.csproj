@@ -127,6 +127,7 @@
     <Compile Include="Common.cs" />
     <Compile Include="Controllers\ApcoPayController.cs" />
     <Compile Include="Controllers\BetGamesController.cs" />
+    <Compile Include="Controllers\BetMakersController.cs" />
     <Compile Include="Controllers\CardToCardController.cs" />
     <Compile Include="Controllers\CashCenterController.cs" />
     <Compile Include="Controllers\ChangellyController.cs" />
@@ -150,6 +151,7 @@
     <Compile Include="Controllers\TomHornController.cs" />
     <Compile Include="Controllers\TotalProcessingController.cs" />
     <Compile Include="Controllers\TVBetController.cs" />
+    <Compile Include="Models\BetMakers\LaunchGameInput.cs" />
     <Compile Include="Models\CModule\InitGameOutput.cs" />
     <Compile Include="Models\HttpRequestMethods.cs" />
     <Compile Include="Controllers\InBetController.cs" />

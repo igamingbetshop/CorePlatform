@@ -16,6 +16,7 @@ using System.Net;
 using log4net;
 using System;
 using IqSoft.CP.Common.Models.Bonus;
+using System.Linq;
 
 namespace IqSoft.CP.Integration.Products.Helpers
 {
@@ -192,7 +193,7 @@ namespace IqSoft.CP.Integration.Products.Helpers
             {"Amusnet", 30 },
             {"Evolution", 42 },
         };
-        public static void AddFreeRound(FreeSpinModel freespinModel, ILog log)
+        public static bool AddFreeRound(FreeSpinModel freespinModel, ILog log)
         {
             var inputString = string.Empty;
             try
@@ -212,7 +213,23 @@ namespace IqSoft.CP.Integration.Products.Helpers
                 if (NotSupportedCurrencies.ContainsKey(subProvider.Name) &&
                     NotSupportedCurrencies[subProvider.Name].Contains(client.CurrencyId))
                     currency = Constants.Currencies.USADollar;
-                int? level = (int?)freespinModel.BetValueLevel;
+
+                int? level = null;
+                if (!string.IsNullOrEmpty(freespinModel.BetValues))
+                {
+                    var bv = JsonConvert.DeserializeObject<Dictionary<string, decimal>>(freespinModel.BetValues);
+                    if(bv.ContainsKey(currency))
+                        level = (int?)bv[currency];
+                }
+                if(level == null && !string.IsNullOrEmpty(product.BetValues))
+                {
+                    var bv = JsonConvert.DeserializeObject<Dictionary<string, List<decimal>>>(product.BetValues);
+                    if (bv.ContainsKey(currency) && bv[currency].Any())
+                        level = (int?)bv[currency][0];
+                }
+                if (level == null)
+                    return false;
+
                 var countryCode = CacheManager.GetRegionById(client.CountryId ?? client.RegionId, Constants.DefaultLanguageId)?.IsoCode;
                 inputString = JsonConvert.SerializeObject(new
                 {
@@ -221,7 +238,7 @@ namespace IqSoft.CP.Integration.Products.Helpers
                     country = "FI",
                     currency,
                     softwareId = FreeSpinProviders[subProvider.Name],
-                    level = level ?? 1,
+                    level = level,
                     amount = freespinModel.SpinCount,
                     games = new List<object> { new { id = Convert.ToInt32(product.ExternalId) } },
                     startAt = DateTime.UtcNow.ToString("yyyy-MM-ddThh:mm:ssZ"),
@@ -245,12 +262,16 @@ namespace IqSoft.CP.Integration.Products.Helpers
                 var res = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
                 log.Info("AleaPlay_Freespin_Output:" + res);
                 if (string.IsNullOrEmpty(JsonConvert.DeserializeObject<FreespinOutput>(res).Id))
-                    throw new Exception(res);
+                {
+                    log.Error(res);
+                    return false;
+                }
+                return true;
             }
             catch (Exception ex)
             {
                 log.Error("AleaPlay_Freespin: " + inputString + " __Error: " + ex);
-                throw;
+                return false; 
             }
         }
 

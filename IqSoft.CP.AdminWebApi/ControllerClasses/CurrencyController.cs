@@ -72,11 +72,11 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                          Id = x.Id,
                          CurrentRate = rate > 10000 ? Math.Round(rate, 0) : (rate>1 ? Math.Round(rate, 2) : Math.Round(rate, 8)),
                          Symbol = x.Symbol,
-                         SessionId = x.SessionId,
                          CreationTime = x.CreationTime,
                          LastUpdateTime = x.LastUpdateTime,
                          Code = x.Code,
-                         Name = x.Name
+                         Name = x.Name,
+                         Type = x.Type
                      }).ToList()
                 };
             }

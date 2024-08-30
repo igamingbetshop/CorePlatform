@@ -29,6 +29,7 @@ namespace IqSoft.CP.DAL.Models.Cache
         public bool SendSms { get; set; }
         public bool SendPromotions { get; set; }
         public string MobileNumber { get; set; }
+        public string PhoneNumber { get; set; }
         public bool IsMobileNumberVerified { get; set; }
         public string LanguageId { get; set; }
         public DateTime CreationTime { get; set; }
@@ -65,5 +66,6 @@ namespace IqSoft.CP.DAL.Models.Cache
 		public bool IsTwoFactorEnabled { get; set; }
 		public string QRCode { get; set; }
 		public int? CharacterId { get; set; }
+		public string RegistrationIp { get; set; }
 	}
 }

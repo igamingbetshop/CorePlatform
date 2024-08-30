@@ -12,6 +12,7 @@ namespace IqSoft.CP.DAL.Filters
         public string RefId { get; set; }
         public bool? IsDocumentVerified { get; set; }
         public string UnderMonitoringTypes { get; set; }
+        public bool? Duplicated { get; set; }
 
         public DateTime? CreatedFrom { get; set; }
 
@@ -107,6 +108,8 @@ namespace IqSoft.CP.DAL.Filters
                 objects = objects.Where(x => x.CreationTime < CreatedBefore.Value);
             if (!string.IsNullOrEmpty(UnderMonitoringTypes))
                 objects = objects.Where(x => x.UnderMonitoringTypes.Contains(UnderMonitoringTypes ));
+            if(Duplicated.HasValue)
+                objects = objects.Where(x => x.Duplicated == Duplicated.ToString());
             if(IsDocumentVerified.HasValue)
                 objects = objects.Where(x => x.IsDocumentVerified == IsDocumentVerified);
 

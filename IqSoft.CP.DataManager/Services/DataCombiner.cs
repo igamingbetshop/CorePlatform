@@ -51,7 +51,7 @@ namespace IqSoft.CP.DataManager.Services
             try
             {
                 var currentTime = DateTime.UtcNow;
-                var startTime = currentTime.AddDays(-20);
+                var startTime = currentTime.AddDays(-35);
                 var endTime = currentTime.AddHours(-2);
                 var fromDate = (long)startTime.Year * 1000000 + startTime.Month * 10000 + startTime.Day * 100 + startTime.Hour;
                 var toDate = (long)endTime.Year * 1000000 + endTime.Month * 10000 + endTime.Day * 100 + endTime.Hour;
@@ -93,6 +93,8 @@ namespace IqSoft.CP.DataManager.Services
                 var toDay = currentDay.AddDays(1);
                 var fDate = (long)currentDay.Year * 1000000 + (long)currentDay.Month * 10000 + (long)currentDay.Day * 100 + (long)currentDay.Hour;
                 var tDate = (long)toDay.Year * 1000000 + (long)toDay.Month * 10000 + (long)toDay.Day * 100 + (long)toDay.Hour;
+                var fDateWithMinutes = fDate * 100 + currentDay.Minute;
+                var tDateWithMinutes = tDate * 100 + currentDay.Minute;
 
                 logger.Info("CalculateDashboardInfo_" + date + "_" + fDate + "_" + tDate);
                 
@@ -354,6 +356,40 @@ namespace IqSoft.CP.DataManager.Services
 
                     #endregion
 
+                    #region Requests
+
+                    var gRequests = (from pr in db.PaymentRequests
+                                    join c in db.Clients on pr.ClientId equals c.Id
+                                    where pr.Date >= fDateWithMinutes && pr.Date < tDateWithMinutes && 
+                                        (pr.Status == (int)PaymentRequestStates.Approved || pr.Status == (int)PaymentRequestStates.ApprovedManually) &&
+                                        (pr.Type == (int)PaymentRequestTypes.Deposit || pr.Type == (int)PaymentRequestTypes.ManualDeposit)
+                                    group pr by new { c.PartnerId } into g
+                                    select new
+                                    {
+                                        PartnerId = g.Key.PartnerId,
+                                        FTD = g.Where(x => x.DepositCount == 0).Count(),
+                                        DepositsCount = g.Count()
+                                    }).ToList();
+
+                    foreach (var gRequest in gRequests)
+                    {
+                        var dayInfo = db.Gtd_Dashboard_Info.FirstOrDefault(x => x.Date == currentDate && x.PartnerId == gRequest.PartnerId);
+                        if (dayInfo == null)
+                        {
+                            dayInfo = new Gtd_Dashboard_Info
+                            {
+                                Date = currentDate,
+                                PartnerId = gRequest.PartnerId,
+                            };
+                            db.Gtd_Dashboard_Info.Add(dayInfo);
+                            db.SaveChanges();
+                        }
+                        dayInfo.DepositsCount = gRequest.DepositsCount;
+                        dayInfo.FTDCount = gRequest.FTD;
+                    }
+
+                    #endregion
+                    
                     db.SaveChanges();
                     if (date == 0 && (currentTime - currentDay).TotalMinutes < 10)
                     {
@@ -404,8 +440,11 @@ namespace IqSoft.CP.DataManager.Services
 
                     foreach (var gBet in gBets)
                     {
+                        var subProviderId = gBet.SubProviderId ?? gBet.GameProviderId.Value;
+
                         var dayInfo = db.Gtd_Provider_Bets.FirstOrDefault(x => x.Date == currentDate &&
-                            x.PartnerId == gBet.PartnerId && x.GameProviderId == gBet.GameProviderId && x.SubProviderId == gBet.SubProviderId);
+                            x.PartnerId == gBet.PartnerId && x.GameProviderId == gBet.GameProviderId && x.SubProviderId == subProviderId);
+
                         if (dayInfo == null)
                         {
                             dayInfo = new Gtd_Provider_Bets
@@ -413,7 +452,7 @@ namespace IqSoft.CP.DataManager.Services
                                 Date = currentDate,
                                 PartnerId = gBet.PartnerId,
                                 GameProviderId = gBet.GameProviderId.Value,
-                                SubProviderId = gBet.SubProviderId ?? gBet.GameProviderId.Value
+                                SubProviderId = subProviderId
                             };
                             db.Gtd_Provider_Bets.Add(dayInfo);
                             db.SaveChanges();
@@ -579,30 +618,43 @@ namespace IqSoft.CP.DataManager.Services
 
                     #region Bets
 
-                    var bets = clientId > 0 ? db.fn_ClientBets(fDate, tDate).Where(x => x.ClientId == clientId).ToList() : db.fn_ClientBets(fDate, tDate).ToList();
-                    
-                    foreach (var bet in bets)
+                    var clientsBets = clientId > 0 ? db.fn_ClientBets(fDate, tDate).Where(x => x.ClientId == clientId).ToList() : db.fn_ClientBets(fDate, tDate).ToList();
+
+                    var bwQuery = db.Documents.Where(x => x.OperationTypeId == (int)OperationTypes.BonusWin && x.Date >= fDate && x.Date < tDate);
+                    if (clientId > 0)
+                        bwQuery = bwQuery.Where(x => x.ClientId == clientId);
+
+                    var bonusWins = bwQuery.GroupBy(x => new { ClientId = x.ClientId.Value }).Select(x => new {
+                        ClientId = x.Key.ClientId,
+                        Amount = x.Sum(y => y.Amount),
+                        Count = x.Count()
+                    }).ToList();
+
+
+                    foreach (var clientBet in clientsBets)
                     {
                         var balance = db.AccountBalances.Where(x => x.ObjectTypeId == (int)ObjectTypes.Client &&
-                            x.ObjectId == bet.ClientId && x.TypeId == (int)AccountTypes.ClientCoinBalance).OrderByDescending(x => x.Id).FirstOrDefault();
-                        var dayInfo = db.Gtd_Client_Info.FirstOrDefault(x => x.Date == currentDate && x.ClientId == bet.ClientId);
+                            x.ObjectId == clientBet.ClientId && x.TypeId == (int)AccountTypes.ClientCoinBalance).OrderByDescending(x => x.Id).FirstOrDefault();
+                        var dayInfo = db.Gtd_Client_Info.FirstOrDefault(x => x.Date == currentDate && x.ClientId == clientBet.ClientId);
                         if (dayInfo == null)
                         {
                             dayInfo = new Gtd_Client_Info
                             {
                                 Date = currentDate,
-                                ClientId = bet.ClientId.Value
+                                ClientId = clientBet.ClientId.Value
                             };
                             db.Gtd_Client_Info.Add(dayInfo);
                             db.SaveChanges();
                         }
-                        dayInfo.TotalBetAmount = bet.BetAmount ?? 0;
-                        dayInfo.TotalBetCount = bet.TotalBetsCount ?? 0;
-                        dayInfo.SportBetCount = bet.SportBetsCount ?? 0;
-                        dayInfo.TotalWinAmount = bet.WinAmount ?? 0;
-                        dayInfo.TotalWinCount = bet.WinCount ?? 0;
+                        dayInfo.TotalBetAmount = clientBet.BetAmount ?? 0;
+                        dayInfo.TotalBetCount = clientBet.TotalBetsCount ?? 0;
+                        dayInfo.SportBetCount = clientBet.SportBetsCount ?? 0;
+                        dayInfo.TotalWinAmount = clientBet.WinAmount ?? 0;
+                        dayInfo.TotalWinCount = clientBet.WinCount ?? 0;
                         dayInfo.ComplementaryBalance = balance == null ? 0 : balance.Balance;
                         dayInfo.GGR = dayInfo.TotalBetAmount - dayInfo.TotalWinAmount;
+                        dayInfo.NGR = dayInfo.GGR + ((clientBet.BonusWinAmount - clientBet.BonusBetAmount) ?? 0) - 
+                            (bonusWins.FirstOrDefault(x => x.ClientId == clientBet.ClientId.Value)?.Amount ?? 0);
                     }
 
                     #endregion
@@ -834,8 +886,10 @@ namespace IqSoft.CP.DataManager.Services
             var bets = new List<Bet>();
             var deletedBets = new List<Bet>();
             var newConsideredDocuments = new List<long>();
-
+            var datesToReconsider = new List<DateTime>();
             var currentTime = DateTime.UtcNow;
+            var currentDate = currentTime.Date;
+
             foreach (var d in documents)
             {
                 if ((currentTime - d.CreationTime).TotalSeconds < 10) 
@@ -904,6 +958,8 @@ namespace IqSoft.CP.DataManager.Services
                             AccountId = d.AccountId
                         };
                         bets.Add(newBet);
+                        if (newBet.BetTime.Date < currentDate && !datesToReconsider.Contains(newBet.BetTime.Date))
+                            datesToReconsider.Add(newBet.BetTime.Date);
                     }
                     else if (d.OperationTypeId == (int)OperationTypes.Win || d.OperationTypeId == (int)OperationTypes.CashOut ||
                         d.OperationTypeId == (int)OperationTypes.Jackpot || d.OperationTypeId == (int)OperationTypes.MultipleBonus ||
@@ -971,6 +1027,8 @@ namespace IqSoft.CP.DataManager.Services
                                 }
                             }
                             bet.WinAmount += d.Amount;
+                            if (bet.BetTime.Date < currentDate && !datesToReconsider.Contains(bet.BetTime.Date))
+                                datesToReconsider.Add(bet.BetTime.Date);
                         }
                         else
                             continue;
@@ -988,6 +1046,9 @@ namespace IqSoft.CP.DataManager.Services
                             bet.PayTime = d.CreationTime;
                             bet.PayDate = d.Date;
                             bet.LastUpdateTime = d.CreationTime;
+
+                            if (bet.BetTime.Date < currentDate && !datesToReconsider.Contains(bet.BetTime.Date))
+                                datesToReconsider.Add(bet.BetTime.Date);
                         }
                         else
                             continue;
@@ -1016,6 +1077,8 @@ namespace IqSoft.CP.DataManager.Services
                                 BonusId = Int32.TryParse(d.Info, out int bonusId) ? (int?)bonusId : null,
                             };
                             deletedBets.Add(deletedBet);
+                            if (bet.BetTime.Date < currentDate && !datesToReconsider.Contains(bet.BetTime.Date))
+                                datesToReconsider.Add(bet.BetTime.Date);
                         }
                         else
                             continue;
@@ -1037,6 +1100,8 @@ namespace IqSoft.CP.DataManager.Services
                                 bet.CalculationDate = null;
                                 bet.LastUpdateTime = d.CreationTime;
                             }
+                            if (bet.BetTime.Date < currentDate && !datesToReconsider.Contains(bet.BetTime.Date))
+                                datesToReconsider.Add(bet.BetTime.Date);
                         }
                         else if(!db.Documents.Any(x => x.Id == d.ParentId && x.Considered == true))
                             continue;
@@ -1053,18 +1118,31 @@ namespace IqSoft.CP.DataManager.Services
             db.SaveChanges();
 
             db.Opt_Document_Considered.Where(x => newConsideredDocuments.Contains(x.DocumentId)).DeleteFromQuery();
+            foreach(var date in datesToReconsider)
+            {
+                var d = (long)date.Year * 10000 + (long)date.Month * 100 + (long)date.Day;
+                AddJobTrigger("CalculateDashboardInfo", d, null, db);
+                AddJobTrigger("CalculateProviderBets", d, null, db);
+                AddJobTrigger("CalculatePaymentInfo", d, null, db);
+                AddJobTrigger("CalculateClientInfo", d, null, db);
+            }
+
             return newLast;
         }
 
         private static void AddJobTrigger(string functionName, long date, int? clientId, IqSoftDataWarehouseEntities db)
         {
-            db.JobTriggers.Add(new JobTrigger
+            var existing = db.JobTriggers.FirstOrDefault(x => x.FunctionName == functionName && x.Date == date && x.ClientId == clientId);
+            if (existing == null)
             {
-                FunctionName = functionName,
-                Date = date,
-                ClientId = clientId
-            });
-            db.SaveChanges();
+                db.JobTriggers.Add(new JobTrigger
+                {
+                    FunctionName = functionName,
+                    Date = date,
+                    ClientId = clientId
+                });
+                db.SaveChanges();
+            }
         }
     }
 }

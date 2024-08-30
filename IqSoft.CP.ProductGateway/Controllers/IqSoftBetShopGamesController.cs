@@ -42,6 +42,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                         Token = input.Token,
                         PlatformToken = userBl.GetUserSessionById(session.ParentId.Value).Token,
                         NickName = user.UserName,
+                        UserName = user.UserName,
                         CurrencyId = user.CurrencyId,
                         BetShopCurrencyId = betShop.CurrencyId,
                         FirstName = user.FirstName,

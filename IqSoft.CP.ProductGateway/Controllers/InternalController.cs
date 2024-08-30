@@ -81,7 +81,14 @@ namespace IqSoft.CP.ProductGateway.Controllers
                 actionLog.SessionId = (identity.SessionId == 0 ? (long?)null : identity.SessionId);
                 using (var permissionBl = new PermissionBll(identity, WebApiApplication.DbLogger))
                 {
-                    var result = permissionBl.CheckPermission(input.Permission);
+                    permissionBl.CheckPermission(input.Permission, false);
+                    var permission = CacheManager.GetPermissions().First(x => x.Id == input.Permission);
+                    var objectAccess = permissionBl.GetPermissionsToObject(new CheckPermissionInput
+                    {
+                        Permission = (permission.ObjectTypeId == (int)ObjectTypes.Partner ? Constants.Permissions.ViewPartner : input.Permission),
+                        ObjectTypeId = permission.ObjectTypeId
+                    });
+                    
                     response = new ApiResponseBase
                     {
                         ResponseObject = JsonConvert.SerializeObject(new
@@ -93,8 +100,8 @@ namespace IqSoft.CP.ProductGateway.Controllers
                             LastName = user.LastName,
                             Gender = user.Gender,
                             Type = user.Type,
-                            HaveAccessToAllObjects = result.HaveAccessForAllObjects,
-                            AccessibleObjects = result.AccessibleObjects == null ? new List<long>() : result.AccessibleObjects.ToList()
+                            HaveAccessToAllObjects = objectAccess.HaveAccessForAllObjects,
+                            AccessibleObjects = objectAccess.AccessibleObjects == null ? new List<string>() : objectAccess.AccessibleStringObjects.ToList()
                         })
                     };
                 }

@@ -135,8 +135,8 @@ namespace IqSoft.CP.ProductGateway.Controllers
                     inputString = reader.ReadToEnd();
                 }
                 WebApiApplication.DbLogger.Info("inputString: " + inputString);
-
-                var clientSession = ClientBll.GetClientProductSession(input.casinoSessionId, Constants.DefaultLanguageId);
+                var checkExpiration = (input.Type == "BET" || input.Type == "BET_WIN");
+                var clientSession = ClientBll.GetClientProductSession(input.casinoSessionId, Constants.DefaultLanguageId,checkExpiration: checkExpiration);
                 var client = CacheManager.GetClientById(clientSession.Id);
 
                 var secretKey = CacheManager.GetGameProviderValueByKey(client.PartnerId, ProviderId, Constants.PartnerKeys.AleaPlaySecretKey);

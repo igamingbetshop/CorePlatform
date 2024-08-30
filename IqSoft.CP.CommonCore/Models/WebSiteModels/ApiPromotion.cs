@@ -1,4 +1,5 @@
 ﻿using IqSoft.CP.Common.Models.AdminModels;
+using System.Collections.Generic;
 
 namespace IqSoft.CP.Common.Models.WebSiteModels
 {
@@ -13,5 +14,6 @@ namespace IqSoft.CP.Common.Models.WebSiteModels
         public int Order { get; set; }
         public ApiSetting Languages { get; set; }
         public string StyleType { get; set; }
+        public List<int> Visibility { get; set; }
     }
 }

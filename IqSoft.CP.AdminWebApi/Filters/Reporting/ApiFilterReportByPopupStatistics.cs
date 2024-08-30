@@ -1,4 +1,5 @@
-﻿using System;
+﻿using IqSoft.CP.Common.Models.Filters;
+using System;
 
 namespace IqSoft.CP.AdminWebApi.Filters.Reporting
 {
@@ -15,7 +16,8 @@ namespace IqSoft.CP.AdminWebApi.Filters.Reporting
         public ApiFiltersOperation States { get; set; }
         public ApiFiltersOperation CreationTimes { get; set; }
         public ApiFiltersOperation LastUpdateTimes { get; set; }
-        public ApiFiltersOperation ViewTypeIds { get; set; }
-        public ApiFiltersOperation ViewCounts { get; set; }
+        public ApiFiltersOperation Vieweds { get; set; }
+        public ApiFiltersOperation Closeds { get; set; }
+        public ApiFiltersOperation Redirecteds { get; set; }
     }
 }

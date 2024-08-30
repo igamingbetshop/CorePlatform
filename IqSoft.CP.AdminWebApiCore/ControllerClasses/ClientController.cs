@@ -283,7 +283,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 var checkClientPermission = clientBl.GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewClient,
-                    ObjectTypeId = ObjectTypes.Client
+                    ObjectTypeId = (int)ObjectTypes.Client
                 });
                 if (!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != clientId))
                     throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.DontHavePermission);
@@ -1251,17 +1251,17 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             var checkPartnerPermission = partnerBll.GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var checkClientPermission = partnerBll.GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClient,
-                ObjectTypeId = ObjectTypes.Client
+                ObjectTypeId = (int)ObjectTypes.Client
             });
             var clientAccess = partnerBll.GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.EditClient,
-                ObjectTypeId = ObjectTypes.Client
+                ObjectTypeId = (int)ObjectTypes.Client
             });
             if (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != client.PartnerId) ||
                 !checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != client.Id) ||
@@ -1302,12 +1302,12 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             var checkPartnerPermission = partnerBll.GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var checkClientPermission = partnerBll.GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClient,
-                ObjectTypeId = ObjectTypes.Client
+                ObjectTypeId = (int)ObjectTypes.Client
             });
             if (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != client.PartnerId) ||
                 !checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != client.Id))

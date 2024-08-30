@@ -15,5 +15,6 @@ namespace IqSoft.CP.Common.Models.WebSiteModels
         public int? ParentId { get; set; }
         public string StyleType { get; set; }
         public System.DateTime StartDate { get; set; }
+        public System.DateTime FinishDate { get; set; }
     }
 }

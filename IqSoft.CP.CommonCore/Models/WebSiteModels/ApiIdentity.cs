@@ -17,5 +17,7 @@ namespace IqSoft.CP.Common.Models.WebSiteModels
 		public double TimeZone { get; set; }
 
 		public string Token { get; set; }
+
+		public bool IsAgent { get; set; }
 	}
 }

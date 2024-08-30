@@ -351,7 +351,7 @@ namespace IqSoft.CP.BLL.Services
                 var checkResult = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.CreateUser,
-                    ObjectTypeId = ObjectTypes.User,
+                    ObjectTypeId = (int)ObjectTypes.User,
                     ObjectId = user.Id
                 });
                 if (!checkResult.HaveAccessForAllObjects && checkResult.AccessibleObjects.All(x => x != user.Id))
@@ -851,7 +851,7 @@ namespace IqSoft.CP.BLL.Services
                 var checkResult = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.CreateUser,
-                    ObjectTypeId = ObjectTypes.User,
+                    ObjectTypeId = (int)ObjectTypes.User,
                     ObjectId = user.Id
                 });
                 if (!checkResult.HaveAccessForAllObjects && checkResult.AccessibleObjects.All(x => x != user.Id))
@@ -1039,7 +1039,7 @@ namespace IqSoft.CP.BLL.Services
                 var checkUser = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.CreateUser,
-                    ObjectTypeId = ObjectTypes.User
+                    ObjectTypeId = (int)ObjectTypes.User
                 });
                 if (!checkUser.HaveAccessForAllObjects && checkUser.AccessibleObjects.All(x => x != userId))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -1078,7 +1078,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             CheckPermission(Constants.Permissions.ViewUser);
             CheckPermission(Constants.Permissions.CreateUser);
@@ -1188,12 +1188,12 @@ namespace IqSoft.CP.BLL.Services
             var userAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewUser,
-                ObjectTypeId = ObjectTypes.User
+                ObjectTypeId = (int)ObjectTypes.User
             });
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnUser>>
@@ -1493,13 +1493,13 @@ namespace IqSoft.CP.BLL.Services
             var checkClientPermission = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewUser,
-                ObjectTypeId = ObjectTypes.User
+                ObjectTypeId = (int)ObjectTypes.User
             });
 
             var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if ((!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != filter.UserId)) ||
                 (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != user.PartnerId)))
@@ -1574,12 +1574,12 @@ namespace IqSoft.CP.BLL.Services
                 var checkP = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
                 var checkClientPermission = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewUser,
-                    ObjectTypeId = ObjectTypes.User
+                    ObjectTypeId = (int)ObjectTypes.User
                 });
                 if (!checkP.HaveAccessForAllObjects && checkP.AccessibleObjects.All(x => x != user.PartnerId))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -1651,7 +1651,7 @@ namespace IqSoft.CP.BLL.Services
                 var checkClientPermission = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewUser,
-                    ObjectTypeId = ObjectTypes.User
+                    ObjectTypeId = (int)ObjectTypes.User
                 });
 
                 if (!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != transferInput.UserId))
@@ -1824,7 +1824,7 @@ namespace IqSoft.CP.BLL.Services
                 GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
 
                 filter.CheckPermissionResuts.Add(new CheckPermissionOutput<fnUserCorrection>
@@ -1852,12 +1852,12 @@ namespace IqSoft.CP.BLL.Services
             var checkPermission = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewUser,
-                ObjectTypeId = ObjectTypes.User
+                ObjectTypeId = (int)ObjectTypes.User
             });
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             var exportAccess = GetPermissionsToObject(new CheckPermissionInput
@@ -1927,7 +1927,7 @@ namespace IqSoft.CP.BLL.Services
                 var checkClientPermission = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
 
                 if (!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != partnerId))

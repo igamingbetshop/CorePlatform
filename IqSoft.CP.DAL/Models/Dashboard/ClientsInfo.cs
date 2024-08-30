@@ -18,6 +18,7 @@ namespace IqSoft.CP.DAL.Models.Dashboard
         public decimal MaxBet { get; set; }
         public decimal MaxWin { get; set; }
         public decimal MaxWinBet { get; set; }
+        public int FTDCount { get; set; }
         public List<ClientsDailyInfo> DailyInfo { get; set; }
     }
 
@@ -38,5 +39,6 @@ namespace IqSoft.CP.DAL.Models.Dashboard
         public decimal MaxBet { get; set; }
         public decimal MaxWin { get; set; }
         public decimal MaxWinBet { get; set; }
+        public int FTDCount { get; set; }
     }
 }

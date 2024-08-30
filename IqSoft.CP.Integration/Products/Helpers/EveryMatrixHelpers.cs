@@ -304,7 +304,7 @@ namespace IqSoft.CP.Integration.Products.Helpers
  //{"GoldenRockStudios", "Microgaming,RelaxGaming"},
  //{"StormGames", "Microgaming,RelaxGaming"}
         };
-        public static void AwardFreeSpin( FreeSpinModel freeSpinModel, ILog log)
+        public static bool AwardFreeSpin( FreeSpinModel freeSpinModel, ILog log)
         {
             var client = CacheManager.GetClientById(freeSpinModel.ClientId);
             var product = CacheManager.GetProductByExternalId(Provider.Id, freeSpinModel.ProductExternalId);
@@ -325,6 +325,22 @@ namespace IqSoft.CP.Integration.Products.Helpers
             var requestHeaders = new Dictionary<string, string>
             { { "Authorization", "Basic " + Convert.ToBase64String(Encoding.Default.GetBytes($"{username}:{password}")) } };
             var externalIds = freeSpinModel.ProductExternalId.Split(',');
+
+
+            decimal? bValue = null;
+            if (!string.IsNullOrEmpty(freeSpinModel.BetValues))
+            {
+                var bv = JsonConvert.DeserializeObject<Dictionary<string, decimal>>(freeSpinModel.BetValues);
+                if (bv.ContainsKey(client.CurrencyId))
+                    bValue = bv[client.CurrencyId];
+            }
+            if (bValue == null && !string.IsNullOrEmpty(product.BetValues))
+            {
+                var bv = JsonConvert.DeserializeObject<Dictionary<string, List<decimal>>>(product.BetValues);
+                if (bv.ContainsKey(client.CurrencyId) && bv[client.CurrencyId].Any())
+                    bValue = bv[client.CurrencyId][0];
+            }
+
             var input = new
             {
                 BonusSource = 2,
@@ -355,19 +371,19 @@ namespace IqSoft.CP.Integration.Products.Helpers
                     Lines = (int?)freeSpinModel.Lines,
                     LineCount = (int?)freeSpinModel.Lines,
                     Coins = (int?)freeSpinModel.Coins,
-                    BetValueLevel = (int?)freeSpinModel.BetValueLevel,
+                    BetValueLevel = (int?)bValue,
                     //CoinSize = freeSpinModel.CoinValue / freeSpinModel.Lines,
                     //SpinCoinPosition = 0,
                     //BetLine = freeSpinModel.BetValueLevel, //??
                     //BetValue = freeSpinModel.BetValueLevel, //??
                     //BetLevel = freeSpinModel.BetValueLevel, //??
                     Denomination =(int?)freeSpinModel.Coins, 
-                    BetAmount = (int?)freeSpinModel.BetValueLevel,
-                    Value = freeSpinModel.BetValueLevel,
-                    betPerLine = freeSpinModel.BetValueLevel,
+                    BetAmount = (int?)bValue,
+                    Value = freeSpinModel.BetValues,
+                    betPerLine = freeSpinModel.BetValues,
                     SpinCoinPosition = (int?)freeSpinModel.Coins,
-                    BetValue = freeSpinModel.BetValueLevel,
-                    Bet = freeSpinModel.BetValueLevel
+                    BetValue = freeSpinModel.BetValues,
+                    Bet = freeSpinModel.BetValues
                 }
             };
             var httpRequestInput = new HttpRequestInput
@@ -383,7 +399,12 @@ namespace IqSoft.CP.Integration.Products.Helpers
             log.Info("EM_FreeSpins_Response" + r);
             var response = JsonConvert.DeserializeObject<FreeSpinOutput>(r);
             if (!response.Success)
-                throw new Exception($"ErrorCode: {response.ErrorCode}, Message: {response.Message}, VendorError: {response.VendorError}");
+            {
+                log.Error(r);
+                return false;
+            }
+            return true;
+               
         }
 
         public static void ForfeitFreeSpinBonus(int clientId, int bonusId, int productId)

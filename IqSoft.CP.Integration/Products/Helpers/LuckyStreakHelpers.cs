@@ -51,13 +51,26 @@ namespace IqSoft.CP.Integration.Products.Helpers
 			var operatorClientName = CacheManager.GetGameProviderValueByKey(partnerId, provider.Id, Constants.PartnerKeys.LuckyStreakOperatorClientName);
 			var operatorClientSecret = CacheManager.GetGameProviderValueByKey(partnerId, provider.Id, Constants.PartnerKeys.LuckyStreakOperatorClientSecret);
 			var token = GetToken(operatorName, url, operatorClientName, operatorClientSecret);
-			var providerGames = GetGames(token, $"{provider.GameLaunchUrl}/lobby/api/v4/lobby/providergames");
+			url = CacheManager.GetGameProviderValueByKey(partnerId, provider.Id, Constants.PartnerKeys.LuckyStreakGetGamesUrl);
+			var providerGames = GetGames(token, $"{url}/lobby/api/v3/lobby/providergames");
 			var providerIds = new Dictionary<int, string>()
 			{
-				{3, "PragmaticPlay" },
-				{8, "Spinomenal" },
-				{9, "Fugaso" },
-				{13, "Yggdrasil" }
+				{4, "PragmaticPlay" },
+				{8, "BGaming" },
+				{62, "RedRake" },
+				{12, "Yggdrasil" },
+				{25, "PlaysonDirect" },
+				{29, "3oaks" },
+				{7, "Fugaso" },
+				{3, "TomHorn" },
+				{55, "InBet" },
+				{58, "TurboGames" },
+				{30, "RubyPlay" },
+				{26, "Evoplay" },
+				{33, "Amusment" },
+				{6, "Spinomenal" },
+				{63, "LuckyMonaco" },
+				{64, "PGSoft" }
 			};
 			var key = 0;
 			foreach (var pg in providerGames)
@@ -85,22 +98,22 @@ namespace IqSoft.CP.Integration.Products.Helpers
 				}
 				continue;
 			}
-			var lobbyGames = GetGames(token, $"{provider.GameLaunchUrl}/lobby/api/v4/lobby/games");
-			foreach (var lg in lobbyGames)
-			{
-					var match = Regex.Match(lg.launchUrl, @"GameId=(\d+)&GameType=([^&]+)");
-					var product = new Product
-					{
-						id = lg.id,
-						name = lg.name,
-						provider = "LuckyStreak",
-						externalId = $"lobbyGame,{match.Groups[1].Value},{match.Groups[2].Value}",  // gameId,gameType
-						type = lg.type,
-						imageUrl = lg.dealer?.avatarUrl,
-						demoUrl = null
-					};
-					products.Add(product);
-			}
+			//var lobbyGames = GetGames(token, $"{provider.GameLaunchUrl}/lobby/api/v4/lobby/games");
+			//foreach (var lg in lobbyGames)
+			//{
+			//		var match = Regex.Match(lg.launchUrl, @"GameId=(\d+)&GameType=([^&]+)");
+			//		var product = new Product
+			//		{
+			//			id = lg.id,
+			//			name = lg.name,
+			//			provider = "LuckyStreak",
+			//			externalId = $"lobbyGame,{match.Groups[1].Value},{match.Groups[2].Value}",  // gameId,gameType
+			//			type = lg.type,
+			//			imageUrl = lg.dealer?.avatarUrl,
+			//			demoUrl = null
+			//		};
+			//		products.Add(product);
+			//}
 			return products;
 		}
 

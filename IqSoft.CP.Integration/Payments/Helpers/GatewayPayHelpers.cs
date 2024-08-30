@@ -31,7 +31,8 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 throw BaseBll.CreateException(session.LanguageId, Constants.Errors.AddressCantBeEmpty);
             if (string.IsNullOrWhiteSpace(client.ZipCode?.Trim()))
                 throw BaseBll.CreateException(session.LanguageId, Constants.Errors.ZipCodeCantBeEmpty);
-            if (string.IsNullOrEmpty(client.City))
+            var paymentInfo = JsonConvert.DeserializeObject<PaymentInfo>(input.Info);
+            if (string.IsNullOrEmpty(paymentInfo.City) || string.IsNullOrEmpty(paymentInfo.Country))
                 throw BaseBll.CreateException(session.LanguageId, Constants.Errors.RegionNotFound);
 
             var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId,
@@ -45,9 +46,9 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 first_name = client.FirstName,
                 last_name = client.LastName,
                 address = client.Address,
-                country = session.Country,
-                state = client.City,
-                city = client.City,
+                country = paymentInfo.Country,
+                state = paymentInfo.City,
+                city = paymentInfo.City,
                 zip = client.ZipCode.Trim(),
                 ip_address = session.LoginIp,
                 email = client.Email,

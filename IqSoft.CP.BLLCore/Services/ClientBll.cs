@@ -697,19 +697,19 @@ namespace IqSoft.CP.BLL.Services
                 var checkClientPermission = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewClient,
-                    ObjectTypeId = ObjectTypes.Client
+                    ObjectTypeId = (int)ObjectTypes.Client
                 });
 
                 var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
 
                 var affiliateReferralAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewAffiliateReferral,
-                    ObjectTypeId = ObjectTypes.AffiliateReferral
+                    ObjectTypeId = (int)ObjectTypes.AffiliateReferral
                 });
 
                 if ((!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != id)) ||
@@ -1094,19 +1094,19 @@ namespace IqSoft.CP.BLL.Services
                 var checkClientPermission = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewClient,
-                    ObjectTypeId = ObjectTypes.Client
+                    ObjectTypeId = (int)ObjectTypes.Client
                 });
 
                 var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
 
                 var affiliateReferralAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewAffiliateReferral,
-                    ObjectTypeId = ObjectTypes.AffiliateReferral
+                    ObjectTypeId = (int)ObjectTypes.AffiliateReferral
                 });
                 if ((!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != clientId)) ||
                     (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != client.PartnerId)) ||
@@ -1132,12 +1132,12 @@ namespace IqSoft.CP.BLL.Services
             var clientAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClient,
-                ObjectTypeId = ObjectTypes.Client
+                ObjectTypeId = (int)ObjectTypes.Client
             });
             //var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             //{
             //    Permission = Constants.Permissions.ViewPartner,
-            //    ObjectTypeId = ObjectTypes.Partner
+            //    ObjectTypeId = (int)ObjectTypes.Partner
             //});
 
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<ClientSession>>
@@ -1905,19 +1905,19 @@ namespace IqSoft.CP.BLL.Services
                 var checkClientPermission = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewClient,
-                    ObjectTypeId = ObjectTypes.Client
+                    ObjectTypeId = (int)ObjectTypes.Client
                 });
 
                 var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
 
                 var affiliateReferralAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewAffiliateReferral,
-                    ObjectTypeId = ObjectTypes.AffiliateReferral
+                    ObjectTypeId = (int)ObjectTypes.AffiliateReferral
                 });
                 if ((!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != clientId)) ||
                     (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != client.PartnerId)) ||
@@ -2213,23 +2213,23 @@ namespace IqSoft.CP.BLL.Services
             var clientAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClient,
-                ObjectTypeId = ObjectTypes.Client
+                ObjectTypeId = (int)ObjectTypes.Client
             });
             var clientCategoryAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClientByCategory,
-                ObjectTypeId = ObjectTypes.ClientCategory
+                ObjectTypeId = (int)ObjectTypes.ClientCategory
             });
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             var affiliateReferralAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewAffiliateReferral,
-                ObjectTypeId = ObjectTypes.AffiliateReferral
+                ObjectTypeId = (int)ObjectTypes.AffiliateReferral
             });
 
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<Client>>
@@ -2266,23 +2266,23 @@ namespace IqSoft.CP.BLL.Services
             var clientAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClient,
-                ObjectTypeId = ObjectTypes.Client
+                ObjectTypeId = (int)ObjectTypes.Client
             });
             var clientCategoryAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClientByCategory,
-                ObjectTypeId = ObjectTypes.ClientCategory
+                ObjectTypeId = (int)ObjectTypes.ClientCategory
             });
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             var affiliateReferralAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewAffiliateReferral,
-                ObjectTypeId = ObjectTypes.AffiliateReferral
+                ObjectTypeId = (int)ObjectTypes.AffiliateReferral
             });
 
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnClient>>
@@ -2324,22 +2324,22 @@ namespace IqSoft.CP.BLL.Services
             var clientAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClient,
-                ObjectTypeId = ObjectTypes.Client
+                ObjectTypeId = (int)ObjectTypes.Client
             });
             var noteAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.CreateNote,
-                ObjectTypeId = ObjectTypes.Client
+                ObjectTypeId = (int)ObjectTypes.Client
             });
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var affiliateAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewAffiliateReferral,
-                ObjectTypeId = ObjectTypes.AffiliateReferral
+                ObjectTypeId = (int)ObjectTypes.AffiliateReferral
             });
             if ((!clientAccess.HaveAccessForAllObjects && clientAccess.AccessibleObjects.All(x => x != clientId)) ||
                 (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != client.PartnerId)) || !noteAccess.HaveAccessForAllObjects ||
@@ -2386,19 +2386,19 @@ namespace IqSoft.CP.BLL.Services
             var checkClientPermission = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClient,
-                ObjectTypeId = ObjectTypes.Client
+                ObjectTypeId = (int)ObjectTypes.Client
             });
 
             var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             var affiliateReferralAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewAffiliateReferral,
-                ObjectTypeId = ObjectTypes.AffiliateReferral
+                ObjectTypeId = (int)ObjectTypes.AffiliateReferral
             });
             if ((!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != filter.ClientId)) ||
                 (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != client.PartnerId)) ||
@@ -2455,12 +2455,12 @@ namespace IqSoft.CP.BLL.Services
             var clientAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClient,
-                ObjectTypeId = ObjectTypes.Client
+                ObjectTypeId = (int)ObjectTypes.Client
             });
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnClientLog>>
@@ -2516,12 +2516,12 @@ namespace IqSoft.CP.BLL.Services
                 var clientAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewClient,
-                    ObjectTypeId = ObjectTypes.Client
+                    ObjectTypeId = (int)ObjectTypes.Client
                 });
                 var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
                 GetPermissionsToObject(new CheckPermissionInput
                 {
@@ -2531,7 +2531,7 @@ namespace IqSoft.CP.BLL.Services
                 var affiliateReferralAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewAffiliateReferral,
-                    ObjectTypeId = ObjectTypes.AffiliateReferral
+                    ObjectTypeId = (int)ObjectTypes.AffiliateReferral
                 });
                 if ((!clientAccess.HaveAccessForAllObjects && clientAccess.AccessibleObjects.All(x => x != input.ClientId)) ||
                     (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != client.PartnerId)) ||
@@ -2641,12 +2641,12 @@ namespace IqSoft.CP.BLL.Services
                 var clientAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewClient,
-                    ObjectTypeId = ObjectTypes.Client
+                    ObjectTypeId = (int)ObjectTypes.Client
                 });
                 var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
                 GetPermissionsToObject(new CheckPermissionInput
                 {
@@ -2656,7 +2656,7 @@ namespace IqSoft.CP.BLL.Services
                 var affiliateReferralAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewAffiliateReferral,
-                    ObjectTypeId = ObjectTypes.AffiliateReferral
+                    ObjectTypeId = (int)ObjectTypes.AffiliateReferral
                 });
                 if ((!clientAccess.HaveAccessForAllObjects && clientAccess.AccessibleObjects.All(x => x != client.Id)) ||
                     (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != client.PartnerId)) ||
@@ -2696,17 +2696,17 @@ namespace IqSoft.CP.BLL.Services
                 var clientAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewClient,
-                    ObjectTypeId = ObjectTypes.Client
+                    ObjectTypeId = (int)ObjectTypes.Client
                 });
                 var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
                 var affiliateAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewAffiliateReferral,
-                    ObjectTypeId = ObjectTypes.AffiliateReferral
+                    ObjectTypeId = (int)ObjectTypes.AffiliateReferral
                 });
                 if ((!clientAccess.HaveAccessForAllObjects && clientAccess.AccessibleObjects.All(x => x != clientId)) ||
                     (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != client.PartnerId)) ||
@@ -2731,17 +2731,17 @@ namespace IqSoft.CP.BLL.Services
                 var clientAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.EditClient,
-                    ObjectTypeId = ObjectTypes.Client
+                    ObjectTypeId = (int)ObjectTypes.Client
                 });
                 var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
                 var affiliateAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewAffiliateReferral,
-                    ObjectTypeId = ObjectTypes.AffiliateReferral
+                    ObjectTypeId = (int)ObjectTypes.AffiliateReferral
                 });
                 if ((!clientAccess.HaveAccessForAllObjects && clientAccess.AccessibleObjects.All(x => x != client.Id)) ||
                       (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != client.PartnerId)) ||
@@ -2778,19 +2778,19 @@ namespace IqSoft.CP.BLL.Services
             var checkClientPermission = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClient,
-                ObjectTypeId = ObjectTypes.Client
+                ObjectTypeId = (int)ObjectTypes.Client
             });
 
             var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             var affiliateAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewAffiliateReferral,
-                ObjectTypeId = ObjectTypes.AffiliateReferral
+                ObjectTypeId = (int)ObjectTypes.AffiliateReferral
             });
             if ((!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != clientId)) ||
                 (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != client.PartnerId)) ||
@@ -3559,19 +3559,19 @@ namespace IqSoft.CP.BLL.Services
                 var checkClientPermission = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewClient,
-                    ObjectTypeId = ObjectTypes.Client
+                    ObjectTypeId = (int)ObjectTypes.Client
                 });
 
                 var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
 
                 var affiliateAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewAffiliateReferral,
-                    ObjectTypeId = ObjectTypes.AffiliateReferral
+                    ObjectTypeId = (int)ObjectTypes.AffiliateReferral
                 });
 
                 if ((!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != clientId)) ||
@@ -3715,19 +3715,19 @@ namespace IqSoft.CP.BLL.Services
             var checkClientPermission = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClient,
-                ObjectTypeId = ObjectTypes.Client
+                ObjectTypeId = (int)ObjectTypes.Client
             });
 
             var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             var affiliateAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewAffiliateReferral,
-                ObjectTypeId = ObjectTypes.AffiliateReferral
+                ObjectTypeId = (int)ObjectTypes.AffiliateReferral
             });
             CheckPermission(Constants.Permissions.EditClient);
 
@@ -3789,19 +3789,19 @@ namespace IqSoft.CP.BLL.Services
                 var checkClientPermission = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewClient,
-                    ObjectTypeId = ObjectTypes.Client
+                    ObjectTypeId = (int)ObjectTypes.Client
                 });
 
                 var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
 
                 var affiliateAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewAffiliateReferral,
-                    ObjectTypeId = ObjectTypes.AffiliateReferral
+                    ObjectTypeId = (int)ObjectTypes.AffiliateReferral
                 });
                 if ((!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != clientId)) ||
                     (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != client.PartnerId)) ||
@@ -3854,7 +3854,7 @@ namespace IqSoft.CP.BLL.Services
                 CheckPermissionToSaveObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.CreateClientMessage,
-                    ObjectTypeId = ObjectTypes.ClientMessage
+                    ObjectTypeId = (int)ObjectTypes.ClientMessage
                 });
             }
             var currentTime = GetServerDate();
@@ -3959,22 +3959,22 @@ namespace IqSoft.CP.BLL.Services
                 var clientAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewClient,
-                    ObjectTypeId = ObjectTypes.Client
+                    ObjectTypeId = (int)ObjectTypes.Client
                 });
                 var affiliateAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewAffiliateReferral,
-                    ObjectTypeId = ObjectTypes.AffiliateReferral
+                    ObjectTypeId = (int)ObjectTypes.AffiliateReferral
                 });
                 var clientMessageAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewClientMessage,
-                    ObjectTypeId = ObjectTypes.ClientMessage
+                    ObjectTypeId = (int)ObjectTypes.ClientMessage
                 });
                 var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
                 filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnTicket>>
                 {
@@ -4019,25 +4019,25 @@ namespace IqSoft.CP.BLL.Services
                 var clientAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewClient,
-                    ObjectTypeId = ObjectTypes.Client
+                    ObjectTypeId = (int)ObjectTypes.Client
                 });
 
                 var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
 
                 var affiliateReferralAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewAffiliateReferral,
-                    ObjectTypeId = ObjectTypes.AffiliateReferral
+                    ObjectTypeId = (int)ObjectTypes.AffiliateReferral
                 });
 
                 GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewClientMessage,
-                    ObjectTypeId = ObjectTypes.ClientMessage
+                    ObjectTypeId = (int)ObjectTypes.ClientMessage
                 });
 
                 filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnClientMessage>>
@@ -4141,18 +4141,18 @@ namespace IqSoft.CP.BLL.Services
             var checkClientPermission = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClient,
-                ObjectTypeId = ObjectTypes.Client
+                ObjectTypeId = (int)ObjectTypes.Client
             });
 
             var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var affiliateAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewAffiliateReferral,
-                ObjectTypeId = ObjectTypes.AffiliateReferral
+                ObjectTypeId = (int)ObjectTypes.AffiliateReferral
             });
 
             if ((!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != clientId)) ||
@@ -4174,19 +4174,19 @@ namespace IqSoft.CP.BLL.Services
             var checkClientPermission = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClient,
-                ObjectTypeId = ObjectTypes.Client
+                ObjectTypeId = (int)ObjectTypes.Client
             });
 
             var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             var affiliateAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewAffiliateReferral,
-                ObjectTypeId = ObjectTypes.AffiliateReferral
+                ObjectTypeId = (int)ObjectTypes.AffiliateReferral
             });
 
             if ((!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != clientId)) ||
@@ -4228,19 +4228,19 @@ namespace IqSoft.CP.BLL.Services
             var checkClientPermission = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClient,
-                ObjectTypeId = ObjectTypes.Client
+                ObjectTypeId = (int)ObjectTypes.Client
             });
 
             var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             var affiliateAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewAffiliateReferral,
-                ObjectTypeId = ObjectTypes.AffiliateReferral
+                ObjectTypeId = (int)ObjectTypes.AffiliateReferral
             });
 
             if ((!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != clientId)) ||
@@ -4300,13 +4300,13 @@ namespace IqSoft.CP.BLL.Services
                 var clientAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewClient,
-                    ObjectTypeId = ObjectTypes.Client
+                    ObjectTypeId = (int)ObjectTypes.Client
                 });
 
                 var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
 
                 if ((!clientAccess.HaveAccessForAllObjects && clientAccess.AccessibleObjects.All(x => x != clientId)) ||
@@ -4818,12 +4818,12 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var clientAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClient,
-                ObjectTypeId = ObjectTypes.Client
+                ObjectTypeId = (int)ObjectTypes.Client
             });
             if ((!clientAccess.HaveAccessForAllObjects && clientAccess.AccessibleObjects.All(x => x != clientId)) ||
                 (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != client.PartnerId)))
@@ -4901,12 +4901,12 @@ namespace IqSoft.CP.BLL.Services
                 var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
                 var clientAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewClient,
-                    ObjectTypeId = ObjectTypes.Client
+                    ObjectTypeId = (int)ObjectTypes.Client
                 });
                 if ((!clientAccess.HaveAccessForAllObjects && clientAccess.AccessibleObjects.All(x => x != clientId)) ||
                     (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != client.PartnerId)))
@@ -4993,13 +4993,13 @@ namespace IqSoft.CP.BLL.Services
             var clientAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClient,
-                ObjectTypeId = ObjectTypes.Client
+                ObjectTypeId = (int)ObjectTypes.Client
             });
 
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             GetPermissionsToObject(new CheckPermissionInput
             {
@@ -5106,7 +5106,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             if (!bonusAccess.HaveAccessForAllObjects)
@@ -5148,7 +5148,7 @@ namespace IqSoft.CP.BLL.Services
                 var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
 
                 if (!bonusAccess.HaveAccessForAllObjects)
@@ -5250,7 +5250,7 @@ namespace IqSoft.CP.BLL.Services
                 var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
 
                 if (!bonusAccess.HaveAccessForAllObjects)
@@ -5305,7 +5305,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if (!bonusAccess.HaveAccessForAllObjects)
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -6122,19 +6122,19 @@ namespace IqSoft.CP.BLL.Services
             var checkClientPermission = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClient,
-                ObjectTypeId = ObjectTypes.Client
+                ObjectTypeId = (int)ObjectTypes.Client
             });
 
             var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             var affiliateReferralAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewAffiliateReferral,
-                ObjectTypeId = ObjectTypes.AffiliateReferral
+                ObjectTypeId = (int)ObjectTypes.AffiliateReferral
             });
 
             if ((!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != client.Id)) ||
@@ -6856,17 +6856,17 @@ namespace IqSoft.CP.BLL.Services
                 var checkClientPermission = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewClient,
-                    ObjectTypeId = ObjectTypes.Client
+                    ObjectTypeId = (int)ObjectTypes.Client
                 });
                 var affiliateAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewAffiliateReferral,
-                    ObjectTypeId = ObjectTypes.AffiliateReferral
+                    ObjectTypeId = (int)ObjectTypes.AffiliateReferral
                 });
                 var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
                 if (!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != correction.ClientId) ||
                      (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != client.PartnerId)) ||
@@ -6946,18 +6946,18 @@ namespace IqSoft.CP.BLL.Services
                 var checkClientPermission = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewClient,
-                    ObjectTypeId = ObjectTypes.Client
+                    ObjectTypeId = (int)ObjectTypes.Client
                 });
 
                 var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
                 var affiliateAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewAffiliateReferral,
-                    ObjectTypeId = ObjectTypes.AffiliateReferral
+                    ObjectTypeId = (int)ObjectTypes.AffiliateReferral
                 });
                 if (!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != correction.ClientId) ||
                     (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != client.PartnerId)) ||
@@ -7748,12 +7748,12 @@ namespace IqSoft.CP.BLL.Services
                 var clientAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewClient,
-                    ObjectTypeId = ObjectTypes.Client
+                    ObjectTypeId = (int)ObjectTypes.Client
                 });
                 var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
                 if ((!clientAccess.HaveAccessForAllObjects && clientAccess.AccessibleObjects.All(x => x != clientId)) ||
                     (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != client.PartnerId)))
@@ -8509,12 +8509,12 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var clientAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClient,
-                ObjectTypeId = ObjectTypes.Client
+                ObjectTypeId = (int)ObjectTypes.Client
             });
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnSegmentClient>>
                 {

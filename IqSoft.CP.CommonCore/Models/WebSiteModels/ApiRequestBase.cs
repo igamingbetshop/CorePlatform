@@ -10,5 +10,6 @@
 		public string Domain { get; set; }
 		public int OSType { get; set; }
 		public string Source { get; set; }
-	}
+        public bool IsAgent { get; set; }
+    }
 }

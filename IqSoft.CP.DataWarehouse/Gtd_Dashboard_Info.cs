@@ -61,5 +61,6 @@ namespace IqSoft.CP.DataWarehouse
         public int BetShopPlayersCount { get; set; }
         public int TerminalPlayersCount { get; set; }
         public int ApplicationPlayersCount { get; set; }
+        public int FTDCount { get; set; }
     }
 }

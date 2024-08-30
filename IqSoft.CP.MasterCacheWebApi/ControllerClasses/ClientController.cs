@@ -5,7 +5,6 @@ using IqSoft.CP.Common.Enums;
 using IqSoft.CP.Common.Helpers;
 using IqSoft.CP.Common.Models;
 using IqSoft.CP.Common.Models.WebSiteModels;
-using IqSoft.CP.Common.Models.WebSiteModels.Bonuses;
 using IqSoft.CP.Common.Models.WebSiteModels.Clients;
 using IqSoft.CP.Common.Models.WebSiteModels.ComplimentaryPoint;
 using IqSoft.CP.Common.Models.WebSiteModels.Filters;
@@ -41,7 +40,7 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                 case "ChangeNickName":
                     return ChangeNickName(request.RequestData, request.ClientId, session, log);
                 case "GetClientAccounts":
-                    return GetClientAccounts(request.ClientId, session, log);
+                    return GetClientAccounts(JsonConvert.DeserializeObject<ChangeClientFieldsInput>(request.RequestData), request.ClientId, session, log);
                 case "GetClientStates":
                     return GetClientStates(request.ClientId, session, log);
                 case "GetBetShopsByClientId": //-
@@ -148,6 +147,10 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                     return SpendComplimentaryPoints(JsonConvert.DeserializeObject<ApiComplimentaryPoint>(request.RequestData), session, log);
                 case "GetClientBonusTriggers":
                     return GetClientBonusTriggers(JsonConvert.DeserializeObject<ApiClientBonusItem>(request.RequestData), request.ClientId, session, log);
+                case "CollectClientBonus":
+                    return CollectClientBonus(JsonConvert.DeserializeObject<ApiClientBonusItem>(request.RequestData), request.ClientId, session, log);
+                case "GetBonusWinnersInfo":
+                    return GetBonusWinnersInfo(JsonConvert.DeserializeObject<ApiClientBonusItem>(request.RequestData), request.ClientId, session, log);
                 case "AcceptTermsConditions":
                     return AcceptTermsConditions(request.ClientId, session, log);
                 case "GetClientStatuses":
@@ -173,7 +176,7 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                 case "ConfirmLimit":
                     return ConfirmLimit(request.ClientId, JsonConvert.DeserializeObject<ConfirmLimitInput>(request.RequestData), session, log);
                 case "ViewPopup":
-                    return ViewPopup(request.ClientId, JsonConvert.DeserializeObject<ApiPopupWeSiteModel>(request.RequestData), session, log);
+                    return ViewPopup(request.ClientId, JsonConvert.DeserializeObject<ApiPopupWebSiteModel>(request.RequestData), session, log);
                 case "SpinWheel":
                     return SpinWheel(request.ClientId, JsonConvert.DeserializeObject<ApiClientBonusItem>(request.RequestData), session, log);
                 default:
@@ -201,7 +204,7 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                     DocumentIssuedBy = input.DocumentIssuedBy ?? dbClient.DocumentIssuedBy,
                     Address = input.Address ?? dbClient.Address,
                     MobileNumber = input.MobileNumber ?? dbClient.MobileNumber,
-                    PhoneNumber = input.PhoneNumber ?? dbClient.PhoneNumber,
+                    MobileCode = input.MobileCode ?? dbClient.PhoneNumber,
                     ZipCode = input.ZipCode ?? dbClient.ZipCode.Trim(),
                     LanguageId = input.LanguageId ?? dbClient.LanguageId,
                     Gender = input.Gender ?? dbClient.Gender,
@@ -300,44 +303,65 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
             }
         }
 
-        public static ApiResponseBase GetClientAccounts(int clientId, SessionIdentity session, ILog log)
+        public static ApiResponseBase GetClientAccounts(ChangeClientFieldsInput input, int identifier, SessionIdentity session, ILog log)
         {
             using (var baseBl = new ClientBll(session, log))
             {
-                var accounts =
-                    baseBl.GetfnAccounts(new FilterfnAccount
-                    {
-                        ObjectId = clientId,
-                        ObjectTypeId = (int)ObjectTypes.Client
-                    });
-                var client = CacheManager.GetClientById(clientId);
-                var partner = CacheManager.GetPartnerById(client.PartnerId);
-                var clientSetting = CacheManager.GetClientSettingByName(clientId, Constants.ClientSettings.UnusedAmountWithdrawPercent);
-                var uawp = partner.UnusedAmountWithdrawPercent;
-                if (clientSetting != null && clientSetting.Id > 0 && clientSetting.NumericValue != null)
-                    uawp = clientSetting.NumericValue.Value;
-                var isExternalPlatformClient = ExternalPlatformHelpers.IsExternalPlatformClient(client, out DAL.Models.Cache.PartnerKey externalPlatformType);
-                if (isExternalPlatformClient)
+                var accounts = session.IsAgent ? baseBl.GetfnAccounts(new FilterfnAccount
                 {
-                    var externalBalance = Math.Floor(ExternalPlatformHelpers.GetClientBalance(Convert.ToInt32(externalPlatformType.StringValue), clientId) * 100) / 100;
-                    return new ApiResponseBase
+                    ObjectId = identifier,
+                    ObjectTypeId = (int)ObjectTypes.User
+                }) : baseBl.GetfnAccounts(new FilterfnAccount
+                {
+                    ObjectId = identifier,
+                    ObjectTypeId = (int)ObjectTypes.Client
+                });
+                decimal uawp = 0;
+                var result = new List<AccountModel>();
+                if (!session.IsAgent)
+                {
+                    var client = CacheManager.GetClientById(identifier);
+                    var partner = CacheManager.GetPartnerById(client.PartnerId);
+                    var clientSetting = CacheManager.GetClientSettingByName(identifier, Constants.ClientSettings.UnusedAmountWithdrawPercent);
+                    uawp = partner.UnusedAmountWithdrawPercent;
+                    if (clientSetting != null && clientSetting.Id > 0 && clientSetting.NumericValue != null)
+                        uawp = clientSetting.NumericValue.Value;
+
+                    var isExternalPlatformClient = ExternalPlatformHelpers.IsExternalPlatformClient(client, out DAL.Models.Cache.PartnerKey externalPlatformType);
+                    if (isExternalPlatformClient)
                     {
-                        ResponseObject = new GetClientAccountsOutput
+                        var externalBalance = Math.Floor(ExternalPlatformHelpers.GetClientBalance(Convert.ToInt32(externalPlatformType.StringValue), identifier) * 100) / 100;
+                        return new ApiResponseBase
                         {
-                            Accounts = accounts.Where(x => x.TypeId == (int)AccountTypes.ClientUnusedBalance).Select(x => { x.Balance = externalBalance; return x.MapToAccountModel(uawp); }).ToList()
+                            ResponseObject = new GetClientAccountsOutput
+                            {
+                                Accounts = accounts.Where(x => x.TypeId == (int)AccountTypes.ClientUnusedBalance).Select(x => { x.Balance = externalBalance; return x.MapToAccountModel(uawp); }).ToList()
+                            }
+                        };
+                    }
+                    try
+                    {
+                        result.AddRange(ExternalPlatformHelpers.GetExternalAccounts(client, session, log));
+                    }
+                    catch (Exception e)
+                    {
+                        log.Error(e);
+                    }
+                }
+                
+                result.AddRange(accounts.Where(x => x.Status != (int)BaseStates.Inactive).Select(x => x.MapToAccountModel(uawp)).ToList());
+                if(!string.IsNullOrEmpty(input.CurrencyId))
+                {
+                    foreach(var acc in result)
+                    {
+                        if(!string.IsNullOrEmpty(acc.CurrencyId))
+                        {
+                            acc.Balance = BaseBll.ConvertCurrency(acc.CurrencyId, input.CurrencyId, acc.Balance);
+                            acc.WithdrawableBalance = BaseBll.ConvertCurrency(acc.CurrencyId, input.CurrencyId, acc.WithdrawableBalance);
                         }
-                    };
+                    }
                 }
 
-                var result = accounts.Where(x => x.Status != (int)BaseStates.Inactive).Select(x => x.MapToAccountModel(uawp)).ToList();
-                try
-                {
-                    result.AddRange(ExternalPlatformHelpers.GetExternalAccounts(client, session, log));
-                }
-                catch (Exception e)
-                {
-                    log.Error(e);
-                }
                 return new ApiResponseBase
                 {
                     ResponseObject = new GetClientAccountsOutput
@@ -408,6 +432,14 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
 
         public static ApiResponseBase GetClientStates(int clientId, SessionIdentity session, ILog log)
         {
+            if(session.IsAgent)
+                return new ApiResponseBase
+                {
+                    ResponseObject = new GetClientStatesOutput
+                    {
+                        UnreadMessagesCount = 0
+                    }
+                };
             var client = CacheManager.GetClientById(clientId);
             if (client == null)
                 throw BaseBll.CreateException(session.LanguageId, Constants.Errors.ClientNotFound);
@@ -717,6 +749,8 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
             using (var clientBl = new ClientBll(session, log))
             {
                 clientBl.ChangeTicketStatus(ticketId, session.Id, MessageTicketState.Closed);
+                Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}", Constants.CacheItems.ClientUnreadTicketsCount, session.Id));
+
                 return new ApiResponseBase();
             }
         }
@@ -775,7 +809,7 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                     }
                 };
             }
-        }
+        }       
 
         private static ApiResponseBase GetKYCDocumentTypesEnum(SessionIdentity identity, ILog log)
         {
@@ -792,11 +826,10 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                     registrationKYCTypes = CacheManager.GetConfigParameters(identity.PartnerId, Constants.PartnerKeys.RegistrationKYCTypes).
                         Where(x => x.Key != client.DocumentType.Value.ToString()).Select(x => Convert.ToInt32(x.Key)).ToList();
                 }
-
                 var clientDocuments = clientBl.GetClientIdentities(identity.Id).Where(x => (x.Status == (int)KYCDocumentStates.Approved || x.Status == (int)KYCDocumentStates.InProcess) &&
                     (registrationKYCTypes.Contains(x.DocumentTypeId) || x.DocumentTypeId == client.DocumentType)).Select(x => x.DocumentTypeId).ToList();
                 var documentTypes = BaseBll.GetEnumerations(Constants.EnumerationTypes.KYCDocumentTypes, identity.LanguageId)
-                    .Where(x => !clientDocuments.Contains(x.Value) && (partnerKYCDocumentTypes == null || partnerKYCDocumentTypes.Contains(x.Value)))
+                    .Where(x => x.Value != (int)KYCDocumentTypes.ProfilePicture && !clientDocuments.Contains(x.Value) && (partnerKYCDocumentTypes == null || partnerKYCDocumentTypes.Contains(x.Value)))
                     .Select(x => new
                     {
                         Id = x.Value,
@@ -955,7 +988,9 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                     x.BankName
                 }).Select(x => new
                 {
+                    Id = x.First().Id,
                     BankName = x.Key.BankName,
+                    BankCode = x.First().BankCode,
                     Branches = x.Select(y => new
                     {
                         y.Id,
@@ -1135,9 +1170,10 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
             using (var bonusService = new BonusService(identity, log))
             {
                 var bonus = bonusService.GetAvailableBonus(bonusId, false);
+                var client = CacheManager.GetClientById(clientId);
+
                 if (!Constants.ClaimingBonusTypes.Contains(bonus.Type))
                     throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.BonusNotFound);
-                var client = CacheManager.GetClientById(clientId);
                 var clientSegmentsIds = new List<int>();
                 if (bonus.BonusSegmentSettings.Any())
                 {
@@ -1215,12 +1251,36 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                         x.WageringAmount,
                         x.MinAmount
                     }).ToList();
-                    var bonus = documentBl.GetClientBonusById(input.BonusId, input.ReuseNumber);
+                    var bonus = documentBl.GetClientBonus(input.BonusId, input.ReuseNumber);
                     return new ApiResponseBase
                     {
                         ResponseObject = new { Bonus = bonus.ToApiClientBonusItem(identity.TimeZone, identity.LanguageId), Triggers = resp }
                     };
                 }
+            }
+        }
+
+        public static ApiResponseBase CollectClientBonus(ApiClientBonusItem input, int clientId, SessionIdentity identity, ILog log)
+        {
+            using (var documentBl = new DocumentBll(identity, log))
+            {
+                var bonus = documentBl.CollectBonus(input.Id);
+                return new ApiResponseBase
+                {
+                    ResponseObject =  bonus.ToApiClientBonusItem(identity.TimeZone, identity.LanguageId)
+                };
+            }
+        }
+
+        public static ApiResponseBase GetBonusWinnersInfo(ApiClientBonusItem input, int clientId, SessionIdentity identity, ILog log)
+        {
+            using (var bonusService = new BonusService(identity, log))
+            {
+                var resp = bonusService.GetBonusWinnersInfo(input.BonusId, identity.LanguageId);
+                return new ApiResponseBase
+                {
+                    ResponseObject = resp
+                };
             }
         }
 
@@ -1520,7 +1580,7 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
             }
         }
 
-        private static ApiResponseBase ViewPopup(int clientId, ApiPopupWeSiteModel input, SessionIdentity session, ILog log)
+        private static ApiResponseBase ViewPopup(int clientId, ApiPopupWebSiteModel input, SessionIdentity session, ILog log)
         {
             using (var clientBl = new ClientBll(session, log))
             {
@@ -1535,7 +1595,7 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
             using (var clientBl = new ClientBll(session, log))
             {
                 var index = clientBl.SpinWheel(clientId, input.Id);
-                return new ApiResponseBase { ResponseCode = index };
+                return new ApiResponseBase { ResponseObject = index };
             }
         }
     }

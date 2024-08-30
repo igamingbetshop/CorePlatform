@@ -35,16 +35,10 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             var client = CacheManager.GetClientById(input.ClientId.Value);
             if (string.IsNullOrEmpty(client.Email))
                 throw BaseBll.CreateException(session.LanguageId, Constants.Errors.EmailCantBeEmpty);
-            if (string.IsNullOrEmpty(client.MobileNumber))
-                throw BaseBll.CreateException(session.LanguageId, Constants.Errors.MobileNumberCantBeEmpty);
             if (string.IsNullOrEmpty(client.FirstName))
                 throw BaseBll.CreateException(session.LanguageId, Constants.Errors.FirstNameCantBeEmpty);
             if (string.IsNullOrEmpty(client.LastName))
                 throw BaseBll.CreateException(session.LanguageId, Constants.Errors.LastNameCantBeEmpty);
-            if (string.IsNullOrWhiteSpace(client.ZipCode?.Trim()))
-                throw BaseBll.CreateException(session.LanguageId, Constants.Errors.ZipCodeCantBeEmpty);
-            if (string.IsNullOrEmpty(client.City))
-                throw BaseBll.CreateException(session.LanguageId, Constants.Errors.RegionNotFound);
 
             using (var paymentSystemBl = new PaymentSystemBll(session, log))
             using (var regionBl = new RegionBll(paymentSystemBl))
@@ -65,14 +59,14 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                     country = region.NickName,
                     dateOfBirth = client.BirthDate.ToString("yyyy-MM-dd"),
                     onrEnabled = paymentSystem.Name == Constants.PaymentSystems.XcoinsPayCard,
-                    zipCode = client.ZipCode.Trim(),
+                    zipCode = "dummy",
                     email = client.Email,
-                    phoneCode = client.MobileNumber.Substring(0,3),
-                    phoneNumber = client.MobileNumber.Substring(3, client.MobileNumber.Length - 3),
+                    phoneCode = "",
+                    phoneNumber = "",
                     state = region.NickName,
-                    city = client.City,
-                    address = client.Address,
-                    addressTwo = client.Address,
+                    city = "dummy",
+                    address = "dummy",
+                    addressTwo = "dummy",
                     addressNumber = "1"
                 };
 

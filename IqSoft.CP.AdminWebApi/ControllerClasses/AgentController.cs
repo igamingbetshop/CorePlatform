@@ -10,7 +10,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using IqSoft.CP.AdminWebApi.Filters.Agent;
+using IqSoft.CP.Common.Models.Filters;
 
 namespace IqSoft.CP.AdminWebApi.ControllerClasses
 {

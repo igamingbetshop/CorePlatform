@@ -22,5 +22,6 @@
 
         public string Currency { get; set; }
         public string Reason { get; set; }
+        public string MessageText { get; set; }
     }
 }

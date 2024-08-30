@@ -1,0 +1,272 @@
+{
+  "version": 2,
+  "dgSpecHash": "rnKF3osuPTU1x6CstwT5OhVA8UP2z53aszPzPTenJ1eMnW9ckdoXIlHVZJy9lmGydsKCErWiExGVtESNGBf9rg==",
+  "success": false,
+  "projectFilePath": "D:\\Projects\\IqSoftBranch\\IqSoft.CorePlatform\\IqSoft.CP.WebSiteWebApi\\IqSoft.CP.WebSiteWebApi.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\enyimmemcached\\2.16.0\\enyimmemcached.2.16.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\microsoft.aspnet.signalr.client\\2.4.1\\microsoft.aspnet.signalr.client.2.4.1.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\microsoft.aspnet.signalr.core\\2.4.1\\microsoft.aspnet.signalr.core.2.4.1.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\microsoft.aspnetcore.authentication.abstractions\\2.2.0\\microsoft.aspnetcore.authentication.abstractions.2.2.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\microsoft.aspnetcore.authentication.core\\2.2.0\\microsoft.aspnetcore.authentication.core.2.2.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\microsoft.aspnetcore.authorization\\2.2.0\\microsoft.aspnetcore.authorization.2.2.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\microsoft.aspnetcore.authorization.policy\\2.2.0\\microsoft.aspnetcore.authorization.policy.2.2.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\microsoft.aspnetcore.connections.abstractions\\5.0.3\\microsoft.aspnetcore.connections.abstractions.5.0.3.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\microsoft.aspnetcore.hosting.abstractions\\2.2.0\\microsoft.aspnetcore.hosting.abstractions.2.2.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\microsoft.aspnetcore.hosting.server.abstractions\\2.2.0\\microsoft.aspnetcore.hosting.server.abstractions.2.2.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\microsoft.aspnetcore.http\\2.2.2\\microsoft.aspnetcore.http.2.2.2.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\microsoft.aspnetcore.http.abstractions\\2.2.0\\microsoft.aspnetcore.http.abstractions.2.2.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\microsoft.aspnetcore.http.connections.client\\5.0.3\\microsoft.aspnetcore.http.connections.client.5.0.3.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\microsoft.aspnetcore.http.connections.common\\5.0.3\\microsoft.aspnetcore.http.connections.common.5.0.3.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\microsoft.aspnetcore.http.extensions\\2.2.0\\microsoft.aspnetcore.http.extensions.2.2.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\microsoft.aspnetcore.http.features\\5.0.3\\microsoft.aspnetcore.http.features.5.0.3.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\microsoft.aspnetcore.mvc.abstractions\\2.2.0\\microsoft.aspnetcore.mvc.abstractions.2.2.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\microsoft.aspnetcore.mvc.core\\2.2.5\\microsoft.aspnetcore.mvc.core.2.2.5.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\microsoft.aspnetcore.mvc.newtonsoftjson\\5.0.3\\microsoft.aspnetcore.mvc.newtonsoftjson.5.0.3.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\microsoft.aspnetcore.responsecaching.abstractions\\2.2.0\\microsoft.aspnetcore.responsecaching.abstractions.2.2.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\microsoft.aspnetcore.routing\\2.2.0\\microsoft.aspnetcore.routing.2.2.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\microsoft.aspnetcore.routing.abstractions\\2.2.0\\microsoft.aspnetcore.routing.abstractions.2.2.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\microsoft.aspnetcore.signalr.client\\5.0.3\\microsoft.aspnetcore.signalr.client.5.0.3.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\microsoft.aspnetcore.signalr.client.core\\5.0.3\\microsoft.aspnetcore.signalr.client.core.5.0.3.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\microsoft.aspnetcore.signalr.common\\5.0.3\\microsoft.aspnetcore.signalr.common.5.0.3.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\microsoft.aspnetcore.signalr.protocols.json\\5.0.3\\microsoft.aspnetcore.signalr.protocols.json.5.0.3.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\microsoft.aspnetcore.signalr.protocols.newtonsoftjson\\5.0.3\\microsoft.aspnetcore.signalr.protocols.newtonsoftjson.5.0.3.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\microsoft.aspnetcore.webutilities\\2.2.0\\microsoft.aspnetcore.webutilities.2.2.0.nupkg.sha512",
+    "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder\\microsoft.dotnet.platformabstractions\\2.1.0\\microsoft.dotnet.platformabstractions.2.1.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\microsoft.extensions.configuration\\2.0.0\\microsoft.extensions.configuration.2.0.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\microsoft.extensions.configuration.abstractions\\2.2.0\\microsoft.extensions.configuration.abstractions.2.2.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\microsoft.extensions.configuration.binder\\2.0.0\\microsoft.extensions.configuration.binder.2.0.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\microsoft.extensions.dependencyinjection\\5.0.1\\microsoft.extensions.dependencyinjection.5.0.1.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\5.0.0\\microsoft.extensions.dependencyinjection.abstractions.5.0.0.nupkg.sha512",
+    "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder\\microsoft.extensions.dependencymodel\\2.1.0\\microsoft.extensions.dependencymodel.2.1.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\microsoft.extensions.fileproviders.abstractions\\2.2.0\\microsoft.extensions.fileproviders.abstractions.2.2.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\microsoft.extensions.hosting.abstractions\\2.2.0\\microsoft.extensions.hosting.abstractions.2.2.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\microsoft.extensions.logging\\5.0.0\\microsoft.extensions.logging.5.0.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\5.0.0\\microsoft.extensions.logging.abstractions.5.0.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\microsoft.extensions.objectpool\\2.2.0\\microsoft.extensions.objectpool.2.2.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\microsoft.extensions.options\\5.0.0\\microsoft.extensions.options.5.0.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\microsoft.extensions.options.configurationextensions\\2.0.0\\microsoft.extensions.options.configurationextensions.2.0.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\microsoft.extensions.primitives\\5.0.0\\microsoft.extensions.primitives.5.0.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\microsoft.net.http.headers\\2.2.0\\microsoft.net.http.headers.2.2.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\microsoft.netcore.platforms\\5.0.0\\microsoft.netcore.platforms.5.0.0.nupkg.sha512",
+    "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder\\microsoft.netcore.targets\\1.1.0\\microsoft.netcore.targets.1.1.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\microsoft.win32.systemevents\\5.0.0\\microsoft.win32.systemevents.5.0.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\newtonsoft.json\\12.0.2\\newtonsoft.json.12.0.2.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\runtime.any.system.collections\\4.3.0\\runtime.any.system.collections.4.3.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\runtime.any.system.globalization\\4.3.0\\runtime.any.system.globalization.4.3.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\runtime.any.system.io\\4.3.0\\runtime.any.system.io.4.3.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\runtime.any.system.reflection\\4.3.0\\runtime.any.system.reflection.4.3.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\runtime.any.system.reflection.extensions\\4.3.0\\runtime.any.system.reflection.extensions.4.3.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\runtime.any.system.reflection.primitives\\4.3.0\\runtime.any.system.reflection.primitives.4.3.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\runtime.any.system.resources.resourcemanager\\4.3.0\\runtime.any.system.resources.resourcemanager.4.3.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\runtime.any.system.runtime\\4.3.0\\runtime.any.system.runtime.4.3.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\runtime.any.system.runtime.handles\\4.3.0\\runtime.any.system.runtime.handles.4.3.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\runtime.any.system.runtime.interopservices\\4.3.0\\runtime.any.system.runtime.interopservices.4.3.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\runtime.any.system.text.encoding\\4.3.0\\runtime.any.system.text.encoding.4.3.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\runtime.any.system.text.encoding.extensions\\4.3.0\\runtime.any.system.text.encoding.extensions.4.3.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\runtime.any.system.threading.tasks\\4.3.0\\runtime.any.system.threading.tasks.4.3.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\runtime.any.system.threading.timer\\4.3.0\\runtime.any.system.threading.timer.4.3.0.nupkg.sha512",
+    "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder\\runtime.native.system\\4.0.0\\runtime.native.system.4.0.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\runtime.win.system.diagnostics.debug\\4.3.0\\runtime.win.system.diagnostics.debug.4.3.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\runtime.win.system.io.filesystem\\4.3.0\\runtime.win.system.io.filesystem.4.3.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\runtime.win.system.runtime.extensions\\4.3.0\\runtime.win.system.runtime.extensions.4.3.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\serilog\\2.10.0\\serilog.2.10.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\serilog.formatting.compact\\1.1.0\\serilog.formatting.compact.1.1.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\serilog.settings.configuration\\3.1.0\\serilog.settings.configuration.3.1.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\serilog.sinks.file\\4.1.0\\serilog.sinks.file.4.1.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.appcontext\\4.1.0\\system.appcontext.4.1.0.nupkg.sha512",
+    "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder\\system.buffers\\4.5.0\\system.buffers.4.5.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.collections\\4.0.11\\system.collections.4.0.11.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.collections\\4.3.0\\system.collections.4.3.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.configuration.configurationmanager\\5.0.0\\system.configuration.configurationmanager.5.0.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.diagnostics.debug\\4.0.11\\system.diagnostics.debug.4.0.11.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.diagnostics.debug\\4.3.0\\system.diagnostics.debug.4.3.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.diagnostics.diagnosticsource\\5.0.0\\system.diagnostics.diagnosticsource.5.0.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.drawing.common\\5.0.0\\system.drawing.common.5.0.0.nupkg.sha512",
+    "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder\\system.dynamic.runtime\\4.0.11\\system.dynamic.runtime.4.0.11.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.globalization\\4.0.11\\system.globalization.4.0.11.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.globalization\\4.3.0\\system.globalization.4.3.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.io\\4.1.0\\system.io.4.1.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.io.filesystem\\4.0.1\\system.io.filesystem.4.0.1.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.io.filesystem.primitives\\4.3.0\\system.io.filesystem.primitives.4.3.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.io.pipelines\\5.0.1\\system.io.pipelines.5.0.1.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.linq\\4.1.0\\system.linq.4.1.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.linq.expressions\\4.1.0\\system.linq.expressions.4.1.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.objectmodel\\4.0.12\\system.objectmodel.4.0.12.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.private.uri\\4.3.0\\system.private.uri.4.3.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.reflection\\4.1.0\\system.reflection.4.1.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.reflection\\4.3.0\\system.reflection.4.3.0.nupkg.sha512",
+    "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder\\system.reflection.emit\\4.0.1\\system.reflection.emit.4.0.1.nupkg.sha512",
+    "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder\\system.reflection.emit.ilgeneration\\4.0.1\\system.reflection.emit.ilgeneration.4.0.1.nupkg.sha512",
+    "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder\\system.reflection.emit.lightweight\\4.0.1\\system.reflection.emit.lightweight.4.0.1.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.reflection.extensions\\4.0.1\\system.reflection.extensions.4.0.1.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.reflection.primitives\\4.0.1\\system.reflection.primitives.4.0.1.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.reflection.primitives\\4.3.0\\system.reflection.primitives.4.3.0.nupkg.sha512",
+    "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder\\system.reflection.typeextensions\\4.1.0\\system.reflection.typeextensions.4.1.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.resources.resourcemanager\\4.0.1\\system.resources.resourcemanager.4.0.1.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.resources.resourcemanager\\4.3.0\\system.resources.resourcemanager.4.3.0.nupkg.sha512",
+    "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder\\system.runtime\\4.3.0\\system.runtime.4.3.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.runtime.caching\\5.0.0\\system.runtime.caching.5.0.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.runtime.extensions\\4.1.0\\system.runtime.extensions.4.1.0.nupkg.sha512",
+    "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder\\system.runtime.extensions\\4.3.0\\system.runtime.extensions.4.3.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.runtime.handles\\4.0.1\\system.runtime.handles.4.0.1.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.runtime.interopservices\\4.1.0\\system.runtime.interopservices.4.1.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.runtime.interopservices\\4.3.0\\system.runtime.interopservices.4.3.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.runtime.interopservices.runtimeinformation\\4.0.0\\system.runtime.interopservices.runtimeinformation.4.0.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.security.accesscontrol\\5.0.0\\system.security.accesscontrol.5.0.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.security.cryptography.protecteddata\\5.0.0\\system.security.cryptography.protecteddata.5.0.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.security.permissions\\5.0.0\\system.security.permissions.5.0.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.security.principal.windows\\5.0.0\\system.security.principal.windows.5.0.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.text.encoding\\4.0.11\\system.text.encoding.4.0.11.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.text.encoding.extensions\\4.0.11\\system.text.encoding.extensions.4.0.11.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.text.encoding.extensions\\4.3.0\\system.text.encoding.extensions.4.3.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.text.encodings.web\\5.0.0\\system.text.encodings.web.5.0.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.text.json\\5.0.1\\system.text.json.5.0.1.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.threading\\4.0.11\\system.threading.4.0.11.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.threading\\4.3.0\\system.threading.4.3.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.threading.channels\\5.0.0\\system.threading.channels.5.0.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.threading.overlapped\\4.3.0\\system.threading.overlapped.4.3.0.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.threading.tasks\\4.0.11\\system.threading.tasks.4.0.11.nupkg.sha512",
+    "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder\\system.threading.tasks.extensions\\4.5.1\\system.threading.tasks.extensions.4.5.1.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.threading.timer\\4.0.1\\system.threading.timer.4.0.1.nupkg.sha512",
+    "C:\\Users\\Nerses Khachatryan\\.nuget\\packages\\system.windows.extensions\\5.0.0\\system.windows.extensions.5.0.0.nupkg.sha512"
+  ],
+  "logs": [
+    {
+      "code": "NU1701",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'EnyimMemcached 2.16.0' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8' instead of the project target framework '.NETCoreApp,Version=v3.1'. This package may not be fully compatible with your project.",
+      "libraryId": "EnyimMemcached",
+      "targetGraphs": [
+        ".NETCoreApp,Version=v3.1"
+      ]
+    },
+    {
+      "code": "NU1701",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'Microsoft.AspNet.SignalR.Core 2.4.1' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8' instead of the project target framework '.NETCoreApp,Version=v3.1'. This package may not be fully compatible with your project.",
+      "libraryId": "Microsoft.AspNet.SignalR.Core",
+      "targetGraphs": [
+        ".NETCoreApp,Version=v3.1"
+      ]
+    },
+    {
+      "code": "NU1605",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Detected package downgrade: System.IO from 4.3.0 to 4.1.0. Reference the package directly from the project to select a different version. \r\n IqSoft.CP.WebSiteWebApi -> Serilog.Sinks.File 4.1.0 -> System.IO.FileSystem 4.0.1 -> runtime.win.System.IO.FileSystem 4.3.0 -> System.IO (>= 4.3.0) \r\n IqSoft.CP.WebSiteWebApi -> Serilog.Sinks.File 4.1.0 -> System.IO.FileSystem 4.0.1 -> System.IO (>= 4.1.0)",
+      "libraryId": "System.IO",
+      "targetGraphs": [
+        ".NETCoreApp,Version=v3.1/win-x64"
+      ]
+    },
+    {
+      "code": "NU1605",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Detected package downgrade: System.Runtime.Handles from 4.3.0 to 4.0.1. Reference the package directly from the project to select a different version. \r\n IqSoft.CP.WebSiteWebApi -> Serilog.Sinks.File 4.1.0 -> System.IO.FileSystem 4.0.1 -> runtime.win.System.IO.FileSystem 4.3.0 -> System.Runtime.Handles (>= 4.3.0) \r\n IqSoft.CP.WebSiteWebApi -> Serilog.Sinks.File 4.1.0 -> System.IO.FileSystem 4.0.1 -> System.Runtime.Handles (>= 4.0.1)",
+      "libraryId": "System.Runtime.Handles",
+      "targetGraphs": [
+        ".NETCoreApp,Version=v3.1/win-x64"
+      ]
+    },
+    {
+      "code": "NU1605",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Detected package downgrade: System.Text.Encoding from 4.3.0 to 4.0.11. Reference the package directly from the project to select a different version. \r\n IqSoft.CP.WebSiteWebApi -> Serilog.Sinks.File 4.1.0 -> System.IO.FileSystem 4.0.1 -> runtime.win.System.IO.FileSystem 4.3.0 -> System.Text.Encoding (>= 4.3.0) \r\n IqSoft.CP.WebSiteWebApi -> Serilog.Sinks.File 4.1.0 -> System.IO.FileSystem 4.0.1 -> System.Text.Encoding (>= 4.0.11)",
+      "libraryId": "System.Text.Encoding",
+      "targetGraphs": [
+        ".NETCoreApp,Version=v3.1/win-x64"
+      ]
+    },
+    {
+      "code": "NU1605",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Detected package downgrade: System.Threading.Tasks from 4.3.0 to 4.0.11. Reference the package directly from the project to select a different version. \r\n IqSoft.CP.WebSiteWebApi -> Serilog.Sinks.File 4.1.0 -> System.IO.FileSystem 4.0.1 -> runtime.win.System.IO.FileSystem 4.3.0 -> System.Threading.Tasks (>= 4.3.0) \r\n IqSoft.CP.WebSiteWebApi -> Serilog.Sinks.File 4.1.0 -> System.IO.FileSystem 4.0.1 -> System.Threading.Tasks (>= 4.0.11)",
+      "libraryId": "System.Threading.Tasks",
+      "targetGraphs": [
+        ".NETCoreApp,Version=v3.1/win-x64"
+      ]
+    },
+    {
+      "code": "NU1605",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Detected package downgrade: System.IO from 4.3.0 to 4.1.0. Reference the package directly from the project to select a different version. \r\n IqSoft.CP.WebSiteWebApi -> Microsoft.AspNetCore.Mvc.Core 2.2.5 -> Microsoft.Extensions.DependencyModel 2.1.0 -> Microsoft.DotNet.PlatformAbstractions 2.1.0 -> System.IO.FileSystem 4.0.1 -> runtime.win.System.IO.FileSystem 4.3.0 -> System.IO (>= 4.3.0) \r\n IqSoft.CP.WebSiteWebApi -> Microsoft.AspNetCore.Mvc.Core 2.2.5 -> Microsoft.Extensions.DependencyModel 2.1.0 -> Microsoft.DotNet.PlatformAbstractions 2.1.0 -> System.IO (>= 4.1.0)",
+      "libraryId": "System.IO",
+      "targetGraphs": [
+        ".NETCoreApp,Version=v3.1/win-x64"
+      ]
+    },
+    {
+      "code": "NU1605",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Detected package downgrade: System.Runtime.Handles from 4.3.0 to 4.0.1. Reference the package directly from the project to select a different version. \r\n IqSoft.CP.WebSiteWebApi -> Microsoft.AspNetCore.Mvc.Core 2.2.5 -> Microsoft.Extensions.DependencyModel 2.1.0 -> Microsoft.DotNet.PlatformAbstractions 2.1.0 -> System.IO.FileSystem 4.0.1 -> runtime.win.System.IO.FileSystem 4.3.0 -> System.Runtime.Handles (>= 4.3.0) \r\n IqSoft.CP.WebSiteWebApi -> Microsoft.AspNetCore.Mvc.Core 2.2.5 -> Microsoft.Extensions.DependencyModel 2.1.0 -> Microsoft.DotNet.PlatformAbstractions 2.1.0 -> System.IO.FileSystem 4.0.1 -> System.Runtime.Handles (>= 4.0.1)",
+      "libraryId": "System.Runtime.Handles",
+      "targetGraphs": [
+        ".NETCoreApp,Version=v3.1/win-x64"
+      ]
+    },
+    {
+      "code": "NU1605",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Detected package downgrade: System.Text.Encoding from 4.3.0 to 4.0.11. Reference the package directly from the project to select a different version. \r\n IqSoft.CP.WebSiteWebApi -> Microsoft.AspNetCore.Mvc.Core 2.2.5 -> Microsoft.Extensions.DependencyModel 2.1.0 -> Microsoft.DotNet.PlatformAbstractions 2.1.0 -> System.IO.FileSystem 4.0.1 -> runtime.win.System.IO.FileSystem 4.3.0 -> System.Text.Encoding (>= 4.3.0) \r\n IqSoft.CP.WebSiteWebApi -> Microsoft.AspNetCore.Mvc.Core 2.2.5 -> Microsoft.Extensions.DependencyModel 2.1.0 -> Microsoft.DotNet.PlatformAbstractions 2.1.0 -> System.IO.FileSystem 4.0.1 -> System.Text.Encoding (>= 4.0.11)",
+      "libraryId": "System.Text.Encoding",
+      "targetGraphs": [
+        ".NETCoreApp,Version=v3.1/win-x64"
+      ]
+    },
+    {
+      "code": "NU1605",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Detected package downgrade: System.Threading.Tasks from 4.3.0 to 4.0.11. Reference the package directly from the project to select a different version. \r\n IqSoft.CP.WebSiteWebApi -> Microsoft.AspNetCore.Mvc.Core 2.2.5 -> Microsoft.Extensions.DependencyModel 2.1.0 -> Microsoft.DotNet.PlatformAbstractions 2.1.0 -> System.IO.FileSystem 4.0.1 -> runtime.win.System.IO.FileSystem 4.3.0 -> System.Threading.Tasks (>= 4.3.0) \r\n IqSoft.CP.WebSiteWebApi -> Microsoft.AspNetCore.Mvc.Core 2.2.5 -> Microsoft.Extensions.DependencyModel 2.1.0 -> Microsoft.DotNet.PlatformAbstractions 2.1.0 -> System.IO.FileSystem 4.0.1 -> System.Threading.Tasks (>= 4.0.11)",
+      "libraryId": "System.Threading.Tasks",
+      "targetGraphs": [
+        ".NETCoreApp,Version=v3.1/win-x64"
+      ]
+    },
+    {
+      "code": "NU1202",
+      "level": "Error",
+      "message": "Package Microsoft.AspNetCore.Mvc.NewtonsoftJson 5.0.3 is not compatible with netcoreapp3.1 (.NETCoreApp,Version=v3.1). Package Microsoft.AspNetCore.Mvc.NewtonsoftJson 5.0.3 supports: net5.0 (.NETCoreApp,Version=v5.0)",
+      "libraryId": "Microsoft.AspNetCore.Mvc.NewtonsoftJson",
+      "targetGraphs": [
+        ".NETCoreApp,Version=v3.1"
+      ]
+    },
+    {
+      "code": "NU1201",
+      "level": "Error",
+      "message": "Project IqSoft.CP.CommonCore is not compatible with netcoreapp3.1 (.NETCoreApp,Version=v3.1). Project IqSoft.CP.CommonCore supports: net5.0 (.NETCoreApp,Version=v5.0)",
+      "libraryId": "IqSoft.CP.CommonCore",
+      "targetGraphs": [
+        ".NETCoreApp,Version=v3.1"
+      ]
+    },
+    {
+      "code": "NU1202",
+      "level": "Error",
+      "message": "Package Microsoft.AspNetCore.Mvc.NewtonsoftJson 5.0.3 is not compatible with netcoreapp3.1 (.NETCoreApp,Version=v3.1) / win-x64. Package Microsoft.AspNetCore.Mvc.NewtonsoftJson 5.0.3 supports: net5.0 (.NETCoreApp,Version=v5.0)",
+      "libraryId": "Microsoft.AspNetCore.Mvc.NewtonsoftJson",
+      "targetGraphs": [
+        ".NETCoreApp,Version=v3.1/win-x64"
+      ]
+    },
+    {
+      "code": "NU1201",
+      "level": "Error",
+      "message": "Project IqSoft.CP.CommonCore is not compatible with netcoreapp3.1 (.NETCoreApp,Version=v3.1) / win-x64. Project IqSoft.CP.CommonCore supports: net5.0 (.NETCoreApp,Version=v5.0)",
+      "libraryId": "IqSoft.CP.CommonCore",
+      "targetGraphs": [
+        ".NETCoreApp,Version=v3.1/win-x64"
+      ]
+    }
+  ]
+}

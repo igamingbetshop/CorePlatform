@@ -36,44 +36,33 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 				WebApiApplication.DbLogger.Info(inputString);
 				using (var paymentSystemBl = new PaymentSystemBll(new SessionIdentity(), WebApiApplication.DbLogger))
 				{
-					using (var partnerBl = new PartnerBll(new SessionIdentity(), WebApiApplication.DbLogger))
+					var input = JsonConvert.DeserializeObject<TransactionInput>(inputString);
+					var paymentRequest = paymentSystemBl.GetPaymentRequestById(Convert.ToInt64(input.transaction.reference)) ??
+						throw BaseBll.CreateException(string.Empty, Constants.Errors.PaymentRequestNotFound);
+					var client = CacheManager.GetClientById(paymentRequest.ClientId.Value);
+					var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, paymentRequest.PaymentSystemId,
+																					   client.CurrencyId, (int)PaymentRequestTypes.Deposit);
+					paymentRequest.ExternalTransactionId = input.transaction.id.ToString();
+					paymentSystemBl.ChangePaymentRequestDetails(paymentRequest);
+					using (var clientBl = new ClientBll(paymentSystemBl))
+					using (var notificationBl = new NotificationBll(paymentSystemBl))
+					using (var documentBll = new DocumentBll(paymentSystemBl))
 					{
-						var input = JsonConvert.DeserializeObject<TransactionInput>(inputString);
-						var paymentRequest = paymentSystemBl.GetPaymentRequestById(Convert.ToInt64(input.transaction.reference)) ??
-							throw BaseBll.CreateException(string.Empty, Constants.Errors.PaymentRequestNotFound);
-						var client = CacheManager.GetClientById(paymentRequest.ClientId.Value);
-						var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, paymentRequest.PaymentSystemId,
-																						   client.CurrencyId, paymentRequest.Type);
-						paymentRequest.ExternalTransactionId = input.transaction.id.ToString();
-						paymentSystemBl.ChangePaymentRequestDetails(paymentRequest);
-						using (var clientBl = new ClientBll(paymentSystemBl))
-						using (var notificationBl = new NotificationBll(paymentSystemBl))
-						using (var documentBll = new DocumentBll(paymentSystemBl))
+						if (input.status.ToLower() == "accepted")
 						{
-							if (input.status == "Accepted")
-							{
-								if (paymentRequest.Type == (int)PaymentRequestTypes.Deposit)
-									clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
-							}
-							else if (input.status == "Rejected" || input.status == "Cancelled")
-								if (paymentRequest.Type == (int)PaymentRequestTypes.Deposit)
-									clientBl.ChangeDepositRequestState(paymentRequest.Id, PaymentRequestStates.Deleted, $"Status {input.status} Description {input.description}", notificationBl);							
-
+							clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
 							PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
 							BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);
 						}
+						else if (input.status.ToLower() == "rejected" || input.status.ToLower() == "cancelled")
+							clientBl.ChangeDepositRequestState(paymentRequest.Id, PaymentRequestStates.Deleted, $"Status {input.status}, Description {input.description}", notificationBl);
 					}
 				}
 			}
 			catch (FaultException<BllFnErrorType> ex)
 			{
-				if (ex.Detail != null &&
-					(ex.Detail.Id == Constants.Errors.ClientDocumentAlreadyExists ||
-					ex.Detail.Id == Constants.Errors.RequestAlreadyPayed))
-				{
-					response = JsonConvert.SerializeObject(new { status = "success" });
-				}
-				else
+				if (ex.Detail?.Id != Constants.Errors.ClientDocumentAlreadyExists &&
+					ex.Detail?.Id != Constants.Errors.RequestAlreadyPayed)
 				{
 					response = ex.Detail == null ? ex.Message : ex.Detail.Id + " " + ex.Detail.NickName;
 					httpResponseMessage.StatusCode = HttpStatusCode.BadRequest;

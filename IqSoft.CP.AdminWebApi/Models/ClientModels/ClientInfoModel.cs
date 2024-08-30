@@ -17,15 +17,22 @@ namespace IqSoft.CP.AdminWebApi.Models.ClientModels
         public decimal Balance { get; set; }
         public decimal BonusBalance { get; set; }
         public decimal WithdrawableBalance { get; set; }
+        public decimal CompPointBalance { get; set; }
         public decimal GGR { get; set; }
         public decimal Rake { get; set; }
         public decimal NGR { get; set; }
         public int TotalDepositsCount { get; set; }
         public decimal TotalDepositsAmount { get; set; }
+        public decimal TotalDepositsPartnerConvertedAmount { get; set; }
         public int TotalWithdrawalsCount { get; set; }
         public decimal TotalWithdrawalsAmount { get; set; }
+        public decimal TotalWithdrawalsPartnerConvertedAmount { get; set; }
         public decimal FailedDepositsCount { get; set; }
         public decimal FailedDepositsAmount { get; set; }
+        public decimal TotalBetsCount { get; set; }
+        public decimal SportBetsCount { get; set; }
+        public decimal CasinoBetsCount { get; set; }
+        public decimal TotalPartnerConvertedBetsAmount { get; set; }
         public int Risk { get; set; }
         public bool IsOnline { get; set; }
         public bool IsDocumentVerified { get; set; }

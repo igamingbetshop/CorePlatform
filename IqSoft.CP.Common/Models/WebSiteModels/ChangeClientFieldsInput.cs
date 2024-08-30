@@ -18,7 +18,7 @@ namespace IqSoft.CP.Common.Models.WebSiteModels
         public string DocumentIssuedBy { get; set; }
         public string Address { get; set; }
         public string MobileNumber { get; set; }
-        public string PhoneNumber { get; set; }
+        public string MobileCode { get; set; }
         public string ZipCode { get; set; }
         public string LanguageId { get; set; }
         public int? Gender { get; set; }

@@ -18,7 +18,7 @@ namespace IqSoft.CP.DAL
         public string CurrencyId { get; set; }
         public decimal RateBefore { get; set; }
         public decimal RateAfter { get; set; }
-        public long SessionId { get; set; }
+        public Nullable<long> SessionId { get; set; }
         public System.DateTime CreationTime { get; set; }
         public System.DateTime LastUpdateTime { get; set; }
     

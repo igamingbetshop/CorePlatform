@@ -1,11 +1,13 @@
 ﻿using IqSoft.CP.AdminWebApi.ClientModels.Models;
 using IqSoft.CP.AdminWebApi.Filters;
-using IqSoft.CP.AdminWebApi.Filters.Agent;
+using IqSoft.CP.AdminWebApi.Filters.Affiliate;
 using IqSoft.CP.AdminWebApi.Helpers;
 using IqSoft.CP.AdminWebApi.Models.CommonModels;
 using IqSoft.CP.BLL.Caching;
 using IqSoft.CP.BLL.Services;
 using IqSoft.CP.Common;
+using IqSoft.CP.Common.Helpers;
+using IqSoft.CP.Common.Models.Filters;
 using IqSoft.CP.DAL.Models;
 using log4net;
 using Newtonsoft.Json;
@@ -37,7 +39,8 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     return CreateDebitCorrection(JsonConvert.DeserializeObject<TransferInput>(request.RequestData), identity, log);
                 case "CreateCreditCorrection":
                     return CreateCreditCorrection(JsonConvert.DeserializeObject<TransferInput>(request.RequestData), identity, log);
-
+                case "GetAffiliateCorrections":
+                    return GetAffiliateCorrections(JsonConvert.DeserializeObject<ApiFilterAffiliateCorrection>(request.RequestData), identity, log);
             }
             throw BaseBll.CreateException(string.Empty, Constants.Errors.MethodNotFound);
         }
@@ -131,7 +134,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var result = reportBl.GetAffiliateTransactions(apiFilter.ToFilterfnAffiliateTransaction(), identity.Id);
+                var result = reportBl.GetAffiliateTransactions(apiFilter.ToFilterfnAffiliateTransaction(), apiFilter.AffiliateId);
                 return new ApiResponseBase
                 {
                     ResponseObject = new
@@ -143,17 +146,34 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             }
         }
 
-        private static ApiResponseBase GetAffiliateCorrections(ApiFilterfnAgentTransaction apiFilter, SessionIdentity identity, ILog log)
+        private static ApiResponseBase GetAffiliateCorrections(ApiFilterAffiliateCorrection apiFilter, SessionIdentity identity, ILog log)
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var result = reportBl.GetAffiliateTransactions(apiFilter.ToFilterfnAffiliateTransaction(), identity.Id);
+                var result = reportBl.GetAffiliateCorrections(apiFilter.MapToFilterAffiliateCorrection());
                 return new ApiResponseBase
                 {
                     ResponseObject = new
                     {
                         result.Count,
-                        Entities = result.Entities.Select(x => x.ToApifnAffiliateTransaction(identity.TimeZone)).ToList()
+                        Entities = result.Entities.Select(x => new
+                        {
+                            x.Id,
+                            x.PartnerId,
+                            x.AffiliateId,
+                            x.FirstName,
+                            x.LastName,
+                            x.Amount,
+                            x.CurrencyId,
+                            x.Creator,
+                            x.CreatorFirstName,
+                            x.CreatorLastName,
+                            x.OperationTypeName,
+                            CreationTime = x.CreationTime.GetGMTDateFromUTC(identity.TimeZone),
+                            LastUpdateTime = x.LastUpdateTime.GetGMTDateFromUTC(identity.TimeZone)
+                        }).ToList()
+                        
+                       
                     }
                 };
             }

@@ -29,7 +29,7 @@ namespace IqSoft.CP.DataWarehouse
         public string CreatorFirstName { get; set; }
         public string CreatorLastName { get; set; }
         public Nullable<int> DocumentTypeId { get; set; }
-        public int ClientId { get; set; }
+        public Nullable<int> ClientId { get; set; }
         public string ClientFirstName { get; set; }
         public string ClientLastName { get; set; }
     }

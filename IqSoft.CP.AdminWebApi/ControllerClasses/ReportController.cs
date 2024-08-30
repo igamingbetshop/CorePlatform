@@ -29,6 +29,7 @@ using System.ServiceModel;
 using IqSoft.CP.Common.Models.CacheModels;
 using IqSoft.CP.AdminWebApi.Filters.Clients;
 using IqSoft.CP.AdminWebApi.Filters.Affiliate;
+using IqSoft.CP.Common.Models.Filters;
 
 namespace IqSoft.CP.AdminWebApi.ControllerClasses
 {
@@ -195,6 +196,8 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     }
                 case "GetReportByLogs":
                     return GetReportByLogs(JsonConvert.DeserializeObject<ApiFilterReportByLog>(request.RequestData), identity, log);
+                case "GetReportByJobLogs":
+                    return GetReportByJobLogs(JsonConvert.DeserializeObject<ApiFilterReportByLog>(request.RequestData), identity, log);
                 case "ResendBet":
                     return ResendBet(JsonConvert.DeserializeObject<long>(request.RequestData), identity, log);
                 case "SettleBet":
@@ -212,6 +215,14 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     return GetReportByPopupStatistics(JsonConvert.DeserializeObject<ApiFilterReportByPopupStatistics>(request.RequestData), identity, log);
                 case "ExportReportByPopupStatistics":
                     return ExportReportByPopupStatistics(JsonConvert.DeserializeObject<ApiFilterReportByPopupStatistics>(request.RequestData), identity, log);
+                case "GetEmails":
+                    if (!string.IsNullOrEmpty(request.RequestData))
+                        return GetEmails(JsonConvert.DeserializeObject<ApiFilterObjectMessage>(request.RequestData), identity, log);
+                    return GetEmails(new ApiFilterObjectMessage(), identity, log);
+                case "GetSmses":
+                    if (!string.IsNullOrEmpty(request.RequestData))
+                        return GetSmses(JsonConvert.DeserializeObject<ApiFilterObjectMessage>(request.RequestData), identity, log);
+                    return GetSmses(new ApiFilterObjectMessage(), identity, log);
             }
             throw BaseBll.CreateException(string.Empty, Errors.MethodNotFound);
         }
@@ -234,6 +245,32 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 return new ApiResponseBase
                 {
                     ResponseObject = reportBl.GetObjectChangeHistory(input.ObjectTypeId, input.ObjectId).Select(x => x.MapToClientHistoryModel(identity.TimeZone)).ToList()
+                };
+            }
+        }
+
+        private static ApiResponseBase GetEmails(ApiFilterObjectMessage apiFilterClientMessage, SessionIdentity identity, ILog log)
+        {
+            using (var reportBl = new ReportBll(identity, log))
+            {
+                var filter = apiFilterClientMessage.MapToFilterClientMessage();
+                filter.Types = new List<int> { (int)ClientMessageTypes.Email, (int)ClientMessageTypes.SecuredEmail };
+                return new ApiResponseBase
+                {
+                    ResponseObject = reportBl.GetObjectMessages(apiFilterClientMessage.ObjectTypeId, filter)
+                };
+            }
+        }
+
+        private static ApiResponseBase GetSmses(ApiFilterObjectMessage apiFilterClientMessage, SessionIdentity identity, ILog log)
+        {
+            using (var reportBl = new ReportBll(identity, log))
+            {
+                var filter = apiFilterClientMessage.MapToFilterClientMessage();
+                filter.Types = new List<int> { (int)ClientMessageTypes.Sms, (int)ClientMessageTypes.SecuredSms };
+                return new ApiResponseBase
+                {
+                    ResponseObject = reportBl.GetObjectMessages(apiFilterClientMessage.ObjectTypeId, filter)
                 };
             }
         }
@@ -894,7 +931,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var result = reportBl.GetClientSessions(filter.MapToFilterReportByClientSession(), true);
+                var result = reportBl.GetClientSessions(filter.MapToFilterReportByfnClientSession(), true);
 
                 return new ApiResponseBase
                 {
@@ -926,11 +963,11 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
 
         private static ApiResponseBase GetClientSessionInfo(long sessionId, SessionIdentity identity, ILog log)
         {
-            using (var clientBl = new ClientBll(identity, log))
+            using (var reportBll = new ReportBll(identity, log))
             {
                 return new ApiResponseBase
                 {
-                    ResponseObject = clientBl.GetClientSessionInfo(sessionId).MapToClientSessionModels(identity.TimeZone)
+                    ResponseObject = reportBll.GetClientSessionInfo(sessionId).Select(x=> x.MapToClientSessionModel(identity.TimeZone)).ToList()
                 };
             }
         }
@@ -939,7 +976,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var result = reportBl.ExportClientSessions(filter.MapToFilterReportByClientSession()).MapToClientSessionModels(identity.TimeZone);
+                var result = reportBl.ExportClientSessions(filter.MapToFilterReportByfnClientSession()).MapToClientSessionModels(identity.TimeZone);
                 var fileName = "ExportClientSessions.csv";
                 var fileAbsPath = reportBl.ExportToCSV(fileName, result, filter.FromDate, filter.ToDate, identity.TimeZone, filter.AdminMenuId);
 
@@ -1085,6 +1122,17 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                         result.Count,
                         Entities = result.Entities.Select(x => new { x.Id, x.Type, x.Caller, x.Message, x.CreationTime })
                     }
+                };
+            }
+        }
+
+        private static ApiResponseBase GetReportByJobLogs(ApiFilterReportByLog input, SessionIdentity identity, ILog log)
+        {
+            using (var reportBl = new ReportBll(identity, log))
+            {
+                return new ApiResponseBase
+                {
+                    ResponseObject = reportBl.GetJobLogs(input.Id, input.JobId, input.FromDate, input.ToDate, input.TakeCount, input.SkipCount)
                 };
             }
         }
@@ -1253,8 +1301,6 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                         pageModel.Count,
                         Entities = pageModel.Entities.Select(x=> new
                         {
-                            x.PartnerId,
-                            x.ClientId,
                             x.DuplicatedClientId,
                             x.DuplicatedData,
                             MatchDate = x.LastUpdateTime.GetGMTDateFromUTC(identity.TimeZone)
@@ -1313,7 +1359,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                         pageModel.Count,
                         Entities = pageModel.Entities.Select(x => new
                         {
-                            x.Id,
+                            PopupId = x.Id,
                             x.PartnerId,
                             x.NickName,
                             x.Type,
@@ -1321,8 +1367,9 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                             x.State,
                             CreationTime = x.CreationTime.GetGMTDateFromUTC(identity.TimeZone),
                             LastUpdateTime = x.LastUpdateTime.GetGMTDateFromUTC(identity.TimeZone),
-                            x.ViewTypeId,
-                            x.ViewCount
+                            x.Viewed,
+                            x.Closed,
+                            x.Redirected
                         }).ToList()
                     }
                 };

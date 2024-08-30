@@ -17,6 +17,7 @@ namespace IqSoft.CP.AdminWebApi.Models.DashboardModels
         public decimal MaxBet { get; set; }
         public decimal MaxWin { get; set; }
         public decimal MaxWinBet { get; set; }
+        public int FTDCount { get; set; }
         public List<ApiPlayersDailyInfo> DailyInfo { get; set; }
     }
     public class ApiPlayersDailyInfo
@@ -35,6 +36,6 @@ namespace IqSoft.CP.AdminWebApi.Models.DashboardModels
         public decimal MaxBet { get; set; }
         public decimal MaxWin { get; set; }
         public decimal MaxWinBet { get; set; }
+        public int FTDCount { get; set; }
     }
-
 }

@@ -17,6 +17,6 @@ namespace IqSoft.CP.DAL.Models.Cache
 		public decimal? Lines { get; set; }
 		public decimal? Coins { get; set; }
 		public decimal? CoinValue { get; set; }
-		public decimal? BetValueLevel { get; set; }
+		public string BetValues { get; set; }
 	}
 }

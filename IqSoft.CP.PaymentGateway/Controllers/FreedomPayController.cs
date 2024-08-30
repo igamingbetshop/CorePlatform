@@ -62,8 +62,15 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                     });
                     request.ExternalTransactionId = input.order_id; // ?????????
                     paymentSystemBl.ChangePaymentRequestDetails(request);
+                    var amount = input.amount;
+                    if (client.CurrencyId != Constants.Currencies.USADollar)
+                    {
+                        var parameters = string.IsNullOrEmpty(request.Parameters) ? new Dictionary<string, string>() :
+                                         JsonConvert.DeserializeObject<Dictionary<string, string>>(request.Parameters);
+                        amount = Math.Round(Convert.ToDecimal(parameters["AppliedRate"]) * input.amount, 2);
+                    }
 
-                    if (request.Amount != input.amount)
+                    if (request.Amount != amount)
                         throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.PaymentRequestInValidAmount);
 
                     if (input.code == "00" && input.state.Replace(" ", string.Empty).ToUpper() == "TRANSACTIONSUCCESS")

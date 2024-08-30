@@ -1,0 +1,1036 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+  <EntityContainerMapping StorageEntityContainer="DataWarehouseModelStoreContainer" CdmEntityContainer="IqSoftDataWarehouseEntities">
+    <EntitySetMapping Name="Documents">
+      <EntityTypeMapping TypeName="DataWarehouseModel.Document">
+        <MappingFragment StoreEntitySet="Document">
+          <ScalarProperty Name="Considered" ColumnName="Considered" />
+          <ScalarProperty Name="Id" ColumnName="Id" />
+          <ScalarProperty Name="ExternalTransactionId" ColumnName="ExternalTransactionId" />
+          <ScalarProperty Name="Amount" ColumnName="Amount" />
+          <ScalarProperty Name="CurrencyId" ColumnName="CurrencyId" />
+          <ScalarProperty Name="State" ColumnName="State" />
+          <ScalarProperty Name="OperationTypeId" ColumnName="OperationTypeId" />
+          <ScalarProperty Name="TypeId" ColumnName="TypeId" />
+          <ScalarProperty Name="ParentId" ColumnName="ParentId" />
+          <ScalarProperty Name="PaymentRequestId" ColumnName="PaymentRequestId" />
+          <ScalarProperty Name="RoundId" ColumnName="RoundId" />
+          <ScalarProperty Name="Info" ColumnName="Info" />
+          <ScalarProperty Name="Creator" ColumnName="Creator" />
+          <ScalarProperty Name="CashDeskId" ColumnName="CashDeskId" />
+          <ScalarProperty Name="PartnerPaymentSettingId" ColumnName="PartnerPaymentSettingId" />
+          <ScalarProperty Name="PartnerProductId" ColumnName="PartnerProductId" />
+          <ScalarProperty Name="GameProviderId" ColumnName="GameProviderId" />
+          <ScalarProperty Name="ClientId" ColumnName="ClientId" />
+          <ScalarProperty Name="ExternalOperationId" ColumnName="ExternalOperationId" />
+          <ScalarProperty Name="TicketNumber" ColumnName="TicketNumber" />
+          <ScalarProperty Name="TicketInfo" ColumnName="TicketInfo" />
+          <ScalarProperty Name="UserId" ColumnName="UserId" />
+          <ScalarProperty Name="DeviceTypeId" ColumnName="DeviceTypeId" />
+          <ScalarProperty Name="PossibleWin" ColumnName="PossibleWin" />
+          <ScalarProperty Name="SessionId" ColumnName="SessionId" />
+          <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
+          <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
+          <ScalarProperty Name="ProductId" ColumnName="ProductId" />
+          <ScalarProperty Name="HasNote" ColumnName="HasNote" />
+          <ScalarProperty Name="Date" ColumnName="Date" />
+          <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+          <ScalarProperty Name="AccountId" ColumnName="AccountId" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Settings">
+      <EntityTypeMapping TypeName="DataWarehouseModel.Setting">
+        <MappingFragment StoreEntitySet="Setting">
+          <ScalarProperty Name="Id" ColumnName="Id" />
+          <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+          <ScalarProperty Name="GameProviderId" ColumnName="GameProviderId" />
+          <ScalarProperty Name="PaymentSystemId" ColumnName="PaymentSystemId" />
+          <ScalarProperty Name="Name" ColumnName="Name" />
+          <ScalarProperty Name="StringValue" ColumnName="StringValue" />
+          <ScalarProperty Name="DateValue" ColumnName="DateValue" />
+          <ScalarProperty Name="NumericValue" ColumnName="NumericValue" />
+          <ScalarProperty Name="NotificationServiceId" ColumnName="NotificationServiceId" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Products">
+      <EntityTypeMapping TypeName="DataWarehouseModel.Product">
+        <MappingFragment StoreEntitySet="Product">
+          <ScalarProperty Name="Path" ColumnName="Path" />
+          <ScalarProperty Name="BetValues" ColumnName="BetValues" />
+          <ScalarProperty Name="Lines" ColumnName="Lines" />
+          <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
+          <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
+          <ScalarProperty Name="RTP" ColumnName="RTP" />
+          <ScalarProperty Name="BackgroundImageUrl" ColumnName="BackgroundImageUrl" />
+          <ScalarProperty Name="FreeSpinSupport" ColumnName="FreeSpinSupport" />
+          <ScalarProperty Name="Jackpot" ColumnName="Jackpot" />
+          <ScalarProperty Name="CategoryId" ColumnName="CategoryId" />
+          <ScalarProperty Name="HasDemo" ColumnName="HasDemo" />
+          <ScalarProperty Name="SubproviderId" ColumnName="SubproviderId" />
+          <ScalarProperty Name="MobileImageUrl" ColumnName="MobileImageUrl" />
+          <ScalarProperty Name="WebImageUrl" ColumnName="WebImageUrl" />
+          <ScalarProperty Name="IsForMobile" ColumnName="IsForMobile" />
+          <ScalarProperty Name="IsForDesktop" ColumnName="IsForDesktop" />
+          <ScalarProperty Name="State" ColumnName="State" />
+          <ScalarProperty Name="ExternalId" ColumnName="ExternalId" />
+          <ScalarProperty Name="ParentId" ColumnName="ParentId" />
+          <ScalarProperty Name="NickName" ColumnName="NickName" />
+          <ScalarProperty Name="Level" ColumnName="Level" />
+          <ScalarProperty Name="PaymentSystemId" ColumnName="PaymentSystemId" />
+          <ScalarProperty Name="GameProviderId" ColumnName="GameProviderId" />
+          <ScalarProperty Name="TranslationId" ColumnName="TranslationId" />
+          <ScalarProperty Name="Id" ColumnName="Id" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Users">
+      <EntityTypeMapping TypeName="DataWarehouseModel.User">
+        <MappingFragment StoreEntitySet="User">
+          <ScalarProperty Name="Phone" ColumnName="Phone" />
+          <ScalarProperty Name="LoginByNickName" ColumnName="LoginByNickName" />
+          <ScalarProperty Name="PasswordChangedDate" ColumnName="PasswordChangedDate" />
+          <ScalarProperty Name="ImageData" ColumnName="ImageData" />
+          <ScalarProperty Name="SessionId" ColumnName="SessionId" />
+          <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
+          <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
+          <ScalarProperty Name="Level" ColumnName="Level" />
+          <ScalarProperty Name="IsTwoFactorEnabled" ColumnName="IsTwoFactorEnabled" />
+          <ScalarProperty Name="QRCode" ColumnName="QRCode" />
+          <ScalarProperty Name="SecurityCode" ColumnName="SecurityCode" />
+          <ScalarProperty Name="Path" ColumnName="Path" />
+          <ScalarProperty Name="ParentId" ColumnName="ParentId" />
+          <ScalarProperty Name="AdminState" ColumnName="AdminState" />
+          <ScalarProperty Name="Type" ColumnName="Type" />
+          <ScalarProperty Name="MobileNumber" ColumnName="MobileNumber" />
+          <ScalarProperty Name="Email" ColumnName="Email" />
+          <ScalarProperty Name="CurrencyId" ColumnName="CurrencyId" />
+          <ScalarProperty Name="State" ColumnName="State" />
+          <ScalarProperty Name="Salt" ColumnName="Salt" />
+          <ScalarProperty Name="PasswordHash" ColumnName="PasswordHash" />
+          <ScalarProperty Name="NickName" ColumnName="NickName" />
+          <ScalarProperty Name="UserName" ColumnName="UserName" />
+          <ScalarProperty Name="LanguageId" ColumnName="LanguageId" />
+          <ScalarProperty Name="Gender" ColumnName="Gender" />
+          <ScalarProperty Name="LastName" ColumnName="LastName" />
+          <ScalarProperty Name="FirstName" ColumnName="FirstName" />
+          <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+          <ScalarProperty Name="Id" ColumnName="Id" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <FunctionImportMapping FunctionImportName="sp_InsertDocuments" FunctionName="DataWarehouseModel.Store.sp_InsertDocuments" />
+    <FunctionImportMapping FunctionImportName="fn_AffiliateClient" FunctionName="DataWarehouseModel.Store.fn_AffiliateClient">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="DataWarehouseModel.fnAffiliateClient">
+          <ScalarProperty Name="AffiliateManagerId" ColumnName="AffiliateManagerId" />
+          <ScalarProperty Name="ClientId" ColumnName="ClientId" />
+          <ScalarProperty Name="TotalBetAmount" ColumnName="TotalBetAmount" />
+          <ScalarProperty Name="TotalWinAmount" ColumnName="TotalWinAmount" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="fn_BetShopBet" FunctionName="DataWarehouseModel.Store.fn_BetShopBet">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="DataWarehouseModel.fnBetShopBet">
+          <ScalarProperty Name="BetDocumentId" ColumnName="BetDocumentId" />
+          <ScalarProperty Name="BetExternalTransactionId" ColumnName="BetExternalTransactionId" />
+          <ScalarProperty Name="BetShopCurrencyId" ColumnName="BetShopCurrencyId" />
+          <ScalarProperty Name="BetInfo" ColumnName="BetInfo" />
+          <ScalarProperty Name="CashDeskId" ColumnName="CashDeskId" />
+          <ScalarProperty Name="BetTypeId" ColumnName="BetTypeId" />
+          <ScalarProperty Name="PossibleWin" ColumnName="PossibleWin" />
+          <ScalarProperty Name="ProductId" ColumnName="ProductId" />
+          <ScalarProperty Name="GameProviderId" ColumnName="GameProviderId" />
+          <ScalarProperty Name="TicketInfo" ColumnName="TicketInfo" />
+          <ScalarProperty Name="CashierId" ColumnName="CashierId" />
+          <ScalarProperty Name="BetShopGroupId" ColumnName="BetShopGroupId" />
+          <ScalarProperty Name="BetDate" ColumnName="BetDate" />
+          <ScalarProperty Name="PayDate" ColumnName="PayDate" />
+          <ScalarProperty Name="BetShopId" ColumnName="BetShopId" />
+          <ScalarProperty Name="BetShopName" ColumnName="BetShopName" />
+          <ScalarProperty Name="BetAmount" ColumnName="BetAmount" />
+          <ScalarProperty Name="CurrencyId" ColumnName="CurrencyId" />
+          <ScalarProperty Name="TicketNumber" ColumnName="TicketNumber" />
+          <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+          <ScalarProperty Name="ProductName" ColumnName="ProductName" />
+          <ScalarProperty Name="RoundId" ColumnName="RoundId" />
+          <ScalarProperty Name="ProviderName" ColumnName="ProviderName" />
+          <ScalarProperty Name="HasNote" ColumnName="HasNote" />
+          <ScalarProperty Name="State" ColumnName="State" />
+          <ScalarProperty Name="WinDate" ColumnName="WinDate" />
+          <ScalarProperty Name="WinAmount" ColumnName="WinAmount" />
+          <ScalarProperty Name="Date" ColumnName="Date" />
+          <ScalarProperty Name="AgentId" ColumnName="AgentId" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="fn_InternetGame" FunctionName="DataWarehouseModel.Store.fn_InternetGame">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="DataWarehouseModel.fnInternetGame">
+          <ScalarProperty Name="ProductId" ColumnName="ProductId" />
+          <ScalarProperty Name="ProductName" ColumnName="ProductName" />
+          <ScalarProperty Name="GameProviderId" ColumnName="GameProviderId" />
+          <ScalarProperty Name="SubproviderId" ColumnName="SubproviderId" />
+          <ScalarProperty Name="CurrencyId" ColumnName="CurrencyId" />
+          <ScalarProperty Name="BetAmount" ColumnName="BetAmount" />
+          <ScalarProperty Name="WinAmount" ColumnName="WinAmount" />
+          <ScalarProperty Name="GGR" ColumnName="GGR" />
+          <ScalarProperty Name="BetCount" ColumnName="BetCount" />
+          <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="fn_ProfitByAgent" FunctionName="DataWarehouseModel.Store.fn_ProfitByAgent">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="DataWarehouseModel.fnProfitByAgent">
+          <ScalarProperty Name="AgentId" ColumnName="AgentId" />
+          <ScalarProperty Name="AgentPath" ColumnName="AgentPath" />
+          <ScalarProperty Name="ProductId" ColumnName="ProductId" />
+          <ScalarProperty Name="SelectionsCount" ColumnName="SelectionsCount" />
+          <ScalarProperty Name="TotalBetAmount" ColumnName="TotalBetAmount" />
+          <ScalarProperty Name="TotalWinAmount" ColumnName="TotalWinAmount" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="fn_ReportByPartner" FunctionName="DataWarehouseModel.Store.fn_ReportByPartner">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="DataWarehouseModel.fnReportByPartner">
+          <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+          <ScalarProperty Name="PartnerName" ColumnName="PartnerName" />
+          <ScalarProperty Name="TotalBetAmount" ColumnName="TotalBetAmount" />
+          <ScalarProperty Name="TotalBetsCount" ColumnName="TotalBetsCount" />
+          <ScalarProperty Name="TotalWinAmount" ColumnName="TotalWinAmount" />
+          <ScalarProperty Name="TotalGGR" ColumnName="TotalGGR" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <EntitySetMapping Name="GameProviders">
+      <EntityTypeMapping TypeName="DataWarehouseModel.GameProvider">
+        <MappingFragment StoreEntitySet="GameProvider">
+          <ScalarProperty Name="GameLaunchUrl" ColumnName="GameLaunchUrl" />
+          <ScalarProperty Name="SessionExpireTime" ColumnName="SessionExpireTime" />
+          <ScalarProperty Name="Type" ColumnName="Type" />
+          <ScalarProperty Name="Name" ColumnName="Name" />
+          <ScalarProperty Name="Id" ColumnName="Id" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <FunctionImportMapping FunctionImportName="fn_Document" FunctionName="DataWarehouseModel.Store.fn_Document">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="DataWarehouseModel.fnDocument">
+          <ScalarProperty Name="Id" ColumnName="Id" />
+          <ScalarProperty Name="ClientId" ColumnName="ClientId" />
+          <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+          <ScalarProperty Name="Amount" ColumnName="Amount" />
+          <ScalarProperty Name="CurrencyId" ColumnName="CurrencyId" />
+          <ScalarProperty Name="ExternalTransactionId" ColumnName="ExternalTransactionId" />
+          <ScalarProperty Name="State" ColumnName="State" />
+          <ScalarProperty Name="OperationTypeId" ColumnName="OperationTypeId" />
+          <ScalarProperty Name="TypeId" ColumnName="TypeId" />
+          <ScalarProperty Name="PaymentRequestId" ColumnName="PaymentRequestId" />
+          <ScalarProperty Name="PaymentSystemId" ColumnName="PaymentSystemId" />
+          <ScalarProperty Name="PaymentSystemName" ColumnName="PaymentSystemName" />
+          <ScalarProperty Name="RoundId" ColumnName="RoundId" />
+          <ScalarProperty Name="GameProviderId" ColumnName="GameProviderId" />
+          <ScalarProperty Name="GameProviderName" ColumnName="GameProviderName" />
+          <ScalarProperty Name="ProductId" ColumnName="ProductId" />
+          <ScalarProperty Name="ProductName" ColumnName="ProductName" />
+          <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
+          <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
+          <ScalarProperty Name="Date" ColumnName="Date" />
+          <ScalarProperty Name="AccountId" ColumnName="AccountId" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <EntitySetMapping Name="ClientBonus">
+      <EntityTypeMapping TypeName="DataWarehouseModel.ClientBonu">
+        <MappingFragment StoreEntitySet="ClientBonus">
+          <ScalarProperty Name="Considered" ColumnName="Considered" />
+          <ScalarProperty Name="ReuseNumber" ColumnName="ReuseNumber" />
+          <ScalarProperty Name="CreationDate" ColumnName="CreationDate" />
+          <ScalarProperty Name="TriggerId" ColumnName="TriggerId" />
+          <ScalarProperty Name="ValidUntil" ColumnName="ValidUntil" />
+          <ScalarProperty Name="CalculationTime" ColumnName="CalculationTime" />
+          <ScalarProperty Name="FinalAmount" ColumnName="FinalAmount" />
+          <ScalarProperty Name="TurnoverAmountLeft" ColumnName="TurnoverAmountLeft" />
+          <ScalarProperty Name="AwardingTime" ColumnName="AwardingTime" />
+          <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
+          <ScalarProperty Name="BonusPrize" ColumnName="BonusPrize" />
+          <ScalarProperty Name="Status" ColumnName="Status" />
+          <ScalarProperty Name="ClientId" ColumnName="ClientId" />
+          <ScalarProperty Name="BonusId" ColumnName="BonusId" />
+          <ScalarProperty Name="Id" ColumnName="Id" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Gtd_Dashboard_Info">
+      <EntityTypeMapping TypeName="DataWarehouseModel.Gtd_Dashboard_Info">
+        <MappingFragment StoreEntitySet="Gtd_Dashboard_Info">
+          <ScalarProperty Name="FTDCount" ColumnName="FTDCount" />
+          <ScalarProperty Name="ApplicationPlayersCount" ColumnName="ApplicationPlayersCount" />
+          <ScalarProperty Name="TerminalPlayersCount" ColumnName="TerminalPlayersCount" />
+          <ScalarProperty Name="BetShopPlayersCount" ColumnName="BetShopPlayersCount" />
+          <ScalarProperty Name="TabletPlayersCount" ColumnName="TabletPlayersCount" />
+          <ScalarProperty Name="MobilePlayersCount" ColumnName="MobilePlayersCount" />
+          <ScalarProperty Name="DesktopPlayersCount" ColumnName="DesktopPlayersCount" />
+          <ScalarProperty Name="PlayersCount" ColumnName="PlayersCount" />
+          <ScalarProperty Name="ApplicationBetsCount" ColumnName="ApplicationBetsCount" />
+          <ScalarProperty Name="TerminalBetsCount" ColumnName="TerminalBetsCount" />
+          <ScalarProperty Name="BetShopBetsCount" ColumnName="BetShopBetsCount" />
+          <ScalarProperty Name="TabletBetsCount" ColumnName="TabletBetsCount" />
+          <ScalarProperty Name="MobileBetsCount" ColumnName="MobileBetsCount" />
+          <ScalarProperty Name="DesktopBetsCount" ColumnName="DesktopBetsCount" />
+          <ScalarProperty Name="BetsCount" ColumnName="BetsCount" />
+          <ScalarProperty Name="ApplicationNGR" ColumnName="ApplicationNGR" />
+          <ScalarProperty Name="TerminalNGR" ColumnName="TerminalNGR" />
+          <ScalarProperty Name="BetShopNGR" ColumnName="BetShopNGR" />
+          <ScalarProperty Name="TabletNGR" ColumnName="TabletNGR" />
+          <ScalarProperty Name="MobileNGR" ColumnName="MobileNGR" />
+          <ScalarProperty Name="DesktopNGR" ColumnName="DesktopNGR" />
+          <ScalarProperty Name="NGR" ColumnName="NGR" />
+          <ScalarProperty Name="ApplicationGGR" ColumnName="ApplicationGGR" />
+          <ScalarProperty Name="TerminalGGR" ColumnName="TerminalGGR" />
+          <ScalarProperty Name="BetShopGGR" ColumnName="BetShopGGR" />
+          <ScalarProperty Name="TabletGGR" ColumnName="TabletGGR" />
+          <ScalarProperty Name="MobileGGR" ColumnName="MobileGGR" />
+          <ScalarProperty Name="DesktopGGR" ColumnName="DesktopGGR" />
+          <ScalarProperty Name="GGR" ColumnName="GGR" />
+          <ScalarProperty Name="ApplicationBetAmount" ColumnName="ApplicationBetAmount" />
+          <ScalarProperty Name="TerminalBetAmount" ColumnName="TerminalBetAmount" />
+          <ScalarProperty Name="BetShopBetAmount" ColumnName="BetShopBetAmount" />
+          <ScalarProperty Name="TabletBetAmount" ColumnName="TabletBetAmount" />
+          <ScalarProperty Name="MobileBetAmount" ColumnName="MobileBetAmount" />
+          <ScalarProperty Name="DesktopBetAmount" ColumnName="DesktopBetAmount" />
+          <ScalarProperty Name="BetAmount" ColumnName="BetAmount" />
+          <ScalarProperty Name="MaxWin" ColumnName="MaxWin" />
+          <ScalarProperty Name="MaxBet" ColumnName="MaxBet" />
+          <ScalarProperty Name="CashoutAmount" ColumnName="CashoutAmount" />
+          <ScalarProperty Name="BonusAmount" ColumnName="BonusAmount" />
+          <ScalarProperty Name="DepositsCount" ColumnName="DepositsCount" />
+          <ScalarProperty Name="ReturnsCount" ColumnName="ReturnsCount" />
+          <ScalarProperty Name="TotalPlayersCount" ColumnName="TotalPlayersCount" />
+          <ScalarProperty Name="SignUpsCount" ColumnName="SignUpsCount" />
+          <ScalarProperty Name="VisitorsCount" ColumnName="VisitorsCount" />
+          <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+          <ScalarProperty Name="Date" ColumnName="Date" />
+          <ScalarProperty Name="Id" ColumnName="Id" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Gtd_Provider_Bets">
+      <EntityTypeMapping TypeName="DataWarehouseModel.Gtd_Provider_Bets">
+        <MappingFragment StoreEntitySet="Gtd_Provider_Bets">
+          <ScalarProperty Name="PlayersCount" ColumnName="PlayersCount" />
+          <ScalarProperty Name="BetsCount" ColumnName="BetsCount" />
+          <ScalarProperty Name="NGR" ColumnName="NGR" />
+          <ScalarProperty Name="GGR" ColumnName="GGR" />
+          <ScalarProperty Name="WinAmount" ColumnName="WinAmount" />
+          <ScalarProperty Name="BetAmount" ColumnName="BetAmount" />
+          <ScalarProperty Name="SubProviderId" ColumnName="SubProviderId" />
+          <ScalarProperty Name="GameProviderId" ColumnName="GameProviderId" />
+          <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+          <ScalarProperty Name="Date" ColumnName="Date" />
+          <ScalarProperty Name="Id" ColumnName="Id" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="PaymentRequests">
+      <EntityTypeMapping TypeName="DataWarehouseModel.PaymentRequest">
+        <MappingFragment StoreEntitySet="PaymentRequest">
+          <ScalarProperty Name="ParentId" ColumnName="ParentId" />
+          <ScalarProperty Name="AccountId" ColumnName="AccountId" />
+          <ScalarProperty Name="DepositCount" ColumnName="DepositCount" />
+          <ScalarProperty Name="CountryCode" ColumnName="CountryCode" />
+          <ScalarProperty Name="SegmentId" ColumnName="SegmentId" />
+          <ScalarProperty Name="CardNumber" ColumnName="CardNumber" />
+          <ScalarProperty Name="CommissionAmount" ColumnName="CommissionAmount" />
+          <ScalarProperty Name="ActivatedBonusType" ColumnName="ActivatedBonusType" />
+          <ScalarProperty Name="Date" ColumnName="Date" />
+          <ScalarProperty Name="CashCode" ColumnName="CashCode" />
+          <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
+          <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
+          <ScalarProperty Name="SessionId" ColumnName="SessionId" />
+          <ScalarProperty Name="UserId" ColumnName="UserId" />
+          <ScalarProperty Name="ExternalTransactionId" ColumnName="ExternalTransactionId" />
+          <ScalarProperty Name="Type" ColumnName="Type" />
+          <ScalarProperty Name="Info" ColumnName="Info" />
+          <ScalarProperty Name="PaymentSystemId" ColumnName="PaymentSystemId" />
+          <ScalarProperty Name="Parameters" ColumnName="Parameters" />
+          <ScalarProperty Name="CashierId" ColumnName="CashierId" />
+          <ScalarProperty Name="CashDeskId" ColumnName="CashDeskId" />
+          <ScalarProperty Name="BetShopId" ColumnName="BetShopId" />
+          <ScalarProperty Name="PartnerPaymentSettingId" ColumnName="PartnerPaymentSettingId" />
+          <ScalarProperty Name="Status" ColumnName="Status" />
+          <ScalarProperty Name="CurrencyId" ColumnName="CurrencyId" />
+          <ScalarProperty Name="Amount" ColumnName="Amount" />
+          <ScalarProperty Name="ClientId" ColumnName="ClientId" />
+          <ScalarProperty Name="Id" ColumnName="Id" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Gtd_Deposit_Info">
+      <EntityTypeMapping TypeName="DataWarehouseModel.Gtd_Deposit_Info">
+        <MappingFragment StoreEntitySet="Gtd_Deposit_Info">
+          <ScalarProperty Name="PlayersCount" ColumnName="PlayersCount" />
+          <ScalarProperty Name="RequestsCount" ColumnName="RequestsCount" />
+          <ScalarProperty Name="TotalAmount" ColumnName="TotalAmount" />
+          <ScalarProperty Name="Status" ColumnName="Status" />
+          <ScalarProperty Name="PaymentSystemId" ColumnName="PaymentSystemId" />
+          <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+          <ScalarProperty Name="Date" ColumnName="Date" />
+          <ScalarProperty Name="Id" ColumnName="Id" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Gtd_Withdraw_Info">
+      <EntityTypeMapping TypeName="DataWarehouseModel.Gtd_Withdraw_Info">
+        <MappingFragment StoreEntitySet="Gtd_Withdraw_Info">
+          <ScalarProperty Name="PlayersCount" ColumnName="PlayersCount" />
+          <ScalarProperty Name="RequestsCount" ColumnName="RequestsCount" />
+          <ScalarProperty Name="TotalAmount" ColumnName="TotalAmount" />
+          <ScalarProperty Name="Status" ColumnName="Status" />
+          <ScalarProperty Name="PaymentSystemId" ColumnName="PaymentSystemId" />
+          <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+          <ScalarProperty Name="Date" ColumnName="Date" />
+          <ScalarProperty Name="Id" ColumnName="Id" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="JobTriggers">
+      <EntityTypeMapping TypeName="DataWarehouseModel.JobTrigger">
+        <MappingFragment StoreEntitySet="JobTrigger">
+          <ScalarProperty Name="ClientId" ColumnName="ClientId" />
+          <ScalarProperty Name="Date" ColumnName="Date" />
+          <ScalarProperty Name="FunctionName" ColumnName="FunctionName" />
+          <ScalarProperty Name="Id" ColumnName="Id" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="AffiliatePlatforms">
+      <EntityTypeMapping TypeName="DataWarehouseModel.AffiliatePlatform">
+        <MappingFragment StoreEntitySet="AffiliatePlatform">
+          <ScalarProperty Name="PeriodInHours" ColumnName="PeriodInHours" />
+          <ScalarProperty Name="StepInHours" ColumnName="StepInHours" />
+          <ScalarProperty Name="LastExecutionTime" ColumnName="LastExecutionTime" />
+          <ScalarProperty Name="KickOffTime" ColumnName="KickOffTime" />
+          <ScalarProperty Name="Status" ColumnName="Status" />
+          <ScalarProperty Name="Name" ColumnName="Name" />
+          <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+          <ScalarProperty Name="Id" ColumnName="Id" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Partners">
+      <EntityTypeMapping TypeName="DataWarehouseModel.Partner">
+        <MappingFragment StoreEntitySet="Partner">
+          <ScalarProperty Name="AutoConfirmWithdrawMaxAmount" ColumnName="AutoConfirmWithdrawMaxAmount" />
+          <ScalarProperty Name="ClientSessionExpireTime" ColumnName="ClientSessionExpireTime" />
+          <ScalarProperty Name="AutoApproveWithdrawMaxAmount" ColumnName="AutoApproveWithdrawMaxAmount" />
+          <ScalarProperty Name="AutoApproveBetShopDepositMaxAmount" ColumnName="AutoApproveBetShopDepositMaxAmount" />
+          <ScalarProperty Name="VerificationKeyActiveMinutes" ColumnName="VerificationKeyActiveMinutes" />
+          <ScalarProperty Name="UnpaidWinValidPeriod" ColumnName="UnpaidWinValidPeriod" />
+          <ScalarProperty Name="UserSessionExpireTime" ColumnName="UserSessionExpireTime" />
+          <ScalarProperty Name="UnusedAmountWithdrawPercent" ColumnName="UnusedAmountWithdrawPercent" />
+          <ScalarProperty Name="MobileVerificationCodeLength" ColumnName="MobileVerificationCodeLength" />
+          <ScalarProperty Name="EmailVerificationCodeLength" ColumnName="EmailVerificationCodeLength" />
+          <ScalarProperty Name="VerificationType" ColumnName="VerificationType" />
+          <ScalarProperty Name="PasswordRegExp" ColumnName="PasswordRegExp" />
+          <ScalarProperty Name="ClientMinAge" ColumnName="ClientMinAge" />
+          <ScalarProperty Name="AccountingDayStartTime" ColumnName="AccountingDayStartTime" />
+          <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
+          <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
+          <ScalarProperty Name="SessionId" ColumnName="SessionId" />
+          <ScalarProperty Name="State" ColumnName="State" />
+          <ScalarProperty Name="AdminSiteUrl" ColumnName="AdminSiteUrl" />
+          <ScalarProperty Name="SiteUrl" ColumnName="SiteUrl" />
+          <ScalarProperty Name="CurrencyId" ColumnName="CurrencyId" />
+          <ScalarProperty Name="Name" ColumnName="Name" />
+          <ScalarProperty Name="Id" ColumnName="Id" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="AffiliateReferrals">
+      <EntityTypeMapping TypeName="DataWarehouseModel.AffiliateReferral">
+        <MappingFragment StoreEntitySet="AffiliateReferral">
+          <ScalarProperty Name="LastProcessedBonusTime" ColumnName="LastProcessedBonusTime" />
+          <ScalarProperty Name="Status" ColumnName="Status" />
+          <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
+          <ScalarProperty Name="Type" ColumnName="Type" />
+          <ScalarProperty Name="RefId" ColumnName="RefId" />
+          <ScalarProperty Name="AffiliateId" ColumnName="AffiliateId" />
+          <ScalarProperty Name="AffiliatePlatformId" ColumnName="AffiliatePlatformId" />
+          <ScalarProperty Name="Id" ColumnName="Id" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Bonus">
+      <EntityTypeMapping TypeName="DataWarehouseModel.Bonu">
+        <MappingFragment StoreEntitySet="Bonus">
+          <ScalarProperty Name="ReusingMaxCountInPeriod" ColumnName="ReusingMaxCountInPeriod" />
+          <ScalarProperty Name="DayOfWeek" ColumnName="DayOfWeek" />
+          <ScalarProperty Name="Regularity" ColumnName="Regularity" />
+          <ScalarProperty Name="FreezeBonusBalance" ColumnName="FreezeBonusBalance" />
+          <ScalarProperty Name="AutoApproveMaxAmount" ColumnName="AutoApproveMaxAmount" />
+          <ScalarProperty Name="LinkedBonusId" ColumnName="LinkedBonusId" />
+          <ScalarProperty Name="TotalReceiversCount" ColumnName="TotalReceiversCount" />
+          <ScalarProperty Name="MaxReceiversCount" ColumnName="MaxReceiversCount" />
+          <ScalarProperty Name="TotalGranted" ColumnName="TotalGranted" />
+          <ScalarProperty Name="MaxGranted" ColumnName="MaxGranted" />
+          <ScalarProperty Name="Percent" ColumnName="Percent" />
+          <ScalarProperty Name="Condition" ColumnName="Condition" />
+          <ScalarProperty Name="RefundRollbacked" ColumnName="RefundRollbacked" />
+          <ScalarProperty Name="AllowSplit" ColumnName="AllowSplit" />
+          <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
+          <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
+          <ScalarProperty Name="ResetOnWithdraw" ColumnName="ResetOnWithdraw" />
+          <ScalarProperty Name="ReusingMaxCount" ColumnName="ReusingMaxCount" />
+          <ScalarProperty Name="ValidForSpending" ColumnName="ValidForSpending" />
+          <ScalarProperty Name="ValidForAwarding" ColumnName="ValidForAwarding" />
+          <ScalarProperty Name="WinAccountTypeId" ColumnName="WinAccountTypeId" />
+          <ScalarProperty Name="Priority" ColumnName="Priority" />
+          <ScalarProperty Name="TranslationId" ColumnName="TranslationId" />
+          <ScalarProperty Name="Sequence" ColumnName="Sequence" />
+          <ScalarProperty Name="MaxAmount" ColumnName="MaxAmount" />
+          <ScalarProperty Name="MinAmount" ColumnName="MinAmount" />
+          <ScalarProperty Name="TurnoverCount" ColumnName="TurnoverCount" />
+          <ScalarProperty Name="Info" ColumnName="Info" />
+          <ScalarProperty Name="Type" ColumnName="Type" />
+          <ScalarProperty Name="Period" ColumnName="Period" />
+          <ScalarProperty Name="LastExecutionTime" ColumnName="LastExecutionTime" />
+          <ScalarProperty Name="FinishTime" ColumnName="FinishTime" />
+          <ScalarProperty Name="StartTime" ColumnName="StartTime" />
+          <ScalarProperty Name="Status" ColumnName="Status" />
+          <ScalarProperty Name="FinalAccountTypeId" ColumnName="FinalAccountTypeId" />
+          <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+          <ScalarProperty Name="Description" ColumnName="Description" />
+          <ScalarProperty Name="Name" ColumnName="Name" />
+          <ScalarProperty Name="Id" ColumnName="Id" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Clients">
+      <EntityTypeMapping TypeName="DataWarehouseModel.Client">
+        <MappingFragment StoreEntitySet="Client">
+          <ScalarProperty Name="CharacterId" ColumnName="CharacterId" />
+          <ScalarProperty Name="CountryId" ColumnName="CountryId" />
+          <ScalarProperty Name="QRCode" ColumnName="QRCode" />
+          <ScalarProperty Name="IsTwoFactorEnabled" ColumnName="IsTwoFactorEnabled" />
+          <ScalarProperty Name="Title" ColumnName="Title" />
+          <ScalarProperty Name="USSDPin" ColumnName="USSDPin" />
+          <ScalarProperty Name="City" ColumnName="City" />
+          <ScalarProperty Name="NickName" ColumnName="NickName" />
+          <ScalarProperty Name="Apartment" ColumnName="Apartment" />
+          <ScalarProperty Name="BuildingNumber" ColumnName="BuildingNumber" />
+          <ScalarProperty Name="SecondSurname" ColumnName="SecondSurname" />
+          <ScalarProperty Name="SecondName" ColumnName="SecondName" />
+          <ScalarProperty Name="JobArea" ColumnName="JobArea" />
+          <ScalarProperty Name="Citizenship" ColumnName="Citizenship" />
+          <ScalarProperty Name="LastSessionId" ColumnName="LastSessionId" />
+          <ScalarProperty Name="AffiliateReferralId" ColumnName="AffiliateReferralId" />
+          <ScalarProperty Name="UserId" ColumnName="UserId" />
+          <ScalarProperty Name="BetShopId" ColumnName="BetShopId" />
+          <ScalarProperty Name="LastDepositAmount" ColumnName="LastDepositAmount" />
+          <ScalarProperty Name="LastDepositDate" ColumnName="LastDepositDate" />
+          <ScalarProperty Name="FirstDepositDate" ColumnName="FirstDepositDate" />
+          <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
+          <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
+          <ScalarProperty Name="LanguageId" ColumnName="LanguageId" />
+          <ScalarProperty Name="HasNote" ColumnName="HasNote" />
+          <ScalarProperty Name="IsMobileNumberVerified" ColumnName="IsMobileNumberVerified" />
+          <ScalarProperty Name="PhoneNumber" ColumnName="PhoneNumber" />
+          <ScalarProperty Name="MobileNumber" ColumnName="MobileNumber" />
+          <ScalarProperty Name="Address" ColumnName="Address" />
+          <ScalarProperty Name="IsDocumentVerified" ColumnName="IsDocumentVerified" />
+          <ScalarProperty Name="DocumentIssuedBy" ColumnName="DocumentIssuedBy" />
+          <ScalarProperty Name="DocumentNumber" ColumnName="DocumentNumber" />
+          <ScalarProperty Name="DocumentType" ColumnName="DocumentType" />
+          <ScalarProperty Name="RegistrationIp" ColumnName="RegistrationIp" />
+          <ScalarProperty Name="ZipCode" ColumnName="ZipCode" />
+          <ScalarProperty Name="Info" ColumnName="Info" />
+          <ScalarProperty Name="RegionId" ColumnName="RegionId" />
+          <ScalarProperty Name="LastName" ColumnName="LastName" />
+          <ScalarProperty Name="FirstName" ColumnName="FirstName" />
+          <ScalarProperty Name="CategoryId" ColumnName="CategoryId" />
+          <ScalarProperty Name="State" ColumnName="State" />
+          <ScalarProperty Name="SendPromotions" ColumnName="SendPromotions" />
+          <ScalarProperty Name="CallToPhone" ColumnName="CallToPhone" />
+          <ScalarProperty Name="SendSms" ColumnName="SendSms" />
+          <ScalarProperty Name="SendMail" ColumnName="SendMail" />
+          <ScalarProperty Name="BirthDate" ColumnName="BirthDate" />
+          <ScalarProperty Name="Gender" ColumnName="Gender" />
+          <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+          <ScalarProperty Name="Salt" ColumnName="Salt" />
+          <ScalarProperty Name="PasswordHash" ColumnName="PasswordHash" />
+          <ScalarProperty Name="UserName" ColumnName="UserName" />
+          <ScalarProperty Name="CurrencyId" ColumnName="CurrencyId" />
+          <ScalarProperty Name="IsEmailVerified" ColumnName="IsEmailVerified" />
+          <ScalarProperty Name="Email" ColumnName="Email" />
+          <ScalarProperty Name="Id" ColumnName="Id" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <FunctionImportMapping FunctionImportName="fn_ProviderClientsCount" FunctionName="DataWarehouseModel.Store.fn_ProviderClientsCount">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="DataWarehouseModel.fnProviderClientsCount">
+          <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+          <ScalarProperty Name="GameProviderId" ColumnName="GameProviderId" />
+          <ScalarProperty Name="SubProviderId" ColumnName="SubProviderId" />
+          <ScalarProperty Name="PlayersCount" ColumnName="PlayersCount" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="fn_DeviceClientsCount" FunctionName="DataWarehouseModel.Store.fn_DeviceClientsCount">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="DataWarehouseModel.fnDeviceClientsCount">
+          <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+          <ScalarProperty Name="DeviceTypeId" ColumnName="DeviceTypeId" />
+          <ScalarProperty Name="PlayersCount" ColumnName="PlayersCount" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="fn_PartnerClientsCount" FunctionName="DataWarehouseModel.Store.fn_PartnerClientsCount">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="DataWarehouseModel.fnPartnerClientsCount">
+          <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+          <ScalarProperty Name="PlayersCount" ColumnName="PlayersCount" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="fn_PartnerDeviceBets" FunctionName="DataWarehouseModel.Store.fn_PartnerDeviceBets">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="DataWarehouseModel.fnPartnerDeviceBets">
+          <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+          <ScalarProperty Name="CurrencyId" ColumnName="CurrencyId" />
+          <ScalarProperty Name="DeviceTypeId" ColumnName="DeviceTypeId" />
+          <ScalarProperty Name="PlayersCount" ColumnName="PlayersCount" />
+          <ScalarProperty Name="MaxBet" ColumnName="MaxBet" />
+          <ScalarProperty Name="MaxWin" ColumnName="MaxWin" />
+          <ScalarProperty Name="TotalBet" ColumnName="TotalBet" />
+          <ScalarProperty Name="TotalBonusBet" ColumnName="TotalBonusBet" />
+          <ScalarProperty Name="TotalWin" ColumnName="TotalWin" />
+          <ScalarProperty Name="TotalBonusWin" ColumnName="TotalBonusWin" />
+          <ScalarProperty Name="CashoutAmount" ColumnName="CashoutAmount" />
+          <ScalarProperty Name="Count" ColumnName="Count" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="fn_PartnerProviderBets" FunctionName="DataWarehouseModel.Store.fn_PartnerProviderBets">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="DataWarehouseModel.fnPartnerProviderBets">
+          <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+          <ScalarProperty Name="CurrencyId" ColumnName="CurrencyId" />
+          <ScalarProperty Name="GameProviderId" ColumnName="GameProviderId" />
+          <ScalarProperty Name="SubproviderId" ColumnName="SubproviderId" />
+          <ScalarProperty Name="BetAmount" ColumnName="BetAmount" />
+          <ScalarProperty Name="BonusBetAmount" ColumnName="BonusBetAmount" />
+          <ScalarProperty Name="WinAmount" ColumnName="WinAmount" />
+          <ScalarProperty Name="BonusWinAmount" ColumnName="BonusWinAmount" />
+          <ScalarProperty Name="Count" ColumnName="Count" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <EntitySetMapping Name="Bets">
+      <EntityTypeMapping TypeName="DataWarehouseModel.Bet">
+        <MappingFragment StoreEntitySet="Bet">
+          <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+          <ScalarProperty Name="BonusWinAmount" ColumnName="BonusWinAmount" />
+          <ScalarProperty Name="AccountId" ColumnName="AccountId" />
+          <ScalarProperty Name="BonusAmount" ColumnName="BonusAmount" />
+          <ScalarProperty Name="Rake" ColumnName="Rake" />
+          <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
+          <ScalarProperty Name="Coefficient" ColumnName="Coefficient" />
+          <ScalarProperty Name="SelectionsCount" ColumnName="SelectionsCount" />
+          <ScalarProperty Name="BonusId" ColumnName="BonusId" />
+          <ScalarProperty Name="BonusDocumentId" ColumnName="BonusDocumentId" />
+          <ScalarProperty Name="JackpotDocumentId" ColumnName="JackpotDocumentId" />
+          <ScalarProperty Name="PayDate" ColumnName="PayDate" />
+          <ScalarProperty Name="CalculationDate" ColumnName="CalculationDate" />
+          <ScalarProperty Name="BetDate" ColumnName="BetDate" />
+          <ScalarProperty Name="PayTime" ColumnName="PayTime" />
+          <ScalarProperty Name="CalculationTime" ColumnName="CalculationTime" />
+          <ScalarProperty Name="BetTime" ColumnName="BetTime" />
+          <ScalarProperty Name="DeviceTypeId" ColumnName="DeviceTypeId" />
+          <ScalarProperty Name="UserId" ColumnName="UserId" />
+          <ScalarProperty Name="TicketNumber" ColumnName="TicketNumber" />
+          <ScalarProperty Name="ClientId" ColumnName="ClientId" />
+          <ScalarProperty Name="CashDeskId" ColumnName="CashDeskId" />
+          <ScalarProperty Name="TypeId" ColumnName="TypeId" />
+          <ScalarProperty Name="State" ColumnName="State" />
+          <ScalarProperty Name="WinAmount" ColumnName="WinAmount" />
+          <ScalarProperty Name="BetAmount" ColumnName="BetAmount" />
+          <ScalarProperty Name="ProductId" ColumnName="ProductId" />
+          <ScalarProperty Name="CurrencyId" ColumnName="CurrencyId" />
+          <ScalarProperty Name="PayDocumentId" ColumnName="PayDocumentId" />
+          <ScalarProperty Name="WinDocumentId" ColumnName="WinDocumentId" />
+          <ScalarProperty Name="BetDocumentId" ColumnName="BetDocumentId" />
+          <ScalarProperty Name="Id" ColumnName="Id" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <FunctionImportMapping FunctionImportName="fn_InternetBet" FunctionName="DataWarehouseModel.Store.fn_InternetBet">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="DataWarehouseModel.fnInternetBet">
+          <ScalarProperty Name="BetDocumentId" ColumnName="BetDocumentId" />
+          <ScalarProperty Name="BetExternalTransactionId" ColumnName="BetExternalTransactionId" />
+          <ScalarProperty Name="BetInfo" ColumnName="BetInfo" />
+          <ScalarProperty Name="ProductId" ColumnName="ProductId" />
+          <ScalarProperty Name="GameProviderId" ColumnName="GameProviderId" />
+          <ScalarProperty Name="TicketInfo" ColumnName="TicketInfo" />
+          <ScalarProperty Name="BetDate" ColumnName="BetDate" />
+          <ScalarProperty Name="ClientId" ColumnName="ClientId" />
+          <ScalarProperty Name="ClientUserName" ColumnName="ClientUserName" />
+          <ScalarProperty Name="ClientFirstName" ColumnName="ClientFirstName" />
+          <ScalarProperty Name="ClientLastName" ColumnName="ClientLastName" />
+          <ScalarProperty Name="BetAmount" ColumnName="BetAmount" />
+          <ScalarProperty Name="Coefficient" ColumnName="Coefficient" />
+          <ScalarProperty Name="CurrencyId" ColumnName="CurrencyId" />
+          <ScalarProperty Name="TicketNumber" ColumnName="TicketNumber" />
+          <ScalarProperty Name="DeviceTypeId" ColumnName="DeviceTypeId" />
+          <ScalarProperty Name="BetTypeId" ColumnName="BetTypeId" />
+          <ScalarProperty Name="PossibleWin" ColumnName="PossibleWin" />
+          <ScalarProperty Name="RoundId" ColumnName="RoundId" />
+          <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+          <ScalarProperty Name="ProductName" ColumnName="ProductName" />
+          <ScalarProperty Name="ProviderName" ColumnName="ProviderName" />
+          <ScalarProperty Name="ClientIp" ColumnName="ClientIp" />
+          <ScalarProperty Name="Country" ColumnName="Country" />
+          <ScalarProperty Name="ClientCategoryId" ColumnName="ClientCategoryId" />
+          <ScalarProperty Name="HasNote" ColumnName="HasNote" />
+          <ScalarProperty Name="ClientHasNote" ColumnName="ClientHasNote" />
+          <ScalarProperty Name="State" ColumnName="State" />
+          <ScalarProperty Name="WinDate" ColumnName="WinDate" />
+          <ScalarProperty Name="WinAmount" ColumnName="WinAmount" />
+          <ScalarProperty Name="BonusId" ColumnName="BonusId" />
+          <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
+          <ScalarProperty Name="Date" ColumnName="Date" />
+          <ScalarProperty Name="AffiliateReferralId" ColumnName="AffiliateReferralId" />
+          <ScalarProperty Name="UserPath" ColumnName="UserPath" />
+          <ScalarProperty Name="UserId" ColumnName="UserId" />
+          <ScalarProperty Name="ProductCategoryId" ColumnName="ProductCategoryId" />
+          <ScalarProperty Name="SubproviderId" ColumnName="SubproviderId" />
+          <ScalarProperty Name="SubproviderName" ColumnName="SubproviderName" />
+          <ScalarProperty Name="SelectionsCount" ColumnName="SelectionsCount" />
+          <ScalarProperty Name="Rake" ColumnName="Rake" />
+          <ScalarProperty Name="BonusAmount" ColumnName="BonusAmount" />
+          <ScalarProperty Name="BonusWinAmount" ColumnName="BonusWinAmount" />
+          <ScalarProperty Name="AffiliateId" ColumnName="AffiliateId" />
+          <ScalarProperty Name="AccountId" ColumnName="AccountId" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <EntitySetMapping Name="AgentCommissions">
+      <EntityTypeMapping TypeName="DataWarehouseModel.AgentCommission">
+        <MappingFragment StoreEntitySet="AgentCommission">
+          <ScalarProperty Name="ClientId" ColumnName="ClientId" />
+          <ScalarProperty Name="TurnoverPercent" ColumnName="TurnoverPercent" />
+          <ScalarProperty Name="Percent" ColumnName="Percent" />
+          <ScalarProperty Name="ProductId" ColumnName="ProductId" />
+          <ScalarProperty Name="AgentId" ColumnName="AgentId" />
+          <ScalarProperty Name="Id" ColumnName="Id" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <FunctionImportMapping FunctionImportName="fn_AgentProfit" FunctionName="DataWarehouseModel.Store.fn_AgentProfit">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="DataWarehouseModel.fnAgentProfit">
+          <ScalarProperty Name="ProductGroupId" ColumnName="ProductGroupId" />
+          <ScalarProperty Name="ProductGroupName" ColumnName="ProductGroupName" />
+          <ScalarProperty Name="ProductId" ColumnName="ProductId" />
+          <ScalarProperty Name="RecieverAgentId" ColumnName="RecieverAgentId" />
+          <ScalarProperty Name="AgentId" ColumnName="AgentId" />
+          <ScalarProperty Name="TotalProfit" ColumnName="TotalProfit" />
+          <ScalarProperty Name="TotalBetAmount" ColumnName="TotalBetAmount" />
+          <ScalarProperty Name="TotalWinAmount" ColumnName="TotalWinAmount" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="fn_ProductCommission" FunctionName="DataWarehouseModel.Store.fn_ProductCommission">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="DataWarehouseModel.fnProductCommission">
+          <ScalarProperty Name="Percent" ColumnName="Percent" />
+          <ScalarProperty Name="TurnoverPercent" ColumnName="TurnoverPercent" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="fn_ProductGroup" FunctionName="DataWarehouseModel.Store.fn_ProductGroup">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="DataWarehouseModel.fnProductGroup">
+          <ScalarProperty Name="Id" ColumnName="Id" />
+          <ScalarProperty Name="NickName" ColumnName="NickName" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="fn_ProfitByClientProduct" FunctionName="DataWarehouseModel.Store.fn_ProfitByClientProduct">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="DataWarehouseModel.fnProfitByClientProduct">
+          <ScalarProperty Name="ClientId" ColumnName="ClientId" />
+          <ScalarProperty Name="AgentId" ColumnName="AgentId" />
+          <ScalarProperty Name="ProductId" ColumnName="ProductId" />
+          <ScalarProperty Name="SelectionsCount" ColumnName="SelectionsCount" />
+          <ScalarProperty Name="TotalBetAmount" ColumnName="TotalBetAmount" />
+          <ScalarProperty Name="TotalWinAmount" ColumnName="TotalWinAmount" />
+          <ScalarProperty Name="TotalBetsCount" ColumnName="TotalBetsCount" />
+          <ScalarProperty Name="TotalUnsettledBetsCount" ColumnName="TotalUnsettledBetsCount" />
+          <ScalarProperty Name="TotalDeletedBetsCount" ColumnName="TotalDeletedBetsCount" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="fn_ClientSession" FunctionName="DataWarehouseModel.Store.fn_ClientSession">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="DataWarehouseModel.fnClientSession">
+          <ScalarProperty Name="Id" ColumnName="Id" />
+          <ScalarProperty Name="ClientId" ColumnName="ClientId" />
+          <ScalarProperty Name="LanguageId" ColumnName="LanguageId" />
+          <ScalarProperty Name="Ip" ColumnName="Ip" />
+          <ScalarProperty Name="Country" ColumnName="Country" />
+          <ScalarProperty Name="Token" ColumnName="Token" />
+          <ScalarProperty Name="ProductId" ColumnName="ProductId" />
+          <ScalarProperty Name="DeviceType" ColumnName="DeviceType" />
+          <ScalarProperty Name="StartTime" ColumnName="StartTime" />
+          <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
+          <ScalarProperty Name="EndTime" ColumnName="EndTime" />
+          <ScalarProperty Name="State" ColumnName="State" />
+          <ScalarProperty Name="CurrentPage" ColumnName="CurrentPage" />
+          <ScalarProperty Name="ParentId" ColumnName="ParentId" />
+          <ScalarProperty Name="ExternalToken" ColumnName="ExternalToken" />
+          <ScalarProperty Name="Source" ColumnName="Source" />
+          <ScalarProperty Name="LogoutType" ColumnName="LogoutType" />
+          <ScalarProperty Name="Type" ColumnName="Type" />
+          <ScalarProperty Name="AccountId" ColumnName="AccountId" />
+          <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <EntitySetMapping Name="ClientSessions">
+      <EntityTypeMapping TypeName="DataWarehouseModel.ClientSession">
+        <MappingFragment StoreEntitySet="ClientSession">
+          <ScalarProperty Name="AccountId" ColumnName="AccountId" />
+          <ScalarProperty Name="Type" ColumnName="Type" />
+          <ScalarProperty Name="LogoutType" ColumnName="LogoutType" />
+          <ScalarProperty Name="Source" ColumnName="Source" />
+          <ScalarProperty Name="ExternalToken" ColumnName="ExternalToken" />
+          <ScalarProperty Name="ParentId" ColumnName="ParentId" />
+          <ScalarProperty Name="CurrentPage" ColumnName="CurrentPage" />
+          <ScalarProperty Name="State" ColumnName="State" />
+          <ScalarProperty Name="EndTime" ColumnName="EndTime" />
+          <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
+          <ScalarProperty Name="StartTime" ColumnName="StartTime" />
+          <ScalarProperty Name="DeviceType" ColumnName="DeviceType" />
+          <ScalarProperty Name="ProductId" ColumnName="ProductId" />
+          <ScalarProperty Name="Token" ColumnName="Token" />
+          <ScalarProperty Name="Country" ColumnName="Country" />
+          <ScalarProperty Name="Ip" ColumnName="Ip" />
+          <ScalarProperty Name="LanguageId" ColumnName="LanguageId" />
+          <ScalarProperty Name="ClientId" ColumnName="ClientId" />
+          <ScalarProperty Name="Id" ColumnName="Id" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="AccountBalances">
+      <EntityTypeMapping TypeName="DataWarehouseModel.AccountBalance">
+        <MappingFragment StoreEntitySet="AccountBalance">
+          <ScalarProperty Name="Date" ColumnName="Date" />
+          <ScalarProperty Name="Balance" ColumnName="Balance" />
+          <ScalarProperty Name="CurrencyId" ColumnName="CurrencyId" />
+          <ScalarProperty Name="TypeId" ColumnName="TypeId" />
+          <ScalarProperty Name="ObjectTypeId" ColumnName="ObjectTypeId" />
+          <ScalarProperty Name="ObjectId" ColumnName="ObjectId" />
+          <ScalarProperty Name="AccountId" ColumnName="AccountId" />
+          <ScalarProperty Name="Id" ColumnName="Id" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="DuplicatedClients">
+      <EntityTypeMapping TypeName="DataWarehouseModel.DuplicatedClient">
+        <MappingFragment StoreEntitySet="DuplicatedClient">
+          <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
+          <ScalarProperty Name="DuplicatedClientId" ColumnName="DuplicatedClientId" />
+          <ScalarProperty Name="ClientId" ColumnName="ClientId" />
+          <ScalarProperty Name="Id" ColumnName="Id" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="DuplicatedClientHistories">
+      <EntityTypeMapping TypeName="DataWarehouseModel.DuplicatedClientHistory">
+        <MappingFragment StoreEntitySet="DuplicatedClientHistory">
+          <ScalarProperty Name="CreationDate" ColumnName="CreationDate" />
+          <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
+          <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
+          <ScalarProperty Name="DuplicatedData" ColumnName="DuplicatedData" />
+          <ScalarProperty Name="DuplicateId" ColumnName="DuplicateId" />
+          <ScalarProperty Name="Id" ColumnName="Id" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Opt_Document_Considered">
+      <EntityTypeMapping TypeName="DataWarehouseModel.Opt_Document_Considered">
+        <MappingFragment StoreEntitySet="Opt_Document_Considered">
+          <ScalarProperty Name="Date" ColumnName="Date" />
+          <ScalarProperty Name="DocumentId" ColumnName="DocumentId" />
+          <ScalarProperty Name="Id" ColumnName="Id" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <FunctionImportMapping FunctionImportName="fn_ClientBets" FunctionName="DataWarehouseModel.Store.fn_ClientBets">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="DataWarehouseModel.fnClientBets">
+          <ScalarProperty Name="ClientId" ColumnName="ClientId" />
+          <ScalarProperty Name="BetAmount" ColumnName="BetAmount" />
+          <ScalarProperty Name="BonusBetAmount" ColumnName="BonusBetAmount" />
+          <ScalarProperty Name="TotalBetsCount" ColumnName="TotalBetsCount" />
+          <ScalarProperty Name="SportBetsCount" ColumnName="SportBetsCount" />
+          <ScalarProperty Name="WinAmount" ColumnName="WinAmount" />
+          <ScalarProperty Name="BonusWinAmount" ColumnName="BonusWinAmount" />
+          <ScalarProperty Name="WinCount" ColumnName="WinCount" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <EntitySetMapping Name="Gtd_Client_Info">
+      <EntityTypeMapping TypeName="DataWarehouseModel.Gtd_Client_Info">
+        <MappingFragment StoreEntitySet="Gtd_Client_Info">
+          <ScalarProperty Name="NGR" ColumnName="NGR" />
+          <ScalarProperty Name="TotalBonusAmount" ColumnName="TotalBonusAmount" />
+          <ScalarProperty Name="ComplementaryBalance" ColumnName="ComplementaryBalance" />
+          <ScalarProperty Name="TotalCreditCorrectionCount" ColumnName="TotalCreditCorrectionCount" />
+          <ScalarProperty Name="TotalCreditCorrectionAmount" ColumnName="TotalCreditCorrectionAmount" />
+          <ScalarProperty Name="TotalDebitCorrectionCount" ColumnName="TotalDebitCorrectionCount" />
+          <ScalarProperty Name="TotalDebitCorrectionAmount" ColumnName="TotalDebitCorrectionAmount" />
+          <ScalarProperty Name="GGR" ColumnName="GGR" />
+          <ScalarProperty Name="TotalWinCount" ColumnName="TotalWinCount" />
+          <ScalarProperty Name="TotalWinAmount" ColumnName="TotalWinAmount" />
+          <ScalarProperty Name="SportBetCount" ColumnName="SportBetCount" />
+          <ScalarProperty Name="TotalBetCount" ColumnName="TotalBetCount" />
+          <ScalarProperty Name="TotalBetAmount" ColumnName="TotalBetAmount" />
+          <ScalarProperty Name="TotalWithdrawalCount" ColumnName="TotalWithdrawalCount" />
+          <ScalarProperty Name="TotalWithdrawalAmount" ColumnName="TotalWithdrawalAmount" />
+          <ScalarProperty Name="TotalDepositCount" ColumnName="TotalDepositCount" />
+          <ScalarProperty Name="TotalDepositAmount" ColumnName="TotalDepositAmount" />
+          <ScalarProperty Name="ClientId" ColumnName="ClientId" />
+          <ScalarProperty Name="Date" ColumnName="Date" />
+          <ScalarProperty Name="Id" ColumnName="Id" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <FunctionImportMapping FunctionImportName="fn_ClientReport" FunctionName="DataWarehouseModel.Store.fn_ClientReport">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="DataWarehouseModel.fnClientReport">
+          <ScalarProperty Name="ClientId" ColumnName="ClientId" />
+          <ScalarProperty Name="UserName" ColumnName="UserName" />
+          <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+          <ScalarProperty Name="CurrencyId" ColumnName="CurrencyId" />
+          <ScalarProperty Name="CurrentRate" ColumnName="CurrentRate" />
+          <ScalarProperty Name="FirstName" ColumnName="FirstName" />
+          <ScalarProperty Name="LastName" ColumnName="LastName" />
+          <ScalarProperty Name="Email" ColumnName="Email" />
+          <ScalarProperty Name="AffiliatePlatformId" ColumnName="AffiliatePlatformId" />
+          <ScalarProperty Name="AffiliateId" ColumnName="AffiliateId" />
+          <ScalarProperty Name="AffiliateReferralId" ColumnName="AffiliateReferralId" />
+          <ScalarProperty Name="TotalWithdrawalAmount" ColumnName="TotalWithdrawalAmount" />
+          <ScalarProperty Name="WithdrawalsCount" ColumnName="WithdrawalsCount" />
+          <ScalarProperty Name="TotalDepositAmount" ColumnName="TotalDepositAmount" />
+          <ScalarProperty Name="DepositsCount" ColumnName="DepositsCount" />
+          <ScalarProperty Name="TotalBetAmount" ColumnName="TotalBetAmount" />
+          <ScalarProperty Name="TotalBetsCount" ColumnName="TotalBetsCount" />
+          <ScalarProperty Name="SportBetsCount" ColumnName="SportBetsCount" />
+          <ScalarProperty Name="TotalWinAmount" ColumnName="TotalWinAmount" />
+          <ScalarProperty Name="WinsCount" ColumnName="WinsCount" />
+          <ScalarProperty Name="GGR" ColumnName="GGR" />
+          <ScalarProperty Name="NGR" ColumnName="NGR" />
+          <ScalarProperty Name="TotalDebitCorrection" ColumnName="TotalDebitCorrection" />
+          <ScalarProperty Name="DebitCorrectionsCount" ColumnName="DebitCorrectionsCount" />
+          <ScalarProperty Name="TotalCreditCorrection" ColumnName="TotalCreditCorrection" />
+          <ScalarProperty Name="CreditCorrectionsCount" ColumnName="CreditCorrectionsCount" />
+          <ScalarProperty Name="TotalBonusAmount" ColumnName="TotalBonusAmount" />
+          <ScalarProperty Name="ComplementaryBalance" ColumnName="ComplementaryBalance" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="fn_DuplicateClient" FunctionName="DataWarehouseModel.Store.fn_DuplicateClient">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="DataWarehouseModel.fnDuplicateClient">
+          <ScalarProperty Name="DuplicatedClientId" ColumnName="DuplicatedClientId" />
+          <ScalarProperty Name="DuplicatedData" ColumnName="DuplicatedData" />
+          <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="fn_AffiliateCorrection" FunctionName="DataWarehouseModel.Store.fn_AffiliateCorrection">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="DataWarehouseModel.fnAffiliateCorrection">
+          <ScalarProperty Name="Id" ColumnName="Id" />
+          <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+          <ScalarProperty Name="AffiliateId" ColumnName="AffiliateId" />
+          <ScalarProperty Name="FirstName" ColumnName="FirstName" />
+          <ScalarProperty Name="LastName" ColumnName="LastName" />
+          <ScalarProperty Name="Amount" ColumnName="Amount" />
+          <ScalarProperty Name="CurrencyId" ColumnName="CurrencyId" />
+          <ScalarProperty Name="Creator" ColumnName="Creator" />
+          <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
+          <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
+          <ScalarProperty Name="HasNote" ColumnName="HasNote" />
+          <ScalarProperty Name="Date" ColumnName="Date" />
+          <ScalarProperty Name="OperationTypeName" ColumnName="OperationTypeName" />
+          <ScalarProperty Name="CreatorFirstName" ColumnName="CreatorFirstName" />
+          <ScalarProperty Name="CreatorLastName" ColumnName="CreatorLastName" />
+          <ScalarProperty Name="DocumentTypeId" ColumnName="DocumentTypeId" />
+          <ScalarProperty Name="ClientId" ColumnName="ClientId" />
+          <ScalarProperty Name="ClientFirstName" ColumnName="ClientFirstName" />
+          <ScalarProperty Name="ClientLastName" ColumnName="ClientLastName" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="fn_AffiliateTransaction" FunctionName="DataWarehouseModel.Store.fn_AffiliateTransaction">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="DataWarehouseModel.fnAffiliateTransaction">
+          <ScalarProperty Name="Id" ColumnName="Id" />
+          <ScalarProperty Name="ExternalTransactionId" ColumnName="ExternalTransactionId" />
+          <ScalarProperty Name="Amount" ColumnName="Amount" />
+          <ScalarProperty Name="CurrencyId" ColumnName="CurrencyId" />
+          <ScalarProperty Name="State" ColumnName="State" />
+          <ScalarProperty Name="OperationTypeId" ColumnName="OperationTypeId" />
+          <ScalarProperty Name="AffiliateId" ColumnName="AffiliateId" />
+          <ScalarProperty Name="ProductId" ColumnName="ProductId" />
+          <ScalarProperty Name="ProductName" ColumnName="ProductName" />
+          <ScalarProperty Name="TransactionType" ColumnName="TransactionType" />
+          <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
+          <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
+          <ScalarProperty Name="Date" ColumnName="Date" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="fn_ReportByProvider" FunctionName="DataWarehouseModel.Store.fn_ReportByProvider">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="DataWarehouseModel.fnReportByProvider">
+          <ScalarProperty Name="ProviderName" ColumnName="ProviderName" />
+          <ScalarProperty Name="Currency" ColumnName="Currency" />
+          <ScalarProperty Name="TotalBetsCount" ColumnName="TotalBetsCount" />
+          <ScalarProperty Name="TotalBetsAmount" ColumnName="TotalBetsAmount" />
+          <ScalarProperty Name="TotalWinsAmount" ColumnName="TotalWinsAmount" />
+          <ScalarProperty Name="TotalUncalculatedBetsCount" ColumnName="TotalUncalculatedBetsCount" />
+          <ScalarProperty Name="TotalUncalculatedBetsAmount" ColumnName="TotalUncalculatedBetsAmount" />
+          <ScalarProperty Name="GGR" ColumnName="GGR" />
+          <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+          <ScalarProperty Name="ClientId" ColumnName="ClientId" />
+          <ScalarProperty Name="AffiliateReferralId" ColumnName="AffiliateReferralId" />
+          <ScalarProperty Name="AffiliateId" ColumnName="AffiliateId" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <EntitySetMapping Name="Currencies">
+      <EntityTypeMapping TypeName="DataWarehouseModel.Currency">
+        <MappingFragment StoreEntitySet="Currency">
+          <ScalarProperty Name="Type" ColumnName="Type" />
+          <ScalarProperty Name="Name" ColumnName="Name" />
+          <ScalarProperty Name="Code" ColumnName="Code" />
+          <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
+          <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
+          <ScalarProperty Name="Symbol" ColumnName="Symbol" />
+          <ScalarProperty Name="CurrentRate" ColumnName="CurrentRate" />
+          <ScalarProperty Name="Id" ColumnName="Id" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+  </EntityContainerMapping>
+</Mapping>

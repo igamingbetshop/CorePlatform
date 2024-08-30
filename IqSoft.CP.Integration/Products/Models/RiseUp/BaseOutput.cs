@@ -50,14 +50,15 @@ namespace IqSoft.CP.Integration.Products.Models.RiseUp
 
 	public class Product
 	{
-		public string id { get; set; }
-		public string name { get; set; }
-		public string provider { get; set; }
-		public string externalId  { get; set; }
-		public string description { get; set; }
-		public string type { get; set; }
-		public string device { get; set; }
-		public string mobileImgUrl { get; set; }
-		public string webImageUrl { get; set; }
+		public string Id { get; set; }
+		public string Name { get; set; }
+		public string Provider { get; set; }
+		public string ExternalId  { get; set; }
+		public string Description { get; set; }
+		public string Type { get; set; }
+		public bool DesktopSupport { get; set; }
+		public bool MobileSupport { get; set; }
+		public string MobileImageUrl { get; set; }
+		public string WebImageUrl { get; set; }
 	}
 }

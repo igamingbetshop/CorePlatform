@@ -11,7 +11,7 @@ namespace IqSoft.CP.AdminWebApi.Models.BonusModels
         public decimal? Lines { get; set; }
         public decimal? Coins { get; set; }
         public decimal? CoinValue { get; set; }
-        public decimal? BetValueLevel { get; set; }
+        public string BetValues { get; set; }
         public DateTime CreationDate { get; set; }
         public DateTime LastUpdateDate { get; set; }
     }

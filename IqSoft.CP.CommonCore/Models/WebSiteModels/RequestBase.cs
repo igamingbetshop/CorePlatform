@@ -17,7 +17,5 @@
         public string RequestData { get; set; }
 
         public string Credentials { get; set; }
-
-        public bool IsAgent { get; set; }
     }
 }

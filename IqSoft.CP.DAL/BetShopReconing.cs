@@ -23,8 +23,8 @@ namespace IqSoft.CP.DAL
         public string CurrencyId { get; set; }
         public System.DateTime CreationTime { get; set; }
     
-        public virtual Currency Currency { get; set; }
         public virtual User User { get; set; }
         public virtual BetShop BetShop { get; set; }
+        public virtual Currency Currency { get; set; }
     }
 }

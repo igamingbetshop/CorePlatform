@@ -13,15 +13,16 @@ namespace IqSoft.CP.DAL
     
     public partial class fnPopupStatistics
     {
-        public int Id { get; set; }
         public int PartnerId { get; set; }
+        public int Id { get; set; }
         public string NickName { get; set; }
         public int Type { get; set; }
         public Nullable<int> DeviceType { get; set; }
         public int State { get; set; }
         public System.DateTime CreationTime { get; set; }
         public System.DateTime LastUpdateTime { get; set; }
-        public Nullable<int> ViewTypeId { get; set; }
-        public Nullable<int> ViewCount { get; set; }
+        public Nullable<int> Viewed { get; set; }
+        public Nullable<int> Closed { get; set; }
+        public Nullable<int> Redirected { get; set; }
     }
 }

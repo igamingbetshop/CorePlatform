@@ -124,10 +124,10 @@ namespace IqSoft.CP.ProductGateway.Controllers
 			catch (FaultException<BllFnErrorType> ex)
 			{
 				WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(input) + "_" + ex.Detail.Id + " _ " + ex.Detail.Message);
-				if (ex.Detail.Id == Constants.Errors.DocumentAlreadyRollbacked)
-				{
+				//if (ex.Detail.Id == Constants.Errors.DocumentAlreadyRollbacked)
+				//{
 
-				}
+				//}
 				response = JsonConvert.SerializeObject(new BaseOutput()
 				{
 					Request = request,
@@ -157,7 +157,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
 						Hash = CommonFunctions.ComputeSha1($"ERROR{timestamp}{secretKey}"),
 						ResponseData = new ErrorOutput
 						{
-							ErrorCode = ex.Message,
+							ErrorCode = TimelessTechHelpers.GetErrorCode(Constants.Errors.GeneralException),
 							ErrorMessage = ex.Message
 						}
 					}

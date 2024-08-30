@@ -6,7 +6,7 @@ namespace IqSoft.CP.DAL.Models
     {
         public string Permission { get; set; }
 
-        public ObjectTypes? ObjectTypeId { get; set; }
+        public int? ObjectTypeId { get; set; }
 
         public long ObjectId { get; set; }
 

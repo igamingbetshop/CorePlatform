@@ -17,6 +17,6 @@ namespace IqSoft.CP.Common.Models.WebSiteModels
         public int Type { get; set; }
         public string Info { get; set; }
         public int? Sequence { get; set; }
-
+        public decimal PrizePool { get; set; }
     }
 }

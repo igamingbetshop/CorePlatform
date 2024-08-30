@@ -10,6 +10,7 @@ namespace IqSoft.CP.BLL.Interfaces
     public interface IPaymentSystemBll : IBaseBll
     {
         List<PaymentSystem> GetPaymentSystems(bool? isActive);
+
         void SavePaymentSystem(ApiPaymentSystemModel apiPaymentSystemModel);
 
         List<fnPartnerPaymentSetting> GetfnPartnerPaymentSettings(FilterfnPartnerPaymentSetting filter, bool checkPermissions, int partnerId);

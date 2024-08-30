@@ -20,8 +20,8 @@ namespace IqSoft.CP.DAL
         public string CurrencyId { get; set; }
         public int Type { get; set; }
     
-        public virtual Currency Currency { get; set; }
         public virtual Partner Partner { get; set; }
         public virtual GameProvider GameProvider { get; set; }
+        public virtual Currency Currency { get; set; }
     }
 }

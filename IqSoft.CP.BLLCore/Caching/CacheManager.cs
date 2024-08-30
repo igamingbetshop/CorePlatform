@@ -3004,7 +3004,8 @@ namespace IqSoft.CP.BLL.Caching
                                                           Title = x.Title,
                                                           Description = x.Description,
                                                           ImageName = x.ImageName,
-                                                          Order = x.Order
+                                                          Order = x.Order,
+                                                          Visibility = string.IsNullOrEmpty(x.Visibility) ? new List<int>() : JsonConvert.DeserializeObject<List<int>>(x.Visibility),
                                                       }).ToList();
                 var ids = resp.Select(x => x.Id).ToList();
                 var segments = db.PromotionSegmentSettings.Where(x => ids.Contains(x.PromotionId)).ToList();

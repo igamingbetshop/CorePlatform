@@ -1,0 +1,174 @@
+2024-07-24 18:47:38.747 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/QuickEmailRegistration","PostData":"{\"MobileNumber\":null,\"MobileCode\":null,\"Email\":\"ttteest@gmail.com\",\"UserName\":null,\"Password\":\"Test123\",\"CurrencyId\":\"EUR\",\"ReCaptcha\":null,\"PromoCode\":null,\"RefId\":null,\"AgentCode\":null,\"AffiliateId\":null,\"AffiliatePlatformId\":null,\"FirstName\":null,\"LastName\":null,\"TermsConditionsAccepted\":true,\"SMSCode\":null,\"BirthYear\":null,\"BirthMonth\":null,\"BirthDay\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"::1\",\"CountryCode\":\"\",\"Domain\":\"\",\"OSType\":1,\"Source\":\"PostmanRuntime/7.37.3\",\"IsAgent\":false}","RequestMethod":{"Method":"POST"},"ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Threading.Tasks.TaskCanceledException: The request was canceled due to the configured HttpClient.Timeout of 60 seconds elapsing.
+ ---> System.TimeoutException: The operation was canceled.
+ ---> System.Threading.Tasks.TaskCanceledException: The operation was canceled.
+ ---> System.IO.IOException: Unable to read data from the transport connection: An established connection was aborted by the software in your host machine..
+ ---> System.Net.Sockets.SocketException (10053): An established connection was aborted by the software in your host machine.
+   at System.Net.Sockets.NetworkStream.Read(Span`1 buffer)
+   --- End of inner exception stack trace ---
+   at System.Net.Sockets.NetworkStream.Read(Span`1 buffer)
+   at System.Net.Http.HttpConnection.InitialFillAsync(Boolean async)
+   at System.Net.Http.HttpConnection.SendAsyncCore(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.HttpConnection.SendAsyncCore(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithVersionDetectionAndRetryAsync(HttpRequestMessage request, Boolean async, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.HttpMessageHandlerStage.Send(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsyncCore(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.HttpMessageHandlerStage.Send(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.SocketsHttpHandler.Send(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClientHandler.Send(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpMessageInvoker.Send(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.Send(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   --- End of inner exception stack trace ---
+   at System.Net.Http.HttpClient.HandleFailure(Exception e, Boolean telemetryStarted, HttpResponseMessage response, CancellationTokenSource cts, CancellationToken cancellationToken, CancellationTokenSource pendingRequestsCts)
+   at System.Net.Http.HttpClient.Send(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.Send(HttpRequestMessage request)
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in C:\Users\Edgar Barkhudaryan\source\repos\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 32
+2024-07-24 18:48:21.644 +04:00 [ERR] handled error: Remote server exception: The request was canceled due to the configured HttpClient.Timeout of 60 seconds elapsing.
+2024-07-24 19:09:43.335 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/QuickEmailRegistration","PostData":"{\"MobileNumber\":null,\"MobileCode\":null,\"Email\":\"ttteest@gmail.com\",\"UserName\":null,\"Password\":\"Test123\",\"CurrencyId\":\"EUR\",\"ReCaptcha\":null,\"PromoCode\":null,\"RefId\":null,\"AgentCode\":null,\"AffiliateId\":null,\"AffiliatePlatformId\":null,\"FirstName\":null,\"LastName\":null,\"TermsConditionsAccepted\":true,\"SMSCode\":null,\"BirthYear\":null,\"BirthMonth\":null,\"BirthDay\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"::1\",\"CountryCode\":\"\",\"Domain\":\"\",\"OSType\":1,\"Source\":\"PostmanRuntime/7.37.3\",\"IsAgent\":false}","RequestMethod":{"Method":"POST"},"ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Threading.Tasks.TaskCanceledException: The request was canceled due to the configured HttpClient.Timeout of 60 seconds elapsing.
+ ---> System.TimeoutException: The operation was canceled.
+ ---> System.Threading.Tasks.TaskCanceledException: The operation was canceled.
+ ---> System.IO.IOException: Unable to read data from the transport connection: An established connection was aborted by the software in your host machine..
+ ---> System.Net.Sockets.SocketException (10053): An established connection was aborted by the software in your host machine.
+   at System.Net.Sockets.NetworkStream.Read(Span`1 buffer)
+   --- End of inner exception stack trace ---
+   at System.Net.Sockets.NetworkStream.Read(Span`1 buffer)
+   at System.Net.Http.HttpConnection.InitialFillAsync(Boolean async)
+   at System.Net.Http.HttpConnection.SendAsyncCore(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.HttpConnection.SendAsyncCore(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithVersionDetectionAndRetryAsync(HttpRequestMessage request, Boolean async, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.HttpMessageHandlerStage.Send(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsyncCore(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.HttpMessageHandlerStage.Send(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.SocketsHttpHandler.Send(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClientHandler.Send(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpMessageInvoker.Send(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.Send(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   --- End of inner exception stack trace ---
+   at System.Net.Http.HttpClient.HandleFailure(Exception e, Boolean telemetryStarted, HttpResponseMessage response, CancellationTokenSource cts, CancellationToken cancellationToken, CancellationTokenSource pendingRequestsCts)
+   at System.Net.Http.HttpClient.Send(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.Send(HttpRequestMessage request)
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in C:\Users\Edgar Barkhudaryan\source\repos\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 32
+2024-07-24 19:11:09.609 +04:00 [ERR] handled error: Remote server exception: The request was canceled due to the configured HttpClient.Timeout of 60 seconds elapsing.
+2024-07-24 19:25:59.820 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/QuickEmailRegistration","PostData":"{\"MobileNumber\":null,\"MobileCode\":null,\"Email\":\"tttteest@gmail.com\",\"UserName\":null,\"Password\":\"Test123\",\"CurrencyId\":\"EUR\",\"ReCaptcha\":null,\"PromoCode\":null,\"RefId\":null,\"AgentCode\":null,\"AffiliateId\":null,\"AffiliatePlatformId\":null,\"FirstName\":null,\"LastName\":null,\"TermsConditionsAccepted\":true,\"SMSCode\":null,\"BirthYear\":null,\"BirthMonth\":null,\"BirthDay\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"::1\",\"CountryCode\":\"\",\"Domain\":\"\",\"OSType\":1,\"Source\":\"PostmanRuntime/7.37.3\",\"IsAgent\":false}","RequestMethod":{"Method":"POST"},"ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Threading.Tasks.TaskCanceledException: The request was canceled due to the configured HttpClient.Timeout of 60 seconds elapsing.
+ ---> System.TimeoutException: The operation was canceled.
+ ---> System.Threading.Tasks.TaskCanceledException: The operation was canceled.
+ ---> System.IO.IOException: Unable to read data from the transport connection: An established connection was aborted by the software in your host machine..
+ ---> System.Net.Sockets.SocketException (10053): An established connection was aborted by the software in your host machine.
+   at System.Net.Sockets.NetworkStream.Read(Span`1 buffer)
+   --- End of inner exception stack trace ---
+   at System.Net.Sockets.NetworkStream.Read(Span`1 buffer)
+   at System.Net.Http.HttpConnection.InitialFillAsync(Boolean async)
+   at System.Net.Http.HttpConnection.SendAsyncCore(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.HttpConnection.SendAsyncCore(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithVersionDetectionAndRetryAsync(HttpRequestMessage request, Boolean async, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.HttpMessageHandlerStage.Send(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsyncCore(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.HttpMessageHandlerStage.Send(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.SocketsHttpHandler.Send(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClientHandler.Send(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpMessageInvoker.Send(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.Send(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   --- End of inner exception stack trace ---
+   at System.Net.Http.HttpClient.HandleFailure(Exception e, Boolean telemetryStarted, HttpResponseMessage response, CancellationTokenSource cts, CancellationToken cancellationToken, CancellationTokenSource pendingRequestsCts)
+   at System.Net.Http.HttpClient.Send(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.Send(HttpRequestMessage request)
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in C:\Users\Edgar Barkhudaryan\source\repos\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 32
+2024-07-24 19:26:24.369 +04:00 [ERR] handled error: Remote server exception: The request was canceled due to the configured HttpClient.Timeout of 60 seconds elapsing.
+2024-07-24 19:30:34.459 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/QuickEmailRegistration","PostData":"{\"MobileNumber\":null,\"MobileCode\":null,\"Email\":\"testediq@gmail.com\",\"UserName\":null,\"Password\":\"Test123\",\"CurrencyId\":\"EUR\",\"ReCaptcha\":null,\"PromoCode\":null,\"RefId\":null,\"AgentCode\":null,\"AffiliateId\":null,\"AffiliatePlatformId\":null,\"FirstName\":null,\"LastName\":null,\"TermsConditionsAccepted\":true,\"SMSCode\":null,\"BirthYear\":null,\"BirthMonth\":null,\"BirthDay\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"::1\",\"CountryCode\":\"\",\"Domain\":\"\",\"OSType\":1,\"Source\":\"PostmanRuntime/7.37.3\",\"IsAgent\":false}","RequestMethod":{"Method":"POST"},"ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Threading.Tasks.TaskCanceledException: The request was canceled due to the configured HttpClient.Timeout of 60 seconds elapsing.
+ ---> System.TimeoutException: The operation was canceled.
+ ---> System.Threading.Tasks.TaskCanceledException: The operation was canceled.
+ ---> System.IO.IOException: Unable to read data from the transport connection: An established connection was aborted by the software in your host machine..
+ ---> System.Net.Sockets.SocketException (10053): An established connection was aborted by the software in your host machine.
+   at System.Net.Sockets.NetworkStream.Read(Span`1 buffer)
+   --- End of inner exception stack trace ---
+   at System.Net.Sockets.NetworkStream.Read(Span`1 buffer)
+   at System.Net.Http.HttpConnection.InitialFillAsync(Boolean async)
+   at System.Net.Http.HttpConnection.SendAsyncCore(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.HttpConnection.SendAsyncCore(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithVersionDetectionAndRetryAsync(HttpRequestMessage request, Boolean async, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.HttpMessageHandlerStage.Send(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsyncCore(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.HttpMessageHandlerStage.Send(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.SocketsHttpHandler.Send(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClientHandler.Send(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpMessageInvoker.Send(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.Send(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   --- End of inner exception stack trace ---
+   at System.Net.Http.HttpClient.HandleFailure(Exception e, Boolean telemetryStarted, HttpResponseMessage response, CancellationTokenSource cts, CancellationToken cancellationToken, CancellationTokenSource pendingRequestsCts)
+   at System.Net.Http.HttpClient.Send(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.Send(HttpRequestMessage request)
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in C:\Users\Edgar Barkhudaryan\source\repos\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 32
+2024-07-24 19:30:51.456 +04:00 [ERR] handled error: Remote server exception: The request was canceled due to the configured HttpClient.Timeout of 60 seconds elapsing.
+2024-07-24 19:34:02.738 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/QuickEmailRegistration","PostData":"{\"MobileNumber\":null,\"MobileCode\":null,\"Email\":\"testediq@gmail.com\",\"UserName\":null,\"Password\":\"Test1234\",\"CurrencyId\":\"EUR\",\"ReCaptcha\":null,\"PromoCode\":null,\"RefId\":null,\"AgentCode\":null,\"AffiliateId\":null,\"AffiliatePlatformId\":null,\"FirstName\":null,\"LastName\":null,\"TermsConditionsAccepted\":true,\"SMSCode\":null,\"BirthYear\":null,\"BirthMonth\":null,\"BirthDay\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"::1\",\"CountryCode\":\"\",\"Domain\":\"\",\"OSType\":1,\"Source\":\"PostmanRuntime/7.37.3\",\"IsAgent\":false}","RequestMethod":{"Method":"POST"},"ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Threading.Tasks.TaskCanceledException: The request was canceled due to the configured HttpClient.Timeout of 60 seconds elapsing.
+ ---> System.TimeoutException: The operation was canceled.
+ ---> System.Threading.Tasks.TaskCanceledException: The operation was canceled.
+ ---> System.IO.IOException: Unable to read data from the transport connection: An established connection was aborted by the software in your host machine..
+ ---> System.Net.Sockets.SocketException (10053): An established connection was aborted by the software in your host machine.
+   at System.Net.Sockets.NetworkStream.Read(Span`1 buffer)
+   --- End of inner exception stack trace ---
+   at System.Net.Sockets.NetworkStream.Read(Span`1 buffer)
+   at System.Net.Http.HttpConnection.InitialFillAsync(Boolean async)
+   at System.Net.Http.HttpConnection.SendAsyncCore(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.HttpConnection.SendAsyncCore(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithVersionDetectionAndRetryAsync(HttpRequestMessage request, Boolean async, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.HttpMessageHandlerStage.Send(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsyncCore(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.HttpMessageHandlerStage.Send(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.SocketsHttpHandler.Send(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClientHandler.Send(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpMessageInvoker.Send(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.Send(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   --- End of inner exception stack trace ---
+   at System.Net.Http.HttpClient.HandleFailure(Exception e, Boolean telemetryStarted, HttpResponseMessage response, CancellationTokenSource cts, CancellationToken cancellationToken, CancellationTokenSource pendingRequestsCts)
+   at System.Net.Http.HttpClient.Send(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.Send(HttpRequestMessage request)
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in C:\Users\Edgar Barkhudaryan\source\repos\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 32
+2024-07-24 19:34:52.376 +04:00 [ERR] handled error: Remote server exception: The request was canceled due to the configured HttpClient.Timeout of 60 seconds elapsing.
+2024-07-24 19:40:45.266 +04:00 [ERR] _Input_{"Url":"http://localhost:4412/1/api/main/QuickEmailRegistration","PostData":"{\"MobileNumber\":null,\"MobileCode\":null,\"Email\":\"testediq@gmail.com\",\"UserName\":null,\"Password\":\"Test1234/&&tt_\",\"CurrencyId\":\"EUR\",\"ReCaptcha\":null,\"PromoCode\":null,\"RefId\":null,\"AgentCode\":null,\"AffiliateId\":null,\"AffiliatePlatformId\":null,\"FirstName\":null,\"LastName\":null,\"TermsConditionsAccepted\":true,\"SMSCode\":null,\"BirthYear\":null,\"BirthMonth\":null,\"BirthDay\":null,\"PartnerId\":1,\"LanguageId\":\"en\",\"TimeZone\":0.0,\"Ip\":\"::1\",\"CountryCode\":\"\",\"Domain\":\"\",\"OSType\":1,\"Source\":\"PostmanRuntime/7.37.3\",\"IsAgent\":false}","RequestMethod":{"Method":"POST"},"ContentType":"application/json","Accept":null,"RequestHeaders":null}
+System.Threading.Tasks.TaskCanceledException: The request was canceled due to the configured HttpClient.Timeout of 60 seconds elapsing.
+ ---> System.TimeoutException: The operation was canceled.
+ ---> System.Threading.Tasks.TaskCanceledException: The operation was canceled.
+ ---> System.IO.IOException: Unable to read data from the transport connection: An established connection was aborted by the software in your host machine..
+ ---> System.Net.Sockets.SocketException (10053): An established connection was aborted by the software in your host machine.
+   at System.Net.Sockets.NetworkStream.Read(Span`1 buffer)
+   --- End of inner exception stack trace ---
+   at System.Net.Sockets.NetworkStream.Read(Span`1 buffer)
+   at System.Net.Http.HttpConnection.InitialFillAsync(Boolean async)
+   at System.Net.Http.HttpConnection.SendAsyncCore(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.HttpConnection.SendAsyncCore(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithVersionDetectionAndRetryAsync(HttpRequestMessage request, Boolean async, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.HttpMessageHandlerStage.Send(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsyncCore(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.HttpMessageHandlerStage.Send(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.SocketsHttpHandler.Send(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClientHandler.Send(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpMessageInvoker.Send(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.Send(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   --- End of inner exception stack trace ---
+   at System.Net.Http.HttpClient.HandleFailure(Exception e, Boolean telemetryStarted, HttpResponseMessage response, CancellationTokenSource cts, CancellationToken cancellationToken, CancellationTokenSource pendingRequestsCts)
+   at System.Net.Http.HttpClient.Send(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.Send(HttpRequestMessage request)
+   at IqSoft.CP.WebSiteWebApi.Common.MasterCacheIntegration.SendHttpRequest(HttpRequestInput input) in C:\Users\Edgar Barkhudaryan\source\repos\IqSoft.CorePlatform\IqSoft.CP.WebSiteWebApi\Common\MasterCacheIntegration.cs:line 32
+2024-07-24 19:41:00.309 +04:00 [ERR] handled error: Remote server exception: The request was canceled due to the configured HttpClient.Timeout of 60 seconds elapsing.

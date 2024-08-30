@@ -13,11 +13,8 @@ namespace IqSoft.CP.DataWarehouse
     
     public partial class fnDuplicateClient
     {
-        public int Id { get; set; }
-        public int ClientId { get; set; }
         public int DuplicatedClientId { get; set; }
         public string DuplicatedData { get; set; }
         public System.DateTime LastUpdateTime { get; set; }
-        public int PartnerId { get; set; }
     }
 }

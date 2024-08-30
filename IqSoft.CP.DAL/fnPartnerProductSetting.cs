@@ -21,6 +21,9 @@ namespace IqSoft.CP.DAL
         public Nullable<decimal> Rating { get; set; }
         public string CategoryIds { get; set; }
         public Nullable<int> OpenMode { get; set; }
+        public Nullable<int> Volatility { get; set; }
+        public System.DateTime CreationTime { get; set; }
+        public System.DateTime LastUpdateTime { get; set; }
         public Nullable<bool> HasDemo { get; set; }
         public string ProductNickName { get; set; }
         public string ProductExternalId { get; set; }
@@ -39,8 +42,15 @@ namespace IqSoft.CP.DAL
         public Nullable<bool> HasImages { get; set; }
         public int ProductState { get; set; }
         public Nullable<decimal> RTP { get; set; }
-        public Nullable<int> Volatility { get; set; }
-        public System.DateTime CreationTime { get; set; }
-        public System.DateTime LastUpdateTime { get; set; }
+        public Nullable<int> ParentId { get; set; }
+        public int Level { get; set; }
+        public string Path { get; set; }
+        public string BackgroundImageUrl { get; set; }
+        public Nullable<bool> FreeSpinSupport { get; set; }
+        public Nullable<int> CategoryId { get; set; }
+        public Nullable<bool> IsProviderActive { get; set; }
+        public long TranslationId { get; set; }
+        public string Lines { get; set; }
+        public string ProductVolatility { get; set; }
     }
 }

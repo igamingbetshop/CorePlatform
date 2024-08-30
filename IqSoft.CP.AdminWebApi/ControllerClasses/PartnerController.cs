@@ -23,6 +23,7 @@ using IqSoft.CP.Integration.Platforms.Models;
 using IqSoft.CP.AdminWebApi.Models.ContentModels;
 using IqSoft.CP.Common.Models.Partner;
 using System.Collections.Generic;
+using static IqSoft.CP.Common.Constants;
 
 namespace IqSoft.CP.AdminWebApi.ControllerClasses
 {
@@ -109,6 +110,10 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     return SaveCharacter(JsonConvert.DeserializeObject<ApiCharacter>(request.RequestData), identity, log);
                 case "DeleteCharacterById":
                     return DeleteCharacterById(JsonConvert.DeserializeObject<ApiCharacter>(request.RequestData), identity, log);
+                case "GetVipLevels":
+                    return GetVipLevels(identity, log);
+                case "GetClientRegistrationFields":
+                    return GetClientRegistrationFields(identity, log);
             }
             throw BaseBll.CreateException(string.Empty, Constants.Errors.MethodNotFound);
         }
@@ -271,7 +276,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 var partnerAccess = partnerBll.GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
                 if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != partnerId))
                     throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.DontHavePermission);
@@ -294,7 +299,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     var partnerAccess = partnerBll.GetPermissionsToObject(new CheckPermissionInput
                     {
                         Permission = Constants.Permissions.ViewPartner,
-                        ObjectTypeId = ObjectTypes.Partner
+                        ObjectTypeId = (int)ObjectTypes.Partner
                     });
                     if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != item.WebSiteMenuItem.WebSiteMenu.PartnerId))
                         throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.DontHavePermission);
@@ -319,7 +324,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     var partnerAccess = partnerBll.GetPermissionsToObject(new CheckPermissionInput
                     {
                         Permission = Constants.Permissions.ViewPartner,
-                        ObjectTypeId = ObjectTypes.Partner
+                        ObjectTypeId = (int)ObjectTypes.Partner
                     });
                     if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != item.WebSiteMenuItem.WebSiteMenu.PartnerId))
                         throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.DontHavePermission);
@@ -344,7 +349,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     var partnerAccess = partnerBll.GetPermissionsToObject(new CheckPermissionInput
                     {
                         Permission = Constants.Permissions.ViewPartner,
-                        ObjectTypeId = ObjectTypes.Partner
+                        ObjectTypeId = (int)ObjectTypes.Partner
                     });
                     if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != item.WebSiteMenuItem.WebSiteMenu.PartnerId))
                         throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.DontHavePermission);
@@ -586,7 +591,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     var partnerAccess = partnerBll.GetPermissionsToObject(new CheckPermissionInput
                     {
                         Permission = Constants.Permissions.ViewPartner,
-                        ObjectTypeId = ObjectTypes.Partner
+                        ObjectTypeId = (int)ObjectTypes.Partner
                     });
                     if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != partner.Id))
                         throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.DontHavePermission);
@@ -626,7 +631,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 var partnerAccess = productBll.GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
                 if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != partnerId))
                     throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.DontHavePermission);
@@ -846,6 +851,28 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
 				var character = input.MapToCharacter();
 				partnerBll.DeleteCharacterById(character);
                 return new ApiResponseBase();
+            }
+        }
+
+        private static ApiResponseBase GetVipLevels(SessionIdentity identity, ILog log)
+        {
+            using (var partnerBll = new PartnerBll(identity, log))
+            {
+                var levels = partnerBll.GetVipLevels();
+                return new ApiResponseBase { ResponseObject = levels };
+            }
+        }
+
+        public static ApiResponseBase GetClientRegistrationFields(SessionIdentity identity, ILog log)
+        {
+            using (var contentBl = new ContentBll(identity, log))
+            {
+                var user = CacheManager.GetUserById(identity.Id);
+
+                return new ApiResponseBase
+                {
+                    ResponseObject = contentBl.GetClientRegistrationFields(user.PartnerId, (int)SystemModuleTypes.ManagementSystem)
+                };
             }
         }
     }

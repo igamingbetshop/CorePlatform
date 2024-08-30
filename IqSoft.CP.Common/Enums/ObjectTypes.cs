@@ -100,6 +100,7 @@
         News = 97,
         NewsContent = 98,
         NewsDescription = 99,
-        Popup = 100
+        Popup = 100,
+        VipLevel = 101
     }
 }

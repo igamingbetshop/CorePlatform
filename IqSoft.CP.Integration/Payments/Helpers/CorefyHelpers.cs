@@ -233,12 +233,11 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                                 BankBranchCode = paymentInfo.BankBranchName != string.Empty ? paymentInfo.BankBranchName : null,
                                 BeneficiaryFullName = beneficiaryName,
                                 BeneficiaryAccountNumber = paymentInfo.BankAccountNumber != string.Empty ? paymentInfo.BankAccountNumber : null,
-                                AccountType = paymentInfo.AccountType,
-                                BeneficiaryName = paymentInfo.NationalId,
-                                BeneficiaryLastname = paymentInfo.BankBranchName,
-                                PixKey = paymentInfo.BankIBAN,
-                                CpfNumber = paymentInfo.BankAccountNumber
-
+                                AccountType =paymentInfo.AccountType!= string.Empty ? paymentInfo.AccountType : null,
+                                BeneficiaryName = paymentInfo.NationalId != string.Empty ? paymentInfo.NationalId : null,
+                                BeneficiaryLastname = paymentInfo.BankBranchName!= string.Empty ? paymentInfo.BankBranchName : null,
+                                PixKey = paymentInfo.BankIBAN!= string.Empty ? paymentInfo.BankIBAN : null,
+                                CpfNumber = paymentInfo.BankAccountNumber!= string.Empty ? paymentInfo.BankAccountNumber : null
                             },
                             Customer = new CustomerModel
                             {

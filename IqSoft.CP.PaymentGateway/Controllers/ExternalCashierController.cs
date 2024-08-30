@@ -26,10 +26,8 @@ namespace IqSoft.CP.PaymentGateway.Controllers
     {
         private readonly static int PaymentSystemId = CacheManager.GetPaymentSystemByName(Constants.PaymentSystems.ExternalCashier).Id;
 
-        private static readonly List<string> WhitelistedIps = new List<string>
-        {
-            ""
-        };
+        public static List<string> WhitelistedIps = CacheManager.GetProviderWhitelistedIps(Constants.PaymentSystems.ExternalCashier);
+
 
         [HttpPost]
         [Route("api/ExternalCashier/Authentication")]
@@ -38,7 +36,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
             var result = new AuthenticationOutput();
             try
             {
-                //BaseBll.CheckIp(WhitelistedIps);
+                BaseBll.CheckIp(WhitelistedIps);
                 if (!int.TryParse(input.ClientId, out int clientId))
                     throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.ClientNotFound);
                 var client = CacheManager.GetClientById(clientId);
@@ -102,7 +100,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 
         [HttpPost]
         [Route("api/ExternalCashier/Payment")]
-        public HttpResponseMessage Payment(PaymentInput input)
+        public HttpResponseMessage CreatePaymentRequest(PaymentInput input)
         {
             var result = new PaymentOutput();
             try
@@ -171,6 +169,63 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                             result.OrderId = request.Id.ToString();
                         }
                     }
+                }
+            }
+            catch (FaultException<BllFnErrorType> ex)
+            {
+                var exp = ex.Detail == null ? ex : new Exception(ex.Detail.Id + " " + ex.Detail.NickName);
+                WebApiApplication.DbLogger.Error(exp);
+
+                result.Code = ex.Detail.Id;
+                result.Description = ex.Detail.Message;
+            }
+            catch (Exception ex)
+            {
+                WebApiApplication.DbLogger.Error(ex);
+                result.Code = Constants.Errors.GeneralException;
+                result.Description = ex.Message;
+            }
+            var httpResponseMessage = new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(JsonConvert.SerializeObject(result), Encoding.UTF8)
+            };
+            httpResponseMessage.Content.Headers.ContentType = new MediaTypeHeaderValue(Constants.HttpContentTypes.ApplicationJson);
+            return httpResponseMessage;
+        }
+
+        [HttpPost]
+        [Route("api/ExternalCashier/PayPaymentRequest")]
+        public HttpResponseMessage PayPaymentRequest(PaymentInput input)
+        {
+            var result = new PaymentOutput();
+            try
+            {
+                BaseBll.CheckIp(WhitelistedIps);
+                using (var paymentSystemBl = new PaymentSystemBll(new DAL.Models.SessionIdentity(), WebApiApplication.DbLogger))
+                using (var clientBl = new ClientBll(paymentSystemBl))
+                {
+                    var paymentRequest = paymentSystemBl.GetPaymentRequestById(input.OrderId) ??
+                    throw BaseBll.CreateException(string.Empty, Constants.Errors.PaymentRequestNotFound);
+                    if (input.ClientId != paymentRequest.ClientId.ToString())
+                        throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.ClientNotFound);
+                    var client = CacheManager.GetClientById(paymentRequest.ClientId.Value);
+                    var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, PaymentSystemId,
+                                                                                       client.CurrencyId, (int)PaymentRequestTypes.Deposit) ??
+                        throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.PaymentSystemNotFound);
+
+                    var sign = CommonFunctions.ComputeMd5(string.Format("{0}{1}{2}{3}{4}", input.Amount, client.Id, client.CurrencyId,
+                                                                                           input.TransactionId, partnerPaymentSetting.Password));
+                    if (input.Signature.ToLower() != sign.ToLower())
+                        throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongHash);
+                    if (input.Amount <= 0 || input.Amount < partnerPaymentSetting.MinAmount || input.Amount > partnerPaymentSetting.MaxAmount)
+                        throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.PaymentRequestInValidAmount);
+                  //  paymentRequest.Amount = input.Amount;
+                    paymentRequest.ExternalTransactionId = input.TransactionId;
+                    result.OrderId = paymentRequest.Id.ToString();
+                    clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
+                    PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
+                    BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);
                 }
             }
             catch (FaultException<BllFnErrorType> ex)

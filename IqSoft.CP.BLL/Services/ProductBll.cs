@@ -21,6 +21,7 @@ using System.Threading.Tasks;
 using IqSoft.CP.Common.Models;
 using IqSoft.CP.Common.Models.AdminModels;
 using IqSoft.CP.DataWarehouse;
+using IqSoft.CP.BLL.Models;
 
 namespace IqSoft.CP.BLL.Services
 {
@@ -47,7 +48,7 @@ namespace IqSoft.CP.BLL.Services
             var checkPermissionResult = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.CreateProduct,
-                ObjectTypeId = ObjectTypes.Product,
+                ObjectTypeId = (int)ObjectTypes.Product,
                 ObjectId = product.Id
             });
             if (!checkPermissionResult.HaveAccessForAllObjects &&
@@ -63,7 +64,15 @@ namespace IqSoft.CP.BLL.Services
             if((product.GameProviderId.HasValue && CacheManager.GetGameProviderById(product.GameProviderId.Value) == null) ||
                 (product.SubproviderId.HasValue && CacheManager.GetGameProviderById(product.SubproviderId.Value) == null))
                 throw CreateException(LanguageId, Constants.Errors.WrongProviderId);
+            if (!string.IsNullOrEmpty(product.BetValues))
+            {
+                var vs = JsonConvert.DeserializeObject<Dictionary<string, List<decimal>>>(product.BetValues);
+                var newVs = new Dictionary<string, List<decimal>>();
+                foreach (var item in vs)
+                    newVs.Add(item.Key, item.Value.OrderBy(x => x).ToList());
 
+                product.BetValues = JsonConvert.SerializeObject(newVs);
+            }
             if (dbProduct == null)
             {
                 var t = CreateTranslation(new fnTranslation
@@ -103,7 +112,8 @@ namespace IqSoft.CP.BLL.Services
                     CategoryId = product.CategoryId,
                     RTP = product.RTP,
                     CreationTime = currentDate,
-                    LastUpdateTime = currentDate
+                    LastUpdateTime = currentDate,
+                    BetValues = product.BetValues
                 };
                 Db.Products.Add(dbProduct);
                 Db.SaveChanges();
@@ -141,6 +151,7 @@ namespace IqSoft.CP.BLL.Services
                 dbProduct.CategoryId = product.CategoryId;
                 dbProduct.RTP = product.RTP;
                 dbProduct.LastUpdateTime = currentDate;
+                dbProduct.BetValues = product.BetValues;
 
                 var partners = Db.Partners.Where(x => x.State == (int)PartnerStates.Active).Select(x => x.Id).ToList();
 
@@ -295,6 +306,7 @@ namespace IqSoft.CP.BLL.Services
             byte[] bytes = Convert.FromBase64String(image);
             UploadFtpImage(bytes, model, path);
         }
+
         private void ChangeProductPaths(Product product)
         {
             var childProducts = Db.Products.Where(x => x.ParentId == product.Id).ToList();
@@ -311,7 +323,7 @@ namespace IqSoft.CP.BLL.Services
                 var checkPermissionResult = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewProduct,
-                    ObjectTypeId = ObjectTypes.Product,
+                    ObjectTypeId = (int)ObjectTypes.Product,
                     ObjectId = id
                 });
                 if (!checkPermissionResult.HaveAccessForAllObjects &&
@@ -322,6 +334,7 @@ namespace IqSoft.CP.BLL.Services
             var langId = languageId ?? LanguageId;
             var product = Db.fn_Product(langId).FirstOrDefault(x => x.Id == id);
             product.ProductCountrySettings = Db.ProductCountrySettings.Where(x => x.ProductId == id).ToList();
+            product.BetValues = Db.Products.First(x => x.Id == id).BetValues;
             return product;
         }
         
@@ -332,7 +345,7 @@ namespace IqSoft.CP.BLL.Services
                 var checkP = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewProduct,
-                    ObjectTypeId = ObjectTypes.Product
+                    ObjectTypeId = (int)ObjectTypes.Product
                 });
 
                 filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnProduct>>
@@ -376,12 +389,12 @@ namespace IqSoft.CP.BLL.Services
             var checkPermissionResult = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewProduct,
-                ObjectTypeId = ObjectTypes.Product
+                ObjectTypeId = (int)ObjectTypes.Product
             });
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if (!partnerAccess.HaveAccessForAllObjects && !partnerAccess.AccessibleIntegerObjects.Contains(partnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -444,7 +457,7 @@ namespace IqSoft.CP.BLL.Services
                 var checkP = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewProduct,
-                    ObjectTypeId = ObjectTypes.Product
+                    ObjectTypeId = (int)ObjectTypes.Product
                 });
 
                 filter.CheckPermissionResuts = new List<CheckPermissionOutput<Product>>
@@ -465,13 +478,13 @@ namespace IqSoft.CP.BLL.Services
             var checkP = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartnerProductSetting,
-                ObjectTypeId = ObjectTypes.PartnerProductSetting
+                ObjectTypeId = (int)ObjectTypes.PartnerProductSetting
             });
 
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<PartnerProductSetting>>
@@ -500,13 +513,13 @@ namespace IqSoft.CP.BLL.Services
                 var checkP = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartnerProductSetting,
-                    ObjectTypeId = ObjectTypes.PartnerProductSetting
+                    ObjectTypeId = (int)ObjectTypes.PartnerProductSetting
                 });
 
                 var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
 
                 filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnPartnerProductSetting>>
@@ -554,12 +567,12 @@ namespace IqSoft.CP.BLL.Services
                 var checkPermissionResult = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.CreatePartnerProductSetting,
-                    ObjectTypeId = ObjectTypes.Product
+                    ObjectTypeId = (int)ObjectTypes.Product
                 });
                 var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
                 if (!checkPermissionResult.HaveAccessForAllObjects ||
                     (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != apiPartnerProductSetting.PartnerId)))
@@ -647,12 +660,12 @@ namespace IqSoft.CP.BLL.Services
             var checkPermissionResult = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.CreatePartnerProductSetting,
-                ObjectTypeId = ObjectTypes.Product
+                ObjectTypeId = (int)ObjectTypes.Product
             });
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if (!checkPermissionResult.HaveAccessForAllObjects ||
                (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != apiPartnerProductSetting.PartnerId)))
@@ -666,18 +679,18 @@ namespace IqSoft.CP.BLL.Services
             var checkEditPermission = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.CreatePartnerProductSetting,
-                ObjectTypeId = ObjectTypes.Product
+                ObjectTypeId = (int)ObjectTypes.Product
             });
 
             var checkViewPermission = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartnerProductSetting,
-                ObjectTypeId = ObjectTypes.Product
+                ObjectTypeId = (int)ObjectTypes.Product
             });
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if (!checkEditPermission.HaveAccessForAllObjects || !checkViewPermission.HaveAccessForAllObjects ||
                (!partnerAccess.HaveAccessForAllObjects && (!partnerAccess.AccessibleIntegerObjects.Contains(fromPartnerId) ||
@@ -708,7 +721,7 @@ namespace IqSoft.CP.BLL.Services
                 var checkP = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewGameProvider,
-                    ObjectTypeId = ObjectTypes.GameProvider
+                    ObjectTypeId = (int)ObjectTypes.GameProvider
                 });
 
                 filter.CheckPermissionResuts = new List<CheckPermissionOutput<GameProvider>>
@@ -748,12 +761,12 @@ namespace IqSoft.CP.BLL.Services
             GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewGameProvider,
-                ObjectTypeId = ObjectTypes.GameProvider
+                ObjectTypeId = (int)ObjectTypes.GameProvider
             });
             GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.EditGameProvider,
-                ObjectTypeId = ObjectTypes.GameProvider
+                ObjectTypeId = (int)ObjectTypes.GameProvider
             });
             if ((apiGameProvider.Ids== null || !apiGameProvider.Ids.Any()) && apiGameProvider.Id.HasValue && apiGameProvider.Id <=0)
                 throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
@@ -851,7 +864,7 @@ namespace IqSoft.CP.BLL.Services
             var checkPermissionResult = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.EditPartnerProductSetting,
-                ObjectTypeId = ObjectTypes.Product,
+                ObjectTypeId = (int)ObjectTypes.Product,
                 ObjectId = partnerProductSetting.Id
             });
 
@@ -883,7 +896,7 @@ namespace IqSoft.CP.BLL.Services
             var checkP = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewProduct,
-                ObjectTypeId = ObjectTypes.Product
+                ObjectTypeId = (int)ObjectTypes.Product
             });
 
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnProduct>>
@@ -911,7 +924,7 @@ namespace IqSoft.CP.BLL.Services
                 var checkPermissionResult = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewProduct,
-                    ObjectTypeId = ObjectTypes.Product
+                    ObjectTypeId = (int)ObjectTypes.Product
                 });
                 if (!checkPermissionResult.HaveAccessForAllObjects)
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -924,12 +937,12 @@ namespace IqSoft.CP.BLL.Services
             var checkPermissionResult = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewProduct,
-                ObjectTypeId = ObjectTypes.Product
+                ObjectTypeId = (int)ObjectTypes.Product
             });
             var checkEditPermissionResult = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.CreatePartnerProductSetting,
-                ObjectTypeId = ObjectTypes.Product
+                ObjectTypeId = (int)ObjectTypes.Product
             });
 
             if (!checkEditPermissionResult.HaveAccessForAllObjects || !checkPermissionResult.HaveAccessForAllObjects)
@@ -968,17 +981,17 @@ namespace IqSoft.CP.BLL.Services
             var checkPermissionResult = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewProduct,
-                ObjectTypeId = ObjectTypes.Product
+                ObjectTypeId = (int)ObjectTypes.Product
             });
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var checkClientPermission = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClient,
-                ObjectTypeId = ObjectTypes.Client
+                ObjectTypeId = (int)ObjectTypes.Client
             });
 
             if (!checkPermissionResult.HaveAccessForAllObjects || (objectTypeId == (int)ObjectTypes.Partner && !partnerAccess.HaveAccessForAllObjects &&
@@ -1013,17 +1026,17 @@ namespace IqSoft.CP.BLL.Services
                     var checkClientPermission = GetPermissionsToObject(new CheckPermissionInput
                     {
                         Permission = Constants.Permissions.EditClient,
-                        ObjectTypeId = ObjectTypes.Client
+                        ObjectTypeId = (int)ObjectTypes.Client
                     });
                     var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                     {
                         Permission = Constants.Permissions.ViewPartner,
-                        ObjectTypeId = ObjectTypes.Partner
+                        ObjectTypeId = (int)ObjectTypes.Partner
                     });
                     var affiliateAccess = GetPermissionsToObject(new CheckPermissionInput
                     {
                         Permission = Constants.Permissions.ViewAffiliateReferral,
-                        ObjectTypeId = ObjectTypes.AffiliateReferral
+                        ObjectTypeId = (int)ObjectTypes.AffiliateReferral
                     });
                     if ((!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != client.Id)) ||
                    (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId)) ||
@@ -1036,12 +1049,12 @@ namespace IqSoft.CP.BLL.Services
                     var checkPermissionResult = GetPermissionsToObject(new CheckPermissionInput
                     {
                         Permission = Constants.Permissions.ViewProduct,
-                        ObjectTypeId = ObjectTypes.Product
+                        ObjectTypeId = (int)ObjectTypes.Product
                     });
                     var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
                     {
                         Permission = Constants.Permissions.EditPartnerProductSetting,
-                        ObjectTypeId = ObjectTypes.Partner
+                        ObjectTypeId = (int)ObjectTypes.Partner
                     });
                     if (!checkPermissionResult.HaveAccessForAllObjects ||
                         (!checkPartnerPermission.HaveAccessForAllObjects && !checkPartnerPermission.AccessibleObjects.Contains(limit.ObjectId)))
@@ -1124,10 +1137,11 @@ namespace IqSoft.CP.BLL.Services
                     dbProd.LastUpdateTime = currentDate;
                     dbProd.Lines = product.Lines;
                     dbProd.Volatility = product.Volatility;
-                    dbProd.BetValues = product.BetValues;
+                    if (!string.IsNullOrEmpty(product.BetValues))
+                        dbProd.BetValues = product.BetValues;
                     if (dbProd.State == (int)ProductStates.DisabledByProvider)
                         dbProd.State = (int)ProductStates.Active;
-                    if (product.RTP.HasValue && product.RTP.Value <= 100 )
+                    if (product.RTP.HasValue && product.RTP.Value <= 100)
                         dbProd.RTP = product.RTP;
                     if (!string.IsNullOrEmpty(product.WebImageUrl) && (string.IsNullOrEmpty(dbProd.WebImageUrl) || dbProd.WebImageUrl.StartsWith("http")))
                         dbProd.WebImageUrl = product.WebImageUrl;
@@ -1253,8 +1267,7 @@ namespace IqSoft.CP.BLL.Services
             };
 			var updatingItems = allProducts.Where(x => !resp.Contains(x.Id) && x.Id != Constants.SportsbookProductId && x.ExternalId != "pregame" &&
 			x.ExternalId != "lobby" && (x.GameProvider.Name != Constants.GameProviders.EveryMatrix || !x.ExternalId.Contains("sport")) 
-                                    && x.GameProvider.Name != Constants.GameProviders.VisionaryiGaming
-                                    && (x.GameProvider.Name == Constants.GameProviders.RiseUp && x.GameProvider1?.Name != Constants.GameProviders.Evolution )).ToList();
+                                    && x.GameProvider.Name != Constants.GameProviders.VisionaryiGaming).ToList();
             Parallel.ForEach(updatingItems, i => { i.LastUpdateTime = currentDate; i.State = (int)ProductStates.DisabledByProvider; }) ; 
             Db.SaveChanges();
             Log.Info("resp count:" + resp.Count().ToString());

@@ -172,42 +172,61 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var paymentSystemBl = new PaymentSystemBll(identity, log))
             {
-                var paymentSystem = paymentSystemBl.SavePartnerPaymentSetting(apiPartnerPaymentSetting.MapToPartnerPaymentSetting());
-                var res = paymentSystem.MapToApiPartnerPaymentSetting(identity.TimeZone);
-                var key = string.Format("{0}_{1}_{2}_{3}_{4}", Constants.CacheItems.PaymentSystems, res.PartnerId, res.PaymentSystemId, res.CurrencyId, res.Type);
-                var cacheObj = new BllPartnerPaymentSetting
+                using (var partnerBl = new PartnerBll(paymentSystemBl))
                 {
-                    Id = paymentSystem.Id,
-                    PartnerId = paymentSystem.PartnerId,
-                    PaymentSystemId = paymentSystem.PaymentSystemId,
-                    CurrencyId = paymentSystem.CurrencyId,
-                    State = paymentSystem.State,
-                    SessionId = paymentSystem.SessionId,
-                    CreationTime = paymentSystem.CreationTime,
-                    LastUpdateTime = paymentSystem.LastUpdateTime,
-                    UserName = paymentSystem.UserName,
-                    Password = paymentSystem.Password,
-                    PaymentSystemPriority = paymentSystem.PaymentSystemPriority,
-                    Type = paymentSystem.Type,
-                    Commission = paymentSystem.Commission,
-                    FixedFee = paymentSystem.FixedFee,
-                    ApplyPercentAmount = paymentSystem.ApplyPercentAmount,
-                    Info = paymentSystem.Info,
-                    MaxAmount = paymentSystem.MaxAmount,
-                    MinAmount = paymentSystem.MinAmount,
-                    AllowMultipleClientsPerPaymentInfo = paymentSystem.AllowMultipleClientsPerPaymentInfo,
-                    AllowMultiplePaymentInfoes = paymentSystem.AllowMultiplePaymentInfoes,
-                    OpenMode = paymentSystem.OpenMode,
-                    OSTypesString = paymentSystem.OSTypes,
-                    ImageExtension = paymentSystem.ImageExtension,
-                    Countries = paymentSystem.PartnerPaymentCountrySettings.Select(x => x.CountryId).ToList(),
-                    CurrencyRates = paymentSystem.PartnerPaymentCurrencyRates.Select(y => new BllCurrencyRate { Id = y.Id, CurrencyId = y.CurrencyId, Rate = y.Rate }).ToList()
-                };
-                Helpers.Helpers.InvokeMessage("UpdateCacheItem", key, cacheObj, TimeSpan.FromDays(1d));
-                return new ApiResponseBase
-                {
-                    ResponseObject = res
-                };
+                    var pps = paymentSystemBl.SavePartnerPaymentSetting(apiPartnerPaymentSetting.MapToPartnerPaymentSetting());
+                    var paymentSystem = CacheManager.GetPaymentSystemById(apiPartnerPaymentSetting.PaymentSystemId);
+                    if (!string.IsNullOrEmpty(apiPartnerPaymentSetting.LanguageId) && !string.IsNullOrEmpty(apiPartnerPaymentSetting.ContendData))
+                    {
+                        var ftpModel = partnerBl.GetPartnerEnvironments(Constants.MainPartnerId).FirstOrDefault();
+                        var path = $"/resources/paymentcontents/{paymentSystem.Name.ToLower()}/form_{apiPartnerPaymentSetting.LanguageId}_{pps.PartnerId}.html";
+                        paymentSystemBl.UploadFile(apiPartnerPaymentSetting.ContendData, path, ftpModel.Value);
+                    }
+                    var res = pps.MapToApiPartnerPaymentSetting(identity.TimeZone);
+                    var cacheObj = new BllPartnerPaymentSetting
+                    {
+                        Id = pps.Id,
+                        PartnerId = pps.PartnerId,
+                        PaymentSystemId = pps.PaymentSystemId,
+                        CurrencyId = pps.CurrencyId,
+                        State = pps.State,
+                        SessionId = pps.SessionId,
+                        CreationTime = pps.CreationTime,
+                        LastUpdateTime = pps.LastUpdateTime,
+                        UserName = pps.UserName,
+                        Password = pps.Password,
+                        PaymentSystemPriority = pps.PaymentSystemPriority,
+                        Type = pps.Type,
+                        Commission = pps.Commission,
+                        FixedFee = pps.FixedFee,
+                        ApplyPercentAmount = pps.ApplyPercentAmount,
+                        Info = pps.Info,
+                        MaxAmount = pps.MaxAmount,
+                        MinAmount = pps.MinAmount,
+                        AllowMultipleClientsPerPaymentInfo = pps.AllowMultipleClientsPerPaymentInfo,
+                        AllowMultiplePaymentInfoes = pps.AllowMultiplePaymentInfoes,
+                        OpenMode = pps.OpenMode,
+                        OSTypesString = pps.OSTypes,
+                        ImageExtension = pps.ImageExtension,
+                        Countries = new Common.Models.CacheModels.BllSetting
+                        {
+                            Type = pps.PartnerPaymentCountrySettings.Any() ? pps.PartnerPaymentCountrySettings.First().Type : (int)BonusSettingConditionTypes.InSet,
+                            Ids = pps.PartnerPaymentCountrySettings.Select(y => y.CountryId).ToList()
+                        },
+                        Segments = new Common.Models.CacheModels.BllSetting
+                        {
+                            Type = pps.PartnerPaymentSegmentSettings.Any() ? pps.PartnerPaymentSegmentSettings.First().Type : (int)BonusSettingConditionTypes.InSet,
+                            Ids = pps.PartnerPaymentSegmentSettings.Select(y => y.SegmentId).ToList()
+                        },
+                        CurrencyRates = pps.PartnerPaymentCurrencyRates.Select(y => new BllCurrencyRate { Id = y.Id, CurrencyId = y.CurrencyId, Rate = y.Rate }).ToList()
+                    };
+                    var key = string.Format("{0}_{1}_{2}_{3}_{4}", Constants.CacheItems.PaymentSystems, res.PartnerId, res.PaymentSystemId, res.CurrencyId, res.Type);
+                    Helpers.Helpers.InvokeMessage("UpdateCacheItem", key, cacheObj, TimeSpan.FromDays(1d));
+                    return new ApiResponseBase
+                    {
+                        ResponseObject = res
+                    };
+                }
             }
         }
 
@@ -218,7 +237,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 var setting = CacheManager.GetPartnerPaymentSettings(input.PartnerId, input.PaymentSystemId, input.CurrencyId, input.Type);
                 if (setting != null)
                     throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.PartnerPaymentSettingNotFound);
-               var osTypes= Enum.GetValues(typeof(OSTypes)).Cast<int>().ToList();
+               var osTypes = Enum.GetValues(typeof(OSTypes)).Cast<int>().ToList();
                 if (input.OSTypes != null && input.OSTypes.Any(x=> !osTypes.Contains(x)) )
                     throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.WrongInputParameters);
                 var partnerPaymentSetting = input.MapToPartnerPaymentSetting();
@@ -241,7 +260,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     Rate = input.Rate != 0m ? 1 / input.Rate : 0
                 };
                 var res = paymentSystemBl.SavePartnerPaymentCurrencyRate(partnerPaymentCurrencyRate, out PartnerPaymentSetting partnerPaymentSetting).MapToApiPartnerPaymentCurrencyRate();
-                var key = string.Format("{0}_{1}_{2}_{3}_{4}", Constants.CacheItems.PaymentSystems, partnerPaymentSetting.PartnerId, partnerPaymentSetting.PaymentSystemId, 
+                var key = string.Format("{0}_{1}_{2}_{3}_{4}", Constants.CacheItems.PaymentSystems, partnerPaymentSetting.PartnerId, partnerPaymentSetting.PaymentSystemId,
                     partnerPaymentSetting.CurrencyId, partnerPaymentSetting.Type);
                 var cacheObj = new BllPartnerPaymentSetting
                 {
@@ -265,7 +284,11 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     MinAmount = partnerPaymentSetting.MinAmount,
                     AllowMultipleClientsPerPaymentInfo = partnerPaymentSetting.AllowMultipleClientsPerPaymentInfo,
                     AllowMultiplePaymentInfoes = partnerPaymentSetting.AllowMultiplePaymentInfoes,
-                    Countries = partnerPaymentSetting.PartnerPaymentCountrySettings.Select(x => x.CountryId).ToList(),
+                    Countries = new Common.Models.CacheModels.BllSetting
+                    {
+                        Type = partnerPaymentSetting.PartnerPaymentCountrySettings.Any() ? partnerPaymentSetting.PartnerPaymentCountrySettings.First().Type : (int)BonusSettingConditionTypes.InSet,
+                        Ids =  partnerPaymentSetting.PartnerPaymentCountrySettings.Select(y => y.CountryId).ToList()
+                    },
                     CurrencyRates = partnerPaymentSetting.PartnerPaymentCurrencyRates.Select(y => new BllCurrencyRate { Id = y.Id, CurrencyId = y.CurrencyId, Rate = y.Rate }).ToList()
                 };
                 Helpers.Helpers.InvokeMessage("UpdateCacheItem", key, cacheObj, TimeSpan.FromDays(1d));
@@ -273,7 +296,6 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 {
                     ResponseObject = res
                 };
-
             }
         }
 

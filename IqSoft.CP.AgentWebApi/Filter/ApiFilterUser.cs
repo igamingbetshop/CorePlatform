@@ -1,4 +1,6 @@
-﻿namespace IqSoft.CP.AgentWebApi.Filters
+﻿using IqSoft.CP.Common.Models.Filters;
+
+namespace IqSoft.CP.AgentWebApi.Filters
 {
     public class ApiFilterUser: ApiFilterBase
     {

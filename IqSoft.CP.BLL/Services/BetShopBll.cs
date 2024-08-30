@@ -192,7 +192,7 @@ namespace IqSoft.CP.BLL.Services
             CheckPermissionToSaveObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.CreateBetShopGroup,
-                ObjectTypeId = ObjectTypes.BetShopGroup,
+                ObjectTypeId = (int)ObjectTypes.BetShopGroup,
                 ObjectId = betShopGroup.Id
             });
             var currentTime = GetServerDate();
@@ -332,7 +332,7 @@ namespace IqSoft.CP.BLL.Services
             CheckPermissionToSaveObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.CreateBetShop,
-                ObjectTypeId = ObjectTypes.BetShop,
+                ObjectTypeId = (int)ObjectTypes.BetShop,
                 ObjectId = betShop.Id
             });
             var currentTime = GetServerDate();
@@ -395,7 +395,7 @@ namespace IqSoft.CP.BLL.Services
             CheckPermissionToSaveObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.CreateCashDesk,
-                ObjectTypeId = ObjectTypes.CashDesk,
+                ObjectTypeId = (int)ObjectTypes.CashDesk,
                 ObjectId = cashDesk.Id
             });
             var betShop = CacheManager.GetBetShopById(cashDesk.BetShopId);
@@ -451,7 +451,7 @@ namespace IqSoft.CP.BLL.Services
             CheckPermissionToSaveObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.DeleteBetShopGroup,
-                ObjectTypeId = ObjectTypes.BetShopGroup,
+                ObjectTypeId = (int)ObjectTypes.BetShopGroup,
                 ObjectId = id
             });
 
@@ -488,7 +488,7 @@ namespace IqSoft.CP.BLL.Services
                 var checkPermissionResult = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewBetShop,
-                    ObjectTypeId = ObjectTypes.BetShop,
+                    ObjectTypeId = (int)ObjectTypes.BetShop,
                     UserId = userId
                 });
                 if (!checkPermissionResult.HaveAccessForAllObjects && !checkPermissionResult.AccessibleObjects.Contains(id))
@@ -506,12 +506,12 @@ namespace IqSoft.CP.BLL.Services
                 var betshoppermishion = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewBetShop,
-                    ObjectTypeId = ObjectTypes.BetShop
+                    ObjectTypeId = (int)ObjectTypes.BetShop
                 });
                 var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
 
                 filter.CheckPermissionResuts.Add(new CheckPermissionOutput<BetShop>
@@ -537,12 +537,12 @@ namespace IqSoft.CP.BLL.Services
             var betshoppermishion = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewBetShop,
-                ObjectTypeId = ObjectTypes.BetShop
+                ObjectTypeId = (int)ObjectTypes.BetShop
             });
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             filter.CheckPermissionResuts.Add(new CheckPermissionOutput<fnBetShops>
@@ -565,7 +565,7 @@ namespace IqSoft.CP.BLL.Services
             var checkP = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewCashDesk,
-                ObjectTypeId = ObjectTypes.CashDesk
+                ObjectTypeId = (int)ObjectTypes.CashDesk
             });
 
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<CashDesk>>
@@ -584,7 +584,7 @@ namespace IqSoft.CP.BLL.Services
             var checkP = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewCashDesk,
-                ObjectTypeId = ObjectTypes.CashDesk
+                ObjectTypeId = (int)ObjectTypes.CashDesk
             });
 
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnCashDesks>>
@@ -603,13 +603,13 @@ namespace IqSoft.CP.BLL.Services
             var checkP = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewBetShop,
-                ObjectTypeId = ObjectTypes.BetShopGroup
+                ObjectTypeId = (int)ObjectTypes.BetShopGroup
             });
 
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<BetShopGroup>>
@@ -802,7 +802,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != betShop.PartnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -810,7 +810,7 @@ namespace IqSoft.CP.BLL.Services
             var betShopPermission = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewBetShop,
-                ObjectTypeId = ObjectTypes.BetShop
+                ObjectTypeId = (int)ObjectTypes.BetShop
             });
 
             if (!betShopPermission.HaveAccessForAllObjects && betShopPermission.AccessibleObjects.All(x => x != cashDesk.BetShopId))
@@ -962,7 +962,7 @@ namespace IqSoft.CP.BLL.Services
             CheckPermissionToSaveObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ChangeBetShopLimit,
-                ObjectTypeId = ObjectTypes.BetShop,
+                ObjectTypeId = (int)ObjectTypes.BetShop,
                 ObjectId = betShop.Id
             });
 
@@ -1009,13 +1009,13 @@ namespace IqSoft.CP.BLL.Services
             var betshoppermishion = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewBetShop,
-                ObjectTypeId = ObjectTypes.BetShop
+                ObjectTypeId = (int)ObjectTypes.BetShop
             });
 
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             filter.CheckPermissionResuts.Add(new CheckPermissionOutput<fnAdminShiftReport>
@@ -1093,13 +1093,13 @@ namespace IqSoft.CP.BLL.Services
             var betshoppermishion = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewBetShop,
-                ObjectTypeId = ObjectTypes.BetShop
+                ObjectTypeId = (int)ObjectTypes.BetShop
             });
 
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             filter.CheckPermissionResuts.Add(new CheckPermissionOutput<fnAdminShiftReport>

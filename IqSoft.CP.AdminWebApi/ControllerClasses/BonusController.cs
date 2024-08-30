@@ -71,7 +71,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 case "SaveJackpot":
                     return SaveJackpot(JsonConvert.DeserializeObject<ApiJackpot>(request.RequestData), identity, log);
                 case "GetJackpots":
-                    return GetJackpots(!string.IsNullOrEmpty(request.RequestData) ? Convert.ToInt32(request.RequestData) : (int?)null, identity, log);
+                    return GetJackpots(JsonConvert.DeserializeObject<ApiJackpot>(request.RequestData), identity, log);
             }
             throw BaseBll.CreateException(string.Empty, Constants.Errors.MethodNotFound);
         }
@@ -180,6 +180,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                (inp.PaymentSystemIds != null && !Enum.IsDefined(typeof(BonusSettingConditionTypes), inp.PaymentSystemIds.Type)) ||
                !Enum.IsDefined(typeof(BonusStatuses), inp.Status))
                 throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.WrongInputParameters);
+
             using (var bonusBl = new BonusService(identity, log))
             {
                 var input = inp.MapToBonus();
@@ -350,10 +351,6 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 {
                     input.Condition = apiTriggerSetting.Activate.Value ? ((int)ManualEvenStatuses.Accepted).ToString() : ((int)ManualEvenStatuses.Rejected).ToString();
                 }
-                else if (apiTriggerSetting.Type == (int)TriggerTypes.DailyDeposit)
-                {
-                    input.UpToAmount = apiTriggerSetting.Amount;
-                }
                 var resp = bonusBl.SaveTriggerSetting(input, apiTriggerSetting.Activate);
                 CacheManager.RemoveTriggerSetting(resp.Id);
                 Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}", Constants.CacheItems.TriggerSettings, resp.Id));
@@ -504,13 +501,13 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             }
         }
 
-        public static ApiResponseBase GetJackpots(int? jackpotId, SessionIdentity identity, ILog log)
+        public static ApiResponseBase GetJackpots(ApiJackpot apiJackpot, SessionIdentity identity, ILog log)
         {
             using (var bonusBl = new BonusService(identity, log))
             {
                 return new ApiResponseBase
                 {
-                    ResponseObject = bonusBl.GetJackpots(jackpotId)
+                    ResponseObject = bonusBl.GetJackpots(apiJackpot.Id)
                                             .Select(x => x.MapToApiJackpot(identity.TimeZone)).ToList()
                 };
             }

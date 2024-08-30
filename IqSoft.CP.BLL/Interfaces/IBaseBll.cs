@@ -28,6 +28,6 @@ namespace IqSoft.CP.BLL.Interfaces
 
         List<fnOperationType> GetOperationTypes();
 
-        string ExportToCSV<T>(string fileName, List<T> exportList, DateTime? fromDate, DateTime? endDate, double timeZone, int? adminMenuId = null, int? adminMenuGridIndex = null);
+        string ExportToCSV<T>(string fileName, List<T> exportList, DateTime? fromDate, DateTime? endDate, double timeZone, int? adminMenuId = null, int? adminMenuGridIndex = null, List<string> customLines = null);
     }
 }

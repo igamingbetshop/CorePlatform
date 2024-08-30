@@ -10,5 +10,6 @@ namespace IqSoft.CP.Common.Models.WebSiteModels
     {
         public string Name { get; set; }
         public decimal Points { get; set; }
+        public int Order { get; set; }
     }
 }

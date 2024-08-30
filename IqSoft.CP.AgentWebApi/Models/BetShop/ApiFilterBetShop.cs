@@ -1,4 +1,5 @@
 ﻿using IqSoft.CP.AgentWebApi.Filters;
+using IqSoft.CP.Common.Models.Filters;
 using System;
 
 namespace IqSoft.CP.AgentWebApi.Models

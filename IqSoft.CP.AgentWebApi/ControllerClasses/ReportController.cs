@@ -13,7 +13,7 @@ using log4net;
 using Newtonsoft.Json;
 using System.Linq;
 using static IqSoft.CP.Common.Constants;
-using System.Collections.Generic;
+using IqSoft.CP.Common.Models.Filters;
 
 namespace IqSoft.CP.AgentWebApi.ControllerClasses
 {

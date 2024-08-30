@@ -1,4 +1,5 @@
-﻿using IqSoft.CP.BLL.Caching;
+﻿using GraphQL;
+using IqSoft.CP.BLL.Caching;
 using IqSoft.CP.BLL.Services;
 using IqSoft.CP.Common;
 using IqSoft.CP.Common.Enums;
@@ -9,6 +10,7 @@ using IqSoft.CP.DAL.Models;
 using IqSoft.CP.Integration.Products.Models.TimelessTech;
 using log4net;
 using Newtonsoft.Json;
+using Org.BouncyCastle.Pqc.Crypto.Lms;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -59,12 +61,26 @@ namespace IqSoft.CP.Integration.Products.Helpers
 			};
 			var res = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
 			var games = JsonConvert.DeserializeObject<Data>(res);
-			//var limits = GetLimits(partnerId, providerId);
-			//foreach ( var game in games.games )
-			//{
-			//	game.betValue = limits.FirstOrDefault(x => x.game_id == game.id)?.limits != null
-			//		                                         ? string.Join(", ", limits.FirstOrDefault(x => x.game_id == game.id)?.limits) : null;
-			//}
+			
+			var limits = GetLimits(partnerId, providerId);
+			foreach (var game in games.games)
+			{
+				var items = limits?.Where(x => x.game_id == game.id).Select(x => new { C = x.currency_code, V = x.limits }).ToList();
+				var values = new Dictionary<string, List<decimal>>();
+                foreach(var item in items)
+				{
+					if (!values.ContainsKey(item.C))
+						values.Add(item.C, new List<decimal>());
+
+					var existing = values[item.C];
+					existing.AddRange(item.V);
+
+                    values[item.C] = existing.Distinct().OrderBy(x => x).ToList();
+                }
+
+                game.betValue = JsonConvert.SerializeObject(values);
+			}
+
 			var lobbies = GetLobbies(partnerId, providerId);
 			games.games.AddRange(lobbies);
 			return games.games;
@@ -112,13 +128,14 @@ namespace IqSoft.CP.Integration.Products.Helpers
 			return signature;
 		}
 
-		public static void CreateCampaign(FreeSpinModel freespinModel, string providerName, ILog log)
+		public static bool CreateCampaign(FreeSpinModel freeSpinModel, string providerName, ILog log)
 		{
+			log.Info("CreateCampaign_" + JsonConvert.SerializeObject(freeSpinModel));
             if (providerName != Constants.GameProviders.TimelessTech && providerName != Constants.GameProviders.BCWGames)
                 throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongProviderId);
             var provider = CacheManager.GetGameProviderByName(providerName);
 
-			var client = CacheManager.GetClientById(freespinModel.ClientId);
+			var client = CacheManager.GetClientById(freeSpinModel.ClientId);
 			var sectetKey = CacheManager.GetGameProviderValueByKey(client.PartnerId, provider.Id, Constants.PartnerKeys.TimelessTechSecretkey);
 			var operatorID = CacheManager.GetGameProviderValueByKey(client.PartnerId, provider.Id, Constants.PartnerKeys.TimelessTechOperatorID);
 			var url = CacheManager.GetGameProviderValueByKey(client.PartnerId, provider.Id, Constants.PartnerKeys.TimelessTechUrl);
@@ -135,62 +152,73 @@ namespace IqSoft.CP.Integration.Products.Helpers
 			};
 			var res = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
 			var vendors = JsonConvert.DeserializeObject<Vendor>(res);
-			var product = CacheManager.GetProductByExternalId(provider.Id, freespinModel.ProductExternalId);
+			var product = CacheManager.GetProductByExternalId(provider.Id, freeSpinModel.ProductExternalId);
 			if (!product.SubProviderId.HasValue)
 				throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongProviderId);
 			var subProvider = CacheManager.GetGameProviderById(product.SubProviderId.Value).Name;
-			var vendor = vendors.data.FirstOrDefault(x => subProvider.ToLower().Replace("livegaming", string.Empty).Replace("direc", string.Empty) == x.ToLower().Replace("-", string.Empty).Replace(" ", string.Empty) ||
-															subProvider.ToLower().Replace("gaming", string.Empty).Replace("games", string.Empty) == x.ToLower().Replace("gaming", string.Empty) ||
-															subProvider.Length > 5 && x.Length > 5 && subProvider.ToLower().Substring(0, 6) == x.ToLower().Replace("-", string.Empty).Replace(" ", string.Empty).Substring(0, 6));
+			var vendor = vendors.data.FirstOrDefault(x => subProvider.ToLower().Replace("livegaming", string.Empty).Replace("direc", string.Empty) == x.ToLower().
+				Replace("-", string.Empty).Replace(" ", string.Empty) ||
+				subProvider.ToLower().Replace("gaming", string.Empty).
+				Replace("games", string.Empty) == x.ToLower().Replace("gaming", string.Empty) ||
+				subProvider.Length > 5 && x.Length > 5 && subProvider.ToLower().Substring(0, 6) == x.ToLower().
+				Replace("-", string.Empty).Replace(" ", string.Empty).Substring(0, 6));
 
-			decimal betValue = 1;
-			var data = new Campaign
+            decimal? bValue = null;
+            if (!string.IsNullOrEmpty(freeSpinModel.BetValues))
+            {
+                var bv = JsonConvert.DeserializeObject<Dictionary<string, decimal>>(freeSpinModel.BetValues);
+                if (bv.ContainsKey(client.CurrencyId))
+                    bValue = bv[client.CurrencyId];
+            }
+            if (bValue == null && !string.IsNullOrEmpty(product.BetValues))
+            {
+                var bv = JsonConvert.DeserializeObject<Dictionary<string, List<decimal>>>(product.BetValues);
+                if (bv.ContainsKey(client.CurrencyId) && bv[client.CurrencyId].Any())
+                    bValue = bv[client.CurrencyId][0];
+            }
+			if (bValue == null)
+				return false;
+
+            var data = new Campaign
 			{
 				vendor = vendor,
-				campaign_code = freespinModel.BonusId.ToString(),
-				freespins_per_player = freespinModel.SpinCount.Value,
-				begins_at = ((DateTimeOffset)freespinModel.StartTime.AddMinutes(1)).ToUnixTimeSeconds(),
-				expires_at = ((DateTimeOffset)freespinModel.FinishTime).ToUnixTimeSeconds(),
+				campaign_code = freeSpinModel.BonusId.ToString(),
+				freespins_per_player = freeSpinModel.SpinCount.Value,
+				begins_at = ((DateTimeOffset)DateTime.UtcNow.AddSeconds(10)).ToUnixTimeSeconds(),
+				expires_at = ((DateTimeOffset)freeSpinModel.FinishTime).ToUnixTimeSeconds(),
 				currency_code = client.CurrencyId,
 				players = client.Id.ToString(),
 				games = new List<GameModel>
 				{
 					new GameModel
 					{
-						game_id = Convert.ToInt32(freespinModel.ProductExternalId),
-						total_bet = betValue
-					}
+						game_id = Convert.ToInt32(freeSpinModel.ProductExternalId),
+						total_bet = bValue.Value
+                    }
 				}
 			};
-			httpRequestInput = new HttpRequestInput
-			{
-				RequestMethod = Constants.HttpRequestMethods.Get,
-				RequestHeaders = headers,
-				Url = $"{url}/campaigns/vendors/limits?currencies={client.CurrencyId}&games={freespinModel.ProductExternalId}&vendor={vendor}"
-			};
-			res = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
-			var games = JsonConvert.DeserializeObject<GameLimits>(res);
-			if (games.data != null)
-			{
-				var limits = JsonConvert.DeserializeObject<List<Datum>>(JsonConvert.SerializeObject(games.data));
-				data.games.FirstOrDefault().total_bet = limits.FirstOrDefault().limits.FirstOrDefault();
-			}
-			var dataSring = JsonConvert.SerializeObject(data);
-			log.Info($"Data {dataSring}");
+
 			httpRequestInput = new HttpRequestInput
 			{
 				ContentType = Constants.HttpContentTypes.ApplicationJson,
 				RequestMethod = Constants.HttpRequestMethods.Post,
 				RequestHeaders = headers,
 				Url = $"{url}/campaigns/create",
-				PostData = dataSring
-			};
+				PostData = JsonConvert.SerializeObject(data)
+            };
 			res = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
-		}
+            log.Info("CreateCampaign_Response_" + res);
+
+            var status = JsonConvert.DeserializeObject<GameLimits>(res);
+			if (status.status == "OK")
+				return true;
+			return false;
+        }
 
 		public static List<Datum> GetLimits(int partnerId, int providerId)
 		{
-			var partner = CacheManager.GetPartnerById(partnerId);
+			var resp = new List<Datum>();
+            var partner = CacheManager.GetPartnerById(partnerId);
 			var provider = CacheManager.GetGameProviderById(providerId);
 			if (provider == null || provider.Name != Constants.GameProviders.TimelessTech && provider.Name != Constants.GameProviders.BCWGames)
 				throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongProviderId);
@@ -198,22 +226,25 @@ namespace IqSoft.CP.Integration.Products.Helpers
 			var operatorID = CacheManager.GetGameProviderValueByKey(partnerId, providerId, Constants.PartnerKeys.TimelessTechOperatorID);
 			var url = CacheManager.GetGameProviderValueByKey(partnerId, providerId, Constants.PartnerKeys.TimelessTechUrl);
 			var authorization = CommonFunctions.ComputeSha1($"campaigns{operatorID}{sectetKey}");
-			var headers = new Dictionary<string, string> {
-				 { "X-Authorization", authorization } ,
-				 { "X-Operator-Id", operatorID }
-			};
-			var httpRequestInput = new HttpRequestInput
+			var currencies = CacheManager.GetSupportedCurrencies().Where(x => x.Length <= 3).ToList();
+			foreach (var c in currencies)
 			{
-				RequestMethod = Constants.HttpRequestMethods.Get,
-				RequestHeaders = headers,
-				Url = $"{url}/campaigns/vendors/limits?currencies={partner.CurrencyId}"
-			};
-			var res = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
-			var games = JsonConvert.DeserializeObject<GameLimits>(res);
-			if (games.data == null)
-				return null;
-			var limits = JsonConvert.DeserializeObject<List<Datum>>(JsonConvert.SerializeObject(games.data));
-			return limits;
+				var headers = new Dictionary<string, string> {
+					{ "X-Authorization", authorization },
+					{ "X-Operator-Id", operatorID }
+				};
+				var httpRequestInput = new HttpRequestInput
+				{
+					RequestMethod = Constants.HttpRequestMethods.Get,
+					RequestHeaders = headers,
+					Url = $"{url}/campaigns/vendors/limits?currencies={c}"
+				};
+				var res = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
+				var games = JsonConvert.DeserializeObject<GameLimits>(res);
+				if (games.data != null)
+					resp.AddRange(JsonConvert.DeserializeObject<List<Datum>>(JsonConvert.SerializeObject(games.data)));
+			}
+			return resp;
 		}
 
 		/*

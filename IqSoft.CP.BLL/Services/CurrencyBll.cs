@@ -10,6 +10,7 @@ using log4net;
 using Newtonsoft.Json;
 using System.Data.Entity;
 using IqSoft.CP.BLL.Helpers;
+using System;
 
 namespace IqSoft.CP.BLL.Services
 {
@@ -52,7 +53,7 @@ namespace IqSoft.CP.BLL.Services
             CheckPermissionToSaveObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.CreateCurrency,
-                ObjectTypeId = ObjectTypes.Currency,
+                ObjectTypeId = (int)ObjectTypes.Currency,
                 ObjectId = 1
             });
             var currentTime = GetServerDate();
@@ -69,7 +70,7 @@ namespace IqSoft.CP.BLL.Services
                     LastUpdateTime = currentTime,
                     Code = currency.Code,
                     Name = currency.Id,
-                    SessionId = SessionId
+                    Type = currency.Type
                 };
                 Db.Currencies.Add(dbCurrency);
             }
@@ -83,15 +84,14 @@ namespace IqSoft.CP.BLL.Services
                     LastUpdateTime = currentTime,
                     CreationTime = currentTime
                 };
-
-                currency.Code = dbCurrency.Code;
-               // currency.Name = dbCurrency.Name;
                 currencyRate.RateBefore = dbCurrency.CurrentRate;
-                currency.CreationTime = dbCurrency.CreationTime;
-                currency.LastUpdateTime = currentTime;
-                currency.SessionId = dbCurrency.SessionId;
-                Db.Entry(dbCurrency).CurrentValues.SetValues(currency);
                 Db.CurrencyRates.Add(currencyRate);
+                
+                dbCurrency.CurrentRate = currency.CurrentRate;
+                dbCurrency.Symbol = currency.Symbol;
+                dbCurrency.LastUpdateTime = currentTime;
+                dbCurrency.Name = currency.Name;
+                dbCurrency.Type = currency.Type;
             }
             Db.SaveChanges();
             CacheManager.RemoveCurrencyById(currency.Id);
@@ -124,7 +124,7 @@ namespace IqSoft.CP.BLL.Services
             var checkPermissionResult = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.CreatePartnerCurrencySetting,
-                ObjectTypeId = ObjectTypes.Currency,
+                ObjectTypeId = (int)ObjectTypes.Currency,
                 ObjectId = partnerCurrencySetting.Id
             });
 

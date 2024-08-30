@@ -24,6 +24,7 @@
         public string DocumentIssuedBy { get; set; }
         public string Address { get; set; }
         public string MobileNumber { get; set; }
+        public string MobileCode { get; set; }
         public string PromoCode { get; set; }
         public string RegistrationIp { get; set; }
         public string EmailOrMobile { get; set; }

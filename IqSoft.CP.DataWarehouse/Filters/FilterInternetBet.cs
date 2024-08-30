@@ -1,5 +1,4 @@
 ﻿using IqSoft.CP.Common.Enums;
-using IqSoft.CP.DataWarehouse.Models;
 using LinqKit;
 using System;
 using System.Linq;
@@ -22,15 +21,16 @@ namespace IqSoft.CP.DataWarehouse.Filters
 
         public DateTime? ToDate { get; set; }
 
-        public FiltersOperation Ids { get; set; }
+        public FiltersOperation BetDocumentIds { get; set; }
 
         public FiltersOperation ClientIds { get; set; }
 
         public FiltersOperation UserIds { get; set; }
 
         public FiltersOperation Names { get; set; }
-
-        public FiltersOperation UserNames { get; set; }
+        public FiltersOperation ClientFirstNames { get; set; }
+        public FiltersOperation ClientLastNames { get; set; }
+        public FiltersOperation ClientUserNames { get; set; }
 
         public FiltersOperation Categories { get; set; }
 
@@ -44,7 +44,7 @@ namespace IqSoft.CP.DataWarehouse.Filters
         
         public FiltersOperation SubproviderNames { get; set; }
 
-        public FiltersOperation Currencies { get; set; }
+        public FiltersOperation CurrencyIds { get; set; }
 
         public FiltersOperation RoundIds { get; set; }
 
@@ -111,8 +111,7 @@ namespace IqSoft.CP.DataWarehouse.Filters
             objects = objects.Where(x => x.Date >= fDate);
             if (ToDate != null)
             {
-                var tDate = ToDate.Value.Year * 1000000 + ToDate.Value.Month * 10000 + ToDate.Value.Day * 100 + ToDate.Value.Hour;
-                objects = objects.Where(x => x.Date < tDate);
+                objects = objects.Where(x => x.BetDate < ToDate);
             }
             if (AgentId.HasValue)
             {
@@ -122,18 +121,20 @@ namespace IqSoft.CP.DataWarehouse.Filters
             if (AccountId != null)
                 objects = objects.Where(x => x.AccountId == AccountId.Value);
 
-            FilterByValue(ref objects, Ids, "BetDocumentId");
+            FilterByValue(ref objects, BetDocumentIds, "BetDocumentId");
             FilterByValue(ref objects, ClientIds, "ClientId");
             FilterByValue(ref objects, UserIds, "UserId");
             FilterByValue(ref objects, Names, "ClientFirstName", "ClientLastName");
-            FilterByValue(ref objects, UserNames, "ClientUserName");
+            FilterByValue(ref objects, ClientFirstNames, "ClientFirstName");
+            FilterByValue(ref objects, ClientLastNames, "ClientLastName");
+            FilterByValue(ref objects, ClientUserNames, "ClientUserName");
             FilterByValue(ref objects, Categories, "ClientCategoryId");
             FilterByValue(ref objects, ProductIds, "ProductId");
             FilterByValue(ref objects, ProductNames, "ProductName");
             FilterByValue(ref objects, ProviderNames, "ProviderName");
             FilterByValue(ref objects, SubproviderIds, "SubproviderId");
             FilterByValue(ref objects, SubproviderNames, "SubproviderName");
-            FilterByValue(ref objects, Currencies, "CurrencyId");
+            FilterByValue(ref objects, CurrencyIds, "CurrencyId");
             FilterByValue(ref objects, RoundIds, "RoundId");
             FilterByValue(ref objects, DeviceTypes, "DeviceTypeId");
             FilterByValue(ref objects, ClientIps, "ClientIp");

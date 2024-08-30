@@ -358,7 +358,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
         }
 
         [HttpPost]
-        [Route("{partnerId}/api/VisionaryiGaming/Games")]
+        [Route("{partnerId}/api/VisionaryiGaming/Games1")]
         public HttpResponseMessage Games(HttpRequestMessage httpRequestMessage, int partnerId)
         {
             var response = new GameOutput();

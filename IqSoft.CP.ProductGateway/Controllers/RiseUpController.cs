@@ -42,11 +42,13 @@ namespace IqSoft.CP.ProductGateway.Controllers
 					throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongApiCredentials);
 				var client = CacheManager.GetClientById(Convert.ToInt32(input.Clientid)) ??
 					throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.ClientNotFound);
-				var clientSession = ClientBll.GetClientProductSession(input.Token, Constants.DefaultLanguageId, checkExpiration: (input.Type != RiseUpHelpers.Types.WIN));
+				var clientSession = ClientBll.GetClientProductSession(input.Token, Constants.DefaultLanguageId, 
+																	  checkExpiration: (input.Type != RiseUpHelpers.Types.WIN && input.Type != RiseUpHelpers.Types.REFUND));
 				if (clientSession.Id.ToString() != input.Clientid)
 					throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongInputParameters);
-				var product = CacheManager.GetProductByExternalId(ProviderId, $"{input.GameId},{input.Provider.Replace(" ", "/")}");
-				var partnerProductSetting = CacheManager.GetPartnerProductSettingByProductId(client.PartnerId, product.Id) ??
+				var product = CacheManager.GetProductByExternalId(ProviderId, $"{input.GameId},{input.Provider.Replace(" ", "/")}") ??
+					throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.ProductNotFound);
+                var partnerProductSetting = CacheManager.GetPartnerProductSettingByProductId(client.PartnerId, product.Id) ??
 					throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.ProductNotAllowedForThisPartner);
 
 				var documentId = string.Empty;
@@ -167,8 +169,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
 					   throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongProductId);
 					var betDocument = documentBl.GetDocumentByRoundId((int)OperationTypes.Bet, input.RoundId.ToString(), ProviderId, client.Id) ??
 									throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.CanNotConnectCreditAndDebit);
-					if (betDocument == null)
-						throw BaseBll.CreateException(string.Empty, Constants.Errors.CanNotConnectCreditAndDebit);
+
 					var winDocument = documentBl.GetDocumentByExternalId(input.TransactionId, client.Id, ProviderId,
 																	partnerProductSettingId, (int)OperationTypes.Win);
 					if (winDocument == null)

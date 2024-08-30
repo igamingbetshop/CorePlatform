@@ -1,0 +1,17 @@
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.DALCore\bin\Debug\net6.0\IqSoft.CP.DALCore.deps.json
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.DALCore\bin\Debug\net6.0\IqSoft.CP.DALCore.runtimeconfig.json
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.DALCore\bin\Debug\net6.0\IqSoft.CP.DALCore.dll
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.DALCore\bin\Debug\net6.0\IqSoft.CP.DALCore.pdb
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.DALCore\bin\Debug\net6.0\IqSoft.CP.CommonCore.dll
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.DALCore\bin\Debug\net6.0\IqSoft.CP.CommonCore.pdb
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.DALCore\obj\Debug\net6.0\IqSoft.CP.DALCore.csproj.AssemblyReference.cache
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.DALCore\obj\Debug\net6.0\IqSoft.CP.DALCore.GeneratedMSBuildEditorConfig.editorconfig
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.DALCore\obj\Debug\net6.0\IqSoft.CP.DALCore.AssemblyInfoInputs.cache
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.DALCore\obj\Debug\net6.0\IqSoft.CP.DALCore.AssemblyInfo.cs
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.DALCore\obj\Debug\net6.0\IqSoft.CP.DALCore.csproj.CoreCompileInputs.cache
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.DALCore\obj\Debug\net6.0\IqSoft.C.F92EFD0B.Up2Date
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.DALCore\obj\Debug\net6.0\IqSoft.CP.DALCore.dll
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.DALCore\obj\Debug\net6.0\refint\IqSoft.CP.DALCore.dll
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.DALCore\obj\Debug\net6.0\IqSoft.CP.DALCore.pdb
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.DALCore\obj\Debug\net6.0\IqSoft.CP.DALCore.genruntimeconfig.cache
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.DALCore\obj\Debug\net6.0\ref\IqSoft.CP.DALCore.dll

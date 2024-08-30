@@ -424,6 +424,9 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                     var resultList = new List<UserModel>();
                     if (!request.Level.HasValue)
                         request.Level = ++user.Level;
+                    if(!Enum.IsDefined(typeof(AgentLevels), request.Level) || request.Level == (int)AgentLevels.Member)
+                        throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.WrongInputParameters);
+
                     var input = request.MapToUser();
                     input.ParentId = user.Id;
                     input.State = (request.Closed.HasValue && request.Closed.Value) ? (int)UserStates.Closed : (int)UserStates.Active;
@@ -698,10 +701,11 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                     using (var transactionScope = CommonFunctions.CreateTransactionScope())
                     {
                         var res = userBl.UpdateAgent(changeObjectStateInput.ObjectId,
-                      changeObjectStateInput.State, changeObjectStateInput.Password, out List<int> clientIds);
+                            changeObjectStateInput.State, changeObjectStateInput.Password, out List<int> clientIds);
                         res.ParentId = user.ParentId;
                         var resp = res.MapToUserModel(identity.TimeZone, new List<AgentCommission>(), user.Id, log);
                         transactionScope.Complete();
+
                         foreach (var c in clientIds)
                             Helpers.Helpers.InvokeMessage("RemoveClient", string.Format("{0}_{1}", Constants.CacheItems.Clients, c));
 

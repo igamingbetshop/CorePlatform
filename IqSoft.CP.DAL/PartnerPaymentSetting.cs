@@ -20,9 +20,10 @@ namespace IqSoft.CP.DAL
             this.ClientPaymentInfoes = new HashSet<ClientPaymentInfo>();
             this.ClientPaymentSettings = new HashSet<ClientPaymentSetting>();
             this.Documents = new HashSet<Document>();
-            this.PartnerPaymentCountrySettings = new HashSet<PartnerPaymentCountrySetting>();
             this.PartnerPaymentCurrencyRates = new HashSet<PartnerPaymentCurrencyRate>();
             this.PaymentRequests = new HashSet<PaymentRequest>();
+            this.PartnerPaymentCountrySettings = new HashSet<PartnerPaymentCountrySetting>();
+            this.PartnerPaymentSegmentSettings = new HashSet<PartnerPaymentSegmentSetting>();
         }
     
         public int Id { get; set; }
@@ -56,11 +57,13 @@ namespace IqSoft.CP.DAL
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Document> Documents { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PartnerPaymentCountrySetting> PartnerPaymentCountrySettings { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PartnerPaymentCurrencyRate> PartnerPaymentCurrencyRates { get; set; }
         public virtual PaymentSystem PaymentSystem { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PaymentRequest> PaymentRequests { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PartnerPaymentCountrySetting> PartnerPaymentCountrySettings { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PartnerPaymentSegmentSetting> PartnerPaymentSegmentSettings { get; set; }
     }
 }

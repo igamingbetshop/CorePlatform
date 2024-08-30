@@ -11,6 +11,7 @@ namespace IqSoft.CP.Common.Models.WebSiteModels
         public string TypeName { get; set; }
         public decimal? Amount { get; set; }
         public DateTime? AwardingTime { get; set; }
+        public DateTime? ValidUntil { get; set; }
         public decimal? TurnoverAmountLeft { get; set; }
         public decimal? FinalAmount { get; set; }
         public string StateName { get; set; } 
@@ -19,7 +20,7 @@ namespace IqSoft.CP.Common.Models.WebSiteModels
         public int StatusId { get; set; }
         public int TypeId { get; set; }
         public int? TurnoverCount { get; set; }
-        public List<string> ConnectedBonuses { get; set; }
+        public List<KeyValuePair<int, string>> ConnectedBonuses { get; set; }
 
         //
         //public int PlayerId { get; set; }

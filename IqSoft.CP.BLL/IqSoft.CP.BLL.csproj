@@ -263,6 +263,7 @@
     <Compile Include="Interfaces\IUtilBll.cs" />
     <Compile Include="Models\AgentDownlineInfo.cs" />
     <Compile Include="Models\ApiAdminMenu.cs" />
+    <Compile Include="Models\WheelInfo.cs" />
     <Compile Include="Models\MenuItemIcon.cs" />
     <Compile Include="Models\MenuTranslationItem.cs" />
     <Compile Include="Models\NewsItem.cs" />

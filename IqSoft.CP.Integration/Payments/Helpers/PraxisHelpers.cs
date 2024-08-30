@@ -34,7 +34,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             if (string.IsNullOrWhiteSpace(client.ZipCode.Trim()))
                 throw BaseBll.CreateException(session.LanguageId, Constants.Errors.ZipCodeCantBeEmpty);
             var paymentInfo = JsonConvert.DeserializeObject<PaymentInfo>(!string.IsNullOrEmpty(input.Info) ? input.Info : "{}");
-            if ( string.IsNullOrEmpty(paymentInfo.City))
+            if (string.IsNullOrEmpty(paymentInfo.City))
                 throw BaseBll.CreateException(session.LanguageId, Constants.Errors.RegionNotFound);
             var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, input.PaymentSystemId,
                                                                                input.CurrencyId, input.Type);
@@ -43,10 +43,6 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             var applicationKey = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.PraxisApplicationKey)?.StringValue;
             var returnUrl = string.Format("https://{0}/user/1/deposit?get=1", session.Domain);
             var paymentGatewayUrl = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.PaymentGateway).StringValue;
-            
-            var country = session.Country;
-            if (client.CountryId != null)
-                country = CacheManager.GetRegionById(client.CountryId.Value, Constants.DefaultLanguageId).IsoCode;
 
             var paymentRequestInput = new
             {
@@ -66,9 +62,9 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 requester_ip = session.LoginIp,
                 customer_data = new
                 {
-                    country = country,
+                    country = paymentInfo.Country,
                     city = paymentInfo.City,
-                    zip = client.ZipCode.Trim(), 
+                    zip = client.ZipCode.Trim(),
                     first_name = client.FirstName,
                     last_name = client.LastName,
                     address = client.Address,
@@ -320,6 +316,86 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                         }
                     }
                 }
+            }
+        }
+
+        public static void CancelPayoutRequest(PaymentRequest paymentRequest, SessionIdentity session, ILog log)
+        {            
+            using (var paymentSystemBl = new PaymentSystemBll(session, log))
+            using (var clientBl = new ClientBll(paymentSystemBl))
+            using (var documentBl = new DocumentBll(clientBl))
+            using (var notificationBl = new NotificationBll(paymentSystemBl))
+            {
+                var parameters = JsonConvert.DeserializeObject<Dictionary<string, string>>(paymentRequest.Parameters);
+                var status = PaymentRequestStates.Failed;
+                if (parameters.ContainsKey("CanceledBy"))
+                    status = parameters["CanceledBy"] == ((int)ObjectTypes.Client).ToString() ? PaymentRequestStates.CanceledByClient :
+                                                                                                PaymentRequestStates.CanceledByUser;
+                if (string.IsNullOrEmpty(paymentRequest.ExternalTransactionId))
+                {
+                    clientBl.ChangeWithdrawRequestState(paymentRequest.Id, status, status.ToString(), null, null, false,
+                                                        paymentRequest.Parameters, documentBl, notificationBl);
+                    return;
+                }
+
+                var client = CacheManager.GetClientById(paymentRequest.ClientId.Value);
+                var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, paymentRequest.PaymentSystemId,
+                    paymentRequest.CurrencyId, (int)PaymentRequestTypes.Withdraw);
+                var url = string.Format("{0}agent/manage-withdrawal-request",
+                                         CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.PraxisApiUrl).StringValue);
+
+                var paymentInfo = JsonConvert.DeserializeObject<PaymentInfo>(paymentRequest.Info);
+                var paymentRequestInput = new
+                {
+                    merchant_id = partnerPaymentSetting.UserName,
+                    application_key = parameters["ApplicationKey"],
+                    intent = "cancel-withdrawal-request",
+                    withdrawal_request_id = paymentRequest.ExternalTransactionId,
+                    gateway = paymentInfo.PSPService,
+                    version = "1.3",
+                    timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                };
+                var signature = CommonFunctions.ComputeSha384(paymentRequestInput.merchant_id + paymentRequestInput.application_key +
+                                                              paymentRequestInput.timestamp + paymentRequestInput.intent +
+                                                              paymentRequestInput.withdrawal_request_id +
+                                                              partnerPaymentSetting.Password).ToLower();
+                var headers = new Dictionary<string, string> { { "GT-Authentication", signature } };
+                var httpRequestInput = new HttpRequestInput
+                {
+                    ContentType = Constants.HttpContentTypes.ApplicationJson,
+                    RequestMethod = Constants.HttpRequestMethods.Post,
+                    Url = url,
+                    RequestHeaders = headers,
+                    PostData = JsonConvert.SerializeObject(paymentRequestInput)
+                };
+                var responseString = CommonFunctions.SendHttpRequest(httpRequestInput, out System.Net.WebHeaderCollection outputHeaders);
+                log.Error($"input: {JsonConvert.SerializeObject(httpRequestInput)}, responseString: {responseString}");
+                var response = JsonConvert.DeserializeObject<PayoutOutput>(responseString);
+                if (response.Status != 0)
+                {
+                    log.Error($"Input: {JsonConvert.SerializeObject(httpRequestInput)}");
+                    throw new Exception(responseString);
+                }
+                var inputSign = outputHeaders.GetValues("GT-Authentication")[0];
+                signature = CommonFunctions.ComputeSha384(response.Status.ToString() + response.Timestamp +
+                                             (response.Transaction?.Tid.ToString() ?? string.Empty) + (response.Transaction?.Status ?? string.Empty) +
+                                             (response.Transaction?.ProcessedCurrency ?? string.Empty)  +
+                                             (response.Transaction?.ProcessedAmount ?? string.Empty)  +
+                                             partnerPaymentSetting.Password).ToLower();
+                if (inputSign.ToLower() != signature.ToLower() || response.Status != 0)
+                {
+                    log.Error(string.Format("WrongHash_ Input: {0}  Header: {1}", responseString, inputSign));
+                    throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongHash);
+                }
+                if (response.Status == 0 && response.Transaction.Status.ToLower() == "cancelled")
+                {
+                   
+                    clientBl.ChangeWithdrawRequestState(paymentRequest.Id, status, status.ToString(), null, null, false,
+                                                        paymentRequest.Parameters, documentBl, notificationBl);
+                    return;
+                }
+
+                throw new Exception(responseString);
             }
         }
     }

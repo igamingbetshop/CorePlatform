@@ -1,0 +1,1138 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Schema Namespace="DataWarehouseModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+  <EntityType Name="AccountBalance">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="bigint" Nullable="false" />
+    <Property Name="AccountId" Type="bigint" Nullable="false" />
+    <Property Name="ObjectId" Type="bigint" Nullable="false" />
+    <Property Name="ObjectTypeId" Type="int" Nullable="false" />
+    <Property Name="TypeId" Type="int" Nullable="false" />
+    <Property Name="CurrencyId" Type="varchar" MaxLength="5" Nullable="false" />
+    <Property Name="Balance" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="Date" Type="datetime2" Precision="3" Nullable="false" />
+  </EntityType>
+  <EntityType Name="AffiliatePlatform">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="int" Nullable="false" />
+    <Property Name="PartnerId" Type="int" Nullable="false" />
+    <Property Name="Name" Type="varchar" MaxLength="50" Nullable="false" />
+    <Property Name="Status" Type="int" Nullable="false" />
+    <Property Name="KickOffTime" Type="datetime2" Precision="3" />
+    <Property Name="LastExecutionTime" Type="datetime2" Precision="3" />
+    <Property Name="StepInHours" Type="int" />
+    <Property Name="PeriodInHours" Type="int" />
+  </EntityType>
+  <EntityType Name="AffiliateReferral">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="int" Nullable="false" />
+    <Property Name="AffiliatePlatformId" Type="int" Nullable="false" />
+    <Property Name="AffiliateId" Type="varchar" MaxLength="50" Nullable="false" />
+    <Property Name="RefId" Type="varchar" MaxLength="50" Nullable="false" />
+    <Property Name="Type" Type="int" Nullable="false" />
+    <Property Name="CreationTime" Type="datetime2" Precision="3" Nullable="false" />
+    <Property Name="Status" Type="int" Nullable="false" />
+    <Property Name="LastProcessedBonusTime" Type="datetime" />
+  </EntityType>
+  <EntityType Name="AgentCommission">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="int" Nullable="false" />
+    <Property Name="AgentId" Type="int" />
+    <Property Name="ProductId" Type="int" Nullable="false" />
+    <Property Name="Percent" Type="decimal" Precision="5" Scale="2" />
+    <Property Name="TurnoverPercent" Type="varchar(max)" />
+    <Property Name="ClientId" Type="int" />
+  </EntityType>
+  <EntityType Name="Bet">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="BetDocumentId" Type="bigint" Nullable="false" />
+    <Property Name="WinDocumentId" Type="bigint" />
+    <Property Name="PayDocumentId" Type="bigint" />
+    <Property Name="CurrencyId" Type="varchar" MaxLength="5" Nullable="false" />
+    <Property Name="ProductId" Type="int" Nullable="false" />
+    <Property Name="BetAmount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="WinAmount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="State" Type="int" Nullable="false" />
+    <Property Name="TypeId" Type="int" Nullable="false" />
+    <Property Name="CashDeskId" Type="int" />
+    <Property Name="ClientId" Type="int" />
+    <Property Name="TicketNumber" Type="bigint" />
+    <Property Name="UserId" Type="int" />
+    <Property Name="DeviceTypeId" Type="int" Nullable="false" />
+    <Property Name="BetTime" Type="datetime2" Precision="3" Nullable="false" />
+    <Property Name="CalculationTime" Type="datetime2" Precision="3" />
+    <Property Name="PayTime" Type="datetime2" Precision="3" />
+    <Property Name="BetDate" Type="bigint" Nullable="false" />
+    <Property Name="CalculationDate" Type="bigint" />
+    <Property Name="PayDate" Type="bigint" />
+    <Property Name="JackpotDocumentId" Type="bigint" />
+    <Property Name="BonusDocumentId" Type="bigint" />
+    <Property Name="BonusId" Type="int" />
+    <Property Name="SelectionsCount" Type="int" />
+    <Property Name="Coefficient" Type="decimal" Precision="10" Scale="3" />
+    <Property Name="LastUpdateTime" Type="datetime2" Precision="3" />
+    <Property Name="Rake" Type="decimal" Precision="18" Scale="4" />
+    <Property Name="BonusAmount" Type="decimal" Precision="18" Scale="4" />
+    <Property Name="AccountId" Type="bigint" />
+    <Property Name="BonusWinAmount" Type="decimal" Precision="18" Scale="4" />
+    <Property Name="PartnerId" Type="int" />
+  </EntityType>
+  <EntityType Name="Bonus">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="int" Nullable="false" />
+    <Property Name="Name" Type="varchar" MaxLength="255" Nullable="false" />
+    <Property Name="Description" Type="nvarchar" MaxLength="500" />
+    <Property Name="PartnerId" Type="int" Nullable="false" />
+    <Property Name="FinalAccountTypeId" Type="int" />
+    <Property Name="Status" Type="int" Nullable="false" />
+    <Property Name="StartTime" Type="datetime2" Precision="3" Nullable="false" />
+    <Property Name="FinishTime" Type="datetime2" Precision="3" Nullable="false" />
+    <Property Name="LastExecutionTime" Type="datetime2" Precision="3" Nullable="false" />
+    <Property Name="Period" Type="int" Nullable="false" />
+    <Property Name="Type" Type="int" Nullable="false" />
+    <Property Name="Info" Type="varchar" MaxLength="1500" />
+    <Property Name="TurnoverCount" Type="int" />
+    <Property Name="MinAmount" Type="decimal" Precision="18" Scale="4" />
+    <Property Name="MaxAmount" Type="decimal" Precision="18" Scale="4" />
+    <Property Name="Sequence" Type="int" />
+    <Property Name="TranslationId" Type="bigint" />
+    <Property Name="Priority" Type="int" />
+    <Property Name="WinAccountTypeId" Type="int" />
+    <Property Name="ValidForAwarding" Type="int" />
+    <Property Name="ValidForSpending" Type="int" />
+    <Property Name="ReusingMaxCount" Type="int" />
+    <Property Name="ResetOnWithdraw" Type="bit" />
+    <Property Name="CreationTime" Type="datetime2" Precision="3" />
+    <Property Name="LastUpdateTime" Type="datetime2" Precision="3" />
+    <Property Name="AllowSplit" Type="bit" />
+    <Property Name="RefundRollbacked" Type="bit" />
+    <Property Name="Condition" Type="varchar(max)" />
+    <Property Name="Percent" Type="decimal" Precision="5" Scale="2" />
+    <Property Name="MaxGranted" Type="decimal" Precision="18" Scale="4" />
+    <Property Name="TotalGranted" Type="decimal" Precision="18" Scale="4" />
+    <Property Name="MaxReceiversCount" Type="int" />
+    <Property Name="TotalReceiversCount" Type="int" />
+    <Property Name="LinkedBonusId" Type="int" />
+    <Property Name="AutoApproveMaxAmount" Type="decimal" Precision="18" Scale="4" />
+    <Property Name="FreezeBonusBalance" Type="bit" />
+    <Property Name="Regularity" Type="int" />
+    <Property Name="DayOfWeek" Type="int" />
+    <Property Name="ReusingMaxCountInPeriod" Type="int" />
+  </EntityType>
+  <EntityType Name="Client">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="int" Nullable="false" />
+    <Property Name="Email" Type="nvarchar" MaxLength="50" Nullable="false" />
+    <Property Name="IsEmailVerified" Type="bit" Nullable="false" />
+    <Property Name="CurrencyId" Type="varchar" MaxLength="5" Nullable="false" />
+    <Property Name="UserName" Type="varchar" MaxLength="50" Nullable="false" />
+    <Property Name="PasswordHash" Type="varchar" MaxLength="150" Nullable="false" />
+    <Property Name="Salt" Type="int" Nullable="false" />
+    <Property Name="PartnerId" Type="int" Nullable="false" />
+    <Property Name="Gender" Type="int" />
+    <Property Name="BirthDate" Type="date" Nullable="false" />
+    <Property Name="SendMail" Type="bit" Nullable="false" />
+    <Property Name="SendSms" Type="bit" Nullable="false" />
+    <Property Name="CallToPhone" Type="bit" Nullable="false" />
+    <Property Name="SendPromotions" Type="bit" Nullable="false" />
+    <Property Name="State" Type="int" Nullable="false" />
+    <Property Name="CategoryId" Type="int" Nullable="false" />
+    <Property Name="FirstName" Type="nvarchar" MaxLength="255" />
+    <Property Name="LastName" Type="nvarchar" MaxLength="255" />
+    <Property Name="RegionId" Type="int" Nullable="false" />
+    <Property Name="Info" Type="nvarchar" MaxLength="500" />
+    <Property Name="ZipCode" Type="nchar" MaxLength="10" />
+    <Property Name="RegistrationIp" Type="varchar" MaxLength="50" />
+    <Property Name="DocumentType" Type="int" />
+    <Property Name="DocumentNumber" Type="varchar" MaxLength="50" />
+    <Property Name="DocumentIssuedBy" Type="varchar" MaxLength="50" />
+    <Property Name="IsDocumentVerified" Type="bit" Nullable="false" />
+    <Property Name="Address" Type="nvarchar" MaxLength="255" />
+    <Property Name="MobileNumber" Type="varchar" MaxLength="50" />
+    <Property Name="PhoneNumber" Type="varchar" MaxLength="50" />
+    <Property Name="IsMobileNumberVerified" Type="bit" Nullable="false" />
+    <Property Name="HasNote" Type="bit" Nullable="false" />
+    <Property Name="LanguageId" Type="char" MaxLength="2" />
+    <Property Name="CreationTime" Type="datetime2" Precision="3" Nullable="false" />
+    <Property Name="LastUpdateTime" Type="datetime2" Precision="3" Nullable="false" />
+    <Property Name="FirstDepositDate" Type="datetime2" Precision="3" />
+    <Property Name="LastDepositDate" Type="datetime2" Precision="3" />
+    <Property Name="LastDepositAmount" Type="decimal" Precision="18" Scale="4" />
+    <Property Name="BetShopId" Type="int" />
+    <Property Name="UserId" Type="int" />
+    <Property Name="AffiliateReferralId" Type="int" />
+    <Property Name="LastSessionId" Type="bigint" />
+    <Property Name="Citizenship" Type="int" />
+    <Property Name="JobArea" Type="int" />
+    <Property Name="SecondName" Type="nvarchar" MaxLength="255" />
+    <Property Name="SecondSurname" Type="nvarchar" MaxLength="255" />
+    <Property Name="BuildingNumber" Type="varchar" MaxLength="50" />
+    <Property Name="Apartment" Type="varchar" MaxLength="50" />
+    <Property Name="NickName" Type="varchar" MaxLength="250" />
+    <Property Name="City" Type="nvarchar" MaxLength="100" />
+    <Property Name="USSDPin" Type="varchar" MaxLength="150" />
+    <Property Name="Title" Type="int" />
+    <Property Name="IsTwoFactorEnabled" Type="bit" />
+    <Property Name="QRCode" Type="varchar" MaxLength="50" />
+    <Property Name="CountryId" Type="int" />
+    <Property Name="CharacterId" Type="int" />
+  </EntityType>
+  <EntityType Name="ClientBonus">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="int" Nullable="false" />
+    <Property Name="BonusId" Type="int" Nullable="false" />
+    <Property Name="ClientId" Type="int" Nullable="false" />
+    <Property Name="Status" Type="int" Nullable="false" />
+    <Property Name="BonusPrize" Type="decimal" Precision="18" Scale="3" Nullable="false" />
+    <Property Name="CreationTime" Type="datetime2" Precision="3" Nullable="false" />
+    <Property Name="AwardingTime" Type="datetime2" Precision="3" />
+    <Property Name="TurnoverAmountLeft" Type="decimal" Precision="18" Scale="4" />
+    <Property Name="FinalAmount" Type="decimal" Precision="18" Scale="4" />
+    <Property Name="CalculationTime" Type="datetime2" Precision="3" />
+    <Property Name="ValidUntil" Type="datetime2" Precision="3" />
+    <Property Name="TriggerId" Type="int" />
+    <Property Name="CreationDate" Type="bigint" />
+    <Property Name="ReuseNumber" Type="bigint" />
+    <Property Name="Considered" Type="bit" />
+  </EntityType>
+  <EntityType Name="ClientSession">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="bigint" Nullable="false" />
+    <Property Name="ClientId" Type="int" Nullable="false" />
+    <Property Name="LanguageId" Type="char" MaxLength="2" Nullable="false" />
+    <Property Name="Ip" Type="varchar" MaxLength="50" />
+    <Property Name="Country" Type="varchar" MaxLength="50" />
+    <Property Name="Token" Type="varchar" MaxLength="100" Nullable="false" />
+    <Property Name="ProductId" Type="int" Nullable="false" />
+    <Property Name="DeviceType" Type="int" Nullable="false" />
+    <Property Name="StartTime" Type="datetime2" Precision="3" Nullable="false" />
+    <Property Name="LastUpdateTime" Type="datetime2" Precision="3" />
+    <Property Name="EndTime" Type="datetime2" Precision="3" />
+    <Property Name="State" Type="int" Nullable="false" />
+    <Property Name="CurrentPage" Type="varchar" MaxLength="50" />
+    <Property Name="ParentId" Type="bigint" />
+    <Property Name="ExternalToken" Type="nvarchar(max)" />
+    <Property Name="Source" Type="nvarchar" MaxLength="1000" />
+    <Property Name="LogoutType" Type="int" />
+    <Property Name="Type" Type="int" />
+    <Property Name="AccountId" Type="bigint" />
+  </EntityType>
+  <EntityType Name="Currency">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="varchar" MaxLength="5" Nullable="false" />
+    <Property Name="CurrentRate" Type="decimal" Precision="18" Scale="12" Nullable="false" />
+    <Property Name="Symbol" Type="nvarchar" MaxLength="5" Nullable="false" />
+    <Property Name="CreationTime" Type="datetime2" Precision="3" Nullable="false" />
+    <Property Name="LastUpdateTime" Type="datetime2" Precision="3" Nullable="false" />
+    <Property Name="Code" Type="nchar" MaxLength="3" />
+    <Property Name="Name" Type="nvarchar" MaxLength="50" Nullable="false" />
+    <Property Name="Type" Type="int" Nullable="false" />
+  </EntityType>
+  <EntityType Name="Document">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="bigint" Nullable="false" />
+    <Property Name="ExternalTransactionId" Type="varchar" MaxLength="100" />
+    <Property Name="Amount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="CurrencyId" Type="varchar" MaxLength="5" Nullable="false" />
+    <Property Name="State" Type="int" Nullable="false" />
+    <Property Name="OperationTypeId" Type="int" Nullable="false" />
+    <Property Name="TypeId" Type="int" />
+    <Property Name="ParentId" Type="bigint" />
+    <Property Name="PaymentRequestId" Type="bigint" />
+    <Property Name="RoundId" Type="varchar" MaxLength="50" />
+    <Property Name="Info" Type="nvarchar(max)" />
+    <Property Name="Creator" Type="int" />
+    <Property Name="CashDeskId" Type="int" />
+    <Property Name="PartnerPaymentSettingId" Type="int" />
+    <Property Name="PartnerProductId" Type="int" />
+    <Property Name="GameProviderId" Type="int" />
+    <Property Name="ClientId" Type="int" />
+    <Property Name="ExternalOperationId" Type="bigint" />
+    <Property Name="TicketNumber" Type="bigint" />
+    <Property Name="TicketInfo" Type="nvarchar(max)" />
+    <Property Name="UserId" Type="int" />
+    <Property Name="DeviceTypeId" Type="int" />
+    <Property Name="PossibleWin" Type="decimal" Precision="18" Scale="4" />
+    <Property Name="SessionId" Type="bigint" />
+    <Property Name="CreationTime" Type="datetime2" Precision="3" Nullable="false" />
+    <Property Name="LastUpdateTime" Type="datetime2" Precision="3" Nullable="false" />
+    <Property Name="ProductId" Type="int" />
+    <Property Name="HasNote" Type="bit" />
+    <Property Name="Date" Type="bigint" />
+    <Property Name="PartnerId" Type="int" />
+    <Property Name="AccountId" Type="bigint" />
+    <Property Name="Considered" Type="bit" />
+  </EntityType>
+  <EntityType Name="DuplicatedClient">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="ClientId" Type="int" Nullable="false" />
+    <Property Name="DuplicatedClientId" Type="int" Nullable="false" />
+    <Property Name="CreationTime" Type="datetime2" Precision="3" Nullable="false" />
+  </EntityType>
+  <EntityType Name="DuplicatedClientHistory">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="DuplicateId" Type="bigint" Nullable="false" />
+    <Property Name="DuplicatedData" Type="nvarchar" MaxLength="500" Nullable="false" />
+    <Property Name="CreationTime" Type="datetime2" Precision="3" Nullable="false" />
+    <Property Name="LastUpdateTime" Type="datetime2" Precision="3" Nullable="false" />
+    <Property Name="CreationDate" Type="bigint" Nullable="false" />
+  </EntityType>
+  <EntityType Name="GameProvider">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="int" Nullable="false" />
+    <Property Name="Name" Type="varchar" MaxLength="50" Nullable="false" />
+    <Property Name="Type" Type="int" Nullable="false" />
+    <Property Name="SessionExpireTime" Type="int" />
+    <Property Name="GameLaunchUrl" Type="varchar" MaxLength="1000" />
+  </EntityType>
+  <EntityType Name="Gtd_Client_Info">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="Date" Type="bigint" Nullable="false" />
+    <Property Name="ClientId" Type="int" Nullable="false" />
+    <Property Name="TotalDepositAmount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="TotalDepositCount" Type="int" Nullable="false" />
+    <Property Name="TotalWithdrawalAmount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="TotalWithdrawalCount" Type="int" Nullable="false" />
+    <Property Name="TotalBetAmount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="TotalBetCount" Type="int" Nullable="false" />
+    <Property Name="SportBetCount" Type="int" Nullable="false" />
+    <Property Name="TotalWinAmount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="TotalWinCount" Type="int" Nullable="false" />
+    <Property Name="GGR" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="TotalDebitCorrectionAmount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="TotalDebitCorrectionCount" Type="int" Nullable="false" />
+    <Property Name="TotalCreditCorrectionAmount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="TotalCreditCorrectionCount" Type="int" Nullable="false" />
+    <Property Name="ComplementaryBalance" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="TotalBonusAmount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="NGR" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+  </EntityType>
+  <EntityType Name="Gtd_Dashboard_Info">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="Date" Type="bigint" Nullable="false" />
+    <Property Name="PartnerId" Type="int" Nullable="false" />
+    <Property Name="VisitorsCount" Type="int" Nullable="false" />
+    <Property Name="SignUpsCount" Type="int" Nullable="false" />
+    <Property Name="TotalPlayersCount" Type="int" Nullable="false" />
+    <Property Name="ReturnsCount" Type="int" Nullable="false" />
+    <Property Name="DepositsCount" Type="int" Nullable="false" />
+    <Property Name="BonusAmount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="CashoutAmount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="MaxBet" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="MaxWin" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="BetAmount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="DesktopBetAmount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="MobileBetAmount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="TabletBetAmount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="BetShopBetAmount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="TerminalBetAmount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="ApplicationBetAmount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="GGR" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="DesktopGGR" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="MobileGGR" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="TabletGGR" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="BetShopGGR" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="TerminalGGR" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="ApplicationGGR" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="NGR" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="DesktopNGR" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="MobileNGR" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="TabletNGR" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="BetShopNGR" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="TerminalNGR" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="ApplicationNGR" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="BetsCount" Type="int" Nullable="false" />
+    <Property Name="DesktopBetsCount" Type="int" Nullable="false" />
+    <Property Name="MobileBetsCount" Type="int" Nullable="false" />
+    <Property Name="TabletBetsCount" Type="int" Nullable="false" />
+    <Property Name="BetShopBetsCount" Type="int" Nullable="false" />
+    <Property Name="TerminalBetsCount" Type="int" Nullable="false" />
+    <Property Name="ApplicationBetsCount" Type="int" Nullable="false" />
+    <Property Name="PlayersCount" Type="int" Nullable="false" />
+    <Property Name="DesktopPlayersCount" Type="int" Nullable="false" />
+    <Property Name="MobilePlayersCount" Type="int" Nullable="false" />
+    <Property Name="TabletPlayersCount" Type="int" Nullable="false" />
+    <Property Name="BetShopPlayersCount" Type="int" Nullable="false" />
+    <Property Name="TerminalPlayersCount" Type="int" Nullable="false" />
+    <Property Name="ApplicationPlayersCount" Type="int" Nullable="false" />
+    <Property Name="FTDCount" Type="int" Nullable="false" />
+  </EntityType>
+  <EntityType Name="Gtd_Deposit_Info">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="Date" Type="bigint" Nullable="false" />
+    <Property Name="PartnerId" Type="int" Nullable="false" />
+    <Property Name="PaymentSystemId" Type="int" Nullable="false" />
+    <Property Name="Status" Type="int" Nullable="false" />
+    <Property Name="TotalAmount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="RequestsCount" Type="int" Nullable="false" />
+    <Property Name="PlayersCount" Type="int" Nullable="false" />
+  </EntityType>
+  <EntityType Name="Gtd_Provider_Bets">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="Date" Type="bigint" Nullable="false" />
+    <Property Name="PartnerId" Type="int" Nullable="false" />
+    <Property Name="GameProviderId" Type="int" Nullable="false" />
+    <Property Name="SubProviderId" Type="int" Nullable="false" />
+    <Property Name="BetAmount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="WinAmount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="GGR" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="NGR" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="BetsCount" Type="int" Nullable="false" />
+    <Property Name="PlayersCount" Type="int" Nullable="false" />
+  </EntityType>
+  <EntityType Name="Gtd_Withdraw_Info">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="Date" Type="bigint" Nullable="false" />
+    <Property Name="PartnerId" Type="int" Nullable="false" />
+    <Property Name="PaymentSystemId" Type="int" Nullable="false" />
+    <Property Name="Status" Type="int" Nullable="false" />
+    <Property Name="TotalAmount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="RequestsCount" Type="int" Nullable="false" />
+    <Property Name="PlayersCount" Type="int" Nullable="false" />
+  </EntityType>
+  <EntityType Name="JobTrigger">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="FunctionName" Type="varchar" MaxLength="50" Nullable="false" />
+    <Property Name="Date" Type="bigint" Nullable="false" />
+    <Property Name="ClientId" Type="int" />
+  </EntityType>
+  <EntityType Name="Opt_Document_Considered">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="DocumentId" Type="bigint" Nullable="false" />
+    <Property Name="Date" Type="bigint" Nullable="false" />
+  </EntityType>
+  <EntityType Name="Partner">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="int" Nullable="false" />
+    <Property Name="Name" Type="varchar" MaxLength="50" Nullable="false" />
+    <Property Name="CurrencyId" Type="varchar" MaxLength="5" Nullable="false" />
+    <Property Name="SiteUrl" Type="nvarchar" MaxLength="255" Nullable="false" />
+    <Property Name="AdminSiteUrl" Type="nvarchar" MaxLength="255" Nullable="false" />
+    <Property Name="State" Type="int" Nullable="false" />
+    <Property Name="SessionId" Type="bigint" Nullable="false" />
+    <Property Name="CreationTime" Type="datetime2" Precision="3" Nullable="false" />
+    <Property Name="LastUpdateTime" Type="datetime2" Precision="3" Nullable="false" />
+    <Property Name="AccountingDayStartTime" Type="time" Precision="7" Nullable="false" />
+    <Property Name="ClientMinAge" Type="int" Nullable="false" />
+    <Property Name="PasswordRegExp" Type="nvarchar" MaxLength="250" Nullable="false" />
+    <Property Name="VerificationType" Type="int" Nullable="false" />
+    <Property Name="EmailVerificationCodeLength" Type="int" Nullable="false" />
+    <Property Name="MobileVerificationCodeLength" Type="int" Nullable="false" />
+    <Property Name="UnusedAmountWithdrawPercent" Type="decimal" Precision="6" Scale="2" Nullable="false" />
+    <Property Name="UserSessionExpireTime" Type="int" Nullable="false" />
+    <Property Name="UnpaidWinValidPeriod" Type="int" Nullable="false" />
+    <Property Name="VerificationKeyActiveMinutes" Type="int" Nullable="false" />
+    <Property Name="AutoApproveBetShopDepositMaxAmount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="AutoApproveWithdrawMaxAmount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="ClientSessionExpireTime" Type="int" Nullable="false" />
+    <Property Name="AutoConfirmWithdrawMaxAmount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+  </EntityType>
+  <EntityType Name="PaymentRequest">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="bigint" Nullable="false" />
+    <Property Name="ClientId" Type="int" />
+    <Property Name="Amount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="CurrencyId" Type="varchar" MaxLength="5" Nullable="false" />
+    <Property Name="Status" Type="int" Nullable="false" />
+    <Property Name="PartnerPaymentSettingId" Type="int" />
+    <Property Name="BetShopId" Type="int" />
+    <Property Name="CashDeskId" Type="int" />
+    <Property Name="CashierId" Type="int" />
+    <Property Name="Parameters" Type="nvarchar" MaxLength="2000" />
+    <Property Name="PaymentSystemId" Type="int" Nullable="false" />
+    <Property Name="Info" Type="nvarchar(max)" />
+    <Property Name="Type" Type="int" Nullable="false" />
+    <Property Name="ExternalTransactionId" Type="varchar" MaxLength="100" />
+    <Property Name="UserId" Type="int" />
+    <Property Name="SessionId" Type="bigint" />
+    <Property Name="CreationTime" Type="datetime2" Precision="3" Nullable="false" />
+    <Property Name="LastUpdateTime" Type="datetime2" Precision="3" Nullable="false" />
+    <Property Name="CashCode" Type="varchar" MaxLength="150" />
+    <Property Name="Date" Type="bigint" />
+    <Property Name="ActivatedBonusType" Type="int" />
+    <Property Name="CommissionAmount" Type="decimal" Precision="18" Scale="4" />
+    <Property Name="CardNumber" Type="varchar" MaxLength="20" />
+    <Property Name="SegmentId" Type="int" />
+    <Property Name="CountryCode" Type="varchar" MaxLength="5" />
+    <Property Name="DepositCount" Type="int" />
+    <Property Name="AccountId" Type="bigint" />
+    <Property Name="ParentId" Type="bigint" />
+  </EntityType>
+  <EntityType Name="Product">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="int" Nullable="false" />
+    <Property Name="TranslationId" Type="bigint" Nullable="false" />
+    <Property Name="GameProviderId" Type="int" />
+    <Property Name="PaymentSystemId" Type="int" />
+    <Property Name="Level" Type="int" Nullable="false" />
+    <Property Name="NickName" Type="varchar" MaxLength="50" Nullable="false" />
+    <Property Name="ParentId" Type="int" />
+    <Property Name="ExternalId" Type="varchar" MaxLength="100" />
+    <Property Name="State" Type="int" Nullable="false" />
+    <Property Name="IsForDesktop" Type="bit" Nullable="false" />
+    <Property Name="IsForMobile" Type="bit" Nullable="false" />
+    <Property Name="WebImageUrl" Type="varchar" MaxLength="250" />
+    <Property Name="MobileImageUrl" Type="varchar" MaxLength="250" />
+    <Property Name="SubproviderId" Type="int" />
+    <Property Name="HasDemo" Type="bit" Nullable="false" />
+    <Property Name="CategoryId" Type="int" />
+    <Property Name="Jackpot" Type="varchar" MaxLength="250" />
+    <Property Name="FreeSpinSupport" Type="bit" />
+    <Property Name="BackgroundImageUrl" Type="varchar" MaxLength="250" />
+    <Property Name="RTP" Type="decimal" Precision="5" Scale="2" />
+    <Property Name="CreationTime" Type="datetime2" Precision="3" Nullable="false" />
+    <Property Name="LastUpdateTime" Type="datetime2" Precision="3" Nullable="false" />
+    <Property Name="Lines" Type="varchar" MaxLength="500" />
+    <Property Name="BetValues" Type="varchar(max)" />
+    <Property Name="Path" Type="varchar(max)" />
+  </EntityType>
+  <EntityType Name="Setting">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="PartnerId" Type="int" />
+    <Property Name="GameProviderId" Type="int" />
+    <Property Name="PaymentSystemId" Type="int" />
+    <Property Name="Name" Type="varchar" MaxLength="50" Nullable="false" />
+    <Property Name="StringValue" Type="nvarchar" MaxLength="4000" />
+    <Property Name="DateValue" Type="datetime2" Precision="3" />
+    <Property Name="NumericValue" Type="decimal" Precision="18" Scale="4" />
+    <Property Name="NotificationServiceId" Type="int" />
+  </EntityType>
+  <EntityType Name="User">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="int" Nullable="false" />
+    <Property Name="PartnerId" Type="int" Nullable="false" />
+    <Property Name="FirstName" Type="nvarchar" MaxLength="50" Nullable="false" />
+    <Property Name="LastName" Type="nvarchar" MaxLength="50" Nullable="false" />
+    <Property Name="Gender" Type="int" Nullable="false" />
+    <Property Name="LanguageId" Type="char" MaxLength="2" Nullable="false" />
+    <Property Name="UserName" Type="varchar" MaxLength="50" Nullable="false" />
+    <Property Name="NickName" Type="varchar" MaxLength="250" />
+    <Property Name="PasswordHash" Type="varchar" MaxLength="150" Nullable="false" />
+    <Property Name="Salt" Type="int" Nullable="false" />
+    <Property Name="State" Type="int" Nullable="false" />
+    <Property Name="CurrencyId" Type="varchar" MaxLength="5" Nullable="false" />
+    <Property Name="Email" Type="nvarchar" MaxLength="50" />
+    <Property Name="MobileNumber" Type="varchar" MaxLength="50" />
+    <Property Name="Type" Type="int" Nullable="false" />
+    <Property Name="AdminState" Type="varchar(max)" />
+    <Property Name="ParentId" Type="int" />
+    <Property Name="Path" Type="varchar" MaxLength="50" />
+    <Property Name="SecurityCode" Type="varchar" MaxLength="250" />
+    <Property Name="QRCode" Type="varchar" MaxLength="50" />
+    <Property Name="IsTwoFactorEnabled" Type="bit" Nullable="false" />
+    <Property Name="Level" Type="int" />
+    <Property Name="CreationTime" Type="datetime2" Precision="3" Nullable="false" />
+    <Property Name="LastUpdateTime" Type="datetime2" Precision="3" Nullable="false" />
+    <Property Name="SessionId" Type="bigint" Nullable="false" />
+    <Property Name="ImageData" Type="varbinary(max)" />
+    <Property Name="PasswordChangedDate" Type="datetime2" Precision="3" />
+    <Property Name="LoginByNickName" Type="bit" />
+    <Property Name="Phone" Type="varchar" MaxLength="50" />
+  </EntityType>
+  <Association Name="FK_DuplicatedClientHistory_DuplicatedClient">
+    <End Role="DuplicatedClient" Type="Self.DuplicatedClient" Multiplicity="1" />
+    <End Role="DuplicatedClientHistory" Type="Self.DuplicatedClientHistory" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="DuplicatedClient">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="DuplicatedClientHistory">
+        <PropertyRef Name="DuplicateId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Function Name="fn_AffiliateClient" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+    <Parameter Name="FromDate" Type="bigint" Mode="In" />
+    <Parameter Name="ToDate" Type="bigint" Mode="In" />
+    <Parameter Name="PartnerId" Type="int" Mode="In" />
+    <ReturnType>
+      <CollectionType>
+        <RowType>
+          <Property Name="AffiliateManagerId" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="ClientId" Type="int" Nullable="false" />
+          <Property Name="TotalBetAmount" Type="decimal" Precision="38" Scale="16" />
+          <Property Name="TotalWinAmount" Type="decimal" Precision="38" Scale="16" />
+        </RowType>
+      </CollectionType>
+    </ReturnType>
+  </Function>
+  <Function Name="fn_AffiliateCorrection" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+    <ReturnType>
+      <CollectionType>
+        <RowType>
+          <Property Name="Id" Type="bigint" Nullable="false" />
+          <Property Name="PartnerId" Type="int" Nullable="false" />
+          <Property Name="AffiliateId" Type="int" Nullable="false" />
+          <Property Name="FirstName" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="LastName" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="Amount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+          <Property Name="CurrencyId" Type="varchar" MaxLength="5" Nullable="false" />
+          <Property Name="Info" Type="nvarchar(max)" />
+          <Property Name="Creator" Type="int" />
+          <Property Name="CreationTime" Type="datetime2" Precision="3" Nullable="false" />
+          <Property Name="LastUpdateTime" Type="datetime2" Precision="3" Nullable="false" />
+          <Property Name="HasNote" Type="bit" />
+          <Property Name="Date" Type="bigint" />
+          <Property Name="OperationTypeName" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="CreatorFirstName" Type="nvarchar" MaxLength="50" />
+          <Property Name="CreatorLastName" Type="nvarchar" MaxLength="50" />
+          <Property Name="DocumentTypeId" Type="int" />
+          <Property Name="ClientId" Type="int" />
+          <Property Name="ClientFirstName" Type="nvarchar" MaxLength="255" />
+          <Property Name="ClientLastName" Type="nvarchar" MaxLength="255" />
+        </RowType>
+      </CollectionType>
+    </ReturnType>
+  </Function>
+  <Function Name="fn_AffiliateTransaction" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+    <Parameter Name="FromDate" Type="bigint" Mode="In" />
+    <Parameter Name="ToDate" Type="bigint" Mode="In" />
+    <Parameter Name="AffiliateId" Type="int" Mode="In" />
+    <ReturnType>
+      <CollectionType>
+        <RowType>
+          <Property Name="Id" Type="bigint" Nullable="false" />
+          <Property Name="ExternalTransactionId" Type="varchar" MaxLength="100" />
+          <Property Name="Amount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+          <Property Name="CurrencyId" Type="varchar" MaxLength="5" Nullable="false" />
+          <Property Name="State" Type="int" Nullable="false" />
+          <Property Name="OperationTypeId" Type="int" Nullable="false" />
+          <Property Name="AffiliateId" Type="int" />
+          <Property Name="ProductId" Type="int" />
+          <Property Name="ProductName" Type="varchar" MaxLength="50" />
+          <Property Name="TransactionType" Type="varchar" MaxLength="1" />
+          <Property Name="CreationTime" Type="datetime2" Precision="3" Nullable="false" />
+          <Property Name="LastUpdateTime" Type="datetime2" Precision="3" Nullable="false" />
+          <Property Name="Date" Type="bigint" />
+        </RowType>
+      </CollectionType>
+    </ReturnType>
+  </Function>
+  <Function Name="fn_AgentProfit" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+    <Parameter Name="FromDate" Type="bigint" Mode="In" />
+    <Parameter Name="ToDate" Type="bigint" Mode="In" />
+    <ReturnType>
+      <CollectionType>
+        <RowType>
+          <Property Name="ProductGroupId" Type="int" />
+          <Property Name="ProductGroupName" Type="varchar" MaxLength="50" />
+          <Property Name="ProductId" Type="int" Nullable="false" />
+          <Property Name="RecieverAgentId" Type="int" Nullable="false" />
+          <Property Name="AgentId" Type="int" Nullable="false" />
+          <Property Name="TotalProfit" Type="decimal" Precision="38" Scale="6" />
+          <Property Name="TotalBetAmount" Type="decimal" Precision="38" Scale="4" />
+          <Property Name="TotalWinAmount" Type="decimal" Precision="38" Scale="4" />
+        </RowType>
+      </CollectionType>
+    </ReturnType>
+  </Function>
+  <Function Name="fn_BetShopBet" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+    <ReturnType>
+      <CollectionType>
+        <RowType>
+          <Property Name="BetDocumentId" Type="bigint" Nullable="false" />
+          <Property Name="BetExternalTransactionId" Type="int" />
+          <Property Name="BetShopCurrencyId" Type="varchar" MaxLength="5" Nullable="false" />
+          <Property Name="BetInfo" Type="int" />
+          <Property Name="CashDeskId" Type="int" />
+          <Property Name="BetTypeId" Type="int" Nullable="false" />
+          <Property Name="PossibleWin" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+          <Property Name="ProductId" Type="int" Nullable="false" />
+          <Property Name="GameProviderId" Type="int" />
+          <Property Name="TicketInfo" Type="int" />
+          <Property Name="CashierId" Type="int" />
+          <Property Name="BetShopGroupId" Type="int" Nullable="false" />
+          <Property Name="BetDate" Type="datetime2" Precision="3" Nullable="false" />
+          <Property Name="PayDate" Type="datetime2" Precision="3" />
+          <Property Name="BetShopId" Type="int" Nullable="false" />
+          <Property Name="BetShopName" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="BetAmount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+          <Property Name="CurrencyId" Type="varchar" MaxLength="5" Nullable="false" />
+          <Property Name="TicketNumber" Type="bigint" />
+          <Property Name="PartnerId" Type="int" Nullable="false" />
+          <Property Name="ProductName" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="RoundId" Type="int" />
+          <Property Name="ProviderName" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="HasNote" Type="bit" Nullable="false" />
+          <Property Name="State" Type="int" Nullable="false" />
+          <Property Name="WinDate" Type="datetime2" Precision="3" />
+          <Property Name="WinAmount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+          <Property Name="Date" Type="bigint" Nullable="false" />
+          <Property Name="AgentId" Type="int" />
+        </RowType>
+      </CollectionType>
+    </ReturnType>
+  </Function>
+  <Function Name="fn_ClientBets" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+    <Parameter Name="FromDate" Type="bigint" Mode="In" />
+    <Parameter Name="ToDate" Type="bigint" Mode="In" />
+    <ReturnType>
+      <CollectionType>
+        <RowType>
+          <Property Name="ClientId" Type="int" />
+          <Property Name="BetAmount" Type="decimal" Precision="38" Scale="4" />
+          <Property Name="BonusBetAmount" Type="decimal" Precision="38" Scale="4" />
+          <Property Name="TotalBetsCount" Type="int" />
+          <Property Name="SportBetsCount" Type="int" />
+          <Property Name="WinAmount" Type="decimal" Precision="38" Scale="4" />
+          <Property Name="BonusWinAmount" Type="decimal" Precision="38" Scale="4" />
+          <Property Name="WinCount" Type="int" />
+        </RowType>
+      </CollectionType>
+    </ReturnType>
+  </Function>
+  <Function Name="fn_ClientReport" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+    <Parameter Name="FromDate" Type="bigint" Mode="In" />
+    <Parameter Name="ToDate" Type="bigint" Mode="In" />
+    <ReturnType>
+      <CollectionType>
+        <RowType>
+          <Property Name="ClientId" Type="int" Nullable="false" />
+          <Property Name="UserName" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="PartnerId" Type="int" Nullable="false" />
+          <Property Name="CurrencyId" Type="varchar" MaxLength="5" Nullable="false" />
+          <Property Name="CurrentRate" Type="decimal" Precision="18" Scale="12" Nullable="false" />
+          <Property Name="FirstName" Type="nvarchar" MaxLength="255" />
+          <Property Name="LastName" Type="nvarchar" MaxLength="255" />
+          <Property Name="Email" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="AffiliatePlatformId" Type="int" />
+          <Property Name="AffiliateId" Type="varchar" MaxLength="50" />
+          <Property Name="AffiliateReferralId" Type="varchar" MaxLength="50" />
+          <Property Name="TotalWithdrawalAmount" Type="decimal" Precision="38" Scale="4" />
+          <Property Name="WithdrawalsCount" Type="int" />
+          <Property Name="TotalDepositAmount" Type="decimal" Precision="38" Scale="4" />
+          <Property Name="DepositsCount" Type="int" />
+          <Property Name="TotalBetAmount" Type="decimal" Precision="38" Scale="4" />
+          <Property Name="TotalBetsCount" Type="int" />
+          <Property Name="SportBetsCount" Type="int" />
+          <Property Name="TotalWinAmount" Type="decimal" Precision="38" Scale="4" />
+          <Property Name="WinsCount" Type="int" />
+          <Property Name="GGR" Type="decimal" Precision="38" Scale="4" />
+          <Property Name="NGR" Type="decimal" Precision="38" Scale="4" />
+          <Property Name="TotalDebitCorrection" Type="decimal" Precision="38" Scale="4" />
+          <Property Name="DebitCorrectionsCount" Type="int" />
+          <Property Name="TotalCreditCorrection" Type="decimal" Precision="38" Scale="4" />
+          <Property Name="CreditCorrectionsCount" Type="int" />
+          <Property Name="TotalBonusAmount" Type="decimal" Precision="38" Scale="4" />
+          <Property Name="ComplementaryBalance" Type="decimal" Precision="18" Scale="4" />
+        </RowType>
+      </CollectionType>
+    </ReturnType>
+  </Function>
+  <Function Name="fn_ClientSession" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+    <ReturnType>
+      <CollectionType>
+        <RowType>
+          <Property Name="Id" Type="bigint" Nullable="false" />
+          <Property Name="ClientId" Type="int" Nullable="false" />
+          <Property Name="LanguageId" Type="char" MaxLength="2" Nullable="false" />
+          <Property Name="Ip" Type="varchar" MaxLength="50" />
+          <Property Name="Country" Type="varchar" MaxLength="50" />
+          <Property Name="Token" Type="varchar" MaxLength="100" Nullable="false" />
+          <Property Name="ProductId" Type="int" Nullable="false" />
+          <Property Name="DeviceType" Type="int" Nullable="false" />
+          <Property Name="StartTime" Type="datetime2" Precision="3" Nullable="false" />
+          <Property Name="LastUpdateTime" Type="datetime2" Precision="3" />
+          <Property Name="EndTime" Type="datetime2" Precision="3" />
+          <Property Name="State" Type="int" Nullable="false" />
+          <Property Name="CurrentPage" Type="varchar" MaxLength="50" />
+          <Property Name="ParentId" Type="bigint" />
+          <Property Name="ExternalToken" Type="nvarchar(max)" />
+          <Property Name="Source" Type="nvarchar" MaxLength="1000" />
+          <Property Name="LogoutType" Type="int" />
+          <Property Name="Type" Type="int" />
+          <Property Name="AccountId" Type="bigint" />
+          <Property Name="PartnerId" Type="int" Nullable="false" />
+        </RowType>
+      </CollectionType>
+    </ReturnType>
+  </Function>
+  <Function Name="fn_DeviceClientsCount" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+    <Parameter Name="FromDate" Type="bigint" Mode="In" />
+    <Parameter Name="ToDate" Type="bigint" Mode="In" />
+    <ReturnType>
+      <CollectionType>
+        <RowType>
+          <Property Name="PartnerId" Type="int" Nullable="false" />
+          <Property Name="DeviceTypeId" Type="int" Nullable="false" />
+          <Property Name="PlayersCount" Type="int" />
+        </RowType>
+      </CollectionType>
+    </ReturnType>
+  </Function>
+  <Function Name="fn_Document" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+    <ReturnType>
+      <CollectionType>
+        <RowType>
+          <Property Name="Id" Type="bigint" Nullable="false" />
+          <Property Name="ClientId" Type="int" />
+          <Property Name="PartnerId" Type="int" Nullable="false" />
+          <Property Name="Amount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+          <Property Name="CurrencyId" Type="varchar" MaxLength="5" Nullable="false" />
+          <Property Name="ExternalTransactionId" Type="varchar" MaxLength="100" />
+          <Property Name="State" Type="int" Nullable="false" />
+          <Property Name="OperationTypeId" Type="int" Nullable="false" />
+          <Property Name="TypeId" Type="int" />
+          <Property Name="PaymentRequestId" Type="bigint" />
+          <Property Name="PaymentSystemId" Type="int" />
+          <Property Name="PaymentSystemName" Type="varchar" MaxLength="50" />
+          <Property Name="RoundId" Type="varchar" MaxLength="50" />
+          <Property Name="GameProviderId" Type="int" />
+          <Property Name="GameProviderName" Type="varchar" MaxLength="50" />
+          <Property Name="ProductId" Type="int" />
+          <Property Name="ProductName" Type="varchar" MaxLength="50" />
+          <Property Name="CreationTime" Type="datetime2" Precision="3" Nullable="false" />
+          <Property Name="LastUpdateTime" Type="datetime2" Precision="3" Nullable="false" />
+          <Property Name="Date" Type="bigint" />
+          <Property Name="AccountId" Type="bigint" />
+        </RowType>
+      </CollectionType>
+    </ReturnType>
+  </Function>
+  <Function Name="fn_DuplicateClient" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+    <Parameter Name="ClientId" Type="int" Mode="In" />
+    <ReturnType>
+      <CollectionType>
+        <RowType>
+          <Property Name="DuplicatedClientId" Type="int" Nullable="false" />
+          <Property Name="DuplicatedData" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="LastUpdateTime" Type="datetime2" Precision="3" Nullable="false" />
+        </RowType>
+      </CollectionType>
+    </ReturnType>
+  </Function>
+  <Function Name="fn_InternetBet" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+    <ReturnType>
+      <CollectionType>
+        <RowType>
+          <Property Name="BetDocumentId" Type="bigint" Nullable="false" />
+          <Property Name="BetExternalTransactionId" Type="int" />
+          <Property Name="BetInfo" Type="int" />
+          <Property Name="ProductId" Type="int" Nullable="false" />
+          <Property Name="GameProviderId" Type="int" />
+          <Property Name="TicketInfo" Type="int" />
+          <Property Name="BetDate" Type="datetime2" Precision="3" Nullable="false" />
+          <Property Name="ClientId" Type="int" Nullable="false" />
+          <Property Name="ClientUserName" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="ClientFirstName" Type="nvarchar" MaxLength="255" />
+          <Property Name="ClientLastName" Type="nvarchar" MaxLength="255" />
+          <Property Name="BetAmount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+          <Property Name="Coefficient" Type="decimal" Precision="10" Scale="3" />
+          <Property Name="CurrencyId" Type="varchar" MaxLength="5" Nullable="false" />
+          <Property Name="TicketNumber" Type="bigint" />
+          <Property Name="DeviceTypeId" Type="int" Nullable="false" />
+          <Property Name="BetTypeId" Type="int" Nullable="false" />
+          <Property Name="PossibleWin" Type="decimal" Precision="29" Scale="7" />
+          <Property Name="RoundId" Type="int" />
+          <Property Name="PartnerId" Type="int" Nullable="false" />
+          <Property Name="ProductName" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="ProviderName" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="ClientIp" Type="int" />
+          <Property Name="Country" Type="int" />
+          <Property Name="ClientCategoryId" Type="int" Nullable="false" />
+          <Property Name="HasNote" Type="bit" Nullable="false" />
+          <Property Name="ClientHasNote" Type="bit" Nullable="false" />
+          <Property Name="State" Type="int" Nullable="false" />
+          <Property Name="WinDate" Type="datetime2" Precision="3" />
+          <Property Name="WinAmount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+          <Property Name="BonusId" Type="int" />
+          <Property Name="LastUpdateTime" Type="datetime2" Precision="3" />
+          <Property Name="Date" Type="bigint" Nullable="false" />
+          <Property Name="AffiliateReferralId" Type="int" />
+          <Property Name="UserPath" Type="varchar" MaxLength="50" />
+          <Property Name="UserId" Type="int" />
+          <Property Name="ProductCategoryId" Type="int" />
+          <Property Name="SubproviderId" Type="int" />
+          <Property Name="SubproviderName" Type="varchar" MaxLength="50" />
+          <Property Name="SelectionsCount" Type="int" />
+          <Property Name="Rake" Type="decimal" Precision="18" Scale="4" />
+          <Property Name="BonusAmount" Type="decimal" Precision="18" Scale="4" />
+          <Property Name="BonusWinAmount" Type="decimal" Precision="18" Scale="4" />
+          <Property Name="AffiliateId" Type="varchar" MaxLength="50" />
+          <Property Name="AccountId" Type="bigint" />
+        </RowType>
+      </CollectionType>
+    </ReturnType>
+  </Function>
+  <Function Name="fn_InternetGame" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+    <Parameter Name="FromDate" Type="bigint" Mode="In" />
+    <Parameter Name="ToDate" Type="bigint" Mode="In" />
+    <ReturnType>
+      <CollectionType>
+        <RowType>
+          <Property Name="ProductId" Type="int" Nullable="false" />
+          <Property Name="ProductName" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="GameProviderId" Type="int" />
+          <Property Name="SubproviderId" Type="int" />
+          <Property Name="CurrencyId" Type="varchar" MaxLength="5" Nullable="false" />
+          <Property Name="BetAmount" Type="decimal" Precision="38" Scale="4" />
+          <Property Name="WinAmount" Type="decimal" Precision="38" Scale="4" />
+          <Property Name="GGR" Type="decimal" Precision="38" Scale="4" />
+          <Property Name="BetCount" Type="int" />
+          <Property Name="PartnerId" Type="int" Nullable="false" />
+        </RowType>
+      </CollectionType>
+    </ReturnType>
+  </Function>
+  <Function Name="fn_PartnerClientsCount" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+    <Parameter Name="FromDate" Type="bigint" Mode="In" />
+    <Parameter Name="ToDate" Type="bigint" Mode="In" />
+    <ReturnType>
+      <CollectionType>
+        <RowType>
+          <Property Name="PartnerId" Type="int" Nullable="false" />
+          <Property Name="PlayersCount" Type="int" />
+        </RowType>
+      </CollectionType>
+    </ReturnType>
+  </Function>
+  <Function Name="fn_PartnerDeviceBets" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+    <Parameter Name="FromDate" Type="bigint" Mode="In" />
+    <Parameter Name="ToDate" Type="bigint" Mode="In" />
+    <ReturnType>
+      <CollectionType>
+        <RowType>
+          <Property Name="PartnerId" Type="int" Nullable="false" />
+          <Property Name="CurrencyId" Type="varchar" MaxLength="5" Nullable="false" />
+          <Property Name="DeviceTypeId" Type="int" Nullable="false" />
+          <Property Name="PlayersCount" Type="int" />
+          <Property Name="MaxBet" Type="decimal" Precision="18" Scale="4" />
+          <Property Name="MaxWin" Type="decimal" Precision="18" Scale="4" />
+          <Property Name="TotalBet" Type="decimal" Precision="38" Scale="4" />
+          <Property Name="TotalBonusBet" Type="decimal" Precision="38" Scale="4" />
+          <Property Name="TotalWin" Type="decimal" Precision="38" Scale="4" />
+          <Property Name="TotalBonusWin" Type="decimal" Precision="38" Scale="4" />
+          <Property Name="CashoutAmount" Type="decimal" Precision="38" Scale="4" />
+          <Property Name="Count" Type="int" />
+        </RowType>
+      </CollectionType>
+    </ReturnType>
+  </Function>
+  <Function Name="fn_PartnerProviderBets" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+    <Parameter Name="FromDate" Type="bigint" Mode="In" />
+    <Parameter Name="ToDate" Type="bigint" Mode="In" />
+    <ReturnType>
+      <CollectionType>
+        <RowType>
+          <Property Name="PartnerId" Type="int" Nullable="false" />
+          <Property Name="CurrencyId" Type="varchar" MaxLength="5" Nullable="false" />
+          <Property Name="GameProviderId" Type="int" />
+          <Property Name="SubproviderId" Type="int" />
+          <Property Name="BetAmount" Type="decimal" Precision="38" Scale="4" />
+          <Property Name="BonusBetAmount" Type="decimal" Precision="38" Scale="4" />
+          <Property Name="WinAmount" Type="decimal" Precision="38" Scale="4" />
+          <Property Name="BonusWinAmount" Type="decimal" Precision="38" Scale="4" />
+          <Property Name="Count" Type="int" />
+        </RowType>
+      </CollectionType>
+    </ReturnType>
+  </Function>
+  <Function Name="fn_ProductCommission" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+    <Parameter Name="productId" Type="int" Mode="In" />
+    <Parameter Name="agentId" Type="int" Mode="In" />
+    <ReturnType>
+      <CollectionType>
+        <RowType>
+          <Property Name="Percent" Type="decimal" Precision="5" Scale="2" />
+          <Property Name="TurnoverPercent" Type="varchar(max)" />
+        </RowType>
+      </CollectionType>
+    </ReturnType>
+  </Function>
+  <Function Name="fn_ProductGroup" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+    <Parameter Name="productId" Type="int" Mode="In" />
+    <ReturnType>
+      <CollectionType>
+        <RowType>
+          <Property Name="Id" Type="int" />
+          <Property Name="NickName" Type="varchar" MaxLength="50" />
+        </RowType>
+      </CollectionType>
+    </ReturnType>
+  </Function>
+  <Function Name="fn_ProfitByAgent" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+    <Parameter Name="FromDate" Type="bigint" Mode="In" />
+    <Parameter Name="ToDate" Type="bigint" Mode="In" />
+    <ReturnType>
+      <CollectionType>
+        <RowType>
+          <Property Name="AgentId" Type="int" Nullable="false" />
+          <Property Name="AgentPath" Type="varchar" MaxLength="50" />
+          <Property Name="ProductId" Type="int" Nullable="false" />
+          <Property Name="SelectionsCount" Type="int" />
+          <Property Name="TotalBetAmount" Type="decimal" Precision="38" Scale="4" />
+          <Property Name="TotalWinAmount" Type="decimal" Precision="38" Scale="4" />
+        </RowType>
+      </CollectionType>
+    </ReturnType>
+  </Function>
+  <Function Name="fn_ProfitByClientProduct" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+    <Parameter Name="FromDate" Type="bigint" Mode="In" />
+    <Parameter Name="ToDate" Type="bigint" Mode="In" />
+    <ReturnType>
+      <CollectionType>
+        <RowType>
+          <Property Name="ClientId" Type="int" Nullable="false" />
+          <Property Name="AgentId" Type="int" />
+          <Property Name="ProductId" Type="int" Nullable="false" />
+          <Property Name="SelectionsCount" Type="int" />
+          <Property Name="TotalBetAmount" Type="decimal" Precision="38" Scale="4" />
+          <Property Name="TotalWinAmount" Type="decimal" Precision="38" Scale="4" />
+          <Property Name="TotalBetsCount" Type="int" />
+          <Property Name="TotalUnsettledBetsCount" Type="int" />
+          <Property Name="TotalDeletedBetsCount" Type="int" />
+        </RowType>
+      </CollectionType>
+    </ReturnType>
+  </Function>
+  <Function Name="fn_ProviderClientsCount" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+    <Parameter Name="FromDate" Type="bigint" Mode="In" />
+    <Parameter Name="ToDate" Type="bigint" Mode="In" />
+    <ReturnType>
+      <CollectionType>
+        <RowType>
+          <Property Name="PartnerId" Type="int" Nullable="false" />
+          <Property Name="GameProviderId" Type="int" />
+          <Property Name="SubProviderId" Type="int" />
+          <Property Name="PlayersCount" Type="int" />
+        </RowType>
+      </CollectionType>
+    </ReturnType>
+  </Function>
+  <Function Name="fn_ReportByPartner" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+    <Parameter Name="FromDate" Type="bigint" Mode="In" />
+    <Parameter Name="ToDate" Type="bigint" Mode="In" />
+    <ReturnType>
+      <CollectionType>
+        <RowType>
+          <Property Name="PartnerId" Type="int" Nullable="false" />
+          <Property Name="PartnerName" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="TotalBetAmount" Type="decimal" Precision="38" Scale="16" />
+          <Property Name="TotalBetsCount" Type="int" />
+          <Property Name="TotalWinAmount" Type="decimal" Precision="38" Scale="16" />
+          <Property Name="TotalGGR" Type="decimal" Precision="38" Scale="16" />
+        </RowType>
+      </CollectionType>
+    </ReturnType>
+  </Function>
+  <Function Name="fn_ReportByProvider" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+    <Parameter Name="FromDate" Type="bigint" Mode="In" />
+    <Parameter Name="ToDate" Type="bigint" Mode="In" />
+    <Parameter Name="AgentId" Type="int" Mode="In" />
+    <ReturnType>
+      <CollectionType>
+        <RowType>
+          <Property Name="ProviderName" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="Currency" Type="varchar" MaxLength="5" Nullable="false" />
+          <Property Name="TotalBetsCount" Type="int" />
+          <Property Name="TotalBetsAmount" Type="decimal" Precision="38" Scale="4" />
+          <Property Name="TotalWinsAmount" Type="decimal" Precision="38" Scale="4" />
+          <Property Name="TotalUncalculatedBetsCount" Type="int" />
+          <Property Name="TotalUncalculatedBetsAmount" Type="decimal" Precision="38" Scale="4" />
+          <Property Name="GGR" Type="decimal" Precision="38" Scale="4" />
+          <Property Name="PartnerId" Type="int" />
+          <Property Name="ClientId" Type="int" />
+          <Property Name="AffiliateReferralId" Type="int" />
+          <Property Name="AffiliateId" Type="varchar" MaxLength="50" />
+        </RowType>
+      </CollectionType>
+    </ReturnType>
+  </Function>
+  <Function Name="sp_InsertDocuments" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+    <Parameter Name="minId" Type="bigint" Mode="In" />
+  </Function>
+  <EntityContainer Name="DataWarehouseModelStoreContainer">
+    <EntitySet Name="AccountBalance" EntityType="Self.AccountBalance" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="AffiliatePlatform" EntityType="Self.AffiliatePlatform" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="AffiliateReferral" EntityType="Self.AffiliateReferral" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="AgentCommission" EntityType="Self.AgentCommission" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="Bet" EntityType="Self.Bet" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="Bonus" EntityType="Self.Bonus" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="Client" EntityType="Self.Client" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="ClientBonus" EntityType="Self.ClientBonus" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="ClientSession" EntityType="Self.ClientSession" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="Currency" EntityType="Self.Currency" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="Document" EntityType="Self.Document" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="DuplicatedClient" EntityType="Self.DuplicatedClient" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="DuplicatedClientHistory" EntityType="Self.DuplicatedClientHistory" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="GameProvider" EntityType="Self.GameProvider" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="Gtd_Client_Info" EntityType="Self.Gtd_Client_Info" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="Gtd_Dashboard_Info" EntityType="Self.Gtd_Dashboard_Info" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="Gtd_Deposit_Info" EntityType="Self.Gtd_Deposit_Info" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="Gtd_Provider_Bets" EntityType="Self.Gtd_Provider_Bets" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="Gtd_Withdraw_Info" EntityType="Self.Gtd_Withdraw_Info" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="JobTrigger" EntityType="Self.JobTrigger" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="Opt_Document_Considered" EntityType="Self.Opt_Document_Considered" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="Partner" EntityType="Self.Partner" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="PaymentRequest" EntityType="Self.PaymentRequest" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="Product" EntityType="Self.Product" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="Setting" EntityType="Self.Setting" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="User" EntityType="Self.User" Schema="dbo" store:Type="Tables" />
+    <AssociationSet Name="FK_DuplicatedClientHistory_DuplicatedClient" Association="Self.FK_DuplicatedClientHistory_DuplicatedClient">
+      <End Role="DuplicatedClient" EntitySet="DuplicatedClient" />
+      <End Role="DuplicatedClientHistory" EntitySet="DuplicatedClientHistory" />
+    </AssociationSet>
+  </EntityContainer>
+</Schema>

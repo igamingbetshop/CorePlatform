@@ -20,10 +20,10 @@ namespace IqSoft.CP.DAL
             this.ProductCountrySettings = new HashSet<ProductCountrySetting>();
             this.BonusCountrySettings = new HashSet<BonusCountrySetting>();
             this.PartnerCountrySettings = new HashSet<PartnerCountrySetting>();
-            this.PartnerPaymentCountrySettings = new HashSet<PartnerPaymentCountrySetting>();
             this.Region1 = new HashSet<Region>();
             this.Clients = new HashSet<Client>();
             this.Clients1 = new HashSet<Client>();
+            this.PartnerPaymentCountrySettings = new HashSet<PartnerPaymentCountrySetting>();
         }
     
         public int Id { get; set; }
@@ -40,15 +40,12 @@ namespace IqSoft.CP.DAL
         public string IsoCode3 { get; set; }
     
         public virtual Language Language { get; set; }
-        public virtual Currency Currency { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ProductCountrySetting> ProductCountrySettings { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<BonusCountrySetting> BonusCountrySettings { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PartnerCountrySetting> PartnerCountrySettings { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PartnerPaymentCountrySetting> PartnerPaymentCountrySettings { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Region> Region1 { get; set; }
         public virtual Region Region2 { get; set; }
@@ -57,5 +54,8 @@ namespace IqSoft.CP.DAL
         public virtual ICollection<Client> Clients { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Client> Clients1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PartnerPaymentCountrySetting> PartnerPaymentCountrySettings { get; set; }
+        public virtual Currency Currency { get; set; }
     }
 }

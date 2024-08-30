@@ -67,6 +67,7 @@ namespace IqSoft.CP.Common.Models.WebSiteModels
         public bool IsTwoFactorEnabled { get; set; }
         public int? CharacterId { get; set; }
         public string IframeUrl { get; set; }
+        public bool IsAgent { get; set; }
         public List<ApiPopup> Popups { get; set; }
     }
 }

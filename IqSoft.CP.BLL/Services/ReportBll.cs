@@ -2,10 +2,7 @@
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.SqlClient;
-using System.IO;
 using System.Linq;
-using System.Runtime.ConstrainedExecution;
-using System.Transactions;
 using System.Web.UI.WebControls;
 using IqSoft.CP.BLL.Caching;
 using IqSoft.CP.BLL.Helpers;
@@ -15,16 +12,15 @@ using IqSoft.CP.Common.Enums;
 using IqSoft.CP.Common.Helpers;
 using IqSoft.CP.Common.Models;
 using IqSoft.CP.Common.Models.Report;
-using IqSoft.CP.Common.Models.WebSiteModels;
 using IqSoft.CP.DAL;
 using IqSoft.CP.DAL.Filters;
-using IqSoft.CP.DAL.Filters.Agent;
 using IqSoft.CP.DAL.Filters.Clients;
 using IqSoft.CP.DAL.Filters.Reporting;
 using IqSoft.CP.DAL.Models;
 using IqSoft.CP.DAL.Models.Agents;
 using IqSoft.CP.DAL.Models.Cache;
 using IqSoft.CP.DAL.Models.Dashboard;
+using IqSoft.CP.DAL.Models.Notification;
 using IqSoft.CP.DAL.Models.PlayersDashboard;
 using IqSoft.CP.DAL.Models.RealTime;
 using IqSoft.CP.DAL.Models.Report;
@@ -32,10 +28,9 @@ using IqSoft.CP.DataWarehouse;
 using IqSoft.CP.DataWarehouse.Filters;
 using log4net;
 using Newtonsoft.Json;
-using static System.Data.Entity.Infrastructure.Design.Executor;
 using static IqSoft.CP.Common.Constants;
+using ClientSession = IqSoft.CP.DataWarehouse.ClientSession;
 using fnClientSession = IqSoft.CP.DAL.fnClientSession;
-using PaymentRequest = IqSoft.CP.DAL.PaymentRequest;
 
 namespace IqSoft.CP.BLL.Services
 {
@@ -76,7 +71,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             GetPermissionsToObject(new CheckPermissionInput
@@ -87,7 +82,7 @@ namespace IqSoft.CP.BLL.Services
             GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClientByCategory,
-                ObjectTypeId = ObjectTypes.ClientCategory
+                ObjectTypeId = (int)ObjectTypes.ClientCategory
             });
 
             var partnerIds = filter.PartnerId.HasValue ? new List<int> { filter.PartnerId.Value } : new List<int>();
@@ -120,7 +115,8 @@ namespace IqSoft.CP.BLL.Services
                 TotalBonusAmount = x.Sum(y => y.BonusAmount),
                 TotalCashoutAmount = x.Sum(y => y.CashoutAmount),
                 MaxBet = x.Max(y => y.MaxBet),
-                MaxWin = x.Max(y => y.MaxWin)
+                MaxWin = x.Max(y => y.MaxWin),
+                FTDCount = x.Sum(y => y.FTDCount)
             }).FirstOrDefault();
             if (info == null)
                 return new ClientsInfo();
@@ -131,7 +127,7 @@ namespace IqSoft.CP.BLL.Services
             info.TotalBonusAmount = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, info.TotalBonusAmount);
             info.TotalBetAmount = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, info.TotalBetAmount);
             info.TotalCashoutAmount = ConvertCurrency(Constants.DefaultCurrencyId, CurrencyId, info.TotalCashoutAmount);
-            
+
             info.DailyInfo = q.GroupBy(x => x.Date).Select(x => new ClientsDailyInfo
             {
                 LongDate = x.Key,
@@ -145,14 +141,15 @@ namespace IqSoft.CP.BLL.Services
                 TotalBonusAmount = x.Sum(y => y.BonusAmount),
                 TotalCashoutAmount = x.Sum(y => y.CashoutAmount),
                 MaxBet = x.Max(y => y.MaxBet),
-                MaxWin = x.Max(y => y.MaxWin)
+                MaxWin = x.Max(y => y.MaxWin),
+                FTDCount = x.Sum(y => y.FTDCount)
             }).ToList();
             var totalDays = (filter.ToDate - filter.FromDate).TotalDays;
             for (int i = 0; i < totalDays; i++)
             {
                 var date = filter.FromDate.AddDays(i);
                 var day = (long)date.Year * 10000 + (long)date.Month * 100 + (long)date.Day;
-                if(!info.DailyInfo.Any(x => x.LongDate == day))
+                if (!info.DailyInfo.Any(x => x.LongDate == day))
                 {
                     info.DailyInfo.Add(new ClientsDailyInfo { LongDate = day });
                 }
@@ -176,7 +173,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             GetPermissionsToObject(new CheckPermissionInput
@@ -187,7 +184,7 @@ namespace IqSoft.CP.BLL.Services
             GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClientByCategory,
-                ObjectTypeId = ObjectTypes.ClientCategory
+                ObjectTypeId = (int)ObjectTypes.ClientCategory
             });
 
             var partnerIds = filter.PartnerId.HasValue ? new List<int> { filter.PartnerId.Value } : new List<int>();
@@ -214,7 +211,7 @@ namespace IqSoft.CP.BLL.Services
                 TotalCount = x.Count()
             }).ToList();
             int totalCount = info.Sum(x => x.TotalCount);
-            foreach(var i in info)
+            foreach (var i in info)
             {
                 if (i.CountryId == null)
                     i.CountryId = Constants.DefaultRegionId;
@@ -232,7 +229,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             GetPermissionsToObject(new CheckPermissionInput
@@ -243,7 +240,7 @@ namespace IqSoft.CP.BLL.Services
             GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClientByCategory,
-                ObjectTypeId = ObjectTypes.ClientCategory
+                ObjectTypeId = (int)ObjectTypes.ClientCategory
             });
 
             var partnerIds = filter.PartnerId.HasValue ? new List<int> { filter.PartnerId.Value } : new List<int>();
@@ -281,10 +278,10 @@ namespace IqSoft.CP.BLL.Services
                     var r = CacheManager.GetRegionByCountryCode(i.CountryCode, LanguageId);
                     i.CountryId = r?.Id;
                 }
-                
-                if(i.CountryId != null)
+
+                if (i.CountryId != null)
                     i.CountryName = CacheManager.GetRegionById(i.CountryId.Value, LanguageId)?.Name;
-                
+
                 i.Percent = Math.Round(i.TotalCount * 100 / (double)totalCount, 2);
             }
 
@@ -296,7 +293,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             GetPermissionsToObject(new CheckPermissionInput
@@ -433,7 +430,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             var partnerIds = filter.PartnerId.HasValue ? new List<int> { filter.PartnerId.Value } : new List<int>();
@@ -455,8 +452,8 @@ namespace IqSoft.CP.BLL.Services
             if (partnerIds.Any())
                 q = q.Where(x => partnerIds.Contains(x.PartnerId));
 
-            
-            
+
+
             var dailyInfo = q.GroupBy(x => new { x.GameProviderId, x.SubProviderId, x.Date }).Select(x => new ProviderDailyInfo
             {
                 LongDate = x.Key.Date,
@@ -536,7 +533,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if (type == (int)PaymentRequestTypes.Deposit)
                 GetPermissionsToObject(new CheckPermissionInput
@@ -688,7 +685,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             var realTimeAccess = GetPermissionsToObject(new CheckPermissionInput
@@ -699,7 +696,7 @@ namespace IqSoft.CP.BLL.Services
             var clientCategoryAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClientByCategory,
-                ObjectTypeId = ObjectTypes.ClientCategory
+                ObjectTypeId = (int)ObjectTypes.ClientCategory
             });
 
             input.CheckPermissionResuts = new List<CheckPermissionOutput<BllOnlineClient>>
@@ -788,22 +785,22 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var clientAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClient,
-                ObjectTypeId = ObjectTypes.Client
+                ObjectTypeId = (int)ObjectTypes.Client
             });
             var checkViewAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPlayerDashboard,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var affiliateAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewAffiliate,
-                ObjectTypeId = ObjectTypes.Affiliate
+                ObjectTypeId = (int)ObjectTypes.Affiliate
             });
 
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnClientReport>>
@@ -862,7 +859,7 @@ namespace IqSoft.CP.BLL.Services
                     TotalDebitCorrection = x.TotalDebitCorrection ?? 0,
                     DebitCorrectionsCount = x.DebitCorrectionsCount ?? 0,
                     GGR = x.GGR ?? 0,
-                    NGR = 0,
+                    NGR = x.NGR ?? 0,
                     RealBalance = Math.Floor(balance.Balances.Where(y => y.TypeId != (int)AccountTypes.ClientCompBalance &&
                                                                     y.TypeId != (int)AccountTypes.ClientCoinBalance &&
                                                                     y.TypeId != (int)AccountTypes.ClientBonusBalance).Sum(y => y.Balance) * 100) / 100,
@@ -893,32 +890,32 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var clientAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClient,
-                ObjectTypeId = ObjectTypes.Client
+                ObjectTypeId = (int)ObjectTypes.Client
             });
             var checkViewAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPlayerDashboard,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var affiliateAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewAffiliate,
-                ObjectTypeId = ObjectTypes.Affiliate
+                ObjectTypeId = (int)ObjectTypes.Affiliate
             });
 
-           
+
             var fDate = (long)filter.FromDate.Year * 10000 + (long)filter.FromDate.Month * 100 + (long)filter.FromDate.Day;
             var tDate = (long)filter.ToDate.Year * 10000 + (long)filter.ToDate.Month * 100 + (long)filter.ToDate.Day;
 
             var query = Dwh.fn_ClientReport(fDate, tDate);
             if (!partnerAccess.HaveAccessForAllObjects)
                 query = query.Where(x => partnerAccess.AccessibleObjects.Contains(x.PartnerId));
-            if(filter.PartnerId != null)
+            if (filter.PartnerId != null)
                 query = query.Where(x => x.PartnerId == filter.PartnerId.Value);
 
             var clients = query.OrderByDescending(x => x.TotalBetAmount * x.CurrentRate).Take(5).ToList();
@@ -927,6 +924,7 @@ namespace IqSoft.CP.BLL.Services
                 ClientId = x.ClientId,
                 UserName = x.UserName,
                 PartnerId = x.PartnerId,
+                PartnerName = CacheManager.GetPartnerById(x.PartnerId).Name,
                 CurrencyId = x.CurrencyId,
                 FirstName = x.FirstName,
                 LastName = x.LastName,
@@ -958,22 +956,22 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var clientAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClient,
-                ObjectTypeId = ObjectTypes.Client
+                ObjectTypeId = (int)ObjectTypes.Client
             });
             var checkViewAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPlayerDashboard,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var affiliateAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewAffiliate,
-                ObjectTypeId = ObjectTypes.Affiliate
+                ObjectTypeId = (int)ObjectTypes.Affiliate
             });
 
 
@@ -986,12 +984,13 @@ namespace IqSoft.CP.BLL.Services
             if (filter.PartnerId != null)
                 query = query.Where(x => x.PartnerId == filter.PartnerId.Value);
 
-            var clients = query.OrderByDescending(x => x.GGR * x.CurrentRate).Take(5).ToList();
+            var clients = query.Where(x => x.GGR > 0).OrderByDescending(x => x.GGR * x.CurrentRate).Take(5).ToList();
             return clients.Select(x => new DashboardClientInfo
             {
                 ClientId = x.ClientId,
                 UserName = x.UserName,
                 PartnerId = x.PartnerId,
+                PartnerName = CacheManager.GetPartnerById(x.PartnerId).Name,
                 CurrencyId = x.CurrencyId,
                 FirstName = x.FirstName,
                 LastName = x.LastName,
@@ -1012,7 +1011,7 @@ namespace IqSoft.CP.BLL.Services
                 CreditCorrectionsCount = x.CreditCorrectionsCount ?? 0,
                 TotalDebitCorrection = x.TotalDebitCorrection ?? 0,
                 DebitCorrectionsCount = x.DebitCorrectionsCount ?? 0,
-                GGR = x.GGR ?? 0,
+                GGR = Math.Round(ConvertCurrency(x.CurrencyId, Identity.CurrencyId, (x.GGR ?? 0)), 2),
                 NGR = 0,
                 ComplementaryBalance = Math.Floor(x.ComplementaryBalance ?? 0 * 100) / 100
             }).ToList();
@@ -1023,22 +1022,22 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var clientAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClient,
-                ObjectTypeId = ObjectTypes.Client
+                ObjectTypeId = (int)ObjectTypes.Client
             });
             var checkViewAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPlayerDashboard,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var affiliateAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewAffiliate,
-                ObjectTypeId = ObjectTypes.Affiliate
+                ObjectTypeId = (int)ObjectTypes.Affiliate
             });
 
 
@@ -1051,12 +1050,13 @@ namespace IqSoft.CP.BLL.Services
             if (filter.PartnerId != null)
                 query = query.Where(x => x.PartnerId == filter.PartnerId.Value);
 
-            var clients = query.OrderBy(x => x.GGR * x.CurrentRate).Take(5).ToList();
+            var clients = query.Where(x => x.GGR < 0).OrderBy(x => x.GGR * x.CurrentRate).Take(5).ToList();
             return clients.Select(x => new DashboardClientInfo
             {
                 ClientId = x.ClientId,
                 UserName = x.UserName,
                 PartnerId = x.PartnerId,
+                PartnerName = CacheManager.GetPartnerById(x.PartnerId).Name,
                 CurrencyId = x.CurrencyId,
                 FirstName = x.FirstName,
                 LastName = x.LastName,
@@ -1077,9 +1077,66 @@ namespace IqSoft.CP.BLL.Services
                 CreditCorrectionsCount = x.CreditCorrectionsCount ?? 0,
                 TotalDebitCorrection = x.TotalDebitCorrection ?? 0,
                 DebitCorrectionsCount = x.DebitCorrectionsCount ?? 0,
-                GGR = x.GGR ?? 0,
+                GGR = Math.Round(ConvertCurrency(x.CurrencyId, Identity.CurrencyId, (x.GGR ?? 0)), 2),
                 NGR = 0,
                 ComplementaryBalance = Math.Floor(x.ComplementaryBalance ?? 0 * 100) / 100
+            }).ToList();
+        }
+
+        public List<DashboardSessionInfo> GetTopActiveClients(FilterDashboard filter)
+        {
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewPartner,
+                ObjectTypeId = (int)ObjectTypes.Partner
+            });
+            var clientAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewClient,
+                ObjectTypeId = (int)ObjectTypes.Client
+            });
+            var checkViewAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewPlayerDashboard,
+                ObjectTypeId = (int)ObjectTypes.Partner
+            });
+            var affiliateAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewAffiliate,
+                ObjectTypeId = (int)ObjectTypes.Affiliate
+            });
+            var currentTime = DateTime.UtcNow;
+
+            var query = Dwh.fn_ClientSession().Where(x => x.ProductId == Constants.PlatformProductId &&
+                (x.StartTime >= filter.FromDate || (x.StartTime < filter.FromDate && (x.EndTime == null || x.EndTime.Value > filter.FromDate))) && 
+                x.StartTime < filter.ToDate && (x.State == (int)SessionStates.Active || x.State == (int)SessionStates.Inactive));
+
+            if (!partnerAccess.HaveAccessForAllObjects)
+                query = query.Where(x => partnerAccess.AccessibleObjects.Contains(x.PartnerId));
+            if (filter.PartnerId != null)
+                query = query.Where(x => x.PartnerId == filter.PartnerId.Value);
+
+            var sessions = query.GroupBy(x => x.ClientId).Select(x => new
+            {
+                ClientId = x.Key,
+                SessionTime = x.Sum(y => DbFunctions.DiffSeconds(y.StartTime < filter.FromDate ? filter.FromDate : y.StartTime, 
+                    (y.EndTime ?? currentTime) > filter.ToDate ? filter.ToDate : (y.EndTime ?? currentTime)))
+            }).OrderByDescending(x => x.SessionTime).Take(5).ToList();
+
+            return sessions.Select(x =>
+            {
+                var client = CacheManager.GetClientById(x.ClientId);
+                var partner = CacheManager.GetPartnerById(client?.PartnerId ?? 0);
+                return new DashboardSessionInfo
+                {
+                    ClientId = x.ClientId,
+                    UserName = client?.UserName,
+                    PartnerId = client?.PartnerId ?? 0,
+                    PartnerName = partner?.Name,
+                    FirstName = client?.FirstName,
+                    LastName = client?.LastName,
+                    TotalSessionTime = (long)x.SessionTime
+                };
             }).ToList();
         }
 
@@ -1088,7 +1145,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             GetPermissionsToObject(new CheckPermissionInput
             {
@@ -1109,7 +1166,7 @@ namespace IqSoft.CP.BLL.Services
                 }
             }
 
-            var q = Dwh.Gtd_Deposit_Info.Where(x => x.Date >= filter.FromDay && x.Date < filter.ToDay && 
+            var q = Dwh.Gtd_Deposit_Info.Where(x => x.Date >= filter.FromDay && x.Date < filter.ToDay &&
                 (x.Status == (int)PaymentRequestStates.Approved || x.Status == (int)PaymentRequestStates.ApprovedManually));
             if (partnerIds.Any())
                 q = q.Where(x => partnerIds.Contains(x.PartnerId));
@@ -1121,7 +1178,7 @@ namespace IqSoft.CP.BLL.Services
                 TotalRequestsCount = x.Sum(z => z.RequestsCount),
                 TotalPlayersCount = x.Sum(z => z.PlayersCount)
             }).ToList();
-            
+
             return result.OrderByDescending(x => x.TotalAmount).Select(x => new DAL.Models.Dashboard.PaymentInfo
             {
                 PaymentSystemId = x.PaymentSystemId,
@@ -1137,7 +1194,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             GetPermissionsToObject(new CheckPermissionInput
             {
@@ -1186,22 +1243,22 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var clientAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClient,
-                ObjectTypeId = ObjectTypes.Client
+                ObjectTypeId = (int)ObjectTypes.Client
             });
             var checkViewAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPlayerDashboard,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var affiliateAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewAffiliate,
-                ObjectTypeId = ObjectTypes.Affiliate
+                ObjectTypeId = (int)ObjectTypes.Affiliate
             });
             var partnerIds = filter.PartnerId.HasValue ? new List<int> { filter.PartnerId.Value } : new List<int>();
             if (!partnerAccess.HaveAccessForAllObjects)
@@ -1231,6 +1288,7 @@ namespace IqSoft.CP.BLL.Services
                 ClientId = x.ClientId,
                 UserName = x.UserName,
                 PartnerId = x.PartnerId,
+                PartnerName = CacheManager.GetPartnerById(x.PartnerId).Name,
                 CurrencyId = x.CurrencyId,
                 FirstName = x.FirstName,
                 LastName = x.LastName,
@@ -1263,7 +1321,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var affiliateAccess = GetPermissionsToObject(new CheckPermissionInput
             {
@@ -1292,12 +1350,14 @@ namespace IqSoft.CP.BLL.Services
                            b.AwardingTime >= filter.FromDate && b.AwardingTime < filter.ToDate
                            select new
                            {
+                               PartnerId = bn.PartnerId,
                                BonusId = b.BonusId,
                                BonusType = bn.Type,
                                Name = bn.Name,
                                Amount = b.BonusPrize * crr.CurrentRate
-                           }).GroupBy(x => new { x.BonusId, x.BonusType, x.Name }).Select(x => new
+                           }).GroupBy(x => new { x.PartnerId, x.BonusId, x.BonusType, x.Name }).Select(x => new
                            {
+                               PartnerId = x.Key.PartnerId,
                                BonusId = x.Key.BonusId,
                                BonusType = x.Key.BonusType,
                                Name = x.Key.Name,
@@ -1307,6 +1367,8 @@ namespace IqSoft.CP.BLL.Services
             return bonuses.Select(x => new DashboardBonusInfo
             {
                 Id = x.BonusId,
+                PartnerId = x.PartnerId,
+                PartnerName = CacheManager.GetPartnerById(x.PartnerId).Name,
                 Name = x.Name,
                 MaxAmount = ConvertCurrency(Constants.DefaultCurrencyId, Identity.CurrencyId, x.Amount),
                 Type = x.BonusType
@@ -1318,7 +1380,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var affiliateAccess = GetPermissionsToObject(new CheckPermissionInput
             {
@@ -1342,25 +1404,25 @@ namespace IqSoft.CP.BLL.Services
             var fDate = filter.FromDate.Year * (long)1000000 + filter.FromDate.Month * 10000 + filter.FromDate.Day * 100 + filter.FromDate.Hour;
             var tDate = filter.ToDate.Year * (long)1000000 + filter.ToDate.Month * 10000 + filter.ToDate.Day * 100 + filter.ToDate.Hour;
             var agents = (from b in Dwh.Bets
-            join c in Dwh.Clients on b.ClientId equals c.Id
-            join u in Dwh.Users on c.UserId equals u.Id
-                        where b.BetDate >= fDate && b.BetDate < tDate && (partnerIds.Count == 0 || partnerIds.Contains(u.PartnerId))
-                        group b by new { c.UserId, u.Path, u.PartnerId, u.CurrencyId } into g
-                        select new
-                        {
-                            UserId = g.Key.UserId,
-                            UserPath = g.Key.Path,
-                            PartnerId = g.Key.PartnerId,
-                            CurrencyId = g.Key.CurrencyId,
-                            TotalBetAmount = g.Sum(y => y.BetAmount),
-                            TotalWinAmount = g.Sum(y => y.WinAmount),
-                            TotalProfit = g.Sum(y => y.State == (int)BetDocumentStates.Uncalculated ? 0 : y.BetAmount - y.WinAmount)
-                        }).ToList();
+                          join c in Dwh.Clients on b.ClientId equals c.Id
+                          join u in Dwh.Users on c.UserId equals u.Id
+                          where b.BetDate >= fDate && b.BetDate < tDate && (partnerIds.Count == 0 || partnerIds.Contains(u.PartnerId))
+                          group b by new { c.UserId, u.Path, u.PartnerId, u.CurrencyId } into g
+                          select new
+                          {
+                              UserId = g.Key.UserId,
+                              UserPath = g.Key.Path,
+                              PartnerId = g.Key.PartnerId,
+                              CurrencyId = g.Key.CurrencyId,
+                              TotalBetAmount = g.Sum(y => y.BetAmount),
+                              TotalWinAmount = g.Sum(y => y.WinAmount),
+                              TotalProfit = g.Sum(y => y.State == (int)BetDocumentStates.Uncalculated ? 0 : y.BetAmount - y.WinAmount)
+                          }).ToList();
             var users = new Dictionary<int, decimal>();
-            foreach(var agent in agents)
+            foreach (var agent in agents)
             {
                 var items = agent.UserPath.Split('/').ToList();
-                foreach(var item in items)
+                foreach (var item in items)
                 {
                     if (!string.IsNullOrEmpty(item))
                     {
@@ -1371,8 +1433,10 @@ namespace IqSoft.CP.BLL.Services
                     }
                 }
             }
-            var topAgents = profitable ? users.OrderByDescending(x => x.Value).Take(5).ToList() : users.OrderBy(x => x.Value).Take(5).ToList();
-            return topAgents.Select(x => {
+            var topAgents = profitable ? users.Where(x => x.Value > 0).OrderByDescending(x => x.Value).Take(5).ToList() :
+                users.Where(x => x.Value < 0).OrderBy(x => x.Value).Take(5).ToList();
+            return topAgents.Select(x =>
+            {
                 var user = CacheManager.GetUserById(x.Key);
                 return new fnAgent
                 {
@@ -1382,6 +1446,49 @@ namespace IqSoft.CP.BLL.Services
                     TotalGGR = x.Value
                 };
             }).ToList();
+        }
+
+        public List<fnReportByPartner> GetTopPartners(FilterDashboard filter, bool profitable)
+        {
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewPartner,
+                ObjectTypeId = (int)ObjectTypes.Partner
+            });
+            var affiliateAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewReportByPartner
+            });
+            var partnerIds = filter.PartnerId.HasValue ? new List<int> { filter.PartnerId.Value } : new List<int>();
+            if (!partnerAccess.HaveAccessForAllObjects)
+            {
+                if (filter.PartnerId != null && !partnerAccess.AccessibleIntegerObjects.Contains(filter.PartnerId.Value))
+                    throw CreateException(LanguageId, Errors.DontHavePermission);
+
+                if (!partnerIds.Any())
+                {
+                    if (partnerAccess.AccessibleIntegerObjects.Any())
+                        partnerIds = partnerAccess.AccessibleIntegerObjects.ToList();
+                    else
+                        partnerIds = new List<int> { -1 };
+                }
+            }
+            var fDate = filter.FromDate.Year * 1000000 + filter.FromDate.Month * 10000 + filter.FromDate.Day * 100 + filter.FromDate.Hour;
+            var tDate = filter.ToDate.Year * 1000000 + filter.ToDate.Month * 10000 + filter.ToDate.Day * 100 + filter.ToDate.Hour;
+            var resp = Dwh.fn_ReportByPartner(fDate, tDate);
+            if (partnerIds.Any())
+                resp = resp.Where(x => partnerIds.Contains(x.PartnerId));
+            var topPartners = profitable ? resp.Where(x => x.TotalGGR > 0).OrderByDescending(x => x.TotalGGR).Take(5).ToList() :
+                resp.Where(x => x.TotalGGR < 0).OrderBy(x => x.TotalGGR).Take(5).ToList();
+
+            foreach (var item in topPartners)
+            {
+                item.TotalBetAmount = ConvertCurrency(Constants.DefaultCurrencyId, Identity.CurrencyId, item.TotalBetAmount ?? 0);
+                item.TotalWinAmount = ConvertCurrency(Constants.DefaultCurrencyId, Identity.CurrencyId, item.TotalWinAmount ?? 0);
+                item.TotalGGR = ConvertCurrency(Constants.DefaultCurrencyId, Identity.CurrencyId, item.TotalGGR ?? 0);
+            }
+
+            return topPartners;
         }
 
         #endregion
@@ -1397,17 +1504,17 @@ namespace IqSoft.CP.BLL.Services
                 var viewBetShopBetAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = permission,
-                    ObjectTypeId = ObjectTypes.fnBetShopBet
+                    ObjectTypeId = (int)ObjectTypes.fnBetShopBet
                 });
                 var viewBetShopAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewBetShop,
-                    ObjectTypeId = ObjectTypes.BetShop
+                    ObjectTypeId = (int)ObjectTypes.BetShop
                 });
                 var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
                 filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnBetShopBet>>
             {
@@ -1502,13 +1609,13 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             var betShopAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewBetShop,
-                ObjectTypeId = ObjectTypes.BetShop
+                ObjectTypeId = (int)ObjectTypes.BetShop
             });
 
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnReportByBetShopOperation>>
@@ -1534,7 +1641,7 @@ namespace IqSoft.CP.BLL.Services
         {
             var result = new fnBetShopBet();
             var bc = Db.BetShopTickets.OrderByDescending(x => x.Id).FirstOrDefault(x => x.BarCode == barcode);
-            if(bc == null)
+            if (bc == null)
                 return null;
             var documents = Db.Documents.Include(x => x.Product).Include(x => x.CashDesk).Where(x => x.Id == bc.DocumentId || x.ParentId == bc.DocumentId).ToList();
             var bet = documents.FirstOrDefault(x => x.OperationTypeId == (int)OperationTypes.Bet);
@@ -1550,7 +1657,7 @@ namespace IqSoft.CP.BLL.Services
                 d.OperationTypeId == (int)OperationTypes.MultipleBonus).OrderByDescending(x => x.Date).FirstOrDefault();
             if (lastWin == null)
                 lastWin = documents.Where(d => d.OperationTypeId == (int)OperationTypes.Win).OrderByDescending(x => x.Date).FirstOrDefault();
-            
+
             result.BetDocumentId = bet.Id;
             result.BetExternalTransactionId = null;
             result.BetShopCurrencyId = bet.CurrencyId;
@@ -1589,13 +1696,13 @@ namespace IqSoft.CP.BLL.Services
             var viewBetShopAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewBetShop,
-                ObjectTypeId = ObjectTypes.BetShop
+                ObjectTypeId = (int)ObjectTypes.BetShop
             });
 
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnBetShopBet>>
@@ -1648,13 +1755,13 @@ namespace IqSoft.CP.BLL.Services
             var viewBetShopAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewBetShop,
-                ObjectTypeId = ObjectTypes.BetShop
+                ObjectTypeId = (int)ObjectTypes.BetShop
             });
 
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnBetShopBet>>
@@ -1727,27 +1834,27 @@ namespace IqSoft.CP.BLL.Services
                 var internetBetAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewInternetBets,
-                    ObjectTypeId = ObjectTypes.fnInternetBet
+                    ObjectTypeId = (int)ObjectTypes.fnInternetBet
                 });
                 var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
                 var clientCategoryAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewClientByCategory,
-                    ObjectTypeId = ObjectTypes.ClientCategory
+                    ObjectTypeId = (int)ObjectTypes.ClientCategory
                 });
                 var clientAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewClient,
-                    ObjectTypeId = ObjectTypes.Client
+                    ObjectTypeId = (int)ObjectTypes.Client
                 });
                 var affiliateAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewAffiliate,
-                    ObjectTypeId = ObjectTypes.Affiliate
+                    ObjectTypeId = (int)ObjectTypes.Affiliate
                 });
 
                 filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnInternetBet>>
@@ -1821,7 +1928,9 @@ namespace IqSoft.CP.BLL.Services
                 TotalBetsAmount = x.Sum(b => b.BetAmount),
                 TotalBetsCount = x.Sum(b => 1),
                 TotalWinsAmount = x.Sum(b => b.WinAmount),
-                TotalPossibleWinsAmount = x.Sum(b => b.PossibleWin)
+                TotalPossibleWinsAmount = x.Sum(b => b.PossibleWin),
+                TotalBonusBetAmount = x.Sum(b => b.BonusAmount),
+                TotalBonusWinAmount = x.Sum(b => b.BonusWinAmount)
             }).ToList();
             query = Dwh.fn_InternetBet();
             filter.CreateQuery(ref query, true, orderByDate);
@@ -1846,6 +1955,8 @@ namespace IqSoft.CP.BLL.Services
                 Entities = entries,
                 Count = totalBets.Sum(x => x.TotalBetsCount),
                 TotalBetAmount = totalBets.Sum(x => ConvertCurrency(x.CurrencyId, convertCurrency, x.TotalBetsAmount)),
+                TotalBonusBetAmount = totalBets.Sum(x => ConvertCurrency(x.CurrencyId, convertCurrency, x.TotalBonusBetAmount ?? 0)),
+                TotalBonusWinAmount = totalBets.Sum(x => ConvertCurrency(x.CurrencyId, convertCurrency, x.TotalBonusWinAmount ?? 0)),
                 TotalWinAmount = totalBets.Sum(x => ConvertCurrency(x.CurrencyId, convertCurrency, x.TotalWinsAmount)),
                 TotalPossibleWinAmount = totalBets.Sum(x => ConvertCurrency(x.CurrencyId, convertCurrency, x.TotalPossibleWinsAmount ?? 0)),
                 TotalCurrencyCount = totalBets.Count,
@@ -1880,7 +1991,7 @@ namespace IqSoft.CP.BLL.Services
 
             filter.FieldNameToOrderBy = "BetDocumentId";
             filter.OrderBy = true;
-           
+
             var entries = filter.FilterObjects(Dwh.fn_InternetBet(), true).ToList();
             Log.Info(JsonConvert.SerializeObject(filter) + "_" + JsonConvert.SerializeObject(entries));
             foreach (var entry in entries)
@@ -1896,9 +2007,9 @@ namespace IqSoft.CP.BLL.Services
                 Entities = entries,
                 Count = totalBets == null ? 0 : totalBets.TotalBetsCount,
                 TotalBetAmount = totalBets == null ? 0 : totalBets.TotalBetsAmount,
-                TotalWinAmount = totalBets == null ? 0 : (winDisplayType == (int)WinDisplayTypes.Win ? 
+                TotalWinAmount = totalBets == null ? 0 : (winDisplayType == (int)WinDisplayTypes.Win ?
                     totalBets.TotalWinsAmount : (totalBets.TotalWinsAmount - totalBets.TotalBetsAmount)),
-                TotalPossibleWinAmount = totalBets == null ? 0 : (winDisplayType == (int)WinDisplayTypes.Win ? 
+                TotalPossibleWinAmount = totalBets == null ? 0 : (winDisplayType == (int)WinDisplayTypes.Win ?
                     totalBets.TotalPossibleWinsAmount : (totalBets.TotalPossibleWinsAmount - totalBets.TotalBetsAmount)),
             };
             response.TotalGGR = response.TotalBetAmount - response.TotalWinAmount;
@@ -1910,29 +2021,29 @@ namespace IqSoft.CP.BLL.Services
             /*var internetBetAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewInternetBets,
-                ObjectTypeId = ObjectTypes.fnInternetBet
+                ObjectTypeId = (int)ObjectTypes.fnInternetBet
             });
 
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             var clientCategoryAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClientByCategory,
-                ObjectTypeId = ObjectTypes.ClientCategory
+                ObjectTypeId = (int)ObjectTypes.ClientCategory
             });
             var clientAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClient,
-                ObjectTypeId = ObjectTypes.Client
+                ObjectTypeId = (int)ObjectTypes.Client
             });
             var affiliateReferralAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewAffiliateReferral,
-                ObjectTypeId = ObjectTypes.AffiliateReferral
+                ObjectTypeId = (int)ObjectTypes.AffiliateReferral
             });
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnInternetBet>>
             {
@@ -2111,17 +2222,17 @@ namespace IqSoft.CP.BLL.Services
             var internetBetAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewInternetBets,
-                ObjectTypeId = ObjectTypes.fnInternetBet
+                ObjectTypeId = (int)ObjectTypes.fnInternetBet
             });
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             /*var affiliateAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewAffiliate,
-                ObjectTypeId = ObjectTypes.Affiliate
+                ObjectTypeId = (int)ObjectTypes.Affiliate
             });*/
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnInternetGame>>
             {
@@ -2202,24 +2313,24 @@ namespace IqSoft.CP.BLL.Services
             var clientAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClient,
-                ObjectTypeId = ObjectTypes.Client
+                ObjectTypeId = (int)ObjectTypes.Client
             });
 
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewReportByCorrection,
-                ObjectTypeId = ObjectTypes.fnCorrection
+                ObjectTypeId = (int)ObjectTypes.fnCorrection
             });
             var affiliateAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewAffiliate,
-                ObjectTypeId = ObjectTypes.Affiliate
+                ObjectTypeId = (int)ObjectTypes.Affiliate
             });
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnCorrection>>
             {
@@ -2289,7 +2400,7 @@ namespace IqSoft.CP.BLL.Services
             CheckPermissionToSaveObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewBetShop,
-                ObjectTypeId = ObjectTypes.BetShop
+                ObjectTypeId = (int)ObjectTypes.BetShop
             });
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<ObjectDataChangeHistory>>();
 
@@ -2338,19 +2449,19 @@ namespace IqSoft.CP.BLL.Services
             var clientAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClient,
-                ObjectTypeId = ObjectTypes.Client
+                ObjectTypeId = (int)ObjectTypes.Client
             });
 
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             var affiliateAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewAffiliate,
-                ObjectTypeId = ObjectTypes.Affiliate
+                ObjectTypeId = (int)ObjectTypes.Affiliate
             });
 
             GetPermissionsToObject(new CheckPermissionInput
@@ -2381,7 +2492,9 @@ namespace IqSoft.CP.BLL.Services
             };
             var fDate = filter.FromDate.Year * 1000000 + filter.FromDate.Month * 10000 + filter.FromDate.Day * 100 + filter.FromDate.Hour;
             var tDate = filter.ToDate.Year * 1000000 + filter.ToDate.Month * 10000 + filter.ToDate.Day * 100 + filter.ToDate.Hour;
-            var rep = filter.FilterObjects(Dwh.fn_ReportByProvider(fDate, tDate), false).ToList();
+
+            var rep = filter.FilterObjects(Dwh.fn_ReportByProvider(fDate, tDate, filter.AgentId ?? 0), false).ToList();
+
             var result = rep.GroupBy(x => new { x.ProviderName, x.Currency, x.PartnerId })
                 .Select(x => new ReportByProvidersElement
                 {
@@ -2401,7 +2514,7 @@ namespace IqSoft.CP.BLL.Services
 
             var totalBetsCount = result.Sum(x => x.TotalBetsCount);
             var totalBetsAmount = result.Sum(x => x.TotalBetsAmount);
-            var totalGgr = result.Sum(x => x.GGRPercent);
+            var totalGgr = result.Sum(x => x.GGR);
             foreach (var r in result)
             {
                 r.BetsCountPercent = Math.Round(totalBetsCount == 0 ? 0 : r.BetsCountPercent / totalBetsCount, 2);
@@ -2416,7 +2529,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             GetPermissionsToObject(new CheckPermissionInput
@@ -2427,19 +2540,19 @@ namespace IqSoft.CP.BLL.Services
             var clientCategoryAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClientByCategory,
-                ObjectTypeId = ObjectTypes.ClientCategory
+                ObjectTypeId = (int)ObjectTypes.ClientCategory
             });
 
             var clientAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClient,
-                ObjectTypeId = ObjectTypes.Client
+                ObjectTypeId = (int)ObjectTypes.Client
             });
 
             var affiliateAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewAffiliate,
-                ObjectTypeId = ObjectTypes.Affiliate
+                ObjectTypeId = (int)ObjectTypes.Affiliate
             });
 
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnReportByProduct>>
@@ -2488,7 +2601,7 @@ namespace IqSoft.CP.BLL.Services
                 var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
                 filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnActionLog>>
                 {
@@ -2536,7 +2649,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if (!partnerAccess.HaveAccessForAllObjects && !partnerAccess.AccessibleIntegerObjects.Contains(filter.PartnerId))
                 filter.PartnerId = -1;
@@ -2589,25 +2702,24 @@ namespace IqSoft.CP.BLL.Services
         #endregion
 
         #region Session Reports
-
-        public PagedModel<fnClientSession> GetClientSessions(FilterReportByClientSession filter, bool onlyPlatform)
+        public PagedModel<fnClientSession> GetClientSessions(FilterReportByfnClientSession filter, bool onlyPlatform)
         {
             var clientAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClient,
-                ObjectTypeId = ObjectTypes.Client
+                ObjectTypeId = (int)ObjectTypes.Client
             });
 
             var affiliateAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewAffiliate,
-                ObjectTypeId = ObjectTypes.Affiliate
+                ObjectTypeId = (int)ObjectTypes.Affiliate
             });
 
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnClientSession>>
@@ -2646,6 +2758,71 @@ namespace IqSoft.CP.BLL.Services
             };
         }
 
+        public PagedModel<ClientSession> GetClientLoginsPagedModel(FilterReportByClientSession filter)
+        {
+            var clientAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewClient,
+                ObjectTypeId = (int)ObjectTypes.Client
+            });
+            //var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
+            //{
+            //    Permission = Constants.Permissions.ViewPartner,
+            //    ObjectTypeId = (int)ObjectTypes.Partner
+            //});
+
+            filter.CheckPermissionResuts = new List<CheckPermissionOutput<ClientSession>>
+            {
+                new CheckPermissionOutput<ClientSession>
+                {
+                    AccessibleObjects = clientAccess.AccessibleObjects,
+                    HaveAccessForAllObjects = clientAccess.HaveAccessForAllObjects,
+                    Filter = x => clientAccess.AccessibleObjects.Contains(x.ClientId)
+                }//,
+                //new CheckPermissionOutput<ClientSession>
+                //{
+                //    AccessibleObjects = partnerAccess.AccessibleObjects,
+                //    HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
+                //    Filter = x => partnerAccess.AccessibleObjects.Contains(x.PartnerId)
+                //}
+            };
+
+            Func<IQueryable<ClientSession>, IOrderedQueryable<ClientSession>> orderBy;
+
+            if (filter.OrderBy.HasValue)
+                orderBy = QueryableUtilsHelper.OrderByFunc<ClientSession>(filter.FieldNameToOrderBy, filter.OrderBy.Value);
+            else
+            {
+                orderBy = clients => clients.OrderByDescending(x => x.Id);
+                filter.FieldNameToOrderBy ="Id";
+            }
+            filter.OrderBy = true;
+            return new PagedModel<ClientSession>
+            {
+                Entities = filter.FilterObjects(Dwh.ClientSessions, true).ToList(),
+                Count = filter.SelectedObjectsCount(Dwh.ClientSessions, true)
+            };
+        }
+
+        public List<DAL.ClientSession> GetClientSessionInfo(long sessionId)
+        {
+            var clientAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewClient,
+                ObjectTypeId = (int)ObjectTypes.Client
+            });
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewPartner,
+                ObjectTypeId = (int)ObjectTypes.Partner
+            });
+            var session = CacheManager.GetClientPlatformSessionById(sessionId);
+            var client = CacheManager.GetClientById(session.ClientId);
+            if ((!clientAccess.HaveAccessForAllObjects && clientAccess.AccessibleObjects.All(x => x != session.ClientId)) ||
+                (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId)))
+                throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
+            return Db.ClientSessions.Where(x => x.ParentId == sessionId).ToList();
+        }
         #endregion
 
         #region Client
@@ -2657,19 +2834,19 @@ namespace IqSoft.CP.BLL.Services
                 var clientAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewClient,
-                    ObjectTypeId = ObjectTypes.Client
+                    ObjectTypeId = (int)ObjectTypes.Client
                 });
 
                 var affiliateAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewAffiliate,
-                    ObjectTypeId = ObjectTypes.Affiliate
+                    ObjectTypeId = (int)ObjectTypes.Affiliate
                 });
 
                 GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
 
                 filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnCorrection>>
@@ -2701,12 +2878,12 @@ namespace IqSoft.CP.BLL.Services
             var clientAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClient,
-                ObjectTypeId = ObjectTypes.Client
+                ObjectTypeId = (int)ObjectTypes.Client
             });
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnReportByClientExclusion>>
@@ -2737,89 +2914,81 @@ namespace IqSoft.CP.BLL.Services
             };
         }
 
-		public PagedModel<fnReportByClientGame> GetClientGamePagedModel(FilterClientGame filter, string currencyId, bool checkPermission)
-		{
-			var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
-			{
-				Permission = Constants.Permissions.ViewPartner,
-				ObjectTypeId = ObjectTypes.Partner
-			});
-
-			var clientAccess = GetPermissionsToObject(new CheckPermissionInput
-			{
-				Permission = Constants.Permissions.ViewClient,
-				ObjectTypeId = ObjectTypes.Client
-			});
-
-			GetPermissionsToObject(new CheckPermissionInput
-			{
-				Permission = Constants.Permissions.ViewReportByProduct
-			});
-
-			filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnReportByClientGame>>
-			{
-				new CheckPermissionOutput<fnReportByClientGame>
-				{
-                    AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
-					HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
-					Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
-				},
-				new CheckPermissionOutput<fnReportByClientGame>
-				{
-					AccessibleObjects = clientAccess.AccessibleObjects,
-					HaveAccessForAllObjects = clientAccess.HaveAccessForAllObjects,
-					Filter = x => clientAccess.AccessibleObjects.Contains(x.ClientId)
-				}
-			};
-			var fDate = filter.FromDate.Year * 1000000 + filter.FromDate.Month * 10000 + filter.FromDate.Day * 100 + filter.FromDate.Hour;
-            var tDate = filter.ToDate.Year * 1000000 + filter.ToDate.Month * 10000 + filter.ToDate.Day * 100 + filter.ToDate.Hour;
-			return new PagedModel<fnReportByClientGame>
-			{
-				Entities = filter.FilterObjects(Db.fn_ReportByClientGame(fDate, tDate)).ToList(),
-			    Count = filter.SelectedObjectsCount(Db.fn_ReportByClientGame(fDate, tDate))
-			};
-		}
-
-        public PagedModel<fnDuplicateClient> GetDuplicateClients(FilterfnDuplicateClient filter)
+        public PagedModel<fnReportByClientGame> GetClientGamePagedModel(FilterClientGame filter, string currencyId, bool checkPermission)
         {
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             var clientAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClient,
-                ObjectTypeId = ObjectTypes.Client
+                ObjectTypeId = (int)ObjectTypes.Client
             });
 
-            filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnDuplicateClient>>
+            GetPermissionsToObject(new CheckPermissionInput
             {
-                new CheckPermissionOutput<fnDuplicateClient>
+                Permission = Constants.Permissions.ViewReportByProduct
+            });
+
+            filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnReportByClientGame>>
+            {
+                new CheckPermissionOutput<fnReportByClientGame>
                 {
                     AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
                     HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
                     Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                 },
-                new CheckPermissionOutput<fnDuplicateClient>
+                new CheckPermissionOutput<fnReportByClientGame>
                 {
                     AccessibleObjects = clientAccess.AccessibleObjects,
                     HaveAccessForAllObjects = clientAccess.HaveAccessForAllObjects,
                     Filter = x => clientAccess.AccessibleObjects.Contains(x.ClientId)
                 }
             };
+            var fDate = filter.FromDate.Year * 1000000 + filter.FromDate.Month * 10000 + filter.FromDate.Day * 100 + filter.FromDate.Hour;
+            var tDate = filter.ToDate.Year * 1000000 + filter.ToDate.Month * 10000 + filter.ToDate.Day * 100 + filter.ToDate.Hour;
+            return new PagedModel<fnReportByClientGame>
+            {
+                Entities = filter.FilterObjects(Db.fn_ReportByClientGame(fDate, tDate)).ToList(),
+                Count = filter.SelectedObjectsCount(Db.fn_ReportByClientGame(fDate, tDate))
+            };
+        }
 
-            var fDate = filter.FromDate.Year * (long)100000000 + filter.FromDate.Month * 1000000 + filter.FromDate.Day * 10000 + 
-                        filter.FromDate.Hour * 100 + filter.FromDate.Minute;
-            var tDate = filter.ToDate.Year * (long)100000000 + filter.ToDate.Month * 1000000 + filter.ToDate.Day * 10000 +
-                        filter.ToDate.Hour * 100 + filter.ToDate.Minute;
+        public PagedModel<fnDuplicateClient> GetDuplicateClients(FilterfnDuplicateClient filter)
+        {
+            var client = CacheManager.GetClientById(filter.ClientId) ??
+                throw CreateException(LanguageId, Constants.Errors.ClientNotFound);
+            var clientAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewClient,
+                ObjectTypeId = (int)ObjectTypes.Client
+            });
+
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewPartner,
+                ObjectTypeId = (int)ObjectTypes.Partner
+            });
+
+            if ((!clientAccess.HaveAccessForAllObjects && clientAccess.AccessibleObjects.All(x => x != client.Id)) ||
+                 (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId)))
+                throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
+
+            Func<IQueryable<fnDuplicateClient>, IOrderedQueryable<fnDuplicateClient>> orderBy;
+            if (filter.OrderBy.HasValue)
+                orderBy = QueryableUtilsHelper.OrderByFunc<fnDuplicateClient>(filter.FieldNameToOrderBy, filter.OrderBy.Value);
+            else
+                orderBy = clientExclusion => clientExclusion.OrderByDescending(x => x.DuplicatedClientId);
+
             return new PagedModel<fnDuplicateClient>
             {
-                Entities = filter.FilterObjects(Dwh.fn_DuplicateClient(fDate, tDate), false).ToList(),
-                Count = filter.SelectedObjectsCount(Dwh.fn_DuplicateClient(fDate, tDate), false)
+                Entities = filter.FilterObjects(Dwh.fn_DuplicateClient(client.Id), false).ToList(),
+                Count = filter.SelectedObjectsCount(Dwh.fn_DuplicateClient(client.Id), false)
             };
-        }      
+        }
 
         #endregion
 
@@ -2832,12 +3001,12 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var clientAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClient,
-                ObjectTypeId = ObjectTypes.Client
+                ObjectTypeId = (int)ObjectTypes.Client
             });
 
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnDocument>>
@@ -2871,12 +3040,13 @@ namespace IqSoft.CP.BLL.Services
             filter.SkipCount = 0;
             return GetfnDocuments(filter).Entities.ToList();
         }
+
         public PagedModel<fnReportByPaymentSystem> GetReportByPaymentSystems(FilterReportByPaymentSystem filter, int type)
         {
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             GetPermissionsToObject(new CheckPermissionInput
             {
@@ -2924,13 +3094,13 @@ namespace IqSoft.CP.BLL.Services
             var userAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewUser,
-                ObjectTypeId = ObjectTypes.User
+                ObjectTypeId = (int)ObjectTypes.User
             });
 
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnUserSession>>
@@ -2972,12 +3142,12 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var userAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewUser,
-                ObjectTypeId = ObjectTypes.User
+                ObjectTypeId = (int)ObjectTypes.User
             });
 
             GetPermissionsToObject(new CheckPermissionInput
@@ -3034,7 +3204,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             GetPermissionsToObject(new CheckPermissionInput
             {
@@ -3049,7 +3219,6 @@ namespace IqSoft.CP.BLL.Services
                     Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
                 }
             };
-            Func<IQueryable<fnReportByPartner>, IOrderedQueryable<fnReportByPartner>> orderBy;
 
             if (!string.IsNullOrEmpty(filter.FieldNameToOrderBy))
             {
@@ -3063,14 +3232,21 @@ namespace IqSoft.CP.BLL.Services
             }
             var fDate = filter.FromDate.Year * 1000000 + filter.FromDate.Month * 10000 + filter.FromDate.Day * 100 + filter.FromDate.Hour;
             var tDate = filter.ToDate.Year * 1000000 + filter.ToDate.Month * 10000 + filter.ToDate.Day * 100 + filter.ToDate.Hour;
-            return filter.FilterObjects(Dwh.fn_ReportByPartner(fDate, tDate), true).ToList();
+            var resp = filter.FilterObjects(Dwh.fn_ReportByPartner(fDate, tDate), true).ToList();
+            foreach (var item in resp)
+            {
+                item.TotalBetAmount = ConvertCurrency(Constants.DefaultCurrencyId, Identity.CurrencyId, item.TotalBetAmount ?? 0);
+                item.TotalWinAmount = ConvertCurrency(Constants.DefaultCurrencyId, Identity.CurrencyId, item.TotalWinAmount ?? 0);
+                item.TotalGGR = ConvertCurrency(Constants.DefaultCurrencyId, Identity.CurrencyId, item.TotalGGR ?? 0);
+            }
+            return resp;
         }
         public List<SegmentByPaymentSystem> GetReportBySegment(FilterReportBySegment input)
         {
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             CheckPermission(Constants.Permissions.ViewPaymentRequests);
             CheckPermission(Constants.Permissions.ViewSegment);
@@ -3120,6 +3296,37 @@ namespace IqSoft.CP.BLL.Services
                 Entities = result
             };
         }
+
+        public PagedModel<JobLog> GetJobLogs(int? id, int? jobId, DateTime fromDate, DateTime? toDate, int takeCount, int skipCount)
+        {
+            CheckPermission(Constants.Permissions.ViewReportByJobLog);
+
+            var query = from jr in Db.JobResults
+                        join j in Db.Jobs on jr.JobId equals j.Id
+                        where jr.ExecutionTime >= fromDate && jr.ExecutionTime <= toDate
+                        select new JobLog
+                        {
+                            Id = jr.Id,
+                            JobId = jr.JobId,
+                            Name = j.Name,
+                            State = j.State,
+                            PeriodInSeconds = j.PeriodInSeconds,
+                            NextExecutionTime = j.NextExecutionTime,
+                            ExecutionTime = jr.ExecutionTime,
+                            Duration = jr.Duration,
+                            Message = jr.Message
+                        };
+            if (id.HasValue)
+                query = query.Where(x => x.Id >= id);
+            if (jobId.HasValue)
+                query = query.Where(x => x.JobId >= jobId);
+            return new PagedModel<JobLog>
+            {
+                Count = query.Count(),
+                Entities =  query.OrderByDescending(x => x.Id).Skip(skipCount * takeCount).Take(takeCount).ToList()
+            };
+        }
+
         public List<ShiftInfo> GetShifts(DateTime startTime, DateTime endTime, int cashDeskId, int? cashierId)
         {
             var response = new List<ShiftInfo>();
@@ -3171,19 +3378,19 @@ namespace IqSoft.CP.BLL.Services
             var checkP = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewBetShopReconing,
-                ObjectTypeId = ObjectTypes.BetShopReconing
+                ObjectTypeId = (int)ObjectTypes.BetShopReconing
             });
 
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             var betShopAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewBetShop,
-                ObjectTypeId = ObjectTypes.BetShop
+                ObjectTypeId = (int)ObjectTypes.BetShop
             });
 
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnBetShopReconing>>
@@ -3231,13 +3438,13 @@ namespace IqSoft.CP.BLL.Services
             var betShopAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewBetShop,
-                ObjectTypeId = ObjectTypes.BetShop
+                ObjectTypeId = (int)ObjectTypes.BetShop
             });
 
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnCashDeskTransaction>>
@@ -3286,7 +3493,7 @@ namespace IqSoft.CP.BLL.Services
             return GetReportByInternetGames(filter);
         }
 
-        public List<fnClientSession> ExportClientSessions(FilterReportByClientSession filter)
+        public List<fnClientSession> ExportClientSessions(FilterReportByfnClientSession filter)
         {
             var exportAccess = GetPermissionsToObject(new CheckPermissionInput
             {
@@ -3295,19 +3502,19 @@ namespace IqSoft.CP.BLL.Services
             var clientAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClient,
-                ObjectTypeId = ObjectTypes.Client
+                ObjectTypeId = (int)ObjectTypes.Client
             });
 
             var affiliateReferralAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewAffiliateReferral,
-                ObjectTypeId = ObjectTypes.AffiliateReferral
+                ObjectTypeId = (int)ObjectTypes.AffiliateReferral
             });
 
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnClientSession>>
@@ -3347,13 +3554,13 @@ namespace IqSoft.CP.BLL.Services
             var internetBetAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewInternetBets,
-                ObjectTypeId = ObjectTypes.fnInternetBet
+                ObjectTypeId = (int)ObjectTypes.fnInternetBet
             });
 
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             var exportAccess = GetPermissionsToObject(new CheckPermissionInput
@@ -3364,13 +3571,13 @@ namespace IqSoft.CP.BLL.Services
             var clientAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClient,
-                ObjectTypeId = ObjectTypes.Client
+                ObjectTypeId = (int)ObjectTypes.Client
             });
 
             var affiliateReferraltAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewAffiliateReferral,
-                ObjectTypeId = ObjectTypes.AffiliateReferral
+                ObjectTypeId = (int)ObjectTypes.AffiliateReferral
             });
 
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnInternetBet>>
@@ -3434,7 +3641,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             var exportAccess = GetPermissionsToObject(new CheckPermissionInput
@@ -3445,13 +3652,13 @@ namespace IqSoft.CP.BLL.Services
             var clientAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClient,
-                ObjectTypeId = ObjectTypes.Client
+                ObjectTypeId = (int)ObjectTypes.Client
             });
 
             var affiliateReferraltAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewAffiliateReferral,
-                ObjectTypeId = ObjectTypes.AffiliateReferral
+                ObjectTypeId = (int)ObjectTypes.AffiliateReferral
             });
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnReportByProduct>>
                 {
@@ -3500,7 +3707,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnBetShopBet>>
@@ -3524,14 +3731,14 @@ namespace IqSoft.CP.BLL.Services
             filter.FieldNameToOrderBy = "BetDocumentId";
             filter.OrderBy = true;
             var entities = filter.FilterObjects(Dwh.fn_BetShopBet(), true).Select(x => new
-                {
-                    x.BetShopId,
-                    x.BetShopCurrencyId,
-                    x.BetShopName,
-                    x.BetShopGroupId,
-                    BetAmount = x.BetAmount,
-                    WinAmount = x.WinAmount
-                }).GroupBy(x => new { x.BetShopId, x.BetShopGroupId, x.BetShopName, x.BetShopCurrencyId })
+            {
+                x.BetShopId,
+                x.BetShopCurrencyId,
+                x.BetShopName,
+                x.BetShopGroupId,
+                BetAmount = x.BetAmount,
+                WinAmount = x.WinAmount
+            }).GroupBy(x => new { x.BetShopId, x.BetShopGroupId, x.BetShopName, x.BetShopCurrencyId })
                     .Select(
                         x =>
                             new BetShopReport
@@ -3557,7 +3764,7 @@ namespace IqSoft.CP.BLL.Services
             filter.SkipCount = 0;
             var fDate = filter.FromDate.Year * 1000000 + filter.FromDate.Month * 10000 + filter.FromDate.Day * 100 + filter.FromDate.Hour;
             var tDate = filter.ToDate.Year * 1000000 + filter.ToDate.Month * 10000 + filter.ToDate.Day * 100 + filter.ToDate.Hour;
-            var result = filter.FilterObjects(Dwh.fn_ReportByProvider(fDate, tDate), false)
+            var result = filter.FilterObjects(Dwh.fn_ReportByProvider(fDate, tDate, 0), false)
                 .Select(x => new ReportByProvidersElement
                 {
                     ProviderName = x.ProviderName,
@@ -3590,7 +3797,7 @@ namespace IqSoft.CP.BLL.Services
             var checkP = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewBetShopReconing,
-                ObjectTypeId = ObjectTypes.BetShopReconing
+                ObjectTypeId = (int)ObjectTypes.BetShopReconing
             });
 
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnBetShopReconing>>
@@ -3606,7 +3813,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             filter.CheckPermissionResuts.Add(new CheckPermissionOutput<fnBetShopReconing>
@@ -3640,13 +3847,13 @@ namespace IqSoft.CP.BLL.Services
             /*var internetBetAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewInternetBets,
-                ObjectTypeId = ObjectTypes.fnInternetBet
+                ObjectTypeId = (int)ObjectTypes.fnInternetBet
             });
 
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             var exportAccess = GetPermissionsToObject(new CheckPermissionInput
@@ -3657,13 +3864,13 @@ namespace IqSoft.CP.BLL.Services
             var clientAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClient,
-                ObjectTypeId = ObjectTypes.Client
+                ObjectTypeId = (int)ObjectTypes.Client
             });
 
             var affiliateReferralAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewAffiliateReferral,
-                ObjectTypeId = ObjectTypes.AffiliateReferral
+                ObjectTypeId = (int)ObjectTypes.AffiliateReferral
             });
 
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnInternetBet>>
@@ -3742,19 +3949,19 @@ namespace IqSoft.CP.BLL.Services
             }*/
             return new List<InternetBetByClient>();
         }
-        
+
         public List<fnBetShopBet> ExportBetShopBets(FilterBetShopBet filter)
         {
             var betShopBetAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewBetShopBets,
-                ObjectTypeId = ObjectTypes.fnBetShopBet
+                ObjectTypeId = (int)ObjectTypes.fnBetShopBet
             });
 
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             GetPermissionsToObject(new CheckPermissionInput
@@ -3791,7 +3998,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             var exportAccess = GetPermissionsToObject(new CheckPermissionInput
@@ -3832,7 +4039,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var exportAccess = GetPermissionsToObject(new CheckPermissionInput
             {
@@ -3862,25 +4069,25 @@ namespace IqSoft.CP.BLL.Services
             var clientAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClient,
-                ObjectTypeId = ObjectTypes.Client
+                ObjectTypeId = (int)ObjectTypes.Client
             });
 
             var affiliateReferralAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewAffiliateReferral,
-                ObjectTypeId = ObjectTypes.AffiliateReferral
+                ObjectTypeId = (int)ObjectTypes.AffiliateReferral
             });
 
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             var exportAccess = GetPermissionsToObject(new CheckPermissionInput
@@ -3942,12 +4149,12 @@ namespace IqSoft.CP.BLL.Services
         {
             filter.TakeCount = 0;
             filter.SkipCount = 0;
-           
+
             GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ExportPlayersDashboard
             });
-          
+
             return GetClientsInfo(filter).Entities.ToList();
         }
 
@@ -4109,20 +4316,20 @@ namespace IqSoft.CP.BLL.Services
                 var agentsGGRProfit = userBl.GetAgentProfit(fDate, tDate).Where(x => x.TotalProfit > 0).ToList();
                 var agentsTurnoverProfit = userBl.GetAgentTurnoverProfit(fDate, tDate).ToList();
                 var corrections = userBl.GetAgentTransfers(fDate, tDate);
-                
+
                 foreach (var agent in agents.Entities)
                 {
                     var ggrItems = agentsGGRProfit.Where(x => x.RecieverAgentId == agent.AgentId).ToList();
                     var turnoverItems = agentsTurnoverProfit.Where(x => x.RecieverAgentId == agent.AgentId).ToList();
-                    var correctionItems = corrections.Where(x => (x.OperationTypeId >= (int)OperationTypes.DebitCorrectionOnUser && 
+                    var correctionItems = corrections.Where(x => (x.OperationTypeId >= (int)OperationTypes.DebitCorrectionOnUser &&
                         x.OperationTypeId <= (int)OperationTypes.CreditCorrectionOnUser &&
                         (x.Creator == agent.AgentId || x.UserId == agent.AgentId)) ||
                         (x.OperationTypeId >= (int)OperationTypes.DebitCorrectionOnClient && x.OperationTypeId <= (int)OperationTypes.CreditCorrectionOnClient &&
                         x.Creator == agent.AgentId)).ToList();
                     var dQuery = correctionItems.Where(x => (x.OperationTypeId == (int)OperationTypes.DebitCorrectionOnUser && x.UserId == agent.AgentId) ||
-                        ((x.OperationTypeId == (int)OperationTypes.CreditCorrectionOnUser || 
+                        ((x.OperationTypeId == (int)OperationTypes.CreditCorrectionOnUser ||
                         x.OperationTypeId == (int)OperationTypes.CreditCorrectionOnClient) && x.Creator == agent.AgentId));
-                    var wQuery = correctionItems.Where(x => ((x.OperationTypeId == (int)OperationTypes.DebitCorrectionOnUser || 
+                    var wQuery = correctionItems.Where(x => ((x.OperationTypeId == (int)OperationTypes.DebitCorrectionOnUser ||
                         x.OperationTypeId == (int)OperationTypes.DebitCorrectionOnClient) && x.Creator == agent.AgentId) ||
                         (x.OperationTypeId == (int)OperationTypes.CreditCorrectionOnUser && x.UserId == agent.AgentId));
 
@@ -4157,27 +4364,27 @@ namespace IqSoft.CP.BLL.Services
                 orderBy = transaction => transaction.OrderByDescending(x => x.Id);
             return new PagedModel<fnAffiliateTransaction>
             {
-                Entities = filter.FilterObjects(Db.fn_AffiliateTransaction(fDate, tDate, affiliateId), orderBy).ToList(),
-                Count = filter.SelectedObjectsCount(Db.fn_AffiliateTransaction(fDate, tDate, affiliateId))
+                Entities = filter.FilterObjects(Dwh.fn_AffiliateTransaction(fDate, tDate, affiliateId), false).ToList(),
+                Count = filter.SelectedObjectsCount(Dwh.fn_AffiliateTransaction(fDate, tDate, affiliateId), false)
             };
         }
 
         public PagedModel<fnAffiliateCorrection> GetAffiliateCorrections(FilterfnAffiliateCorrection filter)
         {
 
-                var affiliateAccess = GetPermissionsToObject(new CheckPermissionInput
-                {
-                    Permission = Constants.Permissions.ViewAffiliate,
-                    ObjectTypeId = ObjectTypes.Affiliate
-                });
+            var affiliateAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewAffiliate,
+                ObjectTypeId = (int)ObjectTypes.Affiliate
+            });
 
-                GetPermissionsToObject(new CheckPermissionInput
-                {
-                    Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
-                });
+            GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewPartner,
+                ObjectTypeId = (int)ObjectTypes.Partner
+            });
 
-                filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnAffiliateCorrection>>
+            filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnAffiliateCorrection>>
                 {
                     new CheckPermissionOutput<fnAffiliateCorrection>
                     {
@@ -4186,13 +4393,12 @@ namespace IqSoft.CP.BLL.Services
                         Filter = x => affiliateAccess.AccessibleObjects.Contains(x.AffiliateId)
                     }
                 };
-            
-            var result = new PagedModel<fnAffiliateCorrection>
+
+            return new PagedModel<fnAffiliateCorrection>
             {
                 Entities = filter.FilterObjects(Dwh.fn_AffiliateCorrection(), false).ToList(),
                 Count = filter.SelectedObjectsCount(Dwh.fn_AffiliateCorrection(), false)
             };
-            return result;
         }
 
         public List<fnOnlineUser> GetOnlineUsers(int? userId)
@@ -4212,7 +4418,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<spObjectChangeHistory>>
             {
@@ -4251,12 +4457,12 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var clientAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClient,
-                ObjectTypeId = ObjectTypes.Client
+                ObjectTypeId = (int)ObjectTypes.Client
             });
 
             var query = Db.ObjectChangeHistories.Join(Db.Clients, oh => oh.ObjectId, c => c.Id, (oh, c) => new ClientChangeHistoryModel
@@ -4398,13 +4604,13 @@ namespace IqSoft.CP.BLL.Services
             var clientAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClient,
-                ObjectTypeId = ObjectTypes.Client
+                ObjectTypeId = (int)ObjectTypes.Client
             });
 
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             GetPermissionsToObject(new CheckPermissionInput
             {
@@ -4430,7 +4636,7 @@ namespace IqSoft.CP.BLL.Services
                 orderBy = QueryableUtilsHelper.OrderByFunc<fnClientBonus>(filter.FieldNameToOrderBy, filter.OrderBy.Value);
             else
                 orderBy = clientBonuses => clientBonuses.OrderByDescending(x => x.BonusId);
-            
+
             var totals = (from b in filter.FilterObjects(Db.fn_ClientBonus(LanguageId))
                           group b by b.CurrencyId into bonuses
                           select new
@@ -4455,13 +4661,13 @@ namespace IqSoft.CP.BLL.Services
             var clientAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClient,
-                ObjectTypeId = ObjectTypes.Client
+                ObjectTypeId = (int)ObjectTypes.Client
             });
 
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             GetPermissionsToObject(new CheckPermissionInput
             {
@@ -4507,13 +4713,13 @@ namespace IqSoft.CP.BLL.Services
             var clientAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewClient,
-                ObjectTypeId = ObjectTypes.Client
+                ObjectTypeId = (int)ObjectTypes.Client
             });
 
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             GetPermissionsToObject(new CheckPermissionInput
             {
@@ -4724,17 +4930,17 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var popupAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPopup,
-                ObjectTypeId = ObjectTypes.Popup
+                ObjectTypeId = (int)ObjectTypes.Popup
             });
             var popupStatisticsAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPopupStatistics,
-                ObjectTypeId = ObjectTypes.Popup
+                ObjectTypeId = (int)ObjectTypes.Popup
             });
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnPopupStatistics>>
             {
@@ -4768,6 +4974,132 @@ namespace IqSoft.CP.BLL.Services
             filter.TakeCount = 0;
             filter.SkipCount = 0;
             return GetReportByPopupStatistics(filter);
+        }
+
+        public PagedModel<ObjectMessageModel> GetObjectMessages(int objectTypeId, FilterClientMessage filter)
+        {
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewPartner,
+                ObjectTypeId = (int)ObjectTypes.Partner
+            });
+            GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewClientMessage,
+                ObjectTypeId = (int)ObjectTypes.ClientMessage
+            });
+
+            switch (objectTypeId)
+            {
+                case (int)ObjectTypes.Client:
+                    var clientAccess = GetPermissionsToObject(new CheckPermissionInput
+                    {
+                        Permission = Constants.Permissions.ViewClient,
+                        ObjectTypeId = (int)ObjectTypes.Client
+                    });
+                    filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnClientMessage>>
+                    {
+                        new CheckPermissionOutput<fnClientMessage>
+                        {
+                            AccessibleObjects = clientAccess.AccessibleObjects,
+                            HaveAccessForAllObjects = clientAccess.HaveAccessForAllObjects,
+                            Filter = x =>  clientAccess.AccessibleObjects.Contains(x.Id.Value)
+                        },
+                        new CheckPermissionOutput<fnClientMessage>
+                        {
+                            AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
+                            HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
+                            Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
+                        }
+                    };
+                    return new PagedModel<ObjectMessageModel>
+                    {
+                        Entities = filter.FilterObjects(Db.fn_ClientMessage().AsQueryable(),
+                                                                               clientMessage => clientMessage.OrderByDescending(y => y.Id)).ToList()
+                                                                                .Select(x => x.MapToObjectMessageModel(Identity.TimeZone)).ToList(),
+                        Count = filter.SelectedObjectsCount(Db.fn_ClientMessage().AsQueryable())
+                    };
+                case (int)ObjectTypes.Partner:
+                    var partnerFilter = filter.Cast<FilterPartnerMessage>();
+                    partnerFilter.CheckPermissionResuts = new List<CheckPermissionOutput<fnPartnerMessage>>
+                    {
+                       new CheckPermissionOutput<fnPartnerMessage>
+                       {
+                           AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
+                           HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
+                           Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
+                       }
+                    };
+                    return new PagedModel<ObjectMessageModel>
+                    {
+                        Entities = partnerFilter.FilterObjects(Db.fn_PartnerMessage().AsQueryable(),
+                                                                                partnerMessage => partnerMessage.OrderByDescending(y => y.Id)).ToList()
+                                                                                 .Select(x => x.MapToObjectMessageModel(Identity.TimeZone)).ToList(),
+                        Count = partnerFilter.SelectedObjectsCount(Db.fn_PartnerMessage().AsQueryable())
+                    };
+                case (int)ObjectTypes.User:
+                    var agentFilter = filter.Cast<FilterAgentMessage>();
+                    var userAccess = GetPermissionsToObject(new CheckPermissionInput
+                    {
+                        Permission = Constants.Permissions.ViewUser,
+                        ObjectTypeId = (int)ObjectTypes.User
+                    });
+                    agentFilter.CheckPermissionResuts = new List<CheckPermissionOutput<fnAgentMessage>>
+                    {
+                        new CheckPermissionOutput<fnAgentMessage>
+                        {
+                            AccessibleObjects = userAccess.AccessibleObjects,
+                            HaveAccessForAllObjects = userAccess.HaveAccessForAllObjects,
+                            Filter = x =>  userAccess.AccessibleObjects.Contains(x.Id.Value)
+                        },
+                        new CheckPermissionOutput<fnAgentMessage>
+                        {
+                            AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
+                            HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
+                            Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
+                        }
+                    };
+                    return new PagedModel<ObjectMessageModel>
+                    {
+                        Entities = agentFilter.FilterObjects(Db.fn_AgentMessage().AsQueryable(),
+                                                                              userMessage => userMessage.OrderByDescending(y => y.Id)).ToList()
+                                                                               .Select(x => x.MapToObjectMessageModel(Identity.TimeZone)).ToList(),
+                        Count = agentFilter.SelectedObjectsCount(Db.fn_AgentMessage().AsQueryable())
+                    };
+                case (int)ObjectTypes.Affiliate:
+                    var affiliateAccess = GetPermissionsToObject(new CheckPermissionInput
+                    {
+                        Permission = Constants.Permissions.ViewAffiliate,
+                        ObjectTypeId = (int)ObjectTypes.Affiliate
+                    });
+                    var affiliateFilter = filter.Cast<FilterAffiliateMessage>();
+                    affiliateFilter.CheckPermissionResuts = new List<CheckPermissionOutput<fnAffiliateMessage>>
+                    {
+                        new CheckPermissionOutput<fnAffiliateMessage>
+                        {
+                            AccessibleObjects = affiliateAccess.AccessibleObjects,
+                            HaveAccessForAllObjects = affiliateAccess.HaveAccessForAllObjects,
+                            Filter = x =>  affiliateAccess.AccessibleObjects.Contains(x.Id.Value)
+                        },
+                        new CheckPermissionOutput<fnAffiliateMessage>
+                        {
+                            AccessibleIntegerObjects = partnerAccess.AccessibleIntegerObjects,
+                            HaveAccessForAllObjects = partnerAccess.HaveAccessForAllObjects,
+                            Filter = x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)
+                        }
+                    };
+
+                    return new PagedModel<ObjectMessageModel>
+                    {
+                        Entities = affiliateFilter.FilterObjects(Db.fn_AffiliateMessage().AsQueryable(),
+                                                                                  affiliateMessage => affiliateMessage.OrderByDescending(y => y.Id)).ToList()
+                                                                                   .Select(x => x.MapToObjectMessageModel(Identity.TimeZone)).ToList(),
+                        Count = affiliateFilter.SelectedObjectsCount(Db.fn_AffiliateMessage().AsQueryable())
+                    };
+                default:
+                    throw CreateException(LanguageId, Constants.Errors.ObjectTypeNotFound);
+
+            }
         }
     }
 }

@@ -22,6 +22,7 @@ using IqSoft.CP.DAL.Models.Segment;
 using IqSoft.CP.Common.Models.AdminModels;
 using System.Collections.Generic;
 using IqSoft.CP.Common.Helpers;
+using System.Reflection;
 
 namespace IqSoft.CP.AdminWebApi.ControllerClasses
 {
@@ -143,10 +144,10 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     return SaveJobArea(JsonConvert.DeserializeObject<JobArea>(request.RequestData), identity, log);
                 case "SaveSegment":
                     return SaveSegment(JsonConvert.DeserializeObject<SegmentModel>(request.RequestData), identity, log);
-                case "DeleteSegment":
-                    return DeleteSegment(JsonConvert.DeserializeObject<ApiBaseFilter>(request.RequestData).Id.Value, identity, log);
                 case "GetSegments":
                     return GetSegments(JsonConvert.DeserializeObject<ApiBaseFilter>(request.RequestData), identity, log);
+                case "DeleteSegment":
+                    return DeleteSegment(JsonConvert.DeserializeObject<ApiBaseFilter>(request.RequestData).Id.Value, identity, log);
                 case "GetInterfaceTranslations":
                     return GetInterfaceTranslations(Convert.ToInt32(request.RequestData), identity, log);
                 case "SaveInterfaceTranslation":
@@ -174,8 +175,6 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 using (var partnerBl = new PartnerBll(contentBl))
                 {
                     contentBl.RemoveWebSiteBanner(bannerId, out int partnerId, out int bannerType);
-                    CacheManager.RemoveBanners(partnerId, bannerType);
-                    Helpers.Helpers.InvokeMessage("RemoveBanners", partnerId, bannerType);
                     var languages = CacheManager.GetAvailableLanguages();
                     foreach (var lan in languages)
                     {
@@ -217,7 +216,6 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                             apiBannerInput.ImageSize = String.Empty;
                         var banner = apiBannerInput.MapToBanner();
                         banner = contentBl.SaveWebSiteBanner(banner);
-                        CacheManager.RemoveBanners(apiBannerInput.PartnerId, apiBannerInput.Type);
                         Helpers.Helpers.InvokeMessage("RemoveBanners", apiBannerInput.PartnerId, apiBannerInput.Type);
                         var partner = CacheManager.GetPartnerById(banner.PartnerId);
                         if (!string.IsNullOrEmpty(banner.Image) && !string.IsNullOrEmpty(apiBannerInput.ImageData))
@@ -359,9 +357,6 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 using (var partnerBl = new PartnerBll(contentBl))
                 {
                     var dbPromotion = contentBl.SavePromotion(apiPromotionInput.MapToPromotion());
-
-                    CacheManager.RemovePromotions(apiPromotionInput.PartnerId);
-                    Helpers.Helpers.InvokeMessage("RemovePromotions", apiPromotionInput.PartnerId);
                     var partner = CacheManager.GetPartnerById(apiPromotionInput.PartnerId);
                     if (!string.IsNullOrEmpty(apiPromotionInput.ImageName) && (!string.IsNullOrEmpty(apiPromotionInput.ImageData) ||
 																			   !string.IsNullOrEmpty(apiPromotionInput.ImageDataMedium) ||
@@ -432,7 +427,8 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                                 Names = dbPromotion.PromotionLanguageSettings.Select(x => x.LanguageId).ToList()
                             } : new ApiSetting { Type = (int)BonusSettingConditionTypes.InSet, Names = new List<string>() },
                             StyleType = dbPromotion.StyleType,
-                            DeviceType = dbPromotion.DeviceType
+                            DeviceType = dbPromotion.DeviceType,
+                          Visibility = string.IsNullOrEmpty(dbPromotion.Visibility) ? new List<int>() : JsonConvert.DeserializeObject<List<int>>(dbPromotion.Visibility),
                         }
                     };
                 }
@@ -450,9 +446,6 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 using (var partnerBl = new PartnerBll(contentBl))
                 {
                     var dbNews = contentBl.SaveNews(apiNewsInput.ToNews());
-
-                    CacheManager.RemoveNews(apiNewsInput.PartnerId);
-                    Helpers.Helpers.InvokeMessage("RemoveNews", apiNewsInput.PartnerId);
                     var partner = CacheManager.GetPartnerById(apiNewsInput.PartnerId);
                     if (!string.IsNullOrEmpty(apiNewsInput.ImageName) && (!string.IsNullOrEmpty(apiNewsInput.ImageData) ||
                                                                                !string.IsNullOrEmpty(apiNewsInput.ImageDataMedium) ||
@@ -551,7 +544,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                         FinishDate = apiPopupInput.FinishDate,
                         DeviceType = apiPopupInput.DeviceType
                     };
-                    var dbPopup = contentBl.SavePopup(input);
+                    var dbPopup = contentBl.SavePopup(input, out int? prevType);
                     apiPopupInput.Id = dbPopup.Id;
                     apiPopupInput.CreationTime = dbPopup.CreationTime;
                     apiPopupInput.LastUpdateTime = dbPopup.LastUpdateTime;
@@ -561,11 +554,12 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                             throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.PartnerKeyNotFound);
                         apiPopupInput.ImageName = dbPopup.ImageName;
                         var partner = CacheManager.GetPartnerById(apiPopupInput.PartnerId);
-                        var path = "ftp://" + ftpModel.Url + "/coreplatform/website/" + partner.Name + "/assets/images/popup/";
+                        var path = "ftp://" + ftpModel.Url + "/coreplatform/website/" + partner.Name + "/assets/images/popup";
                         try
                         {
                             if (!string.IsNullOrEmpty(apiPopupInput.ImageData))
                             {
+                                apiPopupInput.ImageName = apiPopupInput.ImageName.Split('?')[0];
                                 byte[] bytes = Convert.FromBase64String(apiPopupInput.ImageData);
                                 if (!apiPopupInput.DeviceType.HasValue || apiPopupInput.DeviceType == (int)DeviceTypes.Desktop)
                                     contentBl.UploadFtpImage(bytes, ftpModel, $"{path}/web/{apiPopupInput.ImageName}");
@@ -579,6 +573,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                         }
                     }
                     Helpers.Helpers.InvokeMessage("RemoveFromCache", string.Format("{0}_{1}_{2}", Constants.CacheItems.Popups, apiPopupInput.PartnerId, apiPopupInput.Type));
+                    Helpers.Helpers.InvokeMessage("RemoveFromCache", string.Format("{0}_{1}_{2}", Constants.CacheItems.Popups, apiPopupInput.PartnerId, prevType));
                     return new ApiResponseBase
                     {
                         ResponseObject = apiPopupInput
@@ -637,7 +632,9 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var contentBl = new ContentBll(identity, log))
             {
-                contentBl.RemovePopup(popupId);
+                contentBl.RemovePopup(popupId, out int partnerId, out int type);
+                Helpers.Helpers.InvokeMessage("RemoveFromCache", string.Format("{0}_{1}_{2}", Constants.CacheItems.Popups, partnerId, type));
+
                 return new ApiResponseBase();
             }
         }
@@ -647,8 +644,6 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             using (var contentBl = new ContentBll(identity, log))
             {
                 var promotion = contentBl.RemovePromotion(promotionId);
-                CacheManager.RemovePromotions(promotion.PartnerId);
-                Helpers.Helpers.InvokeMessage("RemovePromotions", promotion.PartnerId);
                 var partner = CacheManager.GetPartnerById(promotion.PartnerId);
                 var languages = CacheManager.GetAvailableLanguages();
                 foreach (var lan in languages)
@@ -671,14 +666,11 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             using (var contentBl = new ContentBll(identity, log))
             {
                 var news = contentBl.RemoveNews(newsId);
-                CacheManager.RemoveNews(news.PartnerId);
-                Helpers.Helpers.InvokeMessage("RemoveNews", news.PartnerId);
                 var partner = CacheManager.GetPartnerById(news.PartnerId);
                 var languages = CacheManager.GetAvailableLanguages();
                 foreach (var lan in languages)
                 {
-                    BaseController.BroadcastCacheChanges(news.PartnerId,
-                        string.Format("{0}_{1}_{2}", Constants.CacheItems.News, news.Id, lan.Id));
+                    BaseController.BroadcastCacheChanges(news.PartnerId, string.Format("{0}_{1}_{2}", Constants.CacheItems.News, news.Id, lan.Id));
                 }
                 return new ApiResponseBase
                 {
@@ -715,7 +707,8 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                         Order = x.Order,
                         ParentId = x.ParentId,
                         StyleType = x.StyleType,
-                        DeviceType = x.DeviceType
+                        DeviceType = x.DeviceType,
+                        Visibility = string.IsNullOrEmpty(x.Visibility) ? new List<int>() : JsonConvert.DeserializeObject<List<int>>(x.Visibility),
                     }).ToList()
                 };
             }
@@ -862,9 +855,11 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             {
                 var input = apiWebSiteSubMenuItem.MapToWebSiteSubMenuItem();
                 var output = contentBl.SaveWebSiteSubMenuItem(input, out bool broadcastChanges);
-                Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}_{2}", Constants.CacheItems.ConfigParameters, output.PartnerId, output.MenuItemName));
+                Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}_{2}", Constants.CacheItems.ConfigParameters, 
+                    output.PartnerId, output.MenuItemName));
                 if (broadcastChanges)
                     BaseController.BroadcastCacheChanges(input.PartnerId, string.Format("{0}_{1}", Constants.CacheItems.Restrictions, input.PartnerId));
+
                 if (input.PartnerId == Constants.MainPartnerId && output.MenuItemName.Contains(Constants.CacheItems.WhitelistedIps))
                 {
                     Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}", Constants.CacheItems.WhitelistedIps, output.MenuItemName));
@@ -1283,10 +1278,9 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var contentBl = new ContentBll(identity, log))
             {
-                return new ApiResponseBase
-                {
-                    ResponseObject = contentBl.DeleteSegment(segmentId).MapToSegmentModel(identity.TimeZone)
-                };
+                contentBl.DeleteSegment(segmentId);
+                Helpers.Helpers.InvokeMessage("RemoveSegmentSettingFromCache", segmentId);
+                return new ApiResponseBase();
             }
         }
 
@@ -1296,8 +1290,9 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             {
                 return new ApiResponseBase
                 {
-                    ResponseObject = contentBl.GetSegments(filter.Id, filter.PartnerId).Select(x => x.MapToSegmentModel(identity.TimeZone))
-                                                                                       .OrderByDescending(x => x.Id).ToList()
+                    ResponseObject = contentBl.GetSegments(filter.Id, filter.PartnerId, filter.ShowInactives)
+                                              .Select(x => x.MapToSegmentModel(identity.TimeZone))
+                                              .OrderByDescending(x => x.Id).ToList()
                 };
             }
         }

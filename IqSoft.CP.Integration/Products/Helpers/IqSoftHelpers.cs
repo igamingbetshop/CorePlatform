@@ -108,7 +108,7 @@ namespace IqSoft.CP.Integration.Products.Helpers
             return result;
         }
 
-        public static void AddFreeRound(FreeSpinModel freeSpinModel)
+        public static bool AddFreeRound(FreeSpinModel freeSpinModel, ILog log)
         {
             var client = CacheManager.GetClientById(freeSpinModel.ClientId);
             var url = CacheManager.GetGameProviderValueByKey(client.PartnerId, Provider.Id, Constants.PartnerKeys.IqSoftFreeSpinApiUrl);
@@ -125,7 +125,7 @@ namespace IqSoft.CP.Integration.Products.Helpers
                 freeSpinModel.Lines,
                 freeSpinModel.Coins,
                 freeSpinModel.CoinValue,
-                freeSpinModel.BetValueLevel
+                freeSpinModel.BetValues
             };
             var httpRequestInput = new HttpRequestInput
             {
@@ -136,7 +136,11 @@ namespace IqSoft.CP.Integration.Products.Helpers
             };
             var responseObject = JsonConvert.DeserializeObject<ApiResponseBase>(CommonFunctions.SendHttpRequest(httpRequestInput, out _));
             if (responseObject.ResponseCode != 0)
-                throw new Exception(responseObject.Description);
+            {
+                log.Error(JsonConvert.SerializeObject(responseObject));
+                return false;
+            }
+            return true;
         }
     }
 }

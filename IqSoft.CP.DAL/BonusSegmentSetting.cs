@@ -19,7 +19,7 @@ namespace IqSoft.CP.DAL
         public int SegmentId { get; set; }
         public int Type { get; set; }
     
-        public virtual Segment Segment { get; set; }
         public virtual Bonu Bonu { get; set; }
+        public virtual Segment Segment { get; set; }
     }
 }

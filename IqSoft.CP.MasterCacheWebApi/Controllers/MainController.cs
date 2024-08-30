@@ -8,7 +8,6 @@ using IqSoft.CP.Common.Models;
 using IqSoft.CP.Common.Models.CacheModels;
 using IqSoft.CP.Common.Models.IntegrationModels;
 using IqSoft.CP.Common.Models.WebSiteModels;
-using IqSoft.CP.Common.Models.WebSiteModels.Bonuses;
 using IqSoft.CP.Common.Models.WebSiteModels.Clients;
 using IqSoft.CP.Common.Models.WebSiteModels.Filters;
 using IqSoft.CP.Common.Models.WebSiteModels.Products;
@@ -30,7 +29,6 @@ using System.Linq;
 using System.ServiceModel;
 using System.Text;
 using System.Threading;
-using System.Web;
 using System.Web.Http;
 using System.Web.Http.Cors;
 using static IqSoft.CP.Common.Constants;
@@ -45,6 +43,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
         [HttpPost]
         public ApiResponseBase OpenGame(OpenGameInput input)
         {
+			WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(input));
 			var response = new ApiResponseBase();
             string authResponse = String.Empty;
             try
@@ -207,11 +206,15 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                 var partner = CacheManager.GetPartnerById(input.PartnerId);
                 if (partner == null || !partner.SiteUrl.Split(',').Any(x => x == input.Domain))
                     throw BaseBll.CreateException(input.LanguageId, Constants.Errors.PartnerNotFound);
-                if (input.ClientId.HasValue)
+                if (input.ClientId.HasValue && !input.IsAgent)
+                {
                     session = Helpers.Helpers.CheckToken(input.Token, input.ClientId.Value, input.TimeZone);
-                using (var clientBl = new ClientBll(session, WebApiApplication.DbLogger))
-                    response.ResponseObject = clientBl.GetPartnerProductInfo(input.ClientId, input.ProductId, input.PartnerId);
+                }
 
+                using (var clientBl = new ClientBll(session, WebApiApplication.DbLogger))
+                {
+                    response.ResponseObject = clientBl.GetPartnerProductInfo(input.ClientId, input.ProductId, input.PartnerId);
+                }
             }
             catch (FaultException<BllFnErrorType> fex)
             {
@@ -268,7 +271,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                 if (partner == null || !partner.SiteUrl.Split(',').Any(x => x == request.Domain))
                     throw BaseBll.CreateException(request.LanguageId, Constants.Errors.PartnerNotFound);
                 var client = new BllClient();
-                if (request.ClientId != 0)
+                if (request.ClientId != 0 && !request.IsAgent)
                 {
                     var session = Helpers.Helpers.CheckToken(request.Token, request.ClientId, request.TimeZone);
 					client = CacheManager.GetClientById(session.Id);
@@ -372,6 +375,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
             }
         }
         */
+
 		#endregion
 
 		#region AfterLogin
@@ -384,7 +388,16 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                 var partner = CacheManager.GetPartnerById(request.PartnerId);
                 if (partner == null || !partner.SiteUrl.Split(',').Any(x => x == request.Domain))
                     throw BaseBll.CreateException(request.LanguageId, Constants.Errors.PartnerNotFound);
-                var session = Helpers.Helpers.CheckToken(request.Token, request.ClientId, request.TimeZone);
+                SessionIdentity session = null;
+
+                if (request.IsAgent)
+                    using (var userBl = new UserBll(new SessionIdentity { LanguageId = request.LanguageId }, WebApiApplication.DbLogger))
+                    {
+                        session = userBl.CheckToken(request.Token, request.TimeZone);
+                    }
+                else
+                    session = Helpers.Helpers.CheckToken(request.Token, request.ClientId, request.TimeZone);
+
                 session.PartnerId = request.PartnerId;
                 session.Domain = request.Domain;
                 session.Source = request.Source;
@@ -399,7 +412,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                 };
                 if (ex.Detail != null && (ex.Detail.Id == Constants.Errors.SessionExpired || ex.Detail.Id == Constants.Errors.SessionNotFound))
                     response.ResponseObject = CacheManager.GetClientSessionByToken(request.Token, Constants.PlatformProductId, false)?.LogoutType;
-                WebApiApplication.DbLogger.Error(new Exception(JsonConvert.SerializeObject(response)));
+                WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(response) + "_" + JsonConvert.SerializeObject(request));
                 return response;
             }
             catch (Exception ex)
@@ -420,6 +433,8 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
             {
                 case Enums.Controllers.Client:
                     return ClientController.CallFunction(request, session, WebApiApplication.DbLogger);
+                case Enums.Controllers.Agent:
+                    return AgentController.CallFunction(request, session, WebApiApplication.DbLogger);
                 case Enums.Controllers.Document:
                     return DocumentController.CallFunction(request, session, WebApiApplication.DbLogger);
                 case Enums.Controllers.Util:
@@ -433,7 +448,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
 
         #endregion
 
-        #region Enumerations  //
+        #region Enumerations
 
         [HttpPost]
         public ApiResponseBase GetBetStatesEnum(RequestBase request)
@@ -554,11 +569,913 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
 
         #endregion
 
+        #region Login
+
+        [HttpPost]
+        public ApiLoginClientOutput LoginClient(LoginDetails input)
+        {
+            int clientId = 0;
+            try
+            {
+                var sessionIdentity = new SessionIdentity
+                {
+                    Domain = input.Domain,
+                    LoginIp = input.Ip,
+                    LanguageId = input.LanguageId,
+                    TimeZone = input.TimeZone
+                };
+                if (!string.IsNullOrEmpty(input.TerminalId) && input.BetShopId.HasValue && !string.IsNullOrEmpty(input.Token))
+                {
+                    var tClient = ClientBll.LoginTerminalClient(input.MapToTerminalClientInput()).MapToApiLoginClientOutput(input.TimeZone);
+                    Integration.Products.Helpers.GlobalSlotsHelpers.TransferFromProvider(tClient.Id, sessionIdentity, WebApiApplication.DbLogger);
+                    return tClient;
+                }
+                input.ClientIdentifier = input.ClientIdentifier.Replace(" ", string.Empty);
+                input.Password = input.Password?.Trim();
+                var loginInput = new LoginInput
+                {
+                    PartnerId = input.PartnerId,
+                    Identifier = input.ClientIdentifier,
+                    Password = input.Password,
+                    Ip = input.Ip,
+                    DeviceType = (input.DeviceType == null || input.DeviceType < (int)DeviceTypes.Desktop || input.DeviceType > (int)DeviceTypes.BetShop) ?
+                    (int)DeviceTypes.Desktop : input.DeviceType.Value,
+                    LanguageId = input.LanguageId,
+                    CountryCode = input.CountryCode,
+                    Source = input.Source,
+                    TimeZone = input.TimeZone
+                };
+                if (input.IAmAgent)
+                {
+                    using (var userBl = new UserBll(new SessionIdentity { LanguageId = input.LanguageId }, WebApiApplication.DbLogger))
+                    {
+                        loginInput.UserType = (int)UserTypes.DownlineAgent;
+                        var userIdentity = userBl.LoginUser(loginInput, out string imageData);
+                        var user = CacheManager.GetUserById(userIdentity.Id);
+                        var parentLevel = user.ParentId.HasValue ? CacheManager.GetUserById(user.ParentId.Value)?.Level : 0;
+                        var userSetting = CacheManager.GetUserSetting(user.Id);
+                        return user.ToApiLoginClientOutput(userIdentity.Token);
+                    }
+                }
+                string newToken;
+
+                if (input.ExternalPlatformId.HasValue)
+                {
+                    loginInput.ExternalPlatformType = input.ExternalPlatformId.Value;
+                    var resp = ExternalPlatformHelpers.CreateClientSession(loginInput, out newToken, out clientId, sessionIdentity, WebApiApplication.DbLogger);
+                    return resp.MapToApiLoginClientOutput(newToken, input.TimeZone);
+                }
+                BllClient client = null;
+                var partnerSetting = CacheManager.GetPartnerSettingByKey(input.PartnerId, Constants.PartnerKeys.IsUserNameGeneratable);
+                if (partnerSetting != null && partnerSetting.NumericValue.HasValue && partnerSetting.NumericValue != 0)
+                {
+                    client = CacheManager.GetClientByNickName(input.PartnerId, input.ClientIdentifier);
+                    if (client == null)
+                        client = CacheManager.GetClientByUserName(input.PartnerId, input.ClientIdentifier);
+                }
+                else
+                {
+                    if (ClientBll.IsValidEmail(input.ClientIdentifier))
+                    {
+                        client = CacheManager.GetClientByEmail(input.PartnerId, input.ClientIdentifier.ToLower());
+                    }
+                    else if (ClientBll.IsMobileNumber(input.ClientIdentifier))
+                    {
+                        input.ClientIdentifier = "+" + input.ClientIdentifier.Replace("+", string.Empty).Replace(" ", string.Empty);
+                        client = CacheManager.GetClientByMobileNumber(input.PartnerId, input.ClientIdentifier);
+                    }
+                    else
+                        client = CacheManager.GetClientByUserName(input.PartnerId, input.ClientIdentifier);
+                }
+                if (client == null)
+                    throw BaseBll.CreateException(input.LanguageId, Constants.Errors.WrongLoginParameters);
+
+                clientId = client.Id;
+                if (CacheManager.GetConfigKey(client.PartnerId, Constants.PartnerKeys.JCJVerification) == "1" && client.IsDocumentVerified)
+                {
+                    var res = DigitalCustomerHelpers.GetJCJStatus(client.PartnerId, client.DocumentType ?? 0, client.DocumentNumber,
+                        input.LanguageId, WebApiApplication.DbLogger);
+
+                    using (var clientBl = new ClientBll(sessionIdentity, WebApiApplication.DbLogger))
+                    {
+                        var newValue = clientBl.AddOrUpdateClientSetting(client.Id, ClientSettings.JCJProhibited, res, res.ToString(), null, null, "System");
+                        if (newValue == "1")
+                            throw BaseBll.CreateException(input.LanguageId, Constants.Errors.JCJExcluded);
+                    }
+                    CacheManager.RemoveClientSetting(clientId, ClientSettings.JCJProhibited);
+                    Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}_{2}", Constants.CacheItems.ClientSettings, clientId, ClientSettings.JCJProhibited));
+                }
+
+                var result = ClientBll.LoginClient(loginInput, client, out newToken, out RegionTree regionTree, WebApiApplication.DbLogger);
+
+                Helpers.Helpers.InvokeMessage("LoginClient", result.Id, input.Ip);
+                var response = result.MapToApiLoginClientOutput(newToken, input.TimeZone);
+                response.RegionId = regionTree.RegionId;
+                response.TownId = regionTree.TownId;
+                response.CityId = regionTree.CityId;
+                response.CountryId = client.CountryId ?? regionTree.CountryId;
+                response.IsTwoFactorEnabled = client.IsTwoFactorEnabled;
+                var verificationPlatform = CacheManager.GetConfigKey(client.PartnerId, Constants.PartnerKeys.VerificationPlatform);
+                if (!string.IsNullOrEmpty(verificationPlatform) && int.TryParse(verificationPlatform, out int verificationPatformId))
+                {
+                    switch (verificationPatformId)
+                    {
+                        case (int)VerificationPlatforms.Insic:
+                            OASISHelpers.CheckClientStatus(client, null, input.LanguageId, sessionIdentity, WebApiApplication.DbLogger);
+                            InsicHelpers.PlayerLogin(client.PartnerId, client.Id, WebApiApplication.DbLogger);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                return response;
+            }
+            catch (FaultException<BllFnErrorType> ex)
+            {
+                if (ex.Detail.Id == (int)Constants.Errors.ClientForceBlocked)
+                {
+                    Helpers.Helpers.InvokeMessage("RemoveClient", clientId);
+                    Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}_{2}", Constants.CacheItems.ClientSettings, clientId,
+                                                                                                     ClientSettings.ParentState));
+                }
+                else if (ex.Detail.Id == (int)Constants.Errors.WrongPassword)
+                    Helpers.Helpers.InvokeMessage("UpdateClientFailedLoginCount", clientId);
+
+                var response = new ApiLoginClientOutput
+                {
+                    ResponseCode = ex.Detail.Id,
+                    Description = ex.Detail.Message
+                };
+                if (ex.Detail.Id == Constants.Errors.SessionExpired || ex.Detail.Id == Constants.Errors.SessionNotFound)
+                    response.ResponseObject = CacheManager.GetClientSessionByToken(input.Token, Constants.PlatformProductId, false)?.LogoutType;
+
+                ClientBll.CreateNewFailedSession(clientId, input.LanguageId, input.Ip, input.CountryCode, null, input.DeviceType ?? (int)DeviceTypes.Desktop, input.Source, ex.Detail.Id);
+                WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(ex));
+                return response;
+            }
+            catch (Exception ex)
+            {
+                WebApiApplication.DbLogger.Error(ex);
+                var response = new ApiLoginClientOutput
+                {
+                    ResponseCode = Constants.Errors.GeneralException,
+                    Description = ex.Message
+                };
+                return response;
+            }
+        }
+
+        [HttpPost]
+        public ApiLoginClientOutput GetRefreshToken(LoginDetails input)
+        {
+            int clientId = 0;
+            try
+            {
+                var partnerSetting = CacheManager.GetPartnerSettingByKey(input.PartnerId, Constants.PartnerKeys.RefreshTokenState);
+                if (partnerSetting == null || !partnerSetting.NumericValue.HasValue || partnerSetting.NumericValue == 0)
+                    throw BaseBll.CreateException(input.LanguageId, Constants.Errors.MethodNotFound);
+
+                var sessionIdentity = new SessionIdentity
+                {
+                    Domain = input.Domain,
+                    LoginIp = input.Ip,
+                    LanguageId = input.LanguageId,
+                    TimeZone = input.TimeZone
+                };
+
+                if (partnerSetting.NumericValue == 1 && input.DeviceType != (int)DeviceTypes.Application)
+                    throw BaseBll.CreateException(input.LanguageId, Constants.Errors.WrongInputParameters);
+
+                input.ClientIdentifier = input.ClientIdentifier.Replace(" ", string.Empty);
+                input.Password = input.Password?.Trim();
+                var loginInput = new LoginInput
+                {
+                    PartnerId = input.PartnerId,
+                    Identifier = input.ClientIdentifier,
+                    Password = input.Password,
+                    Ip = input.Ip,
+                    DeviceType = input.DeviceType.Value,
+                    LanguageId = input.LanguageId,
+                    CountryCode = input.CountryCode,
+                    Source = input.Source,
+                    TimeZone = input.TimeZone
+                };
+
+                BllClient client = null;
+                if (ClientBll.IsValidEmail(input.ClientIdentifier))
+                {
+                    client = CacheManager.GetClientByEmail(input.PartnerId, input.ClientIdentifier.ToLower());
+                }
+                else if (ClientBll.IsMobileNumber(input.ClientIdentifier))
+                {
+                    input.ClientIdentifier = "+" + input.ClientIdentifier.Replace("+", string.Empty).Replace(" ", string.Empty);
+                    client = CacheManager.GetClientByMobileNumber(input.PartnerId, input.ClientIdentifier);
+                }
+                else
+                    client = CacheManager.GetClientByUserName(input.PartnerId, input.ClientIdentifier);
+                if (client == null)
+                    throw BaseBll.CreateException(input.LanguageId, Constants.Errors.WrongLoginParameters);
+
+                clientId = client.Id;
+
+                var result = ClientBll.CreateRefreshToken(loginInput, client, WebApiApplication.DbLogger);
+                return new ApiLoginClientOutput { Token = result };
+            }
+            catch (FaultException<BllFnErrorType> ex)
+            {
+                if (ex.Detail.Id == (int)Constants.Errors.ClientForceBlocked)
+                {
+                    Helpers.Helpers.InvokeMessage("RemoveClient", clientId);
+                    Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}_{2}", Constants.CacheItems.ClientSettings, clientId,
+                                                                                                     ClientSettings.ParentState));
+                }
+                else if (ex.Detail.Id == (int)Constants.Errors.WrongPassword)
+                    Helpers.Helpers.InvokeMessage("UpdateClientFailedLoginCount", clientId);
+
+                var response = new ApiLoginClientOutput
+                {
+                    ResponseCode = ex.Detail.Id,
+                    Description = ex.Detail.Message
+                };
+
+                WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(ex));
+                return response;
+            }
+            catch (Exception ex)
+            {
+                WebApiApplication.DbLogger.Error(ex);
+                var response = new ApiLoginClientOutput
+                {
+                    ResponseCode = Constants.Errors.GeneralException,
+                    Description = ex.Message
+                };
+                return response;
+            }
+        }
+
+        [HttpPost]
+        public ApiResponseBase ValidateTwoFactorPIN(Api2FAInput input)
+        {
+            try
+            {
+                var partner = CacheManager.GetPartnerById(input.PartnerId);
+                if (partner == null || !partner.SiteUrl.Split(',').Any(x => x == input.Domain))
+                    throw BaseBll.CreateException(input.LanguageId, Constants.Errors.PartnerNotFound);
+                var client = CacheManager.GetClientById(input.ClientId);
+                if (client == null || client.PartnerId != partner.Id)
+                    throw BaseBll.CreateException(input.LanguageId, Constants.Errors.ClientNotFound);
+                using (var clientBl = new ClientBll(new SessionIdentity(), WebApiApplication.DbLogger))
+                {
+                    clientBl.CheckClientTwoFactorPin(client, input.Token, input.Pin);
+                    clientBl.UpdateClientSessionStatus(client.Id, input.Token, SessionStates.Active);
+                    return new ApiResponseBase();
+                }
+            }
+            catch (FaultException<BllFnErrorType> ex)
+            {
+                var response = new ApiResponseBase
+                {
+                    ResponseCode = ex.Detail.Id,
+                    Description = ex.Detail.Message
+                };
+                WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(response));
+                return response;
+            }
+            catch (Exception ex)
+            {
+                WebApiApplication.DbLogger.Error(ex);
+                return new ApiResponseBase
+                {
+                    ResponseCode = Constants.Errors.GeneralException,
+                    Description = ex.Message
+                };
+            }
+        }
+
+        [HttpPost]
+        public ApiLoginClientOutput CreateToken(LoginDetails input)
+        {
+            var client = input.IsAgent ? CacheManager.GetClientById(input.ClientId) :
+                (string.IsNullOrEmpty(input.MobileNumber) ? new BllClient() : CacheManager.GetClientByMobileNumber(input.PartnerId, string.Empty));
+            try
+            {
+                if (input.IsAgent)
+                {
+                    if (client == null || client.Id == 0 || client.UserId == null)
+                        throw BaseBll.CreateException(string.Empty, Constants.Errors.ClientNotFound);
+                    using (var userBl = new UserBll(new SessionIdentity { LanguageId = input.LanguageId }, WebApiApplication.DbLogger))
+                    {
+                        var session = userBl.CheckToken(input.Token, input.TimeZone);
+                        var parent = CacheManager.GetUserById(client.UserId.Value);
+                        if (!parent.Path.Contains("/" + session.Id + "/"))
+                            throw BaseBll.CreateException(string.Empty, Constants.Errors.ClientNotFound);
+                    }
+                }
+                else if (!string.IsNullOrEmpty(input.RefreshToken))
+                {
+                    var partnerSetting = CacheManager.GetPartnerSettingByKey(input.PartnerId, Constants.PartnerKeys.RefreshTokenState);
+                    if (partnerSetting == null || !partnerSetting.NumericValue.HasValue || partnerSetting.NumericValue == 0)
+                        throw BaseBll.CreateException(input.LanguageId, Constants.Errors.MethodNotFound);
+
+                    if (partnerSetting.NumericValue == 1 && input.DeviceType != (int)DeviceTypes.Application)
+                        throw BaseBll.CreateException(input.LanguageId, Constants.Errors.WrongInputParameters);
+
+                    var rToken = CacheManager.GetClientSessionByToken(input.RefreshToken, null);
+                    if (rToken == null || rToken.Id == 0 || rToken.State != (int)SessionStates.Active || rToken.Type != (int)SessionTypes.RefreshToken)
+                        throw BaseBll.CreateException(input.LanguageId, Constants.Errors.SessionNotFound);
+
+                    client = CacheManager.GetClientById(rToken.ClientId);
+                }
+                else
+                {
+                    if (client == null || client.Id == 0)
+                        throw BaseBll.CreateException(string.Empty, Constants.Errors.ClientNotFound);
+                    if (client.USSDPin == null || client.USSDPin != CommonFunctions.ComputeClientPasswordHash(input.USSDPin, client.Salt))
+                        throw BaseBll.CreateException(string.Empty, Constants.Errors.WrongInputParameters);
+                    //Check ip whitelist
+                }
+
+                var sessionIdentity = new SessionIdentity
+                {
+                    Domain = input.Domain,
+                    LoginIp = input.Ip,
+                    LanguageId = input.LanguageId,
+                    TimeZone = input.TimeZone
+                };
+                var loginInput = new LoginInput
+                {
+                    PartnerId = input.PartnerId,
+                    Identifier = input.ClientIdentifier,
+                    Password = input.Password,
+                    Ip = input.Ip,
+                    DeviceType = (input.DeviceType == null || input.DeviceType < (int)DeviceTypes.Desktop || input.DeviceType > (int)DeviceTypes.BetShop) ?
+                    (int)DeviceTypes.Desktop : input.DeviceType.Value,
+                    LanguageId = input.LanguageId,
+                    CountryCode = input.CountryCode,
+                    Source = input.Source,
+                    TimeZone = input.TimeZone
+                };
+                string newToken;
+                var result = ClientBll.CreateToken(loginInput, client, out newToken, out RegionTree regionTree, WebApiApplication.DbLogger);
+                Helpers.Helpers.InvokeMessage("LoginClient", result.Id, input.Ip);
+                var response = result.MapToApiLoginClientOutput(newToken, input.TimeZone);
+                response.RegionId = regionTree.RegionId;
+                response.TownId = regionTree.TownId;
+                response.CityId = regionTree.CityId;
+                response.CountryId = regionTree.CountryId;
+                return response;
+            }
+            catch (FaultException<BllFnErrorType> ex)
+            {
+                if (ex.Detail.Id == (int)Constants.Errors.ClientForceBlocked)
+                {
+                    Helpers.Helpers.InvokeMessage("RemoveClient", client.Id);
+                    Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}_{2}", Constants.CacheItems.ClientSettings, client.Id,
+                                                                                                     ClientSettings.ParentState));
+                }
+                else if (ex.Detail.Id == (int)Constants.Errors.WrongPassword)
+                    Helpers.Helpers.InvokeMessage("UpdateClientFailedLoginCount", client.Id);
+
+                var response = new ApiLoginClientOutput
+                {
+                    ResponseCode = ex.Detail.Id,
+                    Description = ex.Detail.Message
+                };
+                if (ex.Detail.Id == Constants.Errors.SessionExpired || ex.Detail.Id == Constants.Errors.SessionNotFound)
+                    response.ResponseObject = CacheManager.GetClientSessionByToken(input.Token, Constants.PlatformProductId, false)?.LogoutType;
+
+                WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(ex));
+                if (client != null && client.Id > 0)
+                {
+                    ClientBll.CreateNewFailedSession(client.Id, input.LanguageId, input.Ip, input.CountryCode, null,
+                        input.DeviceType ?? (int)DeviceTypes.Desktop, input.Source, ex.Detail.Id);
+                }
+                return response;
+            }
+            catch (Exception ex)
+            {
+                WebApiApplication.DbLogger.Error(ex);
+                var response = new ApiLoginClientOutput
+                {
+                    ResponseCode = Constants.Errors.GeneralException,
+                    Description = ex.Message
+                };
+                return response;
+            }
+        }
+
+        #endregion
+
+        #region SocialNetworks
+
+        [HttpPost]
+        public ApiLoginClientOutput TelegramAuth(int partnerId, Common.Models.Integrations.Platforms.Telegram.ClientInfo input)
+        {
+            int clientId = 0;
+            try
+            {
+                var partner = CacheManager.GetPartnerById(partnerId);
+                var token = CacheManager.GetPartnerSettingByKey(partnerId, PartnerKeys.TelegramToken);
+                var secret_key = CommonFunctions.ComputeSha256(token.StringValue);
+                var data_check_string = CommonFunctions.GetSortedParamWithValuesAsString(input, "\n");
+                if (CommonFunctions.ComputeHMACSha256(data_check_string, secret_key) != input.hash)
+                {
+                    WebApiApplication.DbLogger.Info("WrongTelegramHash_" + input.hash + "_" + data_check_string + "_" + 
+                        CommonFunctions.ComputeHMACSha256(data_check_string, secret_key));
+                    //throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongLoginParameters);//Open this row
+                }
+                var client = CacheManager.GetClientByUserName(partnerId, "tg_" + input.id);
+                if (client == null || client.Id == 0)
+                {
+                    using (var clientBl = new ClientBll(new SessionIdentity(), WebApiApplication.DbLogger))
+                    {
+                        client = clientBl.RegisterClient(new DAL.Client
+                        {
+                            NickName = "tg_" + input.username,
+                            FirstName = input.first_name,
+                            LastName = input.last_name,
+                            UserName = "tg_" + input.id,
+                            PartnerId = partnerId,
+                            CurrencyId = partner.CurrencyId
+                        }).ToBllClient();
+                        clientBl.SaveKYCDocument(new DAL.ClientIdentity {
+                            ClientId = client.Id,
+                            DocumentTypeId = (int)KYCDocumentTypes.ProfilePicture,
+                            Status = (int)KYCDocumentStates.Approved,
+                            ImagePath = input.photo_url
+                        }, string.Empty, null, false);
+                    }
+                }
+                if (client == null)
+                    throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongLoginParameters);
+
+                clientId = client.Id;
+                if (CacheManager.GetConfigKey(client.PartnerId, Constants.PartnerKeys.JCJVerification) == "1" && client.IsDocumentVerified)
+                {
+                    var res = DigitalCustomerHelpers.GetJCJStatus(client.PartnerId, client.DocumentType ?? 0, client.DocumentNumber,
+                        Constants.DefaultLanguageId, WebApiApplication.DbLogger);
+
+                    using (var clientBl = new ClientBll(new SessionIdentity(), WebApiApplication.DbLogger))
+                    {
+                        var newValue = clientBl.AddOrUpdateClientSetting(client.Id, ClientSettings.JCJProhibited, res, res.ToString(), null, null, "System");
+                        if (newValue == "1")
+                            throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.JCJExcluded);
+                    }
+                    CacheManager.RemoveClientSetting(clientId, ClientSettings.JCJProhibited);
+                    Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}_{2}", Constants.CacheItems.ClientSettings, clientId, ClientSettings.JCJProhibited));
+                }
+
+                var result = ClientBll.LoginClient(new LoginInput
+                {
+                    LanguageId = client.LanguageId,
+                    Ip = Constants.DefaultIp,
+                }, client, out string newToken, out RegionTree regionTree, WebApiApplication.DbLogger, false);
+
+                Helpers.Helpers.InvokeMessage("LoginClient", result.Id, Constants.DefaultIp);
+                var response = result.MapToApiLoginClientOutput(newToken, 0);
+                response.RegionId = regionTree.RegionId;
+                response.TownId = regionTree.TownId;
+                response.CityId = regionTree.CityId;
+                response.CountryId = client.CountryId ?? regionTree.CountryId;
+                response.IsTwoFactorEnabled = client.IsTwoFactorEnabled;
+                var verificationPlatform = CacheManager.GetConfigKey(client.PartnerId, Constants.PartnerKeys.VerificationPlatform);
+                if (!string.IsNullOrEmpty(verificationPlatform) && int.TryParse(verificationPlatform, out int verificationPatformId))
+                {
+                    switch (verificationPatformId)
+                    {
+                        case (int)VerificationPlatforms.Insic:
+                            OASISHelpers.CheckClientStatus(client, null, Constants.DefaultLanguageId, new SessionIdentity(), WebApiApplication.DbLogger);
+                            InsicHelpers.PlayerLogin(client.PartnerId, client.Id, WebApiApplication.DbLogger);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                return response;
+            }
+            catch (FaultException<BllFnErrorType> ex)
+            {
+                if (ex.Detail.Id == (int)Constants.Errors.ClientForceBlocked)
+                {
+                    Helpers.Helpers.InvokeMessage("RemoveClient", clientId);
+                    Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}_{2}", Constants.CacheItems.ClientSettings, clientId,
+                                                                                                     ClientSettings.ParentState));
+                }
+                else if (ex.Detail.Id == (int)Constants.Errors.WrongPassword)
+                    Helpers.Helpers.InvokeMessage("UpdateClientFailedLoginCount", clientId);
+
+                var response = new ApiLoginClientOutput
+                {
+                    ResponseCode = ex.Detail.Id,
+                    Description = ex.Detail.Message
+                };
+
+                WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(ex));
+                return response;
+            }
+            catch (Exception ex)
+            {
+                WebApiApplication.DbLogger.Error(ex);
+                var response = new ApiLoginClientOutput
+                {
+                    ResponseCode = Constants.Errors.GeneralException,
+                    Description = ex.Message
+                };
+                return response;
+            }
+        }
+
+        #endregion
+
+        #region Partner
+
+        [HttpPost]
+        public ApiResponseBase GetPartnerBetShops(RequestBase request)
+        {
+            try
+            {
+                using (var betShopBl = new BetShopBll(new SessionIdentity(), WebApiApplication.DbLogger))
+                {
+
+                    var betShops =
+                        betShopBl.GetBetShops(new FilterBetShop { PartnerId = request.PartnerId }, false)
+                            .Where(x => x.State == Constants.CashDeskStates.Active);
+                    if (!string.IsNullOrEmpty(request.Token) && !request.IsAgent)
+                    {
+                        var session = Helpers.Helpers.CheckToken(request.Token, request.ClientId, request.TimeZone);
+                        betShops = betShops.Where(x => x.CurrencyId == session.CurrencyId);
+                    }
+                    return new ApiResponseBase
+                    {
+                        ResponseObject = new GetPartnerBetShopsOutput
+                        {
+                            BetShops = betShops.MapToBetShopModels()
+                        }
+                    };
+                }
+            }
+            catch (FaultException<BllFnErrorType> ex)
+            {
+                var response = new ApiResponseBase
+                {
+                    ResponseCode = ex.Detail.Id,
+                    Description = ex.Detail.Message
+                };
+                WebApiApplication.DbLogger.Error(response);
+                if (ex.Detail.Id == Constants.Errors.SessionExpired || ex.Detail.Id == Constants.Errors.SessionNotFound)
+                    response.ResponseObject = CacheManager.GetClientSessionByToken(request.Token, Constants.PlatformProductId, false)?.LogoutType;
+                return response;
+            }
+            catch (Exception ex)
+            {
+                WebApiApplication.DbLogger.Error(ex);
+                return new ApiResponseBase
+                {
+                    ResponseCode = Constants.Errors.GeneralException,
+                    Description = ex.Message
+                };
+            }
+        }
+
+        [HttpPost]
+        public GetPartnerPaymentSystemsOutput GetPartnerPaymentSystems(ApiFilterPartnerPaymentSetting input)
+        {
+            try
+            {
+                var partner = CacheManager.GetPartnerById(input.PartnerId);
+                if (partner == null || !partner.SiteUrl.Split(',').Any(x => x == input.Domain))
+                    throw BaseBll.CreateException(input.LanguageId, Constants.Errors.PartnerNotFound);
+                using (var paymentSystemBl = new PaymentSystemBll(new SessionIdentity { LanguageId = input.LanguageId }, WebApiApplication.DbLogger))
+                {
+                    using (var clientBl = new ClientBll(paymentSystemBl))
+                    {
+                        var filter = input.MapToFilterPartnerPaymentSystem();
+                        filter.Status = (int)PartnerPaymentSettingStates.Active;
+                        var clientPaymentSettings = new List<BllClientPaymentSetting>();
+                        if (input.ClientId != 0)
+                        {
+                            var client = CacheManager.GetClientById(input.ClientId);
+                            if (client != null)
+                            {
+                                filter.CurrencyId = client.CurrencyId;
+                                filter.CountryId = CommonHelpers.GetCountryId(client.RegionId, input.LanguageId);
+                            }
+                            clientPaymentSettings = CacheManager.GetClientPaymentSettings(client.Id);
+                        }
+                        var paymentSystems = paymentSystemBl.GetfnPartnerPaymentSettings(filter, false, input.PartnerId);
+
+                        var resp = new GetPartnerPaymentSystemsOutput
+                        {
+                            PartnerPaymentSystems = new List<PartnerPaymentSettingModel>()
+                        };
+                        DAL.PaymentLimit limits = null;
+                        var clientSegments = new List<int>();
+                        if (input.ClientId != 0)
+                        {
+                            clientSegments = ClientBll.GetClientSegmentIds(input.ClientId);
+                            limits = clientBl.GetClientPaymentLimits(input.ClientId);
+
+                            var session = CacheManager.GetClientPlatformSession(input.ClientId, null);
+                            if (session.AccountId != null)
+                            {
+                                var acc = clientBl.GetAccount(session.AccountId.Value);
+                                if (acc.PaymentSystemId != null)
+                                {
+                                    paymentSystems = paymentSystems.Where(x => x.PaymentSystemId == acc.PaymentSystemId.Value).ToList();
+                                }
+                                else
+                                {
+                                    if (acc.BetShopId != null)
+                                        paymentSystems = new List<DAL.fnPartnerPaymentSetting>();
+                                }
+                            }
+                        }
+                        var psIdsWithBanks = paymentSystemBl.GetPartnerBanks(input.PartnerId, null, false, null).Select(y => (int)y.PaymentSystemId).Distinct().ToList();
+
+                        foreach (var ps in paymentSystems)
+                        {
+                            var setting = CacheManager.GetPartnerPaymentSettings(ps.PartnerId, ps.PaymentSystemId, ps.CurrencyId, ps.Type);
+                            if (setting != null && setting.Id > 0 &&
+                               (setting.OSTypes == null || setting.OSTypes.Count == 0 || setting.OSTypes.Contains(input.OSType)) &&
+                               (setting?.Countries?.Ids == null || setting?.Countries?.Ids.Count == 0 ||
+                               (setting.Countries.Type == (int)BonusSettingConditionTypes.InSet && setting.Countries.Ids.Contains(filter.CountryId ?? 0)) ||
+                               (setting.Countries.Type == (int)BonusSettingConditionTypes.OutOfSet && !setting.Countries.Ids.Contains(filter.CountryId ?? 0))) &&
+                               (setting.Segments?.Ids == null || !setting.Segments.Ids.Any() ||
+                               (setting.Segments.Type == (int)BonusSettingConditionTypes.InSet && clientSegments.Any(y => setting.Segments.Ids.Contains(y))) ||
+                               (setting.Segments.Type == (int)BonusSettingConditionTypes.OutOfSet && !clientSegments.Any(y => setting.Segments.Ids.Contains(y)))))
+                            {
+                                var item = ps.MapToPartnerPaymentSettingsModel();
+                                if (psIdsWithBanks.Contains(ps.PaymentSystemId))
+                                    item.HasBank = true;
+                                if (input.ClientId != 0 && item.Type == (int)PaymentRequestTypes.Deposit)
+                                {
+                                    var settingName = string.Format("{0}_{1}", ClientSettings.PaymentAddress, item.PaymentSystemId);
+                                    var clientSetting = CacheManager.GetClientSettingByName(input.ClientId, settingName);
+                                    if (!string.IsNullOrEmpty(clientSetting.Name) && !string.IsNullOrEmpty(clientSetting.StringValue))
+                                    {
+                                        var address = clientSetting.StringValue.Split('|');
+                                        item.Address = address[0];
+                                        if (address.Length > 1)
+                                            item.DestinationTag = address[1];
+                                    }
+                                    else
+                                    {
+                                        var cryptoAddress = PaymentHelpers.GetClientPaymentAddress(item.PaymentSystemId, input.ClientId, WebApiApplication.DbLogger);
+                                        item.Address = cryptoAddress.Address;
+                                        item.DestinationTag = cryptoAddress.DestinationTag;
+                                        if (!string.IsNullOrEmpty(item.Address))
+                                            clientBl.SaveClientSetting(input.ClientId, settingName, string.Format("{0}|{1}", item.Address, item.DestinationTag), null, null);
+
+                                    }
+                                }
+                                /*var segment = segments.Where(x => x.PaymentSystemId == item.PaymentSystemId && x.CurrencyId == item.CurrencyId).OrderBy(x => x.Priority).FirstOrDefault();
+                                if (segment != null)
+                                {
+                                    if (segment.Status != 1 && item.Type == (int)PaymentSettingTypes.Deposit)
+                                        continue;
+                                    if (item.Type == (int)PaymentSettingTypes.Deposit)
+                                    {
+                                        item.MinAmount = Math.Max(item.MinAmount, segment.DepositMinAmount);
+                                        item.MaxAmount = Math.Min(item.MaxAmount, segment.DepositMaxAmount);
+                                    }
+                                    else if (item.Type == (int)PaymentSettingTypes.Withdraw)
+                                    {
+                                        item.MinAmount = Math.Max(item.MinAmount, segment.WithdrawMinAmount);
+                                        item.MaxAmount = Math.Min(item.MaxAmount, segment.WithdrawMaxAmount);
+                                    }
+                                }*/
+                                if (limits != null)
+                                {
+                                    if (item.Type == (int)PaymentSettingTypes.Deposit && limits.MaxDepositAmount != null)
+                                        item.MaxAmount = Math.Min(item.MaxAmount, limits.MaxDepositAmount.Value);
+                                    else if (item.Type == (int)PaymentSettingTypes.Withdraw && limits.MaxWithdrawAmount != null)
+                                        item.MaxAmount = Math.Min(item.MaxAmount, limits.MaxWithdrawAmount.Value);
+                                }
+                                if (clientPaymentSettings == null || !clientPaymentSettings.Any(x => x.PaymentSystemId == item.PaymentSystemId &&
+                                                                                                     x.Type == item.Type && x.State == (int)ClientPaymentStates.Blocked))
+                                    resp.PartnerPaymentSystems.Add(item);
+                            }
+                        }
+
+                        return resp;
+                    }
+                }
+            }
+            catch (FaultException<BllFnErrorType> ex)
+            {
+                var response = new GetPartnerPaymentSystemsOutput
+                {
+                    ResponseCode = ex.Detail.Id,
+                    Description = ex.Detail.Message
+                };
+                WebApiApplication.DbLogger.Info(JsonConvert.SerializeObject(response));
+                return response;
+            }
+            catch (Exception ex)
+            {
+                WebApiApplication.DbLogger.Error(ex);
+                return new GetPartnerPaymentSystemsOutput
+                {
+                    ResponseCode = Constants.Errors.GeneralException,
+                    Description = ex.Message
+                };
+            }
+        }
+
+        [HttpPost]
+        public ApiResponseBase SendEmailToPartner(ApiOpenTicketInput input)
+        {
+            try
+            {
+                var partner = CacheManager.GetPartnerById(input.PartnerId);
+                if (partner == null || !partner.SiteUrl.Split(',').Any(x => x == input.Domain))
+                    throw BaseBll.CreateException(input.LanguageId, Constants.Errors.PartnerNotFound);
+                if (!BaseBll.IsValidEmail(input.Email))
+                    throw BaseBll.CreateException(input.LanguageId, Constants.Errors.InvalidEmail);
+                if(string.IsNullOrEmpty(input.Subject ) || string.IsNullOrEmpty(input.Message))
+                    throw BaseBll.CreateException(input.LanguageId, Constants.Errors.WrongInputParameters);
+                var partnerEmail = CacheManager.GetConfigKey(partner.Id, Constants.PartnerKeys.PartnerEmails) ??
+                    throw BaseBll.CreateException(input.LanguageId, Constants.Errors.PartnerKeyNotFound);
+
+                using (var notificationBl = new NotificationBll(new SessionIdentity { Domain = input.Domain, LanguageId = input.LanguageId }, WebApiApplication.DbLogger))
+                {
+                    notificationBl.SendNotificationMessage(new NotificationModel
+                    {
+                        PartnerId = partner.Id,
+                        ObjectId = partner.Id,
+                        ObjectTypeId = (int)ObjectTypes.Partner,
+                        MobileOrEmail = partnerEmail,
+                        RequesterEmail = input.Email,
+                        SubjectText = input.Subject,
+                        MessageText = input.Message,
+                        MessageType = (int)ClientMessageTypes.Email,
+                        ClientInfoType = (int)ClientInfoTypes.EmailToPartner
+                    }, out _);
+                }
+                return new ApiResponseBase();
+            }
+            catch (FaultException<BllFnErrorType> ex)
+            {
+                var response = new ApiResponseBase
+                {
+                    ResponseCode = ex.Detail.Id,
+                    Description = ex.Detail.Message
+                };
+                WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(response));
+                return response;
+            }
+            catch (Exception ex)
+            {
+                WebApiApplication.DbLogger.Error(ex);
+                return new ApiResponseBase
+                {
+                    ResponseCode = Constants.Errors.GeneralException,
+                    Description = ex.Message
+                };
+            }
+        }
+
+        [HttpPost]
+        public ApiResponseBase GetCharacters(ApiRequestBase input)
+        {
+            try
+            {
+                var partner = CacheManager.GetPartnerById(input.PartnerId);
+                if (partner == null)
+                    throw BaseBll.CreateException(input.LanguageId, Constants.Errors.PartnerNotFound);
+
+                var response = CacheManager.GetCharacters(input.PartnerId, input.LanguageId).
+                    Where(x => x.ParentId == null).OrderBy(x => x.Order).Select(x => x.MapToApiCharacter());
+
+                return new ApiResponseBase
+                {
+                    ResponseObject = response
+                };
+            }
+            catch (FaultException<BllFnErrorType> ex)
+            {
+                var response = new ApiResponseBase
+                {
+                    ResponseCode = ex.Detail.Id,
+                    Description = ex.Detail.Message
+                };
+                WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(response));
+                return response;
+            }
+            catch (Exception ex)
+            {
+                WebApiApplication.DbLogger.Error(ex);
+                var response = new ApiResponseBase
+                {
+                    ResponseCode = Constants.Errors.GeneralException,
+                    Description = ex.Message
+                };
+                return response;
+            }
+        }
+
+        [HttpPost]
+        public ApiResponseBase GetCharacterHierarchy(GetCharactersInput input)
+        {
+            try
+            {
+                using (var partnerBll = new PartnerBll(new SessionIdentity(), WebApiApplication.DbLogger))
+                {
+                    var characters = CacheManager.GetCharacters(input.PartnerId, input.LanguageId).Select(x => x.MapToApiCharacter(input.IsForMobile.HasValue && input.IsForMobile.Value)).ToList();
+                    var parentIds = characters.Where(x => x.ParentId == null).Select(x => x.Id);
+                    var relations = new List<ApiCharacterRelations>();
+                    foreach (var pId in parentIds)
+                    {
+                        var relation = new ApiCharacterRelations
+                        {
+                            Parent = characters.FirstOrDefault(x => x.Id == pId),
+                            Children = characters.Where(x => x.ParentId == pId).OrderBy(y => y.Order).ToList()
+                        };
+                        relations.Add(relation);
+                    }
+
+                    return new ApiResponseBase
+                    {
+                        ResponseObject = relations
+                    };
+                }
+            }
+            catch (FaultException<BllFnErrorType> ex)
+            {
+                var response = new ApiResponseBase
+                {
+                    ResponseCode = ex.Detail.Id,
+                    Description = ex.Detail.Message
+                };
+                WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(response));
+                return response;
+            }
+            catch (Exception ex)
+            {
+                WebApiApplication.DbLogger.Error(ex);
+                var response = new ApiResponseBase
+                {
+                    ResponseCode = Constants.Errors.GeneralException,
+                    Description = ex.Message
+                };
+                return response;
+            }
+        }
+
+        [HttpPost]
+        public ApiResponseBase GetPartnerCurrencies(ApiRequestBase input)
+        {
+            try
+            {
+                var partner = CacheManager.GetPartnerById(input.PartnerId);
+                if (partner == null)
+                    throw BaseBll.CreateException(input.LanguageId, Constants.Errors.PartnerNotFound);
+
+                var response = CacheManager.GetPartnerCurrencies(input.PartnerId).OrderBy(x => x.Priority).ToList();
+                var resp = new List<ApiCurrency>();
+                foreach(var c in response)
+                {
+                    var crr = CacheManager.GetCurrencyById(c.CurrencyId);
+                    resp.Add(crr.ToApiCurrency());
+                }
+
+                return new ApiResponseBase
+                {
+                    ResponseObject = resp
+                };
+            }
+            catch (FaultException<BllFnErrorType> ex)
+            {
+                var response = new ApiResponseBase
+                {
+                    ResponseCode = ex.Detail.Id,
+                    Description = ex.Detail.Message
+                };
+                WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(response));
+                return response;
+            }
+            catch (Exception ex)
+            {
+                WebApiApplication.DbLogger.Error(ex);
+                var response = new ApiResponseBase
+                {
+                    ResponseCode = Constants.Errors.GeneralException,
+                    Description = ex.Message
+                };
+                return response;
+            }
+        }
+
+        #endregion
+
         [HttpPost]
         public CancelPaymentRequestOutput CancelPaymentRequest(RequestBase request)
         {
             try
             {
+                if (request.IsAgent)
+                    return new CancelPaymentRequestOutput();
+
                 var session = Helpers.Helpers.CheckToken(request.Token, request.ClientId, request.TimeZone);
                 session.TimeZone = request.TimeZone;
                 var response = DocumentController.CancelPaymentRequest(JsonConvert.DeserializeObject<CancelPaymentRequestInput>(request.RequestData),
@@ -598,8 +1515,8 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                 {
                     using (var userBl = new UserBll(new SessionIdentity(), WebApiApplication.DbLogger))
                     {
-                        var session = userBl.GetUserSession(request.Token);
-                        var b = userBl.GetUserBalance(session.UserId.Value);
+                        var session = userBl.CheckToken(request.Token, request.TimeZone);
+                        var b = userBl.GetUserBalance(session.Id);
                         return new Common.Models.WebSiteModels.GetBalanceOutput { AvailableBalance = b.Balance, CurrencyId = b.CurrencyId };
                     }
                 }
@@ -615,7 +1532,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                 };
                 if (ex.Detail.Id == Constants.Errors.SessionExpired || ex.Detail.Id == Constants.Errors.SessionNotFound)
                     response.ResponseObject = CacheManager.GetClientSessionByToken(request.Token, Constants.PlatformProductId, false)?.LogoutType;
-                WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(response));
+                WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(response) + "_" + JsonConvert.SerializeObject(request));
                 return response;
             }
             catch (Exception ex)
@@ -635,7 +1552,15 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
         {
             try
             {
-                Helpers.Helpers.CheckToken(request.Token, request.ClientId, request.TimeZone);
+
+                if (request.IsAgent)
+                    using (var userBl = new UserBll(new SessionIdentity { LanguageId = request.LanguageId }, WebApiApplication.DbLogger))
+                    {
+                        userBl.CheckToken(request.Token, request.TimeZone);
+                    }
+                else
+                    Helpers.Helpers.CheckToken(request.Token, request.ClientId, request.TimeZone);
+
                 return new ApiResponseBase();
             }
             catch (FaultException<BllFnErrorType> ex)
@@ -682,6 +1607,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                         UserName = input.UserName,
                         Password = input.Password,
                         EmailOrMobile = input.MobileNumber,
+                        MobileCode = input.MobileCode,
                         CurrencyId = input.CurrencyId,
                         PartnerId = input.PartnerId,
                         ReCaptcha = input.ReCaptcha ?? string.Empty,
@@ -959,6 +1885,19 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                                 RefId = input.RefId
                             };
                         }
+                        else if (!string.IsNullOrEmpty(input.AffiliateCode))
+                        {
+                            var affData = input.AffiliateCode.Split('_');
+                            if (int.TryParse(affData[0], out int affPlatformId))
+                            {
+                                clientRegistrationInput.ReferralData = new DAL.AffiliateReferral
+                                {
+                                    AffiliatePlatformId = affPlatformId,
+                                    AffiliateId = affData[1],
+                                    RefId = affData[1]
+                                };
+                            }
+                        }
 
                         if (!string.IsNullOrEmpty(input.AgentCode))
                         {
@@ -1161,392 +2100,19 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
         }
 
         [HttpPost]
-        public ApiLoginClientOutput LoginClient(LoginDetails input)
-        {
-            int clientId = 0;
-            try
-            {
-                var sessionIdentity = new SessionIdentity
-                {
-                    Domain = input.Domain,
-                    LoginIp = input.Ip,
-                    LanguageId = input.LanguageId,
-                    TimeZone = input.TimeZone
-                };
-                if (!string.IsNullOrEmpty(input.TerminalId) && input.BetShopId.HasValue && !string.IsNullOrEmpty(input.Token))
-                {
-                    var tClient = ClientBll.LoginTerminalClient(input.MapToTerminalClientInput()).MapToApiLoginClientOutput(input.TimeZone);
-                    Integration.Products.Helpers.GlobalSlotsHelpers.TransferFromProvider(tClient.Id, sessionIdentity, WebApiApplication.DbLogger);
-                    return tClient;
-                }
-                input.ClientIdentifier = input.ClientIdentifier.Replace(" ", string.Empty);
-                input.Password = input.Password?.Trim();
-                var loginInput = new LoginInput
-                {
-                    PartnerId = input.PartnerId,
-                    Identifier = input.ClientIdentifier,
-                    Password = input.Password,
-                    Ip = input.Ip,
-                    DeviceType = (input.DeviceType == null || input.DeviceType < (int)DeviceTypes.Desktop || input.DeviceType > (int)DeviceTypes.BetShop) ?
-                    (int)DeviceTypes.Desktop : input.DeviceType.Value,
-                    LanguageId = input.LanguageId,
-                    CountryCode = input.CountryCode,
-                    Source = input.Source,
-                    TimeZone = input.TimeZone
-                };
-                if(input.IAmAgent)
-                {
-                    using (var userBl = new UserBll(new SessionIdentity { LanguageId = input.LanguageId }, WebApiApplication.DbLogger))
-                    {
-                        loginInput.UserType = (int)UserTypes.DownlineAgent;
-                        var userIdentity = userBl.LoginUser(loginInput, out string imageData);
-                        var user = CacheManager.GetUserById(userIdentity.Id);
-                        var parentLevel = user.ParentId.HasValue ? CacheManager.GetUserById(user.ParentId.Value)?.Level : 0;
-                        var userSetting = CacheManager.GetUserSetting(user.Id);
-                        return user.ToApiLoginClientOutput(userIdentity.Token);
-                    }
-                }
-                string newToken;
-
-                if (input.ExternalPlatformId.HasValue)
-                {
-                    loginInput.ExternalPlatformType = input.ExternalPlatformId.Value;
-                    var resp = ExternalPlatformHelpers.CreateClientSession(loginInput, out newToken, out clientId, sessionIdentity, WebApiApplication.DbLogger);
-                    return resp.MapToApiLoginClientOutput(newToken, input.TimeZone);
-                }
-                BllClient client = null;
-                var partnerSetting = CacheManager.GetPartnerSettingByKey(input.PartnerId, Constants.PartnerKeys.IsUserNameGeneratable);
-                if (partnerSetting != null && partnerSetting.NumericValue.HasValue && partnerSetting.NumericValue != 0)
-                {
-                    client = CacheManager.GetClientByNickName(input.PartnerId, input.ClientIdentifier);
-                    if (client == null)
-                        client = CacheManager.GetClientByUserName(input.PartnerId, input.ClientIdentifier);
-                }
-                else
-                {
-                    if (ClientBll.IsValidEmail(input.ClientIdentifier))
-                    {
-                        client = CacheManager.GetClientByEmail(input.PartnerId, input.ClientIdentifier.ToLower());
-                    }
-                    else if (ClientBll.IsMobileNumber(input.ClientIdentifier))
-                    {
-                        input.ClientIdentifier = "+" + input.ClientIdentifier.Replace("+", string.Empty).Replace(" ", string.Empty);
-                        client = CacheManager.GetClientByMobileNumber(input.PartnerId, input.ClientIdentifier);
-                    }
-                    else
-                        client = CacheManager.GetClientByUserName(input.PartnerId, input.ClientIdentifier);
-                }
-                if (client == null)
-                    throw BaseBll.CreateException(input.LanguageId, Constants.Errors.WrongLoginParameters);
-
-                clientId = client.Id;
-                if (CacheManager.GetConfigKey(client.PartnerId, Constants.PartnerKeys.JCJVerification) == "1" && client.IsDocumentVerified)
-                {
-                    var res = DigitalCustomerHelpers.GetJCJStatus(client.PartnerId, client.DocumentType ?? 0, client.DocumentNumber,
-                        input.LanguageId, WebApiApplication.DbLogger);
-
-                    using (var clientBl = new ClientBll(sessionIdentity, WebApiApplication.DbLogger))
-                    {
-                        var newValue = clientBl.AddOrUpdateClientSetting(client.Id, ClientSettings.JCJProhibited, res, res.ToString(), null, null, "System");
-                        if (newValue == "1")
-                            throw BaseBll.CreateException(input.LanguageId, Constants.Errors.JCJExcluded);
-                    }
-                    CacheManager.RemoveClientSetting(clientId, ClientSettings.JCJProhibited);
-                    Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}_{2}", Constants.CacheItems.ClientSettings, clientId, ClientSettings.JCJProhibited));
-                }
-
-                var result = ClientBll.LoginClient(loginInput, client, out newToken, out RegionTree regionTree, WebApiApplication.DbLogger);
-
-                Helpers.Helpers.InvokeMessage("LoginClient", result.Id, input.Ip);
-                var response = result.MapToApiLoginClientOutput(newToken, input.TimeZone);
-                response.RegionId = regionTree.RegionId;
-                response.TownId = regionTree.TownId;
-                response.CityId = regionTree.CityId;
-                response.CountryId = client.CountryId ?? regionTree.CountryId;
-                response.IsTwoFactorEnabled = client.IsTwoFactorEnabled;
-                var verificationPlatform = CacheManager.GetConfigKey(client.PartnerId, Constants.PartnerKeys.VerificationPlatform);
-                if (!string.IsNullOrEmpty(verificationPlatform) && int.TryParse(verificationPlatform, out int verificationPatformId))
-                {
-                    switch (verificationPatformId)
-                    {
-                        case (int)VerificationPlatforms.Insic:
-                            OASISHelpers.CheckClientStatus(client, null, input.LanguageId, sessionIdentity, WebApiApplication.DbLogger);
-                            InsicHelpers.PlayerLogin(client.PartnerId, client.Id, WebApiApplication.DbLogger);
-                            break;
-                        default:
-                            break;
-                    }
-                }
-                return response;
-            }
-            catch (FaultException<BllFnErrorType> ex)
-            {
-                if (ex.Detail.Id == (int)Constants.Errors.ClientForceBlocked)
-                {
-                    Helpers.Helpers.InvokeMessage("RemoveClient", clientId);
-                    Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}_{2}", Constants.CacheItems.ClientSettings, clientId,
-                                                                                                     ClientSettings.ParentState));
-                }
-                else if (ex.Detail.Id == (int)Constants.Errors.WrongPassword)
-                    Helpers.Helpers.InvokeMessage("UpdateClientFailedLoginCount", clientId);
-
-                var response = new ApiLoginClientOutput
-                {
-                    ResponseCode = ex.Detail.Id,
-                    Description = ex.Detail.Message
-                };
-                if (ex.Detail.Id == Constants.Errors.SessionExpired || ex.Detail.Id == Constants.Errors.SessionNotFound)
-                    response.ResponseObject = CacheManager.GetClientSessionByToken(input.Token, Constants.PlatformProductId, false)?.LogoutType;
-
-                ClientBll.CreateNewFailedSession(clientId, input.LanguageId, input.Ip, input.CountryCode, null, input.DeviceType ?? (int)DeviceTypes.Desktop, input.Source, ex.Detail.Id);
-                WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(ex));
-                return response;
-            }
-            catch (Exception ex)
-            {
-                WebApiApplication.DbLogger.Error(ex);
-                var response = new ApiLoginClientOutput
-                {
-                    ResponseCode = Constants.Errors.GeneralException,
-                    Description = ex.Message
-                };
-                return response;
-            }
-        }
-
-        [HttpPost]
-        public ApiLoginClientOutput GetRefreshToken(LoginDetails input)
-        {
-            int clientId = 0;
-            try
-            {
-                var partnerSetting = CacheManager.GetPartnerSettingByKey(input.PartnerId, Constants.PartnerKeys.RefreshTokenState);
-                if (partnerSetting == null || !partnerSetting.NumericValue.HasValue || partnerSetting.NumericValue == 0)
-                    throw BaseBll.CreateException(input.LanguageId, Constants.Errors.MethodNotFound);
-
-                var sessionIdentity = new SessionIdentity
-                {
-                    Domain = input.Domain,
-                    LoginIp = input.Ip,
-                    LanguageId = input.LanguageId,
-                    TimeZone = input.TimeZone
-                };
-
-                if (partnerSetting.NumericValue == 1 && input.DeviceType != (int)DeviceTypes.Application)
-                    throw BaseBll.CreateException(input.LanguageId, Constants.Errors.WrongInputParameters);
-
-                input.ClientIdentifier = input.ClientIdentifier.Replace(" ", string.Empty);
-                input.Password = input.Password?.Trim();
-                var loginInput = new LoginInput
-                {
-                    PartnerId = input.PartnerId,
-                    Identifier = input.ClientIdentifier,
-                    Password = input.Password,
-                    Ip = input.Ip,
-                    DeviceType = input.DeviceType.Value,
-                    LanguageId = input.LanguageId,
-                    CountryCode = input.CountryCode,
-                    Source = input.Source,
-                    TimeZone = input.TimeZone
-                };
-
-                BllClient client = null;
-                if (ClientBll.IsValidEmail(input.ClientIdentifier))
-                {
-                    client = CacheManager.GetClientByEmail(input.PartnerId, input.ClientIdentifier.ToLower());
-                }
-                else if (ClientBll.IsMobileNumber(input.ClientIdentifier))
-                {
-                    input.ClientIdentifier = "+" + input.ClientIdentifier.Replace("+", string.Empty).Replace(" ", string.Empty);
-                    client = CacheManager.GetClientByMobileNumber(input.PartnerId, input.ClientIdentifier);
-                }
-                else
-                    client = CacheManager.GetClientByUserName(input.PartnerId, input.ClientIdentifier);
-                if (client == null)
-                    throw BaseBll.CreateException(input.LanguageId, Constants.Errors.WrongLoginParameters);
-
-                clientId = client.Id;
-
-                var result = ClientBll.CreateRefreshToken(loginInput, client, WebApiApplication.DbLogger);
-                return new ApiLoginClientOutput { Token = result };
-            }
-            catch (FaultException<BllFnErrorType> ex)
-            {
-                if (ex.Detail.Id == (int)Constants.Errors.ClientForceBlocked)
-                {
-                    Helpers.Helpers.InvokeMessage("RemoveClient", clientId);
-                    Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}_{2}", Constants.CacheItems.ClientSettings, clientId,
-                                                                                                     ClientSettings.ParentState));
-                }
-                else if (ex.Detail.Id == (int)Constants.Errors.WrongPassword)
-                    Helpers.Helpers.InvokeMessage("UpdateClientFailedLoginCount", clientId);
-
-                var response = new ApiLoginClientOutput
-                {
-                    ResponseCode = ex.Detail.Id,
-                    Description = ex.Detail.Message
-                };
-
-                WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(ex));
-                return response;
-            }
-            catch (Exception ex)
-            {
-                WebApiApplication.DbLogger.Error(ex);
-                var response = new ApiLoginClientOutput
-                {
-                    ResponseCode = Constants.Errors.GeneralException,
-                    Description = ex.Message
-                };
-                return response;
-            }
-        }
-
-        [HttpPost]
-        public ApiLoginClientOutput CreateToken(LoginDetails input)
-        {
-            var client = string.IsNullOrEmpty(input.MobileNumber) ? new BllClient() : CacheManager.GetClientByMobileNumber(input.PartnerId, string.Empty);
-            try
-            {
-                if (!string.IsNullOrEmpty(input.RefreshToken))
-                {
-                    var partnerSetting = CacheManager.GetPartnerSettingByKey(input.PartnerId, Constants.PartnerKeys.RefreshTokenState);
-                    if (partnerSetting == null || !partnerSetting.NumericValue.HasValue || partnerSetting.NumericValue == 0)
-                        throw BaseBll.CreateException(input.LanguageId, Constants.Errors.MethodNotFound);
-
-                    if (partnerSetting.NumericValue == 1 && input.DeviceType != (int)DeviceTypes.Application)
-                        throw BaseBll.CreateException(input.LanguageId, Constants.Errors.WrongInputParameters);
-
-                    var rToken = CacheManager.GetClientSessionByToken(input.RefreshToken, null);
-                    if (rToken == null || rToken.Id == 0 || rToken.State != (int)SessionStates.Active || rToken.Type != (int)SessionTypes.RefreshToken)
-                        throw BaseBll.CreateException(input.LanguageId, Constants.Errors.SessionNotFound);
-
-                    client = CacheManager.GetClientById(rToken.ClientId);
-                }
-                else
-                {
-                    if (client == null || client.Id == 0)
-                        throw BaseBll.CreateException(string.Empty, Constants.Errors.ClientNotFound);
-                    if (client.USSDPin == null || client.USSDPin != CommonFunctions.ComputeClientPasswordHash(input.USSDPin, client.Salt))
-                        throw BaseBll.CreateException(string.Empty, Constants.Errors.WrongInputParameters);
-                    //Check ip whitelist
-                }
-                var sessionIdentity = new SessionIdentity
-                {
-                    Domain = input.Domain,
-                    LoginIp = input.Ip,
-                    LanguageId = input.LanguageId,
-                    TimeZone = input.TimeZone
-                };
-                var loginInput = new LoginInput
-                {
-                    PartnerId = input.PartnerId,
-                    Identifier = input.ClientIdentifier,
-                    Password = input.Password,
-                    Ip = input.Ip,
-                    DeviceType = (input.DeviceType == null || input.DeviceType < (int)DeviceTypes.Desktop || input.DeviceType > (int)DeviceTypes.BetShop) ?
-                    (int)DeviceTypes.Desktop : input.DeviceType.Value,
-                    LanguageId = input.LanguageId,
-                    CountryCode = input.CountryCode,
-                    Source = input.Source,
-                    TimeZone = input.TimeZone
-                };
-                string newToken;
-                var result = ClientBll.CreateToken(loginInput, client, out newToken, out RegionTree regionTree, WebApiApplication.DbLogger);
-                Helpers.Helpers.InvokeMessage("LoginClient", result.Id, input.Ip);
-                var response = result.MapToApiLoginClientOutput(newToken, input.TimeZone);
-                response.RegionId = regionTree.RegionId;
-                response.TownId = regionTree.TownId;
-                response.CityId = regionTree.CityId;
-                response.CountryId = regionTree.CountryId;
-                return response;
-            }
-            catch (FaultException<BllFnErrorType> ex)
-            {
-                if (ex.Detail.Id == (int)Constants.Errors.ClientForceBlocked)
-                {
-                    Helpers.Helpers.InvokeMessage("RemoveClient", client.Id);
-                    Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}_{2}", Constants.CacheItems.ClientSettings, client.Id,
-                                                                                                     ClientSettings.ParentState));
-                }
-                else if (ex.Detail.Id == (int)Constants.Errors.WrongPassword)
-                    Helpers.Helpers.InvokeMessage("UpdateClientFailedLoginCount", client.Id);
-
-                var response = new ApiLoginClientOutput
-                {
-                    ResponseCode = ex.Detail.Id,
-                    Description = ex.Detail.Message
-                };
-                if (ex.Detail.Id == Constants.Errors.SessionExpired || ex.Detail.Id == Constants.Errors.SessionNotFound)
-                    response.ResponseObject = CacheManager.GetClientSessionByToken(input.Token, Constants.PlatformProductId, false)?.LogoutType;
-                
-                WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(ex));
-                if (client != null && client.Id > 0)
-                {
-                    ClientBll.CreateNewFailedSession(client.Id, input.LanguageId, input.Ip, input.CountryCode, null,
-                        input.DeviceType ?? (int)DeviceTypes.Desktop, input.Source, ex.Detail.Id);
-                }
-                return response;
-            }
-            catch (Exception ex)
-            {
-                WebApiApplication.DbLogger.Error(ex);
-                var response = new ApiLoginClientOutput
-                {
-                    ResponseCode = Constants.Errors.GeneralException,
-                    Description = ex.Message
-                };
-                return response;
-            }
-        }
-
-        [HttpPost]
-        public ApiResponseBase ValidateTwoFactorPIN(Api2FAInput input)
-        {
-            try
-            {
-                var partner = CacheManager.GetPartnerById(input.PartnerId);
-                if (partner == null || !partner.SiteUrl.Split(',').Any(x => x == input.Domain))
-                    throw BaseBll.CreateException(input.LanguageId, Constants.Errors.PartnerNotFound);
-                var client = CacheManager.GetClientById(input.ClientId);
-                if (client == null || client.PartnerId != partner.Id)
-                    throw BaseBll.CreateException(input.LanguageId, Constants.Errors.ClientNotFound);
-                using (var clientBl = new ClientBll(new SessionIdentity(), WebApiApplication.DbLogger))
-                {
-                    clientBl.CheckClientTwoFactorPin(client, input.Token, input.Pin);
-                    clientBl.UpdateClientSessionStatus(client.Id, input.Token, SessionStates.Active);
-                    return new ApiResponseBase();
-                }
-            }
-            catch (FaultException<BllFnErrorType> ex)
-            {
-                var response = new ApiResponseBase
-                {
-                    ResponseCode = ex.Detail.Id,
-                    Description = ex.Detail.Message
-                };
-                WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(response));
-                return response;
-            }
-            catch (Exception ex)
-            {
-                WebApiApplication.DbLogger.Error(ex);
-                return new ApiResponseBase
-                {
-                    ResponseCode = Constants.Errors.GeneralException,
-                    Description = ex.Message
-                };
-            }
-        }
-
-
-        [HttpPost]
         public ApiClientInfo GetClientInfo(RequestBase request)
         {
             try
             {
+                var partner = CacheManager.GetPartnerById(request.PartnerId);
+                if (partner == null || !partner.SiteUrl.Split(',').Any(x => x == request.Domain))
+                    throw BaseBll.CreateException(request.LanguageId, Constants.Errors.PartnerNotFound);
+
                 using (var clientBl = new ClientBll(new SessionIdentity(), WebApiApplication.DbLogger))
                 {
+                    if (request.IsAgent)
+                        return new ApiClientInfo();
+
                     var session = Helpers.Helpers.CheckToken(request.Token, request.ClientId, request.TimeZone);
                     var client = CacheManager.GetClientById(session.Id);
                     var clientLoginOut = new ClientLoginOut();
@@ -1606,8 +2172,8 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                     {
                         if (request.IsAgent)
                         {
-                            var session = userBl.GetUserSession(request.Token);
-                            var user = CacheManager.GetUserById(session.UserId.Value);
+                            var session = userBl.CheckToken(request.Token, request.TimeZone);
+                            var user = CacheManager.GetUserById(session.Id);
                             return user.ToApiLoginClientOutput(session.Token);
                         }
                         var client = clientBl.GetClientByToken(request.Token, out ClientLoginOut clientLoginOut, request.LanguageId);
@@ -1618,7 +2184,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                         var responseClient = dbClient.MapToApiLoginClientOutput(request.TimeZone, clientLoginOut);
                         responseClient.Popups = clientBl.GetClientPopups(client.Id, (int)PopupTypes.NextLogin,
                                                 request.OSType == (int)OSTypes.Windows ? (int)DeviceTypes.Desktop : (int)DeviceTypes.Mobile)
-                            .Select(x => new ApiPopupWeSiteModel
+                            .Select(x => new ApiPopupWebSiteModel
                             {
                                 Id = x.Id,
                                 PartnerId = x.PartnerId,
@@ -1635,7 +2201,6 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
             }
             catch (FaultException<BllFnErrorType> ex)
             {
-                WebApiApplication.DbLogger.Error(ex.Detail);
                 var response = new ApiLoginClientOutput
                 {
                     ResponseCode = ex.Detail.Id,
@@ -1643,6 +2208,8 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                 };
                 if (ex.Detail.Id == Constants.Errors.SessionExpired || ex.Detail.Id == Constants.Errors.SessionNotFound)
                     response.ResponseObject = CacheManager.GetClientSessionByToken(request.Token, Constants.PlatformProductId, false)?.LogoutType;
+                WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(response) + "_" +
+                    JsonConvert.SerializeObject(request));
                 return response;
             }
             catch (Exception ex)
@@ -1654,195 +2221,6 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                     Description = ex.Message
                 };
                 return response;
-            }
-        }
-
-        [HttpPost]
-        public ApiResponseBase GetPartnerBetShops(RequestBase request)
-        {
-            try
-            {
-                using (var betShopBl = new BetShopBll(new SessionIdentity(), WebApiApplication.DbLogger))
-                {
-
-                    var betShops =
-                        betShopBl.GetBetShops(new FilterBetShop { PartnerId = request.PartnerId }, false)
-                            .Where(x => x.State == Constants.CashDeskStates.Active);
-                    if (!string.IsNullOrEmpty(request.Token))
-                    {
-                        var session = Helpers.Helpers.CheckToken(request.Token, request.ClientId, request.TimeZone);
-                        betShops = betShops.Where(x => x.CurrencyId == session.CurrencyId);
-                    }
-                    return new ApiResponseBase
-                    {
-                        ResponseObject = new GetPartnerBetShopsOutput
-                        {
-                            BetShops = betShops.MapToBetShopModels()
-                        }
-                    };
-                }
-            }
-            catch (FaultException<BllFnErrorType> ex)
-            {
-                var response = new ApiResponseBase
-                {
-                    ResponseCode = ex.Detail.Id,
-                    Description = ex.Detail.Message
-                };
-                WebApiApplication.DbLogger.Error(response);
-                if (ex.Detail.Id == Constants.Errors.SessionExpired || ex.Detail.Id == Constants.Errors.SessionNotFound)
-                    response.ResponseObject = CacheManager.GetClientSessionByToken(request.Token, Constants.PlatformProductId, false)?.LogoutType;
-                return response;
-            }
-            catch (Exception ex)
-            {
-                WebApiApplication.DbLogger.Error(ex);
-                return new ApiResponseBase
-                {
-                    ResponseCode = Constants.Errors.GeneralException,
-                    Description = ex.Message
-                };
-            }
-        }
-
-        [HttpPost]  
-        public GetPartnerPaymentSystemsOutput GetPartnerPaymentSystems(ApiFilterPartnerPaymentSetting input)
-        {
-            try
-            {
-                var partner = CacheManager.GetPartnerById(input.PartnerId);
-                if (partner == null || !partner.SiteUrl.Split(',').Any(x => x == input.Domain))
-                    throw BaseBll.CreateException(input.LanguageId, Constants.Errors.PartnerNotFound);
-                using (var paymentSystemBl = new PaymentSystemBll(new SessionIdentity { LanguageId = input.LanguageId }, WebApiApplication.DbLogger))
-                {
-                    using (var clientBl = new ClientBll(paymentSystemBl))
-                    {
-                        var filter = input.MapToFilterPartnerPaymentSystem();
-                        filter.Status = (int)PartnerPaymentSettingStates.Active;
-                        var clientPaymentSettings = new List<BllClientPaymentSetting>();
-                        if (input.ClientId != 0)
-                        {
-                            var client = CacheManager.GetClientById(input.ClientId);
-                            if (client != null)
-                            {
-                                filter.CurrencyId = client.CurrencyId;
-                                filter.CountryId = CommonHelpers.GetCountryId(client.RegionId, input.LanguageId);
-                            }
-                            clientPaymentSettings = CacheManager.GetClientPaymentSettings(client.Id);
-                        }
-                        var paymentSystems = paymentSystemBl.GetfnPartnerPaymentSettings(filter, false, input.PartnerId);
-
-                        var resp = new GetPartnerPaymentSystemsOutput
-                        {
-                            PartnerPaymentSystems = new List<PartnerPaymentSettingModel>()
-                        };
-                        var segments = new List<ClientPaymentSegment>();
-                        DAL.PaymentLimit limits = null;
-
-                        if (input.ClientId != 0)
-                        {
-                            segments = clientBl.GetClientPaymentSegments(input.ClientId, null);
-                            limits = clientBl.GetClientPaymentLimits(input.ClientId);
-
-                            var session = CacheManager.GetClientPlatformSession(input.ClientId, null);
-                            if (session.AccountId != null)
-                            {
-                                var acc = clientBl.GetAccount(session.AccountId.Value);
-                                if (acc.PaymentSystemId != null)
-                                {
-                                    paymentSystems = paymentSystems.Where(x => x.PaymentSystemId == acc.PaymentSystemId.Value).ToList();
-                                }
-                                else
-                                {
-                                    if (acc.BetShopId != null)
-                                        paymentSystems = new List<DAL.fnPartnerPaymentSetting>();
-                                }
-                            }
-                        }
-                        var psIdsWithBanks = paymentSystemBl.GetPartnerBanks(input.PartnerId, null, false, null).Select(y => (int)y.PaymentSystemId).Distinct().ToList();
-
-                        foreach (var ps in paymentSystems)
-                        {
-                            var setting = CacheManager.GetPartnerPaymentSettings(ps.PartnerId, ps.PaymentSystemId, ps.CurrencyId, ps.Type);
-                            if (setting != null && setting.Id > 0 &&
-                               (setting.OSTypes == null || setting.OSTypes.Count == 0 || setting.OSTypes.Contains(input.OSType)) &&
-                               (setting.Countries == null || setting.Countries.Count == 0 || setting.Countries.Contains(filter.CountryId ?? 0)))
-                            {
-                                var item = ps.MapToPartnerPaymentSettingsModel();
-                                if (psIdsWithBanks.Contains(ps.PaymentSystemId))
-                                    item.HasBank = true;
-                                if (input.ClientId != 0 && item.Type == (int)PaymentRequestTypes.Deposit)
-                                {
-                                    var settingName = string.Format("{0}_{1}", ClientSettings.PaymentAddress, item.PaymentSystemId);
-                                    var clientSetting = CacheManager.GetClientSettingByName(input.ClientId, settingName);
-                                    if (!string.IsNullOrEmpty(clientSetting.Name) && !string.IsNullOrEmpty(clientSetting.StringValue))
-                                    {
-                                        var address = clientSetting.StringValue.Split('|');
-                                        item.Address = address[0];
-                                        if (address.Length > 1)
-                                            item.DestinationTag = address[1];
-                                    }
-                                    else
-                                    {
-                                        var cryptoAddress = PaymentHelpers.GetClientPaymentAddress(item.PaymentSystemId, input.ClientId, WebApiApplication.DbLogger);
-                                        item.Address = cryptoAddress.Address;
-                                        item.DestinationTag = cryptoAddress.DestinationTag;
-                                        if (!string.IsNullOrEmpty(item.Address))
-                                            clientBl.SaveClientSetting(input.ClientId, settingName, string.Format("{0}|{1}", item.Address, item.DestinationTag), null, null);
-
-                                    }
-                                }
-                                /*var segment = segments.Where(x => x.PaymentSystemId == item.PaymentSystemId && x.CurrencyId == item.CurrencyId).OrderBy(x => x.Priority).FirstOrDefault();
-                                if (segment != null)
-                                {
-                                    if (segment.Status != 1 && item.Type == (int)PaymentSettingTypes.Deposit)
-                                        continue;
-                                    if (item.Type == (int)PaymentSettingTypes.Deposit)
-                                    {
-                                        item.MinAmount = Math.Max(item.MinAmount, segment.DepositMinAmount);
-                                        item.MaxAmount = Math.Min(item.MaxAmount, segment.DepositMaxAmount);
-                                    }
-                                    else if (item.Type == (int)PaymentSettingTypes.Withdraw)
-                                    {
-                                        item.MinAmount = Math.Max(item.MinAmount, segment.WithdrawMinAmount);
-                                        item.MaxAmount = Math.Min(item.MaxAmount, segment.WithdrawMaxAmount);
-                                    }
-                                }*/
-                                if (limits != null)
-                                {
-                                    if (item.Type == (int)PaymentSettingTypes.Deposit && limits.MaxDepositAmount != null)
-                                        item.MaxAmount = Math.Min(item.MaxAmount, limits.MaxDepositAmount.Value);
-                                    else if (item.Type == (int)PaymentSettingTypes.Withdraw && limits.MaxWithdrawAmount != null)
-                                        item.MaxAmount = Math.Min(item.MaxAmount, limits.MaxWithdrawAmount.Value);
-                                }
-                                if (clientPaymentSettings == null || !clientPaymentSettings.Any(x => x.PaymentSystemId == item.PaymentSystemId &&
-                                                                                                     x.Type == item.Type && x.State == (int)ClientPaymentStates.Blocked))
-                                    resp.PartnerPaymentSystems.Add(item);
-                            }
-                        }
-
-                        return resp;
-                    }
-                }
-            }
-            catch (FaultException<BllFnErrorType> ex)
-            {
-                var response = new GetPartnerPaymentSystemsOutput
-                {
-                    ResponseCode = ex.Detail.Id,
-                    Description = ex.Detail.Message
-                };
-                WebApiApplication.DbLogger.Info(JsonConvert.SerializeObject(response));
-                return response;
-            }
-            catch (Exception ex)
-            {
-                WebApiApplication.DbLogger.Error(ex);
-                return new GetPartnerPaymentSystemsOutput
-                {
-                    ResponseCode = Constants.Errors.GeneralException,
-                    Description = ex.Message
-                };
             }
         }
 
@@ -1926,7 +2304,8 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                 return response;
             }
         }
-
+        
+        /*
         [HttpPost]
         public GetProductSessionOutput GetProductSession(RequestBase request)
         {
@@ -1959,6 +2338,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                 return response;
             }
         }
+        */
 
         [HttpPost]
         public ApiResponseBase GetProductUrl(GetProductUrlInput input)
@@ -1966,13 +2346,16 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
             var response = new ApiResponseBase();
             try
             {
-                if (string.IsNullOrEmpty(input.Token))
+                var partner = CacheManager.GetPartnerById(input.PartnerId);
+                if (partner == null || !partner.SiteUrl.Split(',').Any(x => x == input.Domain))
+                    throw BaseBll.CreateException(input.LanguageId, Constants.Errors.PartnerNotFound);
+
+                if (string.IsNullOrEmpty(input.Token) || input.IsAgent)
                     input.IsForDemo = true;
 
                 var product = CheckProductAvailability(input.PartnerId, input.ProductId);
                 if (input.IsForDemo  && !product.HasDemo)
                     throw BaseBll.CreateException(input.LanguageId, Constants.Errors.DemoNotSupported);
-                var partner = CacheManager.GetPartnerById(input.PartnerId);
                 var provider = CacheManager.GetGameProviderById(product.GameProviderId.Value);
                 if (string.IsNullOrWhiteSpace(input.LanguageId))
                     input.LanguageId = Constants.DefaultLanguageId;
@@ -1985,7 +2368,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                     LoginIp = input.Ip,
                     Country = input.CountryCode
                 };
-                if (!input.IsForDemo)
+                if (!input.IsForDemo && !input.IsAgent) //Change For Bet Placement
                 {
                     var currentTime = DateTime.UtcNow;
                     clientSession = Helpers.Helpers.CheckToken(input.Token, input.ClientId, input.TimeZone);
@@ -2149,28 +2532,13 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                 var partner = CacheManager.GetPartnerById(input.PartnerId);
                 if (partner == null || !partner.SiteUrl.Split(',').Any(x => x == input.Domain))
                     throw BaseBll.CreateException(input.LanguageId, Constants.Errors.PartnerNotFound);
-
-                var response = CacheManager.GetBanners(input.PartnerId, input.Type, input.LanguageId).Select(x => new ApiBannerOutput
+                using (var contentBl = new ContentBll(new SessionIdentity(), WebApiApplication.DbLogger))
                 {
-                    Body = x.Body,
-                    Head = x.Head,
-                    Link = x.Link,
-                    Order = x.Order,
-                    Image = x.Image.Split(',')[0],
-                    ImageSizes = x.Image.Split(',').Skip(1).ToList(),
-                    ShowDescription = x.ShowDescription,
-                    Visibility = x.Visibility,
-                    ButtonType = x.ButtonType,
-                    Segments = x.Segments == null ? new Common.Models.AdminModels.ApiSetting() :
-                            new Common.Models.AdminModels.ApiSetting { Type = x.Segments.Type, Ids = x.Segments.Ids },
-                    Languages = x.Languages == null ? new Common.Models.AdminModels.ApiSetting() :
-                            new Common.Models.AdminModels.ApiSetting { Type = x.Languages.Type, Names = x.Languages.Names }
-                }).OrderBy(x => x.Order).ToList();
-
-                return new ApiResponseBase
-                {
-                    ResponseObject = response
-                };
+                    return new ApiResponseBase
+                    {
+                        ResponseObject = contentBl.GetBanners(input.PartnerId, input.Type, input.LanguageId)
+                    };
+                }
             }
             catch (FaultException<BllFnErrorType> ex)
             {
@@ -2202,25 +2570,13 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                 var partner = CacheManager.GetPartnerById(input.PartnerId);
                 if (partner == null || !partner.SiteUrl.Split(',').Any(x => x == input.Domain))
                     throw BaseBll.CreateException(input.LanguageId, Constants.Errors.PartnerNotFound);
-                return new ApiResponseBase
+                using (var contentBl = new ContentBll(new SessionIdentity(), WebApiApplication.DbLogger))
                 {
-                    ResponseObject = CacheManager.GetPromotions(input.PartnerId, input.LanguageId).Select(x => new ApiPromotion
+                    return new ApiResponseBase
                     {
-                        Id = x.Id,
-                        Title = x.Title,
-                        Description = x.Description,
-                        Type = x.Type,
-                        ImageName = x.ImageName,
-                        Segments = x.Segments == null ? new Common.Models.AdminModels.ApiSetting() :
-                            new Common.Models.AdminModels.ApiSetting { Type = x.Segments.Type, Ids = x.Segments.Ids },
-                        Languages = x.Languages == null ? new Common.Models.AdminModels.ApiSetting() :
-                            new Common.Models.AdminModels.ApiSetting { Type = x.Languages.Type, Names = x.Languages.Names },
-                        Order = x.Order,
-                        ParentId = x.ParentId,
-                        StyleType = x.StyleType,
-                        DeviceType = x.DeviceType
-                    }).ToList()
-                };
+                        ResponseObject = contentBl.GetPromotions(partner.Id, input.LanguageId) 
+                    };
+                }                   
             }
             catch (FaultException<BllFnErrorType> ex)
             {
@@ -2252,25 +2608,13 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                 var partner = CacheManager.GetPartnerById(input.PartnerId);
                 if (partner == null || !partner.SiteUrl.Split(',').Any(x => x == input.Domain))
                     throw BaseBll.CreateException(input.LanguageId, Constants.Errors.PartnerNotFound);
-                return new ApiResponseBase
+                using (var contentBl = new ContentBll(new SessionIdentity(), WebApiApplication.DbLogger))
                 {
-                    ResponseObject = CacheManager.GetNews(input.PartnerId, input.LanguageId).Select(x => new ApiNews
+                    return new ApiResponseBase
                     {
-                        Id = x.Id,
-                        Title = x.Title,
-                        Description = x.Description,
-                        Type = x.Type,
-                        ImageName = x.ImageName,
-                        Segments = x.Segments == null ? new Common.Models.AdminModels.ApiSetting() :
-                            new Common.Models.AdminModels.ApiSetting { Type = x.Segments.Type, Ids = x.Segments.Ids },
-                        Languages = x.Languages == null ? new Common.Models.AdminModels.ApiSetting() :
-                            new Common.Models.AdminModels.ApiSetting { Type = x.Languages.Type, Names = x.Languages.Names },
-                        Order = x.Order,
-                        ParentId = x.ParentId,
-                        StyleType = x.StyleType,
-                        StartDate = x.StartDate
-                    }).ToList()
-                };
+                        ResponseObject = contentBl.GetNews(partner.Id, input.LanguageId) 
+                    };
+                }
             }
             catch (FaultException<BllFnErrorType> ex)
             {
@@ -2303,7 +2647,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                 if (partner == null || !partner.SiteUrl.Split(',').Any(x => x == input.Domain))
                     throw BaseBll.CreateException(input.LanguageId, Constants.Errors.PartnerNotFound);
                 var tickers = CacheManager.GetPartnerTicker(input.PartnerId,(int)AnnouncementReceiverTypes.Client, input.LanguageId);
-                if (!string.IsNullOrEmpty(input.Token))
+                if (!string.IsNullOrEmpty(input.Token) && !input.IsAgent)
                 {
                     Helpers.Helpers.CheckToken(input.Token, input.ClientId, input.TimeZone);
                     var clientSegments = ClientBll.GetClientSegmentIds(input.ClientId);
@@ -2405,50 +2749,6 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                     Description = ex.Message
                 };
                 return response;
-            }
-        }
-
-        [HttpPost]
-        public ApiResponseBase SendEmailToPartner([FromUri] int partnerId, ApiOpenTicketInput input)
-        {
-            try
-            {
-                var notificationService = CacheManager.GetPartnerSettingByKey(partnerId, Constants.PartnerKeys.EmailNotificationService);
-                if (notificationService == null || !notificationService.NumericValue.HasValue)
-                    throw BaseBll.CreateException(input.LanguageId, Constants.Errors.AccountNotFound);
-
-                var notificationServieId = (int)notificationService.NumericValue.Value;
-                var partnerEmail = CacheManager.GetNotificationServiceValueByKey(partnerId, Constants.PartnerKeys.NotificationMail, notificationServieId);
-                using (var notificationBl = new NotificationBll(new SessionIdentity { Domain = input.Domain }, WebApiApplication.DbLogger))
-                {
-                    var messageTemplate = CacheManager.GetPartnerMessageTemplate(partnerId, (int)ClientInfoTypes.EmailToPartner, notificationBl.LanguageId);
-                    var messageText = messageTemplate.Text
-                                          .Replace("\\n", Environment.NewLine)
-                                          .Replace("{ce}", input.Email)
-                                          .Replace("{em}", input.Message);
-
-                    notificationBl.RegisterActiveEmail(partnerId, partnerEmail, input.Subject, messageText, messageTemplate.Id, partnerId, (int)ObjectTypes.Partner);
-                }
-                return new ApiResponseBase();
-            }
-            catch (FaultException<BllFnErrorType> ex)
-            {
-                var response = new ApiResponseBase
-                {
-                    ResponseCode = ex.Detail.Id,
-                    Description = ex.Detail.Message
-                };
-                WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(response));
-                return response;
-            }
-            catch (Exception ex)
-            {
-                WebApiApplication.DbLogger.Error(ex);
-                return new ApiResponseBase
-                {
-                    ResponseCode = Constants.Errors.GeneralException,
-                    Description = ex.Message
-                };
             }
         }
 
@@ -2629,7 +2929,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                     Domain = request.Domain,
                     LoginIp = request.Ip
                 };
-                if (request.ClientId.HasValue && request.ClientId != 0)
+                if (request.ClientId.HasValue && request.ClientId != 0 && !request.IsAgent)
                 {
                     var session = Helpers.Helpers.CheckToken(request.Token, request.ClientId.Value, request.TimeZone);
                     var client = CacheManager.GetClientById(session.Id);
@@ -2712,7 +3012,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                     Domain = request.Domain,
                     LoginIp = request.Ip
                 };
-                if (request.ClientId.HasValue && request.ClientId != 0)
+                if (request.ClientId.HasValue && request.ClientId != 0 && !request.IsAgent)
                 {
                     var session = Helpers.Helpers.CheckToken(request.Token, request.ClientId.Value, request.TimeZone);
                     var client = CacheManager.GetClientById(session.Id);
@@ -2971,7 +3271,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                     var clientGameProviderSettings = new List<BllGameProviderSetting>();
                     var blockedProviders = partnerGameProviderSettings.Where(x => x.State == (int)BaseStates.Inactive).Select(x => x.GameProviderId).ToList();
                     
-                    if (!string.IsNullOrEmpty(input.Token))
+                    if (!string.IsNullOrEmpty(input.Token) && !input.IsAgent)
                     {
                         Helpers.Helpers.CheckToken(input.Token, input.ClientId, input.TimeZone);
                         favoriteProducts = CacheManager.GetClientFavoriteProducts(input.ClientId).Select(x => x.ProductId).ToList();
@@ -3101,7 +3401,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                     var clientGameProviderSettings = new List<BllGameProviderSetting>();
                     var blockedProviders = partnerGameProviderSettings.Where(x => x.State == (int)BaseStates.Inactive).Select(x => x.GameProviderId).ToList();
 
-                    if (!string.IsNullOrEmpty(input.Token))
+                    if (!string.IsNullOrEmpty(input.Token) && !input.IsAgent)
                     {
                         Helpers.Helpers.CheckToken(input.Token, input.ClientId, input.TimeZone);
                         favoriteProducts = CacheManager.GetClientFavoriteProducts(input.ClientId).Select(x => x.ProductId).ToList();
@@ -3140,12 +3440,13 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                         }
                     }
 
-                    var providerIds = product.Select(x => x.SI).Distinct().ToList();
+                    var providerIds = product.GroupBy(x=> x.SI).Select(x => new { ProviderId = x.Key, Count = x.Count()}).ToList();
                     var providers = providerIds.Select(x => new ApiProviderInfo
                     {
-                        Id = x,
-                        Name = CacheManager.GetGameProviderById(x).Name,
-                        Order = partnerGameProviderSettings.FirstOrDefault(y => y.GameProviderId == x)?.Order ?? 10000
+                        Id = x.ProviderId,
+                        Name = CacheManager.GetGameProviderById(x.ProviderId).Name,
+                        Order = partnerGameProviderSettings.FirstOrDefault(y => y.GameProviderId == x.ProviderId)?.Order ?? 10000,
+                        GamesCount = x.Count
                     }).ToList();
                     if(!string.IsNullOrEmpty(input.Pattern))
                     {
@@ -3196,7 +3497,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                 {
                     var blockedProviders = CacheManager.GetGameProviderSettings((int)ObjectTypes.Partner, partner.Id)
                                           .Where(x => x.State == (int)BaseStates.Inactive).Select(x => x.GameProviderId).ToList();
-                    if (!string.IsNullOrEmpty(input.Token))
+                    if (!string.IsNullOrEmpty(input.Token) && !input.IsAgent)
                     {
                         Helpers.Helpers.CheckToken(input.Token, input.ClientId, input.TimeZone);
                         blockedProviders.AddRange(CacheManager.GetGameProviderSettings((int)ObjectTypes.Client, input.ClientId)
@@ -3234,10 +3535,12 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
 
                     foreach (var g in games)
                     {
+                        var p = CacheManager.GetProductById(g.I);
                         resp.Add(new
                         {
                             Id = g.I,
-                            g.N
+                            g.N,
+                            I = input.IsForMobile ? p.MobileImageUrl : p.WebImageUrl
                         });
                     }
                     return new ApiResponseBase
@@ -3285,7 +3588,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                 switch (input.Type)
                 {
                     case (int)ExternalApiTypes.TicketingSystem:
-                        if (client == null)
+                        if (client == null || input.IsAgent)
                             throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.ClientNotFound);
                         var session = Helpers.Helpers.CheckToken(input.Token, input.ClientId, input.TimeZone);
                         session.PartnerId = input.PartnerId;
@@ -3295,7 +3598,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                         responseUrl = TicketingSystem.CallTicketSystemApi(client.Id, session);
                         break;
                     case (int)ExternalApiTypes.MGTCompliance:
-                        if (client == null)
+                        if (client == null || input.IsAgent)
                             throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.ClientNotFound);
                         session = Helpers.Helpers.CheckToken(input.Token, input.ClientId, input.TimeZone);
                         session.PartnerId = input.PartnerId;
@@ -3419,93 +3722,6 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
             return GetCommentTypes(input, (int)CommentTemplateTypes.TicketSubject);
         }
 
-		[HttpPost]
-		public ApiResponseBase GetCharacters(ApiRequestBase input)
-		{
-			try
-			{
-				var partner = CacheManager.GetPartnerById(input.PartnerId);
-				if (partner == null)
-					throw BaseBll.CreateException(input.LanguageId, Constants.Errors.PartnerNotFound);
-
-				var response = CacheManager.GetCharacters(input.PartnerId, input.LanguageId).
-                    Where(x => x.ParentId == null).OrderBy(x => x.Order).Select(x => x.MapToApiCharacter());
-
-				return new ApiResponseBase
-				{
-					ResponseObject = response
-				};
-			}
-			catch (FaultException<BllFnErrorType> ex)
-			{
-				var response = new ApiResponseBase
-				{
-					ResponseCode = ex.Detail.Id,
-					Description = ex.Detail.Message
-				};
-				WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(response));
-				return response;
-			}
-			catch (Exception ex)
-			{
-				WebApiApplication.DbLogger.Error(ex);
-				var response = new ApiResponseBase
-				{
-					ResponseCode = Constants.Errors.GeneralException,
-					Description = ex.Message
-				};
-				return response;
-			}
-		}
-
-		[HttpPost]
-		public ApiResponseBase GetCharacterHierarchy(GetCharactersInput input)
-        {
-            try
-            {
-                using (var partnerBll = new PartnerBll(new SessionIdentity(), WebApiApplication.DbLogger))
-                {
-                    var characters = CacheManager.GetCharacters(input.PartnerId, input.LanguageId).Select(x => x.MapToApiCharacter(input.IsForMobile.HasValue && input.IsForMobile.Value)).ToList();
-                    var parentIds = characters.Where(x => x.ParentId == null).Select(x => x.Id);
-                    var relations = new List<ApiCharacterRelations>();
-                    foreach (var pId in parentIds)
-                    {
-                        var relation = new ApiCharacterRelations
-						{
-                            Parent = characters.FirstOrDefault(x => x.Id == pId),
-                            Children = characters.Where(x => x.ParentId == pId).OrderBy(y => y.Order).ToList()
-                        };
-                        relations.Add(relation);
-                    }
-
-                    return new ApiResponseBase
-                    {
-                        ResponseObject = relations
-					};
-                }
-            }
-            catch (FaultException<BllFnErrorType> ex)
-            {
-                var response = new ApiResponseBase
-                {
-                    ResponseCode = ex.Detail.Id,
-                    Description = ex.Detail.Message
-                };
-                WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(response));
-                return response;
-            }
-            catch (Exception ex)
-            {
-                WebApiApplication.DbLogger.Error(ex);
-                var response = new ApiResponseBase
-                {
-                    ResponseCode = Constants.Errors.GeneralException,
-                    Description = ex.Message
-                };
-                return response;
-            }
-        }
-
         [HttpPost]
         public ApiResponseBase GetActiveTournaments(ApiRequestBase input)
         {
@@ -3515,7 +3731,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                 if (partner == null)
                     throw BaseBll.CreateException(input.LanguageId, Constants.Errors.PartnerNotFound);
 
-                var response = CacheManager.GetActiveTournaments(input.PartnerId, input.LanguageId).Select(x => x.ToApiBonus(input.TimeZone)).ToList();
+                var response = CacheManager.GetActiveTournaments(input.PartnerId, input.LanguageId).Select(x => x.ToApiBonus(input.TimeZone, partner.CurrencyId)).ToList();
 
                 return new ApiResponseBase
                 {
@@ -3554,11 +3770,66 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                     throw BaseBll.CreateException(input.LanguageId, Constants.Errors.PartnerNotFound);
 
                 var response = CacheManager.GetTournamentLeaderboard(Convert.ToInt32(input.RequestData));
-
+                var resp = response.Select(x => x.ToApiLeaderboardItem(partner.CurrencyId)).OrderByDescending(x => x.Points).ThenBy(x => x.Name).ToList();
+                foreach(var item in resp)
+                {
+                    item.Order = resp.IndexOf(item) + 1;
+                }
                 return new ApiResponseBase
                 {
-                    ResponseObject = response.Select(x => x.ToApiLeaderboardItem(partner.CurrencyId)).ToList()
+                    ResponseObject = resp
                 };
+            }
+            catch (FaultException<BllFnErrorType> ex)
+            {
+                var response = new ApiResponseBase
+                {
+                    ResponseCode = ex.Detail.Id,
+                    Description = ex.Detail.Message
+                };
+                WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(response));
+                return response;
+            }
+            catch (Exception ex)
+            {
+                WebApiApplication.DbLogger.Error(ex);
+                var response = new ApiResponseBase
+                {
+                    ResponseCode = Constants.Errors.GeneralException,
+                    Description = ex.Message
+                };
+                return response;
+            }
+        }
+
+        [HttpPost]
+        public ApiResponseBase GetProfilePicture(RequestBase request)
+        {
+            try
+            {
+                var partner = CacheManager.GetPartnerById(request.PartnerId);
+                if (partner == null || !partner.SiteUrl.Split(',').Any(x => x == request.Domain))
+                    throw BaseBll.CreateException(request.LanguageId, Constants.Errors.PartnerNotFound);
+                var session = Helpers.Helpers.CheckToken(request.Token, request.ClientId, request.TimeZone);
+
+                using (var clientBl = new ClientBll(new SessionIdentity(), WebApiApplication.DbLogger))
+                {
+                    var imagePath = clientBl.GetClientIdentities(request.ClientId)
+                                    .Where(x => x.DocumentTypeId == (int)KYCDocumentTypes.ProfilePicture).FirstOrDefault()?.ImagePath;
+                    if (string.IsNullOrEmpty(imagePath))
+                        return new ApiResponseBase();
+                    var statementPath = CacheManager.GetPartnerSettingByKey(Constants.MainPartnerId, Constants.PartnerKeys.StatementPath).StringValue;
+
+                    return new ApiResponseBase
+                    {
+                        ResponseObject = new
+                        {
+                            StatementPath = statementPath,
+                            FileName = imagePath,
+                            FilePath = $"{statementPath}/ClientDocuments/{imagePath}"
+                        }
+                    };
+                }
             }
             catch (FaultException<BllFnErrorType> ex)
             {

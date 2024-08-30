@@ -12,5 +12,6 @@ namespace IqSoft.CP.AdminWebApi.Models.BonusModels
         public decimal? MinAmount { get; set; }
         public decimal? MaxAmount { get; set; }
         public decimal? UpToAmount { get; set; }
+        public decimal? Amount { get; set; }
     }
 }

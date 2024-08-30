@@ -1,4 +1,5 @@
 ﻿using IqSoft.CP.Common.Models.AdminModels;
+using System.Collections.Generic;
 
 namespace IqSoft.CP.AdminWebApi.Models.ContentModels
 {
@@ -27,5 +28,6 @@ namespace IqSoft.CP.AdminWebApi.Models.ContentModels
         public string StyleType { get; set; }
 		public string SiteUrl { get; set; }
         public int? DeviceType { get; set; }
+        public List<int> Visibility { get; set; }
     }
 }

@@ -2,10 +2,6 @@
 using System.Configuration;
 using System.Web;
 using System.Web.Http;
-using IqSoft.CP.BLL.Services;
-using IqSoft.CP.Common.Helpers;
-using IqSoft.CP.DAL.Models;
-using IqSoft.CP.Common.Enums;
 using log4net;
 using log4net.Config;
 using Microsoft.AspNet.SignalR.Client;
@@ -13,7 +9,6 @@ using System.Threading;
 using IqSoft.CP.BLL.Caching;
 using IqSoft.CP.Common.Models.Enums;
 using System.Collections.Generic;
-using IqSoft.CP.Common.Models.UserModels;
 
 namespace IqSoft.CP.BetShopGatewayWebApi
 {

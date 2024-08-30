@@ -52,7 +52,6 @@ namespace IqSoft.CP.DAL
         public Nullable<long> Date { get; set; }
     
         public virtual CashDesk CashDesk { get; set; }
-        public virtual Currency Currency { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Document> Document1 { get; set; }
         public virtual Document Document2 { get; set; }
@@ -63,5 +62,6 @@ namespace IqSoft.CP.DAL
         public virtual Product Product { get; set; }
         public virtual Client Client { get; set; }
         public virtual PartnerPaymentSetting PartnerPaymentSetting { get; set; }
+        public virtual Currency Currency { get; set; }
     }
 }

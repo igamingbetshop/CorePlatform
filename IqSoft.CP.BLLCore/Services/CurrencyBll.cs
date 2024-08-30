@@ -50,7 +50,7 @@ namespace IqSoft.CP.BLL.Services
             CheckPermissionToSaveObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.CreateCurrency,
-                ObjectTypeId = ObjectTypes.Currency,
+                ObjectTypeId = (int)ObjectTypes.Currency,
                 ObjectId = 1
             });
             var currentTime = GetServerDate();
@@ -121,7 +121,7 @@ namespace IqSoft.CP.BLL.Services
             var checkPermissionResult = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.CreatePartnerCurrencySetting,
-                ObjectTypeId = ObjectTypes.Currency,
+                ObjectTypeId = (int)ObjectTypes.Currency,
                 ObjectId = partnerCurrencySetting.Id
             });
 

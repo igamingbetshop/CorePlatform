@@ -20,6 +20,7 @@ using System.Linq;
 using IqSoft.CP.Common.Helpers;
 using IqSoft.CP.Common.Models.Commission;
 using static IqSoft.CP.Common.Constants;
+using IqSoft.CP.Common.Models.Filters;
 
 namespace IqSoft.CP.AgentWebApi.ControllerClasses
 {
@@ -57,8 +58,8 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                     return IsUserNameAvailable(JsonConvert.DeserializeObject<ApiUserNameInput>(request.RequestData), identity, log);
                 case "UpdateClientSettings":
                     return UpdateClientSettings(JsonConvert.DeserializeObject<NewClientModel>(request.RequestData), identity, log);
-                case "GetQuickRegistrationFields":
-                    return GetQuickRegistrationFields(identity, log);
+                case "GetClientRegistrationFields":
+                    return GetClientRegistrationFields(identity, log);
             }
             throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.MethodNotFound);
         }
@@ -71,7 +72,6 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
             using (var clientBl = new ClientBll(identity, log))
             using (var userBl = new UserBll(clientBl))
             using (var documentBl = new DocumentBll(clientBl))
-            using (var betShopBl = new BetShopBll(clientBl))
             {
                 var client = clientModel.MapToClient();
                 if (!client.CountryId.HasValue)
@@ -213,7 +213,7 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                 }
                 var paymentSystem = CacheManager.GetPaymentSystemByName(Constants.PaymentSystems.BetShop);
                 var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, paymentSystem.Id, client.CurrencyId, (int)PaymentRequestTypes.Deposit);
-                if (partnerPaymentSetting != null && partnerPaymentSetting.Id > 0)
+                if (partnerPaymentSetting != null && partnerPaymentSetting.Id > 0 && partnerPaymentSetting.State != (int)PartnerPaymentSettingStates.Inactive)
                 {
                     foreach (var rl in resultList)
                     {
@@ -680,6 +680,23 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                         var client = CacheManager.GetClientById(input.ClientId);
                         if (client == null || client.UserId != (isAgentEmploye ? user.ParentId : user.Id))
                             throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.ClientNotFound);
+                        input.IsFromAgent = true;
+
+                        var paymentSystem = CacheManager.GetPaymentSystemByName(Constants.PaymentSystems.BetShop);
+                        var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, paymentSystem.Id, client.CurrencyId, (int)PaymentRequestTypes.Deposit);
+                        if (partnerPaymentSetting != null && partnerPaymentSetting.Id > 0 && partnerPaymentSetting.State != (int)PartnerPaymentSettingStates.Inactive)
+                        {
+                            var acc = documentBl.GetAccountIfExists(client.Id, (int)ObjectTypes.Client, client.CurrencyId, 
+                                (int)AccountTypes.ClientUnusedBalance, null, paymentSystem.Id);
+                            if (acc != null)
+                            {
+                                if (input.AccountId != null && input.AccountId != acc.Id)
+                                    throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.NotAllowed);
+                                if (input.AccountTypeId != null && input.AccountTypeId != (int)AccountTypes.ClientUnusedBalance)
+                                    throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.NotAllowed);
+                                input.AccountId = acc.Id;
+                            }
+                        }
 
                         var result = clientBl.CreateDebitCorrectionOnClient(input, documentBl, false);
                         Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}", Constants.CacheItems.ClientBalance, client.Id));
@@ -709,8 +726,26 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                         var client = CacheManager.GetClientById(input.ClientId);
                         if (client == null || client.UserId != (isAgentEmploye ? user.ParentId : user.Id))
                             throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.ClientNotFound);
+                        input.IsFromAgent = true;
+
+                        var paymentSystem = CacheManager.GetPaymentSystemByName(Constants.PaymentSystems.BetShop);
+                        var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, paymentSystem.Id, client.CurrencyId, (int)PaymentRequestTypes.Deposit);
+                        if (partnerPaymentSetting != null && partnerPaymentSetting.Id > 0 && partnerPaymentSetting.State != (int)PartnerPaymentSettingStates.Inactive)
+                        {
+                            var acc = documentBl.GetAccountIfExists(client.Id, (int)ObjectTypes.Client, client.CurrencyId,
+                                (int)AccountTypes.ClientUnusedBalance, null, paymentSystem.Id);
+                            if (acc != null)
+                            {
+                                if (input.AccountId != null && input.AccountId != acc.Id)
+                                    throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.NotAllowed);
+                                if (input.AccountTypeId != null && input.AccountTypeId != (int)AccountTypes.ClientUnusedBalance)
+                                    throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.NotAllowed);
+                                input.AccountId = acc.Id;
+                            }
+                        }
 
                         var result = clientBl.CreateCreditCorrectionOnClient(input, documentBl, false);
+                       
                         Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}", Constants.CacheItems.ClientBalance, client.Id));
                         return new ApiResponseBase
                         {
@@ -853,7 +888,7 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
             }
         }
 
-        public static ApiResponseBase GetQuickRegistrationFields(SessionIdentity identity, ILog log)
+        public static ApiResponseBase GetClientRegistrationFields(SessionIdentity identity, ILog log)
         {
             using (var contentBl = new ContentBll(identity, log))
             {
@@ -861,7 +896,7 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
 
                 return new ApiResponseBase
                 {
-                    ResponseObject = contentBl.GetClientQuickRegistrationFields(user.PartnerId)
+                    ResponseObject = contentBl.GetClientRegistrationFields(user.PartnerId, (int)SystemModuleTypes.AgentSystem)
                 };
             }
         }

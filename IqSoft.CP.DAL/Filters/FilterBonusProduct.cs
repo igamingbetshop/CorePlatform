@@ -11,10 +11,10 @@ namespace IqSoft.CP.DAL.Filters
         public FiltersOperation Percents { get; set; }
         public FiltersOperation ProductIds { get; set; }
         public FiltersOperation Counts { get; set; }
-        public FiltersOperation Lineses { get; set; }
-        public FiltersOperation Coinses { get; set; }
+        public FiltersOperation Lines { get; set; }
+        public FiltersOperation Coins { get; set; }
         public FiltersOperation CoinValues { get; set; }
-        public FiltersOperation BetValueLevels { get; set; }
+        public FiltersOperation BetValues { get; set; }
 
         protected override IQueryable<BonusProduct> CreateQuery(IQueryable<BonusProduct> objects, Func<IQueryable<BonusProduct>, IOrderedQueryable<BonusProduct>> orderBy = null)
         {
@@ -24,10 +24,10 @@ namespace IqSoft.CP.DAL.Filters
             FilterByValue(ref objects, Percents, "Percent");
             FilterByValue(ref objects, ProductIds, "ProductId");
             FilterByValue(ref objects, Counts, "Count");
-            FilterByValue(ref objects, Lineses, "Lines");
-            FilterByValue(ref objects, Coinses, "Coins");
+            FilterByValue(ref objects, Lines, "Lines");
+            FilterByValue(ref objects, Coins, "Coins");
             FilterByValue(ref objects, CoinValues, "CoinValue");
-            FilterByValue(ref objects, BetValueLevels, "BetValueLevel");
+            FilterByValue(ref objects, BetValues, "BetValues");
             return base.FilteredObjects(objects, orderBy);
         }
 

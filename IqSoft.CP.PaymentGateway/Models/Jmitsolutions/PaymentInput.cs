@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace IqSoft.CP.PaymentGateway.Models.Jmitsolutions
+namespace IqSoft.CP.PaymentGateway.Models.JmitSolutions
 {
 	public class PaymentInput
 	{

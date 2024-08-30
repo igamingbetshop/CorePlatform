@@ -19,7 +19,7 @@ namespace IqSoft.CP.DAL
         public string CurrencyId { get; set; }
         public decimal Rate { get; set; }
     
-        public virtual Currency Currency { get; set; }
         public virtual PartnerPaymentSetting PartnerPaymentSetting { get; set; }
+        public virtual Currency Currency { get; set; }
     }
 }

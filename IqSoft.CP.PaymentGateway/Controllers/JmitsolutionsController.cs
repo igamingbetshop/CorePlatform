@@ -5,7 +5,7 @@ using IqSoft.CP.Common.Models.CacheModels;
 using IqSoft.CP.DAL.Models;
 using IqSoft.CP.PaymentGateway;
 using IqSoft.CP.PaymentGateway.Helpers;
-using IqSoft.CP.PaymentGateway.Models.Jmitsolutions;
+using IqSoft.CP.PaymentGateway.Models.JmitSolutions;
 using Newtonsoft.Json;
 using System;
 using System.Net;
@@ -18,13 +18,13 @@ using System.Web.Http.Cors;
 
 
 [EnableCors(origins: "*", headers: "*", methods: "*")]
-public class JmitsolutionsController : ApiController
+public class JmitSolutionsController : ApiController
 {
 	[HttpPost]
 	[Route("api/Jmitsolutions/ApiRequest")]
 	public HttpResponseMessage ApiRequest(HttpRequestMessage httpRequestMessage)
 	{
-		var response = string.Empty;
+		var response = "SUCCESS";
 		var httpResponseMessage = new HttpResponseMessage
 		{
 			StatusCode = HttpStatusCode.OK
@@ -33,30 +33,44 @@ public class JmitsolutionsController : ApiController
 		{
 			var inputString = httpRequestMessage.Content.ReadAsStringAsync().Result;
 			WebApiApplication.DbLogger.Info(inputString);
+			var input = JsonConvert.DeserializeObject<PaymentInput>(inputString);
 			using (var paymentSystemBl = new PaymentSystemBll(new SessionIdentity(), WebApiApplication.DbLogger))
+			using (var clientBl = new ClientBll(paymentSystemBl))
+			using (var notificationBl = new NotificationBll(paymentSystemBl))
+			using (var documentBl = new DocumentBll(paymentSystemBl))
 			{
-				using (var clientBl = new ClientBll(paymentSystemBl))
+				var paymentRequest = paymentSystemBl.GetPaymentRequestById(Convert.ToInt64(input.OrderNumber)) ??
+					throw BaseBll.CreateException(string.Empty, Constants.Errors.PaymentRequestNotFound);
+				if (((int)(paymentRequest.Amount*100)) != input.Amount)
+					throw BaseBll.CreateException(string.Empty, Constants.Errors.PaymentRequestInValidAmount);
+				if (input.Currency != paymentRequest.CurrencyId)
+					throw BaseBll.CreateException(string.Empty, Constants.Errors.WrongCurrencyId);
+				if (input.Status.ToLower() == "approved")
 				{
-					using (var notificationBl = new NotificationBll(paymentSystemBl))
+					if (paymentRequest.Type == (int)PaymentRequestTypes.Deposit)
 					{
-						using (var documentBll = new DocumentBll(paymentSystemBl))
-						{
-							var transaction = JsonConvert.DeserializeObject<PaymentInput>(inputString);
-							var paymentRequest = paymentSystemBl.GetPaymentRequestById(Convert.ToInt64(transaction.OrderNumber)) ??
-									 throw BaseBll.CreateException(string.Empty, Constants.Errors.PaymentRequestNotFound);
-							paymentRequest.ExternalTransactionId = transaction.Token;
-							if (transaction.Status == "approved")
-							{
-								clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
-								PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
-								BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);
-								response = "OK";
-							}
-							else if(transaction.Status == "declined")
-							{
-                                clientBl.ChangeDepositRequestState(paymentRequest.Id, PaymentRequestStates.Failed, transaction.GatewayDetails?.DeclineReason, notificationBl);
-							}
-						}
+						clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
+						PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
+						BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);
+					}
+					else if (paymentRequest.Type == (int)PaymentRequestTypes.Withdraw)
+					{
+						var resp = clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Approved, input.Status,
+																	  null, null, false, paymentRequest.Parameters, documentBl, notificationBl);
+						clientBl.PayWithdrawFromPaymentSystem(resp, documentBl, notificationBl);
+					}
+
+				}
+				else if (input.Status.ToLower() == "declined")
+				{
+					if (paymentRequest.Type == (int)PaymentRequestTypes.Deposit)
+						clientBl.ChangeDepositRequestState(paymentRequest.Id, PaymentRequestStates.Failed, input.GatewayDetails?.DeclineReason, notificationBl);
+					else if (paymentRequest.Type == (int)PaymentRequestTypes.Withdraw)
+					{
+						clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed, input.GatewayDetails?.DeclineReason, null, null,
+														   false, paymentRequest.Parameters, documentBl, notificationBl);
+						PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
+						BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);
 					}
 				}
 			}

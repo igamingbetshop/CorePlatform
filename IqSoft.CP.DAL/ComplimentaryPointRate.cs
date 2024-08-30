@@ -22,8 +22,8 @@ namespace IqSoft.CP.DAL
         public System.DateTime CreationDate { get; set; }
         public System.DateTime LastUpdateDate { get; set; }
     
-        public virtual Currency Currency { get; set; }
         public virtual Partner Partner { get; set; }
         public virtual Product Product { get; set; }
+        public virtual Currency Currency { get; set; }
     }
 }

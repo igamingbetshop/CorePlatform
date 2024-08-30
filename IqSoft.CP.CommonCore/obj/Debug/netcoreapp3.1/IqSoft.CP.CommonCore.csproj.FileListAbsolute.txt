@@ -1,0 +1,9 @@
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.CommonCore\bin\Debug\netcoreapp3.1\IqSoft.CP.CommonCore.deps.json
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.CommonCore\bin\Debug\netcoreapp3.1\IqSoft.CP.CommonCore.dll
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.CommonCore\bin\Debug\netcoreapp3.1\IqSoft.CP.CommonCore.pdb
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.CommonCore\obj\Debug\netcoreapp3.1\IqSoft.CP.CommonCore.AssemblyInfoInputs.cache
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.CommonCore\obj\Debug\netcoreapp3.1\IqSoft.CP.CommonCore.AssemblyInfo.cs
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.CommonCore\obj\Debug\netcoreapp3.1\IqSoft.CP.CommonCore.csproj.CoreCompileInputs.cache
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.CommonCore\obj\Debug\netcoreapp3.1\IqSoft.CP.CommonCore.dll
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.CommonCore\obj\Debug\netcoreapp3.1\IqSoft.CP.CommonCore.pdb
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.CommonCore\obj\Debug\netcoreapp3.1\IqSoft.CP.CommonCore.csprojAssemblyReference.cache

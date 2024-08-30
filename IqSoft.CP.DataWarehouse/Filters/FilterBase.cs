@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -149,8 +150,9 @@ namespace IqSoft.CP.DataWarehouse.Filters
                         expression = Expression.NotEqual(leftExpression, convertedValue);
                         break;
                     case (int)FilterOperations.Contains:
-                        method = type.GetMethod("Contains", new[] { typeof(string) });
-                        expression = Expression.Call(leftExpression, method, convertedValue);
+                        var dbFunctionsType = typeof(DbFunctions);
+                        var likeMethod = dbFunctionsType.GetMethod(nameof(DbFunctions.Like), new[] { typeof(string), typeof(string) });
+                        expression =  Expression.Call(null, likeMethod, leftExpression, Expression.Constant($"%{item.StringValue?.Replace("'", string.Empty)}%"));
                         break;
                     case (int)FilterOperations.StartsWith:
                         method = type.GetMethod("StartsWith", new[] { typeof(string) });
@@ -161,8 +163,9 @@ namespace IqSoft.CP.DataWarehouse.Filters
                         expression = Expression.Call(leftExpression, method, convertedValue);
                         break;
                     case (int)FilterOperations.DoesNotContain:
-                        method = type.GetMethod("Contains", new[] { typeof(string) });
-                        expression = Expression.Not(Expression.Call(leftExpression, method, valueExpression));
+                        dbFunctionsType = typeof(DbFunctions);
+                        likeMethod = dbFunctionsType.GetMethod(nameof(DbFunctions.Like), new[] { typeof(string), typeof(string) });
+                        expression = Expression.Not(Expression.Call(null, likeMethod, leftExpression, Expression.Constant($"%{item.StringValue?.Replace("'", string.Empty)}%")));
                         break;
                     case (int)FilterOperations.IsNull:
                         expression = Expression.Equal(leftExpression, Expression.Convert(Expression.Constant(null), type));

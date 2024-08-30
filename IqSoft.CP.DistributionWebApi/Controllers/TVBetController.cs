@@ -9,11 +9,12 @@ namespace IqSoft.CP.DistributionWebApi.Controllers
     public class TVBetController : ApiController
     {
         [Route("launchgame"), HttpGet]
-        public HttpResponseMessage LaunchGame([FromUri]string iframe, [FromUri]string lang, [FromUri]string token, [FromUri]string partner, [FromUri]string exitUrl)
+        public HttpResponseMessage LaunchGame([FromUri]string iframe, [FromUri]string lang, [FromUri]string token, 
+            [FromUri]string partner, [FromUri]string exitUrl)
         {
             var script = "<!DOCTYPE html><html lang='en'><head>" +
                 "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no\">"+
-                "<script type=\"text/javascript\" src=\"https://" +iframe+"/assets/frame.js\"></script>"+
+                "<script type=\"text/javascript\" src=\"https://" + iframe + "/assets/frame.js\"></script>"+
                 "<script>(function() {"+
                 "new TvbetFrame({"+
                 "'lng' : '" + lang + "', " +

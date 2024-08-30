@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using System.IO;
 using System.Linq;
 using System.ComponentModel;
 using Newtonsoft.Json;
@@ -12,26 +11,26 @@ namespace IqSoft.CP.Common.Helpers
 {
     public static class ExportExcelHelper
     {
-        public static void AddObjectToLine<T>(List<T> reportData, List<UserMenuState> menuColumns, List<string> lines, bool moveRight,  bool ignoreMoving =  false)
+        public static void AddObjectToLine<T>(List<T> reportData, List<UserMenuState> menuColumns, List<string> lines, bool moveRight, bool ignoreMoving = false)
         {
             if (reportData.Count == 0)
                 return;
             IEnumerable<PropertyDescriptor> properties = TypeDescriptor.GetProperties(typeof(T)).OfType<PropertyDescriptor>();
             var headerProperties = properties.Where(x => !(x.PropertyType.IsGenericType &&
-                         x.PropertyType.GetGenericTypeDefinition() == typeof(List<>))).ToList();      
+                         x.PropertyType.GetGenericTypeDefinition() == typeof(List<>))).ToList();
             var header = string.Join(",", properties.ToList().Where(x => !(x.PropertyType.IsGenericType &&
                                           x.PropertyType.GetGenericTypeDefinition() == typeof(List<>)))
-                              .Where(x=> !x.Attributes.OfType<NotExcelPropertyAttribute>().Any() && 
-                                         (menuColumns == null || menuColumns.Any(y=>y.ColumnId == x.Name && !y.Hide ) ||
+                              .Where(x => !x.Attributes.OfType<NotExcelPropertyAttribute>().Any() &&
+                                         (menuColumns == null || menuColumns.Any(y => y.ColumnId == x.Name && !y.Hide) ||
                                          (x.Attributes.OfType<JsonPropertyAttribute>().Any() &&
-                                          menuColumns.Any(y => y.ColumnId == x.Attributes.OfType<JsonPropertyAttribute>().First().PropertyName && !y.Hide) )
+                                          menuColumns.Any(y => y.ColumnId == x.Attributes.OfType<JsonPropertyAttribute>().First().PropertyName && !y.Hide))
                                          ))
                               .Select(x => x.Attributes.OfType<JsonPropertyAttribute>().Any() ?
                               x.Attributes.OfType<JsonPropertyAttribute>().First().PropertyName : x.Name));
             if (!ignoreMoving && moveRight)
                 header = header.Insert(0, " ,");
-            if(!string.IsNullOrEmpty( header.Replace(",", string.Empty)))
-            lines.Add(header);
+            if (!string.IsNullOrEmpty(header.Replace(",", string.Empty)))
+                lines.Add(header);
             foreach (var item in reportData)
             {
                 if (item == null)
@@ -80,22 +79,23 @@ namespace IqSoft.CP.Common.Helpers
                         generic.Invoke(null, new object[] { val, lines, true, true });
                     }
                 }
-                if (!string.IsNullOrEmpty(valueLine.ToString()) && !string.IsNullOrEmpty(valueLine.ToString().Replace(",",string.Empty)))
+                if (!string.IsNullOrEmpty(valueLine.ToString()) && !string.IsNullOrEmpty(valueLine.ToString().Replace(",", string.Empty)))
                     lines.Add(valueLine.ToString());
             }
         }
 
-        public static List<string> SaveToCSV<T>(List<T> list, DateTime? fromDate, DateTime? endDate, DateTime currentDate, double timeZone, 
-                                        string filePath, List<UserMenuState> menuColumns)
+        public static List<string> SaveToCSV<T>(List<T> list, DateTime? fromDate, DateTime? endDate, DateTime currentDate, double timeZone,
+                                         List<UserMenuState> menuColumns, List<string> lines)
         {
-            var lines = new List<string>
+            if (lines == null)
+                lines = new List<string>
             {
                 "DATE:," + string.Format("{0:dd.MM.yyyy HH:mm:ss}", currentDate.GetGMTDateFromUTC(timeZone)),
                 "FromDate:, " + string.Format("{0:dd.MM.yyyy HH:mm:ss}", fromDate.GetGMTDateFromUTC(timeZone)),
                 "UntilDate:, " + string.Format("{0:dd.MM.yyyy HH:mm:ss}", endDate.GetGMTDateFromUTC(timeZone)),
                 "TimeZone:, GMT +" + timeZone.ToString()
             };
-            AddObjectToLine(list, menuColumns, lines, false,  false);
+            AddObjectToLine(list, menuColumns, lines, false, false);
             return lines;
         }
     }

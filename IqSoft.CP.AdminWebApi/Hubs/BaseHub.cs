@@ -318,12 +318,12 @@ namespace IqSoft.CP.AdminWebApi.Hubs
 						var partnerAccess = partnerBll.GetPermissionsToObject(new CheckPermissionInput
 						{
 							Permission = Constants.Permissions.ViewPartner,
-							ObjectTypeId = ObjectTypes.Partner
+							ObjectTypeId = (int)ObjectTypes.Partner
 						});
 						var clientAccess = partnerBll.GetPermissionsToObject(new CheckPermissionInput
 						{
 							Permission = Constants.Permissions.ViewClient,
-							ObjectTypeId = ObjectTypes.Client
+							ObjectTypeId = (int)ObjectTypes.Client
 						});
 						if ((!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != result.PartnerId) ||
 							(!clientAccess.HaveAccessForAllObjects && clientAccess.AccessibleObjects.All(x => x != result.ClientId))))

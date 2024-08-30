@@ -1,4 +1,5 @@
-﻿using System;
+﻿using IqSoft.CP.Common.Models.AdminModels;
+using System;
 using System.Collections.Generic;
 
 namespace IqSoft.CP.AdminWebApi.Models.PartnerModels
@@ -24,10 +25,13 @@ namespace IqSoft.CP.AdminWebApi.Models.PartnerModels
         public bool? AllowMultiplePaymentInfoes { get; set; }
         public string UserName { get; set; }
         public string Password { get; set; }
-        public List<int> Countries { get; set; }
+        public ApiSetting Countries { get; set; }
+        public ApiSetting Segments { get; set; }
         public List<int> OSTypes { get; set; }
         public int? Priority { get; set; }
         public int? OpenMode { get; set; }
         public string ImageExtension { get; set; }
+        public string LanguageId { get; set; }
+        public string ContendData { get; set; }
     }
 }

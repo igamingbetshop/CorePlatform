@@ -17,9 +17,9 @@ namespace IqSoft.CP.DAL
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public Permission()
         {
-            this.AccessObjects = new HashSet<AccessObject>();
             this.RolePermissions = new HashSet<RolePermission>();
             this.AdminMenus = new HashSet<AdminMenu>();
+            this.AccessObjects = new HashSet<AccessObject>();
         }
     
         public string Id { get; set; }
@@ -27,12 +27,12 @@ namespace IqSoft.CP.DAL
         public int PermissionGroupId { get; set; }
         public int ObjectTypeId { get; set; }
     
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<AccessObject> AccessObjects { get; set; }
         public virtual PermissionGroup PermissionGroup { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RolePermission> RolePermissions { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<AdminMenu> AdminMenus { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<AccessObject> AccessObjects { get; set; }
     }
 }

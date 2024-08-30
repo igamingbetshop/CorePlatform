@@ -30,5 +30,6 @@ namespace IqSoft.CP.DAL.Models.Bonuses
         public  int? SegmentId { get; set; }
         public  int? DayOfWeek { get; set; }
         public decimal? WageringAmount { get; set; }
+        public decimal? Amount { get; set; }
     }
 }

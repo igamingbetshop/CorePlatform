@@ -3,25 +3,22 @@ using IqSoft.CP.BLL.Services;
 using IqSoft.CP.Common;
 using IqSoft.CP.Common.Enums;
 using IqSoft.CP.Common.Helpers;
-using IqSoft.CP.Common.Models;
 using IqSoft.CP.Common.Models.AffiliateModels;
 using IqSoft.CP.Common.Models.Filters;
-using IqSoft.CP.Common.Models.WebSiteModels;
 using IqSoft.CP.DAL;
 using IqSoft.CP.DAL.Models;
 using IqSoft.CP.DAL.Models.Agents;
 using IqSoft.CP.DAL.Models.Cache;
-using IqSoft.CP.DAL.Models.Products;
+using IqSoft.CP.DAL.Models.Notification;
 using IqSoft.CP.DAL.Models.Segment;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using static IqSoft.CP.Common.Constants;
 
 namespace IqSoft.CP.BLL.Helpers
 {
-	public static class CustomMapper
+    public static class CustomMapper
 	{
 		public static BetShopFinOperationDocument MapToBetShopFinOperationDocument(this DAL.Document document)
 		{
@@ -350,7 +347,18 @@ namespace IqSoft.CP.BLL.Helpers
 			};
 		}
 
-		public static object ToClientInfo(this Client input, AffiliateReferral affiliate, int? referralType)
+
+        public static BllClient ToBllClient(this Client input)
+        {
+            return new BllClient
+            {
+                Id = input.Id,
+                CurrencyId = input.CurrencyId,
+                PartnerId = input.PartnerId,
+            };
+        }
+
+        public static object ToClientInfo(this Client input, AffiliateReferral affiliate, int? referralType)
 		{
 			return new
 			{
@@ -438,7 +446,75 @@ namespace IqSoft.CP.BLL.Helpers
 			};
 		}
 
-		public static object ToPartnerCurrencyInfo(this PartnerCurrencySetting input)
+        public static ObjectMessageModel MapToObjectMessageModel(this fnClientMessage clientMessage, double timeZone)
+        {
+            return new ObjectMessageModel
+            {
+                PartnerId = clientMessage.PartnerId,
+                MessageId = clientMessage.MessageId,
+                Id = clientMessage.Id,
+                UserName = clientMessage.UserName,
+                MobileOrEmail = clientMessage.MobileOrEmail,
+                Subject = clientMessage.Subject,
+                Message = Constants.ClientInfoSecuredTypes.Contains(clientMessage.MessageType) ? string.Empty : clientMessage.Message,
+                MessageType = clientMessage.MessageType,
+                Status = clientMessage.Status,
+                CreationTime = clientMessage.CreationTime.GetGMTDateFromUTC(timeZone)
+            };
+        }
+
+        public static ObjectMessageModel MapToObjectMessageModel(this fnPartnerMessage PartnerMessage, double timeZone)
+        {
+            return new ObjectMessageModel
+            {
+                PartnerId = PartnerMessage.PartnerId,
+                MessageId = PartnerMessage.MessageId,
+                Id = PartnerMessage.Id,
+                UserName = PartnerMessage.Name,
+                MobileOrEmail = PartnerMessage.MobileOrEmail,
+                Subject = PartnerMessage.Subject,
+                Message = Constants.ClientInfoSecuredTypes.Contains(PartnerMessage.MessageType) ? string.Empty : PartnerMessage.Message,
+                MessageType = PartnerMessage.MessageType,
+                Status = PartnerMessage.Status,
+                CreationTime = PartnerMessage.CreationTime.GetGMTDateFromUTC(timeZone)
+            };
+        }
+
+        public static ObjectMessageModel MapToObjectMessageModel(this fnAgentMessage agentMessage, double timeZone)
+        {
+            return new ObjectMessageModel
+            {
+                PartnerId = agentMessage.PartnerId,
+                MessageId = agentMessage.MessageId,
+                Id = agentMessage.Id,
+                UserName = agentMessage.UserName,
+                MobileOrEmail = agentMessage.MobileOrEmail,
+                Subject = agentMessage.Subject,
+                Message = Constants.ClientInfoSecuredTypes.Contains(agentMessage.MessageType) ? string.Empty : agentMessage.Message,
+                MessageType = agentMessage.MessageType,
+                Status = agentMessage.Status,
+                CreationTime = agentMessage.CreationTime.GetGMTDateFromUTC(timeZone)
+            };
+        }
+
+        public static ObjectMessageModel MapToObjectMessageModel(this fnAffiliateMessage affiliateMessage, double timeZone)
+        {
+            return new ObjectMessageModel
+            {
+                PartnerId = affiliateMessage.PartnerId,
+                MessageId = affiliateMessage.MessageId,
+                Id = affiliateMessage.Id,
+                UserName = affiliateMessage.UserName,
+                MobileOrEmail = affiliateMessage.MobileOrEmail,
+                Subject = affiliateMessage.Subject,
+                Message = Constants.ClientInfoSecuredTypes.Contains(affiliateMessage.MessageType) ? string.Empty : affiliateMessage.Message,
+                MessageType = affiliateMessage.MessageType,
+                Status = affiliateMessage.Status,
+                CreationTime = affiliateMessage.CreationTime.GetGMTDateFromUTC(timeZone)
+            };
+        }
+
+        public static object ToPartnerCurrencyInfo(this PartnerCurrencySetting input)
 		{
 			return new
 			{
@@ -537,16 +613,18 @@ namespace IqSoft.CP.BLL.Helpers
 				Mode = model.Mode,
 				Gender = model.Gender,
 				IsKYCVerified = model.IsKYCVerified,
+                IsEmailVerified = model.IsEmailVerified,
+                IsMobileNumberVerified = model.IsMobileNumberVerified,
 				IsTermsConditionAccepted = model.IsTermsConditionAccepted,
 				ClientStatus = model.ClientStatus?.ToString(),
-				SegmentId = model.SegmentId?.ToString(),
 				ClientId = model.ClientId?.ToString(),
 				Email = model.Email?.ToString(),
 				FirstName = model.FirstName?.ToString(),
 				LastName = model.LastName?.ToString(),
 				Region = model.Region?.ToString(),
 				AffiliateId = model.AffiliateId?.ToString(),
-				MobileCode = model.MobileCode?.ToString(),
+                AgentId = model.AgentId?.ToString(),
+                MobileCode = model.MobileCode?.ToString(),
 				SessionPeriod = model.SessionPeriod?.ToString(),
 				SignUpPeriod = model.SignUpPeriod?.ToString(),
 				TotalDepositsCount = model.TotalDepositsCount?.ToString(),
@@ -574,7 +652,7 @@ namespace IqSoft.CP.BLL.Helpers
 			var depositMaxAmount = segmentSettingItems.FirstOrDefault(y => y.Name == Constants.SegmentSettings.DepositMaxAmount);
 			var withdrawMinAmount = segmentSettingItems.FirstOrDefault(y => y.Name == Constants.SegmentSettings.WithdrawMinAmount);
 			var withdrawMaxAmount = segmentSettingItems.FirstOrDefault(y => y.Name == Constants.SegmentSettings.WithdrawMaxAmount);
-			var segmentSetting = new SegementSettingModel
+			var segmentSetting = new SegmentSettingModel
 			{
 				Priority = priority != null && priority.NumericValue.HasValue ? Convert.ToInt32(priority.NumericValue) : 0,
 				DepositMinAmount = depositMinAmount != null && depositMinAmount.NumericValue.HasValue ? Convert.ToInt32(depositMinAmount.NumericValue) : 0,
@@ -594,19 +672,15 @@ namespace IqSoft.CP.BLL.Helpers
 				Mode = segment.Mode,
 				Gender = segment.Gender,
 				IsKYCVerified = segment.IsKYCVerified,
+                IsEmailVerified = segment.IsEmailVerified,
+                IsMobileNumberVerified = segment.IsMobileNumberVerified,
 				IsTermsConditionAccepted = segment.IsTermsConditionAccepted,
 				ClientStatus = !string.IsNullOrEmpty(segment.ClientStatus) ?
 					String.Join(",", JsonConvert.DeserializeObject<List<ConditionItem>>(segment.ClientStatus).Select(x => x.StringValue)) : null,
 				ClientStatusObject = !string.IsNullOrEmpty(segment.ClientStatus) ? new Condition
 				{
 					ConditionItems = JsonConvert.DeserializeObject<List<ConditionItem>>(segment.ClientStatus)
-				} : null,
-				SegmentId = !string.IsNullOrEmpty(segment.SegmentId) ?
-					String.Join(",", JsonConvert.DeserializeObject<List<ConditionItem>>(segment.SegmentId).Select(x => x.StringValue)) : null,
-				SegmentIdObject = !string.IsNullOrEmpty(segment.SegmentId) ? new Condition
-				{
-					ConditionItems = JsonConvert.DeserializeObject<List<ConditionItem>>(segment.SegmentId)
-				} : null,
+				} : null,				
 				ClientId = !string.IsNullOrEmpty(segment.ClientId) ?
 					String.Join(",", JsonConvert.DeserializeObject<List<ConditionItem>>(segment.ClientId).Select(x => x.StringValue)) : null,
 				ClientIdObject = !string.IsNullOrEmpty(segment.ClientId) ? new Condition
@@ -638,12 +712,18 @@ namespace IqSoft.CP.BLL.Helpers
 					ConditionItems = JsonConvert.DeserializeObject<List<ConditionItem>>(segment.Region)
 				} : null,
 				AffiliateId = !string.IsNullOrEmpty(segment.AffiliateId) ?
-					String.Join(",", JsonConvert.DeserializeObject<List<ConditionItem>>(segment.AffiliateId).Select(x => x.StringValue)) : null,
-				AffiliateIdObject = !string.IsNullOrEmpty(segment.AffiliateId) ? new Condition
+					String.Join("&", JsonConvert.DeserializeObject<List<ConditionItem>>(segment.AffiliateId).Select(x => GetOperationByTypeId(x.OperationTypeId) + " " + x.StringValue)) : null,
+                AffiliateIdObject = !string.IsNullOrEmpty(segment.AffiliateId) ? new Condition
 				{
 					ConditionItems = JsonConvert.DeserializeObject<List<ConditionItem>>(segment.AffiliateId)
 				} : null,
-				MobileCode = !string.IsNullOrEmpty(segment.MobileCode) ?
+                AgentId = !string.IsNullOrEmpty(segment.AgentId) ?
+                    String.Join("&", JsonConvert.DeserializeObject<List<ConditionItem>>(segment.AgentId).Select(x => GetOperationByTypeId(x.OperationTypeId) + " " + x.StringValue)) : null,
+                AgentIdObject = !string.IsNullOrEmpty(segment.AgentId) ? new Condition
+                {
+                    ConditionItems = JsonConvert.DeserializeObject<List<ConditionItem>>(segment.AgentId)
+                } : null,
+                MobileCode = !string.IsNullOrEmpty(segment.MobileCode) ?
 					String.Join(",", JsonConvert.DeserializeObject<List<ConditionItem>>(segment.MobileCode).Select(x => x.StringValue)) : null,
 				MobileCodeObject = !string.IsNullOrEmpty(segment.MobileCode) ? new Condition
 				{

@@ -31,10 +31,9 @@ using JobTrigger = IqSoft.CP.DAL.JobTrigger;
 using Bonu = IqSoft.CP.DAL.Bonu;
 using IqSoft.CP.Common.Models.Partner;
 using IqSoft.CP.Common.Models.AgentModels;
-using System.Transactions;
-using System.Threading;
 using System.Threading.Tasks;
 using IqSoft.CP.Common.Models.Bonus;
+using IqSoft.CP.Common.Models.AffiliateModels;
 
 namespace IqSoft.CP.JobService
 {
@@ -285,11 +284,11 @@ namespace IqSoft.CP.JobService
                 var partnerIds = partnerSetting.Select(x => x.PartnerId).ToList();
                 var clientSettings = db.ClientSettings.Where(x => x.Name.StartsWith(Constants.ClientSettings.VerificationServiceName) &&
                                                                   x.DateValue != null && partnerIds.Contains(x.Client.PartnerId))
-                                                      .GroupBy(x=>x.Client.PartnerId).ToList();
+                                                      .GroupBy(x => x.Client.PartnerId).ToList();
                 var clientIds = new List<int>();
-                foreach(var cs in clientSettings)
+                foreach (var cs in clientSettings)
                 {
-                    var expirationPeriod = partnerSetting.FirstOrDefault(x=> x.PartnerId == cs.Key).Type;
+                    var expirationPeriod = partnerSetting.FirstOrDefault(x => x.PartnerId == cs.Key).Type;
                     clientIds.AddRange(cs.Where(x => x.DateValue.Value.AddMonths(expirationPeriod) < currentTime)
                                          .Select(x => { x.NumericValue = (int)VerificationStatuses.EXPIRED; return x.ClientId; }));
                 }
@@ -311,7 +310,7 @@ namespace IqSoft.CP.JobService
                 db.UserSessions.Include(x => x.User)
                    .Join(db.Partners, us => us.User.PartnerId, p => p.Id, (us, p) => new { UserSession = us, UserType = us.User.Type, Partner = p })
                    .Where(x =>
-                          x.UserSession.State != (int)SessionStates.Inactive && x.UserType== (int)UserTypes.AdminUser &&
+                          x.UserSession.State != (int)SessionStates.Inactive && x.UserType == (int)UserTypes.AdminUser &&
                          (x.UserSession.LastUpdateTime < DbFunctions.AddMinutes(currentTime, -x.Partner.UserSessionExpireTime))).Select(x => x.UserSession)
                    .UpdateFromQuery(x => new UserSession { State = (int)SessionStates.Inactive, EndTime = currentTime, LogoutType = (int)LogoutTypes.Expired });
             }
@@ -355,7 +354,7 @@ namespace IqSoft.CP.JobService
                 };
 
                 var keys = db.ClientInfoes.Where(x => x.State == (int)ClientInfoStates.Active && keyTypes.Contains(x.Type) &&
-                                                      x.CreationTime < DbFunctions.AddMinutes(currentTime, -x.Partner.VerificationKeyActiveMinutes) )
+                                                      x.CreationTime < DbFunctions.AddMinutes(currentTime, -x.Partner.VerificationKeyActiveMinutes))
                                           .UpdateFromQuery(x => new ClientInfo { State = (int)ClientInfoStates.Expired });
             }
         }
@@ -480,7 +479,7 @@ namespace IqSoft.CP.JobService
                                     CurrencyId = dbCurr.Id,
                                     RateAfter = response.To[0].Mid,
                                     RateBefore = dbCurr.CurrentRate,
-                                    SessionId = dbCurr.SessionId,
+                                    SessionId = null,
                                     CreationTime = currentDate,
                                     LastUpdateTime = currentDate
                                 });
@@ -503,7 +502,7 @@ namespace IqSoft.CP.JobService
                 log.Error(e);
             }
         }
-        
+
         public static void SendActiveMails(ILog log)
         {
             var activeMails = new List<Email>();
@@ -634,7 +633,7 @@ namespace IqSoft.CP.JobService
 
                 using (var dwh = new IqSoftDataWarehouseEntities())
                 {
-                    reportByGameProvider = dwh.fn_ReportByProvider(fDate, tDate).GroupBy(x => x.PartnerId ?? 0)
+                    reportByGameProvider = dwh.fn_ReportByProvider(fDate, tDate, 0).GroupBy(x => x.PartnerId ?? 0)
                         .ToDictionary(x => x.Key, x => x.ToList());
                 }
                 var messageInfoType = (int)Enum.Parse(typeof(ClientInfoTypes), ("Partner" + subject + "Report"));
@@ -840,8 +839,8 @@ namespace IqSoft.CP.JobService
                 }
                 db.SaveChanges();
             }
-        }    
-       
+        }
+
         public static void SendAffiliateReport(ILog log)
         {
             try
@@ -853,7 +852,7 @@ namespace IqSoft.CP.JobService
                                                                               x.StepInHours.HasValue && x.Status == (int)BaseStates.Active &&
                                                                               currentTime >= DbFunctions.AddHours(x.LastExecutionTime.Value, x.StepInHours.Value))
                                                                   .Select(x => x.Id).ToList();
-					if (affiliatePlatforms.Count <= 0)
+                    if (affiliatePlatforms.Count <= 0)
                         return;
                     using (var baseBll = new BaseBll(new SessionIdentity(), log))
                     using (var affiliateService = new AffiliateService(baseBll))
@@ -864,8 +863,8 @@ namespace IqSoft.CP.JobService
                                                            .Select(x => new DAL.Models.Affiliates.AffiliatePlatformModel
                                                            {
                                                                PartnerId = x.PartnerId,
-                                                               ClientId =x.Id,
-                                                               ClientName =x.UserName,
+                                                               ClientId = x.Id,
+                                                               ClientName = x.UserName,
                                                                ClientStatus = x.State,
                                                                AffiliatePlatformId = x.AffiliateReferral.AffiliatePlatform.Id,
                                                                AffiliateName = x.AffiliateReferral.AffiliatePlatform.Name,
@@ -890,12 +889,12 @@ namespace IqSoft.CP.JobService
                             UserName = CacheManager.GetPartnerSettingByKey(Constants.MainPartnerId, Constants.PartnerKeys.StatementFTPUsername).StringValue,
                             Password = CacheManager.GetPartnerSettingByKey(Constants.MainPartnerId, Constants.PartnerKeys.StatementFTPPassword).StringValue
                         };
-         
+
                         foreach (var affClient in clientsByAffiliate)
                         {
                             var partner = CacheManager.GetPartnerById(affClient.Key.PartnerId);
                             var path = $"/AffiliateFiles/{affClient.Key.AffiliateName}/{partner.Name}";
-                            baseBll.CreateFtpDirectory(mainFtpModel, $"ftp://{mainFtpModel.Url}{path}");
+                            BaseBll.CreateFtpDirectory(mainFtpModel, $"ftp://{mainFtpModel.Url}{path}");
 
                             var brand = CacheManager.GetPartnerSettingByKey(affClient.Key.PartnerId, affClient.Key.AffiliateName + Constants.PartnerKeys.AffiliateBrandId).StringValue;
                             var ftpUrl = CacheManager.GetPartnerSettingByKey(affClient.Key.PartnerId, affClient.Key.AffiliateName + Constants.PartnerKeys.AffiliateFtpUrl).StringValue;
@@ -1003,7 +1002,7 @@ namespace IqSoft.CP.JobService
                                         baseBll.UploadFile(content.ToString(), $"{path}{fileName}", mainFtpModel);
                                         content.Clear();
                                     }
-                                    var affiliateClientActivies = affiliateService.GetMyAffiliateClientActivity(affClient.ToList(), brandId, fromDate, upToDate);
+                                    var affiliateClientActivies = affiliateService.GetMyAffiliateClientActivity(affClient.Key.AffiliatePlatformId, affClient.ToList(), brandId, fromDate, upToDate);
 
                                     content.AppendLine("Brand,AffiliateId,PlayerId,Currency,BTag,TransactionDate,SportRevenue,CasinoRevenue," +
                                                        "SportBetAmount,CasinoBetAmount,SportWinAmount,CasinoWinAmount," +
@@ -1017,7 +1016,7 @@ namespace IqSoft.CP.JobService
                                         content.AppendLine(affiliateClientActivies.Aggregate(string.Empty, (current, item) => current +
                                         string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18}," +
                                                       "{19},{20},{21},{22},{23},{24},{25},{26},{27},{28},{29},{30},{31},{32}",
-                                        partner.Name,item.AffiliateId, item.CustomerId, item.CurrencyId, item.BTag, item.ActivityDate,
+                                        partner.Name, item.AffiliateId, item.CustomerId, item.CurrencyId, item.BTag, item.ActivityDate,
                                         item.SportGrossRevenue, item.CasinoGrossRevenue,
                                         item.SportTotalBetsAmount, item.CasinoTotalBetsAmount,
                                         item.SportTotalWinsAmount, item.CasinoTotalWinsAmount,
@@ -1033,7 +1032,7 @@ namespace IqSoft.CP.JobService
                                     baseBll.UploadFile(content.ToString(), $"{path}{fileName}", mainFtpModel);
                                     break;
                                 case AffiliatePlatforms.VipAffiliate:
-                                    affiliateClientActivies = affiliateService.GetMyAffiliateClientActivity(affClient.ToList(), brandId, fromDate, upToDate);
+                                    affiliateClientActivies = affiliateService.GetMyAffiliateClientActivity(affClient.Key.AffiliatePlatformId, affClient.ToList(), brandId, fromDate, upToDate);
                                     content.AppendLine("Brand,PlayerId,Currency,BTag,TransactionDate,SportRevenue,CasinoRevenue," +
                                                        "SportTotalBetAmount,CasinoTotalBetAmount,SportWinAmount,CasinoWinAmount," +
                                                        "BonusSportBetsAmount,BonusCasinoBetsAmount,BonusSportWinsAmount,BonusCasinoWinsAmount,TotalBetCount," +
@@ -1126,7 +1125,7 @@ namespace IqSoft.CP.JobService
                                     };
                                     affClient.ToList().ForEach(client =>
                                     {
-                                        var trackierClientActivies = JsonConvert.SerializeObject(affiliateService.GetTrackierClientActivity(brand, client, fromDate, upToDate));
+                                        var trackierClientActivies = JsonConvert.SerializeObject(affiliateService.GetTrackierClientActivity(client, fromDate, upToDate));
                                         httpInput.PostData = trackierClientActivies;
                                         content.AppendLine(trackierClientActivies);
                                         var r = CommonFunctions.SendHttpRequest(httpInput, out _);
@@ -1134,34 +1133,33 @@ namespace IqSoft.CP.JobService
                                         log.Debug("Trackier: " + JsonConvert.SerializeObject(httpInput) + " resp: " + r);
                                     });
                                     break;
-
                                 case AffiliatePlatforms.IncomeAccess:
-									if (newRegisteredClients.Any())
-									{
-										content.AppendLine("REG_DATE,BTAG,PLAYER_ID,USERNAME,COUNTRY");
-										content.AppendLine(newRegisteredClients.Aggregate(string.Empty, (current, item) => current +
-										$"{item.RegistrationDate}, {item.BTag}, {item.CustomerId}, {item.CustomerName}, {item.CountryCode}" + Environment.NewLine));
-									}
-									baseBll.SFTPUpload(content.ToString(), $"/registration_report_{dateString}.csv", string.Empty, ftpModel);
-									content.Clear();
-									var incomeAccessClientActivies = affiliateService.GetIncomeAccessClientActivity(affClient.ToList(), brandId, fromDate, upToDate);
-									if (incomeAccessClientActivies.Any())
-									{
-										content.AppendLine("TRANSACTION_DATE,PLAYER_ID,DEPOSITS,CHARGEBACKS," +
+                                    if (newRegisteredClients.Any())
+                                    {
+                                        content.AppendLine("REG_DATE,BTAG,PLAYER_ID,USERNAME,COUNTRY");
+                                        content.AppendLine(newRegisteredClients.Aggregate(string.Empty, (current, item) => current +
+                                        $"{item.RegistrationDate}, {item.BTag}, {item.CustomerId}, {item.CustomerName}, {item.CountryCode}" + Environment.NewLine));
+                                    }
+                                    baseBll.SFTPUpload(content.ToString(), $"/registration_report_{dateString}.csv", string.Empty, ftpModel);
+                                    content.Clear();
+                                    var incomeAccessClientActivies = affiliateService.GetIncomeAccessClientActivity(affClient.ToList(), brandId, fromDate, upToDate);
+                                    if (incomeAccessClientActivies.Any())
+                                    {
+                                        content.AppendLine("TRANSACTION_DATE,PLAYER_ID,DEPOSITS,CHARGEBACKS," +
                                                            "CASINO_BETS,CASINO_REVENUE,CASINO_STAKE,CASINO_BONUS," +
-														   "LIVE_CASINO_BETS,LIVE_CASINO_REVENUE,LIVE_CASINO_STAKE,LIVE_CASINO_BONUS," +
-														   "PARIPLAY_CASINO_BETS,PARIPLAY_CASINO_REVENUE,PARIPLAY_CASINO_STAKE,PARIPLAY_CASINO_BONUS," +
+                                                           "LIVE_CASINO_BETS,LIVE_CASINO_REVENUE,LIVE_CASINO_STAKE,LIVE_CASINO_BONUS," +
+                                                           "PARIPLAY_CASINO_BETS,PARIPLAY_CASINO_REVENUE,PARIPLAY_CASINO_STAKE,PARIPLAY_CASINO_BONUS," +
                                                            "SPORTSBOOK_BETS,SPORTSBOOK_REVENUE,SPORTSBOOK_STAKE,SPORTSBOOK_BONUS,USERNAME");
-										content.AppendLine(incomeAccessClientActivies.Aggregate(string.Empty, (current, item) => current +
-										$"{item.ActivityDate}, {item.CustomerId}, {item.TotalDepositsAmount}, {item.ChargeBack}," +
+                                        content.AppendLine(incomeAccessClientActivies.Aggregate(string.Empty, (current, item) => current +
+                                        $"{item.ActivityDate}, {item.CustomerId}, {item.TotalDepositsAmount}, {item.ChargeBack}," +
                                         $" 0, 0, 0, 0," +
                                         $" 0, 0, 0, 0," +
                                         $" 0, 0, 0, 0," +
                                         $" {item.TotalBetsCount}, {item.SportGrossRevenue}, {item.SportTotalBetsAmount}, {item.SportBonusBetsAmount}, {item.UserName}"
                                         + Environment.NewLine));
-									}
-									baseBll.SFTPUpload(content.ToString(), $"/sales_report_{dateString}.csv", string.Empty, ftpModel);
-									break;
+                                    }
+                                    baseBll.SFTPUpload(content.ToString(), $"/sales_report_{dateString}.csv", string.Empty, ftpModel);
+                                    break;
                                 default:
                                     break;
                             }
@@ -1275,7 +1273,7 @@ namespace IqSoft.CP.JobService
         public static bool CalculateAgentsGGRProfit(DateTime toDate, ILog log)
         {
             try
-            {               
+            {
                 var currentTime = DateTime.UtcNow;
                 if ((int)toDate.DayOfWeek > 1)
                     toDate = toDate.AddDays(-((int)toDate.DayOfWeek - 1));
@@ -1287,7 +1285,7 @@ namespace IqSoft.CP.JobService
                 var agentsProfit = new List<fnAgentProfit>();
                 var agentsTurnoverProfit = new List<CommissionItem>();
                 using (var userBll = new UserBll(new SessionIdentity(), log))
-                { 
+                {
                     agentsProfit = userBll.GetAgentProfit(fDate, tDate).Where(x => x.TotalProfit > 0).ToList();
                     agentsTurnoverProfit = userBll.GetAgentTurnoverProfit(fDate, tDate);
                 }
@@ -1396,7 +1394,7 @@ namespace IqSoft.CP.JobService
                                                         (x.Status == (int)PaymentRequestStates.Approved || x.Status == (int)PaymentRequestStates.ApprovedManually)) == triggerSetting.Sequence)
                             {
                                 var messageTemplate = db.fn_MessageTemplate(client.LanguageId).Where(x => x.PartnerId == client.PartnerId &&
-                                     x.ClientInfoType == (int)ClientInfoTypes.MissedDepositEmail && x.NickName == messageTemplateNikeName && 
+                                     x.ClientInfoType == (int)ClientInfoTypes.MissedDepositEmail && x.NickName == messageTemplateNikeName &&
                                      x.State == (int)MessageTemplateStates.Active).FirstOrDefault();
                                 if (messageTemplate != null)
                                 {
@@ -1407,7 +1405,10 @@ namespace IqSoft.CP.JobService
                                                            .Replace("{fn}", client.FirstName)
                                                            .Replace("{e}", client.Email)
                                                            .Replace("{m}", client.MobileNumber);// to be added
-                                    notificationBl.SaveEmailMessage(client.PartnerId, client.Id, client.Email, partner.Name, messageTextTemplate, messageTemplate.Id);
+                                    var subject = CacheManager.GetPartnerMessageTemplate(client.PartnerId, (int)ClientInfoTypes.MissedDepositEmail, client.LanguageId)?.Text;
+                                    if (string.IsNullOrEmpty(subject))
+                                        subject = partner.Name;
+                                    notificationBl.SaveEmailMessage(client.PartnerId, client.Id, client.Email, subject, messageTextTemplate, messageTemplate.Id);
                                 }
                             }
                         }
@@ -1448,7 +1449,7 @@ namespace IqSoft.CP.JobService
                     foreach (var c in clientIdenities)
                     {
                         var messageTemplate = db.fn_MessageTemplate(c.Client.LanguageId).Where(x => x.PartnerId == c.Client.PartnerId &&
-                                                                       x.ClientInfoType == (int)ClientInfoTypes.IdentityCloseToExpire && 
+                                                                       x.ClientInfoType == (int)ClientInfoTypes.IdentityCloseToExpire &&
                                                                        x.State == (int)MessageTemplateStates.Active).FirstOrDefault();
                         if (messageTemplate != null)
                         {
@@ -1487,7 +1488,7 @@ namespace IqSoft.CP.JobService
                                 clientBll.AddOrUpdateClientSetting(c.Id, Constants.ClientSettings.BlockedForInactivity, 1, string.Empty, null, null, "System");
                                 BroadcastRemoveCache(string.Format("{0}_{1}_{2}", Constants.CacheItems.ClientSettings, c.Id, Constants.ClientSettings.BlockedForInactivity));
                                 var messageTemplate = db.fn_MessageTemplate(c.LanguageId).Where(x => x.PartnerId == c.PartnerId &&
-                                                                 x.ClientInfoType == (int)ClientInfoTypes.ClientInactivityEmail && 
+                                                                 x.ClientInfoType == (int)ClientInfoTypes.ClientInactivityEmail &&
                                                                  x.State == (int)MessageTemplateStates.Active).FirstOrDefault();
                                 if (messageTemplate != null)
                                 {
@@ -1511,7 +1512,7 @@ namespace IqSoft.CP.JobService
         {
             using (var db = new IqSoftCorePlatformEntities())
             {
-                var partnerSettings = db.WebSiteMenuItems.Where(x => x.WebSiteMenu.Type == Constants.WebSiteConfiguration.Config && 
+                var partnerSettings = db.WebSiteMenuItems.Where(x => x.WebSiteMenu.Type == Constants.WebSiteConfiguration.Config &&
                                                                      x.Title == Constants.PartnerKeys.RestrictUnverifiedClients && x.Href != "0")
                                                          .ToDictionary(x => x.WebSiteMenu.PartnerId, x => Convert.ToInt32(x.Href));
                 var currentDate = DateTime.UtcNow;
@@ -1606,9 +1607,9 @@ namespace IqSoft.CP.JobService
                             foreach (var clients in clientsGroupedByLang)
                             {
                                 var messageTemplate = db.fn_MessageTemplate(clients.Key).Where(y => y.PartnerId == partnerClients.Key &&
-                                                                       y.ClientInfoType == (int)ClientInfoTypes.SelfExclusionFinished && 
+                                                                       y.ClientInfoType == (int)ClientInfoTypes.SelfExclusionFinished &&
                                                                        y.State == (int)MessageTemplateStates.Active).FirstOrDefault();
-
+                                var subject = CacheManager.GetPartnerMessageTemplate(partnerClients.Key, (int)ClientInfoTypes.SelfExclusionFinishedSubject, clients.Key)?.Text;
                                 foreach (var c in clients)
                                 {
                                     try
@@ -1625,7 +1626,7 @@ namespace IqSoft.CP.JobService
                                             }
                                         }
                                     }
-                                    catch(Exception e)
+                                    catch (Exception e)
                                     { log.Info(e); }
                                     if (messageTemplate != null)
                                     {
@@ -1636,7 +1637,7 @@ namespace IqSoft.CP.JobService
                                                                      .Replace("{fn}", c.Client.FirstName)
                                                                      .Replace("{e}", c.Client.Email)
                                                                      .Replace("{m}", c.Client.MobileNumber);
-                                        notificationBl.SaveEmailMessage(c.Client.PartnerId, c.Client.Id, c.Client.Email, c.Client.Partner.Name, messageTextTemplate, messageTemplate.Id);
+                                        notificationBl.SaveEmailMessage(c.Client.PartnerId, c.Client.Id, c.Client.Email, subject, messageTextTemplate, messageTemplate.Id);
                                     }
                                     var oldSettings = JsonConvert.SerializeObject(clientBl.GetClientSettings(c.Client.Id, false));
                                     notificationBl.SaveChangesWithHistory((int)ObjectTypes.ClientSetting, c.Client.Id, oldSettings, "System");
@@ -1645,7 +1646,7 @@ namespace IqSoft.CP.JobService
                             }
                             db.SaveChanges();
                         }
-                   // add here insic broadcast
+                        // add here insic broadcast
                     }
                 }
             }
@@ -1724,7 +1725,7 @@ namespace IqSoft.CP.JobService
                     foreach (var c in clientIdenities)
                     {
                         var messageTemplate = db.fn_MessageTemplate(c.Client.LanguageId).Where(x => x.PartnerId == c.Client.PartnerId &&
-                                                                             x.ClientInfoType == (int)ClientInfoTypes.IdentityExpired && 
+                                                                             x.ClientInfoType == (int)ClientInfoTypes.IdentityExpired &&
                                                                              x.State == (int)MessageTemplateStates.Active).FirstOrDefault();
                         if (messageTemplate != null)
                         {
@@ -1754,11 +1755,12 @@ namespace IqSoft.CP.JobService
             {
                 var impossibleTriggerGroups = db.TriggerGroups.Where(x => (x.Type == (int)TriggerGroupType.All && x.TriggerGroupSettings.Any(y => y.TriggerSetting.FinishTime < currentDate)) ||
                 (x.Type == (int)TriggerGroupType.Any && x.TriggerGroupSettings.All(y => y.TriggerSetting.FinishTime < currentDate))).Select(x => x.Id).ToList();
-                db.Bonus.Where(x => x.Status == (int)BonusStatuses.Active && (x.FinishTime < currentDate ||
-                                   (x.MaxGranted.HasValue && x.TotalGranted >= x.MaxGranted) ||
-                                   (x.MaxReceiversCount.HasValue && x.TotalReceiversCount >= x.MaxReceiversCount) ||
-                                   (x.TriggerGroups.Any() && x.TriggerGroups.All(y => impossibleTriggerGroups.Contains(y.Id)))))
-                        .UpdateFromQuery(x => new Bonu { Status = (int)BonusStatuses.Inactive });
+                db.Bonus.Where(x => x.Status == (int)BonusStatuses.Active && 
+                    ((x.Type != (int)BonusTypes.Tournament && x.FinishTime < currentDate) ||
+                     (x.MaxGranted.HasValue && x.TotalGranted >= x.MaxGranted) ||
+                     (x.MaxReceiversCount.HasValue && x.TotalReceiversCount >= x.MaxReceiversCount) ||
+                     (x.TriggerGroups.Any() && x.TriggerGroups.All(y => impossibleTriggerGroups.Contains(y.Id)))))
+                .UpdateFromQuery(x => new Bonu { Status = (int)BonusStatuses.Inactive });
             }
         }
 
@@ -1768,7 +1770,7 @@ namespace IqSoft.CP.JobService
             {
                 var currentDate = DateTime.UtcNow;
                 var lostBonuses = db.ClientBonus.Where(x => x.Status == (int)ClientBonusStatuses.NotAwarded &&
-                (x.Bonu.Status != (int)BonusStatuses.Active || !x.Bonu.ValidForAwarding.HasValue || 
+                (x.Bonu.Status != (int)BonusStatuses.Active || !x.Bonu.ValidForAwarding.HasValue ||
                     DbFunctions.AddHours(x.CreationTime, x.Bonu.ValidForAwarding.Value) < currentDate ||
                 x.Bonu.FinishTime < currentDate)).ToList();
                 foreach (var b in lostBonuses)
@@ -1834,7 +1836,7 @@ namespace IqSoft.CP.JobService
                     var clientBonusTriggers = bonusTriggers.Where(x => x.BonusId == clientBonus.BonusId && x.ReuseNumber == clientBonus.ReuseNumber &&
                       (x.ClientId == clientBonus.ClientId || x.ClientId == null) &&
                       (x.BetCount == null || x.BetCount >= x.TriggerSetting.MinBetCount) &&
-                      (x.WageringAmount == null || x.WageringAmount >= Math.Floor(BaseBll.ConvertCurrency(partner.CurrencyId, 
+                      (x.WageringAmount == null || x.WageringAmount >= Math.Floor(BaseBll.ConvertCurrency(partner.CurrencyId,
                         clientBonus.Client.CurrencyId, x.TriggerSetting.MinAmount.Value) * 100) / 100m)).ToList();
 
                     var clientBonusTriggerIds = clientBonusTriggers.Select(x => x.TriggerId).ToList();
@@ -1897,8 +1899,8 @@ namespace IqSoft.CP.JobService
                                 if (count > 0 && db.ClientBonus.Count(x => x.ClientId == ab.ClientId &&
                                    (x.Status == (int)ClientBonusStatuses.Active || x.Status == (int)ClientBonusStatuses.Finished) &&
                                    (x.Bonu.Type == (int)BonusTypes.CampaignWagerCasino || x.Bonu.Type == (int)BonusTypes.CampaignWagerSport)) >= count)
-                                   throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.ClientAlreadyHasActiveBonus,
-                                       info: "AwardClientCampaignBonus_" + ab.Id + "_" + ab.ClientId);
+                                    throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.ClientAlreadyHasActiveBonus,
+                                        info: "AwardClientCampaignBonus_" + ab.Id + "_" + ab.ClientId);
 
                                 var bonusAmount = ab.PossibleBonusPrize.Value;
                                 using (var bonusService = new BonusService(new SessionIdentity(), log))
@@ -1928,7 +1930,7 @@ namespace IqSoft.CP.JobService
                         }
                         catch (FaultException<BllFnErrorType> ex)
                         {
-                            log.Error(JsonConvert.SerializeObject(new { Id = ex.Detail.Id, Message = ex.Detail.Message, Info = ex.Detail.Info }) + 
+                            log.Error(JsonConvert.SerializeObject(new { Id = ex.Detail.Id, Message = ex.Detail.Message, Info = ex.Detail.Info }) +
                                 "_" + JsonConvert.SerializeObject(new { ab.Id, ab.BonusId, ab.ClientId }));
                         }
                         catch (Exception ex)
@@ -1981,7 +1983,7 @@ namespace IqSoft.CP.JobService
             try
             {
                 var depositTriggers = new List<JobTrigger>();
-                using (var transactionScope = CommonFunctions.CreateTransactionScope())
+                using (var transactionScope = CommonFunctions.CreateTransactionScope()) // can be timeout from affiliate requests
                 {
                     using (var db = new IqSoftCorePlatformEntities())
                     {
@@ -1997,7 +1999,7 @@ namespace IqSoft.CP.JobService
                                 var client = CacheManager.GetClientById(trigger.ClientId);
                                 var depCount = CacheManager.GetClientDepositCount(trigger.ClientId);
 
-                                var isInternalAffiliate = clientBl.GiveAffiliateCommission(client, trigger.PaymentRequestId.Value, 
+                                var isInternalAffiliate = clientBl.GiveAffiliateCommission(client, trigger.PaymentRequestId.Value,
                                     trigger.PaymentRequest.PartnerPaymentSettingId.Value, depCount, trigger.Amount ?? 0, documentBl);
 
                                 var parameters = string.IsNullOrEmpty(trigger.PaymentRequest.Parameters) ? new Dictionary<string, string>() :
@@ -2005,14 +2007,37 @@ namespace IqSoft.CP.JobService
                                 if (!parameters.ContainsKey(nameof(trigger.PaymentRequest.BonusRefused)) ||
                                     !Convert.ToBoolean(parameters[nameof(trigger.PaymentRequest.BonusRefused)]))
                                     clientBl.CheckDepositBonus(trigger.PaymentRequest, bonusService);
-                                
+
                                 clientBl.ChangeClientDepositInfo(trigger.ClientId, depCount, trigger.PaymentRequest.Amount, trigger.PaymentRequest.LastUpdateTime);
+                                clientBl.AddClientJobTrigger(trigger.ClientId, (int)JobTriggerTypes.ReconsiderSegments);
+
+
                                 notificationBl.SendDepositNotification(client.Id, trigger.PaymentRequest.Status, trigger.Amount ?? 0, string.Empty);
-								var partnerKey = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.CRMPlarforms).StringValue;
-								if (!isInternalAffiliate || !string.IsNullOrWhiteSpace(partnerKey))
-                                    notificationBl.DepositAffiliateNotification(client, trigger.PaymentRequest.Amount, trigger.PaymentRequest.CreationTime,
-                                                                                              trigger.PaymentRequest.Id, depCount, partnerKey);
-								clientBl.AddClientJobTrigger(trigger.ClientId, (int)JobTriggerTypes.ReconsiderSegments);
+
+                                if (client.AffiliateReferralId.HasValue)
+                                {
+                                    var currentDate = DateTime.UtcNow;
+                                    var clientAffiliate = db.AffiliateReferrals.Include(x => x.AffiliatePlatform).FirstOrDefault(x => x.Id == client.AffiliateReferralId);
+                                    db.NotificationTriggers.Add(new NotificationTrigger
+                                    {
+                                        TriggerType = (int)NotificationTypes.Deposit,
+                                        PartnerId = client.PartnerId,
+                                        AffiliatePlatformId = clientAffiliate.AffiliatePlatformId,
+                                        AffiliateId = clientAffiliate.AffiliateId,
+                                        ClickId = clientAffiliate.RefId,
+                                        ClientId = client.Id,
+                                        CurrencyId = client.CurrencyId,
+                                        Amount = trigger.PaymentRequest.Amount,
+                                        DepositCount = depCount,
+                                        TransactionId = trigger.PaymentRequest.Id.ToString(),
+                                        CreationDate = currentDate,
+                                        LastUpdateDate = currentDate,
+                                        State = (int)NotificationStates.Pending
+                                    });
+                                }
+                                var partnerKey = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.CRMPlarforms).StringValue;
+                                if (!string.IsNullOrEmpty(partnerKey))
+                                    ;// do here crm brodcast with partnerKey checking						
                             }
                         }
                         db.JobTriggers.RemoveRange(depositTriggers);
@@ -2025,6 +2050,58 @@ namespace IqSoft.CP.JobService
             {
                 log.Error(ex);
             }
+        }
+
+        public static void NotifyAffiliator(ILog log)
+        {
+            var partnerKey = string.Empty;
+
+            List<NotificationTrigger> dbAffiliateTriggers = null;
+            using (var db = new IqSoftCorePlatformEntities())
+                dbAffiliateTriggers = db.NotificationTriggers.Include(x => x.AffiliatePlatform)
+                                                             .Where(x => x.State == (int)NotificationStates.Pending)
+                                                             .Take(1000).ToList();
+            using (var notificationBll = new NotificationBll(new SessionIdentity(), log))
+                foreach (var affTrigger in dbAffiliateTriggers)
+                {
+                    try
+                    {
+                        var affiliateData = new AffiliateData
+                        {
+                            PartnerId = affTrigger.PartnerId,
+                            AffiliatePlatformId = affTrigger.AffiliatePlatformId ?? 0,
+                            AffiliatePlatformName = affTrigger.AffiliatePlatform?.Name,
+                            AffiliatePlatId = affTrigger.AffiliateId,
+                            ClickId = affTrigger.ClickId,
+                            ClientId = affTrigger.ClientId,
+                            CurrencyId = affTrigger.CurrencyId,
+                            Amount = affTrigger.Amount,
+                            DepositCount = affTrigger.DepositCount,
+                            TransactionId = affTrigger.TransactionId,
+                            CreationDate = affTrigger.CreationDate,
+                        };
+
+                        try
+                        {
+                            var result = NotificationBll.NotifyAffiliator((NotificationTypes)affTrigger.TriggerType, affiliateData, log);
+                            notificationBll.UpdateNotificationStatus(affTrigger.Id, (int)NotificationStates.Sent, result);
+                        }
+                        catch (Exception ex)
+                        {
+                            notificationBll.UpdateNotificationStatus(affTrigger.Id, (int)NotificationStates.Failed, $"{affiliateData.AffiliatePlatformName}_{ex.Message}");
+                        }
+                        partnerKey = CacheManager.GetPartnerSettingByKey(affiliateData.PartnerId, Constants.PartnerKeys.CRMPlarforms).StringValue;
+                        if (!string.IsNullOrEmpty(partnerKey))
+                        {
+                            var res = NotificationBll.CrmNotification((NotificationTypes)affTrigger.TriggerType, affiliateData, log);
+                            notificationBll.UpdateNotificationStatus(affTrigger.Id, (int)NotificationStates.Sent, $"{partnerKey}_{res}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        notificationBll.UpdateNotificationStatus(affTrigger.Id, (int)NotificationStates.Failed, ex.Message);
+                    }
+                }
         }
 
         public static void ReconsiderDynamicSegments(ILog log)
@@ -2055,20 +2132,27 @@ namespace IqSoft.CP.JobService
                                     try
                                     {
                                         segId = s.Id ?? 0;
-                                        var sQuery = query.Where(x => (!s.IsKYCVerified.HasValue || x.IsDocumentVerified == s.IsKYCVerified) && (!s.Gender.HasValue || x.Gender == s.Gender));
+                                        var sQuery = query.Where(x => (!s.IsKYCVerified.HasValue || x.IsDocumentVerified == s.IsKYCVerified) &&
+                                                                      (!s.Gender.HasValue || x.Gender == s.Gender) &&
+                                                                      (!s.IsEmailVerified.HasValue || x.IsEmailVerified == s.IsEmailVerified.Value) &&
+                                                                      (!s.IsMobileNumberVerified.HasValue || x.IsMobileNumberVerified == s.IsMobileNumberVerified.Value));
 
                                         sQuery = CustomHelper.FilterByCondition(sQuery, s.ClientStatusSet, "State", isAndCondition: true);
                                         sQuery = CustomHelper.FilterByCondition(sQuery, s.ClientIdSet, "Id", isAndCondition: true);
                                         sQuery = CustomHelper.FilterByCondition(sQuery, s.EmailSet, "Email", isAndCondition: true);
                                         sQuery = CustomHelper.FilterByCondition(sQuery, s.FirstNameSet, "FirstName", isAndCondition: true);
                                         sQuery = CustomHelper.FilterByCondition(sQuery, s.LastNameSet, "LastName", isAndCondition: true);
-                                        sQuery = CustomHelper.FilterByCondition(sQuery, s.AffiliateIdSet, "AffiliateId", isAndCondition: true);
                                         sQuery = CustomHelper.FilterByCondition(sQuery, s.RegionSet, "RegionId", isAndCondition: true);
                                         sQuery = CustomHelper.FilterByCondition(sQuery, s.MobileCodeSet, "MobileNumber", isAndCondition: true);
 
-                                        // query = CustomHelper.FilterByCondition(clients, s.SessionPeriod, "ClientSession.StartTime"); // must be clarified
                                         if (s.SignUpPeriod != null && s.SignUpPeriodObject.ConditionItems.Any())
                                             sQuery = CustomHelper.FilterByCondition(sQuery, s.SignUpPeriodObject, "CreationTime");
+
+                                        if (s.AffiliateId != null && s.AffiliateIdObject.ConditionItems.Any())
+                                            sQuery = CustomHelper.FilterByCondition(sQuery, s.AffiliateIdObject, "AffiliateId");
+
+                                        if (s.AgentId != null && s.AgentIdObject.ConditionItems.Any())
+                                            sQuery = CustomHelper.FilterByCondition(sQuery, s.AgentIdObject, "UserId");
 
                                         var clientIds = sQuery.Select(x => x.Id).ToList();
                                         if (s.SessionPeriod != null && s.SessionPeriodObject.ConditionItems.Any())
@@ -2093,20 +2177,21 @@ namespace IqSoft.CP.JobService
                                                                 .GroupBy(x => new { x.ClientId, x.CurrencyId })
                                                                 .Select(x => new { x.Key.ClientId, Currency = x.Key.CurrencyId, Amount = x.Sum(y => y.Amount), Count = x.Count() })
                                                                 .ToList().Select(x => new { x.ClientId, Amount = BaseBll.ConvertCurrency(x.Currency, s.CurrencyId, x.Amount), x.Count });
-                                            var depQuery = dep.AsQueryable();
-                                            var queryIds = clientIds.Where(x => !dep.Any(y => y.ClientId == x))
-                                                                    .Select(x => new { ClientId = x, Count = 0, Amount = 0 }).AsQueryable();
-                                            queryIds = CustomHelper.FilterByCondition(queryIds, s.TotalDepositsAmountObject, "Amount");
-                                            queryIds = CustomHelper.FilterByCondition(queryIds, s.TotalDepositsCountObject, "Count");
                                             if (dep.Any())
                                             {
+                                                var depQuery = dep.AsQueryable();
                                                 depQuery = CustomHelper.FilterByCondition(depQuery, s.TotalDepositsAmountObject, "Amount");
                                                 depQuery = CustomHelper.FilterByCondition(depQuery, s.TotalDepositsCountObject, "Count");
+                                                dep = depQuery.ToList();
                                             }
-                                            var tmpIds = queryIds.ToList();
-                                            dep = depQuery.ToList();
+                                            var undepositedClients = clientIds.Where(x => !dep.Any(y => y.ClientId == x))
+                                                                    .Select(x => new { ClientId = x, Count = 0, Amount = 0m }).AsQueryable();
+                                            undepositedClients = CustomHelper.FilterByCondition(undepositedClients, s.TotalDepositsAmountObject, "Amount");
+                                            undepositedClients = CustomHelper.FilterByCondition(undepositedClients, s.TotalDepositsCountObject, "Count");
+                                            var undepositedClientsIds = undepositedClients.ToList();
+
                                             clientIds = clientIds.Where(x => dep.Any(y => y.ClientId == x) ||
-                                                                             tmpIds.Any(z => z.ClientId == x)).ToList();
+                                                                             undepositedClientsIds.Any(z => z.ClientId == x)).ToList();
                                         }
                                         if ((s.TotalWithdrawalsAmount != null && s.TotalWithdrawalsAmountObject.ConditionItems.Any()) ||
                                             (s.TotalWithdrawalsCount != null && s.TotalWithdrawalsCountObject.ConditionItems.Any()))
@@ -2116,33 +2201,31 @@ namespace IqSoft.CP.JobService
                                                                 .GroupBy(x => new { x.ClientId, x.CurrencyId })
                                                                 .Select(x => new { x.Key.ClientId, Currency = x.Key.CurrencyId, Amount = x.Sum(y => y.Amount), Count = x.Count() })
                                                                 .ToList().Select(x => new { x.ClientId, Amount = BaseBll.ConvertCurrency(x.Currency, s.CurrencyId, x.Amount), x.Count });
-                                            var withdQuery = withdIds.AsQueryable();
-                                            var queryIds = clientIds.Where(x => !withdIds.Any(y => y.ClientId == x))
-                                                                    .Select(x => new { ClientId = x, Count = 0, Amount = 0 }).AsQueryable();
-                                            queryIds = CustomHelper.FilterByCondition(queryIds, s.TotalWithdrawalsAmountObject, "Amount");
-                                            queryIds = CustomHelper.FilterByCondition(queryIds, s.TotalWithdrawalsCountObject, "Count");
-
                                             if (withdIds.Any())
                                             {
+                                                var withdQuery = withdIds.AsQueryable();
                                                 withdQuery = CustomHelper.FilterByCondition(withdQuery, s.TotalWithdrawalsAmountObject, "Amount");
                                                 withdQuery = CustomHelper.FilterByCondition(withdQuery, s.TotalWithdrawalsCountObject, "Count");
+                                                withdIds = withdQuery.ToList();
                                             }
+                                            var queryIds = clientIds.Where(x => !withdIds.Any(y => y.ClientId == x))
+                                                                    .Select(x => new { ClientId = x, Count = 0, Amount = 0m }).AsQueryable();
+                                            queryIds = CustomHelper.FilterByCondition(queryIds, s.TotalWithdrawalsAmountObject, "Amount");
+                                            queryIds = CustomHelper.FilterByCondition(queryIds, s.TotalWithdrawalsCountObject, "Count");
                                             var tmpIds = queryIds.ToList();
-                                            withdIds = withdQuery.ToList();
                                             clientIds = clientIds.Where(x => withdIds.Any(y => y.ClientId == x) ||
                                                                              tmpIds.Any(z => z.ClientId == x)).ToList();
                                         }
                                         if ((s.TotalBetsCount != null && s.TotalBetsCountObject.ConditionItems.Any()) ||
                                             (s.TotalBetsAmount != null && s.TotalBetsAmountObject.ConditionItems.Any()))
                                         {
-
                                             var totalBets = dwh.Bets.Where(x => clientIds.Contains(x.ClientId.Value) && x.BetAmount > 0 && x.State != (int)BetDocumentStates.Deleted)
                                                                    .GroupBy(x => new { x.ClientId, x.CurrencyId })
                                                                    .Select(x => new { x.Key.ClientId, Currency = x.Key.CurrencyId, Count = x.Count(), BetAmount = x.Sum(y => y.BetAmount) })
                                                                    .ToList().Select(x => new { x.ClientId, BetAmount = BaseBll.ConvertCurrency(x.Currency, s.CurrencyId, x.BetAmount), x.Count });
                                             var betsQuery = totalBets.AsQueryable();
                                             var queryIds = clientIds.Where(x => !totalBets.Any(y => y.ClientId == x))
-                                                                   .Select(x => new { ClientId = x, Count = 0, BetAmount = 0m }).AsQueryable();
+                                                                    .Select(x => new { ClientId = x, Count = 0, BetAmount = 0m }).AsQueryable();
 
                                             if (s.TotalBetsCount != null && s.TotalBetsCountObject.ConditionItems.Any())
                                             {
@@ -2180,14 +2263,6 @@ namespace IqSoft.CP.JobService
                                             clientIds = clientIds.Where(x => accounts.Any(y => y.ClientId == x) ||
                                                                              tmpIds.Any(z => z.ClientId == x)).ToList();
                                         }
-                                        if (s.SegmentId != null && s.SegmentIdSet.ConditionItems.Any())
-                                        {
-                                            var cs = db.ClientClassifications.Where(x => clientIds.Contains(x.ClientId) &&
-                                                                                         x.ProductId == Constants.PlatformProductId)
-                                                                             .Select(x => new { x.ClientId, SegmentId = x.SegmentId.Value });
-                                            CustomHelper.FilterByCondition(cs, s.SegmentIdSet, "SegmentId", isAndCondition: true);
-                                            clientIds = clientIds.Where(x => cs.Any(y => y.ClientId == x)).ToList();
-                                        }
                                         if (s.SportBetsCount != null && s.SportBetsCountObject.ConditionItems.Any())
                                         {
                                             var sportBetsQuery = dwh.Bets.Where(x => clientIds.Contains(x.ClientId.Value) &&
@@ -2198,13 +2273,13 @@ namespace IqSoft.CP.JobService
                                             var queryIds = clientIds.Where(x => !sportBets.Any(y => y.ClientId == x))
                                                                            .Select(x => new { ClientId = x, Count = 0 }).AsQueryable();
                                             queryIds = CustomHelper.FilterByCondition(queryIds, s.SportBetsCountObject, "Count");
+                                            var unplayedClientsIds = queryIds.ToList();
                                             if (sportBets.Any())
                                                 sportBetsQuery = CustomHelper.FilterByCondition(sportBetsQuery, s.SportBetsCountObject, "Count");
 
-                                            var tmpIds = queryIds.ToList();
                                             sportBets = sportBetsQuery.ToList();
                                             clientIds = clientIds.Where(x => sportBets.Any(y => y.ClientId == x) ||
-                                                                             tmpIds.Any(z => z.ClientId == x)).ToList();
+                                                                             unplayedClientsIds.Any(z => z.ClientId == x)).ToList();
                                         }
                                         if (s.CasinoBetsCount != null && s.CasinoBetsCountObject.ConditionItems.Any())
                                         {
@@ -2214,13 +2289,14 @@ namespace IqSoft.CP.JobService
                                                                     .Select(x => new { ClientId = x.Key, Count = x.Count() });
                                             var casinoBets = casinoBetsQuery.ToList();
                                             var queryIds = clientIds.Where(x => !casinoBets.Any(y => y.ClientId == x))
-                                                                           .Select(x => new { ClientId = x, Count = 0 }).AsQueryable();
+                                                                    .Select(x => new { ClientId = x, Count = 0 }).AsQueryable();
+                                            queryIds = CustomHelper.FilterByCondition(queryIds, s.SportBetsCountObject, "Count");
+                                            var unplayedClientsIds = queryIds.ToList();
                                             if (casinoBets.Any())
                                                 casinoBetsQuery = CustomHelper.FilterByCondition(casinoBetsQuery, s.CasinoBetsCountObject, "Count");
-                                            var tmpIds = queryIds.ToList();
                                             casinoBets = casinoBetsQuery.ToList();
                                             clientIds = clientIds.Where(x => casinoBets.Any(y => y.ClientId == x) ||
-                                                                             tmpIds.Any(z => z.ClientId == x)).ToList();
+                                                                             unplayedClientsIds.Any(z => z.ClientId == x)).ToList();
                                         }
                                         if (s.SuccessDepositPaymentSystemList != null && s.SuccessDepositPaymentSystemList.Any())
                                         {
@@ -2244,8 +2320,9 @@ namespace IqSoft.CP.JobService
                                             clientIds = clientIds.Where(x => tmpClientIds.Contains(x)).ToList();
                                         }
 
-                                        var existings = db.ClientClassifications.Where(x => clientIds.Contains(x.ClientId) &&
-                                            x.SegmentId == s.Id && x.ProductId == Constants.PlatformProductId).Select(x => x.ClientId);
+                                        var existings = db.ClientClassifications.Where(x => clientIds.Contains(x.ClientId) && x.SegmentId == s.Id &&
+                                                                                            x.ProductId == Constants.PlatformProductId)
+                                                                                .Select(x => x.ClientId).ToList();
                                         var notExistings = clientIds.Except(existings);
                                         var removables = query.Where(x => !clientIds.Contains(x.Id)).Select(x => x.Id).ToList();
                                         var clientSegments = notExistings.Select(x => new ClientClassification
@@ -2268,7 +2345,7 @@ namespace IqSoft.CP.JobService
                                                 ClientId = cs.ClientId,
                                                 Type = (int)JobTriggerTypes.FairSegmentTriggers,
                                                 SegmentId = cs.SegmentId
-                                            }, x => x.ClientId == cs.ClientId && x.Type == (int)JobTriggerTypes.FairSegmentTriggers);
+                                            }, x => x.ClientId == cs.ClientId && x.Type == (int)JobTriggerTypes.FairSegmentTriggers && x.SegmentId == cs.SegmentId);
                                         }
                                         db.SaveChanges();
 
@@ -2319,7 +2396,7 @@ namespace IqSoft.CP.JobService
                         if (client != null)
                             client.Amount -= (item.Amount ?? 0);
                         else
-                            clients.Add(new ClientOperation { ClientId = item.ClientId, Amount = -(item.Amount ?? 0) });
+                            clients.Add(new ClientOperation { ClientId = item.ClientId, Amount = -(item.Amount ?? 0), CurrencyId = item.Client.CurrencyId });
                     }
 
                     db.JobTriggers.RemoveRange(debitTriggers);
@@ -2329,8 +2406,8 @@ namespace IqSoft.CP.JobService
                     using (var clientBl = new ClientBll(new SessionIdentity(), log))
                     {
                         using (var documentBl = new DocumentBll(clientBl))
-						{
-							foreach (var client in clients)
+                        {
+                            foreach (var client in clients)
                             {
                                 if (client.Amount > 0)
                                 {
@@ -2380,33 +2457,33 @@ namespace IqSoft.CP.JobService
                                         };
                                         clientBl.CreateCreditCorrectionOnClient(coinCorrectionInput, documentBl, false);
                                     }
-								}
-								clientBl.AddClientJobTrigger(client.ClientId.Value, (int)JobTriggerTypes.ReconsiderSegments);
-								CacheManager.RemoveClientBalance(client.ClientId.Value);
+                                }
+                                clientBl.AddClientJobTrigger(client.ClientId.Value, (int)JobTriggerTypes.ReconsiderSegments);
+                                CacheManager.RemoveClientBalance(client.ClientId.Value);
                                 BroadcastRemoveCache(string.Format("{0}_{1}", Constants.CacheItems.ClientBalance, client.ClientId.Value));
                                 BaseHub.BroadcastBalance(client.ClientId.Value);
                                 var partnerSetting = CacheManager.GetConfigKey(client.PartnerId, Constants.PartnerKeys.CharactersEnabled);
                                 if (partnerSetting == "1")
                                 {
                                     var dbClient = db.Clients.Find(client.ClientId.Value);
-                                    if(dbClient.CharacterId != null)
-									{
-										var compPoints = db.Accounts.FirstOrDefault(x => x.ObjectId == client.ClientId && x.ObjectTypeId == (int)ObjectTypes.Client &&
-																						 x.CurrencyId == client.CurrencyId && x.TypeId == (int)AccountTypes.ClientCompBalance);
-										if (compPoints != null && compPoints.Balance != 0)
+                                    if (dbClient.CharacterId != null)
+                                    {
+                                        var compPoints = db.Accounts.FirstOrDefault(x => x.ObjectId == client.ClientId && x.ObjectTypeId == (int)ObjectTypes.Client &&
+                                                                                         x.CurrencyId == client.CurrencyId && x.TypeId == (int)AccountTypes.ClientCompBalance);
+                                        if (compPoints != null && compPoints.Balance != 0)
                                         {
                                             var characters = CacheManager.GetCharacters(dbClient.PartnerId, dbClient.LanguageId);
-											var currentCharachter = characters.FirstOrDefault(x => x.Id == dbClient.CharacterId);
-											var nextCharacter = characters.Where(x => x.ParentId == currentCharachter.ParentId && x.Order > currentCharachter.Order)
+                                            var currentCharachter = characters.FirstOrDefault(x => x.Id == dbClient.CharacterId);
+                                            var nextCharacter = characters.Where(x => x.ParentId == currentCharachter.ParentId && x.Order > currentCharachter.Order)
                                                                           .OrderBy(y => y.Order).FirstOrDefault();
-											if (nextCharacter != null && compPoints.Balance >= nextCharacter.CompPoints)
-											{
-												dbClient.CharacterId = nextCharacter.Id;
-												db.SaveChanges();
-												CacheManager.RemoveClientFromCache(client.ClientId.Value);
-											}
-										}
-									}
+                                            if (nextCharacter != null && compPoints.Balance >= nextCharacter.CompPoints)
+                                            {
+                                                dbClient.CharacterId = nextCharacter.Id;
+                                                db.SaveChanges();
+                                                CacheManager.RemoveClientFromCache(client.ClientId.Value);
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -2427,7 +2504,7 @@ namespace IqSoft.CP.JobService
                 var toTime = DateTime.UtcNow.AddMinutes(-15);
                 var fromTime = toTime.AddDays(-15);
                 unsettleBets = db.Documents.Where(x => x.OperationTypeId == (int)OperationTypes.Bet && x.State == (int)BetDocumentStates.Uncalculated &&
-                    x.CreationTime >= fromTime && x.CreationTime < toTime && 
+                    x.CreationTime >= fromTime && x.CreationTime < toTime &&
                     (x.Product.CategoryId == (int)ProiductCategories.Slots || x.Product.CategoryId == (int)ProiductCategories.CrashGames)).Select(x => x.Id).Take(1000).ToList();
             }
             if (unsettleBets.Any())
@@ -2510,6 +2587,7 @@ namespace IqSoft.CP.JobService
             try
             {
                 using (var db = new IqSoftCorePlatformEntities())
+                using (var clientBl = new ClientBll(new SessionIdentity(), log))
                 {
                     var currentDateTime = DateTime.UtcNow;
                     var currentDate = currentDateTime.Year * (long)100000000 + currentDateTime.Month * 1000000 + currentDateTime.Day * 10000 +
@@ -2532,14 +2610,14 @@ namespace IqSoft.CP.JobService
                             }
                             else
                             {
-                                similiarClients = dwh.Clients.Where(x => x.Id != client.Id && x.PartnerId == x.PartnerId &&
-                                                     ((!string.IsNullOrEmpty(client.FirstName) &&  x.FirstName == client.FirstName &&
+                                similiarClients = dwh.Clients.Where(x => x.Id != client.Id && x.PartnerId == client.PartnerId &&
+                                                     ((!string.IsNullOrEmpty(client.FirstName) && x.FirstName == client.FirstName &&
                                                        !string.IsNullOrEmpty(client.LastName) && x.LastName == client.LastName) ||
-                                                      (!string.IsNullOrEmpty(client.Email) &&  x.Email == client.Email) ||
+                                                      (!string.IsNullOrEmpty(client.Email) && x.Email == client.Email) ||
                                                       (!string.IsNullOrEmpty(client.MobileNumber) && x.MobileNumber == client.MobileNumber) ||
                                                       (!string.IsNullOrEmpty(client.Address) && x.Address == client.Address))).Select(x => x.Id).ToList();
                                 matchedData = JsonConvert.SerializeObject(new { client.FirstName, client.LastName, client.Email, client.MobileNumber, client.Address });
-                            }                           
+                            }
 
                             similiarClients.ForEach(mc =>
                             {
@@ -2567,7 +2645,12 @@ namespace IqSoft.CP.JobService
                                     });
                                     dwh.SaveChanges();
                                 }
+                                dbMatchedData = dwh.DuplicatedClients.Include(x => x.DuplicatedClientHistories)
+                                                                     .FirstOrDefault(x => x.ClientId == mc && x.DuplicatedClientId == t.ClientId);
+                                clientBl.SaveClientSetting(t.ClientId, Constants.ClientSettings.Duplicated, "1", 1, null);
+                                clientBl.SaveClientSetting(mc, Constants.ClientSettings.Duplicated, "1", 1, null);
                             });
+
                         }
                     }
                     db.JobTriggers.RemoveRange(triggers);
@@ -2596,11 +2679,11 @@ namespace IqSoft.CP.JobService
                 try
                 {
                     using (var db = new IqSoftCorePlatformEntities())
-                    { 
+                    {
                         var dbBonus = db.Bonus.First(x => x.Id == bonusId);
                         var clientBonuses = db.ClientBonus.Where(x => x.BonusId == bonusId &&
                             x.Status == (int)ClientBonusStatuses.Active && x.Considered != true).ToList();
-                        var bonusProducts = db.BonusProducts.Where(x => x.Product.GameProvider != null &&
+                        var bonusProductsByProvider = db.BonusProducts.Where(x => x.Product.GameProvider != null &&
                                                                         x.Product.FreeSpinSupport.HasValue && x.BonusId == bonusId &&
                                                                         x.Product.FreeSpinSupport.Value && x.Count > 0)
                                                             .GroupBy(x => x.Product.GameProvider.Name)
@@ -2615,13 +2698,13 @@ namespace IqSoft.CP.JobService
                                                                     y.Lines,
                                                                     y.Coins,
                                                                     y.CoinValue,
-                                                                    y.BetValueLevel
+                                                                    y.BetValues
                                                                 }).ToList()
                                                             }).ToList();
 
-                       
 
-                        if (!bonusProducts.Any())
+
+                        if (!bonusProductsByProvider.Any())
                         {
                             clientBonuses.All(x =>
                             {
@@ -2645,12 +2728,13 @@ namespace IqSoft.CP.JobService
                                         continue;
                                     }
                                 }
-                                bonusProducts.ForEach(x =>
+                                bool granted = false;
+                                bonusProductsByProvider.ForEach(x =>
                                 {
                                     var freespinModel = new FreeSpinModel
                                     {
                                         ClientId = clientBonus.ClientId,
-                                        BonusId = bonusId,
+                                        BonusId = clientBonus.Id,
                                         StartTime = currentDate,
                                         FinishTime = currentDate.AddHours(dbBonus.ValidForSpending.Value),
                                     };
@@ -2666,15 +2750,15 @@ namespace IqSoft.CP.JobService
                                                     freespinModel.Lines = y.Lines;
                                                     freespinModel.Coins = y.Coins;
                                                     freespinModel.CoinValue = y.CoinValue;
-                                                    freespinModel.BetValueLevel = y.BetValueLevel;
-                                                    Integration.Products.Helpers.IqSoftHelpers.AddFreeRound(freespinModel);
+                                                    freespinModel.BetValues = y.BetValues;
+                                                    if (Integration.Products.Helpers.IqSoftHelpers.AddFreeRound(freespinModel, log))
+                                                        granted = true;
                                                 });
+
                                                 break;
                                             case Constants.GameProviders.TwoWinPower:
                                                 Integration.Products.Helpers.TwoWinPowerHelpers.SetFreespin(clientBonus.ClientId, clientBonus.Id, bonusId, log);
-                                                break;
-                                            case Constants.GameProviders.OutcomeBet:
-                                            case Constants.GameProviders.Mascot:
+                                                granted = true;
                                                 break;
                                             case Constants.GameProviders.BlueOcean:
                                                 var productsBySpin = x.Products.GroupBy(s => s.SpinCount)
@@ -2684,6 +2768,7 @@ namespace IqSoft.CP.JobService
                                                     Integration.Products.Helpers.BlueOceanHelpers.AddFreeRound(clientBonus.ClientId, p.ExternalIds, Convert.ToInt32(p.SpinCount),
                                                         currentDate, currentDate.AddHours(dbBonus.ValidForSpending.Value));
                                                 }
+                                                granted = true;
                                                 break;
                                             case Constants.GameProviders.SoftGaming:
                                                 x.Products.ForEach(y =>
@@ -2691,27 +2776,33 @@ namespace IqSoft.CP.JobService
                                                     freespinModel.ProductExternalId = y.ExternalId;
                                                     freespinModel.ProductId = y.ProductId;
                                                     freespinModel.SpinCount = Convert.ToInt32(y.SpinCount);
-                                                    freespinModel.BetValueLevel = y.BetValueLevel;
-                                                    freespinModel.BonusId = clientBonus.Id;//Change for all providers
-                                                    Integration.Products.Helpers.SoftGamingHelpers.AddFreeRound(freespinModel, log);
+                                                    freespinModel.BetValues = y.BetValues;
+                                                    if (Integration.Products.Helpers.SoftGamingHelpers.AddFreeRound(freespinModel, log))
+                                                        granted = true;
                                                 });
                                                 break;
                                             case Constants.GameProviders.PragmaticPlay:
-                                                var pragmaticPlayBySpin = x.Products.GroupBy(s => s.SpinCount)
-                                                .Select(s => new { SpinCount = s.Key, ExternalIds = s.Select(e => e.ExternalId).ToList() });
-                                                foreach (var p in pragmaticPlayBySpin)
+                                                x.Products.ForEach(y =>
                                                 {
-                                                    Integration.Products.Helpers.PragmaticPlayHelpers.AddFreeRound(clientBonus.ClientId, p.ExternalIds, Convert.ToInt32(p.SpinCount),
-                                                      clientBonus.Id, currentDate, currentDate.AddHours(dbBonus.ValidForSpending.Value));
-                                                }
+                                                    freespinModel.ProductExternalId = y.ExternalId;
+                                                    freespinModel.ProductId = y.ProductId;
+                                                    freespinModel.SpinCount = Convert.ToInt32(y.SpinCount);
+                                                    freespinModel.BetValues = y.BetValues;
+                                                    if (Integration.Products.Helpers.PragmaticPlayHelpers.AddFreeRound(freespinModel, log))
+                                                        granted = true;
+                                                });
                                                 break;
                                             case Constants.GameProviders.Habanero:
                                                 var habaneroBySpin = x.Products.GroupBy(s => s.SpinCount)
                                                .Select(s => new { SpinCount = s.Key, ExternalIds = s.Select(e => e.ExternalId).ToList() });
+
                                                 foreach (var p in habaneroBySpin)
                                                 {
-                                                    Integration.Products.Helpers.HabaneroHelpers.AddFreeRound(clientBonus.ClientId, p.ExternalIds, Convert.ToInt32(p.SpinCount),
-                                                    currentDate, currentDate.AddHours(dbBonus.ValidForSpending.Value));
+                                                    freespinModel.ProductExternalIds = p.ExternalIds;
+                                                    freespinModel.StartTime = currentDate;
+                                                    freespinModel.FinishTime = currentDate.AddHours(dbBonus.ValidForSpending.Value);
+                                                    if (Integration.Products.Helpers.HabaneroHelpers.AddFreeRound(freespinModel, log))
+                                                        granted = true;
                                                 }
                                                 break;
                                             case Constants.GameProviders.BetSoft:
@@ -2719,8 +2810,12 @@ namespace IqSoft.CP.JobService
                                                    .Select(s => new { SpinCount = s.Key, ExternalIds = s.Select(e => e.ExternalId).ToList() });
                                                 foreach (var p in betSoftBySpin)
                                                 {
-                                                    Integration.Products.Helpers.BetSoftHelpers.AddFreeRound(clientBonus.ClientId, p.ExternalIds, Convert.ToInt32(p.SpinCount), bonusId,
-                                                    currentDate, currentDate.AddHours(dbBonus.ValidForSpending.Value));
+                                                    freespinModel.ProductExternalIds = p.ExternalIds;
+                                                    freespinModel.StartTime = currentDate;
+                                                    freespinModel.FinishTime = currentDate.AddHours(dbBonus.ValidForSpending.Value);
+                                                    freespinModel.BonusId = clientBonus.Id;
+                                                    if (Integration.Products.Helpers.BetSoftHelpers.AddFreeRound(freespinModel, log))
+                                                        granted = true;
                                                 }
                                                 break;
                                             case Constants.GameProviders.SoftSwiss:
@@ -2728,9 +2823,15 @@ namespace IqSoft.CP.JobService
                                                    .Select(s => new { SpinCount = s.Key, ExternalIds = s.Select(e => e.ExternalId).ToList() });
                                                 foreach (var p in softSwissBySpin)
                                                 {
-                                                    Integration.Products.Helpers.SoftSwissHelpers.AddFreeRound(clientBonus.ClientId, clientBonus.Id, p.ExternalIds, Convert.ToInt32(p.SpinCount),
-                                                                                                               currentDate.AddHours(dbBonus.ValidForSpending.Value), log);
+                                                    freespinModel.ProductExternalIds = p.ExternalIds;
+                                                    freespinModel.StartTime = currentDate;
+                                                    freespinModel.FinishTime = currentDate.AddHours(dbBonus.ValidForSpending.Value);
+                                                    freespinModel.BonusId = clientBonus.Id;
+                                                    freespinModel.SpinCount = Convert.ToInt32(p.SpinCount);
+                                                    if (Integration.Products.Helpers.SoftSwissHelpers.AddFreeRound(freespinModel, log))
+                                                        granted = true;
                                                 }
+
                                                 break;
                                             case Constants.GameProviders.EveryMatrix:
                                                 x.Products.ForEach(y =>
@@ -2740,9 +2841,9 @@ namespace IqSoft.CP.JobService
                                                     freespinModel.Lines = y.Lines;
                                                     freespinModel.Coins = y.Coins;
                                                     freespinModel.CoinValue = y.CoinValue;
-                                                    freespinModel.BetValueLevel = y.BetValueLevel;
-                                                    freespinModel.BonusId = clientBonus.Id;
-                                                    Integration.Products.Helpers.EveryMatrixHelpers.AwardFreeSpin(freespinModel, log);
+                                                    freespinModel.BetValues = y.BetValues;
+                                                    if (Integration.Products.Helpers.EveryMatrixHelpers.AwardFreeSpin(freespinModel, log))
+                                                        granted = true;
                                                 });
                                                 break;
                                             case Constants.GameProviders.PlaynGo:
@@ -2753,68 +2854,46 @@ namespace IqSoft.CP.JobService
                                                     freespinModel.Lines = y.Lines;
                                                     freespinModel.Coins = y.Coins;
                                                     freespinModel.CoinValue = y.CoinValue;
-                                                    freespinModel.BetValueLevel = y.BetValueLevel;
-                                                    freespinModel.BonusId = clientBonus.Id;
+                                                    freespinModel.BetValues = y.BetValues;
                                                     Integration.Products.Helpers.PlaynGoHelpers.AddFreeRound(freespinModel, log);
                                                 });
+                                                granted = true;
                                                 break;
                                             case Constants.GameProviders.AleaPlay:
                                                 x.Products.ForEach(y =>
                                                 {
                                                     freespinModel.ProductExternalId = y.ExternalId;
                                                     freespinModel.SpinCount = Convert.ToInt32(y.SpinCount);
-                                                    freespinModel.BetValueLevel = y.BetValueLevel;
-                                                    freespinModel.BonusId = clientBonus.Id;
-                                                    Integration.Products.Helpers.AleaPlayHelpers.AddFreeRound(freespinModel, log);
+                                                    freespinModel.BetValues = y.BetValues;
+                                                    if (Integration.Products.Helpers.AleaPlayHelpers.AddFreeRound(freespinModel, log))
+                                                        granted = true;
                                                 });
                                                 break;
                                             case Constants.GameProviders.TimelessTech:
-                                                x.Products.ForEach(y =>
-                                                {
-                                                    freespinModel.ProductExternalId = y.ExternalId;
-                                                    freespinModel.SpinCount = Convert.ToInt32(y.SpinCount);
-                                                    freespinModel.BonusId = clientBonus.Id;
-                                                    freespinModel.BetValueLevel = y.BetValueLevel;
-                                                    Integration.Products.Helpers.TimelessTechHelpers.CreateCampaign(freespinModel, Constants.GameProviders.TimelessTech, log);
-                                                });
-                                                break;
                                             case Constants.GameProviders.BCWGames:
-                                                x.Products.ForEach(y =>
+                                                foreach (var y in x.Products)
                                                 {
                                                     freespinModel.ProductExternalId = y.ExternalId;
                                                     freespinModel.SpinCount = Convert.ToInt32(y.SpinCount);
-                                                    freespinModel.BonusId = clientBonus.Id;
-                                                    freespinModel.BetValueLevel = y.BetValueLevel;
-                                                    Integration.Products.Helpers.TimelessTechHelpers.CreateCampaign(freespinModel, Constants.GameProviders.BCWGames, log);
-                                                });
+                                                    freespinModel.BetValues = y.BetValues;
+                                                    if (Integration.Products.Helpers.TimelessTechHelpers.CreateCampaign(freespinModel, x.GameProviderName, log))
+                                                        granted = true;
+                                                }
                                                 break;
                                             case Constants.GameProviders.Endorphina:
                                                 x.Products.ForEach(y =>
                                                 {
                                                     freespinModel.ProductExternalId = y.ExternalId;
                                                     freespinModel.SpinCount = Convert.ToInt32(y.SpinCount);
-                                                    freespinModel.BetValueLevel = y.BetValueLevel;
+                                                    freespinModel.BetValues = y.BetValues;
                                                     freespinModel.CoinValue = y.CoinValue;
-                                                    freespinModel.BonusId = clientBonus.Id;
-                                                    Integration.Products.Helpers.EndorphinaHelpers.AddFreeRound(freespinModel, log);
+                                                    if (Integration.Products.Helpers.EndorphinaHelpers.AddFreeRound(freespinModel, log))
+                                                        granted = true;
                                                 });
                                                 break;
-
                                             default:
                                                 break;
                                         }
-
-                                        var spc = x.Products.Sum(b => b.SpinCount);
-
-                                        if (dbBonus.Type == (int)BonusTypes.CampaignFreeSpin)
-                                        {
-                                            clientBonus.Status = (int)ClientBonusStatuses.Finished;
-                                            dbBonus.TotalGranted += spc;
-                                            ++dbBonus.TotalReceiversCount;
-                                            clientBonus.BonusPrize = spc;
-                                        }
-                                        clientBonus.Considered = true;
-                                        db.SaveChanges();
                                     }
                                     catch (FaultException<BllFnErrorType> ex)
                                     {
@@ -2827,6 +2906,22 @@ namespace IqSoft.CP.JobService
                                             clientBonus.Id + "_" + x.GameProviderName + "_" + e.Message);
                                     }
                                 });
+
+                                if (dbBonus.Type == (int)BonusTypes.CampaignFreeSpin)
+                                {
+                                    if (granted)
+                                    {
+                                        var spc = bonusProductsByProvider.Sum(x => x.Products.Sum(b => b.SpinCount));
+                                        clientBonus.Status = (int)ClientBonusStatuses.Finished;
+                                        dbBonus.TotalGranted += spc;
+                                        ++dbBonus.TotalReceiversCount;
+                                        clientBonus.BonusPrize = spc;
+                                    }
+                                    else
+                                        clientBonus.Status = (int)ClientBonusStatuses.Inactive;
+                                }
+                                clientBonus.Considered = true;
+                                db.SaveChanges();
                             }
                         }
                     }
@@ -2869,7 +2964,7 @@ namespace IqSoft.CP.JobService
 
                 using (var dwh = new IqSoftDataWarehouseEntities())
                 {
-                    newBets = dwh.Bets.Where(x => x.Id > lastConsideredBetId.Value).Take(5000).ToList();
+                    newBets = dwh.Bets.Where(x => x.ClientId != null && x.Id > lastConsideredBetId.Value).OrderBy(x => x.Id).Take(5000).ToList();
                     deletedBets = dwh.Bets.Where(x => x.ClientId != null && x.Id <= lastConsideredBetId.Value &&
                         x.LastUpdateTime > lastExecutionTime && x.State == (int)BetDocumentStates.Deleted).ToList();
                 }
@@ -2917,7 +3012,7 @@ namespace IqSoft.CP.JobService
                 var newBets = new List<Bet>();
                 using (var dwh = new IqSoftDataWarehouseEntities())
                 {
-                    newBets = dwh.Bets.Where(x => x.Id > lastConsideredBetId.Value).Take(5000).ToList();
+                    newBets = dwh.Bets.Where(x => x.Id > lastConsideredBetId.Value).OrderBy(x => x.Id).Take(5000).ToList();
                 }
                 using (var transactionScope = CommonFunctions.CreateTransactionScope())
                 {
@@ -2944,34 +3039,33 @@ namespace IqSoft.CP.JobService
             }
         }
 
-        public static void BroadcastBets(DateTime lastExecutionTime, ILog log) // Change to RabbitMQ
+        public static void BroadcastBets(ILog log) // Change to RabbitMQ
         {
             try
             {
-                long? lastConsideredBetId = null;
+                PartnerKey lastConsideredBet = null;
                 using (var partnerBl = new PartnerBll(new SessionIdentity(), log))
                 {
-                    var pk = partnerBl.GetPartnerKey(null, Constants.PartnerKeys.LastBroadcastedBetId);
-                    if (pk != null && pk.NumericValue != null)
-                        lastConsideredBetId = Convert.ToInt64(pk.NumericValue.Value);
+                    lastConsideredBet = partnerBl.GetPartnerKey(null, Constants.PartnerKeys.LastBroadcastedBet);
                 }
-                if (lastConsideredBetId == null) return;
+                if (lastConsideredBet == null)
+                    return;
 
+                var minDate = lastConsideredBet.DateValue ?? DateTime.MinValue;
                 var bets = new List<Bet>();
-                long maxId = 0;
+                DateTime? maxTime = null;
                 using (var dwh = new IqSoftDataWarehouseEntities())
                 {
-                    bets = dwh.Bets.Where(x => x.Id > lastConsideredBetId.Value).Take(5000).ToList();
+                    bets = dwh.Bets.Where(x => x.CalculationTime > minDate).OrderBy(x => x.CalculationTime).ThenBy(x => x.Id).Take(5000).ToList();
                     if (bets.Any())
-                        maxId = bets.Max(x => x.Id);
-
-                    var wonBets = dwh.Bets.Where(x => x.State == (int)BetDocumentStates.Won && x.CalculationTime != null &&
-                        x.CalculationTime.Value > lastExecutionTime).ToList();
-                    if (wonBets.Any())
-                        bets.AddRange(wonBets);
+                    {
+                        maxTime = bets.Max(x => x.CalculationTime);
+                        var maxId = bets.Max(x => x.Id);
+                        bets.AddRange(dwh.Bets.Where(x => x.CalculationTime == maxTime && x.Id > maxId).ToList());
+                    }
                 }
 
-                var groupedBets = bets.GroupBy(x => x.PartnerId).ToList();
+                var groupedBets = bets.Where(x => x.PartnerId != null).GroupBy(x => x.PartnerId).ToList();
                 Parallel.ForEach(groupedBets, partnerBets =>
                 {
                     var verificationPlatform = CacheManager.GetConfigKey(partnerBets.Key.Value, Constants.PartnerKeys.VerificationPlatform);
@@ -2981,38 +3075,36 @@ namespace IqSoft.CP.JobService
                         {
                             case (int)VerificationPlatforms.KRA:
                                 var kraBets = new List<Integration.Platforms.Models.KRA.BetItem>();
-                                foreach (var bet in partnerBets)
+                                var sportBets = partnerBets.Where(x => x.ProductId == Constants.SportsbookProductId && x.ClientId != null).ToList();
+                                foreach (var bet in sportBets)
                                 {
-                                    if (!bet.ClientId.HasValue)
-                                        continue;
                                     kraBets.Add(new Integration.Platforms.Models.KRA.BetItem
                                     {
                                         BetId = bet.Id,
                                         ClientId = bet.ClientId.Value,
-                                        IsSport = bet.ProductId == Constants.SportsbookProductId,
+                                        IsSport = true,
                                         BetAmount = bet.BetAmount,
                                         WinAmount = bet.WinAmount,
                                         Coefficent = bet.Coefficient ?? 0,
-                                        CurrentBalance = 0,
+                                        CurrentBalance = CacheManager.GetClientCurrentBalance(bet.ClientId.Value).AvailableBalance,
                                         PlacementTime = bet.BetTime,
                                         CalculationDate = bet.CalculationTime
                                     });
                                 }
                                 if (kraBets.Any())
-                                    KRAHelpers.SendBetsInfo(partnerBets.Key.Value, kraBets, log);
+                                    KRAHelpers.BroadcastBettingReport(partnerBets.Key.Value, kraBets, log);
                                 break;
                             default:
                                 break;
                         }
                     }
                 });
-
-                if (maxId > 0)
+                if (maxTime != null)
                 {
                     using (var partnerBl = new PartnerBll(new SessionIdentity(), log))
                     {
-                        var pk = partnerBl.GetPartnerKey(null, Constants.PartnerKeys.LastBroadcastedBetId);
-                        pk.NumericValue = maxId;
+                        var pk = partnerBl.GetPartnerKey(null, Constants.PartnerKeys.LastBroadcastedBet);
+                        pk.DateValue = maxTime.Value;
                         partnerBl.UpdatePartnerKey(pk);
                     }
                 }
@@ -3021,8 +3113,7 @@ namespace IqSoft.CP.JobService
             {
                 log.Error(ex);
             }
-        } 
-
+        }
         #endregion
     }
 }

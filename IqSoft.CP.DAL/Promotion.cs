@@ -17,9 +17,9 @@ namespace IqSoft.CP.DAL
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public Promotion()
         {
-            this.PromotionSegmentSettings = new HashSet<PromotionSegmentSetting>();
-            this.PromotionLanguageSettings = new HashSet<PromotionLanguageSetting>();
             this.Promotion1 = new HashSet<Promotion>();
+            this.PromotionLanguageSettings = new HashSet<PromotionLanguageSetting>();
+            this.PromotionSegmentSettings = new HashSet<PromotionSegmentSetting>();
         }
     
         public int Id { get; set; }
@@ -39,17 +39,18 @@ namespace IqSoft.CP.DAL
         public Nullable<int> ParentId { get; set; }
         public string StyleType { get; set; }
         public Nullable<int> DeviceType { get; set; }
+        public string Visibility { get; set; }
     
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PromotionSegmentSetting> PromotionSegmentSettings { get; set; }
         public virtual Partner Partner { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PromotionLanguageSetting> PromotionLanguageSettings { get; set; }
         public virtual Translation Translation { get; set; }
         public virtual Translation Translation1 { get; set; }
-        public virtual Translation Translation2 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Promotion> Promotion1 { get; set; }
         public virtual Promotion Promotion2 { get; set; }
+        public virtual Translation Translation2 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PromotionLanguageSetting> PromotionLanguageSettings { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PromotionSegmentSetting> PromotionSegmentSettings { get; set; }
     }
 }

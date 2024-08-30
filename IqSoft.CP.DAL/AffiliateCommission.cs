@@ -27,7 +27,7 @@ namespace IqSoft.CP.DAL
         public Nullable<int> DepositCount { get; set; }
     
         public virtual Affiliate Affiliate { get; set; }
-        public virtual Currency Currency { get; set; }
         public virtual Product Product { get; set; }
+        public virtual Currency Currency { get; set; }
     }
 }

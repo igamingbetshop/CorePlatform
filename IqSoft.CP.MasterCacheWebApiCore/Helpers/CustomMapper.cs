@@ -74,7 +74,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Helpers
                 RegistrationIp = client.Ip,
                 DocumentType = client.DocumentType,
                 DocumentNumber = client.DocumentNumber,
-                PhoneNumber = client.PhoneNumber,
+                PhoneNumber = client.MobileCode,
                 DocumentIssuedBy = client.DocumentIssuedBy,
                 Address = client.Address,
                 MobileNumber = string.IsNullOrWhiteSpace(client.MobileNumber) ? string.Empty : (client.MobileNumber.StartsWith("+") ? client.MobileNumber : "+" + client.MobileNumber),

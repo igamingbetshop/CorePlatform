@@ -271,7 +271,9 @@
     <Compile Include="Controllers\FreelancemeController.cs" />
     <Compile Include="Controllers\FugaPayController.cs" />
     <Compile Include="Controllers\GatewayPayController.cs" />
+    <Compile Include="Controllers\GetaPayController.cs" />
     <Compile Include="Controllers\GumballPayController.cs" />
+    <Compile Include="Controllers\HuchController.cs" />
     <Compile Include="Controllers\ImpayaController.cs" />
     <Compile Include="Controllers\InstapayController.cs" />
     <Compile Include="Controllers\InteracController.cs" />
@@ -281,14 +283,21 @@
     <Compile Include="Controllers\JazzCashierController.cs" />
     <Compile Include="Controllers\JetonController.cs" />
     <Compile Include="Controllers\JetonHavaleController.cs" />
-    <Compile Include="Controllers\JmitsolutionsController.cs" />
+    <Compile Include="Controllers\JmitSolutionsController.cs" />
+    <Compile Include="Controllers\KatarunController.cs" />
     <Compile Include="Controllers\KralPayController.cs" />
+    <Compile Include="Controllers\LiberSaveController.cs" />
     <Compile Include="Controllers\LuckyPayController.cs" />
     <Compile Include="Controllers\MaldoPayController.cs" />
     <Compile Include="Controllers\MaxPayController.cs" />
+    <Compile Include="Controllers\MPayController.cs" />
+    <Compile Include="Controllers\MpesaController.cs" />
     <Compile Include="Controllers\NgineController.cs" />
     <Compile Include="Controllers\MifinityController.cs" />
+    <Compile Include="Controllers\NixxeController.cs" />
     <Compile Include="Controllers\NodaPayController.cs" />
+    <Compile Include="Controllers\OmerController.cs" />
+    <Compile Include="Controllers\OmnoController.cs" />
     <Compile Include="Controllers\OptimumWayController.cs" />
     <Compile Include="Controllers\OktoPayController.cs" />
     <Compile Include="Controllers\PayladoController.cs" />
@@ -296,6 +305,7 @@
     <Compile Include="Controllers\PaymentController.cs" />
     <Compile Include="Controllers\PaymentIQCashierController.cs" />
     <Compile Include="Controllers\PaymentIQController.cs" />
+    <Compile Include="Controllers\PayStageController.cs" />
     <Compile Include="Controllers\PremierCashierController.cs" />
     <Compile Include="Controllers\QuikiPayController.cs" />
     <Compile Include="Controllers\SantimaPayController.cs" />
@@ -331,6 +341,7 @@
     <Compile Include="Controllers\PayBoxController.cs" />
     <Compile Include="Controllers\QiwiController.cs" />
     <Compile Include="Controllers\SkrillController.cs" />
+    <Compile Include="Controllers\WzrdPayController.cs" />
     <Compile Include="Controllers\XprizoController.cs" />
     <Compile Include="Controllers\YaspaController.cs" />
     <Compile Include="Controllers\ZippyController.cs" />
@@ -341,6 +352,7 @@
     <Compile Include="Helpers\Help2PayHelpers.cs" />
     <Compile Include="Helpers\Kassa24Helpers.cs" />
     <Compile Include="Helpers\KazPostHelpers.cs" />
+    <Compile Include="Helpers\MpesaHelpers.cs" />
     <Compile Include="Helpers\NgineHelpers.cs" />
     <Compile Include="Helpers\PayBoxHelpers.cs" />
     <Compile Include="Helpers\PaymentHelpers.cs" />
@@ -393,7 +405,9 @@
     <Compile Include="Models\Flexepin\BaseData.cs" />
     <Compile Include="Models\FugaPay\PaymentInput.cs" />
     <Compile Include="Models\GatewayPay\PaymentInput.cs" />
+    <Compile Include="Models\GetaPay\PayoutInput.cs" />
     <Compile Include="Models\GumballPay\PaymentInput.cs" />
+    <Compile Include="Models\Huch\PaymentInput.cs" />
     <Compile Include="Models\Impaya\PaymentInput.cs" />
     <Compile Include="Models\Instapay\ExpressHavaleInput.cs" />
     <Compile Include="Models\Interac\PaymentInput.cs" />
@@ -402,15 +416,29 @@
     <Compile Include="Models\IXOPay\PaymentInput.cs" />
     <Compile Include="Models\JazzCashier\PaymentInput.cs" />
     <Compile Include="Models\JetonHavale\PaymentInput.cs" />
-    <Compile Include="Models\Jmitsolutions\PaymentInput.cs" />
+    <Compile Include="Models\JmitSolutions\PaymentInput.cs" />
+    <Compile Include="Models\Katarun\PaymentInput.cs" />
+    <Compile Include="Models\Katarun\PaymentOutput.cs" />
     <Compile Include="Models\KralPay\PaymentInput.cs" />
     <Compile Include="Models\KralPay\PaymentInputBase.cs" />
     <Compile Include="Models\KralPay\RequestOutput.cs" />
+    <Compile Include="Models\LiberSave\PaymentInput.cs" />
     <Compile Include="Models\MaldoPay\PaymentInput.cs" />
     <Compile Include="Models\MaxPay\PaymentInput.cs" />
     <Compile Include="Models\Mifinity\PayoutInput.cs" />
+    <Compile Include="Models\MPAy\PaymentInput.cs" />
+    <Compile Include="Models\MPAy\PaymentOutput.cs" />
+    <Compile Include="Models\Mpesa\DirectPaymentInput.cs" />
+    <Compile Include="Models\Mpesa\DirectPaymentOutput.cs" />
+    <Compile Include="Models\Mpesa\PayBillInput.cs" />
+    <Compile Include="Models\Mpesa\PaymentInput.cs" />
+    <Compile Include="Models\Mpesa\PayoutInput.cs" />
+    <Compile Include="Models\Nixxe\PaymentInput.cs" />
     <Compile Include="Models\NodaPay\PaymentRequest.cs" />
     <Compile Include="Models\NodaPay\PayoutInput.cs" />
+    <Compile Include="Models\Omer\PaymentInput.cs" />
+    <Compile Include="Models\Omer\PaymentOutput.cs" />
+    <Compile Include="Models\Omno\PaymentInput.cs" />
     <Compile Include="Models\Pay3000\ConsentInput.cs" />
     <Compile Include="Models\Pay3000\PaymentInput.cs" />
     <Compile Include="Models\Paylado\PaymentInput.cs" />
@@ -436,6 +464,7 @@
     <Compile Include="Models\Mifinity\PaymentInput.cs" />
     <Compile Include="Models\Mifinity\StatusOutput.cs" />
     <Compile Include="Models\OptimumWay\PaymentInput.cs" />
+    <Compile Include="Models\PayStage\PaymentInput.cs" />
     <Compile Include="Models\Pix\PaymentDepositInput.cs" />
     <Compile Include="Models\Pix\PaymentWithdrawInput.cs" />
     <Compile Include="Models\EasyPay\PaymentInput.cs" />
@@ -545,6 +574,7 @@
     <Compile Include="Models\Wooppay\WooppayStartTransactionResult.cs" />
     <Compile Include="Models\Wooppay\WooppayTransactionInput.cs" />
     <Compile Include="Models\Wooppay\WooppayTransactionStatus.cs" />
+    <Compile Include="Models\WzrdPay\PaymentInput.cs" />
     <Compile Include="Models\XcoinsPay\PaymentInput.cs" />
     <Compile Include="Models\Xprizo\TransactionInput.cs" />
     <Compile Include="Models\Yaspa\PaymentInput.cs" />
@@ -602,7 +632,7 @@
     <VisualStudio>
       <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
         <WebProjectProperties>
-          <UseIIS>False</UseIIS>
+          <UseIIS>True</UseIIS>
           <AutoAssignPort>True</AutoAssignPort>
           <DevelopmentServerPort>63857</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>

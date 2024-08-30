@@ -1,0 +1,17 @@
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.BLLCore\bin\Debug\net6.0\IqSoft.CP.BLLCore.deps.json
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.BLLCore\bin\Debug\net6.0\IqSoft.CP.BLLCore.dll
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.BLLCore\bin\Debug\net6.0\IqSoft.CP.BLLCore.pdb
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.BLLCore\bin\Debug\net6.0\IqSoft.CP.CommonCore.dll
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.BLLCore\bin\Debug\net6.0\IqSoft.CP.DALCore.dll
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.BLLCore\bin\Debug\net6.0\IqSoft.CP.CommonCore.pdb
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.BLLCore\bin\Debug\net6.0\IqSoft.CP.DALCore.pdb
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.BLLCore\obj\Debug\net6.0\IqSoft.CP.BLLCore.csproj.AssemblyReference.cache
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.BLLCore\obj\Debug\net6.0\IqSoft.CP.BLLCore.GeneratedMSBuildEditorConfig.editorconfig
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.BLLCore\obj\Debug\net6.0\IqSoft.CP.BLLCore.AssemblyInfoInputs.cache
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.BLLCore\obj\Debug\net6.0\IqSoft.CP.BLLCore.AssemblyInfo.cs
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.BLLCore\obj\Debug\net6.0\IqSoft.CP.BLLCore.csproj.CoreCompileInputs.cache
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.BLLCore\obj\Debug\net6.0\IqSoft.C.8E722697.Up2Date
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.BLLCore\obj\Debug\net6.0\IqSoft.CP.BLLCore.dll
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.BLLCore\obj\Debug\net6.0\refint\IqSoft.CP.BLLCore.dll
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.BLLCore\obj\Debug\net6.0\IqSoft.CP.BLLCore.pdb
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.BLLCore\obj\Debug\net6.0\ref\IqSoft.CP.BLLCore.dll

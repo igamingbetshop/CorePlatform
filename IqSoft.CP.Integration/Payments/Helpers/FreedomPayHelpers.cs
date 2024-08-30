@@ -17,7 +17,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
     public static class FreedomPayHelpers
     {
         private static readonly List<string> SupportedCurrenies = new List<string>
-        { 
+        {
             Constants.Currencies.USADollar,
             Constants.Currencies.Euro,
             Constants.Currencies.BritainPound
@@ -38,45 +38,67 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             var paymentInfo = JsonConvert.DeserializeObject<PaymentInfo>(!string.IsNullOrEmpty(input.Info) ? input.Info : "{}");
             if (string.IsNullOrEmpty(paymentInfo.City) || string.IsNullOrEmpty(paymentInfo.Country))
                 throw BaseBll.CreateException(session.LanguageId, Constants.Errors.RegionNotFound);
-            //if (!SupportedCurrenies.Contains(client.CurrencyId))
-            //    throw BaseBll.CreateException(session.LanguageId, Constants.Errors.WrongCurrencyId); // add exchange
             var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, input.PaymentSystemId,
                                                                                client.CurrencyId, (int)PaymentRequestTypes.Deposit);
             var url = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.FreedomPayApiUrl).StringValue;
-            var sign = $"{CommonFunctions.ComputeMd5(input.Id.ToString())}" +
-                       $"{CommonFunctions.ComputeMd5(((int)input.Amount).ToString())}" +
-                       $"{CommonFunctions.ComputeMd5(client.CurrencyId)}";
-            var partner = CacheManager.GetPartnerById(client.PartnerId);
-            var paymentRequestInput = new
-            {
-                ORDER_ID = input.Id.ToString(),
-                AMOUNT = input.Amount,
-                CURRENCY = client.CurrencyId,
-                DESCRIPTION = partner.Name,
-                SIGNATURE = CommonFunctions.ComputeSha512(sign),
-                RETURN_URL = cashierPageUrl,
-                CANCEL_URL = cashierPageUrl,
-                FIRSTNAME = client.FirstName,
-                LASTNAME = client.LastName,
-                EMAIL = client.Email,
-                ADDRESS = client.Address,
-                ZIP = client.ZipCode.Trim(),
-                CITY = paymentInfo.City,
-                COUNTRY = paymentInfo.Country
-            };
 
-            var httpRequestInput = new HttpRequestInput
+            if (!SupportedCurrenies.Contains(client.CurrencyId))
+                throw BaseBll.CreateException(session.LanguageId, Constants.Errors.WrongCurrencyId);
+            var currencyId = client.CurrencyId;
+            
+            var partner = CacheManager.GetPartnerById(client.PartnerId);
+            var successPageUrl = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.PaymentSuccessPageUrl).StringValue;
+            var failedPageUrl = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.PaymentErrorPageUrl).StringValue;
+
+            using (var paymentSystemBl = new PaymentSystemBll(session, log))
             {
-                ContentType = Constants.HttpContentTypes.ApplicationUrlEncoded,
-                RequestMethod = Constants.HttpRequestMethods.Post,
-                RequestHeaders = new Dictionary<string, string> { { "Authorization", partnerPaymentSetting.UserName } },
-                Url = url,
-                PostData = CommonFunctions.GetUriEndocingFromObject(paymentRequestInput)
-            };
-            var response = JsonConvert.DeserializeObject<PaymentOutput>(CommonFunctions.SendHttpRequest(httpRequestInput, out _));
-            if (response.Code != "00")
-                throw new Exception($"Code: {response.Code}, Description: {response.Message}");
-            return response.RedirectUrl;
+                var amount = input.Amount;
+                if (currencyId != Constants.Currencies.USADollar)
+                {
+                    currencyId = Constants.Currencies.USADollar; 
+                    var rate = BaseBll.GetCurrenciesDifference(client.CurrencyId, Constants.Currencies.USADollar);
+                    amount = Math.Round(rate * input.Amount, 2);
+                    var parameters = string.IsNullOrEmpty(input.Parameters) ? new Dictionary<string, string>() :
+                                  JsonConvert.DeserializeObject<Dictionary<string, string>>(input.Parameters);
+                    parameters.Add("Currency", Constants.Currencies.USADollar);
+                    parameters.Add("AppliedRate", rate.ToString("F"));
+                    input.Parameters = JsonConvert.SerializeObject(parameters);
+                    paymentSystemBl.ChangePaymentRequestDetails(input);
+                }
+                var sign = $"{CommonFunctions.ComputeMd5(input.Id.ToString())}" +
+                           $"{CommonFunctions.ComputeMd5(((int)input.Amount).ToString())}" +
+                           $"{CommonFunctions.ComputeMd5(currencyId)}";
+                var paymentRequestInput = new
+                {
+                    ORDER_ID = input.Id.ToString(),
+                    AMOUNT = amount,
+                    CURRENCY = currencyId,
+                    DESCRIPTION = partner.Name,
+                    SIGNATURE = CommonFunctions.ComputeSha512(sign),
+                    RETURN_URL = string.IsNullOrEmpty(successPageUrl) ? cashierPageUrl : successPageUrl,
+                    CANCEL_URL = string.IsNullOrEmpty(failedPageUrl) ? cashierPageUrl : failedPageUrl,
+                    FIRSTNAME = client.FirstName,
+                    LASTNAME = client.LastName,
+                    EMAIL = client.Email,
+                    ADDRESS = client.Address,
+                    ZIP = client.ZipCode.Trim(),
+                    CITY = paymentInfo.City,
+                    COUNTRY = paymentInfo.Country
+                };
+
+                var httpRequestInput = new HttpRequestInput
+                {
+                    ContentType = Constants.HttpContentTypes.ApplicationUrlEncoded,
+                    RequestMethod = Constants.HttpRequestMethods.Post,
+                    RequestHeaders = new Dictionary<string, string> { { "Authorization", partnerPaymentSetting.UserName } },
+                    Url = url,
+                    PostData = CommonFunctions.GetUriEndocingFromObject(paymentRequestInput)
+                };
+                var response = JsonConvert.DeserializeObject<PaymentOutput>(CommonFunctions.SendHttpRequest(httpRequestInput, out _));
+                if (response.Code != "00")
+                    throw new Exception($"Code: {response.Code}, Description: {response.Message}");
+                return response.RedirectUrl;
+            }
         }
     }
 }

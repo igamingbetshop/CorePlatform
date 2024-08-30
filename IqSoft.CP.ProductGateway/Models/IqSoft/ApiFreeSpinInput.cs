@@ -12,6 +12,6 @@ namespace IqSoft.CP.ProductGateway.Models.IqSoft
         public int? Lines { get; set; }
         public int? Coins { get; set; }
         public int? CoinValue { get; set; }
-        public int? BetValueLevel { get; set; }
+        public string BetValues { get; set; }
     }
 }

@@ -182,6 +182,8 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                 return Integration.Products.Helpers.RiseUpHelpers.GetUrl(token, input.ClientId, input.PartnerId, input.ProductId, input.IsForDemo, clientSession, WebApiApplication.DbLogger); 
             else if (providerName == Constants.GameProviders.LuckyStreak.ToLower())
                 return Integration.Products.Helpers.LuckyStreakHelpers.GetUrl(token, input.ClientId, input.PartnerId, input.ProductId, input.IsForDemo, clientSession, WebApiApplication.DbLogger);
+            else if (providerName == Constants.GameProviders.ImperiumGames.ToLower())
+                return Integration.Products.Helpers.ImperiumGamesHelpers.GetUrl(token, input.ClientId, input.PartnerId, input.ProductId, input.IsForDemo, clientSession, WebApiApplication.DbLogger);
             else
                 throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongProductId);
         }

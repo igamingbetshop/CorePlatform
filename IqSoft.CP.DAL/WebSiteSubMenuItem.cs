@@ -25,7 +25,7 @@ namespace IqSoft.CP.DAL
         public int Order { get; set; }
         public Nullable<long> TranslationId { get; set; }
     
-        public virtual WebSiteMenuItem WebSiteMenuItem { get; set; }
         public virtual Translation Translation { get; set; }
+        public virtual WebSiteMenuItem WebSiteMenuItem { get; set; }
     }
 }

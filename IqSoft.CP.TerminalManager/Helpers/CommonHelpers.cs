@@ -31,9 +31,20 @@ namespace IqSoft.CP.TerminalManager.Helpers
 
                 foreach (ManagementObject mo in moc)
                 {
-                    serial = mo["SerialNumber"].ToString();
+                    serial = mo["SerialNumber"].ToString()?.Replace(" ", string.Empty);
+                }
+                Console.WriteLine("serial: '{0}'", serial);
+                if (serial== null || string.IsNullOrEmpty(serial.Trim()))
+                {
+                    var searcher = new ManagementObjectSearcher("root\\CIMV2", "SELECT * FROM Win32_Processor");
+                    foreach (ManagementObject queryObj in searcher.Get())
+                    {
+                        serial = queryObj["ProcessorId"].ToString()?.Replace(" ", string.Empty); ;
+                        Console.WriteLine("ProcessorId: '{0}'", queryObj["ProcessorId"]);
+                    }
                 }
                 return serial;
+
             }
             catch (Exception)
             {

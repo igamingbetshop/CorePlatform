@@ -23,6 +23,7 @@ namespace IqSoft.CP.DAL.Models.Cache
         public System.DateTime LastUpdateTime { get; set; }
         public decimal? MinAmount { get; set; }
         public decimal? MaxAmount { get; set; }
+        public decimal? Amount { get; set; }
         public int? MinBetCount { get; set; }
         public string Condition { get; set; }
         public int? SegmentId { get; set; }

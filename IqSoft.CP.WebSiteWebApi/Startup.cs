@@ -246,7 +246,7 @@ namespace IqSoft.CP.WebSiteWebApi
                     try
                     {
                         var resp = MasterCacheIntegration.SendMasterCacheRequest<ApiResponseBase>(c.Value.PartnerId, "CheckClientToken",
-                            new RequestBase { ClientId = c.Value.ClientId, Token = c.Value.Token, LanguageId = c.Value.LanguageId });
+                            new RequestBase { ClientId = c.Value.ClientId, Token = c.Value.Token, LanguageId = c.Value.LanguageId, IsAgent = c.Value.IsAgent });
                         if (resp.ResponseCode != Constants.SuccessResponseCode)
                         {
                             c.Value.Token = String.Empty;

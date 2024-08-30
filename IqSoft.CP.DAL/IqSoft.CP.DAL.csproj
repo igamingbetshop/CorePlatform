@@ -265,7 +265,6 @@
     </Compile>
     <Compile Include="Filters\Affiliate\FilterfnAffiliate.cs" />
     <Compile Include="Filters\Affiliate\FilterfnAffiliateClientInfo.cs" />
-    <Compile Include="Filters\Affiliate\FilterfnAffiliateTransaction.cs" />
     <Compile Include="Filters\Agent\AgentReportByProduct.cs" />
     <Compile Include="Filters\Agent\FilterfnAgent.cs" />
     <Compile Include="Filters\Agent\FilterfnAgentTransaction.cs" />
@@ -273,12 +272,15 @@
     <Compile Include="Filters\Clients\FilterClientExclusion.cs" />
     <Compile Include="Filters\Clients\FilterClientGame.cs" />
     <Compile Include="Filters\FilterBonusProduct.cs" />
+    <Compile Include="Filters\FilterAffiliateMessage.cs" />
+    <Compile Include="Filters\FilterAgentMessage.cs" />
+    <Compile Include="Filters\FilterPartnerMessage.cs" />
     <Compile Include="Filters\FilterEmail.cs" />
     <Compile Include="Filters\FilterClientModel.cs" />
     <Compile Include="Filters\FilterAccountsBalanceHistory.cs" />
     <Compile Include="Filters\Clients\FilterfnSegmentClient.cs" />
     <Compile Include="Filters\Clients\FilterReportByClientIdentity.cs" />
-    <Compile Include="Filters\Clients\FilterReportByClientSession.cs" />
+    <Compile Include="Filters\Clients\FilterReportByfnClientSession.cs" />
     <Compile Include="Filters\Clients\FilterfnClientLog.cs" />
     <Compile Include="Filters\FilterAnnouncement.cs" />
     <Compile Include="Filters\FilterBase.cs" />
@@ -289,7 +291,6 @@
     <Compile Include="Filters\FilterCashDesk.cs" />
     <Compile Include="Filters\FilterClient.cs" />
     <Compile Include="Filters\FilterClientMessage.cs" />
-    <Compile Include="Filters\FilterClientSession.cs" />
     <Compile Include="Filters\FilterfnBanner.cs" />
     <Compile Include="Filters\FilterPopup.cs" />
     <Compile Include="Filters\FilterShopWalletClient.cs" />
@@ -358,10 +359,13 @@
     <Compile Include="fnAffiliateClientInfo.cs">
       <DependentUpon>IqSoftCP.tt</DependentUpon>
     </Compile>
-    <Compile Include="fnAffiliateTransaction.cs">
+    <Compile Include="fnAffiliateMessage.cs">
       <DependentUpon>IqSoftCP.tt</DependentUpon>
     </Compile>
     <Compile Include="fnAgent.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="fnAgentMessage.cs">
       <DependentUpon>IqSoftCP.tt</DependentUpon>
     </Compile>
     <Compile Include="fnAgentProfitReport.cs">
@@ -472,6 +476,9 @@
     <Compile Include="fnPartnerCountrySetting.cs">
       <DependentUpon>IqSoftCP.tt</DependentUpon>
     </Compile>
+    <Compile Include="fnPartnerMessage.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
     <Compile Include="fnPartnerPaymentSetting.cs">
       <DependentUpon>IqSoftCP.tt</DependentUpon>
     </Compile>
@@ -565,6 +572,9 @@
     <Compile Include="fnUserSession.cs">
       <DependentUpon>IqSoftCP.tt</DependentUpon>
     </Compile>
+    <Compile Include="fnVipLevel.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
     <Compile Include="GameProvider.cs">
       <DependentUpon>IqSoftCP.tt</DependentUpon>
     </Compile>
@@ -634,8 +644,10 @@
     <Compile Include="Models\Affiliates\NetreferActivityModel.cs" />
     <Compile Include="Models\Affiliates\RegistrationActivityModel.cs" />
     <Compile Include="Models\Affiliates\TrackierActivityModel.cs" />
+    <Compile Include="Models\Affiliates\WyntaActivityItem.cs" />
     <Compile Include="Models\Agents\AgentReportItem.cs" />
     <Compile Include="Models\BetShopReconingOutput.cs" />
+    <Compile Include="Models\Bonuses\BonusWinnerInfo.cs" />
     <Compile Include="Models\Cache\BllClientPaymentSetting.cs" />
     <Compile Include="Models\Cache\BllLeaderboardItem.cs" />
     <Compile Include="Models\Cache\BllObjectSetting.cs" />
@@ -703,6 +715,8 @@
     <Compile Include="Models\Cache\TriggerProductInfo.cs" />
     <Compile Include="Models\Cache\TriggerSettingInfo.cs" />
     <Compile Include="Models\Clients\ClientCustomSettings.cs" />
+    <Compile Include="Models\Dashboard\DashboardSessionInfo.cs" />
+    <Compile Include="Models\JobLog.cs" />
     <Compile Include="Models\LoginInput.cs" />
     <Compile Include="Models\Clients\ClientLoginOut.cs" />
     <Compile Include="Models\Clients\ClientPaymentSegment.cs" />
@@ -718,6 +732,7 @@
     <Compile Include="Models\Log.cs" />
     <Compile Include="Models\Notification\Composite.cs" />
     <Compile Include="Models\Notification\NotificationModel.cs" />
+    <Compile Include="Models\Notification\ObjectMessageModel.cs" />
     <Compile Include="Models\Notification\PaymentNotificationInfo.cs" />
     <Compile Include="Models\Notification\VerifyCodeOutput.cs" />
     <Compile Include="Models\ObjectTranslations.cs" />
@@ -790,7 +805,7 @@
     <Compile Include="Models\Report\SegmentByPaymentSystem.cs" />
     <Compile Include="Models\Report\TotalValues.cs" />
     <Compile Include="Models\ResponseBase.cs" />
-    <Compile Include="Models\Segment\SegementSettingModel.cs" />
+    <Compile Include="Models\Segment\SegmentSettingModel.cs" />
     <Compile Include="Models\Segment\SegmentModel.cs" />
     <Compile Include="Models\Segment\SegmentOutput.cs" />
     <Compile Include="Models\SessionIdentity.cs" />
@@ -819,6 +834,9 @@
     <Compile Include="NotificationService.cs">
       <DependentUpon>IqSoftCP.tt</DependentUpon>
     </Compile>
+    <Compile Include="NotificationTrigger.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
     <Compile Include="ObjectAction.cs">
       <DependentUpon>IqSoftCP.tt</DependentUpon>
     </Compile>
@@ -844,7 +862,6 @@
     <Compile Include="PartialClasses\ClientBonu.cs" />
     <Compile Include="PartialClasses\Email.cs" />
     <Compile Include="PartialClasses\fnAffiliateClientInfo.cs" />
-    <Compile Include="PartialClasses\fnAffiliateTransaction.cs" />
     <Compile Include="PartialClasses\fnAnnouncement.cs" />
     <Compile Include="PartialClasses\Banner.cs" />
     <Compile Include="PartialClasses\Bonus.cs" />
@@ -879,7 +896,7 @@
     <Compile Include="PartialClasses\fnClient.cs" />
     <Compile Include="PartialClasses\ClientIdentity.cs" />
     <Compile Include="PartialClasses\ClientSession.cs" />
-    <Compile Include="PartialClasses\fnClientMessage.cs" />
+    <Compile Include="PartialClasses\fnObjectMessage.cs" />
     <Compile Include="PartialClasses\fnClientSession.cs" />
     <Compile Include="PartialClasses\fnCorrection.cs" />
     <Compile Include="PartialClasses\fnRealTimeInfo.cs" />
@@ -906,7 +923,6 @@
     <Compile Include="Models\Report\PartnerBetshopsSalesReport.cs" />
     <Compile Include="Models\ResetBetShopDailyTicketNumberInput.cs" />
     <Compile Include="Models\ResetBetShopDailyTicketNumberOutput.cs" />
-    <Compile Include="PartialClasses\AccessObject.cs" />
     <Compile Include="PartialClasses\BetShop.cs" />
     <Compile Include="PartialClasses\BetShopGroup.cs" />
     <Compile Include="PartialClasses\BetShopReconing.cs" />
@@ -968,6 +984,9 @@
       <DependentUpon>IqSoftCP.tt</DependentUpon>
     </Compile>
     <Compile Include="PartnerPaymentCurrencyRate.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="PartnerPaymentSegmentSetting.cs">
       <DependentUpon>IqSoftCP.tt</DependentUpon>
     </Compile>
     <Compile Include="PartnerPaymentSetting.cs">

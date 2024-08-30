@@ -38,7 +38,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                 if (string.IsNullOrEmpty(inputSign))
                     throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongHash);
 
-                using (var paymentSystemBl = new PaymentSystemBll(new SessionIdentity(), WebApiApplication.DbLogger))
+                using (var paymentSystemBl = new PaymentSystemBll(new SessionIdentity(), WebApiApplication.DbLogger, 60))
                 {
                     using (var clientBl = new ClientBll(paymentSystemBl))
                     {
@@ -135,7 +135,6 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                 var inputSign = HttpContext.Current.Request.Headers.Get("GT-Authentication");
                 if (string.IsNullOrEmpty(inputSign))
                     throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongHash);
-                WebApiApplication.DbLogger.Info("GT-Authentication: " + inputSign);
                 using (var paymentSystemBl = new PaymentSystemBll(new SessionIdentity(), WebApiApplication.DbLogger))
                 {
                     using (var clientBl = new ClientBll(paymentSystemBl))
@@ -151,7 +150,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                 var parameters = JsonConvert.DeserializeObject<Dictionary<string, string>>(request.Parameters);
                                 partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, request.PaymentSystemId,
                                                                                                client.CurrencyId, request.Type);
-                                
+
                                 var signature = CommonFunctions.ComputeSha384(partnerPaymentSetting.UserName + parameters["ApplicationKey"] +
                                                                   input.Timestamp + input.Customer.Token + input.Session.OrderId +
                                                                   input.Transaction.Tid + input.Transaction.Currency + input.Transaction.Amount +
@@ -176,7 +175,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                 else*/
                                 {
                                     paymentInfo.WalletNumber = input.Transaction.WalletDetails?.AccountIdentifier;
-                                    paymentInfo.TrackingNumber = input.Transaction.WalletDetails?.Token;  
+                                    paymentInfo.TrackingNumber = input.Transaction.WalletDetails?.Token;
                                 }
                                 paymentInfo.Provider = input.Session.PaymentMethod;
                                 paymentInfo.PSPService = input.Session.Gateway;
@@ -188,11 +187,18 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                 request.ExternalTransactionId = input.Transaction.Tid.ToString();
                                 paymentSystemBl.ChangePaymentRequestDetails(request);
                                 var transactionStatus = input.Transaction.Status.ToLower();
-                                if (transactionStatus == "rejected" || transactionStatus == "cancelled" ||
+                                if (transactionStatus == "approved" && request.Type == (int)PaymentRequestTypes.Withdraw &&
+                                  (request.Status == (int)PaymentRequestStates.Pending || request.Status == (int)PaymentRequestStates.PayPanding))
+                                {
+                                    var resp = clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Approved, transactionStatus,
+                                                                                   null, null, false, request.Parameters, documentBl, notificationBl, changeFromPaymentSystem: true);
+                                    clientBl.PayWithdrawFromPaymentSystem(resp, documentBl, notificationBl);
+                                }
+                                else if (transactionStatus == "rejected" || transactionStatus == "cancelled" ||
                                     transactionStatus == "error" || transactionStatus == "chargeback")
                                 {
-                                    clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Failed,
-                                                                        input.Transaction.Status, null, null, false, request.Parameters, documentBl, notificationBl);
+                                    clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Failed, input.Transaction.Status,
+                                                                        null, null, false, request.Parameters, documentBl, notificationBl);
                                     PaymentHelpers.RemoveClientBalanceFromCache(request.ClientId.Value);
                                     BaseHelpers.BroadcastBalance(request.ClientId.Value);
                                 }

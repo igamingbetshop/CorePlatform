@@ -105,6 +105,7 @@ namespace IqSoft.CP.Common.Helpers
                 return builder.ToString();
             }
         }
+
         public static string ComputeSha384(string rawData)
         {
             using (var sha384Hash = SHA384.Create())
@@ -134,6 +135,36 @@ namespace IqSoft.CP.Common.Helpers
                 return BitConverter.ToString(hash).Replace("-", string.Empty);
             }
         }
+
+        #region HMAC_HEX
+        private static byte[] HashHMAC(byte[] key, byte[] message)
+        {
+            var hash = new HMACSHA256(key);
+            return hash.ComputeHash(message);
+        }
+        private static byte[] StringEncode(string text)
+        {
+            var encoding = new System.Text.ASCIIEncoding();
+            return encoding.GetBytes(text);
+        }
+        private static string HashEncode(byte[] hash)
+        {
+            return BitConverter.ToString(hash).Replace("-", "").ToLower();
+        }
+        private static byte[] HexDecode(String hex)
+        {
+            int NumberChars = hex.Length;
+            byte[] bytes = new byte[NumberChars / 2];
+            for (int i = 0; i < NumberChars; i += 2)
+                bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
+            return bytes;
+        }
+        public static string HashHMACHex(string message,string keyHex)
+        {
+            byte[] hash = HashHMAC(HexDecode(keyHex), StringEncode(message));
+            return HashEncode(hash);
+        }
+        #endregion
 
         public static string ComputeHMACSha512(string message, string secretKey)
         {
@@ -183,6 +214,27 @@ namespace IqSoft.CP.Common.Helpers
             {
                 return md5Hash.ComputeHash(Encoding.UTF8.GetBytes(data));
             }
+        }
+
+        public static Guid GenerateGuidFromNumber(long number)
+        {
+            // Convert the number to bytes
+            byte[] bytes = new byte[16];
+            BitConverter.GetBytes(number).CopyTo(bytes, 0);
+
+            // Create a Guid using the byte array
+            return new Guid(bytes);
+        }
+
+        public static long DecodeNumberFromGuid(Guid guid)
+        {
+            // Convert the Guid to bytes
+            byte[] bytes = guid.ToByteArray();
+
+            // Convert the first 8 bytes to a long
+            long number = BitConverter.ToInt64(bytes, 0);
+
+            return number;
         }
 
         public static string GetUriEndocingFromObject<T>(T obj)
@@ -423,7 +475,7 @@ namespace IqSoft.CP.Common.Helpers
             foreach (var field in properties)
             {
                 var value = field.GetValue(sourceObj, null);
-                if ((delimiter != string.Empty && value == null) || field.Name.ToLower().Contains("sign"))
+                if ((delimiter != string.Empty && value == null) || field.Name.ToLower().Contains("sign") || field.Name.ToLower().Contains("hash"))
                     continue;
                 sortedParams.Add(field.Name, value == null ? string.Empty : value.ToString());
             }

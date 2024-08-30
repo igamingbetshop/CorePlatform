@@ -12,7 +12,6 @@ using IqSoft.CP.DAL.Models.Clients;
 using IqSoft.CP.Integration.Platforms.Helpers;
 using IqSoft.CP.ProductGateway.Helpers;
 using IqSoft.CP.ProductGateway.Models.BGGames;
-using IqSoft.CP.ProductGateway.Models.MicroGaming;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -22,7 +21,6 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.ServiceModel;
 using System.Text;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.Http;
@@ -34,6 +32,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
 	public class BGGamesController : ApiController
 	{
 		private static readonly int ProviderId = CacheManager.GetGameProviderByName(Constants.GameProviders.BGGames).Id;
+		public static List<string> WhitelistedIps = CacheManager.GetProviderWhitelistedIps(Constants.GameProviders.BGGames);
 
 		[HttpPost]
 		[Route("{partnerId}/api/BGGames/ApiRequest")]
@@ -46,6 +45,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
 			var input = JsonConvert.DeserializeObject<BaseInput>(inputString);
 			try
 			{
+				//BaseBll.CheckIp(WhitelistedIps);
 				var client = CacheManager.GetClientById(Convert.ToInt32(input.UserID)) ??
 					throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.ClientNotFound);
 				var apiKey = CacheManager.GetGameProviderValueByKey(client.PartnerId, ProviderId, Constants.PartnerKeys.BGGamesApiKey);

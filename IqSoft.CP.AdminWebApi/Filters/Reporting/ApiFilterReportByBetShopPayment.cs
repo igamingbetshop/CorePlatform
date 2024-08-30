@@ -1,4 +1,5 @@
 ﻿using IqSoft.CP.Common;
+using IqSoft.CP.Common.Models.Filters;
 using System;
 using System.Collections.Generic;
 using System.Linq;

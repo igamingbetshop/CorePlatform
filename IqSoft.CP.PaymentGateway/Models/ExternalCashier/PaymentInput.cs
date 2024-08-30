@@ -5,6 +5,7 @@
         public string ClientId { get; set; }
         public string Currency { get; set; }
         public decimal Amount { get; set; }
+        public long OrderId { get; set; }
         public string TransactionId { get; set; }
         public string Signature { get; set; }
     }

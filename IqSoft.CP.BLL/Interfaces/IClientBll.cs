@@ -48,8 +48,6 @@ namespace IqSoft.CP.BLL.Interfaces
 
         Client ChangeClientState(int clientId, int? state, bool? isDocumentVerified);
 
-        PagedModel<ClientSession> GetClientLoginsPagedModel(FilterClientSession filter);
-
         int SendRecoveryToken(int partnerId, string languageId, string identifier, string recaptcha);
 
         Client RecoverPassword(int partnerId, string recoveryToken, string newPassword, 

@@ -1,0 +1,94 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Schema Namespace="DataWarehouseModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+  <EntityType Name="Bet">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="BetDocumentId" Type="bigint" Nullable="false" />
+    <Property Name="WinDocumentId" Type="bigint" />
+    <Property Name="PayDocumentId" Type="bigint" />
+    <Property Name="CurrencyId" Type="varchar" MaxLength="5" Nullable="false" />
+    <Property Name="ProductId" Type="int" Nullable="false" />
+    <Property Name="BetAmount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="WinAmount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="State" Type="int" Nullable="false" />
+    <Property Name="TypeId" Type="int" Nullable="false" />
+    <Property Name="CashDeskId" Type="int" />
+    <Property Name="ClientId" Type="int" />
+    <Property Name="TicketNumber" Type="bigint" />
+    <Property Name="UserId" Type="int" />
+    <Property Name="DeviceTypeId" Type="int" Nullable="false" />
+    <Property Name="BetTime" Type="datetime2" Precision="3" Nullable="false" />
+    <Property Name="CalculationTime" Type="datetime2" Precision="3" />
+    <Property Name="PayTime" Type="datetime2" Precision="3" />
+    <Property Name="BetDate" Type="bigint" Nullable="false" />
+    <Property Name="CalculationDate" Type="bigint" />
+    <Property Name="PayDate" Type="bigint" />
+    <Property Name="JackpotDocumentId" Type="bigint" />
+    <Property Name="BonusDocumentId" Type="bigint" />
+    <Property Name="BonusId" Type="int" />
+    <Property Name="SelectionsCount" Type="int" />
+    <Property Name="Coefficient" Type="decimal" Precision="10" Scale="3" />
+    <Property Name="LastUpdateTime" Type="datetime2" Precision="3" />
+    <Property Name="Rake" Type="decimal" Precision="18" Scale="4" />
+    <Property Name="BonusAmount" Type="decimal" Precision="18" Scale="4" />
+    <Property Name="AccountId" Type="bigint" />
+    <Property Name="BonusWinAmount" Type="decimal" Precision="18" Scale="4" />
+  </EntityType>
+  <EntityType Name="Document">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="bigint" Nullable="false" />
+    <Property Name="ExternalTransactionId" Type="varchar" MaxLength="100" />
+    <Property Name="Amount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+    <Property Name="CurrencyId" Type="varchar" MaxLength="5" Nullable="false" />
+    <Property Name="State" Type="int" Nullable="false" />
+    <Property Name="OperationTypeId" Type="int" Nullable="false" />
+    <Property Name="TypeId" Type="int" />
+    <Property Name="ParentId" Type="bigint" />
+    <Property Name="PaymentRequestId" Type="bigint" />
+    <Property Name="RoundId" Type="varchar" MaxLength="50" />
+    <Property Name="Info" Type="nvarchar(max)" />
+    <Property Name="Creator" Type="int" />
+    <Property Name="CashDeskId" Type="int" />
+    <Property Name="PartnerPaymentSettingId" Type="int" />
+    <Property Name="PartnerProductId" Type="int" />
+    <Property Name="GameProviderId" Type="int" />
+    <Property Name="ClientId" Type="int" />
+    <Property Name="ExternalOperationId" Type="bigint" />
+    <Property Name="TicketNumber" Type="bigint" />
+    <Property Name="TicketInfo" Type="nvarchar(max)" />
+    <Property Name="UserId" Type="int" />
+    <Property Name="DeviceTypeId" Type="int" />
+    <Property Name="PossibleWin" Type="decimal" Precision="18" Scale="4" />
+    <Property Name="SessionId" Type="bigint" />
+    <Property Name="CreationTime" Type="datetime2" Precision="3" Nullable="false" />
+    <Property Name="LastUpdateTime" Type="datetime2" Precision="3" Nullable="false" />
+    <Property Name="ProductId" Type="int" />
+    <Property Name="HasNote" Type="bit" />
+    <Property Name="Date" Type="bigint" />
+    <Property Name="PartnerId" Type="int" />
+    <Property Name="AccountId" Type="bigint" />
+  </EntityType>
+  <EntityType Name="Setting">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="PartnerId" Type="int" />
+    <Property Name="GameProviderId" Type="int" />
+    <Property Name="PaymentSystemId" Type="int" />
+    <Property Name="Name" Type="varchar" MaxLength="50" Nullable="false" />
+    <Property Name="StringValue" Type="nvarchar" MaxLength="4000" />
+    <Property Name="DateValue" Type="datetime2" Precision="3" />
+    <Property Name="NumericValue" Type="decimal" Precision="18" Scale="4" />
+    <Property Name="NotificationServiceId" Type="int" />
+  </EntityType>
+  <EntityContainer Name="DataWarehouseModelStoreContainer">
+    <EntitySet Name="Bet" EntityType="Self.Bet" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="Document" EntityType="Self.Document" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="Setting" EntityType="Self.Setting" Schema="dbo" store:Type="Tables" />
+  </EntityContainer>
+</Schema>

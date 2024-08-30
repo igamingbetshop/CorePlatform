@@ -115,7 +115,7 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                 currencies = currencyBl.GetCurrencies(false).Select(x => new EnumerationModel<string>
                 {
                     Id = x.Id,
-                    Name = x.Symbol
+                    Name = x.Name
                 }).ToList();
             }
 

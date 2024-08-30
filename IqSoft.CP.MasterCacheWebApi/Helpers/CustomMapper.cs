@@ -27,6 +27,11 @@ using Client = IqSoft.CP.DAL.Client;
 using Document = IqSoft.CP.DAL.Document;
 using PaymentRequest = IqSoft.CP.DAL.PaymentRequest;
 using IqSoft.CP.BLL.Services;
+using IqSoft.CP.Common.Models.Filters;
+using IqSoft.CP.Common.Models.AgentModels;
+using IqSoft.CP.DAL.Models.Agents;
+using IqSoft.CP.BLL.Models;
+using IqSoft.CP.Integration.Products.Models.BGGames;
 
 namespace IqSoft.CP.MasterCacheWebApi.Helpers
 {
@@ -83,10 +88,10 @@ namespace IqSoft.CP.MasterCacheWebApi.Helpers
                 RegistrationIp = client.Ip,
                 DocumentType = client.DocumentType,
                 DocumentNumber = client.DocumentNumber,
-                PhoneNumber = client.PhoneNumber,
                 DocumentIssuedBy = client.DocumentIssuedBy,
                 Address = client.Address,
                 MobileNumber = string.IsNullOrWhiteSpace(client.MobileNumber) ? string.Empty : (client.MobileNumber.StartsWith("+") ? client.MobileNumber : "+" + client.MobileNumber),
+                PhoneNumber = string.IsNullOrWhiteSpace(client.MobileCode) ? string.Empty : (client.MobileCode.StartsWith("+") ? client.MobileCode : "+" + client.MobileCode),
                 IsMobileNumberVerified = false,
                 LanguageId = client.LanguageId,
                 CreationTime = client.CreationTime,
@@ -148,7 +153,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Helpers
                 NickName = client.NickName,
                 RegistrationIp = client.RegistrationIp,
                 DocumentNumber = client.DocumentNumber,
-                PhoneNumber = client.PhoneNumber,
+                MobileCode = client.PhoneNumber,
                 DocumentIssuedBy = client.DocumentIssuedBy,
                 Address = client.Address,
                 MobileNumber = client.MobileNumber,
@@ -264,7 +269,8 @@ namespace IqSoft.CP.MasterCacheWebApi.Helpers
                 DocumentNumber = client.DocumentNumber,
                 DocumentIssuedBy = client.DocumentIssuedBy,
                 Address = client.Address,
-                MobileNumber = client.MobileNumber,
+                MobileNumber = !string.IsNullOrEmpty(client.PhoneNumber) ? client.MobileNumber.TrimStart(client.PhoneNumber.ToCharArray()) : client.MobileNumber,
+                MobileCode = client.PhoneNumber,
                 IsMobileNumberVerified = client.IsMobileNumberVerified,
                 LanguageId = client.LanguageId,
                 CreationTime = client.CreationTime,
@@ -288,57 +294,6 @@ namespace IqSoft.CP.MasterCacheWebApi.Helpers
                 USSDPin = client.USSDPin,
                 Title = client.Title,
                 IsTwoFactorEnabled = client.IsTwoFactorEnabled
-            };
-        }
-
-        public static ApiClientInfo ToApiClientInfo(this Client client, double timezone, ClientLoginOut clientLoginOut = null)
-        {
-            var currency = CacheManager.GetCurrencyById(client.CurrencyId);
-            return new ApiClientInfo
-            {
-                Id = client.Id,
-                Email = client.Email,
-                IsEmailVerified = client.IsEmailVerified,
-                CurrencyId = currency.Name,
-                UserName = client.UserName,
-                PartnerId = client.PartnerId,
-                RegionId = clientLoginOut == null ? client.RegionId : clientLoginOut.RegionId,
-                CityId = clientLoginOut == null ? client.RegionId : clientLoginOut.CityId,
-                CountryId = clientLoginOut == null ? client.RegionId : clientLoginOut.CountryId,
-                Gender = client.Gender,
-                BirthDate = client.BirthDate,
-                FirstName = client.FirstName,
-                LastName = client.LastName,
-                NickName = client.NickName,
-                RegistrationIp = client.RegistrationIp,
-                DocumentNumber = client.DocumentNumber,
-                PhoneNumber = client.PhoneNumber,
-                DocumentIssuedBy = client.DocumentIssuedBy,
-                Address = client.Address,
-                MobileNumber = client.MobileNumber,
-                IsMobileNumberVerified = client.IsMobileNumberVerified,
-                LanguageId = client.LanguageId,
-                CreationTime = client.CreationTime,
-                EmailOrMobile = client.EmailOrMobile,
-                Token = client.Token,
-                SendMail = client.SendMail,
-                SendSms = client.SendSms,
-                CallToPhone = client.CallToPhone,
-                SendPromotions = client.SendPromotions,
-                IsDocumentVerified = client.IsDocumentVerified,
-                ZipCode = client.ZipCode?.Trim(),
-                Info = client.Info,
-                CategoryId = client.CategoryId,
-                WelcomeBonusActivationKey = client.WelcomeBonusActivationKey,
-                CurrencySymbol = currency.Symbol,
-                Citizenship = client.Citizenship,
-                JobArea = client.JobArea,
-                LastLogin = clientLoginOut?.LastSession?.StartTime?.GetGMTDateFromUTC(timezone),
-                LastLogout = clientLoginOut?.LastSession?.EndTime?.GetGMTDateFromUTC(timezone),
-                LastLoginIp = clientLoginOut?.LastSession?.Ip,
-                ResetPassword = clientLoginOut?.ResetPassword,
-                AcceptTermsConditions = clientLoginOut?.AcceptTermsConditions,
-                DocumentExpirationStatus = clientLoginOut?.DocumentExpirationStatus
             };
         }
 
@@ -1071,16 +1026,16 @@ namespace IqSoft.CP.MasterCacheWebApi.Helpers
 		public static ApiClientBonusItem ToApiClientBonusItem(this fnClientBonus bonus, double timeZone, string languageId)
 		{
             var awardingTime = bonus.AwardingTime ?? bonus.CreationTime.AddHours(bonus.ValidForAwarding ?? 0);
-            List<string> connectedBonuses = null;
-            if(bonus.Type == (int)BonusTypes.SpinWheel)
+            List<KeyValuePair<int, string>> connectedBonuses = null;
+            if(bonus.Type == (int)BonusTypes.SpinWheel && !string.IsNullOrEmpty(bonus.Info))
             {
-                var bonuses = bonus.Info.Split(',').Select(x => Convert.ToInt32(x)).ToList();
-                connectedBonuses = new List<string>();
+                var bonuses = JsonConvert.DeserializeObject<List<WheelInfo>>(bonus.Info);
+                connectedBonuses = new List<KeyValuePair<int, string>>();
                 foreach(var b in bonuses)
                 {
-                    var bs = CacheManager.GetBonusById(b);
+                    var bs = CacheManager.GetBonusById(b.BonusId);
                     var name = CacheManager.GetTranslation(bs.TranslationId, languageId);
-                    connectedBonuses.Add(name);
+                    connectedBonuses.Add(new KeyValuePair<int, string>(b.BonusId, name));
                 }
             }
             return new ApiClientBonusItem
@@ -1095,6 +1050,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Helpers
                 TurnoverAmountLeft = bonus.TurnoverAmountLeft,
                 FinalAmount = bonus.FinalAmount,
                 AwardingTime = awardingTime.GetGMTDateFromUTC(timeZone),
+                ValidUntil = bonus.ValidUntil.GetGMTDateFromUTC(timeZone),
                 CalculationTime = (bonus.CalculationTime ?? (bonus.AwardingTime == null ? (DateTime?)null : 
                     awardingTime.AddHours(bonus.ValidForSpending ?? 0))).GetGMTDateFromUTC(timeZone),
                 ReuseNumber = bonus.ReuseNumber,
@@ -1102,8 +1058,14 @@ namespace IqSoft.CP.MasterCacheWebApi.Helpers
             };
 		}
 
-        public static ApiBonus ToApiBonus(this BllBonus bonus, double timeZone)
+        public static ApiBonus ToApiBonus(this BllBonus bonus, double timeZone, string partnerCurrencyId)
         {
+            var amount = bonus.MinAmount != null ? bonus.MinAmount.Value : 0;
+            if(bonus.MinAmount == null)
+            {
+                var leaderboard = CacheManager.GetTournamentLeaderboard(bonus.Id);
+                amount = Math.Round(BaseBll.ConvertCurrency(Constants.DefaultCurrencyId, partnerCurrencyId, leaderboard.Sum(x => x.Points) * (bonus.Percent ?? 0) / 100), 2);
+            }
             return new ApiBonus
             {
                 Id = bonus.Id,
@@ -1114,7 +1076,8 @@ namespace IqSoft.CP.MasterCacheWebApi.Helpers
                 FinishTime = bonus.FinishTime.GetGMTDateFromUTC(timeZone),
                 Type = bonus.Type,
                 Info = bonus.Info,
-                Sequence = bonus.Sequence
+                Sequence = bonus.Sequence,
+                PrizePool = amount
             };
         }
 
@@ -1123,7 +1086,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Helpers
             var client = CacheManager.GetClientById(item.Id);
             return new ApiLeaderboardItem
             {
-                Name = string.IsNullOrEmpty(client.FirstName) ? client.Id.ToString() : client.FirstName,
+                Name = client == null ? string.Empty : (string.IsNullOrEmpty(client.FirstName) ? client.Id.ToString() : client.FirstName),
                 Points = Math.Round(BaseBll.ConvertCurrency(item.CurrencyId, currencyId, item.Points))
             };
         }
@@ -1160,6 +1123,145 @@ namespace IqSoft.CP.MasterCacheWebApi.Helpers
 				Order = input.Order
 			};
 		}
+
+        #endregion
+
+        #region Character
+
+        public static ApiCharacter MapToApiCharacter(this BllCharacter character, bool IsForMobile = false)
+        {
+            return new ApiCharacter
+            {
+                Id = character.Id,
+                ParentId = character.ParentId,
+                PartnerId = character.PartnerId,
+                NickName = character.NickName,
+                Title = character.Title,
+                Description = character.Description,
+                Status = character.Status,
+                Order = character.Order,
+                ImageData = character.ImageData,
+                BackgroundImageData = IsForMobile ? character.BackgroundImageData?.Replace("/assets/images/characters/background/", "/assets/images/characters/background/mobile/") : character.BackgroundImageData,
+                CompPoints = character.CompPoints
+            };
+        }
+
+        #endregion
+
+        #region Agent
+
+        public static ApiAgentReportItem ToApiAgentReportItem(this AgentReportItem input, double timeZone)
+        {
+            return new ApiAgentReportItem
+            {
+                AgentId = input.AgentId,
+                AgentFirstName = input.AgentFirstName,
+                AgentLastName = input.AgentLastName,
+                AgentUserName = input.AgentUserName,
+                TotalDepositCount = input.TotalDepositCount,
+                TotalWithdrawCount = input.TotalWithdrawCount,
+                TotalDepositAmount = input.TotalDepositAmount,
+                TotalWithdrawAmount = input.TotalWithdrawAmount,
+                TotalBetsCount = input.TotalBetsCount,
+                TotalUnsettledBetsCount = input.TotalUnsettledBetsCount,
+                TotalDeletedBetsCount = input.TotalDeletedBetsCount,
+                TotalBetAmount = input.TotalBetAmount,
+                TotalWinAmount = input.TotalWinAmount,
+                TotalProfit = input.TotalProfit,
+                TotalProfitPercent = input.TotalProfitPercent,
+                TotalGGRCommission = input.TotalGGRCommission,
+                TotalTurnoverCommission = input.TotalTurnoverCommission
+            };
+        }
+
+        public static ApifnAgentTransaction MapToApifnAffiliateTransaction(this fnAffiliateTransaction transactions, double timeZone)
+        {
+            return new ApifnAgentTransaction
+            {
+                Id = transactions.Id,
+                ExternalTransactionId = transactions.ExternalTransactionId,
+                Amount = transactions.Amount,
+                CurrencyId = transactions.CurrencyId,
+                State = transactions.State,
+                OperationTypeId = transactions.OperationTypeId,
+                ProductId = transactions.ProductId,
+                ProductName = transactions.ProductName,
+                TransactionType = transactions.TransactionType,
+                CreationTime = transactions.CreationTime.GetGMTDateFromUTC(timeZone),
+                LastUpdateTime = transactions.LastUpdateTime.GetGMTDateFromUTC(timeZone)
+            };
+        }
+
+        public static ApifnAgentTransaction MapToApifnAgentTransaction(this fnAgentTransaction input, double timeZone)
+        {
+            return new ApifnAgentTransaction
+            {
+                Id = input.Id,
+                ExternalTransactionId = input.ExternalTransactionId,
+                Amount = input.Amount,
+                CurrencyId = input.CurrencyId,
+                State = input.State,
+                OperationTypeId = input.OperationTypeId,
+                ProductId = input.ProductId,
+                ProductName = input.ProductName,
+                TransactionType = input.TransactionType.ToString(),
+                FromUserId = input.FromUserId,
+                UserId = input.UserId,
+                UserName = input.UserName,
+                FirstName = input.FirstName,
+                LastName = input.LastName,
+                CreationTime = input.CreationTime.GetGMTDateFromUTC(timeZone),
+                LastUpdateTime = input.LastUpdateTime.GetGMTDateFromUTC(timeZone)
+            };
+        }
+
+        public static ApiDocumentModel ToDocumentModel(this Document document, double timeZone)
+        {
+            return new ApiDocumentModel
+            {
+                Id = document.Id,
+                Amount = Math.Floor(document.Amount * 100) / 100,
+                CurrencyId = document.CurrencyId,
+                State = document.State,
+                OperationTypeId = document.OperationTypeId,
+                Info = document.Info,
+                ClientId = document.ClientId,
+                UserId = document.UserId,
+                CreationTime = document.CreationTime.GetGMTDateFromUTC(timeZone),
+                LastUpdateTime = document.LastUpdateTime.GetGMTDateFromUTC(timeZone),
+                Creator = document.Creator,
+            };
+        }
+
+        public static ApiClientCorrections ToApiClientCorrections(this PagedModel<fnCorrection> input, double timeZone)
+        {
+            return new ApiClientCorrections
+            {
+                Count = input.Count,
+                Entities = input.Entities.Select(x => x.ToApiClientCorrection(timeZone)).ToList()
+            };
+        }
+
+        public static ApiClientCorrection ToApiClientCorrection(this fnCorrection input, double timeZone)
+        {
+            return new ApiClientCorrection
+            {
+                Id = input.Id,
+                Amount = input.Amount,
+                CurrencyId = input.CurrencyId,
+                State = input.State,
+                Info = input.Info,
+                ClientId = input.ClientId,
+                UserId = input.Creator,
+                CreationTime = input.CreationTime.GetGMTDateFromUTC(timeZone),
+                LastUpdateTime = input.LastUpdateTime.GetGMTDateFromUTC(timeZone),
+                OperationTypeName = input.OperationTypeName,
+                FirstName = input.FirstName,
+                LastName = input.LastName,
+                AccoutTypeId = input.AccountTypeId,
+                HasNote = input.HasNote ?? false
+            };
+        }
 
         #endregion
 
@@ -1222,6 +1324,18 @@ namespace IqSoft.CP.MasterCacheWebApi.Helpers
             };
         }
 
+        public static ApiCurrency ToApiCurrency(this BllCurrency input)
+        {
+            return new ApiCurrency
+            {
+                Id = input.Id,
+                CurrentRate = input.CurrentRate,
+                Symbol = input.Symbol,
+                Name = input.Name,
+                Type = input.Type
+            };
+        }
+
         #endregion
 
         #region Filters
@@ -1247,10 +1361,6 @@ namespace IqSoft.CP.MasterCacheWebApi.Helpers
         {
             return filterPartnerPaymentSystems.Select(MapToFilterPartnerPaymentSystem).ToList();
         }
-
-        #endregion
-
-        #region FilterClient
 
         public static FilterClient MaptToFilterClient(this ApiFilterClient filterClient)
         {
@@ -1281,7 +1391,133 @@ namespace IqSoft.CP.MasterCacheWebApi.Helpers
         }
 
         #endregion
-        
+
+        #region FilterAgent
+
+        public static FilterfnUser ToFilterfnUser(this ApiFilterfnAgent filter)
+        {
+            if (!string.IsNullOrEmpty(filter.FieldNameToOrderBy))
+            {
+                var orderBy = filter.FieldNameToOrderBy;
+                switch (orderBy)
+                {
+                    case "UserType":
+                        filter.FieldNameToOrderBy = "Type";
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            return new FilterfnUser
+            {
+                FromDate = filter.FromDate,
+                ToDate = filter.ToDate,
+                PartnerId = filter.PartnerId,
+                ParentId = filter.ParentId,
+                Ids = filter.Ids == null ? new FiltersOperation() : filter.Ids.MapToFiltersOperation(),
+                FirstNames = filter.FirstNames == null ? new FiltersOperation() : filter.FirstNames.MapToFiltersOperation(),
+                LastNames = filter.LastNames == null ? new FiltersOperation() : filter.LastNames.MapToFiltersOperation(),
+                UserNames = filter.UserNames == null ? new FiltersOperation() : filter.UserNames.MapToFiltersOperation(),
+                Emails = filter.Emails == null ? new FiltersOperation() : filter.Emails.MapToFiltersOperation(),
+                Genders = filter.Genders == null ? new FiltersOperation() : filter.Genders.MapToFiltersOperation(),
+                Currencies = filter.Currencies == null ? new FiltersOperation() : filter.Currencies.MapToFiltersOperation(),
+                LanguageIds = filter.LanguageIds == null ? new FiltersOperation() : filter.LanguageIds.MapToFiltersOperation(),
+                SkipCount = filter.SkipCount,
+                TakeCount = filter.TakeCount,
+                OrderBy = filter.OrderBy,
+                FieldNameToOrderBy = filter.FieldNameToOrderBy
+            };
+        }
+
+        public static FilterfnAffiliateTransaction MapToFilterfnAffiliateTransaction(this ApiFilterfnAgentTransaction apiFilterfnAgentTransaction)
+        {
+            var currentDate = DateTime.UtcNow;
+            if (!string.IsNullOrEmpty(apiFilterfnAgentTransaction.FieldNameToOrderBy))
+            {
+                var orderBy = apiFilterfnAgentTransaction.FieldNameToOrderBy;
+                switch (orderBy)
+                {
+                    case "ProductGroupId":
+                        apiFilterfnAgentTransaction.FieldNameToOrderBy = "ProductId";
+                        break;
+                    default:
+                        break;
+                }
+            }
+            return new FilterfnAffiliateTransaction
+            {
+                FromDate = apiFilterfnAgentTransaction.FromDate ??
+                currentDate.AddDays((apiFilterfnAgentTransaction.IsYesterday.HasValue && apiFilterfnAgentTransaction.IsYesterday.Value) ? -2 : -1),
+                ToDate = apiFilterfnAgentTransaction.ToDate ?? currentDate.AddDays(1),
+                Ids = apiFilterfnAgentTransaction.Ids == null ? new FiltersOperation() : apiFilterfnAgentTransaction.Ids.MapToFiltersOperation(),
+                ExternalTransactionIds = apiFilterfnAgentTransaction.ExternalTransactionIds == null ? new FiltersOperation() : apiFilterfnAgentTransaction.ExternalTransactionIds.MapToFiltersOperation(),
+                Amounts = apiFilterfnAgentTransaction.Amounts == null ? new FiltersOperation() : apiFilterfnAgentTransaction.Amounts.MapToFiltersOperation(),
+                CurrencyIds = apiFilterfnAgentTransaction.CurrencyIds == null ? new FiltersOperation() : apiFilterfnAgentTransaction.CurrencyIds.MapToFiltersOperation(),
+                ProductIds = apiFilterfnAgentTransaction.ProductIds == null ? new FiltersOperation() : apiFilterfnAgentTransaction.ProductIds.MapToFiltersOperation(),
+                ProductNames = apiFilterfnAgentTransaction.ProductNames == null ? new FiltersOperation() : apiFilterfnAgentTransaction.ProductNames.MapToFiltersOperation(),
+                TransactionTypes = apiFilterfnAgentTransaction.TransactionTypes == null ? new FiltersOperation() : apiFilterfnAgentTransaction.TransactionTypes.MapToFiltersOperation(),
+                SkipCount = apiFilterfnAgentTransaction.SkipCount,
+                TakeCount = Math.Min(apiFilterfnAgentTransaction.TakeCount, 5000),
+                OrderBy = apiFilterfnAgentTransaction.OrderBy,
+                FieldNameToOrderBy = apiFilterfnAgentTransaction.FieldNameToOrderBy
+            };
+        }
+
+        public static FilterfnAgentTransaction MapToFilterfnAgentTransaction(this ApiFilterfnAgentTransaction apiFilterfnAgentTransaction)
+        {
+            var currentDate = DateTime.UtcNow;
+            return new FilterfnAgentTransaction
+            {
+                FromDate = apiFilterfnAgentTransaction.FromDate ??
+                currentDate.AddDays((apiFilterfnAgentTransaction.IsYesterday.HasValue && apiFilterfnAgentTransaction.IsYesterday.Value) ? -2 : -1),
+                ToDate = apiFilterfnAgentTransaction.ToDate ?? currentDate.AddDays(1),
+                UserState = apiFilterfnAgentTransaction.UserState,
+                Ids = apiFilterfnAgentTransaction.Ids == null ? new FiltersOperation() : apiFilterfnAgentTransaction.Ids.MapToFiltersOperation(),
+                FromUserIds = apiFilterfnAgentTransaction.FromUserIds == null ? new FiltersOperation() : apiFilterfnAgentTransaction.FromUserIds.MapToFiltersOperation(),
+                UserIds = apiFilterfnAgentTransaction.UserIds == null ? new FiltersOperation() : apiFilterfnAgentTransaction.UserIds.MapToFiltersOperation(),
+                ExternalTransactionIds = apiFilterfnAgentTransaction.ExternalTransactionIds == null ? new FiltersOperation() : apiFilterfnAgentTransaction.ExternalTransactionIds.MapToFiltersOperation(),
+                Amounts = apiFilterfnAgentTransaction.Amounts == null ? new FiltersOperation() : apiFilterfnAgentTransaction.Amounts.MapToFiltersOperation(),
+                CurrencyIds = apiFilterfnAgentTransaction.CurrencyIds == null ? new FiltersOperation() : apiFilterfnAgentTransaction.CurrencyIds.MapToFiltersOperation(),
+                States = apiFilterfnAgentTransaction.States == null ? new FiltersOperation() : apiFilterfnAgentTransaction.States.MapToFiltersOperation(),
+                OperationTypeIds = apiFilterfnAgentTransaction.OperationTypeIds == null ? new FiltersOperation() : apiFilterfnAgentTransaction.OperationTypeIds.MapToFiltersOperation(),
+                ProductIds = apiFilterfnAgentTransaction.ProductIds == null ? new FiltersOperation() : apiFilterfnAgentTransaction.ProductIds.MapToFiltersOperation(),
+                ProductNames = apiFilterfnAgentTransaction.ProductNames == null ? new FiltersOperation() : apiFilterfnAgentTransaction.ProductNames.MapToFiltersOperation(),
+                TransactionTypes = apiFilterfnAgentTransaction.TransactionTypes == null ? new FiltersOperation() : apiFilterfnAgentTransaction.TransactionTypes.MapToFiltersOperation(),
+                SkipCount = apiFilterfnAgentTransaction.SkipCount,
+                TakeCount = Math.Min(apiFilterfnAgentTransaction.TakeCount, 5000),
+                OrderBy = apiFilterfnAgentTransaction.OrderBy,
+                FieldNameToOrderBy = apiFilterfnAgentTransaction.FieldNameToOrderBy
+            };
+        }
+
+        public static FilterCorrection MapToFilterCorrection(this ApiFilterClientCorrection filter)
+        {
+            return new FilterCorrection
+            {
+                ClientId = filter.ClientId,
+                TakeCount = filter.TakeCount,
+                SkipCount = filter.SkipCount,
+                FromDate = filter.FromDate,
+                ToDate = filter.ToDate,
+                OrderBy = filter.OrderBy,
+                FieldNameToOrderBy = filter.FieldNameToOrderBy,
+
+                Ids = filter.Ids == null ? new FiltersOperation() : filter.Ids.MapToFiltersOperation(),
+                ClientIds = filter.ClientIds == null ? new FiltersOperation() : filter.ClientIds.MapToFiltersOperation(),
+                Amounts = filter.Amounts == null ? new FiltersOperation() : filter.Amounts.MapToFiltersOperation(),
+                States = filter.States == null ? new FiltersOperation() : filter.States.MapToFiltersOperation(),
+                CurrencyIds = filter.CurrencyIds == null ? new FiltersOperation() : filter.CurrencyIds.MapToFiltersOperation(),
+                Creators = filter.UserIds == null ? new FiltersOperation() : filter.UserIds.MapToFiltersOperation(),
+                OperationTypeNames = filter.OperationTypeNames == null ? new FiltersOperation() : filter.OperationTypeNames.MapToFiltersOperation(),
+                FirstNames = filter.FirstNames == null ? new FiltersOperation() : filter.FirstNames.MapToFiltersOperation(),
+                LastNames = filter.LastNames == null ? new FiltersOperation() : filter.LastNames.MapToFiltersOperation()
+
+            };
+        }
+
+        #endregion
+
         #region FilterPaymentRequest
 
         public static FilterfnPaymentRequest MapToFilterPaymentRequest(this ApiFilterPaymentRequest filterPaymentRequest)
@@ -1416,30 +1652,34 @@ namespace IqSoft.CP.MasterCacheWebApi.Helpers
             };
         }
 
-		#endregion
+        #endregion
 
-		#endregion
+        public static FiltersOperation MapToFiltersOperation(this ApiFiltersOperation apiFiltersOperation)
+        {
+            return new FiltersOperation
+            {
+                IsAnd = apiFiltersOperation.IsAnd,
+                OperationTypeList = apiFiltersOperation.ApiOperationTypeList.MapToFiltersOperationTypes()
+            };
+        }
 
-		#region Character
+        public static List<FiltersOperationType> MapToFiltersOperationTypes(this List<ApiFiltersOperationType> apiFiltersOperationTypes)
+        {
+            return apiFiltersOperationTypes.Select(MapToFiltersOperationType).ToList();
+        }
 
-		public static ApiCharacter MapToApiCharacter(this BllCharacter character, bool IsForMobile = false)
-		{
-			return new ApiCharacter
-			{
-				Id = character.Id,
-				ParentId = character.ParentId,
-				PartnerId = character.PartnerId,
-				NickName = character.NickName,
-				Title = character.Title,
-				Description = character.Description,
-				Status = character.Status,
-				Order = character.Order,
-				ImageData = character.ImageData,
-				BackgroundImageData = IsForMobile ? character.BackgroundImageData?.Replace("/assets/images/characters/background/", "/assets/images/characters/background/mobile/") : character.BackgroundImageData,
-				CompPoints = character.CompPoints
-			};
-		}
+        public static FiltersOperationType MapToFiltersOperationType(this ApiFiltersOperationType apiFiltersOperationType)
+        {
+            return new FiltersOperationType
+            {
+                OperationTypeId = apiFiltersOperationType.OperationTypeId,
+                StringValue = apiFiltersOperationType.StringValue,
+                IntValue = apiFiltersOperationType.IntValue,
+                DecimalValue = apiFiltersOperationType.DecimalValue,
+                DateTimeValue = apiFiltersOperationType.DateTimeValue
+            };
+        }
 
-		#endregion
-	}
+        #endregion
+    }
 }

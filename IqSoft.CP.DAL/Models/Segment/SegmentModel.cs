@@ -13,16 +13,15 @@ namespace IqSoft.CP.DAL.Models.Segment
         public int Mode { get; set; }
         public DateTime? CreationTime { get; set; }
         public DateTime? LastUpdateTime { get; set; }
-        public SegementSettingModel SegementSetting { get; set; }
+        public SegmentSettingModel SegementSetting { get; set; }
         public bool? IsKYCVerified { get; set; }
+        public bool? IsEmailVerified { get; set; }
+        public bool? IsMobileNumberVerified { get; set; }
         public int? Gender { get; set; }        
         public bool? IsTermsConditionAccepted { get; set; } // ???
 
         [PropertyCustomTypeAttribute(TypeName = "IntArray")]
         public Condition ClientStatus { get; set; }
-
-        [PropertyCustomTypeAttribute(TypeName = "IntArray")]
-        public Condition SegmentId { get; set; }
 
         [PropertyCustomTypeAttribute(TypeName = "IntArray")]
         public Condition ClientId { get; set; }
@@ -39,8 +38,11 @@ namespace IqSoft.CP.DAL.Models.Segment
         [PropertyCustomTypeAttribute(TypeName = "IntArray")]
         public Condition Region { get; set; }
 
-        [PropertyCustomTypeAttribute(TypeName = "IntArray")]
+        [PropertyCustomTypeAttribute(TypeName = "Int")]
         public Condition AffiliateId { get; set; }
+
+        [PropertyCustomTypeAttribute(TypeName = "Int")]
+        public Condition AgentId { get; set; }
 
         [PropertyCustomTypeAttribute(TypeName = "MobileArray")]
         public Condition MobileCode { get; set; }

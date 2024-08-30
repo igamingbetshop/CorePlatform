@@ -15,5 +15,9 @@ namespace IqSoft.CP.DAL
         }
 
 		public int AccountTypeId { get; set; }
+
+        public int? AccountBetShopId { get; set; }
+
+        public int? AccountPaymentSystemId { get; set; }
     }
 }

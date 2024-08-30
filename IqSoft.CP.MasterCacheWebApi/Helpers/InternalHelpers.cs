@@ -42,9 +42,9 @@ namespace IqSoft.CP.MasterCacheWebApi.Helpers
 			if (product.ParentId == 51) //virtual games
 			{
 				return string.Format((env == "production" ? "https://virtualgameswebsite.{0}" : "http://10.50.17.10:11006") +
-                    "/{1}/{2}/{7}?gameid={3}&partnerid={4}&languageid={5}&token={6}&viewtype=1&timezone={8}", domain,
+                    "/{1}/{2}?gameid={3}&partnerid={4}&languageid={5}&token={6}&viewtype=1&timezone={8}", domain,
                     product.NickName.ToLower(), (input.IsForMobile.HasValue && input.IsForMobile.Value) ? "mobile" : "web", product.ExternalId,
-                    partner.Id, input.LanguageId, token, input.Position, input.TimeZone);
+                    partner.Id, input.LanguageId, token, input.Position, input.TimeZone);//check position
             }
             if (product.ParentId == 28) //skill games
             {

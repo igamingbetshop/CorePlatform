@@ -52,13 +52,26 @@ namespace IqSoft.CP.WebSiteWebApi.Hubs
             var token = Context.GetHttpContext().Request.Query["Token"];
             var languageId = Context.GetHttpContext().Request.Query["LanguageId"];
             var timeZone = Context.GetHttpContext().Request.Query["TimeZone"];
+            var isAgent = Context.GetHttpContext().Request.Query["IsAgent"];
             await BaseHub.CurrentContext.Groups.AddToGroupAsync(Context.ConnectionId, "Partner_" + partnerId);
             await BaseHub.CurrentContext.Groups.AddToGroupAsync(Context.ConnectionId, $"Partner_{partnerId}_{deviceType}");
-            var apiIdentity = new ApiIdentity { PartnerId = Convert.ToInt32(partnerId), LanguageId = languageId, TimeZone = Convert.ToDouble(timeZone) };
+            var apiIdentity = new ApiIdentity 
+            { 
+                PartnerId = Convert.ToInt32(partnerId), 
+                LanguageId = languageId, 
+                TimeZone = Convert.ToDouble(timeZone),
+                IsAgent = string.IsNullOrEmpty(isAgent) ? false : Convert.ToBoolean(isAgent)
+            };
+
             if (!string.IsNullOrEmpty(token))
             {
                 var client = MasterCacheIntegration.SendMasterCacheRequest<ApiLoginClientOutput>(Convert.ToInt32(partnerId), "GetClientByToken",
-                    new RequestBase { Token = token, LanguageId = apiIdentity.LanguageId });
+                    new RequestBase { 
+                        Token = token, 
+                        LanguageId = apiIdentity.LanguageId, 
+                        IsAgent = apiIdentity.IsAgent 
+                    });
+
                 if (client.ResponseCode == Constants.SuccessResponseCode)
                 {
                     await BaseHub.CurrentContext.Groups.AddToGroupAsync(Context.ConnectionId, "Client_" + client.Id);
@@ -72,7 +85,8 @@ namespace IqSoft.CP.WebSiteWebApi.Hubs
                         Ip = ip,
                         ClientId = client.Id,
                         PartnerId = client.PartnerId,
-                        RequestData = client.CurrencyId
+                        RequestData = client.CurrencyId,
+                        IsAgent = apiIdentity.IsAgent
                     });
                     BroadcastService.BroadcastBalance(client.Id, balance);
                 }

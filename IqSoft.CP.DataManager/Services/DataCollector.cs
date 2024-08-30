@@ -27,7 +27,7 @@ namespace IqSoft.CP.DataManager.Services
                     db.sp_InsertDocuments(lastDocumentId);
 
                 }
-                Program.DbLogger.Info("MigrateDocuments_Finished");
+               // Program.DbLogger.Info("MigrateDocuments_Finished");
             }
             catch (Exception ex)
             {
@@ -181,10 +181,10 @@ namespace IqSoft.CP.DataManager.Services
                             {
                                 old.CurrentRate = c.CurrentRate;
                                 old.Symbol = c.Symbol;
-                                old.SessionId = c.SessionId;
                                 old.LastUpdateTime = c.LastUpdateTime;
                                 old.Code = c.Code;
                                 old.Name = c.Name;
+                                old.Type = c.Type;
                             }
                         }
                         db.SaveChanges();
@@ -290,7 +290,7 @@ namespace IqSoft.CP.DataManager.Services
                 var startTime = DateTime.UtcNow.AddHours(-1);
                 using (var db = new IqSoftDataWarehouseEntities())
                 {
-                    var sqlString = "SELECT * FROM [ClientSession] WHERE ProductId = 1 AND (StartTime > @startTime or LastUpdateTime > @startTime)";
+                    var sqlString = "SELECT * FROM [ClientSession] WHERE ProductId = 1 AND (StartTime > @startTime or LastUpdateTime > @startTime or EndTime > @startTime)";
                     var context = new DbContext(CorePlatformDbConnectionString);
                     var result = context.Database.SqlQuery<ClientSession>(sqlString, new SqlParameter("@startTime", startTime)).ToList();
                     if (result.Count > 0)
@@ -311,7 +311,6 @@ namespace IqSoft.CP.DataManager.Services
                         }
                         db.SaveChanges();
                     }
-                    db.ClientSessions.AddOrUpdateExtension(result);
                 }
             }
             catch (Exception ex)

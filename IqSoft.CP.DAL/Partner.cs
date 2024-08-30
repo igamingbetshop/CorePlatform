@@ -24,9 +24,7 @@ namespace IqSoft.CP.DAL
             this.PartnerCountrySettings = new HashSet<PartnerCountrySetting>();
             this.PartnerCurrencySettings = new HashSet<PartnerCurrencySetting>();
             this.PromoCodes = new HashSet<PromoCode>();
-            this.Promotions = new HashSet<Promotion>();
             this.Roles = new HashSet<Role>();
-            this.Segments = new HashSet<Segment>();
             this.Tickets = new HashSet<Ticket>();
             this.Users = new HashSet<User>();
             this.WebSiteMenus = new HashSet<WebSiteMenu>();
@@ -53,6 +51,8 @@ namespace IqSoft.CP.DAL
             this.ClientInfoes = new HashSet<ClientInfo>();
             this.TriggerSettings = new HashSet<TriggerSetting>();
             this.Popups = new HashSet<Popup>();
+            this.Promotions = new HashSet<Promotion>();
+            this.Segments = new HashSet<Segment>();
         }
     
         public int Id { get; set; }
@@ -78,6 +78,7 @@ namespace IqSoft.CP.DAL
         public decimal AutoApproveWithdrawMaxAmount { get; set; }
         public int ClientSessionExpireTime { get; set; }
         public decimal AutoConfirmWithdrawMaxAmount { get; set; }
+        public int VipLevel { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Category> Categories { get; set; }
@@ -85,7 +86,6 @@ namespace IqSoft.CP.DAL
         public virtual ICollection<ComplimentaryPointRate> ComplimentaryPointRates { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<CRMSetting> CRMSettings { get; set; }
-        public virtual Currency Currency { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Merchant> Merchants { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
@@ -95,11 +95,7 @@ namespace IqSoft.CP.DAL
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PromoCode> PromoCodes { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Promotion> Promotions { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Role> Roles { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Segment> Segments { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Ticket> Tickets { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
@@ -153,5 +149,10 @@ namespace IqSoft.CP.DAL
         public virtual ICollection<TriggerSetting> TriggerSettings { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Popup> Popups { get; set; }
+        public virtual Currency Currency { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Promotion> Promotions { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Segment> Segments { get; set; }
     }
 }

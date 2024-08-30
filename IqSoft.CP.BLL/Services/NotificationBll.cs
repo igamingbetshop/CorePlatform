@@ -12,13 +12,13 @@ using IqSoft.CP.BLL.Caching;
 using IqSoft.CP.Common.Models.Notification;
 using IqSoft.CP.BLL.Interfaces;
 using System.ServiceModel;
-using IqSoft.CP.DAL.Models.Cache;
-using System.Data.Entity;
 using IqSoft.CP.Common.Models.CacheModels;
 using IqSoft.CP.BLL.Helpers;
 using System.Collections.Generic;
 using System.Text;
 using IqSoft.CP.DAL.Models.Notification;
+using IqSoft.CP.Common.Models.AffiliateModels;
+using System.Web.UI.WebControls;
 
 namespace IqSoft.CP.BLL.Services
 {
@@ -54,7 +54,7 @@ namespace IqSoft.CP.BLL.Services
                 CreationTime = GetServerDate(),
                 ObjectId = objectId,
                 ObjectTypeId = objectTypeId
-			};
+            };
             Db.Emails.Add(dbEmail);
             Db.SaveChanges();
             return dbEmail.Id;
@@ -86,7 +86,7 @@ namespace IqSoft.CP.BLL.Services
                         Body = body,
                         ExternalTemplateId = externalTemplateId,
                         AttachedFileName = fileName,
-                        AttachedContent= fileContent
+                        AttachedContent = fileContent
                     };
                     EmailHelpers.SendEmail(notificationServieId, apiEmailModel, Log);
                     return true;
@@ -275,7 +275,7 @@ namespace IqSoft.CP.BLL.Services
                 VerificationCode = verificationKey
             };
             var activePeriodInMinutes = SendNotificationMessage(notificationModel, out int responseCode);
-            if(responseCode > 0)
+            if (responseCode > 0)
                 throw CreateException(LanguageId, responseCode);
             if (changed)
             {
@@ -375,7 +375,7 @@ namespace IqSoft.CP.BLL.Services
                     Domain = Identity.Domain,
                     Parameters = notificationModel.Parameters
                 };
-                if(notificationModel.ObjectId > 0 )
+                if (notificationModel.ObjectId > 0)
                 {
                     CheckLimit(notificationModel.ClientInfoType, notificationModel.PartnerId, notificationModel.ObjectId, notificationModel.ObjectTypeId);
 
@@ -403,6 +403,10 @@ namespace IqSoft.CP.BLL.Services
                             composite.AffiliateId = affiliate.Id;
                             composite.UserName = affiliate.UserName;
                             break;
+                        case (int)ObjectTypes.Partner:
+                            composite.Email = notificationModel.RequesterEmail;
+                            composite.MessageText = notificationModel.MessageText;
+                            break;
                         default: break;
                     }
                 }
@@ -420,7 +424,7 @@ namespace IqSoft.CP.BLL.Services
                         Subject = partner.Name,
                         MobileOrEmail = notificationModel.MobileOrEmail,
                         Type = notificationModel.MessageType,
-                        Message = notificationModel.MessageType == (int)ClientMessageTypes.SecuredSms || 
+                        Message = notificationModel.MessageType == (int)ClientMessageTypes.SecuredSms ||
                             notificationModel.MessageType == (int)ClientMessageTypes.SecuredEmail ? "Secured" : messageTextTemplate,
                         CreationTime = currentDate
                     });
@@ -429,9 +433,9 @@ namespace IqSoft.CP.BLL.Services
                     var activeClientInfoesCount = CheckActiveClientInfoes(notificationModel.PartnerId, notificationModel.MobileOrEmail);
                     if (activeClientInfoesCount > 0)
                         verificationCodeActivePeriod /= 2;
-                    Db.ClientInfoes.Where(x => (x.State==(int)ClientInfoStates.Active || x.State==(int)ClientInfoStates.Verified) &&
-                                                x.MobileOrEmail == notificationModel.MobileOrEmail &&  x.PartnerId == notificationModel.PartnerId)
-                                   .UpdateFromQuery(x => new ClientInfo { State  = (int)ClientInfoStates.Expired });
+                    Db.ClientInfoes.Where(x => (x.State == (int)ClientInfoStates.Active || x.State == (int)ClientInfoStates.Verified) &&
+                                                x.MobileOrEmail == notificationModel.MobileOrEmail && x.PartnerId == notificationModel.PartnerId)
+                                   .UpdateFromQuery(x => new ClientInfo { State = (int)ClientInfoStates.Expired });
                     Db.ClientInfoes.Add(new ClientInfo
                     {
                         PartnerId = notificationModel.PartnerId,
@@ -451,8 +455,10 @@ namespace IqSoft.CP.BLL.Services
                     SendSms(notificationModel.PartnerId, notificationModel.MobileOrEmail, messageTextTemplate, message.Id);
                     return verificationCodeActivePeriod;
                 }
-                var emailSubject = notificationModel.SubjectType.HasValue ? CacheManager.GetPartnerMessageTemplate(notificationModel.PartnerId, 
-                    notificationModel.SubjectType.Value, languageId)?.Text : partner.Name;
+
+                var emailSubject = !string.IsNullOrEmpty(notificationModel.SubjectText) ? notificationModel.SubjectText :
+                                   (notificationModel.SubjectType.HasValue ? CacheManager.GetPartnerMessageTemplate(notificationModel.PartnerId,
+                                    notificationModel.SubjectType.Value, languageId)?.Text : partner.Name);
                 // change subject for below types
                 if (notificationModel.ClientInfoType == (int)ClientInfoTypes.PasswordRecoveryEmailKey || notificationModel.ClientInfoType == (int)ClientInfoTypes.EmailVerificationKey)
                 {
@@ -463,7 +469,7 @@ namespace IqSoft.CP.BLL.Services
                 }
                 if (string.IsNullOrEmpty(emailSubject))
                     emailSubject = partner.Name;
-				var emailId = RegisterActiveEmail(notificationModel.PartnerId, notificationModel.MobileOrEmail, emailSubject, messageTextTemplate, messageTemplateId, notificationModel.ObjectId, notificationModel.ObjectTypeId);
+                var emailId = RegisterActiveEmail(notificationModel.PartnerId, notificationModel.MobileOrEmail, emailSubject, messageTextTemplate, messageTemplateId, notificationModel.ObjectId, notificationModel.ObjectTypeId);
                 message.EmailId = emailId;
                 Db.SaveChanges();
                 return verificationCodeActivePeriod;
@@ -498,10 +504,12 @@ namespace IqSoft.CP.BLL.Services
                     };
                     var emailType = (int)ClientInfoTypes.DepositEmail;
                     var ticketType = (int)ClientInfoTypes.DepositTicket;
+                    var subjectType = (int)ClientInfoTypes.DepositNotificationSubject;
                     if (requestState != (int)PaymentRequestStates.Approved && requestState != (int)PaymentRequestStates.ApprovedManually)
                     {
                         emailType = (int)ClientInfoTypes.FailedDepositEmail;
                         ticketType = (int)ClientInfoTypes.FailedDepositTicket;
+                        subjectType = (int)ClientInfoTypes.FailedDepositSubject;
                     }
                     var partnerConfig = CacheManager.GetConfigKey(client.PartnerId, Constants.PartnerKeys.SendDepositEmailNotification);
                     if (!string.IsNullOrEmpty(partnerConfig) && partnerConfig == "1")
@@ -513,6 +521,7 @@ namespace IqSoft.CP.BLL.Services
                             ObjectTypeId = (int)ObjectTypes.Client,
                             MobileOrEmail = client.Email,
                             ClientInfoType = emailType,
+                            SubjectType = subjectType,
                             PaymentInfo = paymentInfo
                         };
                         SendNotificationMessage(notificationModel, out int responseCode);
@@ -538,7 +547,7 @@ namespace IqSoft.CP.BLL.Services
                 if (client == null)
                     throw CreateException(LanguageId, Constants.Errors.ClientNotFound);
                 var partnerConfig = CacheManager.GetConfigKey(client.PartnerId, Constants.PartnerKeys.SendWithdrawEmailNotification);
-                var paymentInfo = new DAL.Models.Notification.PaymentNotificationInfo
+                var paymentInfo = new PaymentNotificationInfo
                 {
                     State = requestState,
                     Amount = amount,
@@ -585,6 +594,7 @@ namespace IqSoft.CP.BLL.Services
                         ObjectTypeId = (int)ObjectTypes.Client,
                         MobileOrEmail = client.Email,
                         ClientInfoType = emailType,
+                        SubjectType = (int)ClientInfoTypes.WithdrawStatusChangeSubject,
                         PaymentInfo = paymentInfo
                     };
                     SendNotificationMessage(notificationModel, out int responseCode);
@@ -599,55 +609,6 @@ namespace IqSoft.CP.BLL.Services
             {
                 Log.Error(e);
             }
-        }
-
-        public void RegistrationNotification(int partnerId, int clientId, AffiliatePlatform affiliatePlatform, string clieckId, string affiliateId)
-        {
-            NotifyAffiliator(partnerId, clientId, affiliatePlatform, clieckId, string.Empty, null, null, false);
-        }
-
-        public void LoginNotification(int partnerId, BllClient client, AffiliatePlatform affiliatePlatform)
-		{
-            var clickId = string.Empty;
-			if (client.AffiliateReferralId != null)
-            {
-                var af = Db.AffiliateReferrals.FirstOrDefault(x => x.Id == client.AffiliateReferralId);
-				clickId = af.RefId;
-			}
-			NotifyAffiliator(partnerId, client.Id, affiliatePlatform, clickId, string.Empty, null, null, false, isLogin: true);
-        }
-
-       public void DepositAffiliateNotification(BllClient client, decimal depositAmount, DateTime paymentDate, long transactionId, int depositCount, string crmPlatforms)
-        {
-            var ar = Db.AffiliateReferrals.Include(x => x.AffiliatePlatform).FirstOrDefault(x => x.Id == client.AffiliateReferralId);
-            if (ar != null)
-                NotifyAffiliator(client.PartnerId, client.Id, ar.AffiliatePlatform, ar.RefId, client.CurrencyId, depositAmount, transactionId, false, depositCount);
-            if(!string.IsNullOrWhiteSpace(crmPlatforms))
-            {
-                var items = crmPlatforms.Split(',');
-                foreach (var crmPlatform in items)
-                {
-					NotifyAffiliator(client.PartnerId, client.Id, new AffiliatePlatform { Name = crmPlatform }, null, client.CurrencyId, depositAmount, transactionId, false, depositCount, paymentDate);
-				}
-            }				
-		}
-
-        public void WithdrawAffiliateNotification(BllClient client, decimal withdrawAmount, long transactionId, string crmPlatforms)
-        {
-            if (client.AffiliateReferralId != null)
-            {
-                var ar = Db.AffiliateReferrals.Include(x => x.AffiliatePlatform).FirstOrDefault(x => x.Id == client.AffiliateReferralId);
-                if (ar != null)
-                    NotifyAffiliator(client.PartnerId, client.Id, ar.AffiliatePlatform, ar.RefId, client.CurrencyId, withdrawAmount, transactionId, true, null);
-				if (!string.IsNullOrWhiteSpace(crmPlatforms))
-				{
-					var items = crmPlatforms.Split(',');
-					foreach (var crmPlatform in items)
-					{
-						NotifyAffiliator(client.PartnerId, client.Id, ar.AffiliatePlatform, ar.RefId, client.CurrencyId, withdrawAmount, transactionId, true);
-					}
-				}
-			}
         }
 
 
@@ -709,6 +670,7 @@ namespace IqSoft.CP.BLL.Services
                                  .Replace("{a}", composite.Amount?.ToString("F"))
                                  .Replace("{cr}", composite.Currency)
                                  .Replace("{r}", composite.Reason)
+                                 .Replace("{em}", composite.MessageText)
                                  .Replace("{bn}", composite.BankName)
                                  .Replace("{bbn}", composite.BankBranchName)
                                  .Replace("{bc}", composite.BankCode)
@@ -742,9 +704,9 @@ namespace IqSoft.CP.BLL.Services
 
             }
             if (composite.AffiliateId.HasValue && composite.AffiliateId.Value > 0)
-            {
                 msgText = msgText.Replace("{u}", composite.UserName);
-            }
+            else
+                msgText = msgText.Replace("{e}", composite.Email).Replace("{em}", composite.MessageText);
             return msgText;
         }
 
@@ -762,505 +724,848 @@ namespace IqSoft.CP.BLL.Services
             return ClientMessageTypes.Sms;
         }
 
-        private void NotifyAffiliator(int partnerId, int clientId, AffiliatePlatform affiliatePlatform, string clickId, string currency, 
-                                             decimal? amount, long? transactionId, bool isWithdraw, int? depositCount = 0, DateTime? depositDate = null, bool isLogin = false)
+        public static string NotifyAffiliator(NotificationTypes notificationTypes, AffiliateData affiliateData, ILog log)
         {
             try
             {
-                var url = CacheManager.GetPartnerSettingByKey(partnerId, string.Format("{0}_{1}", Constants.PartnerKeys.AffiliateUrl, affiliatePlatform.Id)).StringValue;
-                var postData = string.Empty;
-                Dictionary<string, string> headers = null;
-                switch (affiliatePlatform.Name)
+                if (affiliateData.AffiliatePlatformId.HasValue) 
                 {
-                    case AffiliatePlatforms.Evadav:
-                        if (!isWithdraw)
-                        {
-                            var requestInput = new AffiliateNotificationInput
-                            {
-                                status = (int)AffiliatePlatformStatuses.Success,
-                                clickid = clickId,
-                            };
-                            if (amount.HasValue)
-                            {
-                                requestInput.sum = ConvertCurrency(currency, Constants.Currencies.USADollar, amount.Value) * 0.95m;
-                                requestInput.action_id = transactionId.Value;
-                                requestInput.goal = (int)AffiliatePlatformGoalTypes.Deposit;
-                            }
-                            else
-                                requestInput.goal = (int)AffiliatePlatformGoalTypes.Regiter;
+                    switch (notificationTypes)
+                    {
+                        case NotificationTypes.Registration:
+                            return AffiliateRegisterationNotification(affiliateData, log);
+                        case NotificationTypes.Deposit:
+                            return AffiliateDepositNotification(affiliateData);
+                        case NotificationTypes.Withdraw:
+                            return AffiliateWithdrawNotification(affiliateData);
+                        default:
+                            return string.Empty;
 
-                            postData = CommonFunctions.GetSortedParamWithValuesAsString(requestInput, "&");
-                        }
-                        break;
-                    case AffiliatePlatforms.Alfaleads:
-                        if (!isWithdraw)
+                    }
+                }
+                return string.Empty;
+
+            }
+            catch (Exception e)
+            {
+                log.Error(e);
+                throw;
+            }
+        }
+
+        private static string AffiliateRegisterationNotification(AffiliateData affiliateData, ILog log)
+        {
+            var url = CacheManager.GetPartnerSettingByKey(affiliateData.PartnerId, string.Format("{0}_{1}", Constants.PartnerKeys.AffiliateUrl, affiliateData.AffiliatePlatformId)).StringValue;
+            var postData = string.Empty;
+            Dictionary<string, string> headers = null;
+            var response = string.Empty;
+            switch (affiliateData.AffiliatePlatformName)
+            {
+                case AffiliatePlatforms.Evadav:
+                    var requestInput = new AffiliateNotificationInput
+                    {
+                        status = (int)AffiliatePlatformStatuses.Success,
+                        clickid = affiliateData.ClickId,
+                        goal = (int)AffiliatePlatformGoalTypes.Regiter
+                    };
+                    postData = CommonFunctions.GetSortedParamWithValuesAsString(requestInput, "&");
+                    break;
+                case AffiliatePlatforms.Alfaleads:
+                    var secureKey = CacheManager.GetPartnerSettingByKey(affiliateData.PartnerId, string.Format("{0}_{1}", Constants.PartnerKeys.AffiliateSecure, affiliateData.AffiliatePlatformId)).StringValue;
+                    var notifyInput = new AffiliateNotificationInput
+                    {
+                        secure = secureKey,
+                        status = 1,
+                        clickid = affiliateData.ClickId,
+                        goal = 2
+                    };
+                    postData = CommonFunctions.GetSortedParamWithValuesAsString(notifyInput, "&");
+                    break;
+                case AffiliatePlatforms.Voluum:
+                    postData = CommonFunctions.GetSortedParamWithValuesAsString(new { cid = affiliateData.ClickId, et = "signup" }, "&");
+                    break;
+                case AffiliatePlatforms.Affise:
+                    postData = CommonFunctions.GetSortedParamWithValuesAsString(new { clickid = affiliateData.ClickId, goal = "registration" }, "&");
+                    break;
+                case AffiliatePlatforms.Dzhaweb:
+                    postData = CommonFunctions.GetSortedParamWithValuesAsString(new { clickid = affiliateData.ClickId, type = "register" }, "&");
+                    break;
+                case AffiliatePlatforms.Intelitics:
+                    url = String.Format(url, affiliateData.ClickId);
+                    postData = CommonFunctions.GetSortedParamWithValuesAsString(new { type = "registration", method = "postback" }, "&");
+                    break;
+                case AffiliatePlatforms.MyAffiliates:
+                case AffiliatePlatforms.VipAffiliate:
+                    var sendPostback = CacheManager.GetPartnerSettingByKey(affiliateData.PartnerId, $"{affiliateData.AffiliatePlatformName}_{Constants.PartnerKeys.AffiliateSendPostback}").StringValue;
+                    if (sendPostback != "0")
+                    {
+                        var client = CacheManager.GetClientById(affiliateData.ClientId);
+                        var clientGroup = CacheManager.GetPartnerSettingByKey(affiliateData.PartnerId, string.Format("{0}_{1}", Constants.PartnerKeys.AffiliateSecure, affiliateData.AffiliatePlatformId)).StringValue;
+                        var apiUsername = CacheManager.GetPartnerSettingByKey(affiliateData.PartnerId, string.Format("{0}_{1}", Constants.PartnerKeys.AffiliateUsername, affiliateData.AffiliatePlatformId)).StringValue;
+                        var apiPassword = CacheManager.GetPartnerSettingByKey(affiliateData.PartnerId, string.Format("{0}_{1}", Constants.PartnerKeys.AffiliatePassword, affiliateData.AffiliatePlatformId)).StringValue;
+                        headers = new Dictionary<string, string> { { "Authorization", "Basic " + Convert.ToBase64String(Encoding.Default.GetBytes(apiUsername + ":" + apiPassword)) } };
+                        postData = CommonFunctions.GetSortedParamWithValuesAsString(new
                         {
-                            var secureKey = CacheManager.GetPartnerSettingByKey(partnerId, string.Format("{0}_{1}", Constants.PartnerKeys.AffiliateSecure, affiliatePlatform.Id)).StringValue;
-                            var notifyInput = new AffiliateNotificationInput
-                            {
-                                secure = secureKey,
-                                status = 1,
-                                clickid = clickId
-                            };
-                            if (amount.HasValue)
-                            {
-                                notifyInput.goal = 3;
-                                notifyInput.sum = ConvertCurrency(currency, Constants.Currencies.USADollar, amount.Value);
-                            }
-                            else
-                                notifyInput.goal = 2;
-                            postData = CommonFunctions.GetSortedParamWithValuesAsString(notifyInput, "&");
-                        }
-                        break;
-                    case AffiliatePlatforms.Voluum:
-                        if (amount.HasValue)
-                        {
-                            postData = CommonFunctions.GetSortedParamWithValuesAsString(
-                                new
-                                {
-                                    cid = clickId,
-                                    payout = amount,
-                                    txid = transactionId,
-                                    et = depositCount == 1 ? "deposit1" : "deposit2"
-                                }, "&");
-                        }
-                        else
-                            postData = CommonFunctions.GetSortedParamWithValuesAsString(new { cid = clickId, et = "signup" }, "&");
-                        break;
-                    case AffiliatePlatforms.Affise:
-                        if (amount.HasValue)
-                        {
-                            var transactionAmount = ConvertCurrency(currency, Constants.Currencies.USADollar, amount.Value);
-                            if (!isWithdraw && depositCount == 1 && transactionAmount >= 5)
-                            {
-                                postData = CommonFunctions.GetSortedParamWithValuesAsString(
-                                new
-                                {
-                                    clickid = clickId,
-                                    sum = transactionAmount,
-                                    goal = "firstdep",
-                                    action_id = transactionId
-                                }, "&");
-                                var httpRequestInput = new HttpRequestInput
-                                {
-                                    RequestMethod = Constants.HttpRequestMethods.Get,
-                                    Url = string.Format("{0}?{1}", url, postData)
-                                };
-                                CommonFunctions.SendHttpRequest(httpRequestInput, out _);
-                            }
-                            postData = CommonFunctions.GetSortedParamWithValuesAsString(
-                            new
-                            {
-                                clickid = clickId,
-                                sum = isWithdraw ? -transactionAmount : transactionAmount,
-                                goal = isWithdraw ? "out" : "dep",
-                                action_id = transactionId
-                            }, "&");
-                        }
-                        else
-                            postData = CommonFunctions.GetSortedParamWithValuesAsString(new { clickid = clickId, goal = "registration" }, "&");
-                        break;
-                    case AffiliatePlatforms.Dzhaweb:
-                        if (!isWithdraw)
-                        {
-                            if (amount.HasValue)
-                            {
-                                postData = CommonFunctions.GetSortedParamWithValuesAsString(new
-                                {
-                                    type = "deposit",
-                                    clickid = clickId,
-                                    deposit = ConvertCurrency(currency, Constants.Currencies.USADollar, amount.Value),
-                                    firstDeposit = depositCount == 1
-                                }, "&");
-                            }
-                            else
-                                postData = CommonFunctions.GetSortedParamWithValuesAsString(new { clickid = clickId, type = "register" }, "&");
-                        }
-                        break;
-                    case AffiliatePlatforms.Intelitics:
-                        url = String.Format(url, clickId);
-                        if (!isWithdraw)
-                        {
-                            if (amount.HasValue)
-                            {
-                                postData = CommonFunctions.GetSortedParamWithValuesAsString(new
-                                {
-                                    type = "deposit",
-                                    method = "postback",
-                                    currency,
-                                    amount,
-                                    player_id = clientId,
-                                    transaction_id = transactionId,
-                                }, "&");
-                            }
-                            else
-                                postData = CommonFunctions.GetSortedParamWithValuesAsString(new { type = "registration", method = "postback" }, "&");
-                        }
-                        break;
-                    case AffiliatePlatforms.MyAffiliates:
-                    case AffiliatePlatforms.VipAffiliate:
-                        if (!amount.HasValue)
-                        {
-                            var sendPostback = CacheManager.GetPartnerSettingByKey(partnerId, $"{affiliatePlatform.Name}_{Constants.PartnerKeys.AffiliateSendPostback}").StringValue;
-                            if (sendPostback != "0")
-                            {
-                                var client = CacheManager.GetClientById(clientId);
-                                var clientGroup = CacheManager.GetPartnerSettingByKey(partnerId, string.Format("{0}_{1}", Constants.PartnerKeys.AffiliateSecure, affiliatePlatform.Id)).StringValue;
-                                var apiUsername = CacheManager.GetPartnerSettingByKey(partnerId, string.Format("{0}_{1}", Constants.PartnerKeys.AffiliateUsername, affiliatePlatform.Id)).StringValue;
-                                var apiPassword = CacheManager.GetPartnerSettingByKey(partnerId, string.Format("{0}_{1}", Constants.PartnerKeys.AffiliatePassword, affiliatePlatform.Id)).StringValue;
-                                headers = new Dictionary<string, string> { { "Authorization", "Basic " + Convert.ToBase64String(Encoding.Default.GetBytes(apiUsername + ":" + apiPassword)) } };
-                                postData = CommonFunctions.GetSortedParamWithValuesAsString(new
-                                {
-                                    FEED_ID = 8,
-                                    CLIENT_REFERENCE = clientId,
-                                    CLIENT_GROUP = clientGroup,
-                                    JOIN_DATE = client.CreationTime.ToString("yyyy-MM-dd"),
-                                    DISPLAY_NAME = clientId,
-                                    TOKEN = clickId,
-                                    COUNTRY = Identity.Country
-                                }, "&");
-                            }
-                        }
-                        break;
-                    case AffiliatePlatforms.Affilka:
-                        var player = CacheManager.GetClientById(clientId);
-                        var apiKey = CacheManager.GetPartnerSettingByKey(partnerId, AffiliatePlatforms.Affilka + Constants.PartnerKeys.AffiliateFtpUsername).StringValue;
-                        var apiSecret = CacheManager.GetPartnerSettingByKey(partnerId, AffiliatePlatforms.Affilka + Constants.PartnerKeys.AffiliateFtpPassword).StringValue;
-                        var inputJson = JsonConvert.SerializeObject(new
+                            FEED_ID = 8,
+                            CLIENT_REFERENCE = affiliateData.ClientId,
+                            CLIENT_GROUP = clientGroup,
+                            JOIN_DATE = client.CreationTime.ToString("yyyy-MM-dd"),
+                            DISPLAY_NAME = affiliateData.ClientId,
+                            TOKEN = affiliateData.ClickId,
+                            COUNTRY = CacheManager.GetRegionById(client.CountryId ?? client.RegionId, client.LanguageId)?.IsoCode
+                        }, "&");
+                    }
+                    break;
+                case AffiliatePlatforms.Affilka:
+                    var player = CacheManager.GetClientById(affiliateData.ClientId);
+                    var apiKey = CacheManager.GetPartnerSettingByKey(affiliateData.PartnerId, AffiliatePlatforms.Affilka + Constants.PartnerKeys.AffiliateFtpUsername).StringValue;
+                    var apiSecret = CacheManager.GetPartnerSettingByKey(affiliateData.PartnerId, AffiliatePlatforms.Affilka + Constants.PartnerKeys.AffiliateFtpPassword).StringValue;
+                    var inputJson = string.Empty;
+                    var httpInput = new HttpRequestInput
+                    {
+                        RequestMethod = Constants.HttpRequestMethods.Post,
+                        ContentType = Constants.HttpContentTypes.ApplicationJson,
+                        Url = $"{url}/players"
+                    };
+
+                    if (!affiliateData.ClickId.Contains("_"))
+                    {
+                        inputJson = JsonConvert.SerializeObject(new
                         {
                             players = new List<object> { { new
                             {
-                               tag = clickId,
-                               email = player.Email,
-                               user_id = player.Id.ToString(),
-                               country = Identity.Country.ToUpper(),
-                               sign_up_at = player.CreationTime.ToString("yyyy-MM-ddTHH:mm:ss.fff+00:00")
+                               bonus_code = affiliateData.ClickId,
+                               user_id = player.Id.ToString()
                             } } }
                         });
-                        var httpInput = new HttpRequestInput
+                        httpInput.RequestHeaders = new Dictionary<string, string>
                         {
-                            RequestMethod = Constants.HttpRequestMethods.Post,
-                            ContentType = Constants.HttpContentTypes.ApplicationJson,
-                            Url = $"{url}/players",
-                            RequestHeaders = new Dictionary<string, string> { 
-                                { "X-Authorization-Key", apiKey }, 
-                                { "X-Authorization-Sign", CommonFunctions.ComputeHMACSha512(inputJson, apiSecret).ToLower() } 
-                            },
-                            PostData = inputJson
+                            { "X-Authorization-Key", apiKey },
+                            { "X-Authorization-Sign", CommonFunctions.ComputeHMACSha512(inputJson, apiSecret).ToLower() }
                         };
+                        httpInput.PostData = inputJson;                        
                         var resp = CommonFunctions.SendHttpRequest(httpInput, out _);
-                        break;
-
-                    case AffiliatePlatforms.Trackier:
-                        player = CacheManager.GetClientById(clientId);
-                        var brand = CacheManager.GetPartnerSettingByKey(player.PartnerId, AffiliatePlatforms.Trackier + Constants.PartnerKeys.AffiliateBrandId).StringValue;
-                        apiKey = CacheManager.GetPartnerSettingByKey(partnerId, AffiliatePlatforms.Trackier + Constants.PartnerKeys.AffiliateApiKey).StringValue;
-
-                        var currentTime = DateTime.UtcNow;
-                        long unixTime = ((DateTimeOffset)currentTime).ToUnixTimeSeconds(); 
-                        inputJson = JsonConvert.SerializeObject(new
+                        if (!affiliateData.ClickId.Contains("_"))
                         {
-                            customerId = player.Id.ToString(),
-                            customerName = player.UserName,
-                            timestamp = unixTime,
-                            date = currentTime.ToString("yyyy-MM-dd"),
-                            currency = player.CurrencyId.ToLower(),
-                            brandId = brand,
-                            productId = "1",
-                            trackingToken = clickId,
-                            country = Identity.Country.ToUpper(),
-                        });
-                        httpInput = new HttpRequestInput
-                        {
-                            RequestMethod = Constants.HttpRequestMethods.Post,
-                            ContentType = Constants.HttpContentTypes.ApplicationJson,
-                            Url = $"{url}/customers",
-                            RequestHeaders = new Dictionary<string, string> { { "x-api-key", apiKey } },
-                            PostData = inputJson
-                        };
-                        var r = CommonFunctions.SendHttpRequest(httpInput, out _);
-                        Log.Info("Trackier resp: " + r);
-                        break;
+                            try
+                            {
+                                var stagResponse = JsonConvert.DeserializeObject<List<AffilkaOutput>>(resp);
+                                if (!stagResponse.Any())
+                                    throw new Exception($"PostDate: {inputJson}, ResponseBase: {resp}, Exception: NotFound");
+                                using (var clientBll = new ClientBll(new SessionIdentity(), log))
+                                    clientBll.ChangCilentAffiliateData(player.Id, affiliateData.AffiliatePlatformId.Value, affiliateData.AffiliatePlatformId.ToString(), stagResponse.First().Stag);
+                            }
+                            catch (Exception ex)
+                            {
+                                log.Error($"PostDate: {inputJson}, ResponseBase: {resp}, Exception: {ex}");
+                                using (var clientBll = new ClientBll(new SessionIdentity(), log))
+                                    clientBll.ChangCilentAffiliateData(player.Id, 0, string.Empty, string.Empty);
 
-
-                    case AffiliatePlatforms.CustomerIo: // too long, should be edited
-                        var customer = CacheManager.GetClientById(clientId);
-                        url = CacheManager.GetPartnerSettingByKey(partnerId, Constants.PartnerKeys.CustomerIoUrl).StringValue;
-                        var partnerName = CacheManager.GetPartnerById(customer.PartnerId).Name;
-                        var reqList = new List<string>();
-                        if (isLogin)
-                        {						
-							postData = JsonConvert.SerializeObject(new
-							{
-								userId = customer.Id.ToString(),
-								type = "track",
-								@event = "Update Profile",
-								properties = new
-								{
-									partnerId = customer.PartnerId,
-									currencyId = customer.CurrencyId,
-									userName = customer.UserName,
-									email = customer.Email,
-									firstname = customer.FirstName,
-									lastName = customer.LastName,
-									gender = customer.Gender,
-									mobileNumber = customer.MobileNumber,
-									zipCode = customer.ZipCode,
-									birthDate = customer.BirthDate.ToString("yyyy-MM-dd HH:mm:ss"),
-									regionId = customer.RegionId,
-									categoryId = customer.CategoryId,
-									brandName = partnerName,
-									state = Enum.GetName(typeof(ClientStates), customer.State),
-									countryId = CacheManager.GetRegionById(customer.CountryId.Value, customer.LanguageId).IsoCode3,
-									city = customer.City,
-									languageId = customer.LanguageId,
-									isDocumentVerified = customer.IsDocumentVerified,
-									documentNumber = customer.DocumentNumber,
-									documentIssuedBy = customer.DocumentIssuedBy,
-									sendPromotions = customer.SendPromotions,
-									affiliateReferralId = clickId,
-									creationTime = customer.CreationTime.ToString("yyyy-MM-dd HH:mm:ss"),
-									address = customer.Address,
-									realBalance = Math.Floor(BaseBll.GetObjectBalance((int)ObjectTypes.Client, customer.Id).Balances.Where(y => y.TypeId != (int)AccountTypes.ClientCompBalance &&
-																		y.TypeId != (int)AccountTypes.ClientCoinBalance &&
-																		y.TypeId != (int)AccountTypes.ClientBonusBalance).Sum(y => y.Balance) * 100) / 100,
-									lastSessionDate = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")
-								}
-							});
-                            reqList.Add(postData);
-							url = $"{url}/track";
-						}
-                        else if (amount.HasValue)
-                        {
-                            if(isWithdraw) 
-                            {
-								postData = JsonConvert.SerializeObject(new
-								{
-									userId = customer.Id.ToString(),
-									type = "track",
-									@event = "Withdraw",
-									properties = new
-									{
-										amount,
-										transactionId,
-										currency = customer.CurrencyId
-									}
-								});
-								reqList.Add(postData);
-								postData = JsonConvert.SerializeObject(new
-								{
-									userId = customer.Id.ToString(),
-									type = "track",
-									@event = "Update Profile",
-									properties = new
-									{
-										realBalance = Math.Floor(BaseBll.GetObjectBalance((int)ObjectTypes.Client, customer.Id).Balances.Where(y => y.TypeId != (int)AccountTypes.ClientCompBalance &&
-																		y.TypeId != (int)AccountTypes.ClientCoinBalance &&
-																		y.TypeId != (int)AccountTypes.ClientBonusBalance).Sum(y => y.Balance) * 100) / 100
-									}
-								});
-								reqList.Add(postData);
-							}
-                            else
-                            {
-								postData = JsonConvert.SerializeObject(new
-								{
-									userId = customer.Id.ToString(),
-									type = "track",
-									@event = "Deposit",
-									properties = new
-									{
-										amount,
-										transactionId,
-										currency = customer.CurrencyId,
-                                        depositCount
-									}
-								});
-								reqList.Add(postData);
-								postData = JsonConvert.SerializeObject(new
-								{
-									userId = customer.Id.ToString(),
-									type = "track",
-									@event = "Update Profile",
-									properties = new
-									{
-										realBalance = Math.Floor(BaseBll.GetObjectBalance((int)ObjectTypes.Client, customer.Id).Balances.Where(y => y.TypeId != (int)AccountTypes.ClientCompBalance &&
-																		y.TypeId != (int)AccountTypes.ClientCoinBalance &&
-																		y.TypeId != (int)AccountTypes.ClientBonusBalance).Sum(y => y.Balance) * 100) / 100,
-										lastDepositDate = depositDate?.ToString("yyyy-MM-dd HH:mm:ss")
-									}
-								});
-								reqList.Add(postData);
-							}                            
-							url = $"{url}/track";
-						}
-                        else
-                        {
-                            postData = JsonConvert.SerializeObject(new
-                            {
-                                userId = customer.Id.ToString(),
-                                traits = new
-                                {
-                                    partnerId = customer.PartnerId,
-                                    currencyId = customer.CurrencyId,
-                                    userName = customer.UserName,
-                                    email = customer.Email,
-                                    firstname = customer.FirstName,
-                                    lastName = customer.LastName,
-                                    gender = customer.Gender,
-                                    mobileNumber = customer.MobileNumber,
-                                    zipCode = customer.ZipCode,
-                                    birthDate = customer.BirthDate.ToString("yyyy-MM-dd HH:mm:ss"),
-                                    regionId = customer.RegionId,
-                                    categoryId = customer.CategoryId,
-                                    brandName = partnerName,
-                                    state = Enum.GetName(typeof(ClientStates), customer.State),
-                                    countryId = CacheManager.GetRegionById(customer.CountryId.Value, customer.LanguageId).IsoCode3,
-                                    city = customer.City,
-                                    languageId = customer.LanguageId,
-                                    isDocumentVerified = customer.IsDocumentVerified,
-                                    documentNumber = customer.DocumentNumber,
-                                    documentIssuedBy = customer.DocumentIssuedBy,
-                                    sendPromotions = customer.SendPromotions,
-                                    affiliateReferralId = clickId, 
-                                    creationTime = customer.CreationTime.ToString("yyyy-MM-dd HH:mm:ss"),
-                                    address = customer.Address,
-									realBalance = 0
-								}
-
-                            });
-                            reqList.Add(postData);
-							url = $"{url}/identify";
-                        }
-                        var apikey = CacheManager.GetPartnerSettingByKey(partnerId, Constants.PartnerKeys.CustomerIoApiKey).StringValue;
-                        foreach (var item in reqList)
-						{
-							var httpRequest = new HttpRequestInput
-							{
-								RequestMethod = Constants.HttpRequestMethods.Post,
-								ContentType = Constants.HttpContentTypes.ApplicationJson,
-								Url = url,
-								RequestHeaders = new Dictionary<string, string> { { "Authorization", "Basic " + Convert.ToBase64String(Encoding.Default.GetBytes($"{apikey}:")) } },
-								PostData = item
-							};
-							Log.Info(JsonConvert.SerializeObject(httpRequest));
-							var am = CommonFunctions.SendHttpRequest(httpRequest, out _);
-						}
-						break;
-                    case AffiliatePlatforms.Smartico: // too long, should be edited
-                        var user = CacheManager.GetClientById(clientId);
-                        var currentDate = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeMilliseconds();
-						var brandId = CacheManager.GetPartnerSettingByKey(partnerId, Constants.PartnerKeys.SmarticoBrandId).StringValue;
-						if (amount.HasValue)
-                        {
-                            if (isWithdraw)
-                            {
-								postData = JsonConvert.SerializeObject(new
-								{
-									eid = $"{user.Id}{currentDate}",
-									event_date = ((DateTimeOffset)user.CreationTime).ToUnixTimeMilliseconds(),
-									ext_brand_id = brandId,
-									user_ext_id = user.Id.ToString(),
-									event_type = "acc_withdrawal_approved",
-									payload =
-								    new
-								    {
-								    	acc_last_transaction_id = transactionId,
-								    	acc_last_withdrawal_amount = amount,
-								    	acc_last_withdrawal_date = ((DateTimeOffset)DateTime.UtcNow.AddMinutes(-10)).ToUnixTimeMilliseconds(),
-										acc_real_balance = Math.Floor(BaseBll.GetObjectBalance((int)ObjectTypes.Client, user.Id).Balances.Where(y => y.TypeId != (int)AccountTypes.ClientCompBalance &&
-																		y.TypeId != (int)AccountTypes.ClientCoinBalance &&
-																		y.TypeId != (int)AccountTypes.ClientBonusBalance).Sum(y => y.Balance) * 100) / 100
-
-									}
-								});
-							}
-                            else
-                            {
-                                postData = JsonConvert.SerializeObject(new
-                                {
-                                    eid = $"{user.Id}{currentDate}",
-                                    event_date = ((DateTimeOffset)user.CreationTime).ToUnixTimeMilliseconds(),
-									ext_brand_id = brandId,
-									user_ext_id = user.Id.ToString(),
-                                    event_type = "acc_deposit_approved",
-                                    payload =
-                                    new
-                                    {
-                                        acc_last_deposit_amount = amount,
-                                        acc_last_deposit_date = ((DateTimeOffset)depositDate).ToUnixTimeMilliseconds(),
-                                        acc_last_transaction_id = transactionId,
-										acc_is_first_deposit = depositCount == 1,
-										acc_real_balance = Math.Floor(BaseBll.GetObjectBalance((int)ObjectTypes.Client, user.Id).Balances.Where(y => y.TypeId != (int)AccountTypes.ClientCompBalance &&
-																		y.TypeId != (int)AccountTypes.ClientCoinBalance &&
-																		y.TypeId != (int)AccountTypes.ClientBonusBalance).Sum(y => y.Balance) * 100) / 100
-									}
-                                 });
                             }
                         }
-                        else
-                        {
-                            postData = JsonConvert.SerializeObject(new
-                            {
-                                eid = $"{user.Id}{currentDate}",
-                                event_date = ((DateTimeOffset)user.CreationTime).ToUnixTimeMilliseconds(),
-								ext_brand_id = brandId,
-								user_ext_id = user.Id.ToString(),
-                                event_type = "update_profile",
-                                payload =
-                                new
-                                {
-                                    core_registration_date = ((DateTimeOffset)user.CreationTime).ToUnixTimeMilliseconds(),
-                                    core_user_gender = user.Gender != null ? Enum.GetName(typeof(Gender), user.Gender) : null,
-									user_first_name = user.FirstName,
-									user_last_name = user.LastName,
-									core_user_language = user.LanguageId.ToUpper(),
-                                    core_username = user.UserName,
-                                    core_wallet_currency = user.CurrencyId,
-                                    user_country = CacheManager.GetRegionById(user.CountryId.Value, user.LanguageId).IsoCode,
-									user_email = user.Email,
-                                    uer_first_name = user.FirstName,
-                                    uer_last_name = user.LastName,
-                                    user_phone = user.MobileNumber,
-									core_external_account_status = Enum.GetName(typeof(ClientStates), user.State).ToUpper(),
-									core_affiliate_str = clickId
-								}
-                            });
-                        }
-						url = CacheManager.GetPartnerSettingByKey(partnerId, Constants.PartnerKeys.SmarticoUrl).StringValue;
-						var token = CacheManager.GetPartnerSettingByKey(partnerId, Constants.PartnerKeys.SmarticoToken).StringValue;
-						var request = new HttpRequestInput
-						{
-							RequestMethod = Constants.HttpRequestMethods.Post,
-							ContentType = Constants.HttpContentTypes.ApplicationJson,
-							Url = url,
-							RequestHeaders = new Dictionary<string, string> { { "Authorization", token } },
-							PostData = postData
-						};
-						Log.Info(JsonConvert.SerializeObject(request));
-						CommonFunctions.SendHttpRequest(request, out _);
-						break;
-                    default:
-                        break;
-                }
-                if (!string.IsNullOrEmpty(postData) && (affiliatePlatform.Name != AffiliatePlatforms.CustomerIo || affiliatePlatform.Name != AffiliatePlatforms.Smartico))
-                {
-                    var httpRequestInput = new HttpRequestInput
+                    }
+                    inputJson = JsonConvert.SerializeObject(new
                     {
-                        RequestMethod = Constants.HttpRequestMethods.Get,
-                        Url = string.Format("{0}?{1}", url, postData),
-                        RequestHeaders = headers
+                        players = new List<object> { { new
+                            {
+                               tag = affiliateData.ClickId,
+                               email = player.Email,
+                               user_id = player.Id.ToString(),
+                               country = CacheManager.GetRegionById(player.CountryId ?? player.RegionId, player.LanguageId)?.IsoCode,
+                               sign_up_at = player.CreationTime.ToString("yyyy-MM-ddTHH:mm:ss.fff+00:00")
+                            } } }
+                    });
+                    httpInput.RequestHeaders = new Dictionary<string, string>
+                    {
+                        { "X-Authorization-Key", apiKey },
+                        { "X-Authorization-Sign", CommonFunctions.ComputeHMACSha512(inputJson, apiSecret).ToLower() }
                     };
+                    httpInput.PostData = inputJson;
+                    var res = CommonFunctions.SendHttpRequest(httpInput, out _);                        
+                    response = $"PostDate: {inputJson}, ResponseBase: {res}";
+                    break;
+                case AffiliatePlatforms.Trackier:
+                    player = CacheManager.GetClientById(affiliateData.ClientId);
+                    apiKey = CacheManager.GetPartnerSettingByKey(affiliateData.PartnerId, AffiliatePlatforms.Trackier + Constants.PartnerKeys.AffiliateApiKey).StringValue;
 
-                    Log.Info(JsonConvert.SerializeObject(httpRequestInput));
-                    var resp = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
-                    Log.Info(resp);
+                    var currentTime = DateTime.UtcNow;
+                    inputJson = JsonConvert.SerializeObject(new
+                    {
+                        customerId = player.Id.ToString(),
+                        customerName = player.UserName,
+                        date = currentTime.ToString("yyyy-MM-dd"),
+                        currency = player.CurrencyId.ToLower(),
+                        productId = "1",
+                        trackingToken = affiliateData.ClickId,
+                        country = CacheManager.GetRegionById(player.CountryId ?? player.RegionId, player.LanguageId)?.IsoCode,
+                    });
+                    httpInput = new HttpRequestInput
+                    {
+                        RequestMethod = Constants.HttpRequestMethods.Post,
+                        ContentType = Constants.HttpContentTypes.ApplicationJson,
+                        Url = $"{url}/customers",
+                        RequestHeaders = new Dictionary<string, string> { { "x-api-key", apiKey } },
+                        PostData = inputJson
+                    };
+                    log.Info("Trackier request: " + JsonConvert.SerializeObject(httpInput));
+                    var r = CommonFunctions.SendHttpRequest(httpInput, out _);
+                    log.Info("Trackier resp: " + r);
+                    response = $"PostDate: {inputJson}, ResponseBase: {r}";
+                    break;
+                default:
+                    break;
+            }
+            if (!string.IsNullOrEmpty(postData))
+            {
+                var httpRequestInput = new HttpRequestInput
+                {
+                    RequestMethod = Constants.HttpRequestMethods.Get,
+                    Url = string.Format("{0}?{1}", url, postData),
+                    RequestHeaders = headers
+                };
+                log.Info(JsonConvert.SerializeObject(httpRequestInput));
+                var resp = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
+                log.Info(resp);
+                return $"PostDate: {postData}, ResponseBase: {resp}";
+            }
+            return response;
+        }
+
+        private static string AffiliateDepositNotification(AffiliateData affiliateData)
+        {
+            var url = CacheManager.GetPartnerSettingByKey(affiliateData.PartnerId, string.Format("{0}_{1}", Constants.PartnerKeys.AffiliateUrl, affiliateData.AffiliatePlatformId)).StringValue;
+            var postData = string.Empty;
+            Dictionary<string, string> headers = null;
+            switch (affiliateData.AffiliatePlatformName)
+            {
+                case AffiliatePlatforms.Evadav:
+                    var requestInput = new AffiliateNotificationInput
+                    {
+                        status = (int)AffiliatePlatformStatuses.Success,
+                        clickid = affiliateData.ClickId,
+                        sum = ConvertCurrency(affiliateData.CurrencyId, Constants.Currencies.USADollar, affiliateData.Amount.Value) * 0.95m,
+                        action_id = affiliateData.TransactionId,
+                        goal = (int)AffiliatePlatformGoalTypes.Deposit
+                    };
+                    postData = CommonFunctions.GetSortedParamWithValuesAsString(requestInput, "&");
+                    break;
+                case AffiliatePlatforms.Alfaleads:
+                    var secureKey = CacheManager.GetPartnerSettingByKey(affiliateData.PartnerId, string.Format("{0}_{1}", Constants.PartnerKeys.AffiliateSecure, affiliateData.AffiliatePlatformId)).StringValue;
+                    var notifyInput = new AffiliateNotificationInput
+                    {
+                        secure = secureKey,
+                        status = 1,
+                        clickid = affiliateData.ClickId,
+                        goal = 3,
+                        sum = ConvertCurrency(affiliateData.CurrencyId, Constants.Currencies.USADollar, affiliateData.Amount ?? 0)
+                    };
+                    postData = CommonFunctions.GetSortedParamWithValuesAsString(notifyInput, "&");
+                    break;
+                case AffiliatePlatforms.Voluum:
+                    postData = CommonFunctions.GetSortedParamWithValuesAsString(
+                        new
+                        {
+                            cid = affiliateData.ClickId,
+                            payout = affiliateData.Amount ?? 0,
+                            txid = affiliateData.TransactionId,
+                            et = affiliateData.DepositCount == 1 ? "deposit1" : "deposit2"
+                        }, "&");
+                    break;
+                case AffiliatePlatforms.Affise:
+                    var transactionAmount = ConvertCurrency(affiliateData.CurrencyId, Constants.Currencies.USADollar, affiliateData.Amount ?? 0);
+                    if (affiliateData.DepositCount == 1 && transactionAmount >= 5)
+                    {
+                        postData = CommonFunctions.GetSortedParamWithValuesAsString(
+                          new
+                          {
+                              clickid = affiliateData.ClickId,
+                              sum = transactionAmount,
+                              goal = "firstdep",
+                              action_id = affiliateData.TransactionId
+                          }, "&");
+                    }
+                    else
+                        postData = CommonFunctions.GetSortedParamWithValuesAsString(
+                        new
+                        {
+                            clickid = affiliateData.ClientId,
+                            sum = transactionAmount,
+                            goal = "dep",
+                            action_id = affiliateData.TransactionId
+                        }, "&");
+                    break;
+                case AffiliatePlatforms.Dzhaweb:
+                    postData = CommonFunctions.GetSortedParamWithValuesAsString(new
+                    {
+                        type = "deposit",
+                        clickid = affiliateData.ClickId,
+                        deposit = ConvertCurrency(affiliateData.CurrencyId, Constants.Currencies.USADollar, affiliateData.Amount ?? 0),
+                        firstDeposit = affiliateData.DepositCount == 1
+                    }, "&");
+                    break;
+                case AffiliatePlatforms.Intelitics:
+                    url = String.Format(url, affiliateData.ClickId);
+                    postData = CommonFunctions.GetSortedParamWithValuesAsString(new
+                    {
+                        type = "deposit",
+                        method = "postback",
+                        currency = affiliateData.CurrencyId,
+                        amount = affiliateData.Amount ?? 0,
+                        player_id = affiliateData.ClientId,
+                        transaction_id = affiliateData.TransactionId,
+                    }, "&");
+                    break;
+                default:
+                    break;
+            }
+            if (!string.IsNullOrEmpty(postData))
+            {
+                var httpRequestInput = new HttpRequestInput
+                {
+                    RequestMethod = Constants.HttpRequestMethods.Get,
+                    Url = string.Format("{0}?{1}", url, postData),
+                    RequestHeaders = headers
+                };
+                var resp = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
+                return $"PostDate: {postData}, ResponseBase: {resp}";
+            }
+            return string.Empty;
+        }
+
+        private static string AffiliateWithdrawNotification(AffiliateData affiliateData)
+        {
+            var url = CacheManager.GetPartnerSettingByKey(affiliateData.PartnerId, string.Format("{0}_{1}", Constants.PartnerKeys.AffiliateUrl, affiliateData.AffiliatePlatformId)).StringValue;
+            var postData = string.Empty;
+            Dictionary<string, string> headers = null;
+            switch (affiliateData.AffiliatePlatformName)
+            {
+                case AffiliatePlatforms.Affise:
+                    var transactionAmount = ConvertCurrency(affiliateData.CurrencyId, Constants.Currencies.USADollar, affiliateData.Amount ?? 0);
+                    postData = CommonFunctions.GetSortedParamWithValuesAsString(
+                        new
+                        {
+                            clickid = affiliateData.ClickId,
+                            sum = -transactionAmount,
+                            goal = "out",
+                            action_id = affiliateData.TransactionId
+                        }, "&");
+                    break;
+                default:
+                    break;
+            }
+            if (!string.IsNullOrEmpty(postData))
+            {
+                var httpRequestInput = new HttpRequestInput
+                {
+                    RequestMethod = Constants.HttpRequestMethods.Get,
+                    Url = string.Format("{0}?{1}", url, postData),
+                    RequestHeaders = headers
+                };
+                var resp = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
+                return $"PostDate: {postData}, ResponseBase: {resp}";
+            }
+            return string.Empty;
+        }
+
+        public void UpdateNotificationStatus(int notificationId, int state, string reason = null)
+        {
+            var trigers = Db.NotificationTriggers.Where(n => n.Id == notificationId).FirstOrDefault();
+
+            if (trigers.State == (int)NotificationStates.Failed || state == (int)NotificationStates.Failed)
+                state = (int)NotificationStates.Failed;
+
+            trigers.State = state;
+            trigers.Reason += reason ?? string.Empty;
+            trigers.LastUpdateDate = DateTime.UtcNow;
+            Db.SaveChanges();
+        }
+
+        public static string CrmNotification(NotificationTypes notificationTypes, AffiliateData affiliateData, ILog log)
+        {
+            try
+            {
+                switch (notificationTypes)
+                {
+                    case NotificationTypes.Registration:
+                        return CustomerIoRegisterationNot(affiliateData, log);
+                    case NotificationTypes.Deposit:
+                        return CustomerIoDepositNot(affiliateData, log);
+                    case NotificationTypes.Withdraw:
+                        return CustomerIoWithdrawNot(affiliateData, log);
+                    case NotificationTypes.Login:
+                        return CustomerIoLoginNot(affiliateData, log);
+                    default:
+                        return string.Empty;
                 }
             }
             catch (Exception e)
             {
-                Log.Error(e);
+                log.Error(e);
+                throw;
             }
         }
+
+        private static string CustomerIoRegisterationNot(AffiliateData affiliateData, ILog log)
+        {
+            var res = string.Empty;
+            var url = CacheManager.GetPartnerSettingByKey(affiliateData.PartnerId, Constants.PartnerKeys.CustomerIoUrl).StringValue;
+            url = $"{url}/identify";
+            var customer = CacheManager.GetClientById(affiliateData.ClientId);
+            var partnerName = CacheManager.GetPartnerById(customer.PartnerId).Name;
+            var apikey = CacheManager.GetPartnerSettingByKey(customer.PartnerId, Constants.PartnerKeys.CustomerIoApiKey).StringValue;
+
+            var postData = JsonConvert.SerializeObject(new
+            {
+                userId = customer.Id.ToString(),
+                traits = new
+                {
+                    partnerId = customer.PartnerId,
+                    currencyId = customer.CurrencyId,
+                    userName = customer.UserName,
+                    email = customer.Email,
+                    firstname = customer?.FirstName,
+                    lastName = customer?.LastName,
+                    gender = customer.Gender,
+                    mobileNumber = customer.MobileNumber,
+                    zipCode = customer.ZipCode,
+                    birthDate = customer.BirthDate.ToString("yyyy-MM-dd HH:mm:ss"),
+                    regionId = customer.RegionId,
+                    categoryId = customer.CategoryId,
+                    brandName = partnerName,
+                    state = Enum.GetName(typeof(ClientStates), customer.State),
+                    countryId = CacheManager.GetRegionById(customer.CountryId.Value, customer.LanguageId).IsoCode3,
+                    city = customer.City,
+                    languageId = customer.LanguageId,
+                    isDocumentVerified = customer.IsDocumentVerified,
+                    documentNumber = customer.DocumentNumber,
+                    documentIssuedBy = customer.DocumentIssuedBy,
+                    sendPromotions = customer.SendPromotions,
+                    affiliateReferralId = affiliateData?.ClickId,
+                    creationTime = customer.CreationTime.ToString("yyyy-MM-dd HH:mm:ss"),
+                    address = customer.Address,
+                    realBalance = 0,
+                    registrationdate = customer?.CreationTime.ToString("yyyy-MM-dd HH:mm:ss"),
+                    affiliateid = affiliateData?.AffiliatePlatId,
+                }
+
+            });
+
+            var httpRequest = new HttpRequestInput
+            {
+                RequestMethod = Constants.HttpRequestMethods.Post,
+                ContentType = Constants.HttpContentTypes.ApplicationJson,
+                Url = url,
+                RequestHeaders = new Dictionary<string, string> { { "Authorization", "Basic " + Convert.ToBase64String(Encoding.Default.GetBytes($"{apikey}:")) } },
+                PostData = postData
+            };
+            log.Info("identify" + JsonConvert.SerializeObject(httpRequest));
+            return CommonFunctions.SendHttpRequest(httpRequest, out _);
+        }
+
+        private static string CustomerIoWithdrawNot(AffiliateData affiliateData, ILog log)
+        {
+            var res = string.Empty;
+            var url = CacheManager.GetPartnerSettingByKey(affiliateData.PartnerId, Constants.PartnerKeys.CustomerIoUrl).StringValue;
+            url = $"{url}/track";
+            var customer = CacheManager.GetClientById(affiliateData.ClientId);
+            var partnerName = CacheManager.GetPartnerById(customer.PartnerId).Name;
+            var apikey = CacheManager.GetPartnerSettingByKey(customer.PartnerId, Constants.PartnerKeys.CustomerIoApiKey).StringValue;
+
+            var postData = JsonConvert.SerializeObject(new
+            {
+                userId = customer.Id.ToString(),
+                type = "track",
+                @event = "Withdraw",
+                properties = new
+                {
+                    affiliateData?.Amount,
+                    affiliateData?.TransactionId,
+                    currency = customer.CurrencyId
+                }
+            });
+
+            var httpRequest = new HttpRequestInput
+            {
+                RequestMethod = Constants.HttpRequestMethods.Post,
+                ContentType = Constants.HttpContentTypes.ApplicationJson,
+                Url = url,
+                RequestHeaders = new Dictionary<string, string> { { "Authorization", "Basic " + Convert.ToBase64String(Encoding.Default.GetBytes($"{apikey}:")) } },
+                PostData = postData
+            };
+
+            log.Info("Withdraw" + JsonConvert.SerializeObject(httpRequest));
+            //  var am = CommonFunctions.SendHttpRequest(httpRequest, out _);
+            res = CommonFunctions.SendHttpRequest(httpRequest, out _);
+
+            postData = JsonConvert.SerializeObject(new
+            {
+                userId = customer.Id.ToString(),
+                type = "track",
+                @event = "Update Profile",
+                properties = new
+                {
+                    realBalance = Math.Floor(BaseBll.GetObjectBalance((int)ObjectTypes.Client, customer.Id).Balances.Where(y => y.TypeId != (int)AccountTypes.ClientCompBalance &&
+                                                    y.TypeId != (int)AccountTypes.ClientCoinBalance &&
+                                                    y.TypeId != (int)AccountTypes.ClientBonusBalance).Sum(y => y.Balance) * 100) / 100
+                }
+            });
+
+            httpRequest = new HttpRequestInput
+            {
+                RequestMethod = Constants.HttpRequestMethods.Post,
+                ContentType = Constants.HttpContentTypes.ApplicationJson,
+                Url = url,
+                RequestHeaders = new Dictionary<string, string> { { "Authorization", "Basic " + Convert.ToBase64String(Encoding.Default.GetBytes($"{apikey}:")) } },
+                PostData = postData
+            };
+
+
+            log.Info("UpdateProfileWithdraw" + JsonConvert.SerializeObject(httpRequest));
+            res += CommonFunctions.SendHttpRequest(httpRequest, out _);
+            return res;
+        }
+
+        private static string CustomerIoDepositNot(AffiliateData affiliateData, ILog log)
+        {
+            var res = string.Empty;
+            var url = CacheManager.GetPartnerSettingByKey(affiliateData.PartnerId, Constants.PartnerKeys.CustomerIoUrl).StringValue;
+            url = $"{url}/track";
+            var customer = CacheManager.GetClientById(affiliateData.ClientId);
+            var partnerName = CacheManager.GetPartnerById(customer.PartnerId).Name;
+            var apikey = CacheManager.GetPartnerSettingByKey(customer.PartnerId, Constants.PartnerKeys.CustomerIoApiKey).StringValue;
+
+            var postData = JsonConvert.SerializeObject(new
+            {
+                userId = customer.Id.ToString(),
+                type = "track",
+                @event = "Deposit",
+                properties = new
+                {
+                    affiliateData?.Amount,
+                    affiliateData?.TransactionId,
+                    currency = customer.CurrencyId,
+                    affiliateData?.DepositCount
+                }
+            });
+
+            var httpRequest = new HttpRequestInput
+            {
+                RequestMethod = Constants.HttpRequestMethods.Post,
+                ContentType = Constants.HttpContentTypes.ApplicationJson,
+                Url = url,
+                RequestHeaders = new Dictionary<string, string> { { "Authorization", "Basic " + Convert.ToBase64String(Encoding.Default.GetBytes($"{apikey}:")) } },
+                PostData = postData
+            };
+
+            log.Info("Deposit" + JsonConvert.SerializeObject(httpRequest));
+            res = CommonFunctions.SendHttpRequest(httpRequest, out _);
+
+            postData = JsonConvert.SerializeObject(new
+            {
+                userId = customer.Id.ToString(),
+                type = "track",
+                @event = "Update Profile",
+                properties = new
+                {
+                    realBalance = Math.Floor(BaseBll.GetObjectBalance((int)ObjectTypes.Client, customer.Id).Balances.Where(y => y.TypeId != (int)AccountTypes.ClientCompBalance &&
+                                                    y.TypeId != (int)AccountTypes.ClientCoinBalance &&
+                                                    y.TypeId != (int)AccountTypes.ClientBonusBalance).Sum(y => y.Balance) * 100) / 100,
+                    lastDepositDate = affiliateData?.CreationDate.ToString("yyyy-MM-dd HH:mm:ss")
+                }
+            });
+
+            httpRequest = new HttpRequestInput
+            {
+                RequestMethod = Constants.HttpRequestMethods.Post,
+                ContentType = Constants.HttpContentTypes.ApplicationJson,
+                Url = url,
+                RequestHeaders = new Dictionary<string, string> { { "Authorization", "Basic " + Convert.ToBase64String(Encoding.Default.GetBytes($"{apikey}:")) } },
+                PostData = postData
+            };
+
+            log.Info("UpdateProfileDepsoit" + JsonConvert.SerializeObject(httpRequest));
+            res += CommonFunctions.SendHttpRequest(httpRequest, out _);
+            return res;
+        }
+
+        private static string CustomerIoLoginNot(AffiliateData affiliateData, ILog log)
+        {
+            var res = string.Empty;
+            var url = CacheManager.GetPartnerSettingByKey(affiliateData.PartnerId, Constants.PartnerKeys.CustomerIoUrl).StringValue;
+            url = $"{url}/track";
+            var customer = CacheManager.GetClientById(affiliateData.ClientId);
+            var partnerName = CacheManager.GetPartnerById(customer.PartnerId).Name;
+            var apikey = CacheManager.GetPartnerSettingByKey(customer.PartnerId, Constants.PartnerKeys.CustomerIoApiKey).StringValue;
+            PaymentRequestHistoryClients paymantReques;
+            using (var paymentSystemBl = new PaymentSystemBll(new SessionIdentity(), log))
+                paymantReques =  paymentSystemBl.SuccessPaymantRequest(customer.Id);
+
+            var postData = JsonConvert.SerializeObject(new
+            {
+                userId = customer.Id.ToString(),
+                type = "track",
+                @event = "Update Profile",
+                properties = new
+                {
+                    partnerId = customer.PartnerId,
+                    currencyId = customer.CurrencyId,
+                    userName = customer.UserName,
+                    email = customer.Email,
+                    firstname = customer.FirstName,
+                    lastName = customer.LastName,
+                    gender = customer.Gender,
+                    mobileNumber = customer.MobileNumber,
+                    zipCode = customer.ZipCode,
+                    birthDate = customer.BirthDate.ToString("yyyy-MM-dd HH:mm:ss"),
+                    regionId = customer.RegionId,
+                    categoryId = customer.CategoryId,
+                    brandName = partnerName,
+                    state = Enum.GetName(typeof(ClientStates), customer.State),
+                    countryId = CacheManager.GetRegionById(customer.CountryId.Value, customer.LanguageId).IsoCode3,
+                    city = customer.City,
+                    languageId = customer.LanguageId,
+                    isDocumentVerified = customer.IsDocumentVerified,
+                    documentNumber = customer.DocumentNumber,
+                    documentIssuedBy = customer.DocumentIssuedBy,
+                    sendPromotions = customer.SendPromotions,
+                    affiliateReferralId = affiliateData?.ClickId,
+                    creationTime = customer.CreationTime.ToString("yyyy-MM-dd HH:mm:ss"),
+                    address = customer.Address,
+                    realBalance = Math.Floor(BaseBll.GetObjectBalance((int)ObjectTypes.Client, customer.Id).Balances.Where(y => y.TypeId != (int)AccountTypes.ClientCompBalance &&
+                                                        y.TypeId != (int)AccountTypes.ClientCoinBalance &&
+                                                        y.TypeId != (int)AccountTypes.ClientBonusBalance).Sum(y => y.Balance) * 100) / 100,
+                    lastSessionDate = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"),
+                    lastlogindate = affiliateData.CreationDate.ToString("yyyy-MM-dd HH:mm:ss"),
+                    withdrawalamount = paymantReques?.TotalWithdrawAmount,
+                    totaldepositamount = paymantReques?.TotalDepositAmount,
+                    lastdepositdate = paymantReques?.LastDepositDate?.ToString("yyyy-MM-dd HH:mm:ss"),
+                    numberofdepositsLastsevenDays = paymantReques.CountOfDepositLastWeek,
+                    numberofdeposits = paymantReques?.CountOfDeposits,
+                    firstdepositdate = paymantReques?.FirstDepositDate?.ToString("yyyy-MM-dd HH:mm:ss"),
+                    lastwithdrawaldate = paymantReques?.LastWithdrawDate?.ToString("yyyy-MM-dd HH:mm:ss")
+                }
+            });
+
+
+            var httpRequest = new HttpRequestInput
+            {
+                RequestMethod = Constants.HttpRequestMethods.Post,
+                ContentType = Constants.HttpContentTypes.ApplicationJson,
+                Url = url,
+                RequestHeaders = new Dictionary<string, string> { { "Authorization", "Basic " + Convert.ToBase64String(Encoding.Default.GetBytes($"{apikey}:")) } },
+                PostData = postData
+            };
+
+            log.Info("track" + JsonConvert.SerializeObject(httpRequest));
+            res = CommonFunctions.SendHttpRequest(httpRequest, out _);
+
+            return res;
+        }
+        
+      /* public string NotifyAffiliators(NotificationTypes notificationTypes, AffiliateData affiliatePlatform)// AffiliatePlatform affiliatePlatform)
+        {
+            var test = string.Empty;
+            DateTime? depositDate = DateTime.UtcNow;
+            try
+            {
+                int partnerId = 1;
+                int clientId = 0;
+                string clickId = "";
+                string currency = "";
+                decimal? amount = 0;
+                bool isWithdraw = false;
+                int? depositCount = 0;
+                bool isLogin = false;
+                long? transactionId = 0;
+
+
+                //affiliateData.PartnerId,
+                //affiliateData.ClientId, 
+                //affTrigger.AffiliatePlatform,
+                //affiliateData?.ClickId,
+                //affiliateData.CurrencyId,
+                //affiliateData?.Amount, 
+                ///*affiliateData?.TransactionId,
+                //isWithdraw,
+                //affiliateData.DepositCount,
+                //isLogin
+                isLogin = notificationTypes == NotificationTypes.Login ? true : false;
+                isWithdraw = notificationTypes == NotificationTypes.Withdraw ? true : false;
+
+                var postData = string.Empty;
+                Dictionary<string, string> headers = null;
+                var customer = CacheManager.GetClientById(affiliatePlatform.ClientId);
+                var url = CacheManager.GetPartnerSettingByKey(partnerId, Constants.PartnerKeys.CustomerIoUrl).StringValue;
+                var partnerName = CacheManager.GetPartnerById(customer.PartnerId).Name;
+                var reqList = new List<string>();
+
+                if (isLogin)//login
+                {
+                    postData = JsonConvert.SerializeObject(new
+                    {
+                        userId = customer.Id.ToString(),
+                        type = "track",
+                        @event = "Update Profile",
+                        properties = new
+                        {
+                            partnerId = customer.PartnerId,
+                            currencyId = customer.CurrencyId,
+                            userName = customer.UserName,
+                            email = customer.Email,
+                            firstname = customer.FirstName,
+                            lastName = customer.LastName,
+                            gender = customer.Gender,
+                            mobileNumber = customer.MobileNumber,
+                            zipCode = customer.ZipCode,
+                            birthDate = customer.BirthDate.ToString("yyyy-MM-dd HH:mm:ss"),
+                            regionId = customer.RegionId,
+                            categoryId = customer.CategoryId,
+                            brandName = partnerName,
+                            state = Enum.GetName(typeof(ClientStates), customer.State),
+                            countryId = CacheManager.GetRegionById(customer.CountryId.Value, customer.LanguageId).IsoCode3,
+                            city = customer.City,
+                            languageId = customer.LanguageId,
+                            isDocumentVerified = customer.IsDocumentVerified,
+                            documentNumber = customer.DocumentNumber,
+                            documentIssuedBy = customer.DocumentIssuedBy,
+                            sendPromotions = customer.SendPromotions,
+                            affiliateReferralId = clickId,
+                            creationTime = customer.CreationTime.ToString("yyyy-MM-dd HH:mm:ss"),
+                            address = customer.Address,
+                            realBalance = Math.Floor(BaseBll.GetObjectBalance((int)ObjectTypes.Client, customer.Id).Balances.Where(y => y.TypeId != (int)AccountTypes.ClientCompBalance &&
+                                                                y.TypeId != (int)AccountTypes.ClientCoinBalance &&
+                                                                y.TypeId != (int)AccountTypes.ClientBonusBalance).Sum(y => y.Balance) * 100) / 100,
+                            lastSessionDate = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")
+                        }
+                    });
+                    reqList.Add(postData);
+                    url = $"{url}/track";
+                }
+                else if (amount != 0)// deposit withdraw
+                {
+                    if (isWithdraw)
+                    {
+                        postData = JsonConvert.SerializeObject(new
+                        {
+                            userId = customer.Id.ToString(),
+                            type = "track",
+                            @event = "Withdraw",
+                            properties = new
+                            {
+                                amount,
+                                transactionId,
+                                currency = customer.CurrencyId
+                            }
+                        });
+                        reqList.Add(postData);
+                        postData = JsonConvert.SerializeObject(new
+                        {
+                            userId = customer.Id.ToString(),
+                            type = "track",
+                            @event = "Update Profile",
+                            properties = new
+                            {
+                                realBalance = Math.Floor(BaseBll.GetObjectBalance((int)ObjectTypes.Client, customer.Id).Balances.Where(y => y.TypeId != (int)AccountTypes.ClientCompBalance &&
+                                                                y.TypeId != (int)AccountTypes.ClientCoinBalance &&
+                                                                y.TypeId != (int)AccountTypes.ClientBonusBalance).Sum(y => y.Balance) * 100) / 100
+                            }
+                        });
+                        reqList.Add(postData);
+                    }
+                    else
+                    {
+                        postData = JsonConvert.SerializeObject(new
+                        {
+                            userId = customer.Id.ToString(),
+                            type = "track",
+                            @event = "Deposit",
+                            properties = new
+                            {
+                                amount,
+                                transactionId,
+                                currency = customer.CurrencyId,
+                                depositCount
+                            }
+                        });
+                        reqList.Add(postData);
+                        postData = JsonConvert.SerializeObject(new
+                        {
+                            userId = customer.Id.ToString(),
+                            type = "track",
+                            @event = "Update Profile",
+                            properties = new
+                            {
+                                realBalance = Math.Floor(BaseBll.GetObjectBalance((int)ObjectTypes.Client, customer.Id).Balances.Where(y => y.TypeId != (int)AccountTypes.ClientCompBalance &&
+                                                                y.TypeId != (int)AccountTypes.ClientCoinBalance &&
+                                                                y.TypeId != (int)AccountTypes.ClientBonusBalance).Sum(y => y.Balance) * 100) / 100,
+                                lastDepositDate = depositDate?.ToString("yyyy-MM-dd HH:mm:ss")
+                            }
+                        });
+                        reqList.Add(postData);
+                    }
+                    url = $"{url}/track";
+                }
+                else // register
+                {
+                    postData = JsonConvert.SerializeObject(new
+                    {
+                        userId = customer.Id.ToString(),
+                        traits = new
+                        {
+                            partnerId = customer.PartnerId,
+                            currencyId = customer.CurrencyId,
+                            userName = customer.UserName,
+                            email = customer.Email,
+                            firstname = customer.FirstName,
+                            lastName = customer.LastName,
+                            gender = customer.Gender,
+                            mobileNumber = customer.MobileNumber,
+                            zipCode = customer.ZipCode,
+                            birthDate = customer.BirthDate.ToString("yyyy-MM-dd HH:mm:ss"),
+                            regionId = customer.RegionId,
+                            categoryId = customer.CategoryId,
+                            brandName = partnerName,
+                            state = Enum.GetName(typeof(ClientStates), customer.State),
+                            countryId = CacheManager.GetRegionById(customer.CountryId.Value, customer.LanguageId).IsoCode3,
+                            city = customer.City,
+                            languageId = customer.LanguageId,
+                            isDocumentVerified = customer.IsDocumentVerified,
+                            documentNumber = customer.DocumentNumber,
+                            documentIssuedBy = customer.DocumentIssuedBy,
+                            sendPromotions = customer.SendPromotions,
+                            affiliateReferralId = clickId,
+                            creationTime = customer.CreationTime.ToString("yyyy-MM-dd HH:mm:ss"),
+                            address = customer.Address,
+                            realBalance = 0
+                        }
+
+                    });
+                    reqList.Add(postData);
+                    url = $"{url}/identify";
+                }
+                var apikey = CacheManager.GetPartnerSettingByKey(partnerId, Constants.PartnerKeys.CustomerIoApiKey).StringValue;
+                foreach (var item in reqList)
+                {
+                    var httpRequest = new HttpRequestInput
+                    {
+                        RequestMethod = Constants.HttpRequestMethods.Post,
+                        ContentType = Constants.HttpContentTypes.ApplicationJson,
+                        Url = url,
+                        RequestHeaders = new Dictionary<string, string> { { "Authorization", "Basic " + Convert.ToBase64String(Encoding.Default.GetBytes($"{apikey}:")) } },
+                        PostData = item
+                    };
+                    Log.Info(JsonConvert.SerializeObject(httpRequest));
+                    //  var am = CommonFunctions.SendHttpRequest(httpRequest, out _);
+                    test = CommonFunctions.SendHttpRequest(httpRequest, out _);
+                }
+                return test;
+
+            }
+            catch (Exception e)
+            {
+                Log.Error(e);
+                return e.Message;
+            }
+        }*/
     }
 }

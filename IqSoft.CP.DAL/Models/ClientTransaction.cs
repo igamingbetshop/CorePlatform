@@ -40,9 +40,12 @@
 
         public string RoundId { get; set; }
 
+        public long? AccountId { get; set; }
+
         public int AccountTypeId { get; set; }
 
         public int? SelectionsCount { get; set; }
         public int? Creator { get; set; }
+        public int? UserId { get; set; }
     }
 }

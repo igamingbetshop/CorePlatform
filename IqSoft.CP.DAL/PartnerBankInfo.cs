@@ -39,9 +39,9 @@ namespace IqSoft.CP.DAL
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ClientBankInfo> ClientBankInfoes { get; set; }
-        public virtual Currency Currency { get; set; }
         public virtual Partner Partner { get; set; }
         public virtual Translation Translation { get; set; }
         public virtual PaymentSystem PaymentSystem { get; set; }
+        public virtual Currency Currency { get; set; }
     }
 }

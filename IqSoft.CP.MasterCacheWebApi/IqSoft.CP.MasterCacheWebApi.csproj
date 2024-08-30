@@ -230,6 +230,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="ControllerClasses\AgentController.cs" />
     <Compile Include="ControllerClasses\ClientController.cs" />
     <Compile Include="ControllerClasses\DocumentController.cs" />
     <Compile Include="ControllerClasses\ProductController.cs" />

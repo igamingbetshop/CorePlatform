@@ -4,6 +4,7 @@ using IqSoft.CP.Common;
 using IqSoft.CP.Common.Enums;
 using IqSoft.CP.Common.Helpers;
 using IqSoft.CP.Common.Models;
+using IqSoft.CP.Common.Models.Bonus;
 using IqSoft.CP.Common.Models.CacheModels;
 using IqSoft.CP.DAL.Models;
 using  IqSoft.CP.Integration.Products.Models.SoftSwiss;
@@ -102,32 +103,38 @@ namespace IqSoft.CP.Integration.Products.Helpers
 
         }
 
-        public static void AddFreeRound(int clientId, int bonusId, List<string> productExternalIds, int spinCount, DateTime finishTime, ILog log)
+        public static bool AddFreeRound(FreeSpinModel freeSpinModel, ILog log)
         {
             var requestBody = string.Empty;
             try
             {
-                var client = CacheManager.GetClientById(clientId);
+                var client = CacheManager.GetClientById(freeSpinModel.ClientId);
                 var partner = CacheManager.GetPartnerById(client.PartnerId);
                 var casinoId = CacheManager.GetGameProviderValueByKey(client.PartnerId, Provider.Id, Constants.PartnerKeys.SoftSwissCasinoId);
                 var authToken = CacheManager.GetGameProviderValueByKey(client.PartnerId, Provider.Id, Constants.PartnerKeys.SoftSwissAuthToken);
                 var currency = client != null ? client.CurrencyId : partner.CurrencyId;
                 if (UnsuppordedCurrenies.Contains(currency))
                     currency = Constants.Currencies.USADollar;
+                var countryCode = CacheManager.GetRegionById(client.CountryId ?? client.RegionId, Constants.DefaultLanguageId)?.IsoCode;
                 var input = new
                 {
                     casino_id = casinoId,
-                    issue_id = $"{clientId}_{bonusId}",
+                    issue_id = $"{freeSpinModel.ClientId}_{freeSpinModel.BonusId}",
                     currency,
-                    games = productExternalIds,
-                    freespins_quantity = spinCount,
-                    valid_until = finishTime.ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture),
+                    games = freeSpinModel.ProductExternalIds,
+                    freespins_quantity = freeSpinModel.SpinCount,
+                    valid_until = freeSpinModel.FinishTime.ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture),
                     user = new
                     {
                         id = client.Id.ToString(),
-                        firstname = client?.Id.ToString(),
-                        lastname = client?.UserName,
-                        nickname = client?.UserName
+                        firstname = client.Id.ToString(),
+                        lastname = client.UserName,
+                        nickname = client.UserName,
+                        country = countryCode,
+                        city = countryCode,
+                        date_of_birth = client.BirthDate.ToString("yyyy-MM-dd"),
+                        registered_at = client.CreationTime.ToString("yyyy-MM-dd"),
+                        gender = client.Gender == (int)Gender.Male ? "m" : "f",
                     }
                 };
                 var body = JsonConvert.SerializeObject(input, new JsonSerializerSettings()
@@ -146,12 +153,12 @@ namespace IqSoft.CP.Integration.Products.Helpers
                 };
                 requestBody = JsonConvert.SerializeObject(httpRequestInput);
                 CommonFunctions.SendHttpRequest(httpRequestInput, out _);
-
+                return true;
             }
             catch (Exception ex)
             {
                 log.Error("Softswiss_Freespin: " + requestBody + " __Error: " + ex);
-                throw;
+                return false;
             }
         }
 

@@ -34,6 +34,7 @@ namespace IqSoft.CP.DataWarehouse
         public Nullable<decimal> TotalWinAmount { get; set; }
         public Nullable<int> WinsCount { get; set; }
         public Nullable<decimal> GGR { get; set; }
+        public Nullable<decimal> NGR { get; set; }
         public Nullable<decimal> TotalDebitCorrection { get; set; }
         public Nullable<int> DebitCorrectionsCount { get; set; }
         public Nullable<decimal> TotalCreditCorrection { get; set; }

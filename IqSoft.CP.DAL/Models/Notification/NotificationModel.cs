@@ -12,9 +12,12 @@ namespace IqSoft.CP.DAL.Models.Notification
         public string VerificationCode { get; set; }
         public string Parameters { get; set; }
         public string MessageText { get; set; }
+        public string RequesterEmail { get; set; }
         public int? SubjectType { get; set; }
+        public string SubjectText { get; set; }
         public string LanguageId { get; set; }
         public int MessageType { get; set; } = (int)ClientMessageTypes.Sms;
         public PaymentNotificationInfo PaymentInfo { get; set; }
+
     }
 }

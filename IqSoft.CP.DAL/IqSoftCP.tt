@@ -331,8 +331,7 @@ public class CodeStringGenerator
             _code.Escape(enumType),
             _code.Escape(_typeMapper.UnderlyingClrType(enumType)));
         }
-    
-    public void WriteFunctionParameters(EdmFunction edmFunction, Action<string, string, string, string> writeParameter)
+ public void WriteFunctionParameters(EdmFunction edmFunction, Action<string, string, string, string> writeParameter)
     {
         var parameters = FunctionImportParameter.Create(edmFunction.Parameters, _code, _ef);
         foreach (var parameter in parameters.Where(p => p.NeedsLocalVariable))
@@ -687,7 +686,7 @@ public class TypeMapper
         return type.NavigationProperties.Where(np => np.DeclaringType == type && np.ToEndMember.RelationshipMultiplicity == RelationshipMultiplicity.Many);
     }
     
-    public FunctionParameter GetReturnParameter(EdmFunction edmFunction)
+  public FunctionParameter GetReturnParameter(EdmFunction edmFunction)
     {
         ArgumentNotNull(edmFunction, "edmFunction");
 

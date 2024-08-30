@@ -35,5 +35,35 @@ namespace IqSoft.CP.Integration.Products.Models.PragmaticPlay
 
         [JsonProperty(PropertyName = "frbAvailable")]
         public bool? FreeRoundAvailable { get; set; }
+
+        [JsonProperty(PropertyName = "betScaleList")]
+        public Dictionary<string, List<decimal>> BetScaleList { get; set; }
+    }
+
+    public class GameBetValueOutput : BaseOutput
+    {
+        [JsonProperty(PropertyName = "gameList")]
+        public List<BetScale> GamesList { get; set; }
+    }
+
+    public class BetScale
+    {
+        [JsonProperty(PropertyName = "gameID")]
+        public string GameId { get; set; }
+
+        [JsonProperty(PropertyName = "betScaleList")]
+        public List<BetScaleItem> BetScaleList { get; set; }
+    }
+
+    public class BetScaleItem
+    {
+        [JsonProperty(PropertyName = "betPerLineScales")]
+        public List<decimal> BetPerLineScales { get; set; }
+
+        [JsonProperty(PropertyName = "currency")]
+        public string Currency { get; set; }
+
+        [JsonProperty(PropertyName = "totalBetScales")]
+        public List<decimal> TotalBetScales { get; set; }
     }
 }

@@ -1,0 +1,94 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+  <EntityContainerMapping StorageEntityContainer="DataWarehouseModelStoreContainer" CdmEntityContainer="IqSoftDataWarehouseEntities">
+    <EntitySetMapping Name="Bets">
+      <EntityTypeMapping TypeName="DataWarehouseModel.Bet">
+        <MappingFragment StoreEntitySet="Bet">
+          <ScalarProperty Name="BonusWinAmount" ColumnName="BonusWinAmount" />
+          <ScalarProperty Name="AccountId" ColumnName="AccountId" />
+          <ScalarProperty Name="BonusAmount" ColumnName="BonusAmount" />
+          <ScalarProperty Name="Rake" ColumnName="Rake" />
+          <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
+          <ScalarProperty Name="Coefficient" ColumnName="Coefficient" />
+          <ScalarProperty Name="SelectionsCount" ColumnName="SelectionsCount" />
+          <ScalarProperty Name="BonusId" ColumnName="BonusId" />
+          <ScalarProperty Name="BonusDocumentId" ColumnName="BonusDocumentId" />
+          <ScalarProperty Name="JackpotDocumentId" ColumnName="JackpotDocumentId" />
+          <ScalarProperty Name="PayDate" ColumnName="PayDate" />
+          <ScalarProperty Name="CalculationDate" ColumnName="CalculationDate" />
+          <ScalarProperty Name="BetDate" ColumnName="BetDate" />
+          <ScalarProperty Name="PayTime" ColumnName="PayTime" />
+          <ScalarProperty Name="CalculationTime" ColumnName="CalculationTime" />
+          <ScalarProperty Name="BetTime" ColumnName="BetTime" />
+          <ScalarProperty Name="DeviceTypeId" ColumnName="DeviceTypeId" />
+          <ScalarProperty Name="UserId" ColumnName="UserId" />
+          <ScalarProperty Name="TicketNumber" ColumnName="TicketNumber" />
+          <ScalarProperty Name="ClientId" ColumnName="ClientId" />
+          <ScalarProperty Name="CashDeskId" ColumnName="CashDeskId" />
+          <ScalarProperty Name="TypeId" ColumnName="TypeId" />
+          <ScalarProperty Name="State" ColumnName="State" />
+          <ScalarProperty Name="WinAmount" ColumnName="WinAmount" />
+          <ScalarProperty Name="BetAmount" ColumnName="BetAmount" />
+          <ScalarProperty Name="ProductId" ColumnName="ProductId" />
+          <ScalarProperty Name="CurrencyId" ColumnName="CurrencyId" />
+          <ScalarProperty Name="PayDocumentId" ColumnName="PayDocumentId" />
+          <ScalarProperty Name="WinDocumentId" ColumnName="WinDocumentId" />
+          <ScalarProperty Name="BetDocumentId" ColumnName="BetDocumentId" />
+          <ScalarProperty Name="Id" ColumnName="Id" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Settings">
+      <EntityTypeMapping TypeName="DataWarehouseModel.Setting">
+        <MappingFragment StoreEntitySet="Setting">
+          <ScalarProperty Name="NotificationServiceId" ColumnName="NotificationServiceId" />
+          <ScalarProperty Name="NumericValue" ColumnName="NumericValue" />
+          <ScalarProperty Name="DateValue" ColumnName="DateValue" />
+          <ScalarProperty Name="StringValue" ColumnName="StringValue" />
+          <ScalarProperty Name="Name" ColumnName="Name" />
+          <ScalarProperty Name="PaymentSystemId" ColumnName="PaymentSystemId" />
+          <ScalarProperty Name="GameProviderId" ColumnName="GameProviderId" />
+          <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+          <ScalarProperty Name="Id" ColumnName="Id" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Documents">
+      <EntityTypeMapping TypeName="DataWarehouseModel.Document">
+        <MappingFragment StoreEntitySet="Document">
+          <ScalarProperty Name="AccountId" ColumnName="AccountId" />
+          <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+          <ScalarProperty Name="Date" ColumnName="Date" />
+          <ScalarProperty Name="HasNote" ColumnName="HasNote" />
+          <ScalarProperty Name="ProductId" ColumnName="ProductId" />
+          <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
+          <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
+          <ScalarProperty Name="SessionId" ColumnName="SessionId" />
+          <ScalarProperty Name="PossibleWin" ColumnName="PossibleWin" />
+          <ScalarProperty Name="DeviceTypeId" ColumnName="DeviceTypeId" />
+          <ScalarProperty Name="UserId" ColumnName="UserId" />
+          <ScalarProperty Name="TicketInfo" ColumnName="TicketInfo" />
+          <ScalarProperty Name="TicketNumber" ColumnName="TicketNumber" />
+          <ScalarProperty Name="ExternalOperationId" ColumnName="ExternalOperationId" />
+          <ScalarProperty Name="ClientId" ColumnName="ClientId" />
+          <ScalarProperty Name="GameProviderId" ColumnName="GameProviderId" />
+          <ScalarProperty Name="PartnerProductId" ColumnName="PartnerProductId" />
+          <ScalarProperty Name="PartnerPaymentSettingId" ColumnName="PartnerPaymentSettingId" />
+          <ScalarProperty Name="CashDeskId" ColumnName="CashDeskId" />
+          <ScalarProperty Name="Creator" ColumnName="Creator" />
+          <ScalarProperty Name="Info" ColumnName="Info" />
+          <ScalarProperty Name="RoundId" ColumnName="RoundId" />
+          <ScalarProperty Name="PaymentRequestId" ColumnName="PaymentRequestId" />
+          <ScalarProperty Name="ParentId" ColumnName="ParentId" />
+          <ScalarProperty Name="TypeId" ColumnName="TypeId" />
+          <ScalarProperty Name="OperationTypeId" ColumnName="OperationTypeId" />
+          <ScalarProperty Name="State" ColumnName="State" />
+          <ScalarProperty Name="CurrencyId" ColumnName="CurrencyId" />
+          <ScalarProperty Name="Amount" ColumnName="Amount" />
+          <ScalarProperty Name="ExternalTransactionId" ColumnName="ExternalTransactionId" />
+          <ScalarProperty Name="Id" ColumnName="Id" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+  </EntityContainerMapping>
+</Mapping>

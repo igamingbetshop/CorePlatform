@@ -36,6 +36,7 @@ namespace IqSoft.CP.DAL
 		
         public string CurrencySymbol { get; set; }
         public string PinCode { get; set; }
+        public bool? Duplicated { get; set; }
 
         public List<int> ParentsPath { get; set; }
 	}

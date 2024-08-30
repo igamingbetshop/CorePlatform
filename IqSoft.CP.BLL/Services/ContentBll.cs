@@ -25,6 +25,8 @@ using static IqSoft.CP.Common.Constants;
 using System.ComponentModel;
 using IqSoft.CP.Common.Attributes;
 using IqSoft.CP.Common.Models.Filters;
+using IqSoft.CP.Common.Models.WebSiteModels;
+using System.Reflection;
 
 namespace IqSoft.CP.BLL.Services
 {
@@ -53,12 +55,12 @@ namespace IqSoft.CP.BLL.Services
             GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.SaveBanner,
-                ObjectTypeId = ObjectTypes.Banner
+                ObjectTypeId = (int)ObjectTypes.Banner
             });
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != input.PartnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -159,12 +161,12 @@ namespace IqSoft.CP.BLL.Services
             GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.SaveBanner,
-                ObjectTypeId = ObjectTypes.Banner
+                ObjectTypeId = (int)ObjectTypes.Banner
             });
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var dbBanner = Db.Banners.FirstOrDefault(x => x.Id == bannerId);
             if (dbBanner == null)
@@ -179,17 +181,17 @@ namespace IqSoft.CP.BLL.Services
             Db.SaveChanges();
         }
 
-        public PagedModel<fnBanner> GetBanners(FilterfnBanner filter)
+        public PagedModel<fnBanner> GetBanners(FilterfnBanner filter) // for admin
         {
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewBanner,
-                ObjectTypeId = ObjectTypes.Banner
+                ObjectTypeId = (int)ObjectTypes.Banner
             });
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnBanner>>
             {
@@ -211,26 +213,25 @@ namespace IqSoft.CP.BLL.Services
                 Entities = filter.FilterObjects(Db.fn_Banner(Identity.LanguageId), orderBy),
                 Count = filter.SelectedObjectsCount(Db.fn_Banner(Identity.LanguageId))
             };
+
+          
             if (result.Entities.Any())
             {
-                var smiFragments = Db.WebSiteSubMenuItems.Include(x => x.WebSiteMenuItem)
-                                  .Where(x => x.WebSiteMenuItem.WebSiteMenu.Type == Constants.WebSiteConfiguration.Config &&
-                                             (x.WebSiteMenuItem.Title == Constants.WebSiteConfiguration.WebFragments ||
-                                              x.WebSiteMenuItem.Title == Constants.WebSiteConfiguration.MobileFragments) && x.Title.StartsWith("Banners_")).ToList();
-                var miFragments = Db.WebSiteMenuItems
-                                  .Where(x => (x.WebSiteMenu.Type == Constants.WebSiteConfiguration.HomeMenu ||
+                var fragments = Db.WebSiteMenuItems.Where(x => (x.WebSiteMenu.Type == Constants.WebSiteConfiguration.WebFragments ||
+                                              x.WebSiteMenu.Type == Constants.WebSiteConfiguration.MobileFragments) && x.Title.StartsWith("Banners_")).ToList();
+                var hFragments = Db.WebSiteMenuItems.Where(x => (x.WebSiteMenu.Type == Constants.WebSiteConfiguration.HomeMenu ||
                                               x.WebSiteMenu.Type == Constants.WebSiteConfiguration.MobileHomeMenu) && x.Type == "banner").ToList();
 
                 result.Entities.ToList().ForEach(b =>
                 {
-                    var smiFragment = smiFragments.FirstOrDefault(x => x.Id == b.Type);
-                    if (smiFragment != null)
-                        b.FragmentName = smiFragment.Type + "-" + smiFragment.Title + "-" + smiFragment.WebSiteMenuItem.Title;
+                    var fragment = fragments.FirstOrDefault(x => x.Id == b.Type);
+                    if (fragment != null)
+                        b.FragmentName = fragment.Type + "-" + fragment.Title + "-" + fragment.WebSiteMenu.Type;
                     else
                     {
-                        var miFragment = miFragments.FirstOrDefault(x => x.Id == b.Type);
-                        if (miFragment != null)
-                            b.FragmentName = "Home-" + miFragment.Title;
+                        var hFragment = hFragments.FirstOrDefault(x => x.Id == b.Type);
+                        if (hFragment != null)
+                            b.FragmentName = "Home-" + hFragment.Title;
                     }
                 });
             }
@@ -242,12 +243,12 @@ namespace IqSoft.CP.BLL.Services
             var bannerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewBanner,
-                ObjectTypeId = ObjectTypes.Banner
+                ObjectTypeId = (int)ObjectTypes.Banner
             });
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             if (!bannerAccess.HaveAccessForAllObjects ||
@@ -257,29 +258,65 @@ namespace IqSoft.CP.BLL.Services
             return Db.Banners.Include(x => x.BannerSegmentSettings).FirstOrDefault(x => x.Id == bannerId);
         }
 
+        public List<ApiBannerOutput> GetBanners(int partnerId, int type, string languageId) // For WebSite
+        {
+            var currentDate = DateTime.UtcNow;
+            var dbBanners = Db.fn_Banner(languageId).Where(x => x.PartnerId == partnerId && x.Type == type && x.IsEnabled &&
+                                                           x.EndDate > currentDate).ToList()
+                                               .Select(x => new ApiBannerOutput
+                                               {
+                                                   Id = x.Id,
+                                                   Head = x.Head,
+                                                   Body = x.Body,
+                                                   Link = x.Link,
+                                                   Order = x.Order,
+                                                   Image = x.Image,
+                                                   ImageSizes = x.Image.Split(',').Skip(1).ToList(),
+                                                   ShowDescription = x.ShowDescription,
+                                                   StartDate = x.StartDate,
+                                                   EndDate = x.EndDate,
+                                                   VisibilityInfo = x.Visibility,
+                                                   ButtonType = x.ButtonType
+                                               }).OrderBy(x => x.Order).ToList();
+            var ids = dbBanners.Select(x => x.Id).ToList();
+            var segments = Db.BannerSegmentSettings.Where(x => ids.Contains(x.BannerId)).ToList();
+            var languages = Db.BannerLanguageSettings.Where(x => ids.Contains(x.BannerId)).ToList();
+            foreach (var banner in dbBanners)
+            {
+                banner.Visibility = string.IsNullOrEmpty(banner.VisibilityInfo) ? new List<int>() : JsonConvert.DeserializeObject<List<int>>(banner.VisibilityInfo);
+
+                var bSegments = segments.Where(x => x.BannerId == banner.Id).ToList();
+                banner.Segments = new ApiSetting { Type = bSegments.Any() ? bSegments[0].Type : (int)BonusSettingConditionTypes.InSet, Ids = bSegments.Select(x => x.SegmentId).ToList() };
+                
+                var bLanguages = languages.Where(x => x.BannerId == banner.Id).ToList();
+                banner.Languages = new ApiSetting { Type = bLanguages.Any() ? bLanguages[0].Type : (int)BonusSettingConditionTypes.InSet, Names = bLanguages.Select(x => x.LanguageId).ToList() };
+            }
+            return dbBanners;
+        }
+
         public object GetWebSiteFragments(int partnerId)
         {
             GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewBanner,
-                ObjectTypeId = ObjectTypes.Banner
+                ObjectTypeId = (int)ObjectTypes.Banner
             });
 
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != partnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
 
-            var resp = Db.WebSiteSubMenuItems.Where(x => x.WebSiteMenuItem.WebSiteMenu.PartnerId == partnerId &&
-                                                    (x.WebSiteMenuItem.Title == Constants.WebSiteConfiguration.WebFragments ||
-                                                     x.WebSiteMenuItem.Title == Constants.WebSiteConfiguration.MobileFragments)
+            var resp = Db.WebSiteMenuItems.Where(x => x.WebSiteMenu.PartnerId == partnerId &&
+                                                    (x.WebSiteMenu.Type == Constants.WebSiteConfiguration.WebFragments ||
+                                                     x.WebSiteMenu.Type == Constants.WebSiteConfiguration.MobileFragments)
                                                     && x.Title.StartsWith("Banners_")).Select(x => new
                                                     {
                                                         Id = x.Id,
-                                                        Name = x.Type + "-" + x.Title + "-" + x.WebSiteMenuItem.Title
+                                                        Name = x.Type + "-" + x.Title + "-" + x.WebSiteMenu.Type
                                                     }).ToList();
 
             resp.AddRange(Db.WebSiteMenuItems.Where(x => x.WebSiteMenu.PartnerId == partnerId &&
@@ -298,12 +335,12 @@ namespace IqSoft.CP.BLL.Services
             GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.EditPromotions,
-                ObjectTypeId = ObjectTypes.Promotion
+                ObjectTypeId = (int)ObjectTypes.Promotion
             });
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != promotion.PartnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -328,6 +365,7 @@ namespace IqSoft.CP.BLL.Services
                 dbPromotion.ParentId = promotion.ParentId;
                 dbPromotion.StyleType = promotion.StyleType;
                 dbPromotion.DeviceType = promotion.DeviceType;
+                dbPromotion.Visibility = promotion.Visibility;
 
                 if (promotion.PromotionSegmentSettings == null || !promotion.PromotionSegmentSettings.Any())
                     Db.PromotionSegmentSettings.Where(x => x.PromotionId == dbPromotion.Id).DeleteFromQuery();
@@ -399,12 +437,12 @@ namespace IqSoft.CP.BLL.Services
             GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.EditNews,
-                ObjectTypeId = ObjectTypes.News
+                ObjectTypeId = (int)ObjectTypes.News
             });
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != news.PartnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -491,22 +529,22 @@ namespace IqSoft.CP.BLL.Services
             }
         }
 
-        public Popup SavePopup(Popup apiPopup)
+        public Popup SavePopup(Popup apiPopup, out int? prevType)
         {
             GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPopup,
-                ObjectTypeId = ObjectTypes.Popup
+                ObjectTypeId = (int)ObjectTypes.Popup
             });
             GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.EditPopup,
-                ObjectTypeId = ObjectTypes.Popup
+                ObjectTypeId = (int)ObjectTypes.Popup
             });
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != apiPopup.PartnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -517,10 +555,9 @@ namespace IqSoft.CP.BLL.Services
                 throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
             apiPopup.LastUpdateTime = currentDate;
             var dbPopup = Db.Popups.Include(x => x.PopupSettings).FirstOrDefault(x => x.Id == apiPopup.Id);
+            prevType = dbPopup?.Type;
             if (dbPopup != null)
             {
-                var version = dbPopup.ImageName.Split('?');
-                dbPopup.ImageName = version.Length > 0 ? version[0] + "?ver=" + ((version.Length > 1 ? Convert.ToInt32(version[1].Replace("ver=", string.Empty)) : 0) + 1) : string.Empty;
                 dbPopup.NickName = apiPopup.NickName;
                 dbPopup.Type = apiPopup.Type;
                 dbPopup.State = apiPopup.State;
@@ -556,7 +593,7 @@ namespace IqSoft.CP.BLL.Services
                     Db.PopupSettings.Where(x => x.PopupId == apiPopup.Id && x.ObjectTypeId == (int)ObjectTypes.Client &&
                                                !apiPopup.ClientIds.Contains(x.ObjectId)).DeleteFromQuery();
                     var dbClients = dbPopup.PopupSettings.Where(x => x.PopupId == apiPopup.Id && x.ObjectTypeId == (int)ObjectTypes.Client)
-                                                     .Select(x => x.ObjectId).ToList();
+                                                         .Select(x => x.ObjectId).ToList();
                     apiPopup.ClientIds.RemoveAll(x => dbClients.Contains(x));
                     foreach (var c in apiPopup.ClientIds)
                         Db.PopupSettings.Add(new PopupSetting
@@ -566,41 +603,56 @@ namespace IqSoft.CP.BLL.Services
                             ObjectId = c
                         });
                 }
-                Db.SaveChanges();
-
-                return dbPopup;
             }
-            var newPopup = Db.Popups.Add(new Popup
-            {
-                PartnerId = apiPopup.PartnerId,
-                NickName = apiPopup.NickName,
-                Type = apiPopup.Type,
-                State = apiPopup.State,
-                Page = apiPopup.Page,
-                DeviceType = apiPopup.DeviceType,
-                Order = apiPopup.Order,
-                ImageName = apiPopup.ImageName,
-                StartDate = apiPopup.StartDate,
-                FinishDate = apiPopup.FinishDate,
-                CreationTime =  currentDate,
-                LastUpdateTime = currentDate,
-                Translation = CreateTranslation(new fnTranslation
+            else
+                dbPopup = Db.Popups.Add(new Popup
                 {
-                    ObjectTypeId = (int)ObjectTypes.Popup,
-                    Text = apiPopup.NickName,
-                    LanguageId = Constants.DefaultLanguageId
-                })
-            });
+                    PartnerId = apiPopup.PartnerId,
+                    NickName = apiPopup.NickName,
+                    Type = apiPopup.Type,
+                    State = apiPopup.State,
+                    Page = apiPopup.Page,
+                    DeviceType = apiPopup.DeviceType,
+                    Order = apiPopup.Order,
+                    ImageName = apiPopup.ImageName,
+                    StartDate = apiPopup.StartDate,
+                    FinishDate = apiPopup.FinishDate,
+                    CreationTime =  currentDate,
+                    LastUpdateTime = currentDate,
+                    Translation = CreateTranslation(new fnTranslation
+                    {
+                        ObjectTypeId = (int)ObjectTypes.Popup,
+                        Text = apiPopup.NickName,
+                        LanguageId = Constants.DefaultLanguageId
+                    })
+                });
             Db.SaveChanges();
-            newPopup.ImageName = newPopup.Id.ToString() + "." + apiPopup.ImageName.ToLower() + "?ver=1";
-            apiPopup.ImageName = newPopup.ImageName;
-            apiPopup.Id= newPopup.Id;
+            if (!string.IsNullOrEmpty(apiPopup.ImageName))
+            {
+                var img = apiPopup.ImageName.Split('.');
+                apiPopup.ImageName = img[img.Length - 1].Split('?')[0];
+                if (!string.IsNullOrEmpty(dbPopup.ImageName))
+                {
+                    var version = dbPopup.ImageName.Split('?');
+                    dbPopup.ImageName = $"{dbPopup.Id}.{apiPopup.ImageName}";
+                    if (version.Length > 1)
+                        dbPopup.ImageName += "?ver=" + (Convert.ToInt32(version[1].Replace("ver=", string.Empty)) + 1);
+                    else
+                        dbPopup.ImageName += "?ver=1";
+                }
+                else
+                {
+                    dbPopup.ImageName = dbPopup.Id.ToString() + "." + apiPopup.ImageName.ToLower() + "?ver=1";
+                    apiPopup.ImageName = dbPopup.ImageName;
+                }
+            }
+            apiPopup.Id= dbPopup.Id;
             apiPopup.CreationTime = currentDate;
             if (apiPopup.ClientIds != null && apiPopup.ClientIds.Any())
                 foreach (var c in apiPopup.ClientIds)
                     Db.PopupSettings.Add(new PopupSetting
                     {
-                        PopupId = newPopup.Id,
+                        PopupId = dbPopup.Id,
                         ObjectTypeId = (int)ObjectTypes.Client,
                         ObjectId = c
                     });
@@ -608,13 +660,14 @@ namespace IqSoft.CP.BLL.Services
                 foreach (var s in apiPopup.SegmentIds)
                     Db.PopupSettings.Add(new PopupSetting
                     {
-                        PopupId = newPopup.Id,
+                        PopupId = dbPopup.Id,
                         ObjectTypeId = (int)ObjectTypes.Segment,
                         ObjectId = s
                     });
             Db.SaveChanges();
             CacheManager.RemoveFromCache(string.Format("{0}_{1}_{2}", Constants.CacheItems.Popups, apiPopup.PartnerId, apiPopup.Type));
-            return newPopup;
+            CacheManager.RemoveFromCache(string.Format("{0}_{1}_{2}", Constants.CacheItems.Popups, apiPopup.PartnerId, prevType));
+            return dbPopup;
         }
 
         public PagedModel<Popup> GetPopups(FilterPopup filter)
@@ -622,12 +675,12 @@ namespace IqSoft.CP.BLL.Services
             GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPopup,
-                ObjectTypeId = ObjectTypes.Popup
+                ObjectTypeId = (int)ObjectTypes.Popup
             });
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<Popup>>
             {
@@ -655,12 +708,12 @@ namespace IqSoft.CP.BLL.Services
             GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPopup,
-                ObjectTypeId = ObjectTypes.Popup
+                ObjectTypeId = (int)ObjectTypes.Popup
             });
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var dbPopup = Db.Popups.Include(x => x.PopupSettings).FirstOrDefault(x => x.Id == popupId) ??
                 throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
@@ -670,22 +723,22 @@ namespace IqSoft.CP.BLL.Services
             return dbPopup;
         }
 
-        public void RemovePopup(int popupId)
+        public void RemovePopup(int popupId, out int partnerId, out int type)
         {
             GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPopup,
-                ObjectTypeId = ObjectTypes.Popup
+                ObjectTypeId = (int)ObjectTypes.Popup
             });
             GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.EditPopup,
-                ObjectTypeId = ObjectTypes.Popup
+                ObjectTypeId = (int)ObjectTypes.Popup
             });
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var dbPopup = Db.Popups.Include(x => x.PopupSettings).FirstOrDefault(x => x.Id == popupId);
             if (dbPopup == null)
@@ -694,10 +747,14 @@ namespace IqSoft.CP.BLL.Services
             if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != dbPopup.PartnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             var translationId = dbPopup.ContentTranslationId;
+            type = dbPopup.Type;
+            partnerId = dbPopup.PartnerId;
+            Db.ClientMessageStates.Where(x => x.PopupId == popupId).DeleteFromQuery();
             Db.PopupSettings.Where(x => x.PopupId == popupId).DeleteFromQuery();
             Db.Popups.Where(x => x.Id == popupId).DeleteFromQuery();
             Db.TranslationEntries.Where(x => x.TranslationId == translationId).DeleteFromQuery();
             Db.Translations.Where(x => x.Id == translationId).DeleteFromQuery();
+            CacheManager.RemoveFromCache(string.Format("{0}_{1}_{2}", Constants.CacheItems.Popups, partnerId, type));
         }
 
         public void UploadPopupFile(int popupId)
@@ -755,12 +812,12 @@ namespace IqSoft.CP.BLL.Services
             GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.RemovePromotions,
-                ObjectTypeId = ObjectTypes.Promotion
+                ObjectTypeId = (int)ObjectTypes.Promotion
             });
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != dbPromotion.PartnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -789,12 +846,12 @@ namespace IqSoft.CP.BLL.Services
             GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.RemoveNews,
-                ObjectTypeId = ObjectTypes.News
+                ObjectTypeId = (int)ObjectTypes.News
             });
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != dbNews.PartnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -814,7 +871,7 @@ namespace IqSoft.CP.BLL.Services
             return dbNews;
         }
 
-        public List<fnPromotion> GetPromotions(int? promotionId, int? partnerId, int? parentId, int skipCount, int takeCount)
+        public List<fnPromotion> GetPromotions(int? promotionId, int? partnerId, int? parentId, int skipCount, int takeCount) // for admin
         {
             var result = Db.fn_Promotion(Identity.LanguageId, false).AsQueryable();
             if (partnerId != null)
@@ -829,19 +886,96 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPromotion,
-                ObjectTypeId = ObjectTypes.Promotion
+                ObjectTypeId = (int)ObjectTypes.Promotion
             });
+
             if (partnerAccess.HaveAccessForAllObjects)
                 return result.OrderByDescending(x => x.Id).Skip(skipCount * takeCount).Take(takeCount).ToList();
             return result.Where(x => partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId)).OrderByDescending(x => x.Id).Skip(skipCount * takeCount).Take(takeCount).ToList();
         }
 
-        public List<fnNews> GetNews(int? promotionId, int? partnerId, int? parentId, int skipCount, int takeCount)
+        public List<ApiPromotion> GetPromotions(int partnerId, string languageId) //For WebSite
+        {
+            var currentDate = DateTime.UtcNow;
+            var pts = GetEnumerations(nameof(PromotionTypes), languageId);
+            var resp = Db.fn_Promotion(languageId, false)
+                .Where(x => x.PartnerId == partnerId &&
+                           (x.ParentId == null || (x.State == (int)BaseStates.Active && x.FinishDate > currentDate)))
+                .Select(x => new ApiPromotion
+                {
+                    Id = x.Id,
+                    Type = x.Type.ToString(),
+                    Title = x.Title,
+                    Description = x.Description,
+                    ImageName = x.ImageName,
+                    Order = x.Order,
+                    ParentId = x.ParentId,
+                    StyleType = x.StyleType,
+                    DeviceType = x.DeviceType,
+                    StartDate = x.StartDate,
+                    FinishDate = x.FinishDate,
+                    VisibilityInfo = x.Visibility,
+                }).ToList();
+            var ids = resp.Select(x => x.Id).ToList();
+            var segments = Db.PromotionSegmentSettings.Where(x => ids.Contains(x.PromotionId)).ToList();
+            var languages = Db.PromotionLanguageSettings.Where(x => ids.Contains(x.PromotionId)).ToList();
+
+            foreach (var promotion in resp)
+            {
+                promotion.Visibility = string.IsNullOrEmpty(promotion.VisibilityInfo) ? new List<int>() : JsonConvert.DeserializeObject<List<int>>(promotion.VisibilityInfo);
+
+                promotion.Type = pts.FirstOrDefault(y => y.Value == Convert.ToInt32(promotion.Type)).Text;
+
+                var pSegments = segments.Where(x => x.PromotionId == promotion.Id).ToList();
+                promotion.Segments = new ApiSetting { Type = pSegments.Any() ? pSegments[0].Type : 0, Ids = pSegments.Select(x => x.SegmentId).ToList() };
+
+                var pLanguages = languages.Where(x => x.PromotionId == promotion.Id).ToList();
+                promotion.Languages = new ApiSetting { Type = pLanguages.Any() ? pLanguages[0].Type : 0, Names = pLanguages.Select(x => x.LanguageId).ToList() };
+            }
+            return resp;
+        }
+
+        public List<ApiNews> GetNews(int partnerId, string languageId) // For WebSite
+        {
+            var currentDate = DateTime.UtcNow;
+            var dbNews = Db.fn_News(languageId, false)
+                           .Where(x => x.PartnerId == partnerId &&
+                                     ((x.ParentId == null && x.State == (int)BaseStates.Active) ||
+                                      (x.ParentId != null && x.ParentState == (int)BaseStates.Active &&
+                                       x.State == (int)BaseStates.Active &&  x.FinishDate > currentDate)))
+                           .Select(x => new ApiNews
+                           {
+                               Id = x.Id,
+                               Type = x.Type.ToString(),
+                               Title = x.Title,
+                               Description = x.Description,
+                               ImageName = x.ImageName,
+                               Order = x.Order,
+                               ParentId = x.ParentId,
+                               StyleType = x.StyleType,
+                               StartDate = x.StartDate,
+                               FinishDate = x.FinishDate
+                           }).ToList();
+            var ids = dbNews.Select(x => x.Id).ToList();
+            var segments = Db.NewsSegmentSettings.Where(x => ids.Contains(x.NewsId)).ToList();
+            var languages = Db.NewsLanguageSettings.Where(x => ids.Contains(x.NewsId)).ToList();
+            foreach (var n in dbNews)
+            {
+                var pSegments = segments.Where(x => x.NewsId == n.Id).ToList();
+                n.Segments = new ApiSetting { Type = pSegments.Any() ? pSegments[0].Type : 0, Ids = pSegments.Select(x => x.SegmentId).ToList() };
+
+                var pLanguages = languages.Where(x => x.NewsId == n.Id).ToList();
+                n.Languages = new ApiSetting { Type = pLanguages.Any() ? pLanguages[0].Type : 0, Names = pLanguages.Select(x => x.LanguageId).ToList() };
+            }
+            return dbNews;
+        }
+
+        public List<fnNews> GetNews(int? promotionId, int? partnerId, int? parentId, int skipCount, int takeCount) // fro admin
         {
             var result = Db.fn_News(Identity.LanguageId, false).AsQueryable();
             if (partnerId != null)
@@ -856,12 +990,12 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewNews,
-                ObjectTypeId = ObjectTypes.Promotion
+                ObjectTypeId = (int)ObjectTypes.Promotion
             });
             if (partnerAccess.HaveAccessForAllObjects)
                 return result.OrderByDescending(x => x.Id).Skip(skipCount * takeCount).Take(takeCount).ToList();
@@ -881,7 +1015,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if (!promotionAccess.HaveAccessForAllObjects || (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != dbPromotion.PartnerId)))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -902,13 +1036,15 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if (!newsAccess.HaveAccessForAllObjects || (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != dbNews.PartnerId)))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
 
             return dbNews;
         }
+
+       
 
         #endregion
 
@@ -923,7 +1059,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != partnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -978,7 +1114,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var menuItem = Db.WebSiteMenus.FirstOrDefault(x => x.Id == menuId);
             if (menuItem == null)
@@ -1002,7 +1138,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != menu.PartnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -1022,7 +1158,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != menuItem.WebSiteMenu.PartnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -1033,7 +1169,7 @@ namespace IqSoft.CP.BLL.Services
         {
             return Db.WebSiteSubMenuItems.Include(x => x.WebSiteMenuItem.WebSiteMenu).Where(x => x.Id == rowId).FirstOrDefault();
         }
-       
+
         public WebSiteMenu SaveWebSiteMenu(WebSiteMenu webSiteMenu)
         {
             GetPermissionsToObject(new CheckPermissionInput
@@ -1043,6 +1179,12 @@ namespace IqSoft.CP.BLL.Services
             var dbWebSiteMenu = Db.WebSiteMenus.FirstOrDefault(x => x.Id == webSiteMenu.Id);
             if (dbWebSiteMenu == null || dbWebSiteMenu.PartnerId != webSiteMenu.PartnerId)
                 throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
+            webSiteMenu.StyleType = webSiteMenu.StyleType.Replace("\n", string.Empty).Trim();
+            if (((webSiteMenu.StyleType.StartsWith("{") && webSiteMenu.StyleType.EndsWith("}")) || //For object
+                 (webSiteMenu.StyleType.StartsWith("[") && webSiteMenu.StyleType.EndsWith("]"))) && //For array 
+                 !BaseBll.IsValidJson(webSiteMenu.StyleType)) 
+                throw CreateException(LanguageId, Constants.Errors.InvalidJson);
+
             var oldValue = JsonConvert.SerializeObject(new
             {
                 dbWebSiteMenu.Id,
@@ -1062,7 +1204,13 @@ namespace IqSoft.CP.BLL.Services
             {
                 Permission = Constants.Permissions.EditWebSiteMenu
             });
-
+            webSiteMenuItem.StyleType = webSiteMenuItem.StyleType.Replace("\n", string.Empty).Trim();
+            webSiteMenuItem.Href = webSiteMenuItem.Href.Replace("\n", string.Empty).Trim();
+            if ((((webSiteMenuItem.StyleType.StartsWith("{") && webSiteMenuItem.StyleType.EndsWith("}")) || 
+                  (webSiteMenuItem.StyleType.StartsWith("[") && webSiteMenuItem.StyleType.EndsWith("]"))) &&  !BaseBll.IsValidJson(webSiteMenuItem.StyleType))  ||
+                (((webSiteMenuItem.Href.StartsWith("{") && webSiteMenuItem.Href.EndsWith("}")) || 
+                  (webSiteMenuItem.Href.StartsWith("[") && webSiteMenuItem.Href.EndsWith("]"))) && !BaseBll.IsValidJson(webSiteMenuItem.Href)))
+                throw CreateException(LanguageId, Constants.Errors.InvalidJson);
             broadcastChanges = false;
             var dbWebSiteMenuItem = Db.WebSiteMenuItems.Include(x => x.WebSiteMenu).FirstOrDefault(x => x.Id == webSiteMenuItem.Id);
             var menuId = dbWebSiteMenuItem != null ? dbWebSiteMenuItem.MenuId : webSiteMenuItem.MenuId;
@@ -1365,10 +1513,17 @@ namespace IqSoft.CP.BLL.Services
                 var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
                 if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != menuItem.WebSiteMenu.PartnerId))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
+                webSiteSubMenuItem.StyleType = webSiteSubMenuItem.StyleType.Trim().Trim('\n').Trim();
+                webSiteSubMenuItem.Href = webSiteSubMenuItem.Href.Trim().Trim('\n').Trim();
+                if ((((webSiteSubMenuItem.StyleType.StartsWith("{") && webSiteSubMenuItem.StyleType.EndsWith("}")) ||
+                      (webSiteSubMenuItem.StyleType.StartsWith("[") && webSiteSubMenuItem.StyleType.EndsWith("]"))) &&  !BaseBll.IsValidJson(webSiteSubMenuItem.StyleType))  ||
+                    (((webSiteSubMenuItem.Href.StartsWith("{") && webSiteSubMenuItem.Href.EndsWith("}")) ||
+                      (webSiteSubMenuItem.Href.StartsWith("[") && webSiteSubMenuItem.Href.EndsWith("]"))) && !BaseBll.IsValidJson(webSiteSubMenuItem.Href)))
+                    throw CreateException(LanguageId, Constants.Errors.InvalidJson);
 
                 var dbWebSiteSubMenuItem = Db.WebSiteSubMenuItems.Include(x => x.WebSiteMenuItem.WebSiteMenu).FirstOrDefault(x => x.Id == webSiteSubMenuItem.Id);
                 if (dbWebSiteSubMenuItem != null)
@@ -1425,7 +1580,8 @@ namespace IqSoft.CP.BLL.Services
                                        webSiteSubMenuItem.MenuItemName, fileName, webSiteSubMenuItem.Image);
                     }
                     else
-                        UploadMenuImage(webSiteSubMenuItem.PartnerId, webSiteSubMenuItem.Icon, webSiteSubMenuItem.Image, menuItem.WebSiteMenu.Type, webSiteSubMenuItem.MenuItemName, webSiteSubMenuItem.Title);
+                        UploadMenuImage(webSiteSubMenuItem.PartnerId, webSiteSubMenuItem.Icon, webSiteSubMenuItem.Image, 
+                            menuItem.WebSiteMenu.Type, webSiteSubMenuItem.MenuItemName, webSiteSubMenuItem.Title);
                 }
                 if (!string.IsNullOrEmpty(webSiteSubMenuItem.HoverImage))
                     UploadMenuImage(webSiteSubMenuItem.PartnerId, "hover/" + webSiteSubMenuItem.Icon, webSiteSubMenuItem.Image, menuItem.WebSiteMenu.Type, webSiteSubMenuItem.MenuItemName, webSiteSubMenuItem.Title);
@@ -1463,7 +1619,7 @@ namespace IqSoft.CP.BLL.Services
                 var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
                 if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != partnerId))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -1492,7 +1648,7 @@ namespace IqSoft.CP.BLL.Services
                 var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
                 if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != partnerId))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -1521,7 +1677,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != webSiteSubMenuItem.WebSiteMenuItem.WebSiteMenu.PartnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -1744,7 +1900,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != partnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -1782,7 +1938,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != fromPartnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -1795,22 +1951,36 @@ namespace IqSoft.CP.BLL.Services
             Db.sp_CreateWebSiteMenuCopy(fromPartnerId, toPartnerId, menuItemId);
         }
 
-        public object GetClientQuickRegistrationFields(int partnerId)
+        public object GetClientRegistrationFields(int partnerId, int interfaceType)
         {
-            return Db.WebSiteSubMenuItems.Where(x => x.WebSiteMenuItem.WebSiteMenu.PartnerId == partnerId &&
-                                                                x.WebSiteMenuItem.WebSiteMenu.Type == Constants.WebSiteConfiguration.Config &&
-                                                                x.WebSiteMenuItem.Title  == Constants.WebSiteConfiguration.QuickRegister)
-                                                    .Select(x => new { x.Title, x.Href }).ToList();
-
-
+            if (!Enum.IsDefined(typeof(SystemModuleTypes), interfaceType))
+                throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
+            var query = Db.WebSiteSubMenuItems.Where(x => x.WebSiteMenuItem.WebSiteMenu.PartnerId == partnerId &&
+                                                          x.WebSiteMenuItem.WebSiteMenu.Type == Constants.WebSiteConfiguration.Config);
+            switch (interfaceType)
+            {
+                case (int)SystemModuleTypes.AgentSystem:
+                    query = query.Where(x => x.WebSiteMenuItem.Title  == Constants.WebSiteConfiguration.AgentClientRegister);
+                    break;
+                case (int)SystemModuleTypes.ManagementSystem:
+                    query = query.Where(x => x.WebSiteMenuItem.Title  == Constants.WebSiteConfiguration.AdminClientRegister);
+                    break;
+                case (int)SystemModuleTypes.BetShop:
+                    query = query.Where(x => x.WebSiteMenuItem.Title  == Constants.WebSiteConfiguration.BetshopClientRegister);
+                    break;
+                default:
+                    throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
+            }
+            return query.Select(x => new { x.Title, x.Type, x.StyleType, x.Href, x.Icon, x.Order }).ToList();
         }
+
         public void GenerateWebSiteStylesFile(int partnerId, FtpModel ftpInput)
         {
             CheckPermission(Constants.Permissions.EditStyles);
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != partnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -1868,15 +2038,13 @@ namespace IqSoft.CP.BLL.Services
 
             UploadFile(string.Format("window.VERSION = {0};", new Random().Next(1, 1000)), "/coreplatform/website/" + partner.Name.ToLower() + "/assets/js/version.js", ftpInput);
 
-
-
-
             var fonts = Db.WebSiteSubMenuItems.Where(x => x.WebSiteMenuItem.WebSiteMenu.PartnerId == partnerId &&
                 x.WebSiteMenuItem.WebSiteMenu.Type == Constants.WebSiteConfiguration.Assets &&
                 x.WebSiteMenuItem.Title == Constants.WebSiteConfiguration.Fonts).Select(x => new
                 {
                     FontFamily = x.Title,
                     x.Type,
+                    Lang = x.StyleType,
                     Weight = x.Href,
                     Src = x.Icon,
                     x.Order
@@ -1890,7 +2058,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != partnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -1901,8 +2069,10 @@ namespace IqSoft.CP.BLL.Services
             var partnerSetting = CacheManager.GetConfigKey(partnerId, Constants.PartnerKeys.VerificationKeyNumberOnly);
             var partnerDomains = partner.SiteUrl.Split(',');
             var domain = partnerDomains.Count() == 1 ? partner.SiteUrl : "{ws}";
-            var webSiteConfig = Db.WebSiteMenus.Where(x => x.PartnerId == partnerId && x.Type == Constants.WebSiteConfiguration.Config)
-                .Select(x => new BllMenu
+            var menuItems = Db.WebSiteMenus.Where(x => x.PartnerId == partnerId && 
+                (x.Type == Constants.WebSiteConfiguration.Config ||
+                x.Type == Constants.WebSiteConfiguration.WebFragments ||
+                x.Type == Constants.WebSiteConfiguration.MobileFragments)).Select(x => new BllMenu
                 {
                     Id = x.Id,
                     Type = x.Type,
@@ -1914,6 +2084,7 @@ namespace IqSoft.CP.BLL.Services
                         Title = y.Title,
                         Type = y.Type,
                         Href = y.Href,
+                        StyleType = y.StyleType,
                         OpenInRouting = y.OpenInRouting,
                         Orientation = y.Orientation,
                         Order = y.Order,
@@ -1929,8 +2100,8 @@ namespace IqSoft.CP.BLL.Services
                             Order = z.Order
                         }).OrderBy(z => z.Order).ToList()
                     }).OrderBy(y => y.Order).ToList()
-                }).FirstOrDefault();
-
+                }).ToList();
+            var webSiteConfig = menuItems.FirstOrDefault(x => x.Type == Constants.WebSiteConfiguration.Config);
             var mc = webSiteConfig?.Items.FirstOrDefault(x => x.Title == "MobileCodes");
             var rt = webSiteConfig?.Items.FirstOrDefault(x => x.Title == "RegisterType");
             var qrt = webSiteConfig?.Items.FirstOrDefault(x => x.Title == "QuickRegisterType");
@@ -1938,6 +2109,8 @@ namespace IqSoft.CP.BLL.Services
             var eb = webSiteConfig?.Items.FirstOrDefault(x => x.Title == "ExternalBalance");
             var license = webSiteConfig?.Items.FirstOrDefault(x => x.Title == "LicenseUrl");
             var hp = webSiteConfig?.Items.FirstOrDefault(x => x.Title == "HomePage");
+            var flu = webSiteConfig?.Items.FirstOrDefault(x => x.Title == "FirstLoginUrl");
+            var alu = webSiteConfig?.Items.FirstOrDefault(x => x.Title == "AfterLoginUrl");
             var csk = webSiteConfig?.Items.FirstOrDefault(x => x.Title == "CaptchaSiteKey");
             var ce = webSiteConfig?.Items.FirstOrDefault(x => x.Title == "CaptchaEnabled");
             var cpu = webSiteConfig?.Items.FirstOrDefault(x => x.Title == "CashierPageUrl");
@@ -1963,8 +2136,8 @@ namespace IqSoft.CP.BLL.Services
             var che = webSiteConfig?.Items.FirstOrDefault(x => x.Title == "CharactersEnabled");
             var accw = webSiteConfig?.Items.FirstOrDefault(x => x.Title == "AllowCancelConfirmedWithdraw");
 
-            var wf = webSiteConfig?.Items.FirstOrDefault(x => x.Title == Constants.WebSiteConfiguration.WebFragments)?.SubMenu?.ToList();
-            var mf = webSiteConfig?.Items.FirstOrDefault(x => x.Title == Constants.WebSiteConfiguration.MobileFragments)?.SubMenu?.ToList();
+            var wf = menuItems.FirstOrDefault(x => x.Type == Constants.WebSiteConfiguration.WebFragments)?.Items.ToList();
+            var mf = menuItems.FirstOrDefault(x => x.Type == Constants.WebSiteConfiguration.MobileFragments)?.Items.ToList();
 
             var config = new
             {
@@ -1972,6 +2145,7 @@ namespace IqSoft.CP.BLL.Services
                 PartnerName = partner.Name,
                 WebApiUrl = (waURL != null && !string.IsNullOrEmpty(waURL.Href)) ? waURL.Href : string.Format("https://websitewebapi.{0}", domain),
                 DefaultCurrency = partner.CurrencyId,
+                CurrencySymbol = CacheManager.GetCurrencyById(partner.CurrencyId).Symbol,
                 Domain = domain,
                 AllowedAge = partner.ClientMinAge,
                 VerificationCodeForWithdraw = (vcfw != null && !string.IsNullOrEmpty(vcfw.Href) ? Convert.ToInt32(vcfw.Href) : 0),
@@ -1980,9 +2154,10 @@ namespace IqSoft.CP.BLL.Services
                 ShowInfoPopup = !(sip == null || sip.Id == 0 || sip.NumericValue == 0),
                 ReCaptchaKey = csk == null ? string.Empty : csk.Href,
                 IsReCaptcha = ce != null && ce.Href != "0",
-                HomePageType = hp == null ? string.Empty : hp.Href,
+                HomePageUrl = hp == null ? string.Empty : hp.Href,
                 CashierPageUrl = cpu == null ? string.Empty : cpu.Href,
-                RedirectUrl = hp == null ? string.Empty : hp.Href,
+                AfterLoginUrl = alu == null ? string.Empty : alu.Href,
+                FirstLoginUrl = flu == null ? string.Empty : flu.Href,
                 ShowMobileNavPanel = smnp == null ? "0" : smnp.Href,
                 EmailAddress = (ea == null || ea.Id == 0) ? string.Empty : ea.StringValue,
                 Languages = Db.PartnerLanguageSettings.Where(x => x.PartnerId == partnerId &&
@@ -1990,16 +2165,21 @@ namespace IqSoft.CP.BLL.Services
                 Currencies = Db.PartnerCurrencySettings.Where(x => x.PartnerId == partnerId &&
                     x.State == (int)PartnerCurrencyStates.Active).OrderBy(x => x.Priority).Select(x => x.Currency.Name).ToList(),
                 ProductsWithTransfer = new List<object>(),
-                MobileCodes = mc == null ? new List<object>().Select(x => new { Title = "", Type = "", Mask = "", StyleType = "" }).ToList() : mc.SubMenu.Select(x => new { x.Title, x.Type, Mask = x.Href, x.StyleType }).ToList(),
+                MobileCodes = mc == null ? new List<object>().Select(x => new { Title = "", Type = "", Mask = "", StyleType = "" }).ToList() : 
+                    mc.SubMenu.Select(x => new { x.Title, x.Type, Mask = x.Href, x.StyleType }).ToList(),
                 RegisterType = rt == null ? new List<object>().Select(x => new { Title = "", Order = 0, Settings = "{}" }).ToList() :
                     rt.SubMenu.Select(x => new { Title = x.Title, Order = x.Order, Settings = x.Href }).ToList(),
-                QuickRegisterType = (qrt == null ? new List<object>().Select(x => new { Title = "", Order = 0, Type = "" }).ToList() : qrt.SubMenu.Select(x => new { Title = x.Title, Order = x.Order, Type = x.Type }).ToList()),
-                SocialNetworkProviders = (snp == null ? new List<object>().Select(x => new { Title = "", ProviderId = "", Order = 0 }).ToList() : snp.SubMenu.Select(x => new { Title = x.Title, ProviderId = x.Href, Order = x.Order }).ToList()),
+                QuickRegisterType = (qrt == null ? new List<object>().Select(x => new { Title = "", Order = 0, Type = "" }).ToList() : 
+                    qrt.SubMenu.Select(x => new { Title = x.Title, Order = x.Order, Type = x.Type }).ToList()),
+                SocialNetworkProviders = (snp == null ? new List<object>().Select(x => new { Title = "", ProviderId = "", Order = 0 }).ToList() : 
+                    snp.SubMenu.Select(x => new { Title = x.Title, ProviderId = x.Href, Order = x.Order }).ToList()),
                 ExternalBalance = eb == null ? new List<int>() : eb.SubMenu.Select(x => Convert.ToInt32(x.Type)).ToList(),
                 LicenseUrl = license == null ? string.Empty : license.Href,
-                FooterVisibility = (fv == null ? new List<object>().Select(x => new { Title = "", Type = "" }).ToList() : fv.SubMenu.Select(x => new { Title = x.Title, Type = x.Type }).ToList()),
+                FooterVisibility = (fv == null ? new List<object>().Select(x => new { Title = "", Type = "" }).ToList() : 
+                    fv.SubMenu.Select(x => new { Title = x.Title, Type = x.Type }).ToList()),
                 HomeBGImage = hbg == null ? string.Empty : hbg.Href,
-                GameLayouts = gl == null ? new List<object>().Select(x => new { Type = "", Href = "" }).ToList() : gl.SubMenu.OrderBy(x => x.Order).Select(x => new { x.Type, x.Href }).ToList(),
+                GameLayouts = gl == null ? new List<object>().Select(x => new { Type = "", Href = "" }).ToList() : 
+                    gl.SubMenu.OrderBy(x => x.Order).Select(x => new { x.Type, x.Href }).ToList(),
                 TimeZone = tz == null ? string.Empty : tz.Type,
                 SelfExclusionPeriod = sep == null ? "1" : sep.Href,
                 ErrorDisplayTime = edp == null ? "5000" : edp.Href,
@@ -2013,13 +2193,16 @@ namespace IqSoft.CP.BLL.Services
                 .ToDictionary(k => k.Key, v => v.GroupBy(x => x.Type).Select(x => new
                 {
                     Position = x.Key,
-                    Items = x.Select(z => new { z.Id, z.Order, z.Title, z.Href })
+                    Items = x.Select(z => new { z.Id, z.Order, z.Title, z.StyleType, z.Href, z.Icon,
+                        SubMenu = z.SubMenu.Select(k => new { k.Id, k.Order, k.Title, k.StyleType, k.Href, k.Icon }).ToList()
+                    })
                 })),
                 MobileFragments = mf?.Where(x => !x.OpenInRouting).GroupBy(x => x.Title.Split('_')[0])
                 .ToDictionary(k => k.Key, v => v.GroupBy(x => x.Type).Select(x => new
                 {
                     Position = x.Key,
-                    Items = x.Select(z => new { z.Id, z.Order, z.Title, z.Href })
+                    Items = x.Select(z => new { z.Id, z.Order, z.Title, z.StyleType, z.Href, z.Icon,
+                        SubMenu = z.SubMenu.Select(k => new { k.Id, k.Order, k.Title, k.StyleType, k.Href, k.Icon }).ToList() })
                 })),
                 WinnersWidget = (ww != null && ww.Href == "0") ? 0 : 1,
                 RegExProperty = new RegExProperty(partner.PasswordRegExp),
@@ -2051,7 +2234,8 @@ namespace IqSoft.CP.BLL.Services
             UploadFile(JsonConvert.SerializeObject(config), "/coreplatform/website/" + partner.Name.ToLower() + "/assets/json/config.json", ftpInput);
             UploadFile(JsonConvert.SerializeObject(manifest), "/coreplatform/website/" + partner.Name.ToLower() + "/assets/json/manifest.json", ftpInput);
 
-            UploadFile(string.Format("window.VERSION = {0};", new Random().Next(1, 1000)), "/coreplatform/website/" + partner.Name.ToLower() + "/assets/js/version.js", ftpInput);
+            UploadFile(string.Format("window.VERSION = {0};", new Random().Next(1, 1000)), 
+                "/coreplatform/website/" + partner.Name.ToLower() + "/assets/js/version.js", ftpInput);
         }
 
         public void GenerateAssets(int partnerId, FtpModel ftpInput)
@@ -2060,7 +2244,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != partnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -2111,20 +2295,23 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != partnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             var partner = CacheManager.GetPartnerById(partnerId);
             var registrationKYCTypes = CacheManager.GetConfigParameters(partner.Id, Constants.PartnerKeys.RegistrationKYCTypes);
             var menu = Db.WebSiteMenus.Where(x => x.PartnerId == partnerId &&
-               x.Type != Constants.WebSiteConfiguration.Translations && x.Type != Constants.WebSiteConfiguration.Styles &&
-               x.Type != Constants.WebSiteConfiguration.News && x.Type != Constants.WebSiteConfiguration.Config)
-               .Select(x => new BllMenu
+               x.Type != Constants.WebSiteConfiguration.Translations && 
+               x.Type != Constants.WebSiteConfiguration.Styles &&
+               x.Type != Constants.WebSiteConfiguration.WebFragments &&
+               x.Type != Constants.WebSiteConfiguration.MobileFragments &&
+               x.Type != Constants.WebSiteConfiguration.Config).Select(x => new BllMenu
                {
                    Id = x.Id,
                    Type = x.Type,
                    StyleType = x.StyleType,
+                   DeviceType = x.DeviceType,
                    Items = x.WebSiteMenuItems.Select(y => new BllMenuItem
                    {
                        Id = y.Id,
@@ -2173,6 +2360,7 @@ namespace IqSoft.CP.BLL.Services
                    Id = x.Id,
                    Type = Constants.WebSiteConfiguration.Registration,
                    StyleType = x.StyleType,
+                   DeviceType = x.DeviceType,
                    Items = x.WebSiteMenuItems.Where(y => y.Title == "FullRegister" || y.Title == "QuickRegister").Select(y => new BllMenuItem
                    {
                        Id = y.Id,
@@ -2198,48 +2386,53 @@ namespace IqSoft.CP.BLL.Services
                    }).OrderBy(y => y.Order).ToList()
                }).ToList());
 
-            menu.AddRange(Db.WebSiteMenus.Where(x => x.PartnerId == partnerId && x.Type == Constants.WebSiteConfiguration.Config)
-                .Select(x => new BllMenu
+            menu.AddRange(Db.WebSiteMenus.Where(x => x.PartnerId == partnerId && x.Type == Constants.WebSiteConfiguration.Config).Select(x => new BllMenu
+            {
+                Id = x.Id,
+                Type = Constants.WebSiteConfiguration.Login,
+                StyleType = x.StyleType,
+                DeviceType = x.DeviceType,
+                Items = x.WebSiteMenuItems.Where(y => y.Title == "Login").Select(y => new BllMenuItem
                 {
-                    Id = x.Id,
-                    Type = Constants.WebSiteConfiguration.Login,
-                    StyleType = x.StyleType,
-                    Items = x.WebSiteMenuItems.Where(y => y.Title == "Login").Select(y => new BllMenuItem
+                    Id = y.Id,
+                    Icon = y.Icon,
+                    Title = y.Title,
+                    Type = y.Type,
+                    StyleType = y.StyleType,
+                    Href = y.Href,
+                    OpenInRouting = y.OpenInRouting,
+                    Orientation = y.Orientation,
+                    Order = y.Order,
+                    SubMenu = y.WebSiteSubMenuItems.Select(z => new BllSubMenuItem
                     {
-                        Id = y.Id,
-                        Icon = y.Icon,
-                        Title = y.Title,
-                        Type = y.Type,
-                        StyleType = y.StyleType,
-                        Href = y.Href,
-                        OpenInRouting = y.OpenInRouting,
-                        Orientation = y.Orientation,
-                        Order = y.Order,
-                        SubMenu = y.WebSiteSubMenuItems.Select(z => new BllSubMenuItem
-                        {
-                            Id = z.Id,
-                            Icon = z.Icon,
-                            Title = z.Title,
-                            Type = z.Type,
-                            Href = z.Href,
-                            OpenInRouting = z.OpenInRouting,
-                            Order = z.Order,
-                            StyleType = z.Title == Constants.WebSiteConfiguration.DocumentType ? documentTypes : null
-                        }).OrderBy(z => z.Order).ToList()
-                    }).OrderBy(y => y.Order).ToList()
-                }).ToList());
+                        Id = z.Id,
+                        Icon = z.Icon,
+                        Title = z.Title,
+                        Type = z.Type,
+                        Href = z.Href,
+                        OpenInRouting = z.OpenInRouting,
+                        Order = z.Order,
+                        StyleType = z.Title == Constants.WebSiteConfiguration.DocumentType ? documentTypes : null
+                    }).OrderBy(z => z.Order).ToList()
+                }).OrderBy(y => y.Order).ToList()
+            }).ToList());
 
             var result = new BllPartnerSettings
             {
                 MenuList = menu
             };
 
-            var input = new
+            var webInput = new
             {
-                MenuList = result.MenuList.Select(x => x.ToApiMenu()).ToList()
+                MenuList = result.MenuList.Where(x => x.DeviceType != (int)DeviceTypes.BetShop).Select(x => x.ToApiMenu()).ToList()
             };
+            var shopInput = result.MenuList.Where(x => x.DeviceType == (int)DeviceTypes.BetShop && 
+                x.Type == Constants.WebSiteConfiguration.HeaderMenu).Select(x => x.ToApiMenu()).FirstOrDefault();
 
-            UploadFile(JsonConvert.SerializeObject(input), "/coreplatform/website/" + partner.Name.ToLower() + "/assets/json/menu.json", ftpInput);
+            UploadFile(JsonConvert.SerializeObject(webInput), "/coreplatform/website/" + partner.Name.ToLower() + "/assets/json/menu.json", ftpInput);
+            if(shopInput != null)
+                UploadFile(JsonConvert.SerializeObject(shopInput), "/betshopwebsite/" + partner.Name.ToLower() + "/assets/json/menu.json", ftpInput);
+
             UploadFile(string.Format("window.VERSION = {0};", new Random().Next(1, 1000)), "/coreplatform/website/" + partner.Name.ToLower() + "/assets/js/version.js", ftpInput);
         }
 
@@ -2322,7 +2515,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != partnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -2341,7 +2534,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != partnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -2386,7 +2579,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != partnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -2452,10 +2645,10 @@ namespace IqSoft.CP.BLL.Services
                     path += ("casino-menu/" + imageName);
                 else if (menuType == Constants.WebSiteConfiguration.FooterMenu)
                     path += ("footer-menu/" + imageName);
-                else if (menuType == Constants.WebSiteConfiguration.HomeMenu)
-                    path += ("home/home-menu/" + imageName);
-                else if (menuType == Constants.WebSiteConfiguration.MobileHomeMenu)
-                    path += ("home/home-menu/" + imageName);
+                else if (menuType == Constants.WebSiteConfiguration.WebFragments)
+                    path += ("webfragments/" + imageName);
+                else if (menuType == Constants.WebSiteConfiguration.MobileFragments)
+                    path += ("mobilefragments/" + imageName);
                 else if (menuType == Constants.WebSiteConfiguration.MobileCentralMenu)
                     path += ("mobile-central-menu/" + imageName);
                 else if (menuType == Constants.WebSiteConfiguration.MobileFooterMenu)
@@ -2468,15 +2661,7 @@ namespace IqSoft.CP.BLL.Services
                     path += ("mobile-right-sidebar/" + imageName);
                 else if (menuType == Constants.WebSiteConfiguration.MobileHeaderPanel)
                     path += ("mobile_header_panel/" + imageName);
-                else if (menuType == Constants.WebSiteConfiguration.News)
-                {
-                    if (submenuItemName == "Title")
-                        path += ("news/small/" + imageName);
-                    else if (submenuItemName == "Description")
-                        path += ("news/medium/" + imageName);
-                    else if (submenuItemName == "Content")
-                        path += ("news/" + imageName);
-                }
+
                 byte[] bytes = Convert.FromBase64String(image);
                 UploadFtpImage(bytes, ftpModel.Value, path);
             }
@@ -2511,7 +2696,7 @@ namespace IqSoft.CP.BLL.Services
             var partnersAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if (!triggerAccess.HaveAccessForAllObjects ||
                 (!partnersAccess.HaveAccessForAllObjects && partnersAccess.AccessibleIntegerObjects.All(x => x != setting.PartnerId)))
@@ -2550,7 +2735,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if (!triggerAccess.HaveAccessForAllObjects)
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -2568,7 +2753,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             if (!triggerAccess.HaveAccessForAllObjects)
@@ -2585,7 +2770,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             CheckPermission(Constants.Permissions.ViewPartnerMessageTemplate);
 
@@ -2600,7 +2785,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != messageTemplate.PartnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -2634,12 +2819,12 @@ namespace IqSoft.CP.BLL.Services
             GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.EditPartnerMessageTemplate,
-                ObjectTypeId = ObjectTypes.MessageTemplate
+                ObjectTypeId = (int)ObjectTypes.MessageTemplate
             });
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var dbMessageTemplate = Db.MessageTemplates.FirstOrDefault(x => x.Id == templateId);
             if (dbMessageTemplate == null)
@@ -2664,7 +2849,7 @@ namespace IqSoft.CP.BLL.Services
                 var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
                 if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != apiAnnouncement.PartnerId))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -2808,7 +2993,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != dbAnnouncement.PartnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -2838,7 +3023,7 @@ namespace IqSoft.CP.BLL.Services
                 var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
                 CheckPermission(Constants.Permissions.ViewAnnouncement);
                 filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnAnnouncement>>
@@ -3016,9 +3201,7 @@ namespace IqSoft.CP.BLL.Services
                     case (int)ObjectTypes.BannerBody:
                     case (int)ObjectTypes.BannerHead:
                         var banner = Db.Banners.FirstOrDefault(x => x.BodyTranslationId == translationEntry.TranslationId ||
-                                            x.HeadTranslationId == translationEntry.TranslationId);
-                        CacheManager.RemoveBanners(banner.PartnerId, banner.Type, translationEntry.LanguageId);
-                        broadcastKey.Add(string.Format("{0}_{1}_{2}_{3}", Constants.CacheItems.Banners, banner.PartnerId, banner.Type, translationEntry.LanguageId), banner.PartnerId);
+                                                                    x.HeadTranslationId == translationEntry.TranslationId);
                         break;
                     case (int)ObjectTypes.Bonus:
                         break;
@@ -3058,8 +3241,6 @@ namespace IqSoft.CP.BLL.Services
                         var promotion = Db.Promotions.FirstOrDefault(x => x.TitleTranslationId == translationEntry.TranslationId ||
                                                                           x.DescriptionTranslationId == translationEntry.TranslationId ||
                                                                           x.ContentTranslationId == translationEntry.TranslationId);
-                        CacheManager.RemovePromotions(promotion.PartnerId);
-                        broadcastKey.Add(string.Format("{0}_{1}_{2}", Constants.CacheItems.Promotions, promotion.PartnerId, translationEntry.LanguageId), promotion.PartnerId);
                         break;
                     case (int)ObjectTypes.News:
                     case (int)ObjectTypes.NewsContent:
@@ -3067,8 +3248,6 @@ namespace IqSoft.CP.BLL.Services
                         var news = Db.News.FirstOrDefault(x => x.TitleTranslationId == translationEntry.TranslationId ||
                                                                           x.DescriptionTranslationId == translationEntry.TranslationId ||
                                                                           x.ContentTranslationId == translationEntry.TranslationId);
-                        CacheManager.RemoveNews(news.PartnerId);
-                        broadcastKey.Add(string.Format("{0}_{1}_{2}", Constants.CacheItems.News, news.PartnerId, translationEntry.LanguageId), news.PartnerId);
                         break;
                     case (int)ObjectTypes.SecurityQuestion:
                         var securityQuestion = Db.SecurityQuestions.FirstOrDefault(x => x.TranslationId == translationEntry.TranslationId);
@@ -3112,7 +3291,7 @@ namespace IqSoft.CP.BLL.Services
                 var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
                 CheckPermission(Constants.Permissions.ViewPartnerCommentTemplate);
                 if (!partnerAccess.HaveAccessForAllObjects)
@@ -3132,7 +3311,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != commentTemplate.PartnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -3169,7 +3348,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != dbCommentTemplate.PartnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -3187,7 +3366,7 @@ namespace IqSoft.CP.BLL.Services
                 var checkPermissionResult = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewJobArea,
-                    ObjectTypeId = ObjectTypes.JobArea
+                    ObjectTypeId = (int)ObjectTypes.JobArea
                 });
                 if (!checkPermissionResult.HaveAccessForAllObjects)
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -3202,7 +3381,7 @@ namespace IqSoft.CP.BLL.Services
                 var checkPermissionResult = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewJobArea,
-                    ObjectTypeId = ObjectTypes.JobArea
+                    ObjectTypeId = (int)ObjectTypes.JobArea
                 });
                 if (!checkPermissionResult.HaveAccessForAllObjects)
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -3215,7 +3394,7 @@ namespace IqSoft.CP.BLL.Services
             var checkPermissionResult = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.EditJobArea,
-                ObjectTypeId = ObjectTypes.JobArea
+                ObjectTypeId = (int)ObjectTypes.JobArea
             });
             if (!checkPermissionResult.HaveAccessForAllObjects)
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -3244,12 +3423,43 @@ namespace IqSoft.CP.BLL.Services
             return Db.fn_Enumeration().Where(x => x.LanguageId == languageId).ToList();
         }
 
+        public void DeleteSegment(int id)
+        {
+            var dbSegment = Db.Segments.FirstOrDefault(x => x.Id == id) ??
+                throw CreateException(LanguageId, Constants.Errors.SegmentNotFound);
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewPartner,
+                ObjectTypeId = (int)ObjectTypes.Partner
+            });
+
+            var PartnerPaymentSegmentEditPermission = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.DeleteSegment
+            });
+            if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != dbSegment.PartnerId))
+                throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
+            if (Db.BannerSegmentSettings.Any(x => x.SegmentId==id) ||
+                Db.BonusSegmentSettings.Any(x => x.SegmentId==id) ||
+                Db.PromotionSegmentSettings.Any(x => x.SegmentId==id) ||
+                Db.NewsSegmentSettings.Any(x => x.SegmentId==id) ||
+                Db.TriggerSettings.Any(x => x.SegmentId==id) ||
+                Db.PopupSettings.Any(x => x.ObjectId == id && x.ObjectTypeId == (int)ObjectTypes.Segment) ||
+                Db.AnnouncementSettings.Any(x => x.ObjectId == id && x.ObjectTypeId == (int)ObjectTypes.Announcement))
+                throw CreateException(LanguageId, Constants.Errors.NotAllowed);
+            Db.JobTriggers.Where(x => x.SegmentId == id).DeleteFromQuery();
+            Db.SegmentSettings.Where(x => x.SegmentId == id).DeleteFromQuery();
+            Db.ClientClassifications.Where(x => x.SegmentId == id).DeleteFromQuery();
+            Db.Segments.Where(x => x.Id == id).DeleteFromQuery();
+            CacheManager.RemoveSegmentSettingFromCache(id);
+        }
+
         public Segment SaveSegment(SegmentModel segmentModel)
         {
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             var PartnerPaymentSegmentEditPermission = GetPermissionsToObject(new CheckPermissionInput
@@ -3273,16 +3483,18 @@ namespace IqSoft.CP.BLL.Services
                 dbSegment.Name = segmentModel.Name;
                 dbSegment.State = segmentModel.State ?? (int)SegmentStates.Active;
                 dbSegment.IsKYCVerified = segmentModel.IsKYCVerified;
+                dbSegment.IsEmailVerified = segmentModel.IsEmailVerified;
+                dbSegment.IsMobileNumberVerified = segmentModel.IsMobileNumberVerified;
                 dbSegment.Gender = segmentModel.Gender;
                 dbSegment.IsTermsConditionAccepted = segmentModel.IsTermsConditionAccepted;
                 dbSegment.ClientStatus = segmentModel.ClientStatus?.ToString();
-                dbSegment.SegmentId = segmentModel.SegmentId?.ToString();
                 dbSegment.ClientId = segmentModel.ClientId?.ToString();
                 dbSegment.Email = segmentModel.Email?.ToString();
                 dbSegment.FirstName = segmentModel.FirstName?.ToString();
                 dbSegment.LastName = segmentModel.LastName?.ToString();
                 dbSegment.Region = segmentModel.Region?.ToString();
                 dbSegment.AffiliateId = segmentModel.AffiliateId?.ToString();
+                dbSegment.AgentId = segmentModel.AgentId?.ToString();
                 dbSegment.MobileCode = segmentModel.MobileCode?.ToString();
                 dbSegment.SessionPeriod = segmentModel.SessionPeriod?.ToString();
                 dbSegment.SignUpPeriod = segmentModel.SignUpPeriod?.ToString();
@@ -3315,7 +3527,7 @@ namespace IqSoft.CP.BLL.Services
                 Db.Segments.Add(dbSegment);
                 Db.SaveChanges();
             }
-
+            CacheManager.RemoveSegmentSettingFromCache(dbSegment.Id);
             return dbSegment;
         }
 
@@ -3376,49 +3588,22 @@ namespace IqSoft.CP.BLL.Services
                 }
             }
         }
-
-        public Segment DeleteSegment(int id)
-        {
-            var dbSegment = Db.Segments.FirstOrDefault(x => x.Id == id);
-            if (dbSegment == null)
-                throw CreateException(LanguageId, Constants.Errors.SegmentNotFound);
-            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
-            {
-                Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
-            });
-
-            var PartnerPaymentSegmentEditPermission = GetPermissionsToObject(new CheckPermissionInput
-            {
-                Permission = Constants.Permissions.EditSegment
-            });
-            if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != dbSegment.PartnerId))
-                throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
-
-            dbSegment.LastUpdateTime = DateTime.UtcNow;
-            dbSegment.State = (int)SegmentStates.Inactive;
-            Db.SaveChanges();
-            Db.ClientClassifications.Where(x => x.SegmentId == id).DeleteFromQuery();
-            Db.BannerSegmentSettings.Where(x => x.SegmentId==id).DeleteFromQuery();
-            Db.BonusSegmentSettings.Where(x => x.SegmentId==id).DeleteFromQuery();
-            Db.PromotionSegmentSettings.Where(x => x.SegmentId==id).DeleteFromQuery();
-            CacheManager.RemoveSegmentSettingFromCache(dbSegment.Id);
-            return dbSegment;
-        }
-
-        public List<Segment> GetSegments(int? id, int? partnerId)
+      
+        public List<Segment> GetSegments(int? id, int? partnerId, bool showInactives)
         {
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             var PartnerPaymentSegmentEditPermission = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewSegment
             });
-            var query = Db.Segments.Where(x => x.State != (int)SegmentStates.Inactive).AsQueryable();
+            var query = Db.Segments.AsQueryable();
+            if (!showInactives)
+                query = query.Where(x => x.State != (int)SegmentStates.Inactive);
             if (partnerId.HasValue)
                 query = query.Where(x => x.PartnerId == partnerId.Value);
             else if (!partnerAccess.HaveAccessForAllObjects)
@@ -3439,7 +3624,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != partnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);

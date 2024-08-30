@@ -1,19 +1,33 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 
 namespace IqSoft.CP.Integration.Payments.Models.Jmitsolutions
 {
-	public class PayoutOutput
-	{
-		public bool success { get; set; }
-		public List<object> errors { get; set; }
-		public Payout payout { get; set; }
+    public class BaseOutput
+    {
+        [JsonProperty(PropertyName = "success")]
+        public bool Success { get; set; }
+
+        [JsonProperty(PropertyName = "errors")]
+        public List<object> Errors { get; set; }
+    }
+
+	public class PayoutOutput : BaseOutput
+    {
+        [JsonProperty(PropertyName = "payout")]
+        public Payout Payout { get; set; }
 	}
 
 	public class Payout
 	{
-		public string token { get; set; }
-		public string status { get; set; }
-		public DateTime timestamp { get; set; }
+        [JsonProperty(PropertyName = "token")]
+        public string Token { get; set; }
+
+        [JsonProperty(PropertyName = "status")]
+        public string Status { get; set; }
+
+        [JsonProperty(PropertyName = "timestamp")]
+        public DateTime Timestamp { get; set; }
 	}
 }

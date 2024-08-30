@@ -336,12 +336,15 @@
     <Compile Include="Payments\Helpers\DPOPayHelpers.cs" />
     <Compile Include="Payments\Helpers\EliteHelpers.cs" />
     <Compile Include="Payments\Helpers\EwayHelpers.cs" />
+    <Compile Include="Payments\Helpers\ExternalCashierHelpers.cs" />
     <Compile Include="Payments\Helpers\FinVertHelpers.cs" />
     <Compile Include="Payments\Helpers\FlexepinHelpers.cs" />
     <Compile Include="Payments\Helpers\FreedomPayHelpers.cs" />
     <Compile Include="Payments\Helpers\FugaPayHelpers.cs" />
     <Compile Include="Payments\Helpers\GatewayPayHelpers.cs" />
+    <Compile Include="Payments\Helpers\GetaPayHelpers.cs" />
     <Compile Include="Payments\Helpers\GumballPayHelpers.cs" />
+    <Compile Include="Payments\Helpers\HuchHelpers.cs" />
     <Compile Include="Payments\Helpers\ImpayaHelpers.cs" />
     <Compile Include="Payments\Helpers\InteracHelpers.cs" />
     <Compile Include="Payments\Helpers\InterkassaHelpers.cs" />
@@ -349,17 +352,25 @@
     <Compile Include="Payments\Helpers\IXOPayHelpers.cs" />
     <Compile Include="Payments\Helpers\JetonHavaleHelpers.cs" />
     <Compile Include="Payments\Helpers\JetonHelpers.cs" />
-    <Compile Include="Payments\Helpers\JmitsolutionsHelpers.cs" />
+    <Compile Include="Payments\Helpers\JmitSolutionsHelpers.cs" />
+    <Compile Include="Payments\Helpers\KatarunHelpers.cs" />
     <Compile Include="Payments\Helpers\KralPayHelpers.cs" />
+    <Compile Include="Payments\Helpers\LiberSaveHelpers.cs" />
     <Compile Include="Payments\Helpers\MaldoPayHelpers.cs" />
     <Compile Include="Payments\Helpers\MaxPayHelpers.cs" />
+    <Compile Include="Payments\Helpers\MPayHelpers.cs" />
+    <Compile Include="Payments\Helpers\MpesaHelpers.cs" />
     <Compile Include="Payments\Helpers\NgineHelpers.cs" />
     <Compile Include="Payments\Helpers\MifinityHelpers.cs" />
+    <Compile Include="Payments\Helpers\NixxeHelpers.cs" />
     <Compile Include="Payments\Helpers\NodaPayHelpers.cs" />
+    <Compile Include="Payments\Helpers\OmerHelpers.cs" />
+    <Compile Include="Payments\Helpers\OmnoHelpers.cs" />
     <Compile Include="Payments\Helpers\OptimumWayHelpers.cs" />
     <Compile Include="Payments\Helpers\OktoPayHelpers.cs" />
     <Compile Include="Payments\Helpers\PayladoHelpers.cs" />
     <Compile Include="Payments\Helpers\PaymentIQHelpers.cs" />
+    <Compile Include="Payments\Helpers\PayStageHelpers.cs" />
     <Compile Include="Payments\Helpers\PixHelpers.cs" />
     <Compile Include="Payments\Helpers\EasyPayHelpers.cs" />
     <Compile Include="Payments\Helpers\EcopayzHelpers.cs" />
@@ -404,6 +415,7 @@
     <Compile Include="Payments\Helpers\Transact365Helpers.cs" />
     <Compile Include="Payments\Helpers\TronLinkHelpers.cs" />
     <Compile Include="Payments\Helpers\VevoPayHelpers.cs" />
+    <Compile Include="Payments\Helpers\WzrdPayHelpers.cs" />
     <Compile Include="Payments\Helpers\XcoinsPayHelpers.cs" />
     <Compile Include="Payments\Helpers\XprizoHelpers.cs" />
     <Compile Include="Payments\Helpers\YaspaHelpers.cs" />
@@ -454,7 +466,9 @@
     <Compile Include="Payments\Models\FugaPay\PaymentOutput.cs" />
     <Compile Include="Payments\Models\FugaPay\OutputBase.cs" />
     <Compile Include="Payments\Models\GatewayPay\PaymentOutput.cs" />
+    <Compile Include="Payments\Models\GetaPay\PaymentOutput.cs" />
     <Compile Include="Payments\Models\GumballPay\PaymentOutput.cs" />
+    <Compile Include="Payments\Models\Huch\PaymentOutput.cs" />
     <Compile Include="Payments\Models\Impaya\InvoiceOutput.cs" />
     <Compile Include="Payments\Models\Interac\PaymentOutput.cs" />
     <Compile Include="Payments\Models\Interac\PayoutResult.cs" />
@@ -475,12 +489,23 @@
     <Compile Include="Payments\Models\Jeton\VoucherOutput.cs" />
     <Compile Include="Payments\Models\Jmitsolutions\PaymentOutput.cs" />
     <Compile Include="Payments\Models\Jmitsolutions\PayoutOutput.cs" />
+    <Compile Include="Payments\Models\Katarun\PaymentInput.cs" />
+    <Compile Include="Payments\Models\Katarun\PaymentOutput.cs" />
+    <Compile Include="Payments\Models\Katarun\PayoutInput.cs" />
+    <Compile Include="Payments\Models\Katarun\PayoutOutput.cs" />
     <Compile Include="Payments\Models\KralPay\PayoutOutput.cs" />
+    <Compile Include="Payments\Models\LiberSave\PaymentOutput.cs" />
     <Compile Include="Payments\Models\MaldoPay\PayoutInput.cs" />
     <Compile Include="Payments\Models\MaldoPay\PaymentOutput.cs" />
     <Compile Include="Payments\Models\MaxPay\PaymentOutput.cs" />
     <Compile Include="Payments\Models\Mifinity\PaymentOutput.cs" />
     <Compile Include="Payments\Models\Mifinity\PayoutOutput.cs" />
+    <Compile Include="Payments\Models\MPay\PaymentInput.cs" />
+    <Compile Include="Payments\Models\MPay\PaymentOutput.cs" />
+    <Compile Include="Payments\Models\Mpesa\DirectPaymentOutput.cs" />
+    <Compile Include="Payments\Models\Mpesa\PaymentOutput.cs" />
+    <Compile Include="Payments\Models\Mpesa\PayoutOutput.cs" />
+    <Compile Include="Payments\Models\Mpesa\TokenOutput.cs" />
     <Compile Include="Payments\Models\Ngine\AuthenticationInput.cs" />
     <Compile Include="Payments\Models\Ngine\AuthenticationOutput.cs" />
     <Compile Include="Payments\Models\Ngine\CheckStatusInput.cs" />
@@ -488,9 +513,14 @@
     <Compile Include="Payments\Models\Ngine\GenericPayoutOutput.cs" />
     <Compile Include="Payments\Models\Ngine\GetPayoutLimitsOutput.cs" />
     <Compile Include="Payments\Models\Ngine\QuickerBankAccounts.cs" />
+    <Compile Include="Payments\Models\Nixxe\PaymentOutput.cs" />
+    <Compile Include="Payments\Models\Nixxe\PayoutOutput.cs" />
     <Compile Include="Payments\Models\NodaPay\PaymentOutput.cs" />
     <Compile Include="Payments\Models\NodaPay\PayoutResponse.cs" />
     <Compile Include="Payments\Models\NOWPay\PaymentFiatOutput.cs" />
+    <Compile Include="Payments\Models\OmerPay\PaymentInput.cs" />
+    <Compile Include="Payments\Models\OmerPay\PaymentOutput.cs" />
+    <Compile Include="Payments\Models\Omno\PaymentOutput.cs" />
     <Compile Include="Payments\Models\OptimumWay\PaymentOutput.cs" />
     <Compile Include="Payments\Models\Pay3000\ConsentErrorOutput.cs" />
     <Compile Include="Payments\Models\Pay3000\ConsentOutput.cs" />
@@ -502,6 +532,7 @@
     <Compile Include="Payments\Models\PaymentIQ\CancelTransactionResult.cs" />
     <Compile Include="Payments\Models\PaymentIQ\TransactionDetatils.cs" />
     <Compile Include="Payments\Models\Payment\CryptoAddress.cs" />
+    <Compile Include="Payments\Models\PayStage\PaymentOutput.cs" />
     <Compile Include="Payments\Models\Pix\LoginResponse.cs" />
     <Compile Include="Payments\Models\Pix\DepositResponse.cs" />
     <Compile Include="Payments\Models\Pix\WithdrawResponse.cs" />
@@ -601,11 +632,15 @@
     <Compile Include="Payments\Models\Stripe\ProductOutput.cs" />
     <Compile Include="Payments\Models\Telebirr\PaymentInput.cs" />
     <Compile Include="Payments\Models\Telebirr\PaymentOutput.cs" />
+    <Compile Include="Payments\Models\TotalProcessing\PaymentOutput.cs" />
+    <Compile Include="Payments\Models\TotalProcessing\PaymentRequestInput.cs" />
     <Compile Include="Payments\Models\Transact365\AuthenticationInput.cs" />
     <Compile Include="Payments\Models\Transact365\PaymentOutput.cs" />
     <Compile Include="Payments\Models\TronLink\PayoutOutput.cs" />
     <Compile Include="Payments\Models\VevoPay\PaymentOutput.cs" />
     <Compile Include="Payments\Models\VevoPay\PayoutOutput.cs" />
+    <Compile Include="Payments\Models\WzrdPay\PaymentInput.cs" />
+    <Compile Include="Payments\Models\WzrdPay\PaymentOutput.cs" />
     <Compile Include="Payments\Models\XcoinsPay\PaymentOutput.cs" />
     <Compile Include="Payments\Models\Xprizo\PaymentInput.cs" />
     <Compile Include="Payments\Models\Xprizo\PaymentOutput.cs" />
@@ -640,8 +675,6 @@
     <Compile Include="Payments\Models\SerosPay\UserLoginOutput.cs" />
     <Compile Include="Payments\Models\IqWallet\PaymentInput.cs" />
     <Compile Include="Payments\Models\IqWallet\PaymentOutput.cs" />
-    <Compile Include="Payments\Models\TotalProcessing\PaymentOutput.cs" />
-    <Compile Include="Payments\Models\TotalProcessing\PaymentRequestInput.cs" />
     <Compile Include="Payments\Models\WalletOne\CardModel.cs" />
     <Compile Include="Payments\Models\WalletOne\WalletOneFinalInput.cs" />
     <Compile Include="Payments\Models\WalletOne\WalletOneFinalOutput.cs" />
@@ -698,6 +731,7 @@
     <Compile Include="Platforms\Models\Webflow\BaseOutput.cs" />
     <Compile Include="Platforms\Models\Webflow\CollectionOutput.cs" />
     <Compile Include="Products\Helpers\AleaPartnersHelpers.cs" />
+    <Compile Include="Products\Helpers\BetMakersHelpers.cs" />
     <Compile Include="Products\Helpers\BGGamesHelpers.cs" />
     <Compile Include="Products\Helpers\EliteHelpers.cs" />
     <Compile Include="Products\Helpers\AleaPlayHelpers.cs" />
@@ -719,6 +753,7 @@
     <Compile Include="Products\Helpers\GrooveHelpers.cs" />
     <Compile Include="Products\Helpers\HabaneroHelpers.cs" />
     <Compile Include="Products\Helpers\Helpers.cs" />
+    <Compile Include="Products\Helpers\ImperiumGamesHelpers.cs" />
     <Compile Include="Products\Helpers\InternalHelpers.cs" />
     <Compile Include="Products\Helpers\IPTGamingHelpers.cs" />
     <Compile Include="Products\Helpers\JackpotGamingHelpers.cs" />
@@ -747,7 +782,6 @@
     <Compile Include="Products\Models\BetDeal\BaseInput.cs" />
     <Compile Include="Products\Models\BetDeal\SessionInput.cs" />
     <Compile Include="Products\Models\BetDeal\SessionOutput.cs" />
-    <Compile Include="Products\Models\BetSelection.cs" />
     <Compile Include="Products\Helpers\IqSoftHelpers.cs" />
     <Compile Include="Products\Helpers\ZeusPlayHelpers.cs" />
     <Compile Include="Payments\Models\PayBox\PaymentRequestOutput.cs" />
@@ -788,6 +822,7 @@
     <Compile Include="Products\Models\DragonGaming\GamesOutput.cs" />
     <Compile Include="Products\Models\DragonGaming\LaunchOutput.cs" />
     <Compile Include="Products\Models\EkkoSpin\GetUrlResponse.cs" />
+    <Compile Include="Products\Models\Endorphina\GameItem.cs" />
     <Compile Include="Products\Models\Evenbet\BaseOutput.cs" />
     <Compile Include="Products\Models\EveryMatrix\ApiBonusModule.cs" />
     <Compile Include="Products\Models\EveryMatrix\BonusListOutput.cs" />
@@ -812,6 +847,7 @@
     <Compile Include="Products\Models\Groove\GameItem.cs" />
     <Compile Include="Products\Models\Habanero\FreeRoundOutput.cs" />
     <Compile Include="Products\Models\Habanero\GamesListOutput.cs" />
+    <Compile Include="Products\Models\ImperiumGames\LaunchOutput.cs" />
     <Compile Include="Products\Models\IPTGaming\LaunchOutput.cs" />
     <Compile Include="Products\Models\IqSoft\CurrentLiveGamesReport.cs" />
     <Compile Include="Products\Models\IqSoft\PartnerProductModel.cs" />
@@ -1351,6 +1387,7 @@
     <Analyzer Include="..\packages\GraphQL.Analyzers.7.7.2\analyzers\dotnet\cs\GraphQL.Analyzers.CodeFixes.dll" />
     <Analyzer Include="..\packages\GraphQL.Analyzers.7.7.2\analyzers\dotnet\cs\GraphQL.Analyzers.dll" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

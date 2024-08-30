@@ -55,7 +55,6 @@ namespace IqSoft.CP.DAL
         public string PaymentSystems { get; set; }
     
         public virtual BetShopGroup BetShopGroup { get; set; }
-        public virtual Currency Currency { get; set; }
         public virtual Partner Partner { get; set; }
         public virtual User User { get; set; }
         public virtual UserSession UserSession { get; set; }
@@ -67,5 +66,6 @@ namespace IqSoft.CP.DAL
         public virtual ICollection<Account> Accounts { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PaymentRequest> PaymentRequests { get; set; }
+        public virtual Currency Currency { get; set; }
     }
 }

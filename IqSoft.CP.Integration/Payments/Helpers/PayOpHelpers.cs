@@ -9,7 +9,6 @@ using IqSoft.CP.DAL.Models;
 using IqSoft.CP.Integration.Payments.Models.PayOp;
 using log4net;
 using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
 
 namespace IqSoft.CP.Integration.Payments.Helpers
@@ -18,12 +17,22 @@ namespace IqSoft.CP.Integration.Payments.Helpers
     {
         public static Dictionary<string, string> PaymentMethods { get; set; } = new Dictionary<string, string>
         {
-            { Constants.PaymentSystems.PayOpPIX, "200969" }, //Brazil
-            { Constants.PaymentSystems.PayOpNeosurf, "200008" }, //Europeans
-            { Constants.PaymentSystems.PayOpRevolut, "3822" },//Europeans
+            { Constants.PaymentSystems.PayOpPIX, "214969" }, //Brazil
+            { Constants.PaymentSystems.PayOpNeosurf, "214008" }, //Europeans
+            { Constants.PaymentSystems.PayOpNeosurfAU, "200009" }, //Australia
+            { Constants.PaymentSystems.PayOpNeosurfUK, "214028" }, //United Kingdom
+            { Constants.PaymentSystems.PayOpRevolut, "203822" },//Europeans
+            { Constants.PaymentSystems.PayOpRevolutUK, "203821" },//UK
             { Constants.PaymentSystems.PayOpLocalBankTransfer, "704" },//for Latam via Safetypay
             { Constants.PaymentSystems.PayOpInstantBankTransfer, "200018" },//Europeans
-            { Constants.PaymentSystems.PayOpPayDo, "700001" }
+            { Constants.PaymentSystems.PayOpPayDo, "700001" }, //Visa/Mastercard
+            { Constants.PaymentSystems.PayOpInterac, "210013" },
+            { Constants.PaymentSystems.PayOpMonzo, "203891" },
+            { Constants.PaymentSystems.PayOpCashToCode, "2001017" },
+            { Constants.PaymentSystems.PayOpBankFI, "200024" }, //Finland
+            { Constants.PaymentSystems.PayOpBankAT, "200031" }, //Austria
+            { Constants.PaymentSystems.PayOpBankUK, "203801" }, //United Kingdom
+            { Constants.PaymentSystems.PayOpBankTransferZA, "200998" }, //United Kingdom
         };
 
         public static string CallPayOpApi(PaymentRequest input, string cashierPageUrl, SessionIdentity session, ILog log)
@@ -48,17 +57,18 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 if (!PaymentMethods.ContainsKey(paymentSystem.Name))
                     throw BaseBll.CreateException(session.LanguageId, Constants.Errors.PaymentSystemNotFound);
                 var amount = input.Amount;
-                if (input.CurrencyId != Constants.Currencies.Euro)
-                {
-                    var rate = BaseBll.GetCurrenciesDifference(client.CurrencyId, Constants.Currencies.Euro);
-                    amount = Math.Round(rate * input.Amount, 2);
-                    var parameters = string.IsNullOrEmpty(input.Parameters) ? new Dictionary<string, string>() :
-                                  JsonConvert.DeserializeObject<Dictionary<string, string>>(input.Parameters);
-                    parameters.Add("Currency", Constants.Currencies.Euro);
-                    parameters.Add("AppliedRate", rate.ToString("F"));
-                    input.Parameters = JsonConvert.SerializeObject(parameters);
-                    paymentSystemBl.ChangePaymentRequestDetails(input);
-                }
+                // change to config fo tgi
+                //if (input.CurrencyId != Constants.Currencies.Euro) 
+                //{
+                //    var rate = BaseBll.GetCurrenciesDifference(client.CurrencyId, Constants.Currencies.Euro);
+                //    amount = Math.Round(rate * input.Amount, 2);
+                //    var parameters = string.IsNullOrEmpty(input.Parameters) ? new Dictionary<string, string>() :
+                //                  JsonConvert.DeserializeObject<Dictionary<string, string>>(input.Parameters);
+                //    parameters.Add("Currency", Constants.Currencies.Euro);
+                //    parameters.Add("AppliedRate", rate.ToString("F"));
+                //    input.Parameters = JsonConvert.SerializeObject(parameters);
+                //    paymentSystemBl.ChangePaymentRequestDetails(input);
+                //}
                 var invoiceInput = new
                 {
                     publicKey = partnerPaymentSetting.UserName,
@@ -66,7 +76,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                     {
                         id = input.Id.ToString(),
                         amount = amount.ToString("F"),
-                        currency = Constants.Currencies.Euro,
+                        currency = input.CurrencyId,
                         items = new List<int>()
                     },
                     payer = new
@@ -78,7 +88,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                     resultUrl = cashierPageUrl,
                     failPath = cashierPageUrl,
                     signature = CommonFunctions.ComputeSha256(string.Format("{0}:{1}:{2}:{3}", amount.ToString("F"),
-                                                              Constants.Currencies.Euro, input.Id, partnerPaymentSetting.Password)),
+                                                              input.CurrencyId, input.Id, partnerPaymentSetting.Password)),
                     paymentMethod = PaymentMethods[paymentSystem.Name]
                 };
 

@@ -80,7 +80,7 @@ namespace IqSoft.CP.BLL.Services
             var checkPermissionResult = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.CreatePartnerPaymentSetting,
-                ObjectTypeId = ObjectTypes.PartnerPaymentSetting,
+                ObjectTypeId = (int)ObjectTypes.PartnerPaymentSetting,
                 ObjectId = partnerPaymentSettingId
             });
 
@@ -97,7 +97,7 @@ namespace IqSoft.CP.BLL.Services
             var checkPermissionResult = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.CreatePartnerPaymentSetting,
-                ObjectTypeId = ObjectTypes.PartnerPaymentSetting,
+                ObjectTypeId = (int)ObjectTypes.PartnerPaymentSetting,
                 ObjectId = partnerPaymentCurrencyRate.PaymentSettingId
             });
 
@@ -126,7 +126,7 @@ namespace IqSoft.CP.BLL.Services
             var checkPermissionResult = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartnerPaymentSetting,
-                ObjectTypeId = ObjectTypes.PartnerPaymentSetting,
+                ObjectTypeId = (int)ObjectTypes.PartnerPaymentSetting,
                 ObjectId = partnerPaymentSettingId
             });
 
@@ -141,7 +141,7 @@ namespace IqSoft.CP.BLL.Services
             var checkPermissionResult = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.CreatePartnerPaymentSetting,
-                ObjectTypeId = ObjectTypes.PartnerPaymentSetting,
+                ObjectTypeId = (int)ObjectTypes.PartnerPaymentSetting,
                 ObjectId = partnerPaymentSetting.Id
             });
 
@@ -187,13 +187,13 @@ namespace IqSoft.CP.BLL.Services
                 var checkP = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartnerPaymentSetting,
-                    ObjectTypeId = ObjectTypes.PartnerPaymentSetting
+                    ObjectTypeId = (int)ObjectTypes.PartnerPaymentSetting
                 });
 
                 var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
 
                 filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnPartnerPaymentSetting>>
@@ -242,19 +242,19 @@ namespace IqSoft.CP.BLL.Services
                 var clientAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewClient,
-                    ObjectTypeId = ObjectTypes.Client
+                    ObjectTypeId = (int)ObjectTypes.Client
                 });
 
                 var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
 
                 var paymentRequestAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPaymentRequests,
-                    ObjectTypeId = ObjectTypes.PaymentRequest
+                    ObjectTypeId = (int)ObjectTypes.PaymentRequest
                 });
 
                 filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnPaymentRequest>>
@@ -314,31 +314,31 @@ namespace IqSoft.CP.BLL.Services
                 var clientAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewClient,
-                    ObjectTypeId = ObjectTypes.Client
+                    ObjectTypeId = (int)ObjectTypes.Client
                 });
 
                 var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
 
                 var clientCategoryAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewClientByCategory,
-                    ObjectTypeId = ObjectTypes.ClientCategory
+                    ObjectTypeId = (int)ObjectTypes.ClientCategory
                 });
 
                 var affiliateReferralAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewAffiliateReferral,
-                    ObjectTypeId = ObjectTypes.AffiliateReferral
+                    ObjectTypeId = (int)ObjectTypes.AffiliateReferral
                 });
 
                 var paymentRequestAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPaymentRequests,
-                    ObjectTypeId = ObjectTypes.PaymentRequest
+                    ObjectTypeId = (int)ObjectTypes.PaymentRequest
                 });
 
                 filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnPaymentRequest>>
@@ -492,12 +492,12 @@ namespace IqSoft.CP.BLL.Services
             var paymentAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPaymentRequests,
-                ObjectTypeId = ObjectTypes.PaymentRequest
+                ObjectTypeId = (int)ObjectTypes.PaymentRequest
             });
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnPaymentRequest>>
             {
@@ -588,7 +588,7 @@ namespace IqSoft.CP.BLL.Services
                 var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
                 if (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != partnerId))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -632,7 +632,7 @@ namespace IqSoft.CP.BLL.Services
             var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             var checkPartnerEditPermission = GetPermissionsToObject(new CheckPermissionInput

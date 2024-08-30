@@ -7,7 +7,7 @@ namespace IqSoft.CP.Common.Models
 {
     public class RegExProperty
     {
-        private readonly static string PossibleSymbols = "!@#$%^&*()-+=~`[\\]{}\\\\|;:'\"\",<.>?";
+        private readonly static string PossibleSymbols = "!-\\/[-`{-~:-@€";
         public int? PartnerId { get; set; }
         public bool Numeric { get; set; }
         public bool Lowercase { get; set; }
@@ -40,13 +40,29 @@ namespace IqSoft.CP.Common.Models
                 Numeric = true;
             if (!regEx.Contains("(?!.*[" + PossibleSymbols + "])"))
                 Symbol = true;
-            var lengthRegEx = new Regex(@"\(\?=\^\.{(.*),(.*)}\$\)");
-            MinLength = Convert.ToInt32(lengthRegEx.Matches(regEx)[0].Groups[1].Value);
-            MaxLength = Convert.ToInt32(lengthRegEx.Matches(regEx)[0].Groups[2].Value);
+            var lengthRegEx = new Regex(@"\(\?=\^(.*){(.*),(.*)}\$\)");
+            MinLength = Convert.ToInt32(lengthRegEx.Matches(regEx)[0].Groups[2].Value);
+            MaxLength = Convert.ToInt32(lengthRegEx.Matches(regEx)[0].Groups[3].Value);
         }
         public string GetExpression()
         {
-            var expression = new StringBuilder("(?=^.{" + MinLength + "," + MaxLength + "}$)");
+            var allowedSymboles = new StringBuilder();
+             if ((Lowercase && !IsLowercaseRequired) || (Uppercase && !IsUppercaseRequired) || (Numeric && !IsDigitRequired))
+            {
+                allowedSymboles.Append('[');
+                if (Lowercase)
+                    allowedSymboles.Append("a-z");
+                if (Uppercase)
+                    allowedSymboles.Append("A-Z");
+                if (Numeric)
+                    allowedSymboles.Append("0-9");
+                if (Symbol)
+                    allowedSymboles.Append(PossibleSymbols);
+                allowedSymboles.Append(']');
+            }
+             else
+                allowedSymboles.Append('.');
+            var expression = new StringBuilder("(?=^" + allowedSymboles + "{" + MinLength + "," + MaxLength + "}$)");
             if (IsLowercaseRequired)
                 expression.Append("(?=.*[a-z])");
             if (IsUppercaseRequired)
@@ -56,20 +72,7 @@ namespace IqSoft.CP.Common.Models
             if (IsSymbolRequired)
                 expression.Append("(?=.*[" + PossibleSymbols + "])");
             else if (!Symbol)
-                expression.Append("(?!.*[" + PossibleSymbols + "])");
-            if ((Lowercase && !IsLowercaseRequired) || (Uppercase && !IsUppercaseRequired) || (Numeric && !IsDigitRequired))
-            {
-                expression.Append('[');
-                if (Lowercase)
-                    expression.Append("a-z");
-                if (Uppercase)
-                    expression.Append("A-Z");
-                if (Numeric)
-                    expression.Append("0-9");
-                if (Symbol && !IsSymbolRequired)
-                    expression.Append(PossibleSymbols);
-                expression.Append(']');
-            }           
+                expression.Append("(?!.*[" + PossibleSymbols + "])");           
             return expression.ToString();
         }
 

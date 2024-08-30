@@ -1,4 +1,5 @@
-﻿using System;
+﻿using IqSoft.CP.Common.Models.Filters;
+using System;
 
 namespace IqSoft.CP.AgentWebApi.Filters
 {
@@ -12,13 +13,15 @@ namespace IqSoft.CP.AgentWebApi.Filters
 
         public DateTime BetDateBefore { get; set; }
 
-        public ApiFiltersOperation Ids { get; set; }
+        public ApiFiltersOperation BetDocumentIds { get; set; }
 
         public ApiFiltersOperation ClientIds { get; set; }
 
         public ApiFiltersOperation Names { get; set; }
+        public ApiFiltersOperation ClientFirstNames { get; set; }
+        public ApiFiltersOperation ClientLastNames { get; set; }
 
-        public ApiFiltersOperation UserNames { get; set; }
+        public ApiFiltersOperation ClientUserNames { get; set; }
 
         public ApiFiltersOperation Categories { get; set; }
 
@@ -28,7 +31,7 @@ namespace IqSoft.CP.AgentWebApi.Filters
 
         public ApiFiltersOperation ProviderNames { get; set; }
 
-        public ApiFiltersOperation Currencies { get; set; }
+        public ApiFiltersOperation CurrencyIds { get; set; }
 
         public ApiFiltersOperation RoundIds { get; set; }
 

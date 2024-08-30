@@ -10,7 +10,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Helpers
         {
             var gameProvider = CacheManager.GetGameProviderByName(Constants.GameProviders.TVBet);
             var tvBetPartnerId = CacheManager.GetGameProviderValueByKey(partnerId, gameProvider.Id, Constants.PartnerKeys.TVBetPartnerId);
-            var iframe = CacheManager.GetGameProviderValueByKey(partnerId, gameProvider.Id,Constants.PartnerKeys.TVBetIframe);
+            var iframe = CacheManager.GetGameProviderValueByKey(partnerId, gameProvider.Id, Constants.PartnerKeys.TVBetIframe);
 
             return string.Format(gameProvider.GameLaunchUrl, session.Domain, iframe,  session.LanguageId, token, tvBetPartnerId);
         }

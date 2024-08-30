@@ -16,10 +16,13 @@ namespace IqSoft.CP.DAL.Models.Segment
         public int Mode { get; set; }
         public DateTime? CreationTime { get; set; }
         public DateTime? LastUpdateTime { get; set; }
-        public SegementSettingModel SegementSetting { get; set; }
+        public SegmentSettingModel SegementSetting { get; set; }
         public bool? IsKYCVerified { get; set; }
+        public bool? IsEmailVerified { get; set; }
+        public bool? IsMobileNumberVerified { get; set; }
         public int? Gender { get; set; }
         public bool? IsTermsConditionAccepted { get; set; } // ???
+
         public string ClientStatus { get; set; }
         public Condition ClientStatusObject
         {
@@ -32,19 +35,7 @@ namespace IqSoft.CP.DAL.Models.Segment
             }
         }
         public Condition ClientStatusSet { get; set; }
-        public string SegmentId { get; set; }
-        public Condition SegmentIdObject
-        {
-            set
-            {
-                SegmentIdSet = !string.IsNullOrEmpty(SegmentId) ? new Condition
-                {
-                    ConditionItems = new List<ConditionItem> { new ConditionItem { OperationTypeId =  (int)FilterOperations.InSet, StringValue = SegmentId } }
-                } : null;
-            }
-        }
-        public Condition SegmentIdSet { get; set; }
-        
+                
         public string ClientId { get; set; }
         public Condition ClientIdObject {            
             set
@@ -56,6 +47,7 @@ namespace IqSoft.CP.DAL.Models.Segment
             }        
         }
         public Condition ClientIdSet { get; set; }
+
         public string Email { get; set; }
         public Condition EmailObject
         {
@@ -107,18 +99,7 @@ namespace IqSoft.CP.DAL.Models.Segment
             }
         }
         public Condition RegionSet { get; set; }
-        public string AffiliateId { get; set; }
-        public Condition AffiliateIdObject
-        {
-            set
-            {
-                AffiliateIdSet = !string.IsNullOrEmpty(AffiliateId) ?  new Condition
-                {
-                    ConditionItems = new List<ConditionItem> { new ConditionItem { OperationTypeId =  (int)FilterOperations.InSet, StringValue = AffiliateId } }
-                } : null;
-            }
-        }
-        public Condition AffiliateIdSet { get; set; }
+        
         public string MobileCode { get; set; }
         public Condition MobileCodeObject
         {
@@ -131,8 +112,9 @@ namespace IqSoft.CP.DAL.Models.Segment
             }
         }
         public Condition MobileCodeSet { get; set; }
+
         public string SessionPeriod { get; set; }
-        public Condition SessionPeriodObject {get; set; }
+        public Condition SessionPeriodObject { get; set; }
 
         public string SignUpPeriod { get; set; }
         public Condition SignUpPeriodObject { get; set; }
@@ -172,6 +154,12 @@ namespace IqSoft.CP.DAL.Models.Segment
             }
         }
         public List<int> SuccessWithdrawalPaymentSystemList { get; set; }
+
+        public string AffiliateId { get; set; }
+        public Condition AffiliateIdObject { get; set; }
+        public string AgentId { get; set; }
+        public Condition AgentIdObject { get; set; }
+
         public string TotalBetsCount { get; set; }
         public Condition TotalBetsCountObject { get; set; }
         public string SportBetsCount { get; set; }

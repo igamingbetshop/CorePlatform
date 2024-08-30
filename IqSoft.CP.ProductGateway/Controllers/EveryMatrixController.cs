@@ -17,8 +17,6 @@ using IqSoft.CP.DAL.Models;
 using IqSoft.CP.DAL.Models.Cache;
 using IqSoft.CP.Common.Models.WebSiteModels;
 using IqSoft.CP.DAL.Models.Clients;
-using System.IO;
-using System.Web;
 using System.Linq;
 using System.Text;
 using IqSoft.CP.Common.Models.Document;

@@ -2,9 +2,11 @@
 using IqSoft.CP.Common;
 using IqSoft.CP.Common.Helpers;
 using IqSoft.CP.Common.Models;
+using IqSoft.CP.Common.Models.Bonus;
 using IqSoft.CP.Common.Models.CacheModels;
 using IqSoft.CP.DAL.Models;
 using IqSoft.CP.Integration.Products.Models.Betsoft;
+using log4net;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -67,19 +69,19 @@ namespace IqSoft.CP.Integration.Products.Helpers
             return gamesList.SUITES.SelectMany(x => x.GAMES).ToList();
         }
 
-        public static void AddFreeRound(int clientId, List<string> productExternalId, int spinCount, int bonusId, DateTime startTime, DateTime finishTime)
+        public static bool AddFreeRound(FreeSpinModel freeSpinModel, ILog log)
         {
-            var client = CacheManager.GetClientById(clientId);
+            var client = CacheManager.GetClientById(freeSpinModel.ClientId);
             var bankId = CacheManager.GetGameProviderValueByKey(client.PartnerId, Provider.Id, Constants.PartnerKeys.BetSoftBankId);
-            var passKey = CacheManager.GetGameProviderValueByKey(client.PartnerId, Provider.Id, Constants.PartnerKeys. BetSoftPassKey);
+            var passKey = CacheManager.GetGameProviderValueByKey(client.PartnerId, Provider.Id, Constants.PartnerKeys.BetSoftPassKey);
             var input = new
             {
-                userId = clientId,
-                rounds = spinCount,
-                games = string.Join("|", productExternalId),
-                extBonusId = bonusId,
-                startTime = startTime.ToString("dd.MM.yyyy HH:mm:ss"),
-                expirationTime = finishTime.ToString("dd.MM.yyyy HH:mm:ss")
+                userId = freeSpinModel.ClientId,
+                rounds = freeSpinModel.SpinCount,
+                games = string.Join("|", freeSpinModel.ProductExternalId),
+                extBonusId = freeSpinModel.BonusId,
+                startTime = freeSpinModel.StartTime.ToString("dd.MM.yyyy HH:mm:ss"),
+                expirationTime = freeSpinModel.FinishTime.ToString("dd.MM.yyyy HH:mm:ss")
             };
             var httpRequestInput = new HttpRequestInput
             {
@@ -92,9 +94,11 @@ namespace IqSoft.CP.Integration.Products.Helpers
             var serializer = new XmlSerializer(typeof(BSGSYSTEM), new XmlRootAttribute("BSGSYSTEM"));
             var freespinOutput = (BSGSYSTEM)serializer.Deserialize(new StringReader(res));
             if (freespinOutput.RESPONSE.RESULT != "OK")
-                throw new Exception(string.Format("Code: {0}, Description: {1}", freespinOutput.RESPONSE.CODE, freespinOutput.RESPONSE.DESCRIPTION));
-
+            {
+                log.Error(res);
+                return false;
+            }
+            return true;
         }
-
     }
 }

@@ -13,6 +13,7 @@ namespace IqSoft.CP.DAL.Models.Clients
         public string LastName { get; set; }
 
         public string EmailOrMobile { get; set; }
+        public string MobileCode { get; set; }
 
         public string CurrencyId { get; set; }
 

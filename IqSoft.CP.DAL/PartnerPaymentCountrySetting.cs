@@ -17,8 +17,9 @@ namespace IqSoft.CP.DAL
         public int Id { get; set; }
         public int PartnerPaymentSettingId { get; set; }
         public int CountryId { get; set; }
+        public int Type { get; set; }
     
-        public virtual Region Region { get; set; }
         public virtual PartnerPaymentSetting PartnerPaymentSetting { get; set; }
+        public virtual Region Region { get; set; }
     }
 }

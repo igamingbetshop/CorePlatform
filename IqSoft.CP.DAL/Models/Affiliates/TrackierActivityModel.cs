@@ -4,8 +4,6 @@ namespace IqSoft.CP.DAL.Models.Affiliates
 {
     public class TrackierActivityModel
     {
-        [JsonProperty(PropertyName = "brandId")]
-        public string BrandId { get; set; }
 
         [JsonProperty(PropertyName = "customerId")]
         public string CustomerId { get; set; }

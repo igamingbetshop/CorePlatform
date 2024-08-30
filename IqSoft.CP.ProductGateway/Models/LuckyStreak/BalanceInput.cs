@@ -11,6 +11,6 @@
 		public string operatorId { get; set; }
 		public string currency { get; set; }
 		public string additionalParams { get; set; }
-		public int gameId { get; set; }
+		//public int gameId { get; set; }
 	}
 }

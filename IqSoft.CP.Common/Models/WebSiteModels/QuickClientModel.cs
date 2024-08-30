@@ -3,6 +3,7 @@
     public class QuickClientModel : ApiRequestBase
     {
         public string MobileNumber { get; set; }
+        public string MobileCode { get; set; }
 
         public string Email { get; set; }
 

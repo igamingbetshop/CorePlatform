@@ -53,6 +53,9 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 case Constants.RequestMethods.GetTopDamagingClients:
                     return GetTopDamagingClients(JsonConvert.DeserializeObject<ApiFilterDashboard>(request.RequestData),
                         identity, log);
+                case Constants.RequestMethods.GetTopActiveClients:
+                    return GetTopActiveClients(JsonConvert.DeserializeObject<ApiFilterDashboard>(request.RequestData),
+                        identity, log);
                 case Constants.RequestMethods.GetTopDepositMethods:
                     return GetTopDepositMethods(JsonConvert.DeserializeObject<ApiFilterDashboard>(request.RequestData),
                         identity, log);
@@ -70,6 +73,12 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                         identity, log);
                 case Constants.RequestMethods.GetTopDamagingAgents:
                     return GetTopDamagingAgents(JsonConvert.DeserializeObject<ApiFilterDashboard>(request.RequestData),
+                        identity, log);
+                case Constants.RequestMethods.GetTopProfitablePartners:
+                    return GetTopProfitablePartners(JsonConvert.DeserializeObject<ApiFilterDashboard>(request.RequestData),
+                        identity, log);
+                case Constants.RequestMethods.GetTopDamagingPartners:
+                    return GetTopDamagingPartners(JsonConvert.DeserializeObject<ApiFilterDashboard>(request.RequestData),
                         identity, log);
                 case Constants.RequestMethods.ExportClientsInfoList:
                     return
@@ -215,6 +224,17 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             }
         }
 
+        private static ApiResponseBase GetTopActiveClients(ApiFilterDashboard input, SessionIdentity identity, ILog log)
+        {
+            using (var reportBl = new ReportBll(identity, log))
+            {
+                var response = new ApiResponseBase();
+                var filter = input.MapToFilterDashboard(identity.TimeZone);
+                response.ResponseObject = reportBl.GetTopActiveClients(filter).ToList();
+                return response;
+            }
+        }
+
         private static ApiResponseBase GetTopDepositMethods(ApiFilterDashboard input, SessionIdentity identity, ILog log)
         {
             using (var reportBl = new ReportBll(identity, log))
@@ -277,6 +297,28 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 var response = new ApiResponseBase();
                 var filter = input.MapToFilterDashboard(identity.TimeZone);
                 response.ResponseObject = reportBl.GetTopAgents(filter, false).ToList();
+                return response;
+            }
+        }
+
+        private static ApiResponseBase GetTopProfitablePartners(ApiFilterDashboard input, SessionIdentity identity, ILog log)
+        {
+            using (var reportBl = new ReportBll(identity, log))
+            {
+                var response = new ApiResponseBase();
+                var filter = input.MapToFilterDashboard(identity.TimeZone);
+                response.ResponseObject = reportBl.GetTopPartners(filter, true).ToList();
+                return response;
+            }
+        }
+
+        private static ApiResponseBase GetTopDamagingPartners(ApiFilterDashboard input, SessionIdentity identity, ILog log)
+        {
+            using (var reportBl = new ReportBll(identity, log))
+            {
+                var response = new ApiResponseBase();
+                var filter = input.MapToFilterDashboard(identity.TimeZone);
+                response.ResponseObject = reportBl.GetTopPartners(filter, false).ToList();
                 return response;
             }
         }

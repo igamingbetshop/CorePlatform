@@ -40,6 +40,15 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             { Constants.Currencies.BrazilianReal, "BR" }
         };
 
+        public enum PaymentAccountTypes
+        {
+            CCT = 1,
+            CTV = 2,
+            CRUT = 3,
+            AHO = 4,
+            CCE = 5
+        }
+
         public static string CallZippyCashInApi(PaymentRequest input, SessionIdentity session, ILog log)
         {
             using (var paymentSystemBl = new PaymentSystemBll(session, log))

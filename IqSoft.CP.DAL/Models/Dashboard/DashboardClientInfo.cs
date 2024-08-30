@@ -7,6 +7,7 @@ namespace IqSoft.CP.DAL.Models.PlayersDashboard
         public int ClientId { get; set; }
         public string UserName { get; set; }
         public int PartnerId { get; set; }
+        public string PartnerName { get; set; }
         public string CurrencyId { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }

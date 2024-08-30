@@ -30,11 +30,12 @@ namespace IqSoft.CP.Common.Models.WebSiteModels
         public string UtilityBillDocumentData { get; set; }
         public string DriverLicenseDocumentData { get; set; }
         public bool IsDocumentVerified { get; set; }
-        public string PhoneNumber { get; set; }
         public string Address { get; set; }
         public string MobileNumber { get; set; }
+        public string MobileCode { get; set; }
         public bool IsMobileNumberVerified { get; set; }
         public string PromoCode { get; set; }
+        public string AffiliateCode { get; set; }
         public string RegistrationIp { get; set; }
         public DateTime CreationTime { get; set; }
         public DateTime LastUpdateTime { get; set; }

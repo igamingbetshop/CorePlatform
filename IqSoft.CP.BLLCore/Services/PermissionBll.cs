@@ -61,7 +61,7 @@ namespace IqSoft.CP.BLL.Services
             var p = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             if (permissions == null || permissions.Count == 0)
@@ -127,12 +127,12 @@ namespace IqSoft.CP.BLL.Services
             var checkPermissionResult = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.CreateRole,
-                ObjectTypeId = ObjectTypes.Role
+                ObjectTypeId = (int)ObjectTypes.Role
             });
             var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if ((!checkPermissionResult.HaveAccessForAllObjects && !checkPermissionResult.AccessibleObjects.AsEnumerable().Contains(role.Id)) ||
                 (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != role.PartnerId)))
@@ -182,12 +182,12 @@ namespace IqSoft.CP.BLL.Services
             var checkPermissionResult = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.CreateRole,
-                ObjectTypeId = ObjectTypes.Role
+                ObjectTypeId = (int)ObjectTypes.Role
             });
             var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var dbRole = Db.Roles.Include(x => x.RolePermissions).FirstOrDefault(x => x.Id == roleId);
             if (dbRole == null)
@@ -226,12 +226,12 @@ namespace IqSoft.CP.BLL.Services
             var userAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewUser,
-                ObjectTypeId = ObjectTypes.User
+                ObjectTypeId = (int)ObjectTypes.User
             });
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             var query = Db.UserRoles.Include(x => x.User).Where(x => x.RoleId == roleId);
@@ -339,12 +339,12 @@ namespace IqSoft.CP.BLL.Services
             var checkP = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewRole,
-                ObjectTypeId = ObjectTypes.Role
+                ObjectTypeId = (int)ObjectTypes.Role
             });
             var checkPartnerPermission = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<Role>>
             {

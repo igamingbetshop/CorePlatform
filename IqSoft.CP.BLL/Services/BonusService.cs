@@ -24,8 +24,7 @@ using Document = IqSoft.CP.DAL.Document;
 using ClientBonu = IqSoft.CP.DAL.ClientBonu;
 using AffiliateReferral = IqSoft.CP.DAL.AffiliateReferral;
 using Bonu = IqSoft.CP.DAL.Bonu;
-using System.Transactions;
-using System.Reflection.Emit;
+using IqSoft.CP.BLL.Models;
 
 namespace IqSoft.CP.BLL.Services
 {
@@ -59,23 +58,21 @@ namespace IqSoft.CP.BLL.Services
                 var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
 
                 if (!bonusAccess.HaveAccessForAllObjects ||
                     (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != bonus.PartnerId)))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
 
-                if(!Enum.IsDefined(typeof(BonusStatuses), bonus.Status))
+                if (!Enum.IsDefined(typeof(BonusStatuses), bonus.Status))
                     throw CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongInputParameters);
 
                 if (bonus.Type == (int)BonusTypes.Tournament && !CheckTournamentInfoValidity(bonus.Info))
                     throw CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongInputParameters);
                 else if (bonus.Type == (int)BonusTypes.SpinWheel && !CheckSpinWheelInfoValidity(bonus.Info, bonus.PartnerId))
                     throw CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongInputParameters);
-                else if (bonus.Type == (int)BonusTypes.AffiliateBonus && (bonus.MinAmount == null ||
-                     Db.Bonus.Any(x => x.Type == (int)BonusTypes.AffiliateBonus && x.Status == (int)BonusStatuses.Active &&
-                     x.FinishTime >= currentTime && x.PartnerId == bonus.PartnerId)))
+                else if (bonus.Type == (int)BonusTypes.AffiliateBonus && bonus.MinAmount == null)
                     throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
                 else if ((bonus.Type == (int)BonusTypes.CampaignWagerCasino || bonus.Type == (int)BonusTypes.CampaignWagerSport) &&
                     (!bonus.TurnoverCount.HasValue || bonus.TurnoverCount <= 0 || !bonus.ValidForAwarding.HasValue ||
@@ -97,10 +94,10 @@ namespace IqSoft.CP.BLL.Services
                 else if ((bonus.Type == (int)BonusTypes.AggregatedFreeSpin &&
                     Db.Bonus.FirstOrDefault(x => x.Type == (int)BonusTypes.AggregatedFreeSpin &&
                     x.Status == (int)BonusStatuses.Active && x.PartnerId == bonus.PartnerId) != null) ||
-                    (bonus.Type == (int)BonusTypes.AffiliateBonus &&
+                    (bonus.Type == (int)BonusTypes.AffiliateBonus && bonus.Status == (int)BonusStatuses.Active &&
                     Db.Bonus.FirstOrDefault(x => x.Type == (int)BonusTypes.AffiliateBonus &&
                     x.Status == (int)BonusStatuses.Active && x.PartnerId == bonus.PartnerId) != null))
-                    throw CreateException(Constants.DefaultLanguageId, Constants.Errors.ClientAlreadyHasActiveBonus);
+                    throw CreateException(Constants.DefaultLanguageId, Constants.Errors.PartnerAlreadyHasActiveBonus);
                 if (bonus.MinAmount.HasValue && bonus.MaxAmount.HasValue && bonus.MinAmount > bonus.MaxAmount)
                     throw CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongInputParameters);
                 bonus.Translation = CreateTranslation(new fnTranslation
@@ -152,16 +149,16 @@ namespace IqSoft.CP.BLL.Services
                 var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
 
                 if (!bonusAccess.HaveAccessForAllObjects ||
                     (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != dbBonus.PartnerId)))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
                 var currentTime = DateTime.UtcNow;
-                if ((dbBonus.Type == (int)BonusTypes.AggregatedFreeSpin ||dbBonus.Type == (int)BonusTypes.AffiliateBonus)
+                if ((dbBonus.Type == (int)BonusTypes.AggregatedFreeSpin || dbBonus.Type == (int)BonusTypes.AffiliateBonus)
                     && dbBonus.Status == (int)BonusStatuses.Active)
-                    throw CreateException(LanguageId, Constants.Errors.ClientAlreadyHasActiveBonus);
+                    throw CreateException(LanguageId, Constants.Errors.PartnerAlreadyHasActiveBonus);
                 var name = dbBonus.Name + "_" + ((long)currentTime.Year * 10000000000 + (long)currentTime.Month * 100000000 +
                     (long)currentTime.Day * 1000000 + (long)currentTime.Hour * 10000 + (long)currentTime.Minute * 100 + currentTime.Second);
                 var newBonus = new Bonu
@@ -247,7 +244,7 @@ namespace IqSoft.CP.BLL.Services
                         Lines = x.Lines,
                         Coins = x.Coins,
                         CoinValue = x.CoinValue,
-                        BetValueLevel = x.BetValueLevel
+                        BetValues = x.BetValues
                     }));
 
                 Db.Bonus.Add(newBonus);
@@ -310,14 +307,18 @@ namespace IqSoft.CP.BLL.Services
         {
             try
             {
-                var bonusIds = info.Split(',').Select(x => Convert.ToInt32(x)).ToList();
-                foreach (var bId in bonusIds)
+                var weelInfo = JsonConvert.DeserializeObject<List<WheelInfo>>(info);
+                foreach (var bId in weelInfo)
                 {
-                    var bonus = CacheManager.GetBonusById(bId);
+                    var bonus = CacheManager.GetBonusById(bId.BonusId);
                     if (bonus == null || bonus.Id == 0 || bonus.PartnerId != partnerId || bonus.Status != (int)BonusStatuses.Active)
                         return false;
+                    if (bId.Periodicity < 0 || bId.Periodicity > 10)
+                        return false;
                 }
-                if(bonusIds.Count < 3 || bonusIds.Count > 20)
+                if(weelInfo.Count < 3 || weelInfo.Count > 20)
+                    return false;
+                if (weelInfo.Sum(x => x.Periodicity) == 0)
                     return false;
 
                 return true;
@@ -338,7 +339,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             if (!bonusAccess.HaveAccessForAllObjects ||
@@ -369,7 +370,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             if (!bonusAccess.HaveAccessForAllObjects ||
@@ -388,7 +389,7 @@ namespace IqSoft.CP.BLL.Services
             var checkProducts = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewProduct,
-                ObjectTypeId = ObjectTypes.Product
+                ObjectTypeId = (int)ObjectTypes.Product
             });
 
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<BonusProduct>>
@@ -408,6 +409,7 @@ namespace IqSoft.CP.BLL.Services
             };
             return filter.FilterObjects(Db.BonusProducts).ToList();
         }
+
         public Bonu UpdateBonus(Bonu bon)
         {
             var bonusAccess = GetPermissionsToObject(new CheckPermissionInput
@@ -418,7 +420,6 @@ namespace IqSoft.CP.BLL.Services
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             if (bon.MinAmount.HasValue && bon.MaxAmount.HasValue && bon.MinAmount > bon.MaxAmount)
                 throw CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongInputParameters);
-
             var dbBonus = Db.Bonus.Include(x => x.BonusLanguageSettings)
                                   .Include(x => x.BonusCurrencySettings)
                                   .Include(x => x.BonusCountrySettings)
@@ -431,15 +432,17 @@ namespace IqSoft.CP.BLL.Services
             if (dbBonus.Type == (int)BonusTypes.AggregatedFreeSpin)
             {
                 if (bon.Status == (int)BonusStatuses.Active &&
-                    Db.Bonus.FirstOrDefault(x => x.Id != dbBonus.Id && x.Type == (int)BonusTypes.AggregatedFreeSpin && x.Status == (int)BonusStatuses.Active) != null)
-                    throw CreateException(Constants.DefaultLanguageId, Constants.Errors.ClientAlreadyHasActiveBonus);
+                    Db.Bonus.FirstOrDefault(x => x.Id != dbBonus.Id && x.PartnerId == dbBonus.PartnerId && 
+                                                 x.Type == (int)BonusTypes.AggregatedFreeSpin && x.Status == (int)BonusStatuses.Active) != null)
+                    throw CreateException(Constants.DefaultLanguageId, Constants.Errors.PartnerAlreadyHasActiveBonus);
                 if (bon.BonusProducts != null)
                     throw CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongInputParameters);
             }
             else if (dbBonus.Type == (int)BonusTypes.AffiliateBonus && bon.Status == (int)BonusStatuses.Active &&
-                    Db.Bonus.FirstOrDefault(x => x.Id != dbBonus.Id && x.Type == (int)BonusTypes.AffiliateBonus && x.Status == (int)BonusStatuses.Active) != null)
-                    throw CreateException(Constants.DefaultLanguageId, Constants.Errors.ClientAlreadyHasActiveBonus);            
-
+                    Db.Bonus.FirstOrDefault(x => x.Id != dbBonus.Id && x.PartnerId == dbBonus.PartnerId && 
+                                                 x.Type == (int)BonusTypes.AffiliateBonus && x.Status == (int)BonusStatuses.Active) != null)
+                    throw CreateException(Constants.DefaultLanguageId, Constants.Errors.PartnerAlreadyHasActiveBonus);
+            
             if (bon.BonusProducts == null)
             {
                 if (((dbBonus.Type == (int)BonusTypes.CampaignWagerCasino || dbBonus.Type == (int)BonusTypes.CampaignWagerSport) &&
@@ -449,6 +452,7 @@ namespace IqSoft.CP.BLL.Services
                     throw CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongInputParameters);
                 if (string.IsNullOrEmpty(bon.Name))
                     dbBonus.Name = bon.Name;
+
                 dbBonus.Status = bon.Status;
                 dbBonus.Description = bon.Description;
                 dbBonus.Priority = bon.Priority;
@@ -580,22 +584,7 @@ namespace IqSoft.CP.BLL.Services
                         }
                     }
                 }
-
-                if (dbBonus.Type == (int)BonusTypes.AffiliateBonus)
-                {
-                    var per = bon.BonusProducts?.FirstOrDefault(x => x.ProductId == Constants.PlatformProductId)?.Percent ?? 0;
-                    var p = bonusProducts.FirstOrDefault(x => x.ProductId == Constants.PlatformProductId);
-                    if (p != null)
-                        p.Percent = per;
-                    else
-                        Db.BonusProducts.Add(new BonusProduct
-                        {
-                            BonusId = dbBonus.Id,
-                            ProductId = Constants.PlatformProductId,
-                            Percent = per
-                        });
-                }
-                else if (dbBonus.Type == (int)BonusTypes.CampaignFreeBet)
+                if (dbBonus.Type == (int)BonusTypes.CampaignFreeBet)
                 {
                     dbBonus.AllowSplit = bon.AllowSplit;
                     dbBonus.RefundRollbacked = bon.RefundRollbacked;
@@ -605,20 +594,42 @@ namespace IqSoft.CP.BLL.Services
                     dbBonus.RefundRollbacked = bon.RefundRollbacked;
                     dbBonus.Info = bon.Info;
                 }
+                else if (dbBonus.Type == (int)BonusTypes.SpinWheel && 
+                    CheckSpinWheelInfoValidity(bon.Info, dbBonus.PartnerId) && !Db.ClientBonus.Any(x => x.BonusId == dbBonus.Id))
+                {
+                    dbBonus.Info = bon.Info;
+                }
             }
             else
             {
                 if (dbBonus.Type == (int)BonusTypes.CampaignFreeSpin || dbBonus.Type == (int)BonusTypes.CampaignWagerCasino)
                 {
                     var productIds = bon.BonusProducts.Where(x => x.Count > 0 ||
-                    x.Lines.HasValue || x.Coins.HasValue || x.CoinValue.HasValue || x.BetValueLevel.HasValue).Select(x => x.ProductId);
+                    x.Lines.HasValue || x.Coins.HasValue || x.CoinValue.HasValue || !string.IsNullOrEmpty(x.BetValues)).Select(x => x.ProductId);
                     if (Db.Products.Any(x => productIds.Contains(x.Id) && x.Id != (int)Constants.PlatformProductId &&
                         (!x.GameProviderId.HasValue || !x.FreeSpinSupport.HasValue || !x.FreeSpinSupport.Value)))
                         throw CreateException(LanguageId, Constants.Errors.UnavailableFreespin);
                 }
                 foreach (var bp in bon.BonusProducts)
                 {
+                    if (dbBonus.Type == (int)BonusTypes.AffiliateBonus && bp.ProductId != Constants.PlatformProductId)
+                        continue;
                     var p = bonusProducts.FirstOrDefault(x => x.Id == bp.Id);
+                    if(!string.IsNullOrEmpty(bp.BetValues))
+                    {
+                        var pr = CacheManager.GetProductById(bp.ProductId).BetValues;
+                        if (string.IsNullOrEmpty(pr))
+                            throw CreateException(LanguageId, Errors.WrongInputParameters);
+
+                        var pv = JsonConvert.DeserializeObject<Dictionary<string, List<decimal>>>(pr);
+                        var bv = JsonConvert.DeserializeObject<Dictionary<string, decimal>>(bp.BetValues);
+
+                        foreach (var b in bv)
+                        {
+                            if (!pv.ContainsKey(b.Key) || !pv[b.Key].Contains(b.Value))
+                                throw CreateException(LanguageId, Errors.WrongInputParameters);
+                        }
+                    }
                     if (p != null)
                     {
                         if ((!bp.Percent.HasValue || bp.Percent == -1) && dbBonus.Type != (int)BonusTypes.CampaignFreeSpin)
@@ -637,13 +648,13 @@ namespace IqSoft.CP.BLL.Services
                                 p.Lines = bp.Lines;
                                 p.Coins = bp.Coins;
                                 p.CoinValue = bp.CoinValue;
-                                p.BetValueLevel = bp.BetValueLevel;
+                                p.BetValues = bp.BetValues;
                             }
                         }
                     }
                     else if (bp.Percent >= 0 ||
                         ((dbBonus.Type == (int)BonusTypes.CampaignFreeSpin || dbBonus.Type == (int)BonusTypes.CampaignWagerCasino) &&
-                        (bp.Count.HasValue || bp.Lines.HasValue || bp.Coins.HasValue || bp.CoinValue.HasValue)))
+                        (bp.Count.HasValue || bp.Lines.HasValue || bp.Coins.HasValue || bp.CoinValue.HasValue || !string.IsNullOrEmpty(bp.BetValues))))
                     {
                         Db.BonusProducts.Add(new BonusProduct
                         {
@@ -654,7 +665,7 @@ namespace IqSoft.CP.BLL.Services
                             Lines = bp.Lines,
                             Coins = bp.Coins,
                             CoinValue = bp.CoinValue,
-                            BetValueLevel = bp.BetValueLevel
+                            BetValues = bp.BetValues
                         });
                     }
                 }
@@ -680,7 +691,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var bonusAccess = GetPermissionsToObject(new CheckPermissionInput
             {
@@ -778,7 +789,8 @@ namespace IqSoft.CP.BLL.Services
                         CreationTime = currentTime,
                         LastUpdateTime = currentTime,
                         UpToAmount = triggerSetting.UpToAmount,
-                        ConsiderBonusBets = triggerSetting.ConsiderBonusBets
+                        ConsiderBonusBets = triggerSetting.ConsiderBonusBets,
+                        Amount = triggerSetting.Amount
                     };
                     Db.TriggerSettings.Add(dbTriggerSetting);
                     Db.SaveChanges();
@@ -800,7 +812,8 @@ namespace IqSoft.CP.BLL.Services
                             TriggerId = x.TriggerId,
                             MinAmount = x.MinAmount,
                             MaxAmount = x.MaxAmount,
-                            UpToAmount = x.UpToAmount
+                            UpToAmount = x.UpToAmount,
+                            Amount = x.Amount
                         }));
                         Db.SaveChanges();
                     }
@@ -855,14 +868,17 @@ namespace IqSoft.CP.BLL.Services
                                     TriggerId = cs.TriggerId,
                                     MinAmount = cs.MinAmount,
                                     MaxAmount = cs.MaxAmount,
-                                    UpToAmount = cs.UpToAmount
+                                    UpToAmount = cs.UpToAmount,
+                                    Amount = cs.Amount
                                 });
                             else
-                                Db.AmountCurrencySettings.Where(x => x.CurrencyId == cs.CurrencyId && x.TriggerId == dbTriggerSetting.Id).UpdateFromQuery(x => new AmountCurrencySetting
+                                Db.AmountCurrencySettings.Where(x => x.CurrencyId == cs.CurrencyId && x.TriggerId == dbTriggerSetting.Id).
+                                    UpdateFromQuery(x => new AmountCurrencySetting
                                 {
                                     MinAmount = cs.MinAmount,
                                     MaxAmount = cs.MaxAmount,
-                                    UpToAmount = cs.UpToAmount
+                                    UpToAmount = cs.UpToAmount,
+                                    Amount = cs.Amount
                                 });
                         }
                         Db.SaveChanges();
@@ -924,7 +940,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var bonusAccess = GetPermissionsToObject(new CheckPermissionInput
             {
@@ -960,7 +976,8 @@ namespace IqSoft.CP.BLL.Services
                 CreationTime = currentTime,
                 LastUpdateTime = currentTime,
                 UpToAmount = dbTriggerSetting.UpToAmount,
-                ConsiderBonusBets = dbTriggerSetting.ConsiderBonusBets
+                ConsiderBonusBets = dbTriggerSetting.ConsiderBonusBets,
+                Amount = dbTriggerSetting.Amount
             };
             newTriggerSetting.TriggerProductSettings = new List<TriggerProductSetting>();
             dbTriggerSetting.TriggerProductSettings.ToList().ForEach(x => newTriggerSetting.TriggerProductSettings.Add(
@@ -981,11 +998,13 @@ namespace IqSoft.CP.BLL.Services
                 CurrencyId = x.CurrencyId,
                 MinAmount = x.MinAmount,
                 MaxAmount = x.MaxAmount,
-                UpToAmount = x.UpToAmount
+                UpToAmount = x.UpToAmount,
+                Amount = x.Amount
             }));
             Db.SaveChanges();
             return newTriggerSetting;
         }
+
         public TriggerSetting DeleteTriggerSetting(int triggerSettingId)
         {
             var triggerSetting = Db.TriggerSettings.Where(x => x.Id == triggerSettingId).FirstOrDefault();
@@ -994,7 +1013,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var bonusAccess = GetPermissionsToObject(new CheckPermissionInput
             {
@@ -1026,7 +1045,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var bonusAccess = GetPermissionsToObject(new CheckPermissionInput
             {
@@ -1077,7 +1096,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var bonusAccess = GetPermissionsToObject(new CheckPermissionInput
             {
@@ -1114,7 +1133,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var bonusAccess = GetPermissionsToObject(new CheckPermissionInput
             {
@@ -1146,6 +1165,7 @@ namespace IqSoft.CP.BLL.Services
                     MaxAmount = y.TriggerSetting.MaxAmount,
                     DayOfWeek = y.TriggerSetting.DayOfWeek,
                     SegmentId = y.TriggerSetting.SegmentId,
+                    Amount = y.TriggerSetting.Amount,
                     Order = y.Order
                 }).ToList()
             }).ToList();
@@ -1159,7 +1179,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var bonusAccess = GetPermissionsToObject(new CheckPermissionInput
             {
@@ -1200,13 +1220,13 @@ namespace IqSoft.CP.BLL.Services
             if (dbTriggerGroup == null)
                 throw CreateException(LanguageId, Constants.Errors.TriggerGroupNotFound);
             if (dbTriggerGroup.Bonu.TotalReceiversCount > 0)
-                throw CreateException(LanguageId, Constants.Errors.ClientAlreadyHasActiveBonus);
+                throw CreateException(LanguageId, Constants.Errors.BonusAlreadyUsed);
 
             bonusId = dbTriggerGroup.BonusId;
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var bonusAccess = GetPermissionsToObject(new CheckPermissionInput
             {
@@ -1254,11 +1274,14 @@ namespace IqSoft.CP.BLL.Services
         {
             var dbTriggerGroup = Db.TriggerGroups.Include(x => x.Bonu).Include(x => x.TriggerGroupSettings).FirstOrDefault(x => x.Id == triggerGroupId) ??
                 throw CreateException(LanguageId, Constants.Errors.TriggerGroupNotFound);
+            if (dbTriggerGroup.Bonu.TotalReceiversCount > 0)
+                throw CreateException(LanguageId, Constants.Errors.BonusAlreadyUsed);
+
             var bonusId = dbTriggerGroup.BonusId;
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var bonusAccess = GetPermissionsToObject(new CheckPermissionInput
             {
@@ -1288,7 +1311,7 @@ namespace IqSoft.CP.BLL.Services
             var dbTriggerGroup = Db.TriggerGroups.Include(x => x.Bonu).FirstOrDefault(x => x.Id == triggerGroupId) ??
                 throw CreateException(LanguageId, Constants.Errors.TriggerGroupNotFound);
             if (dbTriggerGroup.Bonu.TotalReceiversCount > 0)
-                throw CreateException(LanguageId, Constants.Errors.ClientAlreadyHasActiveBonus);
+                throw CreateException(LanguageId, Constants.Errors.BonusAlreadyUsed);
 
             bonusId = dbTriggerGroup.BonusId;
 
@@ -1298,7 +1321,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var bonusAccess = GetPermissionsToObject(new CheckPermissionInput
             {
@@ -1326,12 +1349,12 @@ namespace IqSoft.CP.BLL.Services
                        (long)currentTime.Day * 10000 + (long)currentTime.Hour * 100 + (long)currentTime.Minute;
             var reuseNumber = currentTime.Year * 10000 + currentTime.Month * 100 + currentTime.Day;
             // var reuseNumber = currentTime.Year * 100000000 + currentTime.Month * 1000000 + currentTime.Day * 10000 + currentTime.Minute; //for testing
-            var bonuses = Db.Bonus.Include(x => x.AmountCurrencySettings).Where(x => x.Status == (int)BonusStatuses.Active && x.StartTime < currentTime && x.FinishTime > currentTime &&
-                                              DbFunctions.AddHours(x.LastExecutionTime, x.Period) < currentTime &&
-                                              x.Type == (int)BonusTypes.CashBackBonus &&
-                                              (!x.MaxGranted.HasValue || x.TotalGranted < x.MaxGranted) &&
-                                              (!x.MaxReceiversCount.HasValue || x.TotalReceiversCount < x.MaxReceiversCount))
-                                  .GroupBy(x => x.PartnerId).ToList();
+            var bonuses = Db.Bonus.Include(x => x.AmountCurrencySettings).Where(x => x.Status == (int)BonusStatuses.Active && 
+                x.StartTime < currentTime && x.FinishTime > currentTime &&
+                DbFunctions.AddHours(x.LastExecutionTime, x.Period) < currentTime &&
+                x.Type == (int)BonusTypes.CashBackBonus &&
+                (!x.MaxGranted.HasValue || x.TotalGranted < x.MaxGranted) &&
+                (!x.MaxReceiversCount.HasValue || x.TotalReceiversCount < x.MaxReceiversCount)).GroupBy(x => x.PartnerId).ToList();
             var partnerIds = bonuses.Select(x => x.Key).ToList();
             var partners = Db.Partners.Where(x => partnerIds.Contains(x.Id)).ToDictionary(x => x.Id, x => x.CurrencyId);
 
@@ -1392,27 +1415,36 @@ namespace IqSoft.CP.BLL.Services
                                                               .ToList();
                                 var bonusSegments = bonus.BonusSegmentSettings.Select(x => x.SegmentId).ToList();
                                 var bonusCurrencies = bonus.BonusCurrencySettings.Select(x => x.CurrencyId).ToList();
+                                var bonusCountries = bonus.BonusCountrySettings.Select(x => x.CountryId).ToList();
+                                var bonusLanguages = bonus.BonusLanguageSettings.Select(x => x.LanguageId).ToList();
 
                                 var betQuery = (from b in bets
-                                                group b by new { b.ClientId, b.CurrencyId }
+                                                group b by new { b.ClientId, b.CurrencyId, b.CountryId, b.LanguageId}
                                                    into y
                                                 select
                                                     new
                                                     {
-                                                        ClientId = y.Key.ClientId,
-                                                        CurrencyId = y.Key.CurrencyId,
+                                                        y.Key.ClientId,
+                                                        y.Key.CurrencyId,
+                                                        y.Key.CountryId,
+                                                        y.Key.LanguageId,
                                                         Amount = y.Sum(x => x.Amount * x.Percent) / 100
                                                     }).Where(x => x.Amount > 0);
-
+                                List<int> clients = null;
                                 if (bonusCurrencies.Any())
                                     betQuery = betQuery.Where(x => bonusCurrencies.Contains(x.CurrencyId));
+                                   
                                 if (bonusSegments.Any())
                                 {
-                                    var clients = Db.ClientClassifications.Where(x => x.SegmentId.HasValue && bonusSegments.Contains(x.SegmentId.Value) &&
-                                                                                      x.ProductId == (int)Constants.PlatformProductId)
-                                                                          .Select(x => x.ClientId).Distinct().ToList();
+                                    clients = Db.ClientClassifications.Where(x => x.SegmentId.HasValue && bonusSegments.Contains(x.SegmentId.Value) &&
+                                                                                  x.ProductId == (int)Constants.PlatformProductId)
+                                                                      .Select(x => x.ClientId).Distinct().ToList();
                                     betQuery = betQuery.Where(x => clients.Contains(x.ClientId));
                                 }
+                                if(bonusCountries.Any())
+                                    betQuery = betQuery.Where(x => x.CountryId.HasValue && bonusCountries.Contains(x.CountryId.Value));
+                                if (bonusLanguages.Any())
+                                    betQuery = betQuery.Where(x => bonusLanguages.Contains(x.LanguageId));
                                 var bonusAmounts = betQuery.GroupBy(x => x.CurrencyId).ToList();
 
                                 foreach (var bonusAmountByCurrency in bonusAmounts)
@@ -1435,6 +1467,7 @@ namespace IqSoft.CP.BLL.Services
                                         if (finalAmount < minAmount)
                                             continue;
                                         var amount = Math.Min(maxAmount, finalAmount);
+                                        var vu = bs.ValidForAwarding == null ? (DateTime?)null : currentTime.AddHours(bs.ValidForAwarding.Value);
                                         Db.ClientBonus.Add(new ClientBonu
                                         {
                                             BonusId = bs.Id,
@@ -1443,7 +1476,8 @@ namespace IqSoft.CP.BLL.Services
                                             BonusPrize = amount,
                                             CreationTime = currentTime,
                                             CreationDate = date,
-                                            ReuseNumber = reuseNumber
+                                            ReuseNumber = reuseNumber,
+                                            ValidUntil = vu
                                         });
                                     }
                                 }
@@ -1471,12 +1505,18 @@ namespace IqSoft.CP.BLL.Services
                     using (var transactionScope = CommonFunctions.CreateTransactionScope(20))
                     {
                         var currentTime = DateTime.UtcNow;
-                        var dbClientOperations = Db.ClientBonus.Include(x => x.Bonu).Include(x => x.Client).Include(x => x.Client.Partner)
+                        var dbClientBonuses = Db.ClientBonus.Include(x => x.Bonu).Include(x => x.Client).Include(x => x.Client.Partner)
                                                                .Where(x => x.Bonu.Type == (int)BonusTypes.CashBackBonus &&
                                                                            x.Status == (int)ClientBonusStatuses.Active).Take(100).ToList();
+                        var dbExpiredBonuses = Db.ClientBonus.Where(x => x.Bonu.Type == (int)BonusTypes.CashBackBonus &&
+                                                   x.Status == (int)ClientBonusStatuses.NotAwarded && x.ValidUntil != null && 
+                                                   x.ValidUntil < currentTime).UpdateFromQuery(x => new ClientBonu
+                                                   {
+                                                       Status = (int)ClientBonusStatuses.Expired
+                                                   });
 
                         var wageringBonus = new List<ClientBonusItem>();
-                        dbClientOperations.ForEach(x =>
+                        dbClientBonuses.ForEach(x =>
                         {
                             var convertedAmount = ConvertCurrency(x.Client.CurrencyId, x.Client.Partner.CurrencyId, x.BonusPrize);
                             if ((x.Bonu.MaxGranted != null && convertedAmount + x.Bonu.TotalGranted > x.Bonu.MaxGranted.Value) ||
@@ -1593,7 +1633,7 @@ namespace IqSoft.CP.BLL.Services
                         var tDate = (long)toDate.Year * 1000000 + (long)toDate.Month * 10000 + (long)toDate.Day * 100 + (long)toDate.Hour;
                         var fDate = (long)fromDate.Year * 1000000 + (long)fromDate.Month * 10000 + (long)fromDate.Day * 100 + (long)fromDate.Hour;
                         var affiliatesProfit = new List<fnAffiliateClient>();
-                        using (var dwh = new IqSoftDataWarehouseEntities()) // To be checked
+                        using (var dwh = new IqSoftDataWarehouseEntities())  
                         {
                             affiliatesProfit = dwh.fn_AffiliateClient(fDate, tDate, bonus.PartnerId).ToList();
                         }
@@ -1640,12 +1680,8 @@ namespace IqSoft.CP.BLL.Services
                                         }
                                         Db.AffiliateReferrals.Where(x => x.AffiliatePlatformId == bonus.PartnerId * 100 &&
                                                                          x.Type == (int)AffiliateReferralTypes.WebsiteInvitation &&
-                                                                         x.AffiliateId == affiliateManagerId.ToString()).
-                                        UpdateFromQuery(x => new AffiliateReferral { LastProcessedBonusTime = bonus.LastExecutionTime });
-                                        /*dwh.AffiliateReferrals.Where(x => x.AffiliatePlatformId == bonus.PartnerId * 100 &&
-                                                                         x.Type == (int)AffiliateReferralTypes.WebsiteInvitation &&
-                                                                         x.AffiliateId == affiliateManagerId.ToString()).
-                                        UpdateFromQuery(x => new DataWarehouse.AffiliateReferral { LastProcessedBonusTime = bonus.LastExecutionTime });*/
+                                                                         x.AffiliateId == affiliateManagerId.ToString())
+                                          .UpdateFromQuery(x => new AffiliateReferral { LastProcessedBonusTime = bonus.LastExecutionTime });
                                     }
                                 }
                             }
@@ -1725,6 +1761,7 @@ namespace IqSoft.CP.BLL.Services
                 }
             }
         }
+
         public void GiveJackpotWin()
         {
             using (var transactionScope = CommonFunctions.CreateTransactionScope())
@@ -1879,7 +1916,7 @@ namespace IqSoft.CP.BLL.Services
                 var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
                 if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -1909,14 +1946,14 @@ namespace IqSoft.CP.BLL.Services
                                       !x.BonusLanguageSettings.Any(y => y.Type == (int)BonusSettingConditionTypes.OutOfSet && y.LanguageId == client.LanguageId)))).ToList();
         }
 
-        public Bonu GetAvailableBonus(int bonusSettingId, bool checkPermission)
+        public Bonu GetAvailableBonus(int bonusId, bool checkPermission)
         {
             var currentTime = DateTime.UtcNow;
             var bonus = Db.Bonus.Include(x => x.BonusSegmentSettings)
                                 .Include(x => x.BonusCountrySettings)
                                 .Include(x => x.BonusCurrencySettings)
                                 .Include(x => x.BonusLanguageSettings)
-                                .FirstOrDefault(x => x.Id == bonusSettingId && x.Status == (int)BonusStatuses.Active &&
+                                .FirstOrDefault(x => x.Id == bonusId && x.Status == (int)BonusStatuses.Active &&
                                                      x.StartTime <= currentTime && x.FinishTime > currentTime &&
                                                    (!x.MaxGranted.HasValue || x.TotalGranted < x.MaxGranted) &&
                                                    (!x.MaxReceiversCount.HasValue || x.TotalReceiversCount < x.MaxReceiversCount));
@@ -1931,7 +1968,7 @@ namespace IqSoft.CP.BLL.Services
                 var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
                 if ((!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != bonus.PartnerId)))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -1953,7 +1990,7 @@ namespace IqSoft.CP.BLL.Services
                 var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
 
                 if (!bonusAccess.HaveAccessForAllObjects ||
@@ -1976,7 +2013,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != complimentaryRate.PartnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -2014,7 +2051,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != partnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -2028,20 +2065,23 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if (jackpot.PartnerId.HasValue && !partnerAccess.HaveAccessForAllObjects &&
                  partnerAccess.AccessibleIntegerObjects.All(x => x != jackpot.PartnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
-            if (jackpot.JackpotSettings != null && jackpot.JackpotSettings.Any(x => x.Percent < -1))
+            if (jackpot.JackpotSettings != null && jackpot.JackpotSettings.Any(x => x.Percent < 0))
                 throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
-
+            if (!Enum.IsDefined(typeof(JackpotTypes), jackpot.Type))
+                throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
             var currentDate = DateTime.UtcNow;
             if (jackpot.Id > 0)
             {
                 var dbJackpot = Db.Jackpots.Include(x => x.JackpotSettings).FirstOrDefault(x => x.Id == jackpot.Id);
                 if (dbJackpot == null)
                     throw CreateException(LanguageId, Constants.Errors.BonusNotFound);
+
+
                 var oldvalue = new
                 {
                     dbJackpot.Id,
@@ -2053,36 +2093,55 @@ namespace IqSoft.CP.BLL.Services
                     dbJackpot.WinAmount,
                     dbJackpot.CreationDate,
                     dbJackpot.LastUpdateDate,
-                    JackpotSettings = dbJackpot.JackpotSettings.Select(x => new { x.Id, x.ProductId, x.Percent })
+                    JackpotSettings = dbJackpot.JackpotSettings.Select(x => new { x.JackpotId, x.ProductId, x.Percent, x.CreationDate, x.LastUpdateDate }).ToList(),
                 };
                 dbJackpot.Name = jackpot.Name;
                 dbJackpot.FinishTime = jackpot.FinishTime;
-                dbJackpot.LastUpdateDate = currentDate;
-                Db.JackpotSettings.Where(x => x.JackpotId == jackpot.Id &&
-                                          (!jackpot.JackpotSettings.Any(y => y.ProductId == x.ProductId) ||
-                                            jackpot.JackpotSettings.Any(y => y.ProductId == x.ProductId && y.Percent == -1)))
-                                  .DeleteFromQuery();
-                foreach (var js in jackpot.JackpotSettings.Where(x => x.Percent != -1))
+
+                if (jackpot.JackpotSettings == null || !jackpot.JackpotSettings.Any())
+                    Db.JackpotSettings.Where(x => x.JackpotId == jackpot.Id).DeleteFromQuery();
+                else
                 {
-                    var dbJackpotSetting = Db.JackpotSettings.AddIfNotExists(js, x => x.JackpotId == jackpot.Id && x.ProductId == js.ProductId);
-                    dbJackpotSetting.Percent = js.Percent;
+                    var products = jackpot.JackpotSettings.Select(x => x.ProductId).ToList();
+                    Db.JackpotSettings.Where(x => x.JackpotId == jackpot.Id && !products.Contains(x.ProductId)).DeleteFromQuery();
+                    foreach (var js in jackpot.JackpotSettings)
+                    {
+                        var dbSetting = Db.JackpotSettings.FirstOrDefault(x => x.JackpotId == jackpot.Id && x.ProductId == js.ProductId);
+                        if (dbSetting != null)
+                        {
+                            dbSetting.Percent = js.Percent;
+                            dbSetting.LastUpdateDate = currentDate;
+                        }
+                        else
+                        {
+                            Db.JackpotSettings.Add(new JackpotSetting
+                            {
+                                JackpotId = jackpot.Id,
+                                ProductId = js.ProductId,
+                                Percent = js.Percent,
+                                CreationDate = js.CreationDate,
+                                LastUpdateDate = js.LastUpdateDate
+                            });
+                        }
+                    }
                 }
-                SaveChangesWithHistory((int)ObjectTypes.Jackpot, dbJackpot.Id, JsonConvert.SerializeObject(oldvalue));
                 Db.SaveChanges();
+                SaveChangesWithHistory((int)ObjectTypes.Jackpot, dbJackpot.Id, JsonConvert.SerializeObject(oldvalue));
                 return dbJackpot;
             }
-            if (jackpot.RightBorder - jackpot.LeftBorder < 10000) //?? depends on currency ratio
-                throw CreateException(LanguageId, Constants.Errors.InvalidDataRange);
+            
             if (jackpot.Type == (int)JackpotTypes.Progressive)
+            {
+                if (jackpot.RightBorder - jackpot.LeftBorder < 10000) //?? depends on currency ratio
+                    throw CreateException(LanguageId, Constants.Errors.InvalidDataRange);
                 jackpot.Amount = 0;
+            }
             else if (jackpot.Type == (int)JackpotTypes.Fixed)
             {
                 if (jackpot.Amount <= 0)
                     throw CreateException(LanguageId, Constants.Errors.WrongOperationAmount);
                 jackpot.WinAmount = "0";
             }
-            else if (Enum.IsDefined(typeof(JackpotTypes), jackpot.Type))
-                throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
             jackpot.CreationDate = currentDate;
             jackpot.LastUpdateDate = currentDate;
             jackpot.WinnerId = null;
@@ -2093,7 +2152,7 @@ namespace IqSoft.CP.BLL.Services
             {
                 var random = new Random();
                 var secondaryAmount = random.Next(jackpot.LeftBorder, jackpot.RightBorder).ToString();
-                jackpot.WinAmount = AESEncryptHelper.EncryptString(jackpot.Id.ToString(), secondaryAmount);
+                jackpot.WinAmount = AESEncryptHelper.EncryptDistributionString(secondaryAmount);
                 Db.SaveChanges();
             }
             return jackpot;
@@ -2105,7 +2164,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if (jackpotId.HasValue)
             {
@@ -2127,6 +2186,28 @@ namespace IqSoft.CP.BLL.Services
         public List<Jackpot> GetJackpots(int partnerId)
         {
             return Db.Jackpots.Where(x => (!x.PartnerId.HasValue || x.PartnerId == partnerId) && !x.WinnerId.HasValue).ToList();
+        }
+
+        public List<BonusWinnerInfo> GetBonusWinnersInfo(int bonusId, string languageId)
+        {
+            var resp = new List<BonusWinnerInfo>();
+            var bonuses = Db.ClientBonus.Where(x => x.BonusId == bonusId && x.Status == (int)ClientBonusStatuses.Closed).
+                Select(x => new { x.ClientId, x.LinkedBonusId, x.CalculationTime, Name = "", x.Bonu.TranslationId }).ToList();
+            
+            foreach(var b in bonuses)
+            {
+                if (b.LinkedBonusId != null)
+                {
+                    var linkedBonus = CacheManager.GetBonusById(b.LinkedBonusId.Value);
+                    resp.Add(new BonusWinnerInfo
+                    {
+                        ClientId = b.ClientId,
+                        Name = CacheManager.GetTranslation(linkedBonus.TranslationId, languageId),
+                        CalculationTime = b.CalculationTime
+                    });
+                }
+            }
+            return resp.OrderByDescending(x => x.CalculationTime).ToList();
         }
 
         #region Affiliate System
@@ -2190,7 +2271,7 @@ namespace IqSoft.CP.BLL.Services
                                         PartnerId = client.Key.PartnerId,
                                         CurrencyId = commission.CurrencyId,
                                         AccountTypeId = (int)AccountTypes.AffiliateManagerBalance,
-                                        Creator = client.Key.AffiliateId
+                                        UserId = client.Key.AffiliateId
                                     };
                                     affiliateService.CreateDebitToAffiliate(client.Key.AffiliateId, input, documentBl);
                                 }

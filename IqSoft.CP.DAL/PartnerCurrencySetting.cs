@@ -25,7 +25,7 @@ namespace IqSoft.CP.DAL
         public Nullable<decimal> UserMaxLimit { get; set; }
         public Nullable<decimal> ClientMinBet { get; set; }
     
-        public virtual Currency Currency { get; set; }
         public virtual Partner Partner { get; set; }
+        public virtual Currency Currency { get; set; }
     }
 }

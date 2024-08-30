@@ -1,4 +1,6 @@
-﻿namespace IqSoft.CP.AdminWebApi.Filters.Reporting
+﻿using IqSoft.CP.Common.Models.Filters;
+
+namespace IqSoft.CP.AdminWebApi.Filters.Reporting
 {
     public class ApiFilterReportByClientExclusion : ApiFilterBase
     {

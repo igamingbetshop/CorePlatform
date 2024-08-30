@@ -1,0 +1,2082 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>IqSoft.CP.Integration</name>
+    </assembly>
+    <members>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.EasyPay.payfrexresponse.message">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.EasyPay.payfrexresponse.operations">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.EasyPay.payfrexresponse.optionalTransactionParams">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.EasyPay.payfrexresponse.status">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.EasyPay.payfrexresponse.workFlowResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.EasyPay.payfrexresponse.operationsize">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.Payments.Models.EasyPay.payfrexresponseOperations">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.EasyPay.payfrexresponseOperations.operation">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.Payments.Models.EasyPay.payfrexresponseOperationsOperation">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.EasyPay.payfrexresponseOperationsOperation.amount">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.EasyPay.payfrexresponseOperationsOperation.currency">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.EasyPay.payfrexresponseOperationsOperation.merchantTransactionId">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.EasyPay.payfrexresponseOperationsOperation.message">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.EasyPay.payfrexresponseOperationsOperation.operationType">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.EasyPay.payfrexresponseOperationsOperation.payFrexTransactionId">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.EasyPay.payfrexresponseOperationsOperation.paymentSolution">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.EasyPay.payfrexresponseOperationsOperation.status">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.EasyPay.payfrexresponseOperationsOperation.sortedorder">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.Payments.Models.EasyPay.payfrexresponseWorkFlowResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.EasyPay.payfrexresponseWorkFlowResponse.id">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.EasyPay.payfrexresponseWorkFlowResponse.name">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.EasyPay.payfrexresponseWorkFlowResponse.version">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.EcoPayz.EnvelopeBody.Payout">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.PaySec.PayoutRequestInput.CustomerName">
+            <summary>
+            Account Holder Name
+            For CNY transaction, must be in Simplified Chinese.
+            For other currency, must be in English Language.
+            </summary>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.PaySec.PayoutRequestInput.BankAccountName">
+            <summary>
+            Bank Account Name 
+            For CNY transaction, must be in Simplified Chinese.
+            For other currency, must be in English Language.
+            </summary>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.QiwiWallet.RequestBase.Currency">
+            <summary>
+            currensy id
+            </summary>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.SDPay.PayoutRequestInput.IntoAccount">
+            <summary>
+            Card Number (must be the same as the card number
+            on the bank card; do not add spaces when entering
+            the numbers) 
+            </summary>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.WalletOne.WalletOneInput.WMI_AUTO_LOCATION">
+            <summary>
+            Позволяет показывать пользователю способы оплаты, 
+            соответствующие его стране нахождения.
+            0 — отображаются способы без привязки к стране пользователя;
+            1 — страна пользователя и отображение способов определяется по IP.
+            </summary>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.WalletOne.WalletOneInput.WMI_CULTURE_ID">
+            <summary>
+            ru-RU — русский
+            en-US — английский
+            </summary>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.WalletOne.WalletOneInput.WMI_EXPIRED_DATE">
+            <summary>
+            ISO 8601
+            </summary>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.WalletOne.WalletOneInput.WMI_RECIPIENT_LOGIN">
+            <summary>
+            Логин плательщика по умолчанию. 
+            Значение данного параметра будет автоматически
+            подставляться в поле логина при авторизации.
+            </summary>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.Skrill.PrepareInput.action">
+            <summary>
+             The required action. In the first step,  this is ‘prepare’.
+            </summary>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.Skrill.PrepareInput.email">
+            <summary>
+            Merchant email address
+            </summary>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.Skrill.PrepareInput.bnf_email">
+            <summary>
+            Recipient’s email address
+            </summary>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.Skrill.PrepareInput.subject">
+            <summary>
+            Subject of the notification email
+            </summary>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.Skrill.PrepareInput.note">
+            <summary>
+            Comment to be included in the  notification email.
+            </summary>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.Skrill.PrepareInput.frn_trn_id">
+            <summary>
+             Your reference ID (must be unique if  submitted).
+            </summary>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.Skrill.Transaction.Status">
+            <summary>
+            Numeric value of the transaction status: 
+            1 – scheduled (if beneficiary is not yet registered at Skrill) 
+            2 ‐ processed (if beneficiary is registered)
+            </summary>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.Skrill.Transaction.StatusMessage">
+            <summary>
+            Text value of the transaction status.
+            </summary>
+        </member>
+        <member name="F:IqSoft.CP.Integration.Payments.Models.Skrill.ReturnUrlTarget._top">
+            <summary>
+            Opens the target URL in the full body
+            of the window - the URL contents fills the entire browser window.
+            </summary>
+        </member>
+        <member name="F:IqSoft.CP.Integration.Payments.Models.Skrill.ReturnUrlTarget._parent">
+            <summary>
+            Opens the target URL in the parent frame.
+            </summary>
+        </member>
+        <member name="F:IqSoft.CP.Integration.Payments.Models.Skrill.ReturnUrlTarget._self">
+            <summary>
+            Opens the target URL in the same frame as the payment form.
+            </summary>
+        </member>
+        <member name="F:IqSoft.CP.Integration.Payments.Models.Skrill.ReturnUrlTarget._blank">
+            <summary>
+            Opens the target URL in a new browser window.        
+            </summary>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.Skrill.SkrillRequestInput.return_url_target">
+            Summary:
+            <summary>
+            Specifies a target in which the return_url value is displayed 
+            upon successful payment from the customer. Default value is 1. 
+            1 = '_top'
+            2 = '_parent'
+            3 = '_self' 
+            4= '_blank'
+            </summary>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.Skrill.SkrillRequestInput.CancelUrlTarget">
+            Summary:
+            <summary>
+            Specifies a target in which the cancel_url value is displayed
+            upon cancellation of payment by the customer. Default value is 1. 
+            1 = '_top' 
+            2 = '_parent' 
+            3 = '_self'
+            4= '_blank'
+            </summary>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.Skrill.TransferInput.action">
+            <summary>
+            The required action. In the second step,  this is 'transfer'
+            </summary>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.Skrill.TransferInput.sid">
+            <summary>
+            Session identifier returned in  response to the prepare request.
+            </summary>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.Wooppay.StartCashOutTransactionInput.TerminalID">
+            <summary>
+            UTF-8
+            </summary>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.Wooppay.StartCashOutTransactionInput.Language">
+            <summary>
+            ru – русский  /  kz – казахский  /  en - английский
+            </summary>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.Wooppay.StartCashOutTransactionInput.MerchantLocalDateTime">
+            <summary>
+            Формат dd.MM.yyyy HH:mm:ss (01.02.2012 12:34:58) 
+            </summary>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.Wooppay.StartCashOutTransactionOutput.RspCode">
+            <summary>
+            00 – успешно,остальные не успешные
+            </summary>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.Wooppay.WooppayStartTransactionInput.TransactionId">
+            <summary>
+            Если поле оставлено пустым, CNP сгенерирует уникальный
+            номер (reference) и вернет его в ответном сообщении
+            </summary>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.Wooppay.WooppayStartTransactionInput.Amount">
+            <summary>
+            Например, для суммы 1000.00 нужно передавать  100000. 
+            </summary>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.Wooppay.WooppayStartTransactionInput.Language">
+            <summary>
+            ru – русский  /  kz – казахский  /  en - английский
+            </summary>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.Wooppay.WooppayStartTransactionInput.goodsList">
+            <summary>
+            ????
+            </summary>
+        </member>
+        <member name="P:IqSoft.CP.Integration.Payments.Models.Wooppay.WooppayStartTransactionInput.MerchantLocalDateTime">
+            <summary>
+            dd.mm.yyyy hh24:mi:ss 
+            </summary>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CoreLoginRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreLoginRequest.username">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreLoginRequest.password">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreLoginRequest.captcha">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashGetUserLanguageResponseData">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetUserLanguageResponseData.language">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashGetUserLanguageResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetUserLanguageResponse.response">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetUserLanguageResponse.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashGetUserLanguageRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetUserLanguageRequest.phoneNumber">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashThirdPartyApproveOperationResponseData">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashThirdPartyApproveOperationResponseData.approveStatus">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashThirdPartyApproveOperationResponseData.confirmStatus">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashThirdPartyApproveOperationResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashThirdPartyApproveOperationResponse.response">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashThirdPartyApproveOperationResponse.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashThirdPartyApproveOperationRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashThirdPartyApproveOperationRequest.operationId">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataByExtIdResponseData">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataByExtIdResponseData.id">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataByExtIdResponseData.parentId">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataByExtIdResponseData.amount">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataByExtIdResponseData.currency">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataByExtIdResponseData.dateOper">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataByExtIdResponseData.dateDone">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataByExtIdResponseData.status">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataByExtIdResponseData.description">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataByExtIdResponseData.serviceId">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataByExtIdResponseData.orderId">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataByExtIdResponseData.type">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataByExtIdResponseData.productId">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataByExtIdResponseData.subjectFromId">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataByExtIdResponseData.subjectToId">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataByExtIdResponseData.specialistId">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataByExtIdResponseData.subjectFrom">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataByExtIdResponseData.subjectTo">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataByExtIdResponseData.specialist">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataByExtIdResponseData.commissionLower">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataByExtIdResponseData.commissionUpper">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataByExtIdResponseData.commissionUpperLower">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataByExtIdResponseData.retSum">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataByExtIdResponseData.lifeTime">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataByExtIdResponseData.externalId">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataByExtIdResponseData.cashback">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataByExtIdResponseData.paymentAccount">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataByExtIdResponseData.secure">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataByExtIdResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataByExtIdResponse.response">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataByExtIdResponse.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataByExtIdRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataByExtIdRequest.externalId">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataByExtIdRequest.type">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataExtendedResponseDataRecord">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataExtendedResponseDataRecord.id">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataExtendedResponseDataRecord.parentId">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataExtendedResponseDataRecord.amount">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataExtendedResponseDataRecord.currency">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataExtendedResponseDataRecord.dateOper">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataExtendedResponseDataRecord.dateDone">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataExtendedResponseDataRecord.status">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataExtendedResponseDataRecord.description">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataExtendedResponseDataRecord.serviceId">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataExtendedResponseDataRecord.orderId">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataExtendedResponseDataRecord.type">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataExtendedResponseDataRecord.productId">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataExtendedResponseDataRecord.subjectFromId">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataExtendedResponseDataRecord.subjectToId">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataExtendedResponseDataRecord.specialistId">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataExtendedResponseDataRecord.subjectFrom">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataExtendedResponseDataRecord.subjectTo">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataExtendedResponseDataRecord.specialist">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataExtendedResponseDataRecord.commissionLower">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataExtendedResponseDataRecord.commissionUpper">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataExtendedResponseDataRecord.commissionUpperLower">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataExtendedResponseDataRecord.retSum">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataExtendedResponseDataRecord.lifeTime">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataExtendedResponseDataRecord.externalId">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataExtendedResponseDataRecord.cashback">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataExtendedResponseDataRecord.paymentAccount">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataExtendedResponseDataRecord.secure">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataExtendedResponseData">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataExtendedResponseData.records">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataExtendedResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataExtendedResponse.response">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataExtendedResponse.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataExtendedRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataExtendedRequest.operationId">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CoreGetMobileOperatorResponseData">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreGetMobileOperatorResponseData.operator">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreGetMobileOperatorResponseData.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CoreGetMobileOperatorResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreGetMobileOperatorResponse.response">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreGetMobileOperatorResponse.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CoreGetMobileOperatorRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreGetMobileOperatorRequest.phone">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashGetReceiptForTransactionResponseData">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetReceiptForTransactionResponseData.operator">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetReceiptForTransactionResponseData.op_bin">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetReceiptForTransactionResponseData.ch_nr">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetReceiptForTransactionResponseData.tr_nr">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetReceiptForTransactionResponseData.account_nr">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetReceiptForTransactionResponseData.date">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetReceiptForTransactionResponseData.mer_name">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetReceiptForTransactionResponseData.mer_bin">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetReceiptForTransactionResponseData.ident">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetReceiptForTransactionResponseData.admit">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetReceiptForTransactionResponseData.commis">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetReceiptForTransactionResponseData.sum">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetReceiptForTransactionResponseData.operation">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetReceiptForTransactionResponseData.vat">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetReceiptForTransactionResponseData.sup">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashGetReceiptForTransactionResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetReceiptForTransactionResponse.response">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetReceiptForTransactionResponse.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashGetReceiptForTransactionRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetReceiptForTransactionRequest.transactionId">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetReceiptForTransactionRequest.operationId">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CoreTele2SMSNotificationResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreTele2SMSNotificationResponse.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CoreTele2SMSNotificationRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreTele2SMSNotificationRequest.phone">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreTele2SMSNotificationRequest.message">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreTele2SMSNotificationRequest.sender">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CoreKcellSMSNotificationResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreKcellSMSNotificationResponse.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CoreKcellSMSNotificationRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreKcellSMSNotificationRequest.phone">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreKcellSMSNotificationRequest.message">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreKcellSMSNotificationRequest.sender">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CoreBeelineSMSNotificationResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreBeelineSMSNotificationResponse.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CoreBeelineSMSNotificationRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreBeelineSMSNotificationRequest.phone">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreBeelineSMSNotificationRequest.message">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreBeelineSMSNotificationRequest.sender">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CoreRequestConfirmationCodeResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreRequestConfirmationCodeResponse.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CoreRequestConfirmationCodeRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreRequestConfirmationCodeRequest.phone">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.PayTransferConfirmRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.PayTransferConfirmRequest.PayCode">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.PayTransferConfirmRequest.BankName">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.PayTransferConfirmRequest.BankCallCenter">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.PayTransferConfirmRequest.BankPayDate">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.PayTransferConfirmRequest.BankNumberTransaction">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.PayTransferConfirmRequest.Amount">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.PayTransferConfirmRequest.IIN">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.PayTransferConfirmRequest.KBK">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.PayTransferConfirmRequest.KBK_Ru">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.PayTransferConfirmRequest.KNO">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.PayTransferConfirmRequest.KNP">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.PayTransferConfirmRequest.KNP_Ru">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.PayTransferConfirmRequest.Commission">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.PayTransferConfirmRequest.MerchantID">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.PayConfirmRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.PayConfirmRequest.PayCode">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.PayConfirmRequest.OperatorName">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.PayConfirmRequest.OperatorCallCenter">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.PayConfirmRequest.OperatorPayDate">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.PayConfirmRequest.NumberWallet">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.PayConfirmRequest.OperatorNumberTransaction">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.PayConfirmRequest.Amount">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.PayConfirmRequest.IIN">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.PayConfirmRequest.KBK">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.PayConfirmRequest.KBK_Ru">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.PayConfirmRequest.KNO">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.PayConfirmRequest.KNP">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.PayConfirmRequest.KNP_Ru">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.PayConfirmRequest.Commission">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.PayConfirmRequest.MerchantID">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CreateOperationRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CreateOperationRequest.Login">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CreateOperationRequest.Password">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CreateOperationRequest.KNO">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CreateOperationRequest.Beneficiary">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CreateOperationRequest.Beneficiary_Ru">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CreateOperationRequest.BankBeneficiary">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CreateOperationRequest.BankBeneficiary_Ru">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CreateOperationRequest.OrderDate">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CreateOperationRequest.PayCode">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CreateOperationRequest.KBK">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CreateOperationRequest.KBK_Ru">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CreateOperationRequest.KNP">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CreateOperationRequest.KNP_Ru">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CreateOperationRequest.Price">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CreateOperationRequest.LastName">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CreateOperationRequest.FirstName">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CreateOperationRequest.MiddleName">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CreateOperationRequest.IIN">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CreateOperationRequest.Currency">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CreateOperationRequest.MerchantID">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CreateOperationRequest.BackURL">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CreateOperationResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CreateOperationResponse.OperationID">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CreateOperationResponse.OperationURL">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CreateOperation">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CreateOperation.base64Data">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceWithCurrencyRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceWithCurrencyRequest.exchangeCurrency">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceWithCurrencyRequest.baseCurrency">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceWithCurrencyRequest.serviceName">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceWithCurrencyRequest.cardForbidden">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceWithCurrencyRequest.userEmail">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceWithCurrencyRequest.userPhone">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceWithCurrencyRequest.referenceId">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceWithCurrencyRequest.backUrl">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceWithCurrencyRequest.requestUrl">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceWithCurrencyRequest.addInfo">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceWithCurrencyRequest.amount">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceWithCurrencyRequest.deathDate">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceWithCurrencyRequest.serviceType">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceWithCurrencyRequest.description">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceWithCurrencyRequest.orderNumber">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceByServiceRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceByServiceRequest.serviceName">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceByServiceRequest.cardForbidden">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceByServiceRequest.userEmail">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceByServiceRequest.userPhone">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceByServiceRequest.referenceId">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceByServiceRequest.backUrl">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceByServiceRequest.requestUrl">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceByServiceRequest.addInfo">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceByServiceRequest.amount">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceByServiceRequest.deathDate">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceByServiceRequest.serviceType">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceByServiceRequest.description">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceByServiceRequest.orderNumber">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceExtended2Request">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceExtended2Request.cardForbidden">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceExtended2Request.userEmail">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceExtended2Request.userPhone">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceExtended2Request.referenceId">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceExtended2Request.backUrl">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceExtended2Request.requestUrl">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceExtended2Request.addInfo">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceExtended2Request.amount">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceExtended2Request.deathDate">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceExtended2Request.serviceType">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceExtended2Request.description">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceExtended2Request.orderNumber">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceExtendedRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceExtendedRequest.userEmail">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceExtendedRequest.userPhone">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceExtendedRequest.referenceId">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceExtendedRequest.backUrl">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceExtendedRequest.requestUrl">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceExtendedRequest.addInfo">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceExtendedRequest.amount">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceExtendedRequest.deathDate">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceExtendedRequest.serviceType">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceExtendedRequest.description">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceExtendedRequest.orderNumber">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceResponseData">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceResponseData.operationId">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceResponseData.operationUrl">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceResponse.response">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceResponse.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceRequest.referenceId">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceRequest.backUrl">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceRequest.requestUrl">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceRequest.addInfo">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceRequest.amount">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceRequest.deathDate">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceRequest.serviceType">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceRequest.description">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateInvoiceRequest.orderNumber">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CoreUserExistsResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreUserExistsResponse.response">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreUserExistsResponse.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CoreUserExistsRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreUserExistsRequest.login">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreUserExistsRequest.userGroup">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataResponseDataRecord">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataResponseDataRecord.id">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataResponseDataRecord.type">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataResponseDataRecord.lotId">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataResponseDataRecord.sum">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataResponseDataRecord.fee">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataResponseDataRecord.date">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataResponseDataRecord.status">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataResponseDataRecord.comment">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataResponseDataRecord.fromSubject">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataResponseDataRecord.toSubject">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataResponseDataRecord.fromFullName">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataResponseDataRecord.toFullName">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataResponseData">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataResponseData.records">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataResponse.response">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataResponse.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationDataRequest.operationId">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationReceiptResponseData">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationReceiptResponseData.operator">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationReceiptResponseData.op_bin">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationReceiptResponseData.ch_nr">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationReceiptResponseData.tr_nr">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationReceiptResponseData.account_nr">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationReceiptResponseData.date">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationReceiptResponseData.mer_name">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationReceiptResponseData.mer_bin">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationReceiptResponseData.ident">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationReceiptResponseData.admit">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationReceiptResponseData.commis">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationReceiptResponseData.sum">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationReceiptResponseData.operation">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationReceiptResponseData.vat">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationReceiptResponseData.sup">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationReceiptResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationReceiptResponse.response">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationReceiptResponse.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationReceiptRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationReceiptRequest.operationId">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashCheckServiceFieldsResponseData">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCheckServiceFieldsResponseData.data">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashCheckServiceFieldsResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCheckServiceFieldsResponse.response">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCheckServiceFieldsResponse.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashCheckServiceFieldsRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCheckServiceFieldsRequest.service">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCheckServiceFieldsRequest.merchant">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCheckServiceFieldsRequest.serviceId">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCheckServiceFieldsRequest.fields">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashGetServiceFieldsExtendedRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetServiceFieldsExtendedRequest.language">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetServiceFieldsExtendedRequest.service">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetServiceFieldsExtendedRequest.merchant">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetServiceFieldsExtendedRequest.fields">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashGetServiceFieldsResponseData">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetServiceFieldsResponseData.data">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashGetServiceFieldsResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetServiceFieldsResponse.response">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetServiceFieldsResponse.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashGetServiceFieldsRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetServiceFieldsRequest.service">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetServiceFieldsRequest.merchant">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetServiceFieldsRequest.fields">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashInvoicingResponseData">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashInvoicingResponseData.operationId">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashInvoicingResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashInvoicingResponse.response">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashInvoicingResponse.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashInvoicingRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashInvoicingRequest.subjectFrom">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashInvoicingRequest.amount">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashInvoicingRequest.lifetime">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashInvoicingRequest.service_type">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashInvoicingRequest.device_type">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashInvoicingRequest.description">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashInvoicingRequest.order_nr">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashRequestTransferResponseData">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashRequestTransferResponseData.operationId">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashRequestTransferResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashRequestTransferResponse.response">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashRequestTransferResponse.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashRequestTransferRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashRequestTransferRequest.login">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashRequestTransferRequest.amount">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashRequestTransferRequest.description">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.SystemGetConfigResponseData">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.SystemGetConfigResponseData.avatarsRoot">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.SystemGetConfigResponseData.servicePicturesRoot">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.SystemGetConfigResponseData.serviceMenuPicturesRoot">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.SystemGetConfigResponseData.lotPicturesRoot">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.SystemGetConfigResponseData.placePicturesRoot">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.SystemGetConfigResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.SystemGetConfigResponse.response">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.SystemGetConfigResponse.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.SystemGetConfigRequest">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CoreUserSearchResponseData">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreUserSearchResponseData.subject_name">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreUserSearchResponseData.avatarName">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CoreUserSearchResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreUserSearchResponse.response">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreUserSearchResponse.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CoreUserSearchRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreUserSearchRequest.login">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashMobileRefundResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashMobileRefundResponse.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashMobileRefundRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashMobileRefundRequest.operationId">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashMobileRefundRequest.force">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashMobileRefundRequest.amount">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashReturnPartialResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashReturnPartialResponse.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashReturnPartialRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashReturnPartialRequest.operationId">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashReturnPartialRequest.amount">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashReturnResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashReturnResponse.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashReturnRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashReturnRequest.operationId">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashCashOutInputDataResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCashOutInputDataResponse.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashCashOutInputDataRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCashOutInputDataRequest.operationID">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCashOutInputDataRequest.cardHash">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashCashOutCompleteResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCashOutCompleteResponse.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashCashOutCompleteRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCashOutCompleteRequest.operationID">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashCashOutExtendedResponseData">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCashOutExtendedResponseData.inputUrl">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCashOutExtendedResponseData.listUrl">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCashOutExtendedResponseData.deleteUrl">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCashOutExtendedResponseData.Uid">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCashOutExtendedResponseData.operationId">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashCashOutExtendedResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCashOutExtendedResponse.response">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCashOutExtendedResponse.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashCashOutExtendedRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCashOutExtendedRequest.amount">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCashOutExtendedRequest.returnURL">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCashOutExtendedRequest.extID">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCashOutExtendedRequest.phone">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCashOutExtendedRequest.addParams">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashCashOutResponseData">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCashOutResponseData.redirectURL">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCashOutResponseData.operationId">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashCashOutResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCashOutResponse.response">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCashOutResponse.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashCashOutRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCashOutRequest.amount">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCashOutRequest.returnURL">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCashOutRequest.postLink">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCashOutRequest.extID">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCashOutRequest.phone">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCashOutRequest.addParams">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationsStatusResponseRecord">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationsStatusResponseRecord.ext_id">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationsStatusResponseRecord.description">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationsStatusResponseRecord.status">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationsStatusResponseRecord.date">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationsStatusResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationsStatusResponse.response">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationsStatusResponse.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationsStatusRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationsStatusRequest.ext_id">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationsStatusRequest.status">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationsStatusRequest.dateFrom">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetOperationsStatusRequest.dateTo">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashSetOperationsStatusResponseRecord">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashSetOperationsStatusResponseRecord.ext_id">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashSetOperationsStatusResponseRecord.status">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashSetOperationsStatusResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashSetOperationsStatusResponse.response">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashSetOperationsStatusResponse.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashSetOperationsStatusRequestRecord">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashSetOperationsStatusRequestRecord.ext_id">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashSetOperationsStatusRequestRecord.description">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashSetOperationsStatusRequestRecord.status">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashSetOperationsStatusRequestRecord.date">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashSetOperationsStatusRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashSetOperationsStatusRequest.records">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashDeclineResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashDeclineResponse.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashDeclineRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashDeclineRequest.operationId">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.ServiceGetCategoriesResponseDataServices">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.ServiceGetCategoriesResponseDataServices.id">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.ServiceGetCategoriesResponseDataServices.merchant">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.ServiceGetCategoriesResponseDataServices.service_name">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.ServiceGetCategoriesResponseDataServices.name">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.ServiceGetCategoriesResponseDataServices.picture">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.ServiceGetCategoriesResponseDataServices.synonyms">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.ServiceGetCategoriesResponseDataServices.description">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.ServiceGetCategoriesResponseDataCategories">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.ServiceGetCategoriesResponseDataCategories.id">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.ServiceGetCategoriesResponseDataCategories.name">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.ServiceGetCategoriesResponseDataCategories.parent_id">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.ServiceGetCategoriesResponseDataCategories.picture">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.ServiceGetCategoriesResponseDataCategories.synonyms">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.ServiceGetCategoriesResponseDataCategories.services">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.ServiceGetCategoriesResponseData">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.ServiceGetCategoriesResponseData.categories">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.ServiceGetCategoriesResponseData.modify_date">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.ServiceGetCategoriesResponseData.no_update">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.ServiceGetCategoriesResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.ServiceGetCategoriesResponse.response">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.ServiceGetCategoriesResponse.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.ServiceGetCategoriesRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.ServiceGetCategoriesRequest.parent">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.ServiceGetCategoriesRequest.modify_date">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashGetBalanceResponseData">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetBalanceResponseData.amount">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashGetBalanceResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetBalanceResponse.response">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetBalanceResponse.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashGetBalanceRequest">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CoreGetServiceIDByNameResponseData">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreGetServiceIDByNameResponseData.serviceId">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreGetServiceIDByNameResponseData.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CoreGetServiceIDByNameResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreGetServiceIDByNameResponse.response">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreGetServiceIDByNameResponse.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CoreGetServiceIDByNameRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreGetServiceIDByNameRequest.service_name">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashGetCommissionResponseData">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetCommissionResponseData.amount">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashGetCommissionResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetCommissionResponse.response">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetCommissionResponse.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashGetCommissionRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetCommissionRequest.serviceId">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetCommissionRequest.amount">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CoreNominateSubjectResponseData">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreNominateSubjectResponseData.url">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreNominateSubjectResponseData.uid">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CoreNominateSubjectResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreNominateSubjectResponse.response">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreNominateSubjectResponse.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CoreNominateSubjectRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreNominateSubjectRequest.phone">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashGetTransfersResponseDataRecordService">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetTransfersResponseDataRecordService.service_name">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetTransfersResponseDataRecordService.name">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetTransfersResponseDataRecordService.picture">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashGetTransfersResponseDataRecord">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetTransfersResponseDataRecord.id">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetTransfersResponseDataRecord.fromSubject">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetTransfersResponseDataRecord.toSubject">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetTransfersResponseDataRecord.fromFullName">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetTransfersResponseDataRecord.toFullName">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetTransfersResponseDataRecord.direction">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetTransfersResponseDataRecord.date">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetTransfersResponseDataRecord.sum">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetTransfersResponseDataRecord.type">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetTransfersResponseDataRecord.status">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetTransfersResponseDataRecord.comment">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetTransfersResponseDataRecord.lotId">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetTransfersResponseDataRecord.service">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetTransfersResponseDataRecord.avatarName">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetTransfersResponseDataRecord.imageLotName">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashGetTransfersResponseData">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetTransfersResponseData.records">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetTransfersResponseData.lastChanged">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashGetTransfersResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetTransfersResponse.response">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetTransfersResponse.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashGetTransfersRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetTransfersRequest.page">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetTransfersRequest.perPage">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetTransfersRequest.statuses">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetTransfersRequest.types">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetTransfersRequest.direction">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetTransfersRequest.reverse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetTransfersRequest.secondSubject">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetTransfersRequest.dateFrom">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetTransfersRequest.dateTo">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashGetTransfersRequest.lastChanged">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashTransferResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashTransferResponse.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashTransferRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashTransferRequest.operationId">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashDischargementResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashDischargementResponse.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashDischargementRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashDischargementRequest.subjectFrom">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashDischargementRequest.accountFrom">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashDischargementRequest.amount">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashConfirmOperationExtRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashConfirmOperationExtRequest.confirmationCode">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashConfirmOperationExtRequest.phone">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashConfirmOperationExtRequest.operationId">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashConfirmOperationExtRequest.type">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashConfirmOperationResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashConfirmOperationResponse.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashConfirmOperationRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashConfirmOperationRequest.operationId">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashConfirmOperationRequest.type">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashCreateOperationResponseData">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateOperationResponseData.operationId">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashCreateOperationResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateOperationResponse.response">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateOperationResponse.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CashCreateOperationRequest">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateOperationRequest.type">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateOperationRequest.receiver">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateOperationRequest.amount">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateOperationRequest.description">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateOperationRequest.productId">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateOperationRequest.service">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateOperationRequest.fields">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CashCreateOperationRequest.userGroup">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CoreSmthResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreSmthResponse.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CoreSmthRequest">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CoreLogoutResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreLogoutResponse.error_code">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CoreLogoutRequest">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CoreLoginResponseData">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreLoginResponseData.session">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreLoginResponseData.id">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreLoginResponseData.username">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreLoginResponseData.login">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreLoginResponseData.type">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreLoginResponseData.roles">
+            <remarks/>
+        </member>
+        <member name="T:IqSoft.CP.Integration.WooppayCustomer.CoreLoginResponse">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreLoginResponse.response">
+            <remarks/>
+        </member>
+        <member name="P:IqSoft.CP.Integration.WooppayCustomer.CoreLoginResponse.error_code">
+            <remarks/>
+        </member>
+    </members>
+</doc>

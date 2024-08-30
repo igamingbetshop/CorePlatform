@@ -34,7 +34,6 @@ namespace IqSoft.CP.ProductGateway.Controllers
         public static List<string> WhitelistedIps = CacheManager.GetProviderWhitelistedIps(Constants.GameProviders.SoftGaming);
         private static readonly List<string> NotSupportedCurrencies = new List<string>
         {
-            Constants.Currencies.ArgentinianPeso,
             Constants.Currencies.ColumbianPeso,
             Constants.Currencies.IranianTuman,
             Constants.Currencies.USDT
@@ -241,8 +240,12 @@ namespace IqSoft.CP.ProductGateway.Controllers
 
                     if ("us" + client.Id.ToString() != input.userid || client.CurrencyId.ToLower() != input.currency.ToLower())
                         throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.ClientNotFound);
-
-                    var product = CacheManager.GetProductById(clientSession.ProductId);
+                    BllProduct product = null;
+                    var gameExternalId = input.i_gamedesc.Split(':');
+                    if(gameExternalId.Length == 2)
+                        product = CacheManager.GetProductByExternalId(ProviderId, $"{gameExternalId[0]},{gameExternalId[1]},{gameExternalId[1]}");
+                    if (product == null)
+                        product = CacheManager.GetProductById(clientSession.ProductId);
                     var partnerProductSetting = CacheManager.GetPartnerProductSettingByProductId(client.PartnerId, clientSession.ProductId);
                     if (partnerProductSetting == null || partnerProductSetting.Id == 0)
                         throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.PartnerProductSettingNotFound);

@@ -12,5 +12,6 @@
         public string Info { get; set; }
         public int OperationTypeId { get; set; }
         public int? ProductId { get; set; }
+        public bool IsFromAgent { get; set; } 
     }
 }

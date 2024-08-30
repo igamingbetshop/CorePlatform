@@ -30,6 +30,11 @@ namespace IqSoft.CP.ProductGateway.Controllers
     {
 
         private static readonly int ProviderId = CacheManager.GetGameProviderByName(Constants.GameProviders.SoftSwiss).Id;
+        private static readonly int EvolutionId = CacheManager.GetGameProviderByName(Constants.GameProviders.Evolution).Id;
+        private static readonly int PragmaticId = CacheManager.GetGameProviderByName(Constants.GameProviders.PragmaticPlay).Id;
+        private static readonly int EzugiId = CacheManager.GetGameProviderByName(Constants.GameProviders.Ezugi).Id;
+        private static readonly int SpinomenalId = CacheManager.GetGameProviderByName(Constants.GameProviders.Spinomenal).Id;
+
         public static List<string> WhitelistedIps = CacheManager.GetProviderWhitelistedIps(Constants.GameProviders.SoftSwiss);
         private readonly char[] digits = new[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
         public static List<string> UnsuppordedCurrenies = new List<string>
@@ -50,22 +55,57 @@ namespace IqSoft.CP.ProductGateway.Controllers
             {
                 if (string.IsNullOrEmpty(input.GameId))
                     throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongHash);
-                var clientSession = new DAL.ClientSession();
+
                 var product = CacheManager.GetProductByExternalId(ProviderId, input.GameId);
                 if (product == null)
                     throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongHash);
                 var checkExpiration = input.Actions != null ? input.Actions.Any(x => x.ActionName == "bet") : !input.Finished;
-                try
-                {
-                    clientSession = ClientBll.GetClientSessionByProductId(input.ClientId, product.Id, checkExpiration);
-                }
-                catch
+
+                var pSession = CacheManager.GetClientPlatformSession(input.ClientId, null);
+                var clientSessions = ClientBll.GetProductSessionsByParentId(pSession.Id, input.ClientId, checkExpiration);
+                var clientSession = clientSessions.FirstOrDefault(x => x.ProductId == product.Id);
+                if(clientSession == null)
                 {
                     var gameData = input.GameId.Split(':');
                     product = CacheManager.GetProductByExternalId(ProviderId, $"{gameData[0]}:{gameData[1].TrimEnd(digits)}");
                     if (product == null)
                         throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongHash);
-                    clientSession = ClientBll.GetClientSessionByProductId(input.ClientId, product.Id, checkExpiration);
+                    clientSession = clientSessions.FirstOrDefault(x => x.ProductId == product.Id);
+                    if (clientSession == null)
+                    {
+                        int productId = 0;
+                        switch(gameData[0])
+                        {
+                            case "evolution":
+                                productId = EvolutionId;
+                                break;
+                            case "pragmaticexternal":
+                                productId = PragmaticId;
+                                break;
+                            case "ezugi":
+                                productId = EzugiId;
+                                break;
+                            case "spinomenal":
+                                productId = SpinomenalId;
+                                break;
+                            default:
+                                throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.SessionNotFound);
+                        }
+                        foreach (var cs in clientSessions)
+                        {
+                            var p = CacheManager.GetProductById(cs.ProductId);
+                            if (p.GameProviderId == ProviderId && p.SubProviderId == productId)
+                            {
+                                clientSession = cs;
+                                break;
+                            }
+                        }
+
+                        if (clientSession == null)
+                            throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.SessionNotFound);
+
+                        product = CacheManager.GetProductById(clientSession.ProductId);
+                    }
                 }
                 var client = CacheManager.GetClientById(input.ClientId);
                 var authToken = CacheManager.GetGameProviderValueByKey(client.PartnerId, ProviderId, Constants.PartnerKeys.SoftSwissAuthToken);

@@ -37,9 +37,14 @@ namespace IqSoft.CP.BLL.Services
         {
             var response = new CheckPermissionOutput();
             var userPermissions = CacheManager.GetUserPermissions(input.UserId ?? Identity.Id);
-            var permission = userPermissions.FirstOrDefault(x => x.PermissionId == input.Permission || x.IsAdmin);
+            var permission = userPermissions.FirstOrDefault(x => x.IsAdmin);
+            if (permission == null)
+                permission = userPermissions.FirstOrDefault(x => x.IsForAll && x.PermissionId == input.Permission);
+            if (permission == null)
+                permission = userPermissions.FirstOrDefault(x => x.PermissionId == input.Permission);
             if (permission == null)
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
+            
             if (permission.IsForAll || permission.IsAdmin)
             {
                 response.HaveAccessForAllObjects = true;
@@ -49,30 +54,33 @@ namespace IqSoft.CP.BLL.Services
             {
                 var objects = CacheManager.GetUserAccessObjects(input.UserId ?? Identity.Id);
                 response.AccessibleObjects = objects.Where(x => x.ObjectTypeId == (int)input.ObjectTypeId &&
-                        x.PermissionId == input.Permission).Select(x => x.ObjectId).ToList();
+                        x.PermissionId == input.Permission && Int64.TryParse(x.ObjectId, out long r)).Select(x => Convert.ToInt64(x.ObjectId)).ToList();
                 response.AccessibleIntegerObjects = objects.Where(x => x.ObjectTypeId == (int)input.ObjectTypeId &&
-                        x.PermissionId == input.Permission).Select(x => (int)x.ObjectId).ToList();
+                        x.PermissionId == input.Permission && Int32.TryParse(x.ObjectId, out int r)).Select(x => Convert.ToInt32(x.ObjectId)).ToList();
                 response.AccessibleStringObjects = objects.Where(x => x.ObjectTypeId == (int)input.ObjectTypeId &&
-                        x.PermissionId == input.Permission).Select(x => x.ObjectId.ToString()).ToList();
+                        x.PermissionId == input.Permission).Select(x => x.ObjectId).ToList();
             }
             return response;
         }
 
-        public CheckPermissionOutput CheckPermission(string permissionId)
+        public void CheckPermission(string permissionId, bool checkForAll = true)
         {
             var permissions = CacheManager.GetUserPermissions(Identity.Id).Where(x => x.PermissionId == permissionId || x.IsAdmin).ToList();
-
-            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
-            {
-                Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
-            });
-
             if (permissions == null || permissions.Count == 0)
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
-            if (permissions.Any(x => x.IsForAll) || permissions.Any(x => x.IsAdmin))
-                return partnerAccess;
-            throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
+            if (checkForAll && !permissions.Any(x => x.IsForAll) && !permissions.Any(x => x.IsAdmin))
+                throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
+        }
+
+        public bool CheckPermissionAvailability(string permissionId, bool checkForAll = true)
+        {
+            var permissions = CacheManager.GetUserPermissions(Identity.Id).Where(x => x.PermissionId == permissionId || x.IsAdmin).ToList();
+            if (permissions == null || permissions.Count == 0)
+                return false;
+            if (checkForAll && !permissions.Any(x => x.IsForAll) && !permissions.Any(x => x.IsAdmin))
+                return false;
+
+            return true;
         }
 
         public void CheckPermissionToSaveObject(CheckPermissionInput input)
@@ -87,7 +95,7 @@ namespace IqSoft.CP.BLL.Services
                     CacheManager.GetUserAccessObjects(Identity.Id)
                         .Any(
                             x =>
-                                x.ObjectTypeId == (int)input.ObjectTypeId && x.ObjectId == input.ObjectId &&
+                                x.ObjectTypeId == (int)input.ObjectTypeId && x.ObjectId == input.ObjectId.ToString() &&
                                 x.PermissionId == input.Permission))
                 return;
             throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -134,12 +142,12 @@ namespace IqSoft.CP.BLL.Services
             var checkPermissionResult = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.CreateRole,
-                ObjectTypeId = ObjectTypes.Role
+                ObjectTypeId = (int)ObjectTypes.Role
             });
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if ((!checkPermissionResult.HaveAccessForAllObjects && !checkPermissionResult.AccessibleObjects.Contains(role.Id)) ||
                 (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != role.PartnerId)))
@@ -213,12 +221,12 @@ namespace IqSoft.CP.BLL.Services
             var checkPermissionResult = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.CreateRole,
-                ObjectTypeId = ObjectTypes.Role
+                ObjectTypeId = (int)ObjectTypes.Role
             });
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             var dbRole = Db.Roles.Include(x => x.RolePermissions).FirstOrDefault(x => x.Id == roleId);
             if (dbRole == null)
@@ -257,12 +265,12 @@ namespace IqSoft.CP.BLL.Services
             var userAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewUser,
-                ObjectTypeId = ObjectTypes.User
+                ObjectTypeId = (int)ObjectTypes.User
             });
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             var query = Db.UserRoles.Include(x => x.User).Where(x => x.RoleId == roleId);
@@ -353,8 +361,7 @@ namespace IqSoft.CP.BLL.Services
             foreach (var accessObject in accessObjects)
             {
                 if (accessObject.ObjectTypeId == (int)ObjectTypes.Partner &&
-                    user.PartnerId != Constants.MainPartnerId &&
-                    accessObject.ObjectId != user.PartnerId)
+                    user.PartnerId != Constants.MainPartnerId && accessObject.ObjectId != user.PartnerId.ToString())
                     throw CreateException(LanguageId, Constants.Errors.NotAllowed);
                 var dbUserAccessobject = new AccessObject();
                 Db.AccessObjects.Add(dbUserAccessobject);
@@ -370,12 +377,12 @@ namespace IqSoft.CP.BLL.Services
             var checkP = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewRole,
-                ObjectTypeId = ObjectTypes.Role
+                ObjectTypeId = (int)ObjectTypes.Role
             });
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<Role>>
             {
@@ -392,6 +399,42 @@ namespace IqSoft.CP.BLL.Services
                     Filter = x => !x.PartnerId.HasValue || partnerAccess.AccessibleIntegerObjects.Contains(x.PartnerId.Value)
                 }
             };
+        }
+
+        public Dictionary<string, string> GetBulkEditFields(int adminMenuId, int gridIndex)
+        {
+            var resp = new Dictionary<string, string>(); 
+            switch (adminMenuId) //TO DO: Change this part and take from the db, like in the case of regform
+            {
+                case 261:
+                    var hasPercentPermission = CheckPermissionAvailability(Constants.Permissions.ViewProductCommissionPercent, true);
+                    switch (gridIndex)
+                    {
+                        case 0:
+                            if(hasPercentPermission)
+                                resp.Add("Percent", "Number");
+                            resp.Add("Rating", "Number");
+                            resp.Add("OpenMode", "Number");
+                            resp.Add("Category", "ProductCategory");
+                            resp.Add("State", "ProductState");
+                            break;
+                        case 1:
+                            if (hasPercentPermission)
+                                resp.Add("Percent", "Number");
+                            resp.Add("Rating", "Number");
+                            resp.Add("OpenMode", "Number");
+                            resp.Add("RTP", "Number");
+                            resp.Add("Category", "ProductCategory");
+                            resp.Add("State", "ProductState");
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                default:
+                    break;
+            }
+            return resp;
         }
     }
 }

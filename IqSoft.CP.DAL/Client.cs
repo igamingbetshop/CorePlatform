@@ -104,7 +104,6 @@ namespace IqSoft.CP.DAL
         public virtual ICollection<AgentProfit> AgentProfits { get; set; }
         public virtual Character Character { get; set; }
         public virtual ClientSession ClientSession { get; set; }
-        public virtual Currency Currency { get; set; }
         public virtual JobArea JobArea1 { get; set; }
         public virtual Language Language { get; set; }
         public virtual Partner Partner { get; set; }
@@ -152,5 +151,6 @@ namespace IqSoft.CP.DAL
         public virtual ICollection<Affiliate> Affiliates { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ClientBonu> ClientBonus { get; set; }
+        public virtual Currency Currency { get; set; }
     }
 }

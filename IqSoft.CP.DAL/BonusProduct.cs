@@ -22,7 +22,7 @@ namespace IqSoft.CP.DAL
         public Nullable<decimal> Lines { get; set; }
         public Nullable<decimal> Coins { get; set; }
         public Nullable<decimal> CoinValue { get; set; }
-        public Nullable<decimal> BetValueLevel { get; set; }
+        public string BetValues { get; set; }
     
         public virtual Bonu Bonu { get; set; }
         public virtual Product Product { get; set; }

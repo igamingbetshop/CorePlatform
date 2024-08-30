@@ -22,7 +22,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 {
     public class GatewayPayController : ApiController
     {
-        public static List<string> WhitelistedIps = CacheManager.GetProviderWhitelistedIps(Constants.PaymentSystems.Pay4Fun);
+        public static List<string> WhitelistedIps = CacheManager.GetProviderWhitelistedIps(Constants.PaymentSystems.GatewayPay);
         [HttpPost]
         [Route("api/GatewayPay/ApiRequest")]
         public HttpResponseMessage ApiRequest(PaymentInput input)

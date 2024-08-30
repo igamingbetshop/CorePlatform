@@ -1,4 +1,6 @@
-﻿using System;
+﻿using IqSoft.CP.Common.Models.AdminModels;
+using System;
+using System.Collections.Generic;
 
 namespace IqSoft.CP.Common.Models.CacheModels
 {
@@ -14,15 +16,16 @@ namespace IqSoft.CP.Common.Models.CacheModels
         public string Type { get; set; }
         public string ImageName { get; set; }
         public int State { get; set; }
-        public System.DateTime CreationTime { get; set; }
-        public System.DateTime LastUpdateTime { get; set; }
-        public System.DateTime StartDate { get; set; }
-        public System.DateTime FinishDate { get; set; }
+        public DateTime CreationTime { get; set; }
+        public DateTime LastUpdateTime { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime FinishDate { get; set; }
         public BllSetting Segments { get; set; }
         public BllSetting Languages { get; set; }
         public int Order { get; set; }
         public int? ParentId { get; set; }
         public string StyleType { get; set; }
         public int? DeviceType { get; set; }
+        public List<int> Visibility { get; set; }
     }
 }

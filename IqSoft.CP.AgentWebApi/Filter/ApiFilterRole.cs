@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using IqSoft.CP.Common.Models.Filters;
 
 namespace IqSoft.CP.AgentWebApi.Filters
 {

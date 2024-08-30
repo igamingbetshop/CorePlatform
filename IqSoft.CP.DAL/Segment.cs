@@ -20,10 +20,11 @@ namespace IqSoft.CP.DAL
             this.BannerSegmentSettings = new HashSet<BannerSegmentSetting>();
             this.BonusSegmentSettings = new HashSet<BonusSegmentSetting>();
             this.ClientClassifications = new HashSet<ClientClassification>();
-            this.PromotionSegmentSettings = new HashSet<PromotionSegmentSetting>();
-            this.SegmentSettings = new HashSet<SegmentSetting>();
             this.JobTriggers = new HashSet<JobTrigger>();
             this.NewsSegmentSettings = new HashSet<NewsSegmentSetting>();
+            this.PartnerPaymentSegmentSettings = new HashSet<PartnerPaymentSegmentSetting>();
+            this.PromotionSegmentSettings = new HashSet<PromotionSegmentSetting>();
+            this.SegmentSettings = new HashSet<SegmentSetting>();
             this.TriggerSettings = new HashSet<TriggerSetting>();
         }
     
@@ -36,6 +37,8 @@ namespace IqSoft.CP.DAL
         public System.DateTime LastUpdateTime { get; set; }
         public Nullable<int> Gender { get; set; }
         public Nullable<bool> IsKYCVerified { get; set; }
+        public Nullable<bool> IsEmailVerified { get; set; }
+        public Nullable<bool> IsMobileNumberVerified { get; set; }
         public Nullable<bool> IsTermsConditionAccepted { get; set; }
         public string ClientStatus { get; set; }
         public string ClientId { get; set; }
@@ -44,10 +47,10 @@ namespace IqSoft.CP.DAL
         public string LastName { get; set; }
         public string Region { get; set; }
         public string AffiliateId { get; set; }
+        public string AgentId { get; set; }
         public string MobileCode { get; set; }
         public string SessionPeriod { get; set; }
         public string SignUpPeriod { get; set; }
-        public string SegmentId { get; set; }
         public string TotalDepositsCount { get; set; }
         public string TotalDepositsAmount { get; set; }
         public string TotalWithdrawalsCount { get; set; }
@@ -69,14 +72,16 @@ namespace IqSoft.CP.DAL
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ClientClassification> ClientClassifications { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PromotionSegmentSetting> PromotionSegmentSettings { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<SegmentSetting> SegmentSettings { get; set; }
-        public virtual Partner Partner { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<JobTrigger> JobTriggers { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<NewsSegmentSetting> NewsSegmentSettings { get; set; }
+        public virtual Partner Partner { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PartnerPaymentSegmentSetting> PartnerPaymentSegmentSettings { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PromotionSegmentSetting> PromotionSegmentSettings { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<SegmentSetting> SegmentSettings { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<TriggerSetting> TriggerSettings { get; set; }
     }

@@ -1,4 +1,6 @@
-﻿namespace IqSoft.CP.AdminWebApi.Filters
+﻿using IqSoft.CP.Common.Models.Filters;
+
+namespace IqSoft.CP.AdminWebApi.Filters
 {
     public class ApiFilterfnProduct : ApiFilterBase
     {
@@ -31,10 +33,10 @@
         public ApiFiltersOperation Percents { get; set; }
         public ApiFiltersOperation ProductIds { get; set; }
         public ApiFiltersOperation Counts { get; set; }
-        public ApiFiltersOperation Lineses { get; set; }
-        public ApiFiltersOperation Coinses { get; set; }
+        public ApiFiltersOperation Lines { get; set; }
+        public ApiFiltersOperation Coins { get; set; }
         public ApiFiltersOperation CoinValues { get; set; }
-        public ApiFiltersOperation BetValueLevels { get; set; }
+        public ApiFiltersOperation BetValues { get; set; }
 
     }
 }

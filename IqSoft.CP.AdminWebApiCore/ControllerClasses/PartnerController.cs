@@ -220,7 +220,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             var checkPartnerPermission = partnerBll.GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != partnerId))
                 throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.DontHavePermission);
@@ -445,7 +445,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     var checkPartnerPermission = partnerBll.GetPermissionsToObject(new CheckPermissionInput
                     {
                         Permission = Constants.Permissions.ViewPartner,
-                        ObjectTypeId = ObjectTypes.Partner
+                        ObjectTypeId = (int)ObjectTypes.Partner
                     });
                     if (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != partner.Id))
                         throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.DontHavePermission);
@@ -488,7 +488,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     var checkPartnerPermission = partnerBll.GetPermissionsToObject(new CheckPermissionInput
                     {
                         Permission = Constants.Permissions.ViewPartner,
-                        ObjectTypeId = ObjectTypes.Partner
+                        ObjectTypeId = (int)ObjectTypes.Partner
                     });
                     if (!checkPartnerPermission.HaveAccessForAllObjects && checkPartnerPermission.AccessibleObjects.All(x => x != partnerId))
                         throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.DontHavePermission);

@@ -21,13 +21,20 @@ namespace IqSoft.CP.AdminWebApi.Models.UserModels
         public string UserLogin { get; set; }
 
         public string CurrencyId { get; set; }
+        
         public int? OddsType { get; set; }
+        
         public object RequiredParameters { get; set; }
+        
         public bool IsTwoFactorEnabled { get; set; }
+
+        public int VipLevel { get; set; }
+        
         public List<ApiAdminMenu> AdminMenu { get; set; }
 
         public Session()
         {
+        
         }
 
         public Session(SessionIdentity s)

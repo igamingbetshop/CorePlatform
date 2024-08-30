@@ -13,17 +13,15 @@ namespace IqSoft.CP.DAL
     
     public partial class fnClientMessage
     {
-        public long Id { get; set; }
-        public Nullable<int> ClientId { get; set; }
+        public int PartnerId { get; set; }
+        public long MessageId { get; set; }
+        public Nullable<int> Id { get; set; }
         public string UserName { get; set; }
         public string MobileOrEmail { get; set; }
-        public int PartnerId { get; set; }
         public string Subject { get; set; }
         public string Message { get; set; }
         public int MessageType { get; set; }
         public Nullable<int> Status { get; set; }
         public System.DateTime CreationTime { get; set; }
-        public Nullable<int> AffiliateReferralId { get; set; }
-        public string AffiliateId { get; set; }
     }
 }

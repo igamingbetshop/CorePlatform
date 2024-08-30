@@ -17,8 +17,8 @@ namespace IqSoft.CP.DAL
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public Jackpot()
         {
-            this.JackpotSettings = new HashSet<JackpotSetting>();
             this.JobTriggers = new HashSet<JobTrigger>();
+            this.JackpotSettings = new HashSet<JackpotSetting>();
         }
     
         public int Id { get; set; }
@@ -33,8 +33,8 @@ namespace IqSoft.CP.DAL
         public System.DateTime LastUpdateDate { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<JackpotSetting> JackpotSettings { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<JobTrigger> JobTriggers { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<JackpotSetting> JackpotSettings { get; set; }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using IqSoft.CP.Common.Models.Filters;
+using System;
 
 namespace IqSoft.CP.AdminWebApi.Filters
 {
@@ -27,6 +28,7 @@ namespace IqSoft.CP.AdminWebApi.Filters
         public ApiFiltersOperation TotalWinAmounts { get; set; }
         public ApiFiltersOperation WinsCounts { get; set; }
         public ApiFiltersOperation GGRs { get; set; }
+        public ApiFiltersOperation NGRs { get; set; }
         public ApiFiltersOperation TotalDebitCorrections { get; set; }
         public ApiFiltersOperation DebitCorrectionsCounts { get; set; }
         public ApiFiltersOperation TotalCreditCorrections { get; set; }

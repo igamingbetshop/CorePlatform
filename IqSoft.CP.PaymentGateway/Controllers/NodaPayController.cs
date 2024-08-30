@@ -108,18 +108,18 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                 var client = CacheManager.GetClientById(request.ClientId.Value);
                                 var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, request.PaymentSystemId,
                                                                                                    client.CurrencyId, (int)PaymentRequestTypes.Withdraw);
-                                var sign = CommonFunctions.ComputeSha256(input.PaymentId+ input.Status + partnerPaymentSetting.Password);
+                                var sign = CommonFunctions.ComputeSha256(input.PaymentId + input.Status + partnerPaymentSetting.Password);
                                 if (sign.ToLower() != input.Signature.ToLower())
                                     throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongHash);
                                 if (input.Status.ToLower() == "done")
                                 {
                                     var resp = clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Approved, input.Status,
-                                         null, null, false, string.Empty, documentBll, notificationBl);
+                                         null, null, false, request.Parameters, documentBll, notificationBl);
                                     clientBl.PayWithdrawFromPaymentSystem(resp, documentBll, notificationBl);
                                 }
                                 else if (input.Status.ToLower() == "failed")
                                     clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Failed,
-                                        input.Status, null, null, false, string.Empty, documentBll, notificationBl);
+                                        input.Status, null, null, false, request.Parameters, documentBll, notificationBl);
                                 PaymentHelpers.RemoveClientBalanceFromCache(request.ClientId.Value);
                                 BaseHelpers.BroadcastBalance(request.ClientId.Value);
                             }

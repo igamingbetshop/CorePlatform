@@ -43,6 +43,7 @@ using AffiliateReferral = IqSoft.CP.DAL.AffiliateReferral;
 using AgentCommission = IqSoft.CP.DAL.AgentCommission;
 using IqSoft.CP.Common.Models.CacheModels;
 using IqSoft.CP.DAL.Models.Agents;
+using IqSoft.CP.Common.Models.Filters;
 
 namespace IqSoft.CP.AgentWebApi.Helpers
 {
@@ -365,7 +366,7 @@ namespace IqSoft.CP.AgentWebApi.Helpers
                 DocumentIssuedBy = input.DocumentIssuedBy,
                 Address = input.Address,
                 MobileNumber = string.IsNullOrWhiteSpace(input.MobileNumber) ? string.Empty : (input.MobileNumber.StartsWith("+") ? input.MobileNumber : "+" + input.MobileNumber),
-                PhoneNumber = string.Format("{0}/{1}", input.Phone, input.Fax),
+                PhoneNumber = !string.IsNullOrEmpty(input.MobileCode) ? (input.MobileCode.StartsWith("+") ? input.MobileCode : "+" + input.MobileCode) :  string.Format("{0}/{1}", input.Phone, input.Fax),
                 LanguageId = input.LanguageId,
                 SendMail = input.SendMail ?? false,
                 SendSms = input.SendSms ?? false,
@@ -388,7 +389,7 @@ namespace IqSoft.CP.AgentWebApi.Helpers
                 LastName = input.LastName,
                 Address = input.Address,
                 MobileNumber = string.IsNullOrWhiteSpace(input.MobileNumber) ? string.Empty : (input.MobileNumber.StartsWith("+") ? input.MobileNumber : "+" + input.MobileNumber),
-                PhoneNumber = string.Format("{0}/{1}", input.Phone, input.Fax),
+            //    PhoneNumber = string.Format("{0}/{1}", input.Phone, input.Fax),
                 CategoryId = input.Group
             };
         }      
@@ -470,7 +471,7 @@ namespace IqSoft.CP.AgentWebApi.Helpers
                 state = Convert.ToInt32(ss.NumericValue.Value);
             var parentSetting = CacheManager.GetUserSetting(arg.UserId.Value);
             state = CustomHelper.MapUserStateToClient.First(x => x.Value == state).Key;
-            var balance = CacheManager.GetClientCurrentBalance(arg.Id).AvailableBalance;
+            var balances = CacheManager.GetClientCurrentBalance(arg.Id);
             var resp = new fnClientModel
             {
                 Id = arg.Id,
@@ -507,8 +508,10 @@ namespace IqSoft.CP.AgentWebApi.Helpers
                 SendPromotions = arg.SendPromotions,
                 ZipCode = arg.ZipCode,
                 HasNote = arg.HasNote,
-                RealBalance = balance,
-                BonusBalance = 0,
+                RealBalance = Math.Round(balances.Balances.Where(x => x.TypeId != (int)AccountTypes.ClientBonusBalance &&
+                                                                      x.TypeId != (int)AccountTypes.ClientCoinBalance &&
+                                                                      x.TypeId != (int)AccountTypes.ClientCompBalance)?.Sum(x => x.Balance) ?? 0, 2),
+                BonusBalance = Math.Round(balances.Balances.FirstOrDefault(x => x.TypeId == (int)AccountTypes.ClientBonusBalance)?.Balance ?? 0, 2),
                 Info = arg.Info,
                 UserId = arg.UserId,
                 AllowDoubleCommission = Convert.ToBoolean(adc == null || adc.Id == 0 ? 0 : (adc.NumericValue ?? 0)),
@@ -834,9 +837,10 @@ namespace IqSoft.CP.AgentWebApi.Helpers
         #endregion
 
         #region Transactions
-        public static DocumentModel MapToDocumentModel(this Document document, double timeZone)
+
+        public static ApiDocumentModel MapToDocumentModel(this Document document, double timeZone)
         {
-            return new DocumentModel
+            return new ApiDocumentModel
             {
                 Id = document.Id,
                 Amount = Math.Floor(document.Amount * 100) / 100,
@@ -1289,15 +1293,17 @@ namespace IqSoft.CP.AgentWebApi.Helpers
                 PartnerId = apiFilterInternetBet.PartnerId,
                 FromDate = apiFilterInternetBet.BetDateFrom,
                 ToDate = apiFilterInternetBet.BetDateBefore,
-                Ids = apiFilterInternetBet.Ids == null ? new FiltersOperation() : apiFilterInternetBet.Ids.MapToFiltersOperation(),
+                BetDocumentIds = apiFilterInternetBet.BetDocumentIds == null ? new FiltersOperation() : apiFilterInternetBet.BetDocumentIds.MapToFiltersOperation(),
                 ClientIds = apiFilterInternetBet.ClientIds == null ? new FiltersOperation() : apiFilterInternetBet.ClientIds.MapToFiltersOperation(),
                 Names = apiFilterInternetBet.Names == null ? new FiltersOperation() : apiFilterInternetBet.Names.MapToFiltersOperation(),
-                UserNames = apiFilterInternetBet.UserNames == null ? new FiltersOperation() : apiFilterInternetBet.UserNames.MapToFiltersOperation(),
+                ClientFirstNames = apiFilterInternetBet.ClientFirstNames == null ? new FiltersOperation() : apiFilterInternetBet.ClientFirstNames.MapToFiltersOperation(),
+                ClientLastNames = apiFilterInternetBet.ClientLastNames == null ? new FiltersOperation() : apiFilterInternetBet.ClientLastNames.MapToFiltersOperation(),
+                ClientUserNames = apiFilterInternetBet.ClientUserNames == null ? new FiltersOperation() : apiFilterInternetBet.ClientUserNames.MapToFiltersOperation(),
                 Categories = apiFilterInternetBet.Categories == null ? new FiltersOperation() : apiFilterInternetBet.Categories.MapToFiltersOperation(),
                 ProductIds = apiFilterInternetBet.ProductIds == null ? new FiltersOperation() : apiFilterInternetBet.ProductIds.MapToFiltersOperation(),
                 ProductNames = apiFilterInternetBet.ProductNames == null ? new FiltersOperation() : apiFilterInternetBet.ProductNames.MapToFiltersOperation(),
                 ProviderNames = apiFilterInternetBet.ProviderNames == null ? new FiltersOperation() : apiFilterInternetBet.ProviderNames.MapToFiltersOperation(),
-                Currencies = apiFilterInternetBet.Currencies == null ? new FiltersOperation() : apiFilterInternetBet.Currencies.MapToFiltersOperation(),
+                CurrencyIds = apiFilterInternetBet.CurrencyIds == null ? new FiltersOperation() : apiFilterInternetBet.CurrencyIds.MapToFiltersOperation(),
                 RoundIds = apiFilterInternetBet.RoundIds == null ? new FiltersOperation() : apiFilterInternetBet.RoundIds.MapToFiltersOperation(),
                 DeviceTypes = apiFilterInternetBet.DeviceTypes == null ? new FiltersOperation() : apiFilterInternetBet.DeviceTypes.MapToFiltersOperation(),
                 ClientIps = apiFilterInternetBet.ClientIps == null ? new FiltersOperation() : apiFilterInternetBet.ClientIps.MapToFiltersOperation(),

@@ -21,8 +21,6 @@ using IqSoft.CP.Common.Models.WebSiteModels.Bets;
 using IqSoft.CP.MasterCacheWebApi.Helpers;
 using IqSoft.CP.Integration.Platforms.Helpers;
 using static IqSoft.CP.Common.Constants;
-using System.Web;
-using System.IO;
 using IqSoft.CP.Common.Models.CacheModels;
 using IqSoft.CP.DAL.Models.Clients;
 
@@ -71,9 +69,9 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
         {
             switch (request.Method)
             {
-                case "CreatePaymentRequest": 
+                case "CreatePaymentRequest":
                     return CreatePaymentRequest(JsonConvert.DeserializeObject<PaymentRequestModel>(request.RequestData),
-                                                request.ClientId,session, log);
+                                                request.ClientId, session, log);
                 case "CreateDepositRequest":
                     return CreateDepositRequest(JsonConvert.DeserializeObject<CreateDepositRequestInput>(request.RequestData),
                                                 request.PartnerId, request.ClientId, session, log);
@@ -90,9 +88,9 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                     return GetBetInfo(Convert.ToInt64(request.RequestData), request.ProductId, session, log);
                 case "GetBetsHistory":
                     return GetBetsHistory(JsonConvert.DeserializeObject<ApiFilterInternetBet>(request.RequestData), request.PartnerId, request.ClientId, session, log);
-                case "GetTransactionHistory": 
+                case "GetTransactionHistory":
                     return GetTransactionHistory(JsonConvert.DeserializeObject<ApiFilterTransaction>(request.RequestData), request.ClientId, session, log);
-                case "GetBonusBetInfo": 
+                case "GetBonusBetInfo":
                     return GetBonusBetInfo(JsonConvert.DeserializeObject<ApiGetBonusBetsInput>(request.RequestData), session);
                 case "GetBonusBalance":
                     return GetBonusBalance(request.ClientId, Convert.ToInt32(request.RequestData), session, log);
@@ -114,13 +112,13 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                     return GetBetStates(session.LanguageId);
                 case "GetBetTypes":
                     return GetBetTypes(session, log);
-                case "GetPaymentRequestStates": 
+                case "GetPaymentRequestStates":
                     return GetPaymentRequestStates(session, log);
-                case "GetPaymentRequestTypes": 
+                case "GetPaymentRequestTypes":
                     return GetTypesEnumByType(nameof(PaymentRequestTypes), session);
                 case "GetPaymentAccountTypes":
-                    return GetTypesEnumByType(nameof(PaymentAccountTypes), session);
-                case "GetBankAccountTypes": 
+                    return GetPaymentAccountTypes(Convert.ToInt32(request.RequestData), session);
+                case "GetBankAccountTypes":
                     return GetTypesEnumByType(nameof(BankAccountTypes), session);
                 case "GetClientStatuses":
                     return GetTypesEnumByType(nameof(ClientStates), session);
@@ -186,17 +184,18 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                             ObjectId = clientId,
                             ObjectTypeId = (int)ObjectTypes.Client
                         });
-                        filter.AccountIds = accounts.Where(x => 
-                            (x.TypeId == (int)AccountTypes.ClientUnusedBalance || x.TypeId == (int)AccountTypes.ClientUsedBalance) && 
-                            x.BetShopId == null && x.PaymentSystemId == null).Select(x => x.Id).ToList();
+                        filter.AccountIds = accounts.Where(x =>
+                            (x.TypeId == (int)AccountTypes.ClientUnusedBalance || x.TypeId == (int)AccountTypes.ClientUsedBalance) &&
+                            x.BetShopId == null && x.PaymentSystemId == null).Select(x => (long?)x.Id).ToList();
+                        filter.AccountIds.Add(null);
                     }
                     else
-                        filter.AccountIds = new List<long> { session.AccountId.Value };
+                        filter.AccountIds = new List<long?> { session.AccountId.Value };
                 }
 
-                
+
                 var bets = reportBl.GetBetsForWebSite(filter);
-                
+
                 return new ApiResponseBase
                 {
                     ResponseObject = new GetBetsHistoryOutput
@@ -247,12 +246,12 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                             switch (integrationType)
                             {
                                 case PayoutCancelationTypes.ExternallyWithCallback:
-                                    clientBl.ChangeWithdrawRequestState(input.RequestId, PaymentRequestStates.CancelPending, request.Parameters, null, null, false, 
+                                    clientBl.ChangeWithdrawRequestState(input.RequestId, PaymentRequestStates.CancelPending, request.Parameters, null, null, false,
                                     request.Parameters, documentBl, notificationBl);
                                     PaymentHelpers.CancelPayoutRequest(paymentSystem, request, session, log);
                                     break;
                                 default:
-                                    clientBl.ChangeWithdrawRequestState(input.RequestId, PaymentRequestStates.CanceledByClient, request.Parameters, null, null, false, 
+                                    clientBl.ChangeWithdrawRequestState(input.RequestId, PaymentRequestStates.CanceledByClient, request.Parameters, null, null, false,
                                                                 request.Parameters, documentBl, notificationBl);
                                     break;
                             }
@@ -330,7 +329,9 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                             throw BaseBll.CreateException(string.Empty, Constants.Errors.PartnerPaymentSettingNotFound);
                         if (partnerPaymentSetting.State == (int)PartnerPaymentSettingStates.Inactive)
                             throw BaseBll.CreateException(string.Empty, Constants.Errors.PartnerPaymentSettingBlocked);
-                        if (client.Citizenship.HasValue && partnerPaymentSetting.Countries.Any() && !partnerPaymentSetting.Countries.Contains(client.Citizenship.Value))
+                        if (client.Citizenship.HasValue && partnerPaymentSetting.Countries.Ids.Any() &&
+                           ((partnerPaymentSetting.Countries.Type ==(int)BonusSettingConditionTypes.InSet && !partnerPaymentSetting.Countries.Ids.Contains(client.Citizenship.Value)) ||
+                           (partnerPaymentSetting.Countries.Type ==(int)BonusSettingConditionTypes.OutOfSet && partnerPaymentSetting.Countries.Ids.Contains(client.Citizenship.Value))))
                             throw BaseBll.CreateException(string.Empty, Constants.Errors.PartnerPaymentSettingBlocked);
                         var partner = CacheManager.GetPartnerById(client.PartnerId);
 
@@ -469,7 +470,9 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                 throw BaseBll.CreateException(string.Empty, Constants.Errors.PartnerPaymentSettingNotFound);
             if (partnerPaymentSetting.State == (int)PartnerPaymentSettingStates.Inactive)
                 throw BaseBll.CreateException(string.Empty, Constants.Errors.PartnerPaymentSettingBlocked);
-            if (client.Citizenship.HasValue && partnerPaymentSetting.Countries.Any() && !partnerPaymentSetting.Countries.Contains(client.Citizenship.Value))
+            if (client.Citizenship.HasValue && partnerPaymentSetting.Countries.Ids.Any() &&
+               ((partnerPaymentSetting.Countries.Type ==(int)BonusSettingConditionTypes.InSet && !partnerPaymentSetting.Countries.Ids.Contains(client.Citizenship.Value)) ||
+                (partnerPaymentSetting.Countries.Type ==(int)BonusSettingConditionTypes.OutOfSet && partnerPaymentSetting.Countries.Ids.Contains(client.Citizenship.Value))))
                 throw BaseBll.CreateException(string.Empty, Constants.Errors.PartnerPaymentSettingBlocked);
 
             if (ExternalPlatformHelpers.IsExternalPlatformClient(client, out DAL.Models.Cache.PartnerKey externalPlatformType))
@@ -482,88 +485,97 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
 
             input.ClientId = clientId;
             input.PartnerId = partnerId;
-            using (var paymentSystemBl = new PaymentSystemBll(session, log))
+            using (var scope = CommonFunctions.CreateTransactionScope())
             {
-                using (var clientBl = new ClientBll(paymentSystemBl))
+                using (var paymentSystemBl = new PaymentSystemBll(session, log))
                 {
-                    using (var bonusService = new BonusService(paymentSystemBl))
+                    using (var clientBl = new ClientBll(paymentSystemBl))
                     {
-                        using (var notificationBl = new NotificationBll(paymentSystemBl))
+                        using (var bonusService = new BonusService(paymentSystemBl))
                         {
-                            var paymentRequest = new PaymentRequest
+                            using (var notificationBl = new NotificationBll(paymentSystemBl))
                             {
-                                Amount = input.Amount,
-                                ClientId = input.ClientId,
-                                CurrencyId = client.CurrencyId,
-                                Info = input.Info,
-                                PaymentSystemId = partnerPaymentSetting.PaymentSystemId,
-                                PartnerPaymentSettingId = partnerPaymentSetting.Id,
-                                ActivatedBonusType = input.BonusId,
-                                PaymentSystemName = paymentSystem.Name,
-                                AccountId = session.AccountId,
-                                BonusRefused = input.BonusRefused
-                            };
-                            if (!string.IsNullOrEmpty(input.PaymentForm))
-                            {
-                                var ftpModel = new FtpModel
+                                var paymentRequest = new PaymentRequest
                                 {
-                                    Url = CacheManager.GetPartnerSettingByKey(Constants.MainPartnerId, Constants.PartnerKeys.StatementFTPServer).StringValue,
-                                    UserName = CacheManager.GetPartnerSettingByKey(Constants.MainPartnerId, Constants.PartnerKeys.StatementFTPUsername).StringValue,
-                                    Password = CacheManager.GetPartnerSettingByKey(Constants.MainPartnerId, Constants.PartnerKeys.StatementFTPPassword).StringValue
+                                    Amount = input.Amount,
+                                    ClientId = input.ClientId,
+                                    CurrencyId = client.CurrencyId,
+                                    Info = input.Info,
+                                    PaymentSystemId = partnerPaymentSetting.PaymentSystemId,
+                                    PartnerPaymentSettingId = partnerPaymentSetting.Id,
+                                    ActivatedBonusType = input.BonusId,
+                                    PaymentSystemName = paymentSystem.Name,
+                                    AccountId = session.AccountId,
+                                    BonusRefused = input.BonusRefused
                                 };
-                                var imgName = $"ClientPaymentForms/{Guid.NewGuid()}_{client.Id}_{input.ImageName}";
-                                var path = $"ftp://{ftpModel.Url}/{imgName}";
-                                clientBl.UploadFtpImage(Convert.FromBase64String(input.PaymentForm), ftpModel, path);
-                                var dic = new Dictionary<string, string> { { "PaymentForm", imgName } };
-                                paymentRequest.Parameters = JsonConvert.SerializeObject(dic);
-                            }
-                            if (VoucherPaymentSystems.Contains(paymentSystem.Name))
-                            {
-                                var paymentInfo = JsonConvert.DeserializeObject<PaymentInfo>(input.Info);
-                                var dic = new Dictionary<string, string> { { "VoucherNumber", paymentInfo.VoucherNumber }, { "ActivationCode", paymentInfo.ActivationCode } };
-                                paymentRequest.Parameters = JsonConvert.SerializeObject(dic);
-                            }
-
-                            clientBl.CreateDepositFromPaymentSystem(paymentRequest, out LimitInfo info);
-                            CacheManager.RemoveTotalDepositAmount(paymentRequest.ClientId.Value);
-                            Helpers.Helpers.InvokeMessage("RemoveTotalDepositAmount", paymentRequest.ClientId.Value);
-                            Helpers.Helpers.InvokeMessage("PaymentRequst", paymentRequest.Id);
-                            try
-                            {
-                                var response = PaymentHelpers.SendPaymentDepositRequest(paymentRequest, partnerId, input.GoBackUrl, input.ErrorPageUrl, session, log);
-                                if (VoucherPaymentSystems.Contains(paymentSystem.Name))
-                                    Helpers.Helpers.InvokeMessage("ClientDepositWithBonus", paymentRequest.ClientId);
-
-                                return new ApiResponseBase
+                                if (!string.IsNullOrEmpty(input.PaymentForm))
                                 {
-                                    ResponseCode = response.Status == PaymentRequestStates.Failed ? Errors.GeneralException : Constants.SuccessResponseCode,
-                                    Description = response.Description,
-                                    ResponseObject = new
+                                    var ftpModel = new FtpModel
                                     {
-                                        Id = paymentRequest.Id,
-                                        Url = response.Url,
-                                        CancelUrl = response.CancelUrl,
-                                        Type = response.Type,
+                                        Url = CacheManager.GetPartnerSettingByKey(Constants.MainPartnerId, Constants.PartnerKeys.StatementFTPServer).StringValue,
+                                        UserName = CacheManager.GetPartnerSettingByKey(Constants.MainPartnerId, Constants.PartnerKeys.StatementFTPUsername).StringValue,
+                                        Password = CacheManager.GetPartnerSettingByKey(Constants.MainPartnerId, Constants.PartnerKeys.StatementFTPPassword).StringValue
+                                    };
+                                    var imgName = $"ClientPaymentForms/{Guid.NewGuid()}_{client.Id}_{input.ImageName}";
+                                    var path = $"ftp://{ftpModel.Url}/{imgName}";
+                                    clientBl.UploadFtpImage(Convert.FromBase64String(input.PaymentForm), ftpModel, path);
+                                    var dic = new Dictionary<string, string> { { "PaymentForm", imgName } };
+                                    paymentRequest.Parameters = JsonConvert.SerializeObject(dic);
+                                }
+                                if (VoucherPaymentSystems.Contains(paymentSystem.Name))
+                                {
+                                    var paymentInfo = JsonConvert.DeserializeObject<PaymentInfo>(input.Info);
+                                    var dic = new Dictionary<string, string> { { "VoucherNumber", paymentInfo.VoucherNumber }, { "ActivationCode", paymentInfo.ActivationCode } };
+                                    paymentRequest.Parameters = JsonConvert.SerializeObject(dic);
+                                }
+                                clientBl.CreateDepositFromPaymentSystem(paymentRequest, out LimitInfo info);
+                                CacheManager.RemoveTotalDepositAmount(paymentRequest.ClientId.Value);
+                                Helpers.Helpers.InvokeMessage("RemoveTotalDepositAmount", paymentRequest.ClientId.Value);
+                                Helpers.Helpers.InvokeMessage("PaymentRequst", paymentRequest.Id);
+                                try
+                                {
+                                    var response = PaymentHelpers.SendPaymentDepositRequest(paymentRequest, partnerId, input.GoBackUrl, input.ErrorPageUrl, session, log);
+                                    if (VoucherPaymentSystems.Contains(paymentSystem.Name))
+                                        Helpers.Helpers.InvokeMessage("ClientDepositWithBonus", paymentRequest.ClientId);
+                                    var res = new ApiResponseBase
+                                    {
+                                        ResponseCode = response.Status == PaymentRequestStates.Failed ? Errors.GeneralException : Constants.SuccessResponseCode,
                                         Description = response.Description,
-                                        Status = response.Status,
-                                        Data = response.Data,
-                                        PaymentSystemId = input.PaymentSystemId,
-                                        LimitInfo = info,
-                                        ApiBalance = CacheManager.GetClientCurrentBalance(clientId).ToApiBalance()
-                                    }
-                                };
-                            }
-                            catch (FaultException<BllFnErrorType> exc)
-                            {
-                                WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(exc.Detail));
-                                clientBl.ChangeDepositRequestState(paymentRequest.Id, PaymentRequestStates.Failed, exc.Detail != null ? exc.Detail.Message : exc.Message, notificationBl);
-                                throw;
-                            }
-                            catch (Exception exc)
-                            {
-                                WebApiApplication.DbLogger.Error(exc);
-                                clientBl.ChangeDepositRequestState(paymentRequest.Id, PaymentRequestStates.Failed, exc.Message, notificationBl);
-                                throw;
+                                        ResponseObject = new
+                                        {
+                                            Id = paymentRequest.Id,
+                                            Url = response.Url,
+                                            CancelUrl = response.CancelUrl,
+                                            Type = response.Type,
+                                            Description = response.Description,
+                                            Status = response.Status,
+                                            Data = response.Data,
+                                            PaymentSystemId = input.PaymentSystemId,
+                                            LimitInfo = info,
+                                            ApiBalance = CacheManager.GetClientCurrentBalance(clientId).ToApiBalance()
+                                        }
+                                    };
+                                    scope.Complete();
+                                    return res;
+                                }
+                                catch (FaultException<BllFnErrorType> exc)
+                                {
+                                    WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(exc.Detail));
+                                    clientBl.ChangeDepositRequestState(paymentRequest.Id, PaymentRequestStates.Failed, exc.Detail != null ? exc.Detail.Message : exc.Message, notificationBl);
+                                    if( exc?.Detail != null && 
+                                        exc.Detail.Id != Constants.Errors.FirstNameCantBeEmpty && exc.Detail.Id != Constants.Errors.LastNameCantBeEmpty &&
+                                        exc.Detail.Id != Constants.Errors.ZipCodeCantBeEmpty && exc.Detail.Id != Constants.Errors.AddressCantBeEmpty &&
+                                        exc.Detail.Id != Constants.Errors.EmailOrMobileMustBeFilled && exc.Detail.Id != Constants.Errors.RegionNotFound )
+                                        scope.Complete();
+                                    throw;
+                                }
+                                catch (Exception exc)
+                                {
+                                    WebApiApplication.DbLogger.Error(exc);
+                                    clientBl.ChangeDepositRequestState(paymentRequest.Id, PaymentRequestStates.Failed, exc.Message, notificationBl);
+                                    scope.Complete();
+                                    throw;
+                                }
                             }
                         }
                     }
@@ -600,12 +612,12 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                 if (providerName == Constants.GameProviders.IqSoft.ToLower())
                 {
                     var pKey = CacheManager.GetPartnerSettingByKey(partnerId, PartnerKeys.IqSoftBrandId);
-                    requestObject = Integration.Products.Helpers.IqSoftHelpers.GetBetInfo(pKey.StringValue, provider, externalTransactionId, 
+                    requestObject = Integration.Products.Helpers.IqSoftHelpers.GetBetInfo(pKey.StringValue, provider, externalTransactionId,
                         session.LanguageId, product.ExternalId, session.PartnerId);
                 }
                 else if (providerName == Constants.GameProviders.Internal.ToLower())
                 {
-                    requestObject = Integration.Products.Helpers.InternalHelpers.GetBetInfo(product, externalTransactionId, 
+                    requestObject = Integration.Products.Helpers.InternalHelpers.GetBetInfo(product, externalTransactionId,
                         session.LanguageId, product.ExternalId, session.PartnerId);
                 }
                 else if (providerName == Constants.GameProviders.BAS.ToLower())
@@ -657,7 +669,7 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
             switch (provider.Name)
             {
                 case Constants.GameProviders.IqSoft:
-                    requestObject = Integration.Products.Helpers.InternalHelpers.GetBetInfo(product, input.BetId.ToString(), session.LanguageId, 
+                    requestObject = Integration.Products.Helpers.InternalHelpers.GetBetInfo(product, input.BetId.ToString(), session.LanguageId,
                         product.ExternalId, session.PartnerId);
                     break;
                 default:
@@ -717,7 +729,7 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
 
                         if (input.Status != null && input.Status > 0)
                             resp = resp.Where(x => x.Status == input.Status).ToList();
-                        if(input.FromDate != null)
+                        if (input.FromDate != null)
                             resp = resp.Where(x => x.AwardingTime >= input.FromDate).ToList();
 
                         var bonusStates = BaseBll.GetEnumerations(EnumerationTypes.BonusStates, session.LanguageId).ToDictionary(x => x.Value, x => x.Text);
@@ -814,7 +826,7 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                         default:
                             throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.WrongProductId);
                     }
-                     Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}", Constants.CacheItems.ClientBalance, clientId));
+                    Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}", Constants.CacheItems.ClientBalance, clientId));
                     return new ApiResponseBase();
                 }
             }
@@ -917,7 +929,7 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
             {
                 var client = CacheManager.GetClientById(clientId);
                 var bonusInfo = clientBl.GetClientDepositBonusInfo(client, paymentSystemId);
-                
+
                 var partner = CacheManager.GetPartnerById(client.PartnerId);
                 return new ApiResponseBase
                 {
@@ -939,6 +951,16 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
             return new ApiResponseBase
             {
                 ResponseObject = BaseBll.GetEnumerations(enumName, identity.LanguageId).Select(x => x.MapToApiEnumeration()).ToList()
+            };
+        }
+
+        private static ApiResponseBase GetPaymentAccountTypes(int paymentSystemId, SessionIdentity identity)
+        {
+            return new ApiResponseBase
+            {
+                ResponseObject = CacheManager.GetConfigParameters(identity.PartnerId, Constants.PartnerKeys.PaymentSystemAccountTypes)
+                                             .Where(x => x.Value == paymentSystemId.ToString())
+                                             .Select(x => new { Name = x.Key, Value = x.Key }).ToList()
             };
         }
     }

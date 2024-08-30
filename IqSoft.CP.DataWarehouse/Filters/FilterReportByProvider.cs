@@ -10,6 +10,8 @@ namespace IqSoft.CP.DataWarehouse.Filters
 
         public DateTime ToDate { get; set; }
 
+        public int? AgentId { get; set; }
+
         public FiltersOperation ProviderNames { get; set; }
 
         public FiltersOperation Currencies { get; set; }

@@ -17,6 +17,11 @@ namespace IqSoft.CP.DAL.Filters
         public int? ProviderId { get; set; }
         public int? ProductId { get; set; }
         public string CategoryIds { get; set; }
+        public bool? IsProviderActive { get; set; }
+        public bool? FreeSpinSupport { get; set; }
+        public int? ParentId { get; set; }
+        public string Pattern { get; set; }
+        public string Path { get; set; }
         public FiltersOperation ProductIsLeaf { get; set; }
         public FiltersOperation Ids { get; set; }
         public FiltersOperation ProductIds { get; set; }
@@ -47,7 +52,7 @@ namespace IqSoft.CP.DAL.Filters
                 objects = objects.Where(x => x.State == State);
             if (ProductSettingIds != null && ProductSettingIds.Count > 0)
                 objects = objects.Where(x => ProductSettingIds.Contains(x.Id));
-            if(HasImages.HasValue)
+            if (HasImages.HasValue)
                 objects = objects.Where(x => x.HasImages == HasImages);
             if (HasDemo.HasValue)
                 objects = objects.Where(x => x.HasDemo == HasDemo);
@@ -55,6 +60,16 @@ namespace IqSoft.CP.DAL.Filters
                 objects = objects.Where(x => x.IsForDesktop == IsForDesktop);
             if (IsForMobile.HasValue)
                 objects = objects.Where(x => x.IsForMobile == IsForMobile);
+            if (FreeSpinSupport.HasValue)
+                objects = objects.Where(x => x.ProductGameProviderId == null || x.FreeSpinSupport == FreeSpinSupport.Value);
+            if (IsProviderActive.HasValue)
+                objects = objects.Where(x => x.IsProviderActive == null || x.IsProviderActive == IsProviderActive.Value);
+            if (ParentId.HasValue)
+                objects = objects.Where(x => x.ParentId == ParentId);
+            if (!string.IsNullOrEmpty(Path))
+                objects = objects.Where(x => x.Path.Contains(Path));
+            if (!string.IsNullOrEmpty(Pattern))
+                objects = objects.Where(x => x.ProductGameProviderId != null && (x.ProductName.Contains(Pattern) || x.ProductNickName.Contains(Pattern)));
 
             if (!string.IsNullOrEmpty(CategoryIds))
                 objects = objects.Where(x => x.CategoryIds.Contains("[" + CategoryIds + "]") || x.CategoryIds.Contains("," + CategoryIds + ",") ||

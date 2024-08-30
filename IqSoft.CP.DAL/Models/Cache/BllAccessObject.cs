@@ -13,7 +13,7 @@ namespace IqSoft.CP.DAL.Models.Cache
 
         public int ObjectTypeId { get; set; }
 
-        public long ObjectId { get; set; }
+        public string ObjectId { get; set; }
 
         public int UserId { get; set; }
 

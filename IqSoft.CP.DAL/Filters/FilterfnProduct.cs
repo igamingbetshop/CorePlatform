@@ -6,33 +6,27 @@ namespace IqSoft.CP.DAL.Filters
 {
     public class FilterfnProduct : FilterBase<fnProduct>
     {
+        public int? PartnerId { get; set; }
         public int? ParentId { get; set; }
         public int? ProductId { get; set; }
         public int? Level { get; set; }
-        public bool? FreeSpinSupport { get; set; }
         public string Pattern { get; set; }
         public bool? HasImages { get; set; }
         public bool? IsForMobile { get; set; }
         public bool? IsForDesktop { get; set; }
+        public bool? FreeSpinSupport { get; set; }
         public bool? IsProviderActive { get; set; }
+        public string Path { get; set; }
 
         public FiltersOperation Ids { get; set; }
-
         public FiltersOperation Names { get; set; }
-
         public FiltersOperation Descriptions { get; set; }
-
         public FiltersOperation ExternalIds { get; set; }
-
         public FiltersOperation States { get; set; }
-
         public FiltersOperation GameProviderIds { get; set; }
-
         public FiltersOperation SubProviderIds { get; set; }
         public FiltersOperation HasDemo { get; set; }
-        
         public FiltersOperation FreeSpinSupports { get; set; }
-        
         public FiltersOperation Jackpots { get; set; }
         public FiltersOperation RTPs { get; set; }
 
@@ -56,6 +50,8 @@ namespace IqSoft.CP.DAL.Filters
                 objects = objects.Where(x => x.GameProviderId == null || x.FreeSpinSupport == FreeSpinSupport.Value);
             if (!string.IsNullOrEmpty(Pattern))
                 objects = objects.Where(x => x.GameProviderId != null && (x.Name.Contains(Pattern) || x.NickName.Contains(Pattern)));
+            if (!string.IsNullOrEmpty(Path))
+                objects = objects.Where(x => x.Path.Contains(Path));
 
             FilterByValue(ref objects, Ids, "Id");
             FilterByValue(ref objects, Names, "Name");

@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\buildMultiTargeting\IqSoft.CP.PaymentGatewayCore.props" />
+</Project>

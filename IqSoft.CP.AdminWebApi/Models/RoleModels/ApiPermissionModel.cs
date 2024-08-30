@@ -14,8 +14,6 @@ namespace IqSoft.CP.AdminWebApi.Models.RoleModels
 
         public bool IsForAll { get; set; }
 
-        public List<AccessObjectModel> AccessObjects { get; set; }
-
-        public List<long> AccessObjectsIds { get; set; }
+        public List<string> AccessObjectsIds { get; set; }
     }
 }

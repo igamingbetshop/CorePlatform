@@ -25,8 +25,11 @@ namespace IqSoft.CP.AdminWebApi.Models.ProductModels
 		public bool HasDemo { get; set; }
 		public bool? FreeSpinSupport { get; set; }
         public string WebImageUrl { get; set; }
+        public string WebImage { get; set; }
         public string MobileImageUrl { get; set; }
+        public string MobileImage { get; set; }
         public string BackgroundImageUrl { get; set; }
+        public string BackgroundImage { get; set; }
         public int? CategoryId { get; set; }
         public decimal? RTP { get; set; }
         public string Lines { get; set; }

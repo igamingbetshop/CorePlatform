@@ -1,6 +1,5 @@
 ﻿using IqSoft.CP.Common.Models.AgentModels;
 using IqSoft.CP.Common.Models.Commission;
-using System;
 using System.Collections.Generic;
 
 namespace IqSoft.CP.AgentWebApi.Models.ClientModels
@@ -11,6 +10,7 @@ namespace IqSoft.CP.AgentWebApi.Models.ClientModels
         public string UserName { get; set; }
         public string Email { get; set; }
         public string MobileNumber { get; set; }
+        public string MobileCode { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string Password { get; set; }

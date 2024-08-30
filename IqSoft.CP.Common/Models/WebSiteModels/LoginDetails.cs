@@ -13,5 +13,6 @@
         public string RefreshToken { get; set; }
         public string MobileNumber { get; set; }
         public bool IAmAgent { get; set; }
+        public int ClientId { get; set; }
     }
 }

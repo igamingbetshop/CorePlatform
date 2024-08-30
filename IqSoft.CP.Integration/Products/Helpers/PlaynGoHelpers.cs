@@ -42,13 +42,29 @@ namespace IqSoft.CP.Integration.Products.Helpers
             var isStaging = CacheManager.GetGameProviderValueByKey(client.PartnerId, Provider.Id, Constants.PartnerKeys.PlaynGoGMTIsStaging);
             var username = CacheManager.GetGameProviderValueByKey(client.PartnerId, Provider.Id, Constants.PartnerKeys.PlaynGoGMTApiUsername);
             var pass = CacheManager.GetGameProviderValueByKey(client.PartnerId, Provider.Id, Constants.PartnerKeys.PlaynGoGMTApiPassword);
+            var product = CacheManager.GetProductByExternalId(Provider.Id, freeSpinModel.ProductExternalId);
+
+            decimal? bValue = null;
+            if (!string.IsNullOrEmpty(freeSpinModel.BetValues))
+            {
+                var bv = JsonConvert.DeserializeObject<Dictionary<string, decimal>>(freeSpinModel.BetValues);
+                if (bv.ContainsKey(client.CurrencyId))
+                    bValue = bv[client.CurrencyId];
+            }
+            if (bValue == null && !string.IsNullOrEmpty(product.BetValues))
+            {
+                var bv = JsonConvert.DeserializeObject<Dictionary<string, List<decimal>>>(product.BetValues);
+                if (bv.ContainsKey(client.CurrencyId) && bv[client.CurrencyId].Any())
+                    bValue = bv[client.CurrencyId][0];
+            }
+
             if (isStaging == "0")
             {
                 var prdService = new PlaynGoTPServicePrd.CasinoGameTPServiceClient();
                 prdService.ClientCredentials.UserName.UserName = username;
                 prdService.ClientCredentials.UserName.Password = pass;
                 var gamesList = freeSpinModel.ProductExternalIds.Select(x => Convert.ToInt32(x.Split('-')[0])).ToArray();
-                prdService.AddFreegameOffers(client.Id.ToString(), null, (int?)freeSpinModel.Lines, (int?)freeSpinModel.Coins, freeSpinModel.BetValueLevel,
+                prdService.AddFreegameOffers(client.Id.ToString(), null, (int?)freeSpinModel.Lines, (int?)freeSpinModel.Coins, bValue,
                                           freeSpinModel.SpinCount, freeSpinModel.FinishTime, null, null, null, null, null, gamesList);
 
             }
@@ -58,7 +74,7 @@ namespace IqSoft.CP.Integration.Products.Helpers
                 stgService.ClientCredentials.UserName.UserName = username;
                 stgService.ClientCredentials.UserName.Password = pass;
                 var gamesList = freeSpinModel.ProductExternalIds.Select(x => Convert.ToInt32(x.Split('-')[0])).ToArray();
-                stgService.AddFreegameOffers(client.Id.ToString(), null, (int?)freeSpinModel.Lines, (int?)freeSpinModel.Coins, freeSpinModel.BetValueLevel,
+                stgService.AddFreegameOffers(client.Id.ToString(), null, (int?)freeSpinModel.Lines, (int?)freeSpinModel.Coins, bValue,
                                           freeSpinModel.SpinCount, freeSpinModel.FinishTime, null, null, null, null, null, gamesList);
             }
         }

@@ -36,7 +36,7 @@ namespace IqSoft.CP.BLL.Services
             var checkPermissionResult = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.CreateRegion,
-                ObjectTypeId = ObjectTypes.Region,
+                ObjectTypeId = (int)ObjectTypes.Region,
                 ObjectId = region.Id
             });
             if (!checkPermissionResult.HaveAccessForAllObjects &&
@@ -128,7 +128,7 @@ namespace IqSoft.CP.BLL.Services
                 var checkPermissionResult = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewRegion,
-                    ObjectTypeId = ObjectTypes.Region
+                    ObjectTypeId = (int)ObjectTypes.Region
                 });
                 if (!checkPermissionResult.HaveAccessForAllObjects)
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);

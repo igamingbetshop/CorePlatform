@@ -47,6 +47,7 @@ namespace IqSoft.CP.DAL
         public Nullable<decimal> AutoApproveMaxAmount { get; set; }
         public Nullable<bool> RefundRollbacked { get; set; }
         public string Condition { get; set; }
+        public Nullable<decimal> Percent { get; set; }
         public string Name { get; set; }
     }
 }

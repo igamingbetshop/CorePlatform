@@ -361,6 +361,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="Controllers\BetMakersController.cs" />
     <Compile Include="Controllers\AleaPartnersController.cs" />
     <Compile Include="Controllers\AleaPlayController.cs" />
     <Compile Include="Controllers\AWCController.cs" />
@@ -389,6 +390,7 @@
     <Compile Include="Controllers\HabaneroController.cs" />
     <Compile Include="Controllers\IgromatController.cs" />
     <Compile Include="Controllers\IgrosoftController.cs" />
+    <Compile Include="Controllers\ImperiumGamesController.cs" />
     <Compile Include="Controllers\InBetController.cs" />
     <Compile Include="Controllers\InternalBetShopGamesController.cs" />
     <Compile Include="Controllers\IqSoftBetShopGamesController.cs" />
@@ -465,6 +467,7 @@
     <Compile Include="Helpers\IqSoftHelpers.cs" />
     <Compile Include="Helpers\ISoftBetHelpers.cs" />
     <Compile Include="Helpers\KironHelpers.cs" />
+    <Compile Include="Helpers\LuckyStreakHelpers.cs" />
     <Compile Include="Helpers\MancalaHelpers.cs" />
     <Compile Include="Helpers\MicroGamingHelpers.cs" />
     <Compile Include="Helpers\NucleusHelpers.cs" />
@@ -499,6 +502,9 @@
     <Compile Include="Models\AleaPlay\BetInput.cs" />
     <Compile Include="Models\AWC\BaseInput.cs" />
     <Compile Include="Models\AWC\BaseOutput.cs" />
+    <Compile Include="Models\BetMakers\BaseInput.cs" />
+    <Compile Include="Models\ImperiumGames\BaseOutput.cs" />
+    <Compile Include="Models\ImperiumGames\GetBalanceInput.cs" />
     <Compile Include="Models\LuckyStreak\BalanceInput.cs" />
     <Compile Include="Models\LuckyStreak\TransactionInput.cs" />
     <Compile Include="Models\LuckyStreak\ValidateInput.cs" />

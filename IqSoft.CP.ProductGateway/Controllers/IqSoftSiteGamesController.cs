@@ -534,70 +534,63 @@ namespace IqSoft.CP.ProductGateway.Controllers
                             FinishTime = validUntil,
                             SpinCount = input.SpinCount,
                             ProductExternalId = partnerSetting.ProductExternalId,
+                            ProductExternalIds = new List<string> { partnerSetting.ProductExternalId },
                             ProductId = partnerSetting.ProductId,
                             Lines = input.Lines,
                             Coins = input.Coins,
                             CoinValue = input.CoinValue,
-                            BetValueLevel = input.BetValueLevel
+                            BetValues = input.BetValues
                         };
+                        var granted = false;
                         switch (partnerSetting.GameProviderName)
                         {
                             case Constants.GameProviders.TwoWinPower:
-                                // create method using productIds
-                                //   Integration.Products.Helpers.TwoWinPowerHelpers.SetFreespin(input.ClientId, clientBonus.Id, input.SpinCount, WebApiApplication.DbLogger);
-                                break;
-                            case Constants.GameProviders.OutcomeBet:
-                            case Constants.GameProviders.Mascot:
-                                // create method using productIds
+                                Integration.Products.Helpers.TwoWinPowerHelpers.SetFreespin(clientBonus.ClientId, clientBonus.Id, clientBonus.Id, WebApiApplication.DbLogger);
+                                granted = true;//check
                                 break;
                             case Constants.GameProviders.BlueOcean:
-                                Integration.Products.Helpers.BlueOceanHelpers.AddFreeRound(clientBonus.ClientId, new List<string> { partnerSetting.ProductExternalId },
+                               Integration.Products.Helpers.BlueOceanHelpers.AddFreeRound(clientBonus.ClientId, new List<string> { partnerSetting.ProductExternalId },
                                                                                            input.SpinCount, currentDate, validUntil);
+                                granted = true;//check
                                 break;
                             case Constants.GameProviders.SoftGaming:
-                                freespinModel.ProductExternalId = partnerSetting.ProductExternalId;
-                                freespinModel.SpinCount = input.SpinCount;
                                 Integration.Products.Helpers.SoftGamingHelpers.AddFreeRound(freespinModel, WebApiApplication.DbLogger);
                                 break;
                             case Constants.GameProviders.PragmaticPlay:
-                                Integration.Products.Helpers.PragmaticPlayHelpers.AddFreeRound(clientBonus.ClientId, new List<string> { partnerSetting.ProductExternalId },
-                                                                                               input.SpinCount, clientBonus.Id, currentDate, validUntil);
+                                granted = Integration.Products.Helpers.PragmaticPlayHelpers.AddFreeRound(freespinModel, WebApiApplication.DbLogger);
                                 break;
                             case Constants.GameProviders.Habanero:
-                                Integration.Products.Helpers.HabaneroHelpers.AddFreeRound(clientBonus.ClientId, new List<string> { partnerSetting.ProductExternalId },
-                                                                                          input.SpinCount, currentDate, validUntil);
+                                granted = Integration.Products.Helpers.HabaneroHelpers.AddFreeRound(freespinModel, WebApiApplication.DbLogger);
                                 break;
                             case Constants.GameProviders.BetSoft:
-                                Integration.Products.Helpers.BetSoftHelpers.AddFreeRound(clientBonus.ClientId, new List<string> { partnerSetting.ProductExternalId },
-                                                                                         input.SpinCount, clientBonus.Id, currentDate, validUntil);
+                                granted = Integration.Products.Helpers.BetSoftHelpers.AddFreeRound(freespinModel, WebApiApplication.DbLogger);
                                 break;
                             case Constants.GameProviders.SoftSwiss:
-                                Integration.Products.Helpers.SoftSwissHelpers.AddFreeRound(clientBonus.ClientId, clientBonus.Id, new List<string> { partnerSetting.ProductExternalId },
-                                                                                           input.SpinCount, validUntil, WebApiApplication.DbLogger);
+                                granted = Integration.Products.Helpers.SoftSwissHelpers.AddFreeRound(freespinModel, WebApiApplication.DbLogger);
                                 break;
                             case Constants.GameProviders.EveryMatrix:
-                                Integration.Products.Helpers.EveryMatrixHelpers.AwardFreeSpin(freespinModel, WebApiApplication.DbLogger);
+                                granted = Integration.Products.Helpers.EveryMatrixHelpers.AwardFreeSpin(freespinModel, WebApiApplication.DbLogger);
                                 break;
                             case Constants.GameProviders.PlaynGo:
                                 freespinModel.ProductExternalIds = new List<string> { partnerSetting.ProductExternalId };
                                 Integration.Products.Helpers.PlaynGoHelpers.AddFreeRound(freespinModel, WebApiApplication.DbLogger);
+                                granted = true;
                                 break;
                             case Constants.GameProviders.AleaPlay:
-                                Integration.Products.Helpers.AleaPlayHelpers.AddFreeRound(freespinModel, WebApiApplication.DbLogger);                             
-                                break;
-                            case Constants.GameProviders.Endorphina:
-                                Integration.Products.Helpers.EndorphinaHelpers.AddFreeRound(freespinModel, WebApiApplication.DbLogger);                             
+                                granted = Integration.Products.Helpers.AleaPlayHelpers.AddFreeRound(freespinModel, WebApiApplication.DbLogger);                             
                                 break;
                             case Constants.GameProviders.TimelessTech:
-                                Integration.Products.Helpers.TimelessTechHelpers.CreateCampaign(freespinModel, Constants.GameProviders.TimelessTech, WebApiApplication.DbLogger);                             
-                                break;
                             case Constants.GameProviders.BCWGames:
-                                Integration.Products.Helpers.TimelessTechHelpers.CreateCampaign(freespinModel, Constants.GameProviders.BCWGames, WebApiApplication.DbLogger);
+                                granted = Integration.Products.Helpers.TimelessTechHelpers.CreateCampaign(freespinModel, partnerSetting.GameProviderName, WebApiApplication.DbLogger);
                                 break;
-
+                            case Constants.GameProviders.Endorphina:
+                                granted = Integration.Products.Helpers.EndorphinaHelpers.AddFreeRound(freespinModel, WebApiApplication.DbLogger);                             
+                                break;
                             default:
                                 break;
                         }
+                        if (!granted)
+                            throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.BonusNotFound);
                     }
                     scope.Complete();
                 }

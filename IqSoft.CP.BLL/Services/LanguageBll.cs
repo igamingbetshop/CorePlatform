@@ -52,14 +52,14 @@ namespace IqSoft.CP.BLL.Services
             var checkPermissionResult = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.CreatePartnerLanguageSetting,
-                ObjectTypeId = ObjectTypes.Language,
+                ObjectTypeId = (int)ObjectTypes.Language,
                 ObjectId = partnerLanguageSetting.Id //??
             });
 
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             if (!checkPermissionResult.HaveAccessForAllObjects &&
                 !checkPermissionResult.AccessibleObjects.Contains(partnerLanguageSetting.Id) ||

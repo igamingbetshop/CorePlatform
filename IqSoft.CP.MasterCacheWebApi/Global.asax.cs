@@ -90,10 +90,6 @@ namespace IqSoft.CP.MasterCacheWebApi
             {
                 CacheManager.RemoveCommentTemplateFromCache(partnerId, commentType);
             });
-            JobHubProxy.On<int, int>("onRemoveBanners", (partnerId, type) =>
-             {
-                 CacheManager.RemoveBanners(partnerId, type);
-             });
             JobHubProxy.On<int>("onRemoveClient", (clientId) =>
             {
                 CacheManager.RemoveClientFromCache(clientId);

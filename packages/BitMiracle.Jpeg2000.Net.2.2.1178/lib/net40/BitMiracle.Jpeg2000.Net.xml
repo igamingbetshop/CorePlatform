@@ -1,0 +1,885 @@
+<?xml version="1.0"?>
+<doc>
+  <assembly>
+    <name>BitMiracle.Jpeg2000.Net</name>
+  </assembly>
+  <members>
+    <member name="T:BitMiracle.Jpeg2k.J2kCodec">
+      <summary>
+            Enumerations of all supported JPEG 2000 codecs.
+            </summary>
+    </member>
+    <member name="F:BitMiracle.Jpeg2k.J2kCodec.J2k">
+      <summary>
+            JPEG-2000 codestream.
+            </summary>
+    </member>
+    <member name="F:BitMiracle.Jpeg2k.J2kCodec.Jp2">
+      <summary>
+            JP2 file format.
+            </summary>
+    </member>
+    <member name="T:BitMiracle.Jpeg2k.J2kColorSpace">
+      <summary>
+            Supported JPEG 2000 image color spaces
+            </summary>
+    </member>
+    <member name="F:BitMiracle.Jpeg2k.J2kColorSpace.Unknown">
+      <summary>
+            Not supported by the library.
+            </summary>
+    </member>
+    <member name="F:BitMiracle.Jpeg2k.J2kColorSpace.Unspecified">
+      <summary>
+            Not specified in the codestream.
+            </summary>
+    </member>
+    <member name="F:BitMiracle.Jpeg2k.J2kColorSpace.Srgb">
+      <summary>
+            sRGB color space.
+            </summary>
+    </member>
+    <member name="F:BitMiracle.Jpeg2k.J2kColorSpace.Gray">
+      <summary>
+            Grayscale color space.
+            </summary>
+    </member>
+    <member name="F:BitMiracle.Jpeg2k.J2kColorSpace.Sycc">
+      <summary>
+            sYCC (YUV) color space.
+            </summary>
+    </member>
+    <member name="F:BitMiracle.Jpeg2k.J2kColorSpace.Eycc">
+      <summary>
+            e-YCC color space.
+            </summary>
+    </member>
+    <member name="F:BitMiracle.Jpeg2k.J2kColorSpace.Cmyk">
+      <summary>
+            CMYK color space.
+            </summary>
+    </member>
+    <member name="T:BitMiracle.Jpeg2k.J2kDecodingOptions">
+      <summary>
+            The options for JPEG 2000 image decoding.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kDecodingOptions.ForceRgbColorSpace">
+      <summary>
+            Gets or sets a value indicating whether to force output colorspace to RGB.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kDecodingOptions.UpsampleComponents">
+      <summary>
+            Gets or sets a value indicating whether to upsample components.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kDecodingOptions.ComponentPrecision">
+      <summary>
+            Gets or sets information about how to change image components precision.
+            </summary>
+      <remarks>
+        <para>
+            Number of elements in this array must be less or equal to the number of image components.
+            </para>
+        <para>
+            If this property is <c>null</c> then components precision is not changed.
+            </para>
+      </remarks>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kDecodingOptions.ThreadCount">
+      <summary>
+            Gets or sets the number of threads to use for decoding.
+            </summary>
+      <remarks>
+        <para>Default value: 1</para>
+        <para>The value should be greater than or equal to <c>1</c>.</para>
+      </remarks>
+    </member>
+    <member name="T:BitMiracle.Jpeg2k.J2kEncodingOptions">
+      <summary>
+            The options to use when creating a JPEG 2000 image.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kEncodingOptions.Codec">
+      <summary>
+            Gets or sets the codec to use when creating the image.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kEncodingOptions.ProduceTiledImage">
+      <summary>
+            Gets or sets a value indicating whether to produce image that consists of more than
+            one tile.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kEncodingOptions.TileWidth">
+      <summary>
+            Gets or sets the width of the tiles in the output image.
+            </summary>
+      <remarks>
+            This paramater is ignored if <see cref="P:BitMiracle.Jpeg2k.J2kEncodingOptions.ProduceTiledImage" /> is <c>false</c>.
+            </remarks>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kEncodingOptions.TileHeight">
+      <summary>
+            Gets or sets the height of the tiles in the output image.
+            </summary>
+      <remarks>
+            This paramater is ignored if <see cref="P:BitMiracle.Jpeg2k.J2kEncodingOptions.ProduceTiledImage" /> is <c>false</c>.
+            </remarks>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kEncodingOptions.ProgressionOrder">
+      <summary>
+            Gets or sets the progression order to use when creating the image.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kEncodingOptions.ResolutionLevelCount">
+      <summary>
+            Gets or sets the number of resolution levels in the output image.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kEncodingOptions.InitialCodeBlockWidth">
+      <summary>
+            Gets or sets the initial code block width.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kEncodingOptions.InitialCodeBlockHeight">
+      <summary>
+            Gets or sets the initial code block height.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kEncodingOptions.QualityMode">
+      <summary>
+            Gets or sets the value indicating how to treat quality values specified
+            by <see cref="P:BitMiracle.Jpeg2k.J2kEncodingOptions.QualityValues" /></summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kEncodingOptions.QualityValues">
+      <summary>
+            Gets or sets the quality values to use while encoding.
+            </summary>
+      <remarks>
+        <para>
+            Meaning of the quality values depend on the value of the <see cref="P:BitMiracle.Jpeg2k.J2kEncodingOptions.QualityMode" />.
+            </para>
+        <para>
+            If the quality mode is <c>QualityMode.CompressionRatio</c> then the values of this array
+            are compression ratios for successive layers. The rate specified for each quality level
+            is the desired compression factor. Decreasing ratios required. Values 1 and 0 are
+            treated the same. Example: 20, 10, 1 means
+            <list type="bullet"><item><description>quality layer 1: compress 20x</description></item><item><description>quality layer 2: compress 10x</description></item><item><description>quality layer 3: compress lossless</description></item></list></para>
+        <para>
+            If the quality mode is <c>QualityMode.FixedQuality</c> then the values of this array
+            are Peak signal-to-noise ratios (PSNR) for successive layers. Increasing ratios
+            required. Example: 30, 40, 50.
+            </para>
+        <para>
+            When talking about PSNR in context of image compression the signal is the original
+            data, and the noise is the error introduced by compression. PSNR is an approximation to
+            human perception of reconstruction quality.
+            </para>
+        <para>
+            Typical values for the PSNR in lossy image and video compression are between 30 and
+            50 dB, provided the bit depth is 8 bits, where higher is better. For 16-bit data
+            typical values for the PSNR are between 60 and 80 dB.
+            </para>
+      </remarks>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kEncodingOptions.InitialPrecintSizes">
+      <summary>
+            Gets or sets the initial precint sizes.
+            </summary>
+      <remarks>
+        <para>
+            The array must contain even number of elements. Each pair of elements in the array
+            specify size of a precint. The first value in a pair is the width, the second value
+            is the height of the precint.
+            </para>
+        <para>
+            Values specified must be power of 2. Multiple pairs may be supplied, in which case
+            the first pair refers to the highest resolution level and subsequent pairs to
+            lower resolution levels. The last specified pair is reused for each remaining
+            lower resolution levels.
+            </para>
+        <para>
+            When this parameter is <c>null</c>, the default initial precint sizes are used.
+            </para>
+        <para>
+            Default initial precint size is 2^15 x 2^15. This means 1 precinct.
+            </para>
+      </remarks>
+    </member>
+    <member name="T:BitMiracle.Jpeg2k.J2kException">
+      <summary>
+            Class for Jpeg2000.Net specific esceptions.
+            </summary>
+    </member>
+    <member name="M:BitMiracle.Jpeg2k.J2kException.#ctor">
+      <summary>
+            Initializes a new instance of the <see cref="T:BitMiracle.Jpeg2k.J2kException" /> class without providing
+            a message.
+            </summary>
+      <overloads>Initializes a new instance of the
+            <see cref="T:BitMiracle.Jpeg2k.J2kException" /> class.</overloads>
+    </member>
+    <member name="M:BitMiracle.Jpeg2k.J2kException.#ctor(System.String)">
+      <summary>
+            Initializes a new instance of the <see cref="T:BitMiracle.Jpeg2k.J2kException" /> class.
+            </summary>
+      <param name="message">The message.</param>
+    </member>
+    <member name="M:BitMiracle.Jpeg2k.J2kException.#ctor(System.String,System.Exception)">
+      <summary>
+            Initializes a new instance of the <see cref="T:BitMiracle.Jpeg2k.J2kException" /> class.
+            </summary>
+      <param name="message">The message.</param>
+      <param name="innerException">The inner exception.</param>
+    </member>
+    <member name="M:BitMiracle.Jpeg2k.J2kException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+      <summary>
+            Initializes a new instance of the <see cref="T:BitMiracle.Jpeg2k.J2kException" /> class.
+            </summary>
+      <param name="info">The
+            <see cref="T:System.Runtime.Serialization.SerializationInfo" /> that
+            holds the serialized object data about the exception being
+            thrown.</param>
+      <param name="context">The
+            <see cref="T:System.Runtime.Serialization.StreamingContext" /> that
+            contains contextual information about the source or
+            destination.</param>
+      <exception cref="T:System.ArgumentNullException">The
+            <paramref name="info" /> parameter is null. </exception>
+      <exception cref="T:System.Runtime.Serialization.SerializationException">
+            The class name is null or <see cref="P:System.Exception.HResult" />
+            is zero (0). </exception>
+    </member>
+    <member name="T:BitMiracle.Jpeg2k.J2kImage">
+      <summary>
+            Properties and methods for a JPEG 2000 image.
+            </summary>
+    </member>
+    <member name="M:BitMiracle.Jpeg2k.J2kImage.#ctor(System.String)">
+      <summary>
+            Initializes a new instance of the <see cref="T:BitMiracle.Jpeg2k.J2kImage" /> class with
+            data from the specified file.
+            </summary>
+      <param name="fileName">The name of the file with the image.</param>
+      <overloads>Initializes a new instance of the <see cref="T:BitMiracle.Jpeg2k.J2kImage" /> class.</overloads>
+    </member>
+    <member name="M:BitMiracle.Jpeg2k.J2kImage.#ctor(System.String,BitMiracle.Jpeg2k.J2kOpenOptions)">
+      <summary>
+            Initializes a new instance of the <see cref="T:BitMiracle.Jpeg2k.J2kImage" /> class with
+            data from the specified stream.
+            </summary>
+      <param name="fileName">The name of the file with the image.</param>
+      <param name="options">The options to use while opening the image.</param>
+      <overloads>Initializes a new instance of the <see cref="T:BitMiracle.Jpeg2k.J2kImage" /> class.</overloads>
+    </member>
+    <member name="M:BitMiracle.Jpeg2k.J2kImage.#ctor(System.IO.Stream)">
+      <summary>
+            Initializes a new instance of the <see cref="T:BitMiracle.Jpeg2k.J2kImage" /> class with
+            data from the specified stream.
+            </summary>
+      <param name="stream">The stream with the image.</param>
+      <remarks>The stream will not be owned or disposed by this object. The creator of this
+            instance should dispose the stream himself.</remarks>
+    </member>
+    <member name="M:BitMiracle.Jpeg2k.J2kImage.#ctor(System.IO.Stream,BitMiracle.Jpeg2k.J2kOpenOptions)">
+      <summary>
+            Initializes a new instance of the <see cref="T:BitMiracle.Jpeg2k.J2kImage" /> class with
+            data from the specified file.
+            </summary>
+      <param name="stream">The stream with the image.</param>
+      <param name="options">The options to use while opening the image.</param>
+      <remarks>The stream will not be owned or disposed by this object. The creator of this
+            instance should dispose the stream himself.</remarks>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kImage.Width">
+      <summary>
+            Gets width of the image.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kImage.Height">
+      <summary>
+            Gets height of the image.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kImage.ColorSpace">
+      <summary>
+            Gets color space of the image.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kImage.ComponentsInfo">
+      <summary>
+            Gets read-only collection of this image components information.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kImage.TileWidth">
+      <summary>
+            Gets width of one reference tile.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kImage.TileHeight">
+      <summary>
+            Gets height of one reference tile.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kImage.TileCount">
+      <summary>
+            Gets number of tiles in this image.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kImage.DefaultTileInfo">
+      <summary>
+            Gets information common to all tiles in this image.
+            </summary>
+    </member>
+    <member name="M:BitMiracle.Jpeg2k.J2kImage.Dispose">
+      <summary>
+            Disposes stream and other resources used by this image.
+            </summary>
+    </member>
+    <member name="M:BitMiracle.Jpeg2k.J2kImage.DecodeTile(System.Int32)">
+      <summary>
+            Decodes one tile of the image using default decoding options.
+            </summary>
+      <param name="tileIndex">The index of the tile to decode.</param>
+      <returns>Decoded tile data and properties.</returns>
+      <overloads>Decodes one tile of the image.</overloads>
+    </member>
+    <member name="M:BitMiracle.Jpeg2k.J2kImage.DecodeTile(System.Int32,BitMiracle.Jpeg2k.J2kDecodingOptions)">
+      <summary>
+            Decodes one tile of the image using specified decoding options.
+            </summary>
+      <param name="tileIndex">The index of the tile to decode.</param>
+      <param name="options">The options to use while decoding the tile.</param>
+      <returns>Decoded tile data and properties.</returns>
+    </member>
+    <member name="M:BitMiracle.Jpeg2k.J2kImage.Decode">
+      <summary>
+            Decodes all tiles of the image using default decoding options.
+            </summary>
+      <returns>Decoded tiles and properties.</returns>
+      <overloads>Decodes all tiles of the image.</overloads>
+    </member>
+    <member name="M:BitMiracle.Jpeg2k.J2kImage.Decode(BitMiracle.Jpeg2k.J2kDecodingOptions)">
+      <summary>
+            Decodes all tiles of the image using specified decoding options.
+            </summary>
+      <param name="options">The options to use while decoding the image tiles.</param>
+      <returns>Decoded tiles and properties.</returns>
+    </member>
+    <member name="M:BitMiracle.Jpeg2k.J2kImage.DecodeArea(System.Int32,System.Int32,System.Int32,System.Int32,BitMiracle.Jpeg2k.J2kDecodingOptions)">
+      <summary>
+            Decodes part of the image using specified decoding options.
+            </summary>
+      <param name="left">The horizontal offset from the origin of the image to the left side
+            of the decoding area.</param>
+      <param name="top">The vertical offset from the origin of the image to the top side of
+            the decoding area.</param>
+      <param name="width">The width of the decoding area.</param>
+      <param name="height">The height of the decoding area.</param>
+      <param name="options">The options to use while decoding the part of the image.</param>
+      <returns>Decoded part of the image and properties.</returns>
+    </member>
+    <member name="T:BitMiracle.Jpeg2k.J2kImageComponent">
+      <summary>
+            Class for a single component of a JPEG 2000 compatible image data.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kImageComponent.Left">
+      <summary>
+            Gets horizontal offset from the origin of the whole image to the left side of
+            this component.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kImageComponent.Top">
+      <summary>
+            Gets vertical offset from the origin of the whole image to the top side of this
+            component.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kImageComponent.Width">
+      <summary>
+            Gets width of this component.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kImageComponent.Height">
+      <summary>
+            Gets height of this component.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kImageComponent.BitsPerPixel">
+      <summary>
+            Gets or sets number of bits per each pixel of this component.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kImageComponent.PixelsAreSigned">
+      <summary>
+            Gets a value indicating whether this component pixels are signed or unsigned.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kImageComponent.HorizontalSeparation">
+      <summary>
+            Gets the horizontal separation of a sample of the component with respect to
+            the reference grid.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kImageComponent.VerticalSeparation">
+      <summary>
+            Gets the vertical separation of a sample of the component with respect to
+            the reference grid.
+            </summary>
+    </member>
+    <member name="M:BitMiracle.Jpeg2k.J2kImageComponent.GetPixels">
+      <summary>
+            Gets access to all component's pixels ordered from left to right, from top to bottom.
+            </summary>
+      <returns>
+            The pixels.
+            </returns>
+    </member>
+    <member name="T:BitMiracle.Jpeg2k.J2kImageComponentInfo">
+      <summary>
+            Class for a single component of a JPEG 2000 image.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kImageComponentInfo.Left">
+      <summary>
+            Gets horizontal offset from the origin of the whole image to the left side of
+            this component.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kImageComponentInfo.Top">
+      <summary>
+            Gets vertical offset from the origin of the whole image to the top side of this
+            component.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kImageComponentInfo.Width">
+      <summary>
+            Gets width of this component.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kImageComponentInfo.Height">
+      <summary>
+            Gets height of this component.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kImageComponentInfo.BitsPerPixel">
+      <summary>
+            Gets number of bits per each pixel of this component.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kImageComponentInfo.HorizontalSeparation">
+      <summary>
+            Gets the horizontal separation of a sample of the component with respect to
+            the reference grid.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kImageComponentInfo.VerticalSeparation">
+      <summary>
+            Gets the vertical separation of a sample of the component with respect to
+            the reference grid.
+            </summary>
+    </member>
+    <member name="T:BitMiracle.Jpeg2k.J2kImageComponentPrecision">
+      <summary>
+            Describes how an image component precision should be changed during decoding.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kImageComponentPrecision.Precision">
+      <summary>
+            Gets or sets precision (number of bits per each pixel of this component) to force.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kImageComponentPrecision.Mode">
+      <summary>
+            Gets or sets the mode to use while forcing the precision.
+            </summary>
+    </member>
+    <member name="T:BitMiracle.Jpeg2k.J2kImageData">
+      <summary>
+            Encapsulates information about a JPEG 2000 compatible image data.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kImageData.Left">
+      <summary>
+            Gets horizontal offset from the origin of the reference grid to the left side of
+            this image data.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kImageData.Top">
+      <summary>
+            Gets vertical offset from the origin of the reference grid to the top side of this
+            image data.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kImageData.Width">
+      <summary>
+            Gets width of this image data.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kImageData.Height">
+      <summary>
+            Gets height of this image data.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kImageData.ColorSpace">
+      <summary>
+            Gets color space of this image data.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kImageData.Components">
+      <summary>
+            Gets read-only collection of this image data components.
+            </summary>
+    </member>
+    <member name="M:BitMiracle.Jpeg2k.J2kImageData.FromImage(System.String)">
+      <summary>
+            Creates a new instance of the <see cref="T:BitMiracle.Jpeg2k.J2kImageData" /> class by importing image
+            from the specified file.
+            </summary>
+      <param name="fileName">The name of the file with the image.</param>
+      <returns>A new instance of the <see cref="T:BitMiracle.Jpeg2k.J2kImageData" /> class with image data
+            from the specified file.</returns>
+      <remarks>
+        <para>The file should contain image in one of the supported formats.</para>
+        <para>At this time supported image formats are BMP, JPEG, and TIFF.</para>
+      </remarks>
+      <overloads>
+            Creates a new instance of the <see cref="T:BitMiracle.Jpeg2k.J2kImageData" /> class by importing image.
+            </overloads>
+    </member>
+    <member name="M:BitMiracle.Jpeg2k.J2kImageData.FromImage(System.String,BitMiracle.Jpeg2k.J2kImportOptions)">
+      <summary>
+            Creates a new instance of the <see cref="T:BitMiracle.Jpeg2k.J2kImageData" /> class by importing image
+            from the specified file using specified options.
+            </summary>
+      <param name="fileName">The name of the file with the image.</param>
+      <param name="options">The options to use while importing the image.</param>
+      <returns>A new instance of the <see cref="T:BitMiracle.Jpeg2k.J2kImageData" /> class with image data
+            from the specified file.</returns>
+      <remarks>
+        <para>The file should contain image in one of the supported formats.</para>
+        <para>At this time supported image formats are BMP, JPEG, and TIFF.</para>
+      </remarks>
+    </member>
+    <member name="M:BitMiracle.Jpeg2k.J2kImageData.FromImage(System.IO.Stream)">
+      <summary>
+            Creates a new instance of the <see cref="T:BitMiracle.Jpeg2k.J2kImageData" /> class by importing image
+            from the specified stream.
+            </summary>
+      <param name="stream">The stream with the image.</param>
+      <returns>A new instance of the <see cref="T:BitMiracle.Jpeg2k.J2kImageData" /> class with image data
+            from the specified file.</returns>
+      <remarks>
+        <para>The stream should contain image in one of the supported formats.</para>
+        <para>At this time supported image formats are BMP, JPEG, and TIFF.</para>
+        <para>The stream will not be owned or disposed by this object. The caller of this
+            method should dispose the stream himself.</para>
+      </remarks>
+    </member>
+    <member name="M:BitMiracle.Jpeg2k.J2kImageData.FromImage(System.IO.Stream,BitMiracle.Jpeg2k.J2kImportOptions)">
+      <summary>
+            Creates a new instance of the <see cref="T:BitMiracle.Jpeg2k.J2kImageData" /> class by importing image
+            from the specified stream using specified options.
+            </summary>
+      <param name="stream">The stream with the image.</param>
+      <param name="options">The options to use while importing the image.</param>
+      <returns>A new instance of the <see cref="T:BitMiracle.Jpeg2k.J2kImageData" /> class with image data
+            from the specified file.</returns>
+      <remarks>
+        <para>The stream should contain image in one of the supported formats.</para>
+        <para>At this time supported image formats are BMP, JPEG, and TIFF.</para>
+        <para>The stream will not be owned or disposed by this object. The caller of this
+            method should dispose the stream himself.</para>
+      </remarks>
+    </member>
+    <member name="M:BitMiracle.Jpeg2k.J2kImageData.Encode(System.String)">
+      <summary>
+            Encodes this image data into JPEG 2000 image using default encoding options and saves
+            the image into the specified file.
+            </summary>
+      <param name="fileName">The name of the file to save the JPEG 2000 image to.</param>
+      <overloads>
+            Encodes this image data into JPEG 2000 image and saves the image.
+            </overloads>
+    </member>
+    <member name="M:BitMiracle.Jpeg2k.J2kImageData.Encode(System.String,BitMiracle.Jpeg2k.J2kEncodingOptions)">
+      <summary>
+            Encodes this image data into JPEG 2000 image using specified encoding options and saves
+            the image into the specified file.
+            </summary>
+      <param name="fileName">The name of the file to save the JPEG 2000 image to.</param>
+      <param name="options">The options to use when creating the JPEG 2000 image.</param>
+    </member>
+    <member name="M:BitMiracle.Jpeg2k.J2kImageData.Encode(System.IO.Stream)">
+      <summary>
+            Encodes this image data into JPEG 2000 image using default encoding options and saves
+            the image into the specified stream.
+            </summary>
+      <param name="stream">The stream to save the JPEG 2000 image to.</param>
+    </member>
+    <member name="M:BitMiracle.Jpeg2k.J2kImageData.Encode(System.IO.Stream,BitMiracle.Jpeg2k.J2kEncodingOptions)">
+      <summary>
+            Encodes this image data into JPEG 2000 image using specified encoding options and saves
+            the image into the specified stream.
+            </summary>
+      <param name="stream">The stream to save the JPEG 2000 image to.</param>
+      <param name="options">The options to use when creating the JPEG 2000 image.</param>
+    </member>
+    <member name="M:BitMiracle.Jpeg2k.J2kImageData.Save(System.String,BitMiracle.Jpeg2k.J2kOutputFormat)">
+      <summary>
+            Encodes this image data using the specified file format and saves the result to
+            the specified file.
+            </summary>
+      <param name="fileName">The name of the file to save the result to.</param>
+      <param name="format">The file format to use while encoding.</param>
+      <overloads>
+            Encodes this image data using the specified file format and saves the result.
+            </overloads>
+    </member>
+    <member name="M:BitMiracle.Jpeg2k.J2kImageData.Save(System.IO.Stream,BitMiracle.Jpeg2k.J2kOutputFormat)">
+      <summary>
+            Encodes this image data using the specified file format and saves the result to
+            the specified stream.
+            </summary>
+      <param name="stream">The stream to save the result to.</param>
+      <param name="format">The file format to use while encoding.</param>
+    </member>
+    <member name="T:BitMiracle.Jpeg2k.J2kImportOptions">
+      <summary>
+            The options to use while creating <see cref="T:BitMiracle.Jpeg2k.J2kImageData" /> from an image in one
+            of the supported image formats.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kImportOptions.ImageLeft">
+      <summary>
+            Gets or sets image origin offset in x direction.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kImportOptions.ImageTop">
+      <summary>
+            Gets or sets image origin offset in y direction.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kImportOptions.SubsamplingDx">
+      <summary>
+            Gets or sets subsampling value for dx.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kImportOptions.SubsamplingDy">
+      <summary>
+            Gets or sets subsampling value for dy.
+            </summary>
+    </member>
+    <member name="T:BitMiracle.Jpeg2k.J2kOpenOptions">
+      <summary>
+            The options to be used while opening a JPEG 2000 image.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kOpenOptions.ResolutionLevelsToDiscard">
+      <summary>
+            Gets or sets the number of highest resolution levels to be discarded.
+            </summary>
+      <remarks>
+        <para>
+            The image resolution is effectively divided by 2 to the power of the number of
+            discarded levels.
+            </para>
+        <para>
+            The reduce factor is limited by the smallest total number of decomposition levels
+            among tiles.
+            </para>
+        <para>
+            If value of this property is not equal to 0, then original dimensions of the image
+            are divided by 2^(value), otherwise (when value is equal to 0) the image is decoded
+            in full resolution.
+            </para>
+      </remarks>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kOpenOptions.QualityLayersToKeep">
+      <summary>
+            Gets or sets the number of quality layers to process.
+            </summary>
+      <remarks>
+            If there are less quality layers than the specified number, all the quality
+            layers will be processed.
+            </remarks>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kOpenOptions.IgnoreColorInformation">
+      <summary>
+            Gets or sets a value indicating whether color information (palette, channels info etc.)
+            should be ignored.
+            </summary>
+    </member>
+    <member name="T:BitMiracle.Jpeg2k.J2kOutputFormat">
+      <summary>
+            Enumeration of all possible output formats
+            </summary>
+    </member>
+    <member name="F:BitMiracle.Jpeg2k.J2kOutputFormat.Bmp">
+      <summary>
+            Bitmap image file (BMP).
+            </summary>
+    </member>
+    <member name="F:BitMiracle.Jpeg2k.J2kOutputFormat.Tiff">
+      <summary>
+            Tagged Image File Format (TIFF).
+            </summary>
+    </member>
+    <member name="T:BitMiracle.Jpeg2k.J2kPixels">
+      <summary>
+            Provides access to pixels in <see cref="T:BitMiracle.Jpeg2k.J2kImageComponent" />.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kPixels.Count">
+      <summary>
+            Gets the number of pixels.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kPixels.Item(System.Int32)">
+      <summary>
+            Gets the pixel at the specified position.
+            </summary>
+      <param name="index">Pixel index. Must be greater than or equal to <c>0</c> and less than <see cref="P:BitMiracle.Jpeg2k.J2kPixels.Count" /></param>
+      <value>The pixel at the specified position.</value>
+    </member>
+    <member name="T:BitMiracle.Jpeg2k.J2kPrecisionMode">
+      <summary>
+            Enumeration of all possible image component precision forcing modes.
+            </summary>
+    </member>
+    <member name="F:BitMiracle.Jpeg2k.J2kPrecisionMode.Clip">
+      <summary>
+            Image component should be clipped.
+            </summary>
+    </member>
+    <member name="F:BitMiracle.Jpeg2k.J2kPrecisionMode.Scale">
+      <summary>
+            Image component should be scaled.
+            </summary>
+    </member>
+    <member name="T:BitMiracle.Jpeg2k.J2kProgressionOrder">
+      <summary>
+            Enumeration of all possible progression orders.
+            </summary>
+    </member>
+    <member name="F:BitMiracle.Jpeg2k.J2kProgressionOrder.Unknown">
+      <summary>
+            Progression order is not known / not specified
+            </summary>
+    </member>
+    <member name="F:BitMiracle.Jpeg2k.J2kProgressionOrder.Lrcp">
+      <summary>
+            Layer-resolution-component-precinct order
+            </summary>
+    </member>
+    <member name="F:BitMiracle.Jpeg2k.J2kProgressionOrder.Rlcp">
+      <summary>
+            Resolution-layer-component-precinct order
+            </summary>
+    </member>
+    <member name="F:BitMiracle.Jpeg2k.J2kProgressionOrder.Rpcl">
+      <summary>
+            Resolution-precinct-component-layer order
+            </summary>
+    </member>
+    <member name="F:BitMiracle.Jpeg2k.J2kProgressionOrder.Pcrl">
+      <summary>
+            Precinct-component-resolution-layer order
+            </summary>
+    </member>
+    <member name="F:BitMiracle.Jpeg2k.J2kProgressionOrder.Cprl">
+      <summary>
+            Component-precinct-resolution-layer order
+            </summary>
+    </member>
+    <member name="T:BitMiracle.Jpeg2k.J2kQualityMode">
+      <summary>
+            Supported encoding quality modes.
+            </summary>
+    </member>
+    <member name="F:BitMiracle.Jpeg2k.J2kQualityMode.CompressionRatio">
+      <summary>
+            Quality values treated as compression ratios for successive layers.
+            </summary>
+    </member>
+    <member name="F:BitMiracle.Jpeg2k.J2kQualityMode.FixedQuality">
+      <summary>
+            Quality values treated as Peak signal-to-noise ratios (PSNR) for successive layers.
+            </summary>
+    </member>
+    <member name="T:BitMiracle.Jpeg2k.J2kTileCodingStyle">
+      <summary>
+            Enumeration of all possible coding styles.
+            </summary>
+    </member>
+    <member name="F:BitMiracle.Jpeg2k.J2kTileCodingStyle.UseCustomPrecint">
+      <summary>
+            Use custom precint.
+            </summary>
+    </member>
+    <member name="F:BitMiracle.Jpeg2k.J2kTileCodingStyle.UseStartOfPacket">
+      <summary>
+            Use start of packet marker.
+            </summary>
+    </member>
+    <member name="F:BitMiracle.Jpeg2k.J2kTileCodingStyle.UseEndOfPacketHeader">
+      <summary>
+            Use end of packet header marker.
+            </summary>
+    </member>
+    <member name="T:BitMiracle.Jpeg2k.J2kTileInfo">
+      <summary>
+            Provides information about tile in a JPEG 2000 image.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kTileInfo.CodingStyle">
+      <summary>
+            Gets coding style of this tile.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kTileInfo.ProgressionOrder">
+      <summary>
+            Gets progression order of this tile.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.J2kTileInfo.QualityLayerCount">
+      <summary>
+            Gets number of quality layers in this tile.
+            </summary>
+    </member>
+    <member name="T:BitMiracle.Jpeg2k.LicenseManager">
+      <summary>
+            Class for license management. Provides properties and methods to add license to the Jpeg2000.Net library.
+            </summary>
+    </member>
+    <member name="P:BitMiracle.Jpeg2k.LicenseManager.HasValidLicense">
+      <summary>
+            Gets a value indicating whether a valid license is applied.
+            </summary>
+      <value>
+        <c>true</c> if a valid license is applied; otherwise, <c>false</c>.
+            </value>
+    </member>
+    <member name="M:BitMiracle.Jpeg2k.LicenseManager.SetLicense(System.String,System.String)">
+      <summary>
+            Applies permanent license.
+            </summary>
+      <param name="licenseKey">License key</param>
+      <param name="owner">Identifier of the license owner</param>
+    </member>
+    <member name="M:BitMiracle.Jpeg2k.LicenseManager.SetTrialLicense(System.String)">
+      <summary>
+            Applies trial license.
+            </summary>
+      <param name="licenseKey">License key</param>
+    </member>
+    <member name="M:BitMiracle.Jpeg2k.LicenseManager.Reset">
+      <summary>
+            Resets previously set license.
+            </summary>
+    </member>
+  </members>
+</doc>

@@ -11,6 +11,7 @@ namespace IqSoft.CP.DAL.Models.Dashboard
         public int Id { get; set; }
         public string Name { get; set; }
         public int PartnerId { get; set; }
+        public string PartnerName { get; set; }
         public DateTime StartTime { get; set; }
         public DateTime FinishTime { get; set; }
         public int Type { get; set; }

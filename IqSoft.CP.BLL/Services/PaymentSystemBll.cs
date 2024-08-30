@@ -13,9 +13,10 @@ using log4net;
 using IqSoft.CP.BLL.Caching;
 using IqSoft.CP.BLL.Interfaces;
 using IqSoft.CP.DAL.Models.Cache;
-using  System.Data.Entity;
+using System.Data.Entity;
 using IqSoft.CP.Common.Models;
 using IqSoft.CP.Common.Models.AdminModels;
+
 
 namespace IqSoft.CP.BLL.Services
 {
@@ -23,8 +24,8 @@ namespace IqSoft.CP.BLL.Services
     {
         #region Constructors
 
-        public PaymentSystemBll(SessionIdentity identity, ILog log)
-            : base(identity, log)
+        public PaymentSystemBll(SessionIdentity identity, ILog log, int? timeout = null)
+            : base(identity, log, timeout)
         {
 
         }
@@ -43,7 +44,7 @@ namespace IqSoft.CP.BLL.Services
             {
                 Permission = Constants.Permissions.ViewPaymentSystems
             });
-            if(isActive.HasValue)
+            if (isActive.HasValue)
                 return Db.PaymentSystems.Where(x => x.IsActive == isActive).ToList();
             return Db.PaymentSystems.ToList();
         }
@@ -53,16 +54,16 @@ namespace IqSoft.CP.BLL.Services
             GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPaymentSystems,
-                ObjectTypeId = ObjectTypes.PaymentSystem
+                ObjectTypeId = (int)ObjectTypes.PaymentSystem
             });
             GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.EditPaymentSystem,
-                ObjectTypeId = ObjectTypes.PaymentSystem
+                ObjectTypeId = (int)ObjectTypes.PaymentSystem
             });
 
             if (apiPaymentSystemModel.ContentType.HasValue && !Enum.IsDefined(typeof(OpenModes), apiPaymentSystemModel.ContentType) ||
-                ((apiPaymentSystemModel.Ids == null || !apiPaymentSystemModel.Ids.Any()) && apiPaymentSystemModel.Id.HasValue && apiPaymentSystemModel.Id <=0 ))
+                ((apiPaymentSystemModel.Ids == null || !apiPaymentSystemModel.Ids.Any()) && apiPaymentSystemModel.Id.HasValue && apiPaymentSystemModel.Id <= 0))
                 throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
             var p = apiPaymentSystemModel.Ids ?? new List<int>();
             if (!apiPaymentSystemModel.IsActive.Value &&
@@ -100,7 +101,7 @@ namespace IqSoft.CP.BLL.Services
                     });
                 }
                 else
-                {                   
+                {
                     dbPaymentSystem.SessionId = SessionId;
                     dbPaymentSystem.Name = apiPaymentSystemModel.Name;
                     if (apiPaymentSystemModel.Type.HasValue)
@@ -128,7 +129,7 @@ namespace IqSoft.CP.BLL.Services
                     });
                 SaveChanges();
             }
-            if (apiPaymentSystemModel.Id.HasValue && apiPaymentSystemModel.Id> 0)
+            if (apiPaymentSystemModel.Id.HasValue && apiPaymentSystemModel.Id > 0)
                 CacheManager.RemoveKeysFromCache(string.Format("{0}_{1}", Constants.CacheItems.PaymentSystems, apiPaymentSystemModel.Id.Value));
             else
                 apiPaymentSystemModel.Ids.ForEach(x =>
@@ -140,18 +141,18 @@ namespace IqSoft.CP.BLL.Services
         public PartnerPaymentSetting GetPartnerPaymentSettingById(int partnerPaymentSettingId, bool checkPermissions = true)
         {
             if (checkPermissions)
-			{
-				var checkPermissionResult = GetPermissionsToObject(new CheckPermissionInput
-				{
-					Permission = Constants.Permissions.CreatePartnerPaymentSetting,
-					ObjectTypeId = ObjectTypes.PartnerPaymentSetting,
-					ObjectId = partnerPaymentSettingId
-				});
+            {
+                var checkPermissionResult = GetPermissionsToObject(new CheckPermissionInput
+                {
+                    Permission = Constants.Permissions.CreatePartnerPaymentSetting,
+                    ObjectTypeId = (int)ObjectTypes.PartnerPaymentSetting,
+                    ObjectId = partnerPaymentSettingId
+                });
 
-				if (!checkPermissionResult.HaveAccessForAllObjects &&
-					!checkPermissionResult.AccessibleObjects.Contains(partnerPaymentSettingId))
-					throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
-			}
+                if (!checkPermissionResult.HaveAccessForAllObjects &&
+                    !checkPermissionResult.AccessibleObjects.Contains(partnerPaymentSettingId))
+                    throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
+            }
             return Db.PartnerPaymentSettings.Include(x => x.PartnerPaymentCountrySettings).Include(x => x.PaymentSystem)
                                             .FirstOrDefault(x => x.Id == partnerPaymentSettingId);
         }
@@ -161,7 +162,7 @@ namespace IqSoft.CP.BLL.Services
             var checkPermissionResult = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.CreatePartnerPaymentSetting,
-                ObjectTypeId = ObjectTypes.PartnerPaymentSetting,
+                ObjectTypeId = (int)ObjectTypes.PartnerPaymentSetting,
                 ObjectId = partnerPaymentCurrencyRate.PaymentSettingId
             });
 
@@ -190,7 +191,7 @@ namespace IqSoft.CP.BLL.Services
             var checkPermissionResult = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartnerPaymentSetting,
-                ObjectTypeId = ObjectTypes.PartnerPaymentSetting,
+                ObjectTypeId = (int)ObjectTypes.PartnerPaymentSetting,
                 ObjectId = partnerPaymentSettingId
             });
 
@@ -205,7 +206,7 @@ namespace IqSoft.CP.BLL.Services
             var checkPermissionResult = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.CreatePartnerPaymentSetting,
-                ObjectTypeId = ObjectTypes.PartnerPaymentSetting,
+                ObjectTypeId = (int)ObjectTypes.PartnerPaymentSetting,
                 ObjectId = partnerPaymentSetting.Id
             });
 
@@ -214,14 +215,14 @@ namespace IqSoft.CP.BLL.Services
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
 
             if ((partnerPaymentSetting.OpenMode.HasValue && (
-                !Enum.IsDefined(typeof(OpenModes), partnerPaymentSetting.OpenMode.Value / 10) || 
-                !Enum.IsDefined(typeof(OpenModes), partnerPaymentSetting.OpenMode.Value  % 10))) ||
-                 partnerPaymentSetting.Commission < 0 || partnerPaymentSetting.Commission >=100 || partnerPaymentSetting.FixedFee < 0 ||
+                !Enum.IsDefined(typeof(OpenModes), partnerPaymentSetting.OpenMode.Value / 10) ||
+                !Enum.IsDefined(typeof(OpenModes), partnerPaymentSetting.OpenMode.Value % 10))) ||
+                 partnerPaymentSetting.Commission < 0 || partnerPaymentSetting.Commission >= 100 || partnerPaymentSetting.FixedFee < 0 ||
                  partnerPaymentSetting.ApplyPercentAmount < 0)
                 throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
             var currentTime = GetServerDate();
             var paymentSystem = CacheManager.GetPaymentSystemById(partnerPaymentSetting.PaymentSystemId);
-            if(paymentSystem == null || (!paymentSystem.IsActive && partnerPaymentSetting.State == (int)PartnerPaymentSettingStates.Active))
+            if (paymentSystem == null || (!paymentSystem.IsActive && partnerPaymentSetting.State == (int)PartnerPaymentSettingStates.Active))
                 throw CreateException(LanguageId, Constants.Errors.PaymentSystemNotFound);
 
             var dbPartnerSetting = Db.PartnerPaymentSettings.Include(x => x.PartnerPaymentCountrySettings).FirstOrDefault(x => x.Id == partnerPaymentSetting.Id);
@@ -241,12 +242,41 @@ namespace IqSoft.CP.BLL.Services
                     partnerPaymentSetting.Password = dbPartnerSetting.Password;
                 partnerPaymentSetting.CreationTime = dbPartnerSetting.CreationTime;
                 Db.Entry(dbPartnerSetting).CurrentValues.SetValues(partnerPaymentSetting);
-                var countries = partnerPaymentSetting.PartnerPaymentCountrySettings.Select(x => x.CountryId).ToList();
-                Db.PartnerPaymentCountrySettings.Where(x => x.PartnerPaymentSettingId == dbPartnerSetting.Id && !countries.Contains(x.CountryId)).DeleteFromQuery();
-                var dbCountries = dbPartnerSetting.PartnerPaymentCountrySettings.Select(x => x.CountryId).ToList();
-                countries.RemoveAll(x => dbCountries.Contains(x));
-                foreach (var c in countries)
-                    Db.PartnerPaymentCountrySettings.Add(new PartnerPaymentCountrySetting { PartnerPaymentSettingId = dbPartnerSetting.Id, CountryId = c });
+                if (partnerPaymentSetting.PartnerPaymentCountrySettings != null)
+                {
+                    if (!partnerPaymentSetting.PartnerPaymentCountrySettings.Any())
+                        Db.PartnerPaymentCountrySettings.Where(x => x.PartnerPaymentSettingId == dbPartnerSetting.Id).DeleteFromQuery();
+                    else
+                    {
+                        var type = partnerPaymentSetting.PartnerPaymentCountrySettings.First().Type;
+                        var countries = partnerPaymentSetting.PartnerPaymentCountrySettings.Select(x => x.CountryId).ToList();
+                        Db.PartnerPaymentCountrySettings.Where(x => x.PartnerPaymentSettingId == dbPartnerSetting.Id &&
+                                                                  (x.Type != type || !countries.Contains(x.CountryId))).DeleteFromQuery();
+                        var dbCountries = Db.PartnerPaymentCountrySettings.Where(x => x.PartnerPaymentSettingId == dbPartnerSetting.Id)
+                                                                          .Select(x => x.CountryId).ToList();
+                        countries.RemoveAll(x => dbCountries.Contains(x));
+                        foreach (var c in countries)
+                            Db.PartnerPaymentCountrySettings.Add(new PartnerPaymentCountrySetting { PartnerPaymentSettingId = dbPartnerSetting.Id, CountryId = c, Type = type });
+
+                    }
+                }
+                if (partnerPaymentSetting.PartnerPaymentSegmentSettings != null)
+                {
+                    if (!partnerPaymentSetting.PartnerPaymentSegmentSettings.Any())
+                        Db.PartnerPaymentSegmentSettings.Where(x => x.PartnerPaymentSettingId == dbPartnerSetting.Id).DeleteFromQuery();
+                    else
+                    {
+                        var type = partnerPaymentSetting.PartnerPaymentSegmentSettings.First().Type;
+                        var countries = partnerPaymentSetting.PartnerPaymentSegmentSettings.Select(x => x.SegmentId).ToList();
+                        Db.PartnerPaymentSegmentSettings.Where(x => x.PartnerPaymentSettingId == dbPartnerSetting.Id &&
+                                                                  (x.Type != type || !countries.Contains(x.SegmentId))).DeleteFromQuery();
+                        var dbCountries = Db.PartnerPaymentSegmentSettings.Where(x => x.PartnerPaymentSettingId == dbPartnerSetting.Id)
+                                                                          .Select(x => x.SegmentId).ToList();
+                        countries.RemoveAll(x => dbCountries.Contains(x));
+                        foreach (var c in countries)
+                            Db.PartnerPaymentSegmentSettings.Add(new PartnerPaymentSegmentSetting { PartnerPaymentSettingId = dbPartnerSetting.Id, SegmentId = c, Type = type });
+                    }
+                }
             }
             SaveChanges();
             CacheManager.UpdateParnerPaymentSettings(partnerPaymentSetting.PartnerId, partnerPaymentSetting.PaymentSystemId, partnerPaymentSetting.CurrencyId, partnerPaymentSetting.Type);
@@ -260,13 +290,13 @@ namespace IqSoft.CP.BLL.Services
                 var checkP = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartnerPaymentSetting,
-                    ObjectTypeId = ObjectTypes.PartnerPaymentSetting
+                    ObjectTypeId = (int)ObjectTypes.PartnerPaymentSetting
                 });
 
                 var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
 
                 filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnPartnerPaymentSetting>>
@@ -287,9 +317,9 @@ namespace IqSoft.CP.BLL.Services
             }
             else
                 filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnPartnerPaymentSetting>>();
-			var paymentSettings = filter.FilterObjects(Db.fn_PartnerPaymentSetting(LanguageId)).OrderBy(x => x.PaymentSystemPriority).ToList();			
+            var paymentSettings = filter.FilterObjects(Db.fn_PartnerPaymentSetting(LanguageId)).OrderBy(x => x.PaymentSystemPriority).ToList();
             return paymentSettings;
-		}
+        }
 
         public List<PaymentRequestHistoryElement> GetPaymentRequestHistories(List<long> requestIds, int? status = null)
         {
@@ -308,6 +338,40 @@ namespace IqSoft.CP.BLL.Services
             }).ToList();
         }
 
+        public PaymentRequestHistoryClients SuccessPaymantRequest(int clientId)
+        {
+
+            FilterfnPaymentRequest filter = new FilterfnPaymentRequest
+            {
+                ClientIds = new FiltersOperation
+                {
+                    IsAnd = false,
+                    OperationTypeList = new List<FiltersOperationType> { new FiltersOperationType { OperationTypeId = (int)FilterOperations.IsEqualTo, IntValue = clientId } }
+                },
+                States = new FiltersOperation
+                {
+                    IsAnd = false,
+                    OperationTypeList = new List<FiltersOperationType> {
+                    new FiltersOperationType { OperationTypeId = (int)FilterOperations.IsEqualTo, IntValue =  (int) PaymentRequestStates.ApprovedManually },
+                    new FiltersOperationType { OperationTypeId = (int)FilterOperations.IsEqualTo, IntValue =  (int) PaymentRequestStates.Approved }
+                   }
+                }
+            };
+
+            var paymentRequests = GetPaymentRequests(filter, false).ToList();
+            return new PaymentRequestHistoryClients
+            {
+                TotalWithdrawAmount = paymentRequests?.Where(x => x.Type == (int)PaymentRequestTypes.Withdraw).Sum(x => x.Amount),
+                TotalDepositAmount = paymentRequests?.Where(x => x.Type == (int)PaymentRequestTypes.Deposit).Sum(x => x.Amount),
+                LastDepositDate = paymentRequests?.Where(x => x.Type == (int)PaymentRequestTypes.Deposit).OrderByDescending(x => x.CreationTime).FirstOrDefault()?.CreationTime,
+                CountOfDeposits = paymentRequests?.Where(x => x.Type == (int)PaymentRequestTypes.Deposit).Count(),
+                CountOfDepositLastWeek = paymentRequests?.Where(x => x.Type == (int)PaymentRequestTypes.Deposit &&x.CreationTime>= DateTime.Now.AddDays(-7)&&x.CreationTime <=  DateTime.Now)
+                .OrderByDescending(x => x.CreationTime).Take(7).Count(),
+                FirstDepositDate = paymentRequests?.Where(x => x.Type == (int)PaymentRequestTypes.Deposit).OrderBy(x => x.CreationTime).FirstOrDefault()?.CreationTime,
+                LastWithdrawDate = paymentRequests?.Where(x => x.Type == (int)PaymentRequestTypes.Withdraw).OrderByDescending(x => x.CreationTime).FirstOrDefault()?.CreationTime,
+            };
+        }
+
         public List<fnPaymentRequest> GetPaymentRequests(FilterfnPaymentRequest filter, bool checkPermissions)
         {
             if (checkPermissions)
@@ -315,19 +379,19 @@ namespace IqSoft.CP.BLL.Services
                 var clientAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewClient,
-                    ObjectTypeId = ObjectTypes.Client
+                    ObjectTypeId = (int)ObjectTypes.Client
                 });
 
                 var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
 
                 var paymentRequestAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPaymentRequests,
-                    ObjectTypeId = ObjectTypes.PaymentRequest
+                    ObjectTypeId = (int)ObjectTypes.PaymentRequest
                 });
 
                 filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnPaymentRequest>>
@@ -387,37 +451,37 @@ namespace IqSoft.CP.BLL.Services
                 var clientAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewClient,
-                    ObjectTypeId = ObjectTypes.Client
+                    ObjectTypeId = (int)ObjectTypes.Client
                 });
 
                 var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
 
                 var clientCategoryAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewClientByCategory,
-                    ObjectTypeId = ObjectTypes.ClientCategory
+                    ObjectTypeId = (int)ObjectTypes.ClientCategory
                 });
 
                 var affiliateAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewAffiliate,
-                    ObjectTypeId = ObjectTypes.Affiliate
+                    ObjectTypeId = (int)ObjectTypes.Affiliate
                 });
 
                 var paymentRequestAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPaymentRequests,
-                    ObjectTypeId = ObjectTypes.PaymentRequest
+                    ObjectTypeId = (int)ObjectTypes.PaymentRequest
                 });
 
                 var paymentStatusAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPaymentStatuses,
-                    ObjectTypeId = ObjectTypes.Enumeration
+                    ObjectTypeId = (int)ObjectTypes.Enumeration
                 });
 
                 filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnPaymentRequest>>
@@ -465,7 +529,7 @@ namespace IqSoft.CP.BLL.Services
 
             Func<IQueryable<fnPaymentRequest>, IOrderedQueryable<fnPaymentRequest>> orderBy;
             if (filter.OrderBy.HasValue)
-                    orderBy = QueryableUtilsHelper.OrderByFunc<fnPaymentRequest>(filter.FieldNameToOrderBy, filter.OrderBy.Value);
+                orderBy = QueryableUtilsHelper.OrderByFunc<fnPaymentRequest>(filter.FieldNameToOrderBy, filter.OrderBy.Value);
             else
                 orderBy = payment => payment.OrderByDescending(x => x.Id);
 
@@ -576,12 +640,12 @@ namespace IqSoft.CP.BLL.Services
             var paymentAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPaymentRequests,
-                ObjectTypeId = ObjectTypes.PaymentRequest
+                ObjectTypeId = (int)ObjectTypes.PaymentRequest
             });
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
             filter.CheckPermissionResuts = new List<CheckPermissionOutput<fnPaymentRequest>>
             {
@@ -600,23 +664,17 @@ namespace IqSoft.CP.BLL.Services
             };
             Func<IQueryable<fnPaymentRequest>, IOrderedQueryable<fnPaymentRequest>> orderBy;
             if (filter.OrderBy.HasValue)
-            {
-                if (filter.OrderBy.Value)
-                {
-                    orderBy = QueryableUtilsHelper.OrderByFunc<fnPaymentRequest>(filter.FieldNameToOrderBy, true);
-                }
-                else
-                {
-                    orderBy = QueryableUtilsHelper.OrderByFunc<fnPaymentRequest>(filter.FieldNameToOrderBy, false);
-                }
-            }
+                orderBy = QueryableUtilsHelper.OrderByFunc<fnPaymentRequest>(filter.FieldNameToOrderBy, filter.OrderBy.Value);
             else
-            {
                 orderBy = payment => payment.OrderByDescending(x => x.Id);
-            }
             filter.TakeCount = 0;
             filter.SkipCount = 0;
-            return filter.FilterObjects(Db.fn_PaymentRequest(), orderBy).ToList();
+            var result = filter.FilterObjects(Db.fn_PaymentRequest(), orderBy).ToList();
+            foreach (var e in result)
+            {
+                e.ConvertedAmount = ConvertCurrency(e.CurrencyId, CurrencyId, e.Amount);
+            }
+            return result;
         }
 
         public List<fnPaymentRequest> ExportDepositPaymentRequests(FilterfnPaymentRequest filter)
@@ -626,7 +684,7 @@ namespace IqSoft.CP.BLL.Services
                 Permission = Constants.Permissions.ExportDeposit
             });
 
-          return ExportPaymentRequests(filter);
+            return ExportPaymentRequests(filter);
         }
 
         public List<fnPaymentRequest> ExportWithdrawalPaymentRequests(FilterfnPaymentRequest filter)
@@ -658,7 +716,7 @@ namespace IqSoft.CP.BLL.Services
                     var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, dbRequest.PaymentSystemId, client.CurrencyId, dbRequest.Type);
                     var commissionAmount = partnerPaymentSetting.FixedFee;
                     if (!partnerPaymentSetting.ApplyPercentAmount.HasValue || request.Amount >= partnerPaymentSetting.ApplyPercentAmount)
-                        commissionAmount +=  request.Amount * partnerPaymentSetting.Commission / 100;
+                        commissionAmount += request.Amount * partnerPaymentSetting.Commission / 100;
                     dbRequest.CommissionAmount = commissionAmount;
                 }
                 dbRequest.LastUpdateTime = DateTime.UtcNow;
@@ -678,7 +736,7 @@ namespace IqSoft.CP.BLL.Services
                 var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
                 if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != partnerId))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
@@ -691,7 +749,7 @@ namespace IqSoft.CP.BLL.Services
                                                                         (paymentSystemId == null || x.PaymentSystemId == paymentSystemId.Value) &&
                                                                         x.CurrencyId == client.CurrencyId &&
                                                                         (type == null || x.Type == type.Value))
-                                                             .OrderBy(x => x.Order).ThenBy(x=>x.BankName).ToList();
+                                                             .OrderBy(x => x.Order).ThenBy(x => x.BankName).ToList();
 
                 if (type == (int)BankInfoTypes.BankForCustomer)
                 {
@@ -701,16 +759,16 @@ namespace IqSoft.CP.BLL.Services
                 }
                 else if (type == (int)BankInfoTypes.BankForCompany)
                 {
-					foreach (var b in banks)
-					{
-						if (!string.IsNullOrEmpty(b.AccountNumber))
-							b.ClientPaymentInfos = b.AccountNumber.Split(',').Select(x => new ClientPaymentInfo { BankAccountNumber = x, BankIBAN = b.IBAN, Type = 0 }).ToList();                        
-						else if (!string.IsNullOrEmpty(b.IBAN))
-							b.ClientPaymentInfos = b.IBAN.Split(',').Select(x => new ClientPaymentInfo { BankIBAN = x, Type = 0 }).ToList();
-						else
-							b.ClientPaymentInfos = new List<ClientPaymentInfo>();
-					}
-				}
+                    foreach (var b in banks)
+                    {
+                        if (!string.IsNullOrEmpty(b.AccountNumber))
+                            b.ClientPaymentInfos = b.AccountNumber.Split(',').Select(x => new ClientPaymentInfo { BankAccountNumber = x, BankIBAN = b.IBAN, Type = 0 }).ToList();
+                        else if (!string.IsNullOrEmpty(b.IBAN))
+                            b.ClientPaymentInfos = b.IBAN.Split(',').Select(x => new ClientPaymentInfo { BankIBAN = x, Type = 0 }).ToList();
+                        else
+                            b.ClientPaymentInfos = new List<ClientPaymentInfo>();
+                    }
+                }
 
                 return banks;
             }
@@ -730,7 +788,7 @@ namespace IqSoft.CP.BLL.Services
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
-                ObjectTypeId = ObjectTypes.Partner
+                ObjectTypeId = (int)ObjectTypes.Partner
             });
 
             var checkPartnerEditPermission = GetPermissionsToObject(new CheckPermissionInput
@@ -787,7 +845,7 @@ namespace IqSoft.CP.BLL.Services
         public int GetPaymentRequestsCount(List<int> statuses, List<int> paymentSystems, int? agentId)
         {
             var request = Db.PaymentRequests.Where(x => statuses.Contains(x.Status) && paymentSystems.Contains(x.PaymentSystemId));
-            if(agentId != null)
+            if (agentId != null)
                 request = request.Where(x => x.Client.User.Path.Contains("/" + agentId.Value + "/"));
             return request.Count();
         }

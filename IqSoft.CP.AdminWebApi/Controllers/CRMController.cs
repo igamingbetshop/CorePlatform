@@ -14,11 +14,13 @@ using IqSoft.CP.DAL.Filters.Clients;
 using IqSoft.CP.DAL.Filters.PaymentRequests;
 using IqSoft.CP.DAL.Filters.Reporting;
 using IqSoft.CP.DAL.Models;
+using IqSoft.CP.DAL.Models.Affiliates;
 using IqSoft.CP.DataWarehouse.Filters;
 using log4net;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -322,7 +324,7 @@ namespace IqSoft.CP.AdminWebApi.Controllers
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var filter = new FilterReportByClientSession
+                var filter = new FilterReportByfnClientSession
                 {
                     FromDate = apiFilter.StartDate ?? DateTime.UtcNow.Date,
                     ToDate = apiFilter.EndDate ?? DateTime.UtcNow
@@ -357,7 +359,7 @@ namespace IqSoft.CP.AdminWebApi.Controllers
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var filter = new FilterReportByClientSession
+                var filter = new FilterReportByfnClientSession
                 {
                     FromDate = apiFilter.StartDate ?? DateTime.UtcNow.Date,
                     ToDate = apiFilter.EndDate ?? DateTime.UtcNow
@@ -477,5 +479,147 @@ namespace IqSoft.CP.AdminWebApi.Controllers
             }
         }
 
+        #region Wynta
+
+        [HttpPost]
+        [Route("Wynta/player-register-data")]
+        public HttpResponseMessage GetRegisteredPlayers(string registrationDate, int whitelabelid)
+        {
+            var result = string.Empty;
+            try
+            {
+                if (!Request.Headers.Contains("Authorization"))
+                    throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongHash);
+                var headerApiKey = Request.Headers.GetValues("Authorization").FirstOrDefault();
+                if (string.IsNullOrEmpty(headerApiKey))
+                    throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongHash);
+
+                List<string> WhitelistedIps = CacheManager.GetProviderWhitelistedIps(AffiliatePlatforms.Wynta);
+                BaseBll.CheckIp(WhitelistedIps, WebApiApplication.DbLogger);
+               
+                var partner = CacheManager.GetPartnerById(whitelabelid) ??
+                   throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.PartnerNotFound);
+                var apiKey = CacheManager.GetPartnerSettingByKey(partner.Id, AffiliatePlatforms.Wynta + Constants.PartnerKeys.AffiliateApiKey).StringValue;
+                if (headerApiKey.Replace("Basic ", string.Empty) != apiKey)
+                    throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongHash);
+                using (var affiliateService = new AffiliateService(new SessionIdentity(), WebApiApplication.DbLogger))
+                {
+                    var toDate = DateTime.UtcNow;
+                    var fromDate = Convert.ToDateTime(registrationDate);
+                    var affiliate = affiliateService.GetAffiliatePlatform(partner.Id, AffiliatePlatforms.Wynta) ??
+                     throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.AffiliateNotFound);
+
+                    var clients = affiliateService.GetAffiliateClients(affiliate.Id, fromDate).Select(x => new
+                    {
+                        Alias = $"{x.FirstName} {x.LastName}",
+                        CasinoName = partner.Name,
+                        x.City,
+                        Country = CacheManager.GetRegionById(x.CountryId ?? x.RegionId, x.LanguageId)?.IsoCode,
+                        ClickID = affiliate.AffiliateReferrals.FirstOrDefault().RefId,
+                        Currency = x.CurrencyId,
+                        Gender = Enum.GetName(typeof(Gender), x.Gender ?? (int)Gender.Male),
+                        PlayerID = x.Id,
+                        RegisteredDate = x.CreationTime,
+                        WhitelabelId = partner.Id
+                    }).ToList();
+                    result = JsonConvert.SerializeObject(clients);
+                    SaveBroadcastHistory(partner.Id, result, affiliateService);
+                }
+            }
+            catch (FaultException<BllFnErrorType> fex)
+            {
+                var bodyStream = new StreamReader(HttpContext.Current.Request.InputStream);
+                result = $"Code: {fex.Detail.Id} Message: {fex.Detail.Message}";
+                WebApiApplication.DbLogger.Error($"Code: {fex.Detail.Id} Message: {fex.Detail.Message} Input: {bodyStream.ReadToEnd()}");
+            }
+            catch (Exception ex)
+            {
+                var bodyStream = new StreamReader(HttpContext.Current.Request.InputStream);
+                result = $"Error: {ex} Response: {ex}";
+                WebApiApplication.DbLogger.Error($"Error: {ex} InputString: {bodyStream.ReadToEnd()} Response: {ex}");
+            }
+            var httpResponseMessage = new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(result, Encoding.UTF8)
+            };
+            httpResponseMessage.Content.Headers.ContentType = new MediaTypeHeaderValue(Constants.HttpContentTypes.ApplicationJson);
+            return httpResponseMessage;
+        }
+
+        [HttpPost]
+        [Route("Wynta/player-activity-data")]
+        public HttpResponseMessage GetPlayersActivity(string activityDate, int whitelabelid)
+        {
+            var result = string.Empty;
+            try
+            {
+                List<string> WhitelistedIps = CacheManager.GetProviderWhitelistedIps(AffiliatePlatforms.Wynta);
+                BaseBll.CheckIp(WhitelistedIps, WebApiApplication.DbLogger);               
+                if (!Request.Headers.Contains("Authorization"))
+                    throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongHash);
+                var headerApiKey = Request.Headers.GetValues("Authorization").FirstOrDefault();
+                if (string.IsNullOrEmpty(headerApiKey))
+                    throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongHash);
+                var partner = CacheManager.GetPartnerById(whitelabelid) ??
+                   throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.PartnerNotFound);
+                var apiKey = CacheManager.GetPartnerSettingByKey(partner.Id, AffiliatePlatforms.Wynta + Constants.PartnerKeys.AffiliateApiKey).StringValue;
+                if (headerApiKey.Replace("Basic ", string.Empty) != apiKey)
+                    throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongHash);
+                using (var affiliateService = new AffiliateService(new SessionIdentity(), WebApiApplication.DbLogger))
+                {
+                    var toDate = DateTime.UtcNow;
+                    var fromDate = Convert.ToDateTime(activityDate);
+                    var affiliate = affiliateService.GetAffiliatePlatform(partner.Id, AffiliatePlatforms.Wynta) ??
+                     throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.AffiliateNotFound);
+
+                    var clients = affiliateService.GetAffiliateClients(affiliate.Id, null).Select(x => new AffiliatePlatformModel
+                    {
+                        PartnerId = x.PartnerId,
+                        ClientId = x.Id,
+                        CurrencyId = x.CurrencyId,
+                        ClickId = x.AffiliateReferral.RefId,
+                        FirstDepositDate = x.FirstDepositDate
+                    }).ToList();
+                    result = JsonConvert.SerializeObject(affiliateService.GetWyntaClientActivity(affiliate.Id, clients, fromDate, toDate));
+                    SaveBroadcastHistory(partner.Id, result, affiliateService);
+                }
+            }
+            catch (FaultException<BllFnErrorType> fex)
+            {
+                var bodyStream = new StreamReader(HttpContext.Current.Request.InputStream);
+                result = $"Code: {fex.Detail.Id} Message: {fex.Detail.Message}";
+                WebApiApplication.DbLogger.Error($"Code: {fex.Detail.Id} Message: {fex.Detail.Message} Input: {bodyStream.ReadToEnd()}");
+            }
+            catch (Exception ex)
+            {
+                var bodyStream = new StreamReader(HttpContext.Current.Request.InputStream);
+                result = $"Error: {ex} Response: {ex}";
+                WebApiApplication.DbLogger.Error($"Error: {ex} InputString: {bodyStream.ReadToEnd()} Response: {ex}");
+            }
+            var httpResponseMessage = new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(result, Encoding.UTF8)
+            };
+            httpResponseMessage.Content.Headers.ContentType = new MediaTypeHeaderValue(Constants.HttpContentTypes.ApplicationJson);
+            return httpResponseMessage;
+        }
+
+        private static void SaveBroadcastHistory(int partnerId, string content, BaseBll baseBll)
+        {
+            var partner = CacheManager.GetPartnerById(partnerId);
+            var mainFtpModel = new FtpModel
+            {
+                Url = CacheManager.GetPartnerSettingByKey(Constants.MainPartnerId, Constants.PartnerKeys.StatementFTPServer).StringValue,
+                UserName = CacheManager.GetPartnerSettingByKey(Constants.MainPartnerId, Constants.PartnerKeys.StatementFTPUsername).StringValue,
+                Password = CacheManager.GetPartnerSettingByKey(Constants.MainPartnerId, Constants.PartnerKeys.StatementFTPPassword).StringValue
+            };
+            var path = $"/AffiliateFiles/{AffiliatePlatforms.Wynta}/{partner.Name}";
+            BaseBll.CreateFtpDirectory(mainFtpModel, $"ftp://{mainFtpModel.Url}{path}");
+            baseBll.UploadFile(content, $"{path}/activity_{DateTime.UtcNow}.csv", mainFtpModel);
+        }
+
+        #endregion
     }
 }

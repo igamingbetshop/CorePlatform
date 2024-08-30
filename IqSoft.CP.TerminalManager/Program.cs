@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using IqSoft.CP.TerminalManager.Helpers;
+using System.Management;
 
 namespace IqSoft.CP.TerminalManager
 {
@@ -54,9 +55,6 @@ namespace IqSoft.CP.TerminalManager
             var configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("AppSetting");
             AppSetting = configuration.Get<AppSetting>() ?? new AppSetting();
             AppSetting.SerialNumber = CommonHelpers.GetMotherBoardID();
-
         }
-
-
     }
 }

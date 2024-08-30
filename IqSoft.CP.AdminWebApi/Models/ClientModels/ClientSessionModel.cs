@@ -23,6 +23,7 @@ namespace IqSoft.CP.AdminWebApi.ClientModels.Models
         public string Ip { get; set; }
         
         public int? ProductId { get; set; }
+        public string ProductName { get; set; }
 
         public DateTime StartTime { get; set; }
 

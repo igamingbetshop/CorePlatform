@@ -8,6 +8,7 @@
         BankStatement = 4,
         CreditCard = 5,
         UtilityBill = 6,
-        Other = 7
+        Other = 7,
+        ProfilePicture = 8
     }
 }

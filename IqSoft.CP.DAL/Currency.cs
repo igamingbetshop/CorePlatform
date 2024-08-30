@@ -17,74 +17,73 @@ namespace IqSoft.CP.DAL
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public Currency()
         {
+            this.Accounts = new HashSet<Account>();
+            this.AffiliateCommissions = new HashSet<AffiliateCommission>();
+            this.AmountCurrencySettings = new HashSet<AmountCurrencySetting>();
+            this.BetShops = new HashSet<BetShop>();
             this.BetShopReconings = new HashSet<BetShopReconing>();
             this.BonusCurrencySettings = new HashSet<BonusCurrencySetting>();
+            this.Clients = new HashSet<Client>();
             this.ComplimentaryPointRates = new HashSet<ComplimentaryPointRate>();
             this.ObjectCurrencyPriorities = new HashSet<ObjectCurrencyPriority>();
-            this.PartnerCurrencySettings = new HashSet<PartnerCurrencySetting>();
-            this.PartnerPaymentCurrencyRates = new HashSet<PartnerPaymentCurrencyRate>();
-            this.CurrencyRates = new HashSet<CurrencyRate>();
-            this.Users = new HashSet<User>();
-            this.Regions = new HashSet<Region>();
             this.Documents = new HashSet<Document>();
             this.Partners = new HashSet<Partner>();
-            this.AffiliateCommissions = new HashSet<AffiliateCommission>();
-            this.BetShops = new HashSet<BetShop>();
             this.PartnerBankInfoes = new HashSet<PartnerBankInfo>();
-            this.AmountCurrencySettings = new HashSet<AmountCurrencySetting>();
-            this.GameProviderCurrencySettings = new HashSet<GameProviderCurrencySetting>();
-            this.Accounts = new HashSet<Account>();
+            this.PartnerCurrencySettings = new HashSet<PartnerCurrencySetting>();
+            this.PartnerPaymentCurrencyRates = new HashSet<PartnerPaymentCurrencyRate>();
             this.PaymentRequests = new HashSet<PaymentRequest>();
-            this.Clients = new HashSet<Client>();
+            this.GameProviderCurrencySettings = new HashSet<GameProviderCurrencySetting>();
+            this.Regions = new HashSet<Region>();
+            this.Users = new HashSet<User>();
+            this.CurrencyRates = new HashSet<CurrencyRate>();
         }
     
         public string Id { get; set; }
         public decimal CurrentRate { get; set; }
         public string Symbol { get; set; }
-        public long SessionId { get; set; }
         public System.DateTime CreationTime { get; set; }
         public System.DateTime LastUpdateTime { get; set; }
         public string Code { get; set; }
         public string Name { get; set; }
+        public int Type { get; set; }
     
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Account> Accounts { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<AffiliateCommission> AffiliateCommissions { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<AmountCurrencySetting> AmountCurrencySettings { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<BetShop> BetShops { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<BetShopReconing> BetShopReconings { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<BonusCurrencySetting> BonusCurrencySettings { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Client> Clients { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ComplimentaryPointRate> ComplimentaryPointRates { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ObjectCurrencyPriority> ObjectCurrencyPriorities { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PartnerCurrencySetting> PartnerCurrencySettings { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PartnerPaymentCurrencyRate> PartnerPaymentCurrencyRates { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<CurrencyRate> CurrencyRates { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<User> Users { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Region> Regions { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Document> Documents { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Partner> Partners { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<AffiliateCommission> AffiliateCommissions { get; set; }
-        public virtual UserSession UserSession { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<BetShop> BetShops { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PartnerBankInfo> PartnerBankInfoes { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<AmountCurrencySetting> AmountCurrencySettings { get; set; }
+        public virtual ICollection<PartnerCurrencySetting> PartnerCurrencySettings { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<GameProviderCurrencySetting> GameProviderCurrencySettings { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Account> Accounts { get; set; }
+        public virtual ICollection<PartnerPaymentCurrencyRate> PartnerPaymentCurrencyRates { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PaymentRequest> PaymentRequests { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Client> Clients { get; set; }
+        public virtual ICollection<GameProviderCurrencySetting> GameProviderCurrencySettings { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Region> Regions { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<User> Users { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<CurrencyRate> CurrencyRates { get; set; }
     }
 }

@@ -6,7 +6,7 @@ namespace IqSoft.CP.DataWarehouse
     {
         public long ObjectId
         {
-            get { return ClientId; }
+            get { return DuplicatedClientId; }
         }
 
     }

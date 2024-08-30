@@ -15,100 +15,99 @@ using System.Collections.Generic;
 
 namespace IqSoft.CP.Integration.Payments.Helpers
 {
-	public class JmitsolutionsHelpers
+	public static class JmitSolutionsHelpers
 	{
 		public static string PaymentRequest(PaymentRequest input, string cashierPageUrl, SessionIdentity session, ILog log)
 		{
-			using (var paymentSystemBl = new PaymentSystemBll(session, log))
+			var client = CacheManager.GetClientById(input.ClientId.Value);
+			var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, input.PaymentSystemId,
+																			   client.CurrencyId, (int)PaymentRequestTypes.Deposit);
+			var url = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.JmitSolutionsUrl).StringValue;
+			var paymentGateway = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.PaymentGateway).StringValue;
+			var data = new
 			{
-				using (var partnerBl = new PartnerBll(paymentSystemBl))
+				product = "Deposit",
+				amount = (int)input.Amount * 100,
+				currency = client.CurrencyId,
+				redirectSuccessUrl = cashierPageUrl,
+				redirectFailUrl = cashierPageUrl,
+				orderNumber = input.Id.ToString(),
+				callbackUrl = $"{paymentGateway}/api/JmitSolutions/ApiRequest",
+				locale = session.LanguageId
+			};
+
+			var httpRequestInput = new HttpRequestInput
+			{
+				ContentType = Constants.HttpContentTypes.ApplicationJson,
+				RequestMethod = Constants.HttpRequestMethods.Post,
+				RequestHeaders = new Dictionary<string, string> { { "Authorization", $"Bearer {partnerPaymentSetting.Password}" } },
+				Url = $"{url}/api/v1/payments",
+				PostData = JsonConvert.SerializeObject(data)
+			};
+			var response = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
+			var output = JsonConvert.DeserializeObject<PaymentOutput>(response);
+			if (!string.IsNullOrEmpty(output.Token))
+				using (var paymentSystemBl = new PaymentSystemBll(session, log))
 				{
-					using (var clientBl = new ClientBll(paymentSystemBl))
-					{
-						var client = CacheManager.GetClientById(input.ClientId.Value);
-						if (string.IsNullOrWhiteSpace(client.MobileNumber))
-							throw BaseBll.CreateException(session.LanguageId, Constants.Errors.MobileNumberCantBeEmpty);
-						var partner = CacheManager.GetPartnerById(client.PartnerId);
-						var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, input.PaymentSystemId, client.CurrencyId, (int)PaymentRequestTypes.Deposit);
-						var url = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.JmitsolutionsUrl).StringValue;
-						var paymentGateway = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.PaymentGateway).StringValue;
-						var data = new
-						{
-							product = "Deposit",
-							amount = (int)input.Amount * 100,
-							currency = client.CurrencyId,
-							redirectSuccessUrl = cashierPageUrl,
-							//redirectFailUrl = cashierPageUrl,
-							orderNumber = input.Id.ToString(),
-							callbackUrl = string.Format("{0}/api/Jmitsolutions/ApiRequest", paymentGateway),
-						};
-
-						var httpRequestInput = new HttpRequestInput
-						{
-							ContentType = Constants.HttpContentTypes.ApplicationJson,
-							RequestMethod = Constants.HttpRequestMethods.Post,
-							RequestHeaders = new Dictionary<string, string> { { "Authorization", $"Bearer {partnerPaymentSetting.Password}"  } },
-							Url = $"{url}/api/v1/payments",
-							PostData = JsonConvert.SerializeObject(data)
-						};
-
-						var response = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
-						var output = JsonConvert.DeserializeObject<PaymentOutput>(response);
-						if (output.success)
-							return output.processingUrl;
-						else
-							throw new Exception($"Error: {output.result}");
-					}
+					input.ExternalTransactionId =  output.Token;
+					paymentSystemBl.ChangePaymentRequestDetails(input);
 				}
-			}
+			if (output.Success)
+				return output.ProcessingUrl;
+			throw new Exception($"Error: {response}");
 		}
-
 
 		public static PaymentResponse PayoutRequest(PaymentRequest paymentRequest, SessionIdentity session, ILog log)
 		{
-			using (var paymentSystemBl = new PaymentSystemBll(session, log))
+			var client = CacheManager.GetClientById(paymentRequest.ClientId.Value);
+			if (string.IsNullOrEmpty(client.Email))
+				throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.EmailCantBeEmpty);
+			var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, paymentRequest.PaymentSystemId,
+																			   paymentRequest.CurrencyId, (int)PaymentRequestTypes.Withdraw);
+			var url = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.JmitSolutionsUrl).StringValue;
+			var amount = (int)(paymentRequest.Amount - (paymentRequest.CommissionAmount ?? 0))*100;
+			var paymentInfo = JsonConvert.DeserializeObject<PaymentInfo>(paymentRequest.Info);
+
+			var payoutInput = new
 			{
-				var client = CacheManager.GetClientById(paymentRequest.ClientId.Value);
-				var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, paymentRequest.PaymentSystemId,
-																				   paymentRequest.CurrencyId, (int)PaymentRequestTypes.Withdraw);
-				var url = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.SantimaPayUrl).StringValue;
-				var paymentInfo = JsonConvert.DeserializeObject<PaymentInfo>(paymentRequest.Info);
-				var paymentInput = new
+				amount,
+				currency = client.CurrencyId,
+				orderNumber = paymentRequest.Id.ToString(),
+				card = new
 				{
-					amount = (int)paymentRequest.Amount * 100,
-					currency = client.CurrencyId,
-					orderNumber = paymentRequest.Id.ToString(),
-					card = new
-					{
-						pan = paymentInfo.CardNumber,
-						expires = paymentInfo.ExpirationDate
-					},
-					customer = new
-					{
-						email = client.Email,
-						ip = session.LoginIp
-					}
-				};
-				var httpRequestInput = new HttpRequestInput
+					pan = paymentInfo.CardNumber,
+					expires = paymentInfo.ExpirationDate
+				},
+				customer = new
 				{
-					ContentType = Constants.HttpContentTypes.ApplicationJson,
-					RequestMethod = Constants.HttpRequestMethods.Post,
-					RequestHeaders = new Dictionary<string, string> { { "Authorization", $"Bearer {partnerPaymentSetting.Password}" } },
-					Url = $"{url}/api/v1/payouts",
-					PostData = JsonConvert.SerializeObject(paymentInput)
-				};
-				var response = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
-				var output = JsonConvert.DeserializeObject<PayoutOutput>(response);
-				if (output.success)
-				{
-					return new PaymentResponse
-					{
-						Status = PaymentRequestStates.Approved,
-					};
+					email = client.Email,
+					ip = paymentInfo.TransactionIp
 				}
-				else
-					throw new Exception($"Error: {output.errors}");
+			};
+			var httpRequestInput = new HttpRequestInput
+			{
+				ContentType = Constants.HttpContentTypes.ApplicationJson,
+				RequestMethod = Constants.HttpRequestMethods.Post,
+				RequestHeaders = new Dictionary<string, string> { { "Authorization", $"Bearer {partnerPaymentSetting.Password}" } },
+				Url = $"{url}/api/v1/payouts",
+				PostData = JsonConvert.SerializeObject(payoutInput)
+			};
+			var response = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
+			var output = JsonConvert.DeserializeObject<PayoutOutput>(response);
+			if (!string.IsNullOrEmpty(output?.Payout?.Token))
+			{
+				using (var paymentSystemBl = new PaymentSystemBll(session, log))
+				{
+					paymentRequest.ExternalTransactionId =  output.Payout.Token;
+					paymentSystemBl.ChangePaymentRequestDetails(paymentRequest);
+				}
 			}
+			if (output.Success)
+				return new PaymentResponse
+				{
+					Status = PaymentRequestStates.PayPanding,
+				};
+			throw new Exception($"Error: {response}");
 		}
 	}
 }

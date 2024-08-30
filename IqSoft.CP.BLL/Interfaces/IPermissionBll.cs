@@ -17,7 +17,7 @@ namespace IqSoft.CP.BLL.Interfaces
 
         PagedModel<Role> GetRolesPagedModel(FilterRole filter);
 
-		CheckPermissionOutput CheckPermission(string checkPermission);
+		void CheckPermission(string checkPermission, bool checkForAll = true);
 
         Role SaveRole(Role role);
 

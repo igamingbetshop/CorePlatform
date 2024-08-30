@@ -82,7 +82,6 @@ namespace IqSoft.CP.DAL
         public virtual ICollection<CashDeskShift> CashDeskShifts { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ClientIdentity> ClientIdentities { get; set; }
-        public virtual Currency Currency { get; set; }
         public virtual Language Language { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ObjectDataChangeHistory> ObjectDataChangeHistories { get; set; }
@@ -122,5 +121,6 @@ namespace IqSoft.CP.DAL
         public virtual ICollection<Announcement> Announcements { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Client> Clients { get; set; }
+        public virtual Currency Currency { get; set; }
     }
 }

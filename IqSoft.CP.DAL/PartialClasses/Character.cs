@@ -7,6 +7,7 @@
 		public string ImageData { get; set; }
 		public string BackgroundImageData { get; set; }
 		public string MobileBackgroundImageData { get; set; }
+		public string ItemBackgroundImageData { get; set; }
 		public Character Copy()
 		{
 			return new Character

@@ -29,6 +29,7 @@ using Newtonsoft.Json;
 using IqSoft.CP.Common.Models.UserModels;
 using IqSoft.CP.BLL.Helpers;
 using System.Data.Entity.Validation;
+using Newtonsoft.Json.Linq;
 
 namespace IqSoft.CP.BLL.Services
 {
@@ -145,7 +146,7 @@ namespace IqSoft.CP.BLL.Services
             }
             catch (Exception e)
             {
-                Log.Error(e);
+                Log.Error("ftp://" + ftpInput.Url + path + "_" + e.Message);
             }
         }
 
@@ -176,7 +177,7 @@ namespace IqSoft.CP.BLL.Services
             }
             catch (Exception e)
             {
-               Log.Error(e);
+                Log.Error(e);
             }
         }
 
@@ -196,7 +197,7 @@ namespace IqSoft.CP.BLL.Services
             }
         }
 
-        public void CreateFtpDirectory(FtpModel ftpModel, string path)
+        public static void CreateFtpDirectory(FtpModel ftpModel, string path)
         {
             try
             {
@@ -210,7 +211,7 @@ namespace IqSoft.CP.BLL.Services
                 response.Close();
                 response.Dispose();
             }
-            catch  { }
+            catch { }
         }
 
         public static void GeneratePDF(string filePath, byte[] imageData)
@@ -321,7 +322,7 @@ namespace IqSoft.CP.BLL.Services
                     LanguageId = Constants.Languages.English,
                     Text = translation.Text,
                     SessionId = SessionId == 0 ? (long?)null : SessionId,
-					LastUpdateTime = currentTime,
+                    LastUpdateTime = currentTime,
                     CreationTime = currentTime
                 });
             }
@@ -609,118 +610,119 @@ namespace IqSoft.CP.BLL.Services
             return Db.fn_OperationType(LanguageId).ToList();
         }
 
-       /* public string ExportToCSV<T>(string fileName, List<T> exportList, DateTime? fromDate, DateTime? endDate, double timeZone, int? adminMenuId = null, int? adminMenuGridIndex = null)
-        {
-            List<UserMenuState> userMenuColumns = null;
-            if (adminMenuId.HasValue)
-            {
-                using (var db = new IqSoftCorePlatformEntities())
-                {
-                    var state = db.UserStates.FirstOrDefault(x => x.UserId == Identity.Id && x.AdminMenuId == adminMenuId)?.State;
-                    if (state != null)
-                    {
-                        var adminMenu = JsonConvert.DeserializeObject<List<List<UserMenuState>>>(state);
-                        if (adminMenuGridIndex.HasValue)
-                            userMenuColumns = adminMenu[adminMenuGridIndex.Value];
-                        else
-                            userMenuColumns = adminMenu[0];
-                    }
-                }
-            }
-            var localPath = HttpContext.Current.Server.MapPath("~/ExportExcelFiles");
-            string fileAbsPath = string.Empty;
-            DateTime currentDate = Convert.ToDateTime(GetServerDate().ToString("yyyy/MM/dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture));
-            int maxExcelRowAccount = 1000000;
-            object locker = new object();
+        /* public string ExportToCSV<T>(string fileName, List<T> exportList, DateTime? fromDate, DateTime? endDate, double timeZone, int? adminMenuId = null, int? adminMenuGridIndex = null)
+         {
+             List<UserMenuState> userMenuColumns = null;
+             if (adminMenuId.HasValue)
+             {
+                 using (var db = new IqSoftCorePlatformEntities())
+                 {
+                     var state = db.UserStates.FirstOrDefault(x => x.UserId == Identity.Id && x.AdminMenuId == adminMenuId)?.State;
+                     if (state != null)
+                     {
+                         var adminMenu = JsonConvert.DeserializeObject<List<List<UserMenuState>>>(state);
+                         if (adminMenuGridIndex.HasValue)
+                             userMenuColumns = adminMenu[adminMenuGridIndex.Value];
+                         else
+                             userMenuColumns = adminMenu[0];
+                     }
+                 }
+             }
+             var localPath = HttpContext.Current.Server.MapPath("~/ExportExcelFiles");
+             string fileAbsPath = string.Empty;
+             DateTime currentDate = Convert.ToDateTime(GetServerDate().ToString("yyyy/MM/dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture));
+             int maxExcelRowAccount = 1000000;
+             object locker = new object();
 
-            if (exportList.Count > maxExcelRowAccount)
-            {
-                List<List<T>> rootList = new List<List<T>>();
-                var itemList = new List<T>();
+             if (exportList.Count > maxExcelRowAccount)
+             {
+                 List<List<T>> rootList = new List<List<T>>();
+                 var itemList = new List<T>();
 
-                for (int i = 0; i < exportList.Count; i++)
-                {
-                    itemList.Add(exportList[i]);
-                    if ((i + 1) % maxExcelRowAccount == 0)
-                    {
-                        rootList.Add(itemList);
-                        itemList = new List<T>();
-                    }
-                }
+                 for (int i = 0; i < exportList.Count; i++)
+                 {
+                     itemList.Add(exportList[i]);
+                     if ((i + 1) % maxExcelRowAccount == 0)
+                     {
+                         rootList.Add(itemList);
+                         itemList = new List<T>();
+                     }
+                 }
 
-                if (itemList != null && itemList.Count > 0)
-                {
-                    rootList.Add(itemList);
-                }
+                 if (itemList != null && itemList.Count > 0)
+                 {
+                     rootList.Add(itemList);
+                 }
 
-                string dirFilesName = string.Empty;
-                string fileNameWithoutFormat = fileName.Replace(".csv", "");
+                 string dirFilesName = string.Empty;
+                 string fileNameWithoutFormat = fileName.Replace(".csv", "");
 
-                if (fromDate != null && endDate != null)
-                {
-                    dirFilesName = (string.Format("{0:dd_MM_yyyy_HH_mm_ss}", fromDate.GetGMTDateFromUTC(timeZone)) + "_" + string.Format("{0:dd_MM_yyyy_HH_mm_ss}", endDate.GetGMTDateFromUTC(timeZone)) + "_" + Guid.NewGuid().ToString() + "_" + fileNameWithoutFormat);
-                }
-                else
-                {
-                    dirFilesName = Guid.NewGuid().ToString() + "_" + fileNameWithoutFormat;
-                }
+                 if (fromDate != null && endDate != null)
+                 {
+                     dirFilesName = (string.Format("{0:dd_MM_yyyy_HH_mm_ss}", fromDate.GetGMTDateFromUTC(timeZone)) + "_" + string.Format("{0:dd_MM_yyyy_HH_mm_ss}", endDate.GetGMTDateFromUTC(timeZone)) + "_" + Guid.NewGuid().ToString() + "_" + fileNameWithoutFormat);
+                 }
+                 else
+                 {
+                     dirFilesName = Guid.NewGuid().ToString() + "_" + fileNameWithoutFormat;
+                 }
 
-                string dirPath = Path.Combine(localPath, dirFilesName);
+                 string dirPath = Path.Combine(localPath, dirFilesName);
 
-                if (!Directory.Exists(dirPath))
-                {
-                    Directory.CreateDirectory(dirPath);
-                }
+                 if (!Directory.Exists(dirPath))
+                 {
+                     Directory.CreateDirectory(dirPath);
+                 }
 
-                var tasks = new List<Task>();
-                int index = 0;
-                foreach (var itmList in rootList)
-                {
-                    string filePath = string.Empty;
-                    lock (locker)
-                    {
-                        filePath = Path.Combine(dirPath, (index + 1).ToString() + "_" + fileName);
-                    }
-                    var task = Task.Run(() =>
-                    {
-                        ExportExcelHelper.SaveToCSV<T>(itmList, fromDate, endDate, currentDate, timeZone, filePath, userMenuColumns);
-                    });
-                    index++;
-                    tasks.Add(task);
-                }
-                Task.WaitAll(tasks.ToArray());
+                 var tasks = new List<Task>();
+                 int index = 0;
+                 foreach (var itmList in rootList)
+                 {
+                     string filePath = string.Empty;
+                     lock (locker)
+                     {
+                         filePath = Path.Combine(dirPath, (index + 1).ToString() + "_" + fileName);
+                     }
+                     var task = Task.Run(() =>
+                     {
+                         ExportExcelHelper.SaveToCSV<T>(itmList, fromDate, endDate, currentDate, timeZone, filePath, userMenuColumns);
+                     });
+                     index++;
+                     tasks.Add(task);
+                 }
+                 Task.WaitAll(tasks.ToArray());
 
-                string dirFileZipName = dirFilesName + ".zip";
-                ZipFile.CreateFromDirectory(dirPath, Path.Combine(localPath, dirFileZipName));
-                Directory.Delete(dirPath, true);
-                fileAbsPath = "ExportExcelFiles/" + dirFileZipName;
-            }
-            else
-            {
-                string fName = string.Empty;
-                if (fromDate != null && endDate != null)
-                {
-                    fName = (string.Format("{0:dd_MM_yyyy_HH_mm_ss}", fromDate.GetGMTDateFromUTC(timeZone)) + "_" + string.Format("{0:dd_MM_yyyy_HH_mm_ss}", endDate.GetGMTDateFromUTC(timeZone)) + "_" + Guid.NewGuid().ToString() + "_" + fileName);
-                }
-                else
-                {
-                    fName = Guid.NewGuid().ToString() + "_" + fileName;
-                }
+                 string dirFileZipName = dirFilesName + ".zip";
+                 ZipFile.CreateFromDirectory(dirPath, Path.Combine(localPath, dirFileZipName));
+                 Directory.Delete(dirPath, true);
+                 fileAbsPath = "ExportExcelFiles/" + dirFileZipName;
+             }
+             else
+             {
+                 string fName = string.Empty;
+                 if (fromDate != null && endDate != null)
+                 {
+                     fName = (string.Format("{0:dd_MM_yyyy_HH_mm_ss}", fromDate.GetGMTDateFromUTC(timeZone)) + "_" + string.Format("{0:dd_MM_yyyy_HH_mm_ss}", endDate.GetGMTDateFromUTC(timeZone)) + "_" + Guid.NewGuid().ToString() + "_" + fileName);
+                 }
+                 else
+                 {
+                     fName = Guid.NewGuid().ToString() + "_" + fileName;
+                 }
 
-                string filePath = Path.Combine(localPath, fName);
+                 string filePath = Path.Combine(localPath, fName);
 
-                if (!Directory.Exists(localPath))
-                {
-                    Directory.CreateDirectory(localPath);
-                }
+                 if (!Directory.Exists(localPath))
+                 {
+                     Directory.CreateDirectory(localPath);
+                 }
 
-                ExportExcelHelper.SaveToCSV<T>(exportList, fromDate, endDate, currentDate, timeZone, filePath, userMenuColumns);
-                fileAbsPath = "ExportExcelFiles/" + fName;
-            }
+                 ExportExcelHelper.SaveToCSV<T>(exportList, fromDate, endDate, currentDate, timeZone, filePath, userMenuColumns);
+                 fileAbsPath = "ExportExcelFiles/" + fName;
+             }
 
-            return fileAbsPath;
-        }*/
-        public string ExportToCSV<T>(string fileName, List<T> exportList, DateTime? fromDate, DateTime? endDate, double timeZone, int? adminMenuId = null, int? adminMenuGridIndex = null)
+             return fileAbsPath;
+         }*/
+        public string ExportToCSV<T>(string fileName, List<T> exportList, DateTime? fromDate, DateTime? endDate, double timeZone,
+                                     int? adminMenuId = null, int? adminMenuGridIndex = null, List<string> customLines = null)
         {
             List<UserMenuState> userMenuColumns = null;
             if (adminMenuId.HasValue)
@@ -744,7 +746,7 @@ namespace IqSoft.CP.BLL.Services
                 fileName = $"/ExportExcelFiles/{fromDate.Value.GetGMTDateFromUTC(timeZone):dd_MM_yyyy_HH_mm_ss}_{endDate.Value.GetGMTDateFromUTC(timeZone):dd_MM_yyyy_HH_mm_ss}_{fileName}";
             else
                 fileName = $"/ExportExcelFiles/{currentDate.GetGMTDateFromUTC(timeZone):dd_MM_yyyy_HH_mm_ss}_{fileName}";
-            var lines = ExportExcelHelper.SaveToCSV<T>(exportList, fromDate, endDate, currentDate, timeZone, fileName, userMenuColumns);
+            var lines = ExportExcelHelper.SaveToCSV<T>(exportList, fromDate, endDate, currentDate, timeZone, userMenuColumns, customLines);
 
             var ftpModel = new FtpModel
             {
@@ -791,7 +793,7 @@ namespace IqSoft.CP.BLL.Services
             return DateTime.UtcNow;
         }
 
-        public static FaultException<BllFnErrorType> CreateException(string languageId, int errorId, decimal? decimalInfo = null, 
+        public static FaultException<BllFnErrorType> CreateException(string languageId, int errorId, decimal? decimalInfo = null,
             DateTime? dateTimeInfo = null, long? integerInfo = null, string info = null)
         {
             if (string.IsNullOrEmpty(languageId))
@@ -817,8 +819,8 @@ namespace IqSoft.CP.BLL.Services
             return Regex.IsMatch(mobile, @"^\+?(\d[\d-. ]+)?(\([\d-. ]+\))?[\d-. ]+\d$");
         }
 
-        public TicketMessage AddMessageToTicket(TicketMessage ticketMessage, out int clientId,  out int unreadMessageCount)
-        {            
+        public TicketMessage AddMessageToTicket(TicketMessage ticketMessage, out int clientId, out int unreadMessageCount)
+        {
             var ticket = Db.Tickets.FirstOrDefault(x => x.Id == ticketMessage.TicketId);
             if (ticket == null || ticket.Status != (int)MessageTicketState.Active)
                 throw CreateException(Identity.LanguageId, Constants.Errors.TicketNotFound);
@@ -836,7 +838,7 @@ namespace IqSoft.CP.BLL.Services
                     if (ticket.ClientUnreadMessagesCount == 0)
                     {
                         ++unreadMessageCount;
-                        CacheManager.UpdateClientUnreadTicketsCount(ticket.ClientId.Value, unreadMessageCount); 
+                        CacheManager.UpdateClientUnreadTicketsCount(ticket.ClientId.Value, unreadMessageCount);
                     }
                     ++ticket.ClientUnreadMessagesCount;
                 }
@@ -848,13 +850,17 @@ namespace IqSoft.CP.BLL.Services
             return ticketMessage;
         }
 
-        public static void CheckIp(List<string> whitelistedIps)
+        public static void CheckIp(List<string> whitelistedIps, ILog log = null)
         {
             var ip = HttpContext.Current.Request.Headers.Get("CF-Connecting-IP");
             if (string.IsNullOrEmpty(ip))
                 ip = HttpContext.Current.Request.UserHostAddress;
             if (string.IsNullOrEmpty(ip) || (!whitelistedIps.Contains(ip) && !whitelistedIps.Any(x => x.IsIpEqual(ip))))
+            {
+                if (log != null)
+                    log.Error("DontHavePermission Ip: " + ip);
                 throw CreateException(Constants.DefaultLanguageId, Constants.Errors.DontHavePermission, info: ip);
+            }
         }
 
         public static void LogAction(ActionLog action, ILog log = null)
@@ -867,7 +873,7 @@ namespace IqSoft.CP.BLL.Services
                     action.CreationTime = currentDate;
                     action.Date = currentDate.Year * 1000000 + currentDate.Month * 10000 + currentDate.Day * 100 + currentDate.Hour;
                     int maxLength = 255;
-                    action.Description = string.IsNullOrEmpty(action.Description) ? string.Empty : 
+                    action.Description = string.IsNullOrEmpty(action.Description) ? string.Empty :
                         (action.Description.Length <= maxLength ? action.Description : action.Description.Substring(0, maxLength));
 
                     if (string.IsNullOrEmpty(action.Domain))
@@ -897,7 +903,7 @@ namespace IqSoft.CP.BLL.Services
                             ve.PropertyName, ve.ErrorMessage);
                     }
                 }
-                if(log != null)
+                if (log != null)
                     log.Error(msg + "_" + action.Description);
                 throw;
             }
@@ -914,6 +920,22 @@ namespace IqSoft.CP.BLL.Services
                     throw CreateException(Identity.LanguageId, Constants.Errors.InvalidSecretKey);
                 }
             }
+        }
+
+        public static bool IsValidJson(string strInput)
+        {
+            if (string.IsNullOrWhiteSpace(strInput)) 
+                return false; 
+            strInput = strInput.Trim();
+            try
+            {
+                JToken.Parse(strInput);
+            }
+            catch
+            {
+                return false;
+            }
+            return true;
         }
     }
 }

@@ -18,5 +18,9 @@ namespace IqSoft.CP.DataWarehouse.Models
         public int? TotalProductsCount { get; set; }
 
 		public decimal? TotalGGR { get; set; }
+
+        public decimal TotalBonusBetAmount { get; set; }
+        
+        public decimal TotalBonusWinAmount { get; set; }
     }
 }

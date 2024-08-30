@@ -14,5 +14,7 @@ namespace IqSoft.CP.DAL.Models.Report
         public decimal TotalWinsAmount { get; set; }
         public decimal TotalProfit { get; set; }
         public decimal? TotalPossibleWinsAmount { get; set; }
+        public decimal? TotalBonusBetAmount { get; set; }
+        public decimal? TotalBonusWinAmount { get; set; }
     }
 }

@@ -19,7 +19,7 @@ namespace IqSoft.CP.DataWarehouse.Filters
 
         public int? GroupId { get; set; }
 
-        public List<long> AccountIds { get; set; }
+        public List<long?> AccountIds { get; set; }
 
         public override void CreateQuery(ref IQueryable<fnInternetBet> objects, bool orderBy, bool orderByDate = false)
         {

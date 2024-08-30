@@ -29,6 +29,7 @@ namespace IqSoft.CP.DataWarehouse.Filters
         public FiltersOperation TotalWinAmounts { get; set; }
         public FiltersOperation WinsCounts { get; set; }
         public FiltersOperation GGRs { get; set; }
+        public FiltersOperation NGRs { get; set; }
         public FiltersOperation TotalDebitCorrections { get; set; }
         public FiltersOperation DebitCorrectionsCounts { get; set; }
         public FiltersOperation TotalCreditCorrections { get; set; }
@@ -61,6 +62,7 @@ namespace IqSoft.CP.DataWarehouse.Filters
             FilterByValue(ref objects, TotalWinAmounts, "TotalWinAmount");
             FilterByValue(ref objects, WinsCounts, "WinsCount");
             FilterByValue(ref objects, GGRs, "GGR");
+            FilterByValue(ref objects, NGRs, "NGR");
             FilterByValue(ref objects, TotalDebitCorrections, "TotalDebitCorrection");
             FilterByValue(ref objects, CreditCorrectionsCounts, "CreditCorrectionsCount");
             FilterByValue(ref objects, TotalCreditCorrections, "TotalCreditCorrection");

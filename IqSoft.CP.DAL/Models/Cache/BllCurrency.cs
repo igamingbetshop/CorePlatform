@@ -11,13 +11,14 @@ namespace IqSoft.CP.DAL.Models.Cache
 
         public string Symbol { get; set; }
 
-        public long SessionId { get; set; }
-
         public DateTime CreationTime { get; set; }
 
         public DateTime LastUpdateTime { get; set; }
 
         public string Code { get; set; }
+
         public string Name { get; set; }
+
+        public int Type { get; set; }
     }
 }

@@ -83,6 +83,28 @@ namespace IqSoft.CP.AdminWebApi.Controllers
                             var userPermissions = CacheManager.GetUserPermissions(userIdentity.Id);
                             loginResult.AdminMenu = contentBl.GetAdminMenus(userPermissions.Select(x => x.PermissionId).ToList(), 
                                 userPermissions.Any(x => x.IsAdmin), (int)InterfaceTypes.Admin).ToList();
+
+                            if (userIdentity.ParentId == (int)Constants.MainPartnerId)
+                            {
+                                var permission = userPermissions.FirstOrDefault(x => x.PermissionId == Constants.Permissions.ViewPartner || x.IsAdmin);
+                                if (permission == null)
+                                    throw BaseBll.CreateException(string.Empty, Constants.Errors.DontHavePermission);
+                                if (permission.IsForAll || permission.IsAdmin)
+                                {
+                                    loginResult.VipLevel = partnerBl.GetPartners(new FilterPartner { State = (int)PartnerStates.Active }, false).Max(x => x.VipLevel);
+                                }
+                                else
+                                {
+                                    var partners = CacheManager.GetUserAccessObjects(userIdentity.Id).Where(x => x.ObjectTypeId == (int)ObjectTypes.Partner &&
+                                            x.PermissionId == Constants.Permissions.ViewPartner).Select(x => Convert.ToInt32(x.ObjectId)).ToList();
+                                    loginResult.VipLevel = partnerBl.GetPartners(new FilterPartner { State = (int)PartnerStates.Active }, false).
+                                        Where(x => partners.Contains(x.Id)).Max(x => x.VipLevel);
+                                }
+                            }
+                            else
+                            {
+                                loginResult.VipLevel = partnerBl.GetPartnerById(userIdentity.PartnerId).VipLevel;
+                            }
                         }
                     }
                 }

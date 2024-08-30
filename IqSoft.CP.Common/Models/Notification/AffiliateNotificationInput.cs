@@ -12,6 +12,6 @@
 
         public decimal? sum { get; set; }
 
-        public long? action_id { get; set; }
+        public string action_id { get; set; }
     }
 }

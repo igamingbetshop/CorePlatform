@@ -21,9 +21,10 @@ namespace IqSoft.CP.DAL
         public Nullable<decimal> MinAmount { get; set; }
         public Nullable<decimal> MaxAmount { get; set; }
         public Nullable<decimal> UpToAmount { get; set; }
+        public Nullable<decimal> Amount { get; set; }
     
         public virtual Bonu Bonu { get; set; }
-        public virtual Currency Currency { get; set; }
         public virtual TriggerSetting TriggerSetting { get; set; }
+        public virtual Currency Currency { get; set; }
     }
 }

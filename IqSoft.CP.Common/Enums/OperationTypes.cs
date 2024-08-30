@@ -20,7 +20,7 @@
         WinRollback = 17,
         DebitCorrectionOnCashDesk = 18,
         CreditCorrectionOnCashDesk = 19,
-        WelcomeBonus = 20,
+        CancelWageringBonus = 20,
         DebitCorrectionOnClient = 21,
         CreditCorrectionOnClient = 22,
         TransferFromBetShopToClient = 23,

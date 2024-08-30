@@ -9,6 +9,7 @@ using IqSoft.CP.BLL.Services;
 using IqSoft.CP.AdminWebApi.Models.CommonModels;
 using log4net;
 using IqSoft.CP.BLL.Caching;
+using IqSoft.CP.AdminWebApi.Models.UserModels;
 
 namespace IqSoft.CP.AdminWebApi.ControllerClasses
 {
@@ -34,6 +35,8 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 case "SaveProductLimit":
                     return SaveProductLimit(
                         JsonConvert.DeserializeObject<DAL.Models.ProductLimit>(request.RequestData), identity, log);
+                case "GetBulkEditFields":
+                    return GetBulkEditFields(JsonConvert.DeserializeObject<ApiUserState>(request.RequestData), identity, log);
             }
             throw BaseBll.CreateException(string.Empty, Constants.Errors.MethodNotFound);
         }
@@ -111,6 +114,17 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 return new ApiResponseBase
                 {
                     ResponseObject = result
+                };
+            }
+        }
+
+        private static ApiResponseBase GetBulkEditFields(ApiUserState input, SessionIdentity identity, ILog log)
+        {
+            using (var permissionBl = new PermissionBll(identity, log))
+            {
+                return new ApiResponseBase
+                {
+                    ResponseObject = permissionBl.GetBulkEditFields(input.AdminMenuId, input.GridIndex)
                 };
             }
         }

@@ -19,8 +19,6 @@ namespace IqSoft.CP.DAL
         {
             this.ActionLogs = new HashSet<ActionLog>();
             this.CashDesks = new HashSet<CashDesk>();
-            this.Currencies = new HashSet<Currency>();
-            this.CurrencyRates = new HashSet<CurrencyRate>();
             this.ObjectChangeHistories = new HashSet<ObjectChangeHistory>();
             this.Partners = new HashSet<Partner>();
             this.PaymentRequestHistories = new HashSet<PaymentRequestHistory>();
@@ -30,6 +28,7 @@ namespace IqSoft.CP.DAL
             this.BetShopGroups = new HashSet<BetShopGroup>();
             this.TranslationEntries = new HashSet<TranslationEntry>();
             this.ClientMessages = new HashSet<ClientMessage>();
+            this.CurrencyRates = new HashSet<CurrencyRate>();
         }
     
         public long Id { get; set; }
@@ -53,10 +52,6 @@ namespace IqSoft.CP.DAL
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<CashDesk> CashDesks { get; set; }
         public virtual CashDesk CashDesk { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Currency> Currencies { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<CurrencyRate> CurrencyRates { get; set; }
         public virtual Language Language { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ObjectChangeHistory> ObjectChangeHistories { get; set; }
@@ -78,5 +73,7 @@ namespace IqSoft.CP.DAL
         public virtual ICollection<TranslationEntry> TranslationEntries { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ClientMessage> ClientMessages { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<CurrencyRate> CurrencyRates { get; set; }
     }
 }

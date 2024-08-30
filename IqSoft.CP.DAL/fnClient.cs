@@ -24,7 +24,7 @@ namespace IqSoft.CP.DAL
         public int PartnerId { get; set; }
         public Nullable<int> Gender { get; set; }
         public System.DateTime BirthDate { get; set; }
-        public Nullable<int> Age { get; set; }
+        public int Age { get; set; }
         public bool SendMail { get; set; }
         public bool SendSms { get; set; }
         public bool CallToPhone { get; set; }
@@ -63,6 +63,7 @@ namespace IqSoft.CP.DAL
         public string SecondName { get; set; }
         public string SecondSurname { get; set; }
         public string UnderMonitoringTypes { get; set; }
+        public string Duplicated { get; set; }
         public Nullable<decimal> BonusBalance { get; set; }
         public Nullable<decimal> RealBalance { get; set; }
         public int GGR { get; set; }

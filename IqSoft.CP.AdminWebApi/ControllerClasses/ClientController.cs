@@ -36,6 +36,8 @@ using IqSoft.CP.AdminWebApi.Filters.Reporting;
 using IqSoft.CP.Common.Helpers;
 using IqSoft.CP.Integration.Payments.Helpers;
 using IqSoft.CP.Common.Models.AdminModels;
+using IqSoft.CP.Common.Models.Filters;
+using IqSoft.CP.Common.Models.AgentModels;
 
 namespace IqSoft.CP.AdminWebApi.ControllerClasses
 {
@@ -100,9 +102,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 case "UpdateClientAccount":
                     return UpdateClientAccount(JsonConvert.DeserializeObject<FnAccountModel>(request.RequestData), identity, log);
                 case "GetClientLoginsPagedModel":
-                    return
-                        GetClientLoginsPagedModel(
-                            JsonConvert.DeserializeObject<FilterClientSession>(request.RequestData), identity, log);
+                    return GetClientLoginsPagedModel(JsonConvert.DeserializeObject<ApiFilterReportByClientSession>(request.RequestData), identity, log);
                 case "GetClientInfo":
                     {
                         if (int.TryParse(request.RequestObject.ToString(), out int clientId))
@@ -178,15 +178,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 case "UpdateClientPaymentAccount":
                     return UpdateClientPaymentAccount(JsonConvert.DeserializeObject<ApiClientPaymentInfo>(request.RequestData), identity, log);
                 case "RegisterClient":
-                    return RegisterClient(JsonConvert.DeserializeObject<NewClientModel>(request.RequestData), identity, log);
-                case "GetEmails":
-                    if (!string.IsNullOrEmpty(request.RequestData))
-                        return GetEmails(JsonConvert.DeserializeObject<ApiFilterClientMessage>(request.RequestData), identity, log);
-                    return GetEmails(new ApiFilterClientMessage(), identity, log);
-                case "GetSmses":
-                    if (!string.IsNullOrEmpty(request.RequestData))
-                        return GetSmses(JsonConvert.DeserializeObject<ApiFilterClientMessage>(request.RequestData), identity, log);
-                    return GetSmses(new ApiFilterClientMessage(), identity, log);
+                    return RegisterClient(JsonConvert.DeserializeObject<NewClientModel>(request.RequestData), identity, log);             
                 case "GetAffiliateClientsOfManager":
                     return GetAffiliateClientsOfManager(JsonConvert.DeserializeObject<AffiliateClientsOfManagerInput>(request.RequestData), identity, log);
                 case "ResetClientBankInfo":
@@ -321,7 +313,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     var checkClientPermission = clientBl.GetPermissionsToObject(new CheckPermissionInput
                     {
                         Permission = Constants.Permissions.ViewClient,
-                        ObjectTypeId = ObjectTypes.Client
+                        ObjectTypeId = (int)ObjectTypes.Client
                     });
                     if (!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != clientId))
                         throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.DontHavePermission);
@@ -544,15 +536,15 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             }
         }
 
-        private static ApiResponseBase GetClientLoginsPagedModel(FilterClientSession filter, SessionIdentity identity, ILog log)
+        private static ApiResponseBase GetClientLoginsPagedModel(ApiFilterReportByClientSession filter, SessionIdentity identity, ILog log)
         {
-            using (var clientBl = new ClientBll(identity, log))
+            using (var reportBll = new ReportBll(identity, log))
             {
                 filter.ProductId = Constants.PlatformProductId;
-                var resp = clientBl.GetClientLoginsPagedModel(filter);
+                var resp = reportBll.GetClientLoginsPagedModel(filter.MapToFilterReportByClientSession());
                 return new ApiResponseBase
                 {
-                    ResponseObject = new { resp.Count, Entities = resp.Entities.MapToClientSessionModels(clientBl.GetUserIdentity().TimeZone) }
+                    ResponseObject = new { resp.Count, Entities = resp.Entities.MapToClientSessionModels(identity.TimeZone) }
                 };
             }
         }
@@ -657,19 +649,38 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 return new ApiResponseBase
                 {
                     ResponseObject = clientBl.GetClientAccountsBalanceHistoryPaging(input.MapToFilterAccountsBalanceHistory(identity.TimeZone))
-                             .Select(x => x.MapToApiAccountsBalanceHistoryElement(identity.TimeZone))
-                             .ToList()
                 };
             }
         }
 
         private static ApiResponseBase ExportClientAccountsBalanceHistory(ApiFilterAccountsBalanceHistory filter, SessionIdentity identity, ILog log)
         {
+            var client = CacheManager.GetClientById(filter.ClientId) ??
+              throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.ClientNotFound);
+            var clientBalance = CacheManager.GetClientCurrentBalance(filter.ClientId);
+            var currentDate = DateTime.UtcNow;
+            var customLines = new List<string>
+                {
+                    "DATE:," + string.Format("{0:dd.MM.yyyy HH:mm:ss}", currentDate),
+                    "FromDate:, " + string.Format("{0:dd.MM.yyyy HH:mm:ss}", filter.FromDate),
+                    "UntilDate:, " + string.Format("{0:dd.MM.yyyy HH:mm:ss}", filter.ToDate),
+                    "TimeZone:, GMT +0",
+                    "Client Idendifier:," + client.Id.ToString(),
+                    "Email:," + client.Email,
+                    "Currency:," + client.CurrencyId,
+                    "Real Balance:," + Math.Round( clientBalance.Balances.Where(x => x.TypeId != (int)AccountTypes.ClientBonusBalance &&
+                                                                                     x.TypeId != (int)AccountTypes.ClientCompBalance &&
+                                                                                     x.TypeId != (int)AccountTypes.ClientCoinBalance)
+                                                                         .Sum(x => x.Balance), 2),
+                    "Bonus Balance:," +  Math.Round( clientBalance.Balances.Where(x => x.TypeId == (int)AccountTypes.ClientBonusBalance )
+                                                                           .Sum(x => x.Balance), 2),
+                };
+
             using (var clientBl = new ClientBll(identity, log))
             {
                 var result = clientBl.ExportClientAccountsBalanceHistory(filter.MapToFilterAccountsBalanceHistory(identity.TimeZone));
                 var fileName = "ExportClientAccountsBalanceHistory.csv";
-                var fileAbsPath = clientBl.ExportToCSV(fileName, result, filter.FromDate, filter.ToDate, identity.TimeZone, filter.AdminMenuId);
+                var fileAbsPath = clientBl.ExportToCSV(fileName, result, filter.FromDate, filter.ToDate, identity.TimeZone, filter.AdminMenuId, customLines: customLines);
                 return new ApiResponseBase
                 {
                     ResponseObject = new
@@ -978,42 +989,6 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
 
                     return new ApiResponseBase { ResponseObject = existingClient.MapTofnClientModel() };
                 }
-            }
-        }
-
-        private static ApiResponseBase GetEmails(ApiFilterClientMessage apiFilterClientMessage, SessionIdentity identity, ILog log)
-        {
-            using (var clientBl = new ClientBll(identity, log))
-            {
-                var filter = apiFilterClientMessage.MapToFilterClientMessage();
-                filter.Types = new List<int> { (int)ClientMessageTypes.Email, (int)ClientMessageTypes.SecuredEmail };
-                var resp = clientBl.GetClientMessages(filter, true);
-                return new ApiResponseBase
-                {
-                    ResponseObject = new
-                    {
-                        Entities = resp.Entities.MapToClientMessage(identity.TimeZone),
-                        resp.Count
-                    }
-                };
-            }
-        }
-
-        private static ApiResponseBase GetSmses(ApiFilterClientMessage apiFilterClientMessage, SessionIdentity identity, ILog log)
-        {
-            using (var clientBl = new ClientBll(identity, log))
-            {
-                var filter = apiFilterClientMessage.MapToFilterClientMessage();
-                filter.Types = new List<int> { (int)ClientMessageTypes.Sms, (int)ClientMessageTypes.SecuredSms };
-                var resp = clientBl.GetClientMessages(filter, true);
-                return new ApiResponseBase
-                {
-                    ResponseObject = new
-                    {
-                        Entities = resp.Entities.MapToClientMessage(identity.TimeZone),
-                        resp.Count
-                    }
-                };
             }
         }
 
@@ -1575,17 +1550,17 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     var partnerAccess = partnerBll.GetPermissionsToObject(new CheckPermissionInput
                     {
                         Permission = Constants.Permissions.ViewPartner,
-                        ObjectTypeId = ObjectTypes.Partner
+                        ObjectTypeId = (int)ObjectTypes.Partner
                     });
                     var checkClientPermission = partnerBll.GetPermissionsToObject(new CheckPermissionInput
                     {
                         Permission = Constants.Permissions.ViewClient,
-                        ObjectTypeId = ObjectTypes.Client
+                        ObjectTypeId = (int)ObjectTypes.Client
                     });
                     var clientAccess = partnerBll.GetPermissionsToObject(new CheckPermissionInput
                     {
                         Permission = Constants.Permissions.EditClient,
-                        ObjectTypeId = ObjectTypes.Client
+                        ObjectTypeId = (int)ObjectTypes.Client
                     });
                     if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId) ||
                         !checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != client.Id) ||
@@ -1627,12 +1602,12 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 var partnerAccess = productBll.GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewPartner,
-                    ObjectTypeId = ObjectTypes.Partner
+                    ObjectTypeId = (int)ObjectTypes.Partner
                 });
                 var checkClientPermission = productBll.GetPermissionsToObject(new CheckPermissionInput
                 {
                     Permission = Constants.Permissions.ViewClient,
-                    ObjectTypeId = ObjectTypes.Client
+                    ObjectTypeId = (int)ObjectTypes.Client
                 });
                 if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId) ||
                     !checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != client.Id))
@@ -1731,7 +1706,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             }
         }
 
-        private static ApiResponseBase StakeNFT(ApiNFTInfo input, SessionIdentity session, ILog log)
+            private static ApiResponseBase StakeNFT(ApiNFTInfo input, SessionIdentity session, ILog log)
         {
             using (var clientBl = new ClientBll(session, log))
             {

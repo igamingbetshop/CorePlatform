@@ -57,10 +57,6 @@ namespace IqSoft.CP.AdminWebApi
             {
                 CacheManager.RemoveKeysFromCache(data);
             });
-            JobHubProxy.On<int, int>("onRemoveBanners", (partnerId, type) =>
-            {
-                CacheManager.RemoveBanners(partnerId, type);
-            });
             JobHubProxy.On<int>("onRemoveClient", (clientId) =>
             {
                 CacheManager.RemoveClientFromCache(clientId);

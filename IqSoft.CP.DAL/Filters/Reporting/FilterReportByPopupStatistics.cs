@@ -17,8 +17,9 @@ namespace IqSoft.CP.DAL.Filters.Reporting
         public FiltersOperation States { get; set; }
         public FiltersOperation CreationTimes { get; set; }
         public FiltersOperation LastUpdateTimes { get; set; }
-        public FiltersOperation ViewTypeIds { get; set; }
-        public FiltersOperation ViewCounts { get; set; }
+        public FiltersOperation Vieweds { get; set; }
+        public FiltersOperation Closeds { get; set; }
+        public FiltersOperation Redirecteds { get; set; }
 
         protected override IQueryable<fnPopupStatistics> CreateQuery(IQueryable<fnPopupStatistics> objects, Func<IQueryable<fnPopupStatistics>, IOrderedQueryable<fnPopupStatistics>> orderBy = null)
         {
@@ -36,8 +37,9 @@ namespace IqSoft.CP.DAL.Filters.Reporting
             FilterByValue(ref objects, States, "State");
             FilterByValue(ref objects, CreationTimes, "CreationTime");
             FilterByValue(ref objects, LastUpdateTimes, "LastUpdateTime");
-            FilterByValue(ref objects, ViewTypeIds, "ViewTypeId");
-            FilterByValue(ref objects, ViewCounts, "ViewCount");
+            FilterByValue(ref objects, Vieweds, "Viewed");
+            FilterByValue(ref objects, Closeds, "Closeds");
+            FilterByValue(ref objects, Redirecteds, "Redirecteds");
 
             return base.FilteredObjects(objects, orderBy);
         }

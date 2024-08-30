@@ -214,7 +214,6 @@
     <Compile Include="Startup.cs" />
     <Content Include="Global.asax" />
     <Compile Include="ControllerClasses\DashboardController.cs" />
-    <Compile Include="Filter\ApiFilterClientCorrection.cs" />
     <Compile Include="Filter\ApiFilterDashboard.cs" />
     <Compile Include="Filter\ApiFilterNote.cs" />
     <Compile Include="Filter\Messages\ApiFilterTicket.cs" />
@@ -226,7 +225,6 @@
     <Compile Include="Models\ApiGetBetInfoResponse.cs" />
     <Compile Include="Models\ApiOpenTicketInput.cs" />
     <Compile Include="Models\ApiSubAgent.cs" />
-    <Compile Include="Models\ClientModels\ApiClientCorrections.cs" />
     <Compile Include="Models\ClientModels\ApiTicketInput.cs" />
     <Compile Include="Models\ClientModels\ApiTicketMessage.cs" />
     <Compile Include="Models\ClientModels\ClientInfoModel.cs" />
@@ -259,15 +257,12 @@
     <Compile Include="Filter\ApiAgentProfit.cs" />
     <Compile Include="Filter\ApiFilterAgentReport.cs" />
     <Compile Include="Filter\ApiFilterAnnouncement.cs" />
-    <Compile Include="Filter\ApiFilterfnAgent.cs" />
-    <Compile Include="Filter\ApiFilterFnAgentTransaction.cs" />
     <Compile Include="Filter\ApiFilterfnPaymentRequest.cs" />
     <Compile Include="Filter\ApiFilterfnProduct.cs" />
     <Compile Include="Filter\ApiFilterGameProvider.cs" />
     <Compile Include="Filter\ApiFilterInternetBet.cs" />
     <Compile Include="Filter\ApiFilterReportByActionLog.cs" />
     <Compile Include="Filter\ApiFilterRole.cs" />
-    <Compile Include="Filter\ApiFiltersOperationType.cs" />
     <Compile Include="Filter\ApiFilterUser.cs" />
     <Compile Include="Filter\ApiFilterUserCorrection.cs" />
     <Compile Include="Global.asax.cs">
@@ -276,11 +271,9 @@
     <Compile Include="Helpers\CustomMapper.cs" />
     <Compile Include="Models\ApiReportByActionLog.cs" />
     <Compile Include="Models\ApiRequestBase.cs" />
-    <Compile Include="Filter\ApiFilterBase.cs" />
     <Compile Include="Filter\ApiFilterfnClient.cs" />
     <Compile Include="Models\ApiUserCorrections.cs" />
     <Compile Include="Models\ClientModels\fnClientModel.cs" />
-    <Compile Include="Models\DocumentModel.cs" />
     <Compile Include="Models\EnumerationModel.cs" />
     <Compile Include="Models\fnAccountModel.cs" />
     <Compile Include="Models\fnProductModel.cs" />
@@ -291,7 +284,6 @@
     <Compile Include="Models\Payment\ApiUpdatePaymentEntryInput.cs" />
     <Compile Include="Models\Payment\ChangePaymentRequestState.cs" />
     <Compile Include="Models\ClientModels\NewClientModel.cs" />
-    <Compile Include="Filter\ApiFiltersOperation.cs" />
     <Compile Include="Models\Payment\GetPaymentRequestHistoriesInput.cs" />
     <Compile Include="Models\Payment\PaymentModel.cs" />
     <Compile Include="Models\Payment\PaymentRequestHistoryModel.cs" />

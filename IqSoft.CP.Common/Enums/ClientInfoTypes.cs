@@ -63,11 +63,18 @@
         SuccessRegistrationEmailSubject = 60,
         WithdrawVerificationSMS = 61,
         WithdrawVerificationEmail = 62,
-		AffiliateConfirmationEmail = 63,
+        AffiliateConfirmationEmail = 63,
         AffiliateClientInvitationEmailSubject = 64,
         ResetPinCode = 65,
         KYCVerificationEmail = 66,
         KYCVerificationTicket = 67,
-        KYCVerificationSubject = 68
+        KYCVerificationSubject = 68,
+        ClientLimitSubject = 69, 
+        DepositNotificationSubject = 70, 
+        FailedDepositSubject = 71, 
+        MissedDepositEmailSubject = 72, 
+        KYCStatusChangeSubject = 73, 
+        SelfExclusionFinishedSubject = 74, 
+        WithdrawStatusChangeSubject = 75
     }
 }

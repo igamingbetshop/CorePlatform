@@ -19,7 +19,6 @@ namespace IqSoft.CP.Integration.Products.Helpers
     {
         private static readonly List<string> NotSupportedCurrencies = new List<string>
         {
-            Constants.Currencies.ArgentinianPeso,
             Constants.Currencies.ColumbianPeso,
             Constants.Currencies.IranianTuman,
             Constants.Currencies.USDT
@@ -83,7 +82,8 @@ namespace IqSoft.CP.Integration.Products.Helpers
             { 910,"RedRakeGaming" },
             { 916,"PlayTech" },
             { 850,"Hacksaw" },
-            { 911,"PushGaming" }
+            { 911,"PushGaming" },
+            { 889,"Gamomat" }
         };
 
         private static readonly List<string> RedirectingProviders = new List<string>
@@ -98,6 +98,18 @@ namespace IqSoft.CP.Integration.Products.Helpers
 
         private static readonly List<MerchantItem> AbsentMerchants = new List<MerchantItem>
         {
+            new MerchantItem { ID = 322, Name = "YggdrasilGaming" },
+            new MerchantItem { ID = 324, Name = "AceRun" },
+            new MerchantItem { ID = 325, Name = "JellyEntertainment" },
+            new MerchantItem { ID = 328, Name = "Bulletproof" },
+            new MerchantItem { ID = 329, Name = "Boomerang" },
+            new MerchantItem { ID = 330, Name = "HotRise" },
+            new MerchantItem { ID = 333, Name = "PeterNSons" },
+            new MerchantItem { ID = 334, Name = "ReelPlaySlots" },
+            new MerchantItem { ID = 335, Name = "Reflex" },
+            new MerchantItem { ID = 336, Name = "4ThePlayer" },
+            new MerchantItem { ID = 337, Name = "AvatarUXGames" },
+            new MerchantItem { ID = 350, Name = "BlueRing" },
             new MerchantItem { ID = 356, Name = "OrosGaming" },
             new MerchantItem { ID = 357, Name = "HighLimit" },
             new MerchantItem { ID = 364, Name = "Wishbone" },
@@ -166,7 +178,14 @@ namespace IqSoft.CP.Integration.Products.Helpers
             new MerchantItem { ID = 482, Name = "BigTimeMG" },
             new MerchantItem { ID = 483, Name = "All41studios" },
             new MerchantItem { ID = 484, Name = "2By2" },
-            new MerchantItem { ID = 495, Name = "Plank" }
+            new MerchantItem { ID = 495, Name = "Plank" },
+            new MerchantItem { ID = 889, Name = "OryxGaming" },
+            new MerchantItem { ID = 916, Name = "Playtech" },
+            new MerchantItem { ID = 935, Name = "RelaxGaming" },
+            new MerchantItem { ID = 940, Name = "EvoPlay" },
+            new MerchantItem { ID = 948, Name = "Edict" },
+            new MerchantItem { ID = 970, Name = "OneXTwoNetwork" },
+            new MerchantItem { ID = 987, Name = "TomHorn" }
         };
 
         public static string GetUrl(int partnerId, int productId, string token, int clientId,
@@ -334,20 +353,40 @@ namespace IqSoft.CP.Integration.Products.Helpers
             return res.games;
         }
 
-        public static void AddFreeRound(FreeSpinModel freeSpinModel, ILog log)
+        public static bool AddFreeRound(FreeSpinModel freeSpinModel, ILog log)
         {
             var client = CacheManager.GetClientById(freeSpinModel.ClientId);
             var gameProvider = CacheManager.GetGameProviderByName(Constants.GameProviders.SoftGaming);
             var apiKey = CacheManager.GetGameProviderValueByKey(client.PartnerId, gameProvider.Id, Constants.PartnerKeys.SoftGamingApiKey);
             var pwd = CacheManager.GetGameProviderValueByKey(client.PartnerId, gameProvider.Id, Constants.PartnerKeys.SoftGamingApiPwd);
+            var product = CacheManager.GetProductByExternalId(gameProvider.Id, freeSpinModel.ProductExternalId);
+
             var externalData = freeSpinModel.ProductExternalId.Split(',');
             var operatorId = Convert.ToInt32(externalData[0]);
             if (!OperatorsList.ContainsKey(operatorId))
                 throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongInputParameters);
-            var tId = "ti" + freeSpinModel.BonusId + "pi" + freeSpinModel.ProductId;
-            var length = 30 - tId.Length;
-            for (int i = 0; i < length; i++)
-                tId += "F";
+            var tId = freeSpinModel.BonusId + "_" + freeSpinModel.ProductId + "_";
+            if (tId.Length < 30)
+            {
+                var randomString = CommonFunctions.GetRandomString(30 - tId.Length);
+                tId += randomString;
+            }
+
+            decimal? bValue = null;
+            if (!string.IsNullOrEmpty(freeSpinModel.BetValues))
+            {
+                var bv = JsonConvert.DeserializeObject<Dictionary<string, decimal>>(freeSpinModel.BetValues);
+                if (bv.ContainsKey(client.CurrencyId))
+                    bValue = bv[client.CurrencyId];
+            }
+            if (bValue == null && !string.IsNullOrEmpty(product.BetValues))
+            {
+                var bv = JsonConvert.DeserializeObject<Dictionary<string, List<decimal>>>(product.BetValues);
+                if (bv.ContainsKey(client.CurrencyId) && bv[client.CurrencyId].Any())
+                    bValue = bv[client.CurrencyId][0];
+            }
+            //if (bValue == null) // recheck
+            //    return false;
 
             var input = new
             {
@@ -357,9 +396,9 @@ namespace IqSoft.CP.Integration.Products.Helpers
                 Count = freeSpinModel.SpinCount,
                 Expire = freeSpinModel.FinishTime.ToString("yyyy-MM-dd HH:mm:ss"),
                 TID = tId,
-                BetLevel = freeSpinModel.BetValueLevel
+                BetLevel = bValue
             };
-
+            log.Info("GiveFreeSpin_" + JsonConvert.SerializeObject(input));
             var hostName = Dns.GetHostName();
             var serverIPs = Dns.GetHostEntry(hostName.Replace("https://", string.Empty).Replace("http://", string.Empty)).AddressList;
             var ip = serverIPs[serverIPs.Length - 1].ToString();
@@ -378,15 +417,20 @@ namespace IqSoft.CP.Integration.Products.Helpers
             if (res != "1")
             {
                 log.Error(res + "_" + JsonConvert.SerializeObject(input));
-                var items = res.Split(',');
-                if (items[0] != "30" && items[1] != "Error: Can't add freerounds to user")
-                {
-                    var response = JsonConvert.DeserializeObject<Dictionary<string, string>>(items[1]);
-                    if (response.Any(x => x.Value != "User already have active freerounds for current game") &&
-                        response.Any(x => x.Value != "User not found"))
-                        throw new Exception(JsonConvert.SerializeObject(res));
-                }
+                return false;
             }
+            return true;
+            //{
+            //    log.Error(res + "_" + JsonConvert.SerializeObject(input));
+            //    var items = res.Split(',');
+            //    if (items[0] != "30" && items[1] != "Error: Can't add freerounds to user")
+            //    {
+            //        var response = JsonConvert.DeserializeObject<Dictionary<string, string>>(items[1]);
+            //        if (response.Any(x => x.Value != "User already have active freerounds for current game") &&
+            //            response.Any(x => x.Value != "User not found"))
+            //            throw new Exception(JsonConvert.SerializeObject(res));
+            //    }
+            //}
         }
     }
 }

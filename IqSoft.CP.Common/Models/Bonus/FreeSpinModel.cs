@@ -14,7 +14,7 @@ namespace IqSoft.CP.Common.Models.Bonus
         public decimal? Lines { get; set; }
         public decimal? Coins { get; set; }
         public decimal? CoinValue { get; set; }
-        public decimal? BetValueLevel { get; set; }
+        public string BetValues { get; set; }
         public DateTime StartTime { get; set; }
         public DateTime FinishTime { get; set; }
 
