@@ -21,6 +21,7 @@ namespace IqSoft.CP.DAL
             this.PaymentRequest1 = new HashSet<PaymentRequest>();
             this.PaymentRequestHistories = new HashSet<PaymentRequestHistory>();
             this.PaymentRequestTransfers = new HashSet<PaymentRequestTransfer>();
+            this.UserNotifications = new HashSet<UserNotification>();
         }
     
         public long Id { get; set; }
@@ -69,5 +70,7 @@ namespace IqSoft.CP.DAL
         public virtual Client Client { get; set; }
         public virtual PartnerPaymentSetting PartnerPaymentSetting { get; set; }
         public virtual Currency Currency { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<UserNotification> UserNotifications { get; set; }
     }
 }

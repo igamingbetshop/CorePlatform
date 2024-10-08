@@ -68,8 +68,9 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             }
         }
 
-        public static void CheckPaymentRequestStatus(PaymentRequest paymentRequest, SessionIdentity session, ILog log)
+        public static List<int> CheckPaymentRequestStatus(PaymentRequest paymentRequest, SessionIdentity session, ILog log)
         {
+            var userIds = new List<int>();
             using (var clientBl = new ClientBll(session, log))
             using (var paymentSystemBl = new PaymentSystemBll(clientBl))
             using (var notificationBl = new NotificationBll(clientBl))
@@ -97,12 +98,13 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                         paymentRequest.Amount = statusOutput.AmountCaptured;
                         paymentSystemBl.ChangePaymentRequestDetails(paymentRequest);
                     }
-                    clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
+                    clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out userIds);
                 }
                 else if (statusOutput.Status.ToLower() == "declined" || statusOutput.Status.ToLower() == "rejected")
                     clientBl.ChangeDepositRequestState(paymentRequest.Id, PaymentRequestStates.Deleted, $"Code: {statusOutput.Code}, Msg: {statusOutput.Status}", notificationBl);
 
             }
+            return userIds;
         }
     }
 }

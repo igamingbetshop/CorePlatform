@@ -28,6 +28,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
         public HttpResponseMessage ApiRequest([FromBody]PaymentInput input, [FromUri]string status)
         {
             var response = string.Empty;
+            var userIds = new List<int>();
             var httpResponseMessage = new HttpResponseMessage
             {
                 StatusCode = HttpStatusCode.OK
@@ -53,7 +54,9 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                             if (paymentRequest.Type == (int)PaymentRequestTypes.Deposit)
                             {
                                 if (status == "STATUS_SUCCESS")
-                                    clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
+                                {
+                                    clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out userIds);
+                                }
                                 else if (status == "STATUS_ABORTED1" || status == "	STATUS_ABORTED" || status == "STATUS_FAILED" ||
                                         status == "STATUS_EXPIRED" || status == "STATUS_REJECTED")
                                     clientBl.ChangeDepositRequestState(paymentRequest.Id, PaymentRequestStates.Deleted, status, notificationBl);
@@ -65,13 +68,17 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                     if (status == "STATUS_SUCCESS")
                                     {
                                         var resp = clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Approved, string.Empty,
-                                          null, null, false, string.Empty, documentBll, notificationBl);
+                                          null, null, false, string.Empty, documentBll, notificationBl, out userIds);
                                         clientBl.PayWithdrawFromPaymentSystem(resp, documentBll, notificationBl);
                                     }
                                     else if (status == "STATUS_REJECTED" || status == "	STATUS_EXPIRED")
                                         clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed, 
-                                            status, null, null, false, string.Empty, documentBll, notificationBl);
+                                            status, null, null, false, string.Empty, documentBll, notificationBl, out userIds);
                                 }
+                            }
+                            foreach (var uId in userIds)
+                            {
+                                PaymentHelpers.InvokeMessage("NotificationsCount", uId);
                             }
                             PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
                             BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);

@@ -256,8 +256,9 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             return tokenOutput.Token;
         }
 
-        public static PaymentResponse CreateVoucher(PaymentRequest paymentRequest, SessionIdentity session, ILog log)
+        public static PaymentResponse CreateVoucher(PaymentRequest paymentRequest, SessionIdentity session, ILog log, out List<int> userIds)
         {
+            userIds = new List<int>();
             var client = CacheManager.GetClientById(paymentRequest.ClientId.Value);
             if (string.IsNullOrEmpty(client.FirstName))
                 throw BaseBll.CreateException(session.LanguageId, Constants.Errors.FirstNameCantBeEmpty);
@@ -332,7 +333,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                             });
                             paymentSystemBl.ChangePaymentRequestDetails(paymentRequest);
                             var resp = clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Approved, 
-                                string.Empty, null, null, false, string.Empty, documentBl, notificationBl);
+                                string.Empty, null, null, false, string.Empty, documentBl, notificationBl, out userIds);
                             return new PaymentResponse
                             {
                                 Status = PaymentRequestStates.PayPanding,

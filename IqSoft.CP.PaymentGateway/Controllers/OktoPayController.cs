@@ -38,6 +38,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 		{
 			WebApiApplication.DbLogger.Info(JsonConvert.SerializeObject(obj));
 			var response = string.Empty;
+			var userIds = new List<int>();
 			var httpResponseMessage = new HttpResponseMessage
 			{
 				StatusCode = HttpStatusCode.OK
@@ -104,7 +105,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 									using (var documentBll = new DocumentBll(paymentSystemBl))
 									{
 										clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed,
-										                                          string.Empty, null, null, false, string.Empty, documentBll, notificationBl);
+										                                          string.Empty, null, null, false, string.Empty, documentBll, notificationBl, out userIds);
 									}
 								}
 								else
@@ -123,8 +124,8 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 												ObjectId = client.Id,
 												ObjectTypeId = (int)ObjectTypes.Client
 											}).FirstOrDefault(x => x.PaymentSystemId == paymentRequest.PaymentSystemId)?.Id;
-											clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, info: paymentInfo, accountId: accountId);
-										}
+											clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out userIds, info: paymentInfo, accountId: accountId);
+                                        }
 									}
 									else if (paymentRequest.Type == (int)PaymentRequestTypes.Withdraw)
 									{
@@ -133,7 +134,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 											if (paymentInput.Status == "EXECUTED")
 											{
 												var resp = clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Approved, string.Empty,
-												 null, null, false, string.Empty, documentBll, notificationBl);
+												 null, null, false, string.Empty, documentBll, notificationBl, out userIds);
 												clientBl.PayWithdrawFromPaymentSystem(resp, documentBll, notificationBl);
 											}
 										}
@@ -142,8 +143,13 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 									BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);
 								}
 
-							}
-							response = "OK";
+                                foreach (var uId in userIds)
+                                {
+                                    PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                }
+
+                            }
+                            response = "OK";
 						}
 					}
 				}

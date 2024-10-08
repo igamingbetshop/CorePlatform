@@ -105,10 +105,10 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var currencyBl = new CurrencyBll(identity, log))
             {
-                var result = currencyBl.SavePartnerCurrencySetting(partnerCurrencySetting.ToPartnerCurrencySetting());
+                var result = currencyBl.SavePartnerCurrencySetting(partnerCurrencySetting.ToPartnerCurrencySetting(identity.TimeZone));
                 return new ApiResponseBase
                 {
-                    ResponseObject = result.ToApiPartnerCurrencySetting()
+                    ResponseObject = result.ToApiPartnerCurrencySetting(identity.TimeZone)
                 };
             }
         }

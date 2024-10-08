@@ -131,6 +131,8 @@ D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.MasterCacheWebApi\obj\Rel
 D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.MasterCacheWebApi\obj\Release\IqSoft.C.E76FDF9D.Up2Date
 D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.MasterCacheWebApi\obj\Release\IqSoft.CP.MasterCacheWebApi.dll
 D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.MasterCacheWebApi\obj\Release\IqSoft.CP.MasterCacheWebApi.pdb
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.MasterCacheWebApi\bin\HtmlRenderer.PdfSharp.dll
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.MasterCacheWebApi\bin\HtmlRenderer.PdfSharp.pdb
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.MasterCacheWebApi\bin\IqSoft.CP.MasterCacheWebApi.dll.config
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.MasterCacheWebApi\bin\IqSoft.CP.MasterCacheWebApi.dll
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.MasterCacheWebApi\bin\IqSoft.CP.MasterCacheWebApi.pdb
@@ -174,6 +176,7 @@ D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.MasterCacheWebApi\b
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.MasterCacheWebApi\bin\Z.EntityFramework.Extensions.dll
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.MasterCacheWebApi\bin\Renci.SshNet.dll
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.MasterCacheWebApi\bin\PdfSharp.dll
+D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.MasterCacheWebApi\bin\HtmlRenderer.PdfSharp.dll
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.MasterCacheWebApi\bin\LinqKit.Core.dll
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.MasterCacheWebApi\bin\LinqKit.dll
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.MasterCacheWebApi\bin\GraphQL.dll
@@ -239,6 +242,7 @@ D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.MasterCacheWebApi\b
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.MasterCacheWebApi\bin\Z.EntityFramework.Extensions.xml
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.MasterCacheWebApi\bin\Renci.SshNet.xml
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.MasterCacheWebApi\bin\PdfSharp.xml
+D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.MasterCacheWebApi\bin\HtmlRenderer.PdfSharp.pdb
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.MasterCacheWebApi\bin\LinqKit.Core.xml
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.MasterCacheWebApi\bin\LinqKit.xml
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.MasterCacheWebApi\bin\GraphQL.xml

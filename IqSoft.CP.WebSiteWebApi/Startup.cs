@@ -159,8 +159,9 @@ namespace IqSoft.CP.WebSiteWebApi
             {
                 var win = new
                 {
+                    BetId = data.BetId,
                     GameName = data.GameName,
-                    ClientName = data.ClientName,
+                    ClientName = string.IsNullOrEmpty(data.ClientName) ? data.ClientId.ToString() : data.ClientName,
                     BetAmount = data.BetAmount,
                     Amount = data.Amount,
                     CurrencyId = data.CurrencyId,

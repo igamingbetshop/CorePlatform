@@ -31,7 +31,7 @@ using IqSoft.CP.Common.Models.Filters;
 using IqSoft.CP.Common.Models.AgentModels;
 using IqSoft.CP.DAL.Models.Agents;
 using IqSoft.CP.BLL.Models;
-using IqSoft.CP.Integration.Products.Models.BGGames;
+using IqSoft.CP.Common.Models.WebSiteModels.Bonuses;
 
 namespace IqSoft.CP.MasterCacheWebApi.Helpers
 {
@@ -362,18 +362,6 @@ namespace IqSoft.CP.MasterCacheWebApi.Helpers
                 EndTime = paymentLimit.EndTime
             };
         }
-
-		public static ClientIdentity ToClientIdentity(this AddClientIdentityModel input)
-		{
-			return new ClientIdentity
-			{
-				Id = input.Id,
-				ClientId = input.ClientId,
-				DocumentTypeId = input.DocumentTypeId,
-				Status = (int)KYCDocumentStates.InProcess,
-				UserId = null
-			};
-		}
 
 		public static ApiClientIdentityModel ToClientIdentityModel(this ClientIdentity clientIdentity, double timezone)
 		{
@@ -823,6 +811,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Helpers
 
         public static AccountModel MapToAccountModel(this fnAccount account, decimal percent)
         {
+            var currency = CacheManager.GetCurrencyById(account.CurrencyId);
             return new AccountModel
             {
                 Id = account.Id,
@@ -834,6 +823,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Helpers
                       account.TypeId == (int)AccountTypes.ClientCompBalance || account.TypeId == (int)AccountTypes.ClientCoinBalance) ? 0 : account.Balance * 100)) / 100,
                 CurrencyId = (account.TypeId == (int)AccountTypes.ClientCoinBalance || account.TypeId == (int)AccountTypes.ClientCompBalance) ?
                              string.Empty : account.CurrencyId,
+                CurrencySymbol = currency.Symbol,
                 AccountTypeName = account.PaymentSystemId != null ? account.PaymentSystemName + " Wallet - " + account.BetShopName :
                     account.BetShopId != null ? "Shop Wallet - " + account.BetShopName : account.AccountTypeName, //make translatable later
                 BetShopId = account.BetShopId,
@@ -1026,16 +1016,16 @@ namespace IqSoft.CP.MasterCacheWebApi.Helpers
 		public static ApiClientBonusItem ToApiClientBonusItem(this fnClientBonus bonus, double timeZone, string languageId)
 		{
             var awardingTime = bonus.AwardingTime ?? bonus.CreationTime.AddHours(bonus.ValidForAwarding ?? 0);
-            List<KeyValuePair<int, string>> connectedBonuses = null;
+            List<ApiConnectedBonusItem> connectedBonuses = null;
             if(bonus.Type == (int)BonusTypes.SpinWheel && !string.IsNullOrEmpty(bonus.Info))
             {
                 var bonuses = JsonConvert.DeserializeObject<List<WheelInfo>>(bonus.Info);
-                connectedBonuses = new List<KeyValuePair<int, string>>();
+                connectedBonuses = new List<ApiConnectedBonusItem>();
                 foreach(var b in bonuses)
                 {
                     var bs = CacheManager.GetBonusById(b.BonusId);
                     var name = CacheManager.GetTranslation(bs.TranslationId, languageId);
-                    connectedBonuses.Add(new KeyValuePair<int, string>(b.BonusId, name));
+                    connectedBonuses.Add(new ApiConnectedBonusItem { Id = b.BonusId, Name = name, Color = bs.Color });
                 }
             }
             return new ApiClientBonusItem
@@ -1353,7 +1343,8 @@ namespace IqSoft.CP.MasterCacheWebApi.Helpers
                 CreatedFrom = filterPartnerPaymentSystem.CreatedFrom,
                 CreatedBefore = filterPartnerPaymentSystem.CreatedBefore,
                 TakeCount = filterPartnerPaymentSystem.TakeCount,
-                SkipCount = filterPartnerPaymentSystem.SkipCount
+                SkipCount = filterPartnerPaymentSystem.SkipCount,
+                CurrencyId = filterPartnerPaymentSystem.CurrencyId
             };
         }
 
@@ -1522,8 +1513,8 @@ namespace IqSoft.CP.MasterCacheWebApi.Helpers
 
         public static FilterfnPaymentRequest MapToFilterPaymentRequest(this ApiFilterPaymentRequest filterPaymentRequest)
         {
-			var fromDate = filterPaymentRequest.CreatedFrom.GetUTCDateFromGmt(filterPaymentRequest.TimeZone);
-			var toDate = filterPaymentRequest.CreatedBefore.GetUTCDateFromGmt(filterPaymentRequest.TimeZone);
+			var fromDate = filterPaymentRequest.CreatedFrom.GetUTCDateFromGMT(filterPaymentRequest.TimeZone);
+			var toDate = filterPaymentRequest.CreatedBefore.GetUTCDateFromGMT(filterPaymentRequest.TimeZone);
 
 			return new FilterfnPaymentRequest
             {
@@ -1625,8 +1616,8 @@ namespace IqSoft.CP.MasterCacheWebApi.Helpers
                 AccountIds = input.AccountIds,
                 OperationTypeId = input.OperationTypeId,
                 OperationTypeIds = input.OperationTypeIds,
-                FromDate = input.CreatedFrom.GetUTCDateFromGmt(input.TimeZone),
-                ToDate = input.CreatedBefore.GetUTCDateFromGmt(input.TimeZone),
+                FromDate = input.CreatedFrom.GetUTCDateFromGMT(input.TimeZone),
+                ToDate = input.CreatedBefore.GetUTCDateFromGMT(input.TimeZone),
                 SkipCount = input.SkipCount,
                 TakeCount = input.TakeCount
             };
@@ -1641,8 +1632,8 @@ namespace IqSoft.CP.MasterCacheWebApi.Helpers
         {
             return new FilterWebSiteBet
 			{
-                FromDate = filterInternetBet.CreatedFrom.GetUTCDateFromGmt(filterInternetBet.TimeZone),
-                ToDate = filterInternetBet.CreatedBefore.GetUTCDateFromGmt(filterInternetBet.TimeZone),
+                FromDate = filterInternetBet.CreatedFrom.GetUTCDateFromGMT(filterInternetBet.TimeZone),
+                ToDate = filterInternetBet.CreatedBefore.GetUTCDateFromGMT(filterInternetBet.TimeZone),
                 ClientId = filterInternetBet.ClientId,
                 ProductIds = filterInternetBet.ProductIds,
                 State = filterInternetBet.Status,

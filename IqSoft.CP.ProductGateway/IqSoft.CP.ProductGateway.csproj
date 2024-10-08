@@ -413,6 +413,7 @@
     <Compile Include="Controllers\PragmaticPlayController.cs" />
     <Compile Include="Controllers\PropsBuilderController.cs" />
     <Compile Include="Controllers\RacebookController.cs" />
+    <Compile Include="Controllers\RelaxGamingController.cs" />
     <Compile Include="Controllers\RiseUpController.cs" />
     <Compile Include="Controllers\SingularController.cs" />
     <Compile Include="Controllers\SkyCityController.cs" />
@@ -474,6 +475,7 @@
     <Compile Include="Helpers\OutcomeBetHelpers.cs" />
     <Compile Include="Helpers\PlaynGoHelpers.cs" />
     <Compile Include="Helpers\PragmaticPlayHelpers.cs" />
+    <Compile Include="Helpers\RelaxGamingHelpers.cs" />
     <Compile Include="Helpers\RiseUpHelpers.cs" />
     <Compile Include="Helpers\RocabeeHelpers.cs" />
     <Compile Include="Helpers\SingularHelpers.cs" />
@@ -502,6 +504,7 @@
     <Compile Include="Models\AleaPlay\BetInput.cs" />
     <Compile Include="Models\AWC\BaseInput.cs" />
     <Compile Include="Models\AWC\BaseOutput.cs" />
+    <Compile Include="Models\BaseModels\TransactionInput.cs" />
     <Compile Include="Models\BetMakers\BaseInput.cs" />
     <Compile Include="Models\ImperiumGames\BaseOutput.cs" />
     <Compile Include="Models\ImperiumGames\GetBalanceInput.cs" />
@@ -509,6 +512,10 @@
     <Compile Include="Models\LuckyStreak\TransactionInput.cs" />
     <Compile Include="Models\LuckyStreak\ValidateInput.cs" />
     <Compile Include="Models\LuckyStreak\BaseOutput.cs" />
+    <Compile Include="Models\RelaxGaming\AuthenticationInput.cs" />
+    <Compile Include="Models\RelaxGaming\BaseInput.cs" />
+    <Compile Include="Models\RelaxGaming\RollbackInput.cs" />
+    <Compile Include="Models\RelaxGaming\TransactionInput.cs" />
     <Compile Include="Models\RiseUp\BaseInput.cs" />
     <Compile Include="Models\BetGames\CombinationBetInput.cs" />
     <Compile Include="Models\BetGames\MultipleBetInput.cs" />

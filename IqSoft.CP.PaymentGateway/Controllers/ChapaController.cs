@@ -35,6 +35,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 		public HttpResponseMessage ApiRequest(HttpRequestMessage httpRequestMessage)
 		{
 			var response = "OK";
+			var userIds = new List<int>();
 			var httpResponseMessage = new HttpResponseMessage
 			{
 				StatusCode = HttpStatusCode.OK
@@ -84,11 +85,13 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 						if (input.Status.ToLower() == "success")
 						{
 							if (paymentRequest.Type == (int)PaymentRequestTypes.Deposit)
-								clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
+							{
+								clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out userIds);
+                            }
 							else if (paymentRequest.Type == (int)PaymentRequestTypes.Withdraw)
 							{
 								var resp = clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Approved, string.Empty,
-																			null, null, false, paymentRequest.Parameters, documentBll, notificationBl);
+																			null, null, false, paymentRequest.Parameters, documentBll, notificationBl, out userIds);
 								clientBl.PayWithdrawFromPaymentSystem(resp, documentBll, notificationBl);
 							}
 						}
@@ -97,9 +100,13 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 								clientBl.ChangeDepositRequestState(paymentRequest.Id, PaymentRequestStates.Deleted, input.Status, notificationBl);
 							else
 								clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed, input.Status,
-																		   null, null, false, string.Empty, documentBll, notificationBl);
+																		   null, null, false, string.Empty, documentBll, notificationBl, out userIds);
 
-						PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
+                        foreach (var uId in userIds)
+                        {
+                            PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                        }
+                        PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
 						BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);
 					}
 				}

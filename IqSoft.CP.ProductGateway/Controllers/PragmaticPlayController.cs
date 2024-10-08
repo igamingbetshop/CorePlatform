@@ -13,12 +13,10 @@ using IqSoft.CP.ProductGateway.Models.PragmaticPlay;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.ServiceModel;
-using System.Web;
 using System.Web.Http;
 
 namespace IqSoft.CP.ProductGateway.Controllers
@@ -31,7 +29,10 @@ namespace IqSoft.CP.ProductGateway.Controllers
 
         private static readonly List<string> NotSupportedCurrencies = new List<string>
         {
-            Constants.Currencies.USDT
+            Constants.Currencies.USDT,
+            Constants.Currencies.USDC,
+            Constants.Currencies.PYUSD,
+            Constants.Currencies.BUSD
         };
 
         [HttpPost]
@@ -392,6 +393,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                                 BaseHelpers.RemoveClientBalanceFromeCache(client.Id);
                                 BaseHelpers.BroadcastWin(new ApiWin
                                 {
+                                    BetId = betDocument?.Id ?? 0,
                                     GameName = product.NickName,
                                     ClientId = client.Id,
                                     ClientName = client.FirstName,
@@ -749,6 +751,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                                 BaseHelpers.RemoveClientBalanceFromeCache(client.Id);
                                 BaseHelpers.BroadcastWin(new ApiWin
                                 {
+                                    BetId = betDocument?.Id ?? 0,
                                     GameName = product.NickName,
                                     ClientId = client.Id,
                                     ClientName = client.FirstName,
@@ -919,6 +922,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                                 BaseHelpers.RemoveClientBalanceFromeCache(client.Id);
                                 BaseHelpers.BroadcastWin(new ApiWin
                                 {
+                                    BetId = betDocument?.Id ?? 0,
                                     GameName = product.NickName,
                                     ClientId = client.Id,
                                     ClientName = client.FirstName,

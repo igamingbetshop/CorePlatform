@@ -230,7 +230,8 @@ namespace IqSoft.CP.ProductGateway.Controllers
 							BaseHelpers.RemoveClientBalanceFromeCache(client.Id);
 							BaseHelpers.BroadcastWin(new ApiWin
 							{
-								GameName = product.NickName,
+                                BetId = betDocument?.Id ?? 0,
+                                GameName = product.NickName,
 								ClientId = client.Id,
 								ClientName = client.FirstName,
                                 BetAmount = betDocument?.Amount,

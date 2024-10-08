@@ -31,11 +31,8 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 throw BaseBll.CreateException(session.LanguageId, Constants.Errors.EmailCantBeEmpty);
             if (client.BirthDate == DateTime.MinValue)
                 throw BaseBll.CreateException(session.LanguageId, Constants.Errors.InvalidBirthDate);
-            if (string.IsNullOrWhiteSpace(client.ZipCode.Trim()))
-                throw BaseBll.CreateException(session.LanguageId, Constants.Errors.ZipCodeCantBeEmpty);
+
             var paymentInfo = JsonConvert.DeserializeObject<PaymentInfo>(!string.IsNullOrEmpty(input.Info) ? input.Info : "{}");
-            if (string.IsNullOrEmpty(paymentInfo.City))
-                throw BaseBll.CreateException(session.LanguageId, Constants.Errors.RegionNotFound);
             var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, input.PaymentSystemId,
                                                                                input.CurrencyId, input.Type);
             var url = string.Format("{0}cashier/cashier",
@@ -63,8 +60,8 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 customer_data = new
                 {
                     country = paymentInfo.Country,
-                    city = paymentInfo.City,
-                    zip = client.ZipCode.Trim(),
+                    city = !string.IsNullOrEmpty(paymentInfo.City) ? paymentInfo.City : "dummy",
+                    zip = !string.IsNullOrWhiteSpace(client.ZipCode.Trim()) ? client.ZipCode.Trim() : "dummy",
                     first_name = client.FirstName,
                     last_name = client.LastName,
                     address = client.Address,
@@ -100,7 +97,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 throw new Exception(response.Description);
             return response.RedirectUrl;
         }
-        /*
+        
         public static string CallPraxisGatewayApi(PaymentRequest input, SessionIdentity session, ILog log)
         {
             var client = CacheManager.GetClientById(input.ClientId.Value);
@@ -159,9 +156,10 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 throw new Exception(response.Description);
             return response.RedirectUrl;
         }
-        */
-        public static PaymentResponse CreatePayoutRequest(PaymentRequest paymentRequest, SessionIdentity session, ILog log)
+        
+        public static PaymentResponse CreatePayoutRequest(PaymentRequest paymentRequest, SessionIdentity session, ILog log, out List<int> userIds)
         {
+            userIds = new List<int>();
             using (var paymentSystemBl = new PaymentSystemBll(session, log))
             {
                 using (var clientBl = new ClientBll(paymentSystemBl))
@@ -227,7 +225,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                                 if (transactionStatus == "approved")
                                 {
                                     var resp = clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Approved, transactionStatus,
-                                                                                   null, null, false, paymentRequest.Parameters, documentBl, notificationBl);
+                                                                                   null, null, false, paymentRequest.Parameters, documentBl, notificationBl, out userIds);
                                     return new PaymentResponse
                                     {
                                         Status = PaymentRequestStates.Approved
@@ -237,7 +235,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                                          transactionStatus == "error" || transactionStatus == "chargeback")
                                 {
                                     clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed, transactionStatus,
-                                                                         null, null, false, paymentRequest.Parameters, documentBl, notificationBl);
+                                                                         null, null, false, paymentRequest.Parameters, documentBl, notificationBl, out userIds);
                                     return new PaymentResponse
                                     {
                                         Description = responseString,
@@ -261,8 +259,9 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             }
         }
 
-        public static void GetPayoutRequestStatus(PaymentRequest paymentRequest, SessionIdentity session, ILog log)
+        public static List<int> GetPayoutRequestStatus(PaymentRequest paymentRequest, SessionIdentity session, ILog log)
         {
+            var userIds = new List<int>();
             var client = CacheManager.GetClientById(paymentRequest.ClientId.Value);
             var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, paymentRequest.PaymentSystemId,
                 paymentRequest.CurrencyId, (int)PaymentRequestTypes.Withdraw);
@@ -303,7 +302,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                             if (transactionStatus == "approved")
                             {
                                 var resp = clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Approved, string.Empty,
-                                                                               null, null, false, paymentRequest.Parameters, documentBl, notificationBl);
+                                                                               null, null, false, paymentRequest.Parameters, documentBl, notificationBl, out userIds);
                                 clientBl.PayWithdrawFromPaymentSystem(resp, documentBl, notificationBl);
                             }
                             else if (transactionStatus == "rejected" || transactionStatus == "cancelled" ||
@@ -311,17 +310,20 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                             {
                                 clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed,
                                 $"Status: {response.Transaction.Status}, StatusDetails: {response.Transaction.StatusDescription}",
-                                null, null, false, paymentRequest.Parameters, documentBl, notificationBl);
+                                null, null, false, paymentRequest.Parameters, documentBl, notificationBl, out userIds);
                             }
                         }
                     }
                 }
             }
+            return userIds;
         }
 
-        public static void CancelPayoutRequest(PaymentRequest paymentRequest, SessionIdentity session, ILog log)
+        public static List<int> CancelPayoutRequest(PaymentRequest paymentRequest, SessionIdentity session, ILog log)
         {            
-            using (var paymentSystemBl = new PaymentSystemBll(session, log))
+            var userIds = new List<int>();
+            using (var paymentSystemBl = new PaymentSystemBll(session, 
+                log))
             using (var clientBl = new ClientBll(paymentSystemBl))
             using (var documentBl = new DocumentBll(clientBl))
             using (var notificationBl = new NotificationBll(paymentSystemBl))
@@ -334,8 +336,8 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 if (string.IsNullOrEmpty(paymentRequest.ExternalTransactionId))
                 {
                     clientBl.ChangeWithdrawRequestState(paymentRequest.Id, status, status.ToString(), null, null, false,
-                                                        paymentRequest.Parameters, documentBl, notificationBl);
-                    return;
+                                                        paymentRequest.Parameters, documentBl, notificationBl, out userIds);
+                    return userIds;
                 }
 
                 var client = CacheManager.GetClientById(paymentRequest.ClientId.Value);
@@ -391,10 +393,9 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 {
                    
                     clientBl.ChangeWithdrawRequestState(paymentRequest.Id, status, status.ToString(), null, null, false,
-                                                        paymentRequest.Parameters, documentBl, notificationBl);
-                    return;
+                                                        paymentRequest.Parameters, documentBl, notificationBl, out userIds);
+                    return userIds;
                 }
-
                 throw new Exception(responseString);
             }
         }

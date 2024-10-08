@@ -17,8 +17,9 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 {
     public class TronLinkHelpers
     {
-        public static PaymentResponse PayVoucher(PaymentRequest input, SessionIdentity session, ILog log)
+        public static PaymentResponse PayVoucher(PaymentRequest input, SessionIdentity session, ILog log, out List<int> userIds)
         {
+            userIds = new List<int>();
             var client = CacheManager.GetClientById(input.ClientId.Value);
             var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, input.PaymentSystemId, client.CurrencyId, (int)PaymentRequestTypes.Deposit);
             if (partnerPaymentSetting == null)
@@ -66,7 +67,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                         {
 
                             paymentSystemBl.ChangePaymentRequestDetails(input);
-                            clientBl.ApproveDepositFromPaymentSystem(input, false);
+                            clientBl.ApproveDepositFromPaymentSystem(input, false, out userIds);
                             return new PaymentResponse
                             {
                                 Status = PaymentRequestStates.Approved,
@@ -86,8 +87,9 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             }
         }
 
-        public static PaymentResponse CreatePayoutRequest(PaymentRequest input, SessionIdentity session, ILog log)
+        public static PaymentResponse CreatePayoutRequest(PaymentRequest input, SessionIdentity session, ILog log, out List<int> userIds)
         {
+            userIds = new List<int>();
             try
             {
                 using (var paymentSystemBl = new PaymentSystemBll(session, log))
@@ -138,7 +140,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                                     input.ExternalTransactionId = response.data.tx;
                                     paymentSystemBl.ChangePaymentRequestDetails(input);
                                     var resp = clientBl.ChangeWithdrawRequestState(input.Id, PaymentRequestStates.Approved, 
-                                        string.Empty, null, null, false, string.Empty, documentBl, notificationBl);
+                                        string.Empty, null, null, false, string.Empty, documentBl, notificationBl, out userIds);
                                     clientBl.PayWithdrawFromPaymentSystem(resp, documentBl, notificationBl);
                                     return new PaymentResponse
                                     {

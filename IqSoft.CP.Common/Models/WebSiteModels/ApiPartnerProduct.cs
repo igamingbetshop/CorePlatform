@@ -6,7 +6,7 @@ namespace IqSoft.CP.Common.Models.WebSiteModels
 	{
 		public string i { get; set; } //ImageUrl
 		public string n { get; set; } //Name
-        public string nn { get; set; } //NickName
+		public string nn { get; set; } //NickName
 		public int s { get; set; } //SubProviderId
 		public int p { get; set; } //Id
 		public decimal r { get; set; }
@@ -17,5 +17,6 @@ namespace IqSoft.CP.Common.Models.WebSiteModels
 		public bool hd { get; set; }
 		public string jp { get; set; }
 		public bool f { get; set; }
+		public int pc { get; set; } //PlayersCount
 	}
 }

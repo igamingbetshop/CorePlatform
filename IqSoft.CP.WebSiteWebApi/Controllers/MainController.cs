@@ -22,8 +22,9 @@ using IqSoft.CP.CommonCore.Models.WebSiteModels.Clients;
 using IqSoft.CP.CommonCore.Models.WebSiteModels;
 using System.Net.Http;
 using System.Threading.Tasks;
-using System.Net;
 using IqSoft.CP.CommonCore.Models.Integrations.Platforms.Telegram;
+using IqSoft.CP.Common.Models.Notification;
+using Microsoft.AspNetCore.SignalR;
 
 namespace IqSoft.CP.WebSiteWebApi.Controllers
 {
@@ -189,7 +190,7 @@ namespace IqSoft.CP.WebSiteWebApi.Controllers
         public IActionResult TelegramAuth(int partnerId, EncryptedData input)
         {
             var diff = (4 - input.Data.Length % 4) % 4;
-            
+
             for (int i = 0; i < diff; i++)
                 input.Data += "=";
             var byteArray = Convert.FromBase64String(input.Data);
@@ -258,7 +259,15 @@ namespace IqSoft.CP.WebSiteWebApi.Controllers
             var resp = CheckRequestState(partnerId, request, MethodBase.GetCurrentMethod().Name);
             if (resp.ResponseCode != Constants.SuccessResponseCode)
                 return resp;
-            return MasterCacheIntegration.SendMasterCacheRequest<ApiResponseBase>(partnerId, MethodBase.GetCurrentMethod().Name, request);
+            var response = MasterCacheIntegration.SendMasterCacheRequest<ApiResponseBase>(partnerId, MethodBase.GetCurrentMethod().Name, request);
+            
+            if (response.ResponseCode == Constants.SuccessResponseCode)
+            {
+                var info = JsonConvert.DeserializeObject<VerifyCodeOutput>(JsonConvert.SerializeObject(response.ResponseObject));
+                if (info.ClientId > 0)
+                    Hubs.BaseHub.CurrentContext.Clients.Group("Client_" + info.ClientId).SendAsync("onEmailVerified");
+            }
+            return response;
         }
 
         #endregion
@@ -299,7 +308,8 @@ namespace IqSoft.CP.WebSiteWebApi.Controllers
             var product = SlaveCache.GetProductById(partnerId, request.ProductId, request.LanguageId);
             return new ApiResponseBase
             {
-                ResponseObject = new { Rating = (setting == null || setting.Id == 0 ? 0 : setting.Rating), Name = product.Name, BackgroundImageUrl = product.BackgroundImageUrl ?? string.Empty }
+                ResponseObject = new { Rating = (setting == null || setting.Id == 0 ? 0 : setting.Rating), 
+                    Name = product.Name, BackgroundImageUrl = product.BackgroundImageUrl ?? string.Empty }
             };
         }
 
@@ -389,23 +399,23 @@ namespace IqSoft.CP.WebSiteWebApi.Controllers
             return MasterCacheIntegration.SendMasterCacheRequest<ApiResponseBase>(partnerId, MethodBase.GetCurrentMethod().Name, request);
         }
 
-		[HttpPost]
-		public ApiResponseBase GetCharacters(int partnerId, ApiRequestBase input)
-		{
-			var resp = CheckRequestState(partnerId, input, MethodBase.GetCurrentMethod().Name);
-			if (resp.ResponseCode != Constants.SuccessResponseCode)
-				return resp;
-			return MasterCacheIntegration.SendMasterCacheRequest<ApiResponseBase>(partnerId, MethodBase.GetCurrentMethod().Name, input);
-		}
+        [HttpPost]
+        public ApiResponseBase GetCharacters(int partnerId, ApiRequestBase input)
+        {
+            var resp = CheckRequestState(partnerId, input, MethodBase.GetCurrentMethod().Name);
+            if (resp.ResponseCode != Constants.SuccessResponseCode)
+                return resp;
+            return MasterCacheIntegration.SendMasterCacheRequest<ApiResponseBase>(partnerId, MethodBase.GetCurrentMethod().Name, input);
+        }
 
-		[HttpPost]
-		public ApiResponseBase GetCharacterHierarchy(int partnerId, GetCharactersInput input)
-		{
-			var resp = CheckRequestState(partnerId, input, MethodBase.GetCurrentMethod().Name);
-			if (resp.ResponseCode != Constants.SuccessResponseCode)
-				return resp;
-			return MasterCacheIntegration.SendMasterCacheRequest<ApiResponseBase>(partnerId, MethodBase.GetCurrentMethod().Name, input);
-		}
+        [HttpPost]
+        public ApiResponseBase GetCharacterHierarchy(int partnerId, GetCharactersInput input)
+        {
+            var resp = CheckRequestState(partnerId, input, MethodBase.GetCurrentMethod().Name);
+            if (resp.ResponseCode != Constants.SuccessResponseCode)
+                return resp;
+            return MasterCacheIntegration.SendMasterCacheRequest<ApiResponseBase>(partnerId, MethodBase.GetCurrentMethod().Name, input);
+        }
 
         [HttpPost]
         public ApiResponseBase GetPartnerCurrencies(int partnerId, ApiRequestBase input)
@@ -494,7 +504,11 @@ namespace IqSoft.CP.WebSiteWebApi.Controllers
                         return cprResp;
                     }
                 default:
-                    return MasterCacheIntegration.SendMasterCacheRequest<ApiResponseBase>(partnerId, "ApiRequest", request);
+                    var response = MasterCacheIntegration.SendMasterCacheRequest<ApiResponseBase>(partnerId, "ApiRequest", request);
+                    if (request.Method == "VerifyClientEmail" && response.ResponseCode == Constants.SuccessResponseCode)
+                        Hubs.BaseHub.CurrentContext.Clients.Group("Client_" + request.ClientId).SendAsync("onEmailVerified");
+                    
+                    return response;
             }
         }
         // optimise enum code here
@@ -576,14 +590,14 @@ namespace IqSoft.CP.WebSiteWebApi.Controllers
             Request.Headers.TryGetValue("Origin", out StringValues originValues);
             request.Domain = originValues.ToString().Replace("https://", string.Empty).Replace("http://", string.Empty).Replace("www.", string.Empty);
             Log.ForContext("FileName", request.Domain).Information(JsonConvert.SerializeObject(request));
-            
+
             var input = new ApiRequestBase();
             var output = new ApiResponseBase();
 
             input.Domain = request.Domain;
             var partner = SlaveCache.GetPartnerByDomain(request.Domain);
             var ip = string.Empty;
-            
+
             if (partner != null && partner.Id > 0)
             {
                 ip = GetRequestIp(partner.Id, out string ipCountry);
@@ -643,7 +657,7 @@ namespace IqSoft.CP.WebSiteWebApi.Controllers
 
                     if (clientData.Segments != null && clientData.Segments.Any())
                         clientSegments = clientData.Segments;
-                }               
+                }
             }
             banners = banners.Where(x => (x.Visibility == null || x.Visibility.Count == 0 || visibility.Any(y => x.Visibility.Contains(y))) &&
                                           x.StartDate <= currentDate && x.EndDate > currentDate &&
@@ -685,10 +699,10 @@ namespace IqSoft.CP.WebSiteWebApi.Controllers
                 {
                     visibility = new List<int> { (int)BannerVisibility.LoggedIn };
                     var clientData = JsonConvert.DeserializeObject<ApiClientData>(JsonConvert.SerializeObject(clientResp.ResponseObject));
-                    if (clientData.Segments!=null && clientData.Segments.Any())
+                    if (clientData.Segments != null && clientData.Segments.Any())
                         clientSegments = clientData.Segments;
 
-                     switch (clientData.DepCount)
+                    switch (clientData.DepCount)
                     {
                         case 0:
                             visibility.Add((int)BannerVisibility.NoDeposit);
@@ -703,7 +717,7 @@ namespace IqSoft.CP.WebSiteWebApi.Controllers
                 }
             }
             var currentDate = DateTime.UtcNow;
-            var promotions = SlaveCache.GetPromotionsFromCache(partnerId, request)?.Where(x => 
+            var promotions = SlaveCache.GetPromotionsFromCache(partnerId, request)?.Where(x =>
                 (x.ParentId == null || (x.StartDate <= currentDate && x.FinishDate > currentDate)) &&
                 (x.Languages == null || x.Languages.Names == null || x.Languages.Names.Count == 0 ||
                 (x.Languages.Type == (int)BonusSettingConditionTypes.InSet && x.Languages.Names.Contains(request.LanguageId)) ||
@@ -736,16 +750,17 @@ namespace IqSoft.CP.WebSiteWebApi.Controllers
                                     Title = parent.Title,
                                     ImageName = parent.ImageName,
                                     Order = parent.Order,
+                                    Type = parent.Type,
                                     StyleType = parent.StyleType,
                                     Promotions = new List<ApiPromotion>()
                                 };
                                 output.Add(item);
                             }
-                            item.Promotions.AddRange(p.Where(x => x.Segments?.Ids == null ||
+                            item.Promotions.AddRange(p.Where(x => (x.Segments?.Ids == null ||
                             (x.Segments.Type == (int)BonusSettingConditionTypes.InSet && clientSegments.Any(y => x.Segments.Ids.Contains(y))) ||
                             (x.Segments.Type == (int)BonusSettingConditionTypes.OutOfSet && !clientSegments.Any(y => x.Segments.Ids.Contains(y))) ||
-                            (x.Segments.Type != (int)BonusSettingConditionTypes.InSet && x.Segments.Type != (int)BonusSettingConditionTypes.OutOfSet)&&
-                            (x.Visibility == null || x.Visibility.Count == 0 || visibility.Any(y => x.Visibility.Contains(y))))
+                            (x.Segments.Type != (int)BonusSettingConditionTypes.InSet && x.Segments.Type != (int)BonusSettingConditionTypes.OutOfSet)) &&
+                            ((x.Visibility == null || x.Visibility.Count == 0 || visibility.Any(y => x.Visibility.Contains(y)))))
                             .Select(x => new ApiPromotion
                             {
                                 Id = x.Id,
@@ -755,7 +770,7 @@ namespace IqSoft.CP.WebSiteWebApi.Controllers
                                 ImageName = x.ImageName,
                                 Order = x.Order,
                                 StyleType = x.StyleType,
-                                Visibility=x.Visibility,
+                                Visibility = x.Visibility,
                             }).OrderBy(x => x.Order).ToList());
                         }
                     }
@@ -831,7 +846,7 @@ namespace IqSoft.CP.WebSiteWebApi.Controllers
                     var clientData = JsonConvert.DeserializeObject<ApiClientData>(JsonConvert.SerializeObject(clientResp.ResponseObject));
                     if (clientData.Segments != null && clientData.Segments.Any())
                     {
-                        clientSegments = clientData.Segments;                        
+                        clientSegments = clientData.Segments;
                     }
                 }
             }
@@ -864,16 +879,16 @@ namespace IqSoft.CP.WebSiteWebApi.Controllers
             return MasterCacheIntegration.SendMasterCacheRequest<ApiResponseBase>(partnerId, MethodBase.GetCurrentMethod().Name, input);
         }
 
-		[HttpPost]
-		public ApiResponseBase GetProviderData(int partnerId, ApiProviderData input)
-		{
-			var resp = CheckRequestState(partnerId, input, MethodBase.GetCurrentMethod().Name);
-			if (resp.ResponseCode != Constants.SuccessResponseCode)
-				return resp;
-			return MasterCacheIntegration.SendMasterCacheRequest<ApiResponseBase>(partnerId, MethodBase.GetCurrentMethod().Name, input);
-		}
+        [HttpPost]
+        public ApiResponseBase GetProviderData(int partnerId, ApiProviderData input)
+        {
+            var resp = CheckRequestState(partnerId, input, MethodBase.GetCurrentMethod().Name);
+            if (resp.ResponseCode != Constants.SuccessResponseCode)
+                return resp;
+            return MasterCacheIntegration.SendMasterCacheRequest<ApiResponseBase>(partnerId, MethodBase.GetCurrentMethod().Name, input);
+        }
 
-		[HttpPost]
+        [HttpPost]
         public ApiResponseBase CheckTelegramAuthorization(int partnerId, RequestBase request)
         {
             var resp = CheckRequestState(partnerId, request, MethodBase.GetCurrentMethod().Name);
@@ -902,7 +917,7 @@ namespace IqSoft.CP.WebSiteWebApi.Controllers
         }
 
         [HttpGet]
-        public ApiResponseBase GetActiveTournaments(int partnerId, [FromQuery]ApiRequestBase request)
+        public ApiResponseBase GetActiveTournaments(int partnerId, [FromQuery] ApiRequestBase request)
         {
             var resp = CheckRequestState(partnerId, request, MethodBase.GetCurrentMethod().Name);
             if (resp.ResponseCode != Constants.SuccessResponseCode)
@@ -911,7 +926,7 @@ namespace IqSoft.CP.WebSiteWebApi.Controllers
         }
 
         [HttpGet]
-        public ApiResponseBase GetTournamentLeaderboard(int partnerId, [FromQuery]RequestBase request)
+        public ApiResponseBase GetTournamentLeaderboard(int partnerId, [FromQuery] RequestBase request)
         {
             var resp = CheckRequestState(partnerId, request, MethodBase.GetCurrentMethod().Name);
             if (resp.ResponseCode != Constants.SuccessResponseCode)
@@ -920,30 +935,22 @@ namespace IqSoft.CP.WebSiteWebApi.Controllers
         }
 
         [HttpGet]
-        public async Task<HttpResponseMessage> GetProfilePicture(int partnerId, [FromQuery]RequestBase request)
+        public async Task<IActionResult> GetProfilePicture(int partnerId, [FromQuery] RequestBase request)
         {
-
-            var resp = CheckRequestState(partnerId, request, MethodBase.GetCurrentMethod().Name);
+            var methodName = "GetProfilePicture";
+            var resp = CheckRequestState(partnerId, request, methodName);
             if (resp.ResponseCode != Constants.SuccessResponseCode)
-                return new HttpResponseMessage(HttpStatusCode.OK)
-                {
-                    Content = new StringContent(JsonConvert.SerializeObject(resp)),
-                    ReasonPhrase = "Success"
-                };
-            var response = MasterCacheIntegration.SendMasterCacheRequest<ApiResponseBase>(partnerId, MethodBase.GetCurrentMethod().Name, request);
-            if (response.ResponseCode!= Constants.SuccessResponseCode)
-                return new HttpResponseMessage(HttpStatusCode.OK)
-                {
-                    Content = new StringContent(JsonConvert.SerializeObject(response)),
-                    ReasonPhrase = "Success"
-                };
-            var statementOutput = JsonConvert.DeserializeObject<StatementOutput>(JsonConvert.SerializeObject(response.ResponseObject));
-
+                return BadRequest(resp);
             using var httpClient = new HttpClient();
-            httpClient.BaseAddress = new Uri(statementOutput.StatementPath);
-            httpClient.DefaultRequestHeaders.Clear();
-            HttpContext.Response.Headers.Add("Content-Disposition", $"attachment; filename={statementOutput.FileName}");
-            return await httpClient.GetAsync(statementOutput.FilePath);
+
+            var url = Program.AppSetting.MasterCacheConnectionUrl[new Random().Next(0, Program.AppSetting.MasterCacheConnectionUrl.Count - 1)];
+            url = $"{url}/{partnerId}/api/main/GetProfilePicture?PartnerId={partnerId}&ClientId={request.ClientId}" +
+                  $"&Token={request.Token}&TimeZone={request.TimeZone}&Domain={request.Domain}";
+            var response = await httpClient.GetAsync(url);
+            if (!response.IsSuccessStatusCode)
+                return StatusCode((int)response.StatusCode);
+            var imageData = await response.Content.ReadAsByteArrayAsync();
+            return File(imageData, response.Content.Headers.ContentType.ToString());
         }
 
         #endregion
@@ -967,7 +974,7 @@ namespace IqSoft.CP.WebSiteWebApi.Controllers
                 request.Source = Request.Headers.UserAgent.ToString();
             }
             var apiRestrictions = SlaveCache.GetApiRestrictions(partnerId);
-            if (!string.IsNullOrEmpty(methodName) && !apiRestrictions.WhitelistedIps.Any(x => x.IsIpEqual(ip)) && 
+            if (!string.IsNullOrEmpty(methodName) && !apiRestrictions.WhitelistedIps.Any(x => x.IsIpEqual(ip)) &&
                 SlaveCache.GetIpCount(partnerId, methodName, ip).Count > GetMaxRequestsCount(methodName))
             {
                 response.ResponseCode = Constants.Errors.RestrictedDestination;
@@ -993,7 +1000,7 @@ namespace IqSoft.CP.WebSiteWebApi.Controllers
         {
             ipCountry = string.Empty;
             var apiRestrictions = SlaveCache.GetApiRestrictions(partnerId);
-            
+
             try
             {
                 var ip = Constants.DefaultIp;
@@ -1026,7 +1033,7 @@ namespace IqSoft.CP.WebSiteWebApi.Controllers
                 }
                 return ip;
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Log.Error(e.Message + "_" + e.StackTrace + "_" + partnerId + "_" + JsonConvert.SerializeObject(apiRestrictions));
                 return string.Empty;
@@ -1035,7 +1042,7 @@ namespace IqSoft.CP.WebSiteWebApi.Controllers
 
         private int GetMaxRequestsCount(string methodName)
         {
-            switch(methodName)
+            switch (methodName)
             {
                 case "GetGames":
                 case "GetClientStates":

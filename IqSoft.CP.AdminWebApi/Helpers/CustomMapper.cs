@@ -4,23 +4,15 @@ using System.Linq;
 using log4net;
 using Newtonsoft.Json;
 using IqSoft.CP.DAL;
-using IqSoft.CP.DAL.Filters;
-using IqSoft.CP.DAL.Filters.Reporting;
-using IqSoft.CP.DAL.Filters.PaymentRequests;
 using IqSoft.CP.DAL.Models;
 using IqSoft.CP.DAL.Models.Report;
-using IqSoft.CP.AdminWebApi.Filters;
-using IqSoft.CP.AdminWebApi.Filters.Bets;
-using IqSoft.CP.AdminWebApi.Filters.PaymentRequests;
 using IqSoft.CP.Common.Helpers;
 using IqSoft.CP.AdminWebApi.Models.DashboardModels;
 using IqSoft.CP.DAL.Models.Dashboard;
 using IqSoft.CP.AdminWebApi.Models.ClientModels;
-using IqSoft.CP.AdminWebApi.Filters.Reporting;
 using IqSoft.CP.Common;
 using IqSoft.CP.Common.Enums;
 using IqSoft.CP.AdminWebApi.Models.ReportModels;
-using IqSoft.CP.DAL.Filters.Clients;
 using IqSoft.CP.DAL.Models.RealTime;
 using IqSoft.CP.AdminWebApi.Models.UserModels;
 using IqSoft.CP.AdminWebApi.Models.BetShopModels;
@@ -33,31 +25,24 @@ using IqSoft.CP.DAL.Models.Cache;
 using IqSoft.CP.AdminWebApi.Models.CommonModels;
 using IqSoft.CP.AdminWebApi.Models.ContentModels;
 using IqSoft.CP.AdminWebApi.Models.CurrencyModels;
-using IqSoft.CP.AdminWebApi.Models.LanguageModels;
 using IqSoft.CP.AdminWebApi.Models.NotificationModels;
 using IqSoft.CP.AdminWebApi.Models.PartnerModels;
 using IqSoft.CP.AdminWebApi.Models.PaymentModels;
 using IqSoft.CP.AdminWebApi.Models.ProductModels;
 using IqSoft.CP.AdminWebApi.Models.ReportModels.BetShop;
 using IqSoft.CP.AdminWebApi.Models.ReportModels.Internet;
-using IqSoft.CP.AdminWebApi.Filters.Messages;
-using IqSoft.CP.DAL.Filters.Messages;
 using IqSoft.CP.AdminWebApi.Models.AgentModels;
 using IqSoft.CP.AdminWebApi.Models;
 using IqSoft.CP.BLL.Caching;
 using IqSoft.CP.DAL.Models.Bonuses;
-using IqSoft.CP.Common.Models.Filters;
 using IqSoft.CP.Common.Models.AdminModels;
-using IqSoft.CP.AdminWebApi.Filters.Clients;
 using static IqSoft.CP.Common.Constants;
 using IqSoft.CP.AdminWebApi.Models.CRM;
-using IqSoft.CP.DAL.Filters.Affiliate;
 using IqSoft.CP.Common.Models.AffiliateModels;
 using IqSoft.CP.DAL.Models.Clients;
 using IqSoft.CP.Common.Models;
 using IqSoft.CP.DataWarehouse;
 using IqSoft.CP.DataWarehouse.Models;
-using IqSoft.CP.DataWarehouse.Filters;
 using IqSoft.CP.Common.Models.Report;
 using IqSoft.CP.Common.Models.AgentModels;
 using IqSoft.CP.DAL.Models.Agents;
@@ -71,15 +56,13 @@ using Partner = IqSoft.CP.DAL.Partner;
 using Bonu = IqSoft.CP.DAL.Bonu;
 using AgentCommission = IqSoft.CP.DAL.AgentCommission;
 using PermissionModel = IqSoft.CP.AdminWebApi.Models.RoleModels.PermissionModel;
-using IqSoft.CP.AdminWebApi.Filters.Affiliate;
 using IqSoft.CP.BLL.Services;
+using IqSoft.CP.Integration.Products.Models.BGGames;
 
 namespace IqSoft.CP.AdminWebApi.Helpers
 {
     public static class CustomMapper
     {
-        #region Models
-
         public static ApiResponseBase MapToApiResponseBase(this ResponseBase input)
         {
             return new ApiResponseBase
@@ -91,11 +74,11 @@ namespace IqSoft.CP.AdminWebApi.Helpers
 
         #region RealTime
 
-        public static ApiRealTimeInfo MapToApiRealTimeInfo(this RealTimeInfo info)
+        public static ApiRealTimeInfo MapToApiRealTimeInfo(this RealTimeInfo info, double timeZone)
         {
             return new ApiRealTimeInfo
             {
-                OnlineClients = info.OnlineClients.Select(MapToApiOnlineClient).ToList(),
+                OnlineClients = info.OnlineClients.Select(x => x.MapToApiOnlineClient(timeZone)).ToList(),
                 Count = info.Count,
                 TotalLoginsCount = info.TotalLoginsCount,
                 TotalBetsCount = info.TotalBetsCount,
@@ -112,7 +95,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
             };
         }
 
-        public static ApiOnlineClient MapToApiOnlineClient(this BllOnlineClient info)
+        public static ApiOnlineClient MapToApiOnlineClient(this BllOnlineClient info, double timeZone)
         {
             return new ApiOnlineClient
             {
@@ -124,7 +107,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 CurrencyId = info.CurrencyId,
                 PartnerId = info.PartnerId,
                 IsDocumentVerified = info.IsDocumentVerified,
-                RegistrationDate = info.RegistrationDate,
+                RegistrationDate = info.RegistrationDate.GetGMTDateFromUTC(timeZone),
                 PartnerName = info.PartnerName,
                 CategoryId = info.CategoryId,
                 HasNote = info.HasNote,
@@ -439,34 +422,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
             };
         }
 
-        public static ApiReportByPaymentSystem MapToFilterReportByPaymentSystem(this fnReportByPaymentSystem input)
-        {
-            return new ApiReportByPaymentSystem
-            {
-                PartnerId = input.PartnerId,
-                PartnerName = input.PartnerName,
-                PaymentSystemId = input.PaymentSystemId,
-                PaymentSystemName = input.PaymentSystemName,
-                Status = input.Status,
-                Count = input.Count ?? 0,
-                TotalAmount = input.TotalAmount ?? 0
-            };
-        }
-
-        public static ApiReportByPartner MapToFilterReportByPartner(this fnReportByPartner input)
-        {
-            return new ApiReportByPartner
-            {
-                PartnerId = input.PartnerId,
-                PartnerName = input.PartnerName,
-                TotalBetAmount = input.TotalBetAmount ?? 0,
-                TotalBetsCount = input.TotalBetsCount ?? 0,
-                TotalWinAmount = input.TotalWinAmount ?? 0,
-                TotalGGR = input.TotalGGR ?? 0
-            };
-        }
-
-        public static ApiReportByUserTransaction MapToApiReportByUserTransaction(this fnReportByUserTransaction input)
+        public static ApiReportByUserTransaction MapToApiReportByUserTransaction(this fnReportByUserTransaction input, double timeZone)
         {
             return new ApiReportByUserTransaction
             {
@@ -485,7 +441,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 OperationType = input.OperationType,
                 Amount = input.Amount,
                 CurrencyId = input.CurrencyId,
-                CreationTime = input.CreationTime
+                CreationTime = input.CreationTime.GetGMTDateFromUTC(timeZone)
             };
         }
 
@@ -527,9 +483,9 @@ namespace IqSoft.CP.AdminWebApi.Helpers
 
         #region User
 
-        public static UserModel MapToUserModel(this User user, double timeZone)
+        public static ApiUser MapToUserModel(this User user, double timeZone)
         {
-            return new UserModel
+            return new ApiUser
             {
                 Id = user.Id,
                 PartnerId = user.PartnerId,
@@ -550,21 +506,19 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 Level = user.Level,
                 OddsType = user.OddsType,
                 Phone = user.Phone,
-                CorrectionMaxAmount = user.CorrectionMaxAmount,
-                CorrectionMaxAmountCurrency = user.CorrectionMaxAmountCurrency,
                 Path = user.Path
             };
         }
 
-        public static List<UserModel> MapToUserModels(this IEnumerable<fnUser> users, double timeZone)
+        public static List<ApiUser> MapToUserModels(this IEnumerable<fnUser> users, double timeZone)
         {
             return users.Select(x => x.MapToUserModel(timeZone)).ToList();
         }
 
-        public static UserModel MapToUserModel(this fnUser user, double timeZone)
+        public static ApiUser MapToUserModel(this fnUser user, double timeZone)
         {
             var balance = BaseBll.GetObjectBalance((int)ObjectTypes.User, user.Id);
-            return new UserModel
+            return new ApiUser
             {
                 Id = user.Id,
                 PartnerId = user.PartnerId,
@@ -584,6 +538,64 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 UserRoles = user.UserRoles,
                 Balance = Math.Floor(balance.Balances.Sum(x => BaseBll.ConvertCurrency(x.CurrencyId, user.CurrencyId, x.Balance)) * 100) / 100,
                 Path = user.Type == (int)UserTypes.CompanyAgent ? ("/" + user.Id + "/") : string.Empty
+            };
+        }
+
+        public static ApiUserConfiguration ToApiUserConfiguration(this UserConfiguration input, double timeZone)
+        {
+            return new ApiUserConfiguration
+            {
+                Id = input.Id,
+                UserId = input.UserId,
+                CreatedBy = input.CreatedBy,
+                Name = input.Name,
+                BooleanValue = input.BooleanValue,
+                NumericValue = input.NumericValue,
+                StringValue = input.StringValue,
+                CreationTime = input.CreationTime.GetGMTDateFromUTC(timeZone),
+                LastUpdateTime = input.LastUpdateTime.GetGMTDateFromUTC(timeZone)
+            };
+        }
+
+        public static User ToUser(this ApiUser user, double timeZone)
+        {
+            return new User
+            {
+                Id = user.Id,
+                Password = user.Password,
+                PartnerId = user.PartnerId,
+                CreationTime = user.CreationTime.GetGMTDateFromUTC(timeZone),
+                CurrencyId = user.CurrencyId,
+                FirstName = user.FirstName,
+                Gender = user.Gender,
+                LanguageId = user.LanguageId,
+                LastName = user.LastName,
+                State = user.State,
+                Type = user.Type,
+                UserName = user.UserName,
+                NickName = user.UserName,
+                MobileNumber = user.MobileNumber,
+                Email = user.Email,
+                ParentId = user.ParentId,
+                OddsType = user.OddsType,
+                UserConfigurations = user.Configurations == null ? new List<UserConfiguration>() : 
+                    user.Configurations.Select(x => x.ToUserConfiguration(timeZone)).ToList()
+            };
+        }
+
+        public static UserConfiguration ToUserConfiguration(this ApiUserConfiguration input, double timeZone)
+        {
+            return new UserConfiguration
+            {
+                Id = input.Id,
+                UserId = input.UserId,
+                CreatedBy = input.CreatedBy,
+                Name = input.Name,
+                BooleanValue = input.BooleanValue,
+                NumericValue = input.NumericValue,
+                StringValue = input.StringValue,
+                CreationTime = input.CreationTime.GetUTCDateFromGMT(timeZone),
+                LastUpdateTime = input.LastUpdateTime.GetUTCDateFromGMT(timeZone)
             };
         }
 
@@ -622,32 +634,6 @@ namespace IqSoft.CP.AdminWebApi.Helpers
         }
         #endregion
 
-        public static User MapToUser(this UserModel user, double timeZone)
-        {
-            return new User
-            {
-                Id = user.Id,
-                Password = user.Password,
-                PartnerId = user.PartnerId,
-                CreationTime = user.CreationTime.GetGMTDateFromUTC(timeZone),
-                CurrencyId = user.CurrencyId,
-                FirstName = user.FirstName,
-                Gender = user.Gender,
-                LanguageId = user.LanguageId,
-                LastName = user.LastName,
-                State = user.State,
-                Type = user.Type,
-                UserName = user.UserName,
-                NickName = user.UserName,
-                MobileNumber = user.MobileNumber,
-                Email = user.Email,
-                ParentId = user.ParentId,
-                OddsType = user.OddsType,
-                CorrectionMaxAmount = user.CorrectionMaxAmount,
-                CorrectionMaxAmountCurrency = user.CorrectionMaxAmountCurrency
-            };
-        }
-
         #endregion
 
         #region Client
@@ -664,7 +650,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
             };
         }
 
-        public static Client MapToClient(this ChangeClientDetailsInput input, Client client)
+        public static Client MapToClient(this ChangeClientDetailsInput input, Client client, double timeZone)
         {
             int regionId = input.RegionId ?? client.RegionId;
             if (input.TownId != null)
@@ -704,7 +690,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 RegionId = regionId,
                 CountryId = input.CountryId ?? client.CountryId,
                 IsDocumentVerified = input.IsDocumentVerified ?? client.IsDocumentVerified,
-                BirthDate = input.BirthDate ?? client.BirthDate,
+                BirthDate = input.BirthDate?.Date ?? client.BirthDate,
                 CategoryId = input.CategoryId ?? client.CategoryId,
                 Info = input.Info ?? client.Info,
                 BetShopId = input.BetShopId ?? client.BetShopId,
@@ -720,7 +706,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
             };
         }
 
-        public static Client MapToClient(this NewClientModel input)
+        public static Client MapToClient(this NewClientModel input, double timeZone)
         {
             return new Client
             {
@@ -752,7 +738,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 BuildingNumber = input.BuildingNumber,
                 SecondName = input.SecondName,
                 SendPromotions = input.SendPromotions,
-                BirthDate = input.BirthDate,
+                BirthDate = input.BirthDate,//No need to consider the timezone
                 Info = input.Info,
                 Citizenship = input.Citizenship,
                 JobArea = input.JobArea,
@@ -786,7 +772,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 CreationTime = clientIdentity.CreationTime.GetGMTDateFromUTC(timeZone),
                 LastUpdateTime = clientIdentity.LastUpdateTime.GetGMTDateFromUTC(timeZone),
                 DocumentTypeId = clientIdentity.DocumentTypeId,
-                ExpirationTime = clientIdentity.ExpirationTime
+                ExpirationTime = clientIdentity.ExpirationTime.GetGMTDateFromUTC(timeZone)
             };
         }
 
@@ -807,7 +793,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 DocumentTypeId = clientIdentity.DocumentTypeId,
                 State = clientIdentity.Status,
                 HasNote = clientIdentity.HasNote ?? false,
-                ExpirationTime = clientIdentity.ExpirationTime
+                ExpirationTime = clientIdentity.ExpirationTime.GetGMTDateFromUTC(timeZone)
             };
         }    
 
@@ -824,7 +810,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 UserName = client.UserName,
                 PartnerId = client.PartnerId,
                 Gender = client.Gender,
-                BirthDate = client.BirthDate,
+                BirthDate = client.BirthDate.GetGMTDateFromUTC(timeZone),
                 Age = (DateTime.UtcNow - client.BirthDate).Days / 365,
                 FirstName = client.FirstName,
                 LastName = client.LastName,
@@ -880,7 +866,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
             };
         }
 
-        public static ClientInfoModel MapToClientInfoModel(this DAL.Models.Clients.ClientInfo client, bool hideContactInfo)
+        public static ClientInfoModel MapToClientInfoModel(this DAL.Models.Clients.ClientInfo client, bool hideContactInfo, double timeZone)
         {
             return new ClientInfoModel
             {
@@ -892,7 +878,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 LastName = client.LastName,
                 NickName = client.NickName,
                 Email = hideContactInfo ? "*****" : client.Email,
-                RegistrationDate = client.RegistrationDate,
+                RegistrationDate = client.RegistrationDate.GetGMTDateFromUTC(timeZone),
                 Status = client.Status,
                 Balance = client.Balance,
                 BonusBalance = client.BonusBalance,
@@ -931,12 +917,12 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 OperationType = element.OperationType,
                 OperationAmount = element.OperationAmount,
                 BalanceAfter = element.BalanceAfter,
-                OperationTime = element.OperationTime,//.GetGMTDateFromUTC(timeZone)
+                OperationTime = element.OperationTime.GetGMTDateFromUTC(timeZone),
                 PaymentSystemName = element.PaymentSystemName
             };
         }
 
-        public static PaymentLimit MapToPaymentLimit(this ApiPaymentLimit paymentLimit)
+        public static PaymentLimit MapToPaymentLimit(this ApiPaymentLimit paymentLimit, double timeZone)
         {
             return new PaymentLimit
             {
@@ -950,13 +936,13 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 MaxTotalWithdrawsAmountPerDay = paymentLimit.MaxTotalWithdrawsAmountPerDay,
                 MaxTotalWithdrawsAmountPerWeek = paymentLimit.MaxTotalWithdrawsAmountPerWeek,
                 MaxTotalWithdrawsAmountPerMonth = paymentLimit.MaxTotalWithdrawsAmountPerMonth,
-                StartTime = paymentLimit.StartTime,
-                EndTime = paymentLimit.EndTime,
+                StartTime = paymentLimit.StartTime.GetGMTDateFromUTC(timeZone),
+                EndTime = paymentLimit.EndTime.GetGMTDateFromUTC(timeZone),
                 RowState = paymentLimit.RowState
             };
         }
 
-        public static ApiPaymentLimit MapToApiPaymentLimit(this PaymentLimit paymentLimit, int clientId)
+        public static ApiPaymentLimit MapToApiPaymentLimit(this PaymentLimit paymentLimit, int clientId, double timeZone)
         {
             return new ApiPaymentLimit
             {
@@ -970,8 +956,8 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 MaxTotalWithdrawsAmountPerDay = paymentLimit == null ? null : paymentLimit.MaxTotalWithdrawsAmountPerDay,
                 MaxTotalWithdrawsAmountPerWeek = paymentLimit == null ? null : paymentLimit.MaxTotalWithdrawsAmountPerWeek,
                 MaxTotalWithdrawsAmountPerMonth = paymentLimit == null ? null : paymentLimit.MaxTotalWithdrawsAmountPerMonth,
-                StartTime = paymentLimit == null ? null : paymentLimit.StartTime,
-                EndTime = paymentLimit == null ? null : paymentLimit.EndTime
+                StartTime = paymentLimit == null ? null : paymentLimit.StartTime.GetGMTDateFromUTC(timeZone),
+                EndTime = paymentLimit == null ? null : paymentLimit.EndTime.GetGMTDateFromUTC(timeZone)
             };
         }
 
@@ -1201,7 +1187,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
             };
         }
 
-        public static BetShop MapToBetshop(this ApiGetBetShopByIdOutput input)
+        public static BetShop MapToBetshop(this ApiGetBetShopByIdOutput input, double timeZone)
         {
             return new BetShop
             {
@@ -1210,8 +1196,8 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 CurrencyId = input.CurrencyId,
                 GroupId = input.GroupId,
                 SessionId = input.SessionId,
-                CreationTime = input.CreationTime,
-                LastUpdateTime = input.LastUpdateTime,
+                CreationTime = input.CreationTime.GetGMTDateFromUTC(timeZone),
+                LastUpdateTime = input.LastUpdateTime.GetGMTDateFromUTC(timeZone),
                 PartnerId = input.PartnerId,
                 State = input.State,
                 DefaultLimit = input.DefaultLimit,
@@ -1578,7 +1564,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 Id = ticketMessage.Id,
                 Message = ticketMessage.Message,
                 Type = ticketMessage.Type,
-                CreationTime = ticketMessage.CreationTime.AddHours(timeZone),
+                CreationTime = ticketMessage.CreationTime.GetGMTDateFromUTC(timeZone),
                 TicketId = ticketMessage.TicketId,
                 UserId = ticketMessage.UserId,
                 UserFirstName = ticketMessage.User == null ? string.Empty : ticketMessage.User.FirstName,
@@ -1607,8 +1593,8 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 Status = ticket.Status,
                 Subject = ticket.Subject,
                 Type = ticket.Type,
-                CreationTime = ticket.CreationTime.AddHours(timeZone),
-                LastMessageTime = ticket.LastMessageTime.AddHours(timeZone),
+                CreationTime = ticket.CreationTime.GetGMTDateFromUTC(timeZone),
+                LastMessageTime = ticket.LastMessageTime.GetGMTDateFromUTC(timeZone),
                 UnreadMessagesCount = ticket.UserUnreadMessagesCount ?? 0,
                 UserName = ticket.UserName,
                 StatusName = statuses.FirstOrDefault(x => x.Value == ticket.Status)?.Text,
@@ -1619,33 +1605,6 @@ namespace IqSoft.CP.AdminWebApi.Helpers
             };
         }
 
-        public static FilterTicket MapToFilterTicket(this ApiFilterTicket filterTicket)
-        {
-            return new FilterTicket
-            {
-                PartnerId = filterTicket.PartnerId,
-                Ids = filterTicket.Ids == null ? new FiltersOperation() : filterTicket.Ids.MapToFiltersOperation(),
-                ClientIds = filterTicket.ClientIds == null ? new FiltersOperation() : filterTicket.ClientIds.MapToFiltersOperation(),
-                PartnerIds = filterTicket.PartnerIds == null ? new FiltersOperation() : filterTicket.PartnerIds.MapToFiltersOperation(),
-                PartnerNames = filterTicket.PartnerNames == null ? new FiltersOperation() : filterTicket.PartnerNames.MapToFiltersOperation(),
-                Subjects = filterTicket.Subjects == null ? new FiltersOperation() : filterTicket.Subjects.MapToFiltersOperation(),
-                UserNames = filterTicket.UserNames == null ? new FiltersOperation() : filterTicket.UserNames.MapToFiltersOperation(),
-                UserIds = filterTicket.UserIds == null ? new FiltersOperation() : filterTicket.UserIds.MapToFiltersOperation(),
-                UserFirstNames = filterTicket.UserFirstNames == null ? new FiltersOperation() : filterTicket.UserFirstNames.MapToFiltersOperation(),
-                UserLastNames = filterTicket.UserLastNames == null ? new FiltersOperation() : filterTicket.UserLastNames.MapToFiltersOperation(),
-                Statuses = filterTicket.Statuses == null ? new FiltersOperation() : filterTicket.Statuses.MapToFiltersOperation(),
-                Types = filterTicket.Types == null ? new FiltersOperation() : filterTicket.Types.MapToFiltersOperation(),
-                State = filterTicket.State,
-                UnreadsOnly = filterTicket.UnreadsOnly,
-                CreatedBefore = filterTicket.CreatedBefore,
-                CreatedFrom = filterTicket.CreatedFrom,
-                TakeCount = filterTicket.TakeCount,
-                SkipCount = filterTicket.SkipCount,
-                OrderBy = filterTicket.OrderBy,
-                FieldNameToOrderBy = filterTicket.FieldNameToOrderBy
-            };
-        }
-
         public static ApiTicketMessage ToApiTicketMessage(this TicketMessage ticketMessage, double timeZone)
         {
             return new ApiTicketMessage
@@ -1653,7 +1612,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 Id = ticketMessage.Id,
                 Message = ticketMessage.Message,
                 Type = ticketMessage.Type,
-                CreationTime = ticketMessage.CreationTime.AddHours(timeZone),
+                CreationTime = ticketMessage.CreationTime.GetGMTDateFromUTC(timeZone),
                 TicketId = ticketMessage.TicketId,
                 UserId = ticketMessage.UserId,
                 UserFirstName = ticketMessage.User == null ? string.Empty : ticketMessage.User.FirstName,
@@ -1661,27 +1620,6 @@ namespace IqSoft.CP.AdminWebApi.Helpers
             };
         }
 
-        public static FilterClientMessage MapToFilterClientMessage(this ApiFilterObjectMessage filterClientMessage)
-        {
-            return new FilterClientMessage
-            {
-                FromDate = filterClientMessage.FromDate,
-                ToDate = filterClientMessage.ToDate,
-                PartnerIds = filterClientMessage.PartnerIds == null ? new FiltersOperation() : filterClientMessage.PartnerIds.MapToFiltersOperation(),
-                MessageIds = filterClientMessage.MessageIds == null ? new FiltersOperation() : filterClientMessage.MessageIds.MapToFiltersOperation(),
-                Ids = filterClientMessage.Ids == null ? new FiltersOperation() : filterClientMessage.Ids.MapToFiltersOperation(),
-                UserNames = filterClientMessage.UserNames == null ? new FiltersOperation() : filterClientMessage.UserNames.MapToFiltersOperation(),
-                MobileOrEmails = filterClientMessage.MobileOrEmails == null ? new FiltersOperation() : filterClientMessage.MobileOrEmails.MapToFiltersOperation(),
-                Subjects = filterClientMessage.Subjects == null ? new FiltersOperation() : filterClientMessage.Subjects.MapToFiltersOperation(),
-                Messages = filterClientMessage.Messages == null ? new FiltersOperation() : filterClientMessage.Messages.MapToFiltersOperation(),
-                MessageTypes = filterClientMessage.MessageTypes == null ? new FiltersOperation() : filterClientMessage.MessageTypes.MapToFiltersOperation(),
-                Statuses = filterClientMessage.Statuses == null ? new FiltersOperation() : filterClientMessage.Statuses.MapToFiltersOperation(),
-                TakeCount = filterClientMessage.TakeCount,
-                SkipCount = filterClientMessage.SkipCount,
-                OrderBy = filterClientMessage.OrderBy,
-                FieldNameToOrderBy = filterClientMessage.FieldNameToOrderBy
-            };
-        }
         public static List<ApiClientLog> MapToApiClientLogs(this IEnumerable<fnClientLog> objectTypeModels, double timeZone)
         {
             return objectTypeModels.Select(x => x.MapToApiClientLog(timeZone)).ToList();
@@ -1974,7 +1912,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 IsMobileNumberVerified = arg.IsMobileNumberVerified,
                 LanguageId = arg.LanguageId,
                 CreationTime = arg.CreationTime.GetGMTDateFromUTC(timeZone),
-                LastUpdateTime = arg.LastUpdateTime,
+                LastUpdateTime = arg.LastUpdateTime.GetGMTDateFromUTC(timeZone),
                 CategoryId = arg.CategoryId,
                 State = arg.State,
                 CallToPhone = arg.CallToPhone,
@@ -1986,11 +1924,11 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 AffiliatePlatformId = arg.AffiliatePlatformId,
                 AffiliateId = arg.AffiliateId,
                 AffiliateReferralId = arg.AffiliateReferralId,
-                LastDepositDate = arg.LastDepositDate
+                LastDepositDate = arg.LastDepositDate.GetGMTDateFromUTC(timeZone)
             };
         }
 
-        public static fnClientModel MapTofnClientModel(this Client client)
+        public static fnClientModel MapTofnClientModel(this Client client, double timeZone)
         {
             return new fnClientModel
             {
@@ -2019,8 +1957,8 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 MobileCode = client.PhoneNumber,
                 IsMobileNumberVerified = client.IsMobileNumberVerified,
                 LanguageId = client.LanguageId,
-                CreationTime = client.CreationTime,
-                LastUpdateTime = client.LastUpdateTime,
+                CreationTime = client.CreationTime.GetGMTDateFromUTC(timeZone),
+                LastUpdateTime = client.LastUpdateTime.GetGMTDateFromUTC(timeZone),
                 CategoryId = client.CategoryId,
                 State = client.State,
                 CallToPhone = client.CallToPhone,
@@ -2116,26 +2054,6 @@ namespace IqSoft.CP.AdminWebApi.Helpers
             };
         }
 
-        public static FilterEmail MapToFilterEmail(this ApiFilterEmail filterEmail)
-        {
-            return new FilterEmail
-            {
-                Ids = filterEmail.Ids == null ? new FiltersOperation() : filterEmail.Ids.MapToFiltersOperation(),
-                PartnerIds = filterEmail.PartnerIds == null ? new FiltersOperation() : filterEmail.PartnerIds.MapToFiltersOperation(),
-                Subjects = filterEmail.Subjects == null ? new FiltersOperation() : filterEmail.Subjects.MapToFiltersOperation(),
-                Statuses = filterEmail.Statuses == null ? new FiltersOperation() : filterEmail.Statuses.MapToFiltersOperation(),
-                Receiver = filterEmail.Receiver == null ? new FiltersOperation() : filterEmail.Receiver.MapToFiltersOperation(),
-                CreatedBefore = filterEmail.CreatedBefore,
-                CreatedFrom = filterEmail.CreatedFrom,
-                TakeCount = filterEmail.TakeCount,
-                SkipCount = filterEmail.SkipCount,
-                OrderBy = filterEmail.OrderBy,
-                FieldNameToOrderBy = filterEmail.FieldNameToOrderBy,
-                ObjectId = filterEmail.ObjectId,
-                ObjectTypeId = filterEmail.ObjectTypeId
-            };
-        }
-
         public static List<EmailModel> MapToEmail(this IEnumerable<Email> clientMessages, double timeZone)
         {
             return clientMessages.Select(x => x.MapToEmailModel(timeZone)).ToList();
@@ -2151,7 +2069,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 Message = email.Body,
                 Status = email.Status,
                 Receiver = email.Receiver,
-                CreationTime = email.CreationTime,
+                CreationTime = email.CreationTime.GetGMTDateFromUTC(timeZone),
                 ObjectId = email.ObjectId,
                 ObjectTypeId = email.ObjectTypeId
             };
@@ -2598,7 +2516,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
             };
         }
 
-        public static PartnerBankInfo MapToPartnerBankInfo(this ApiPartnerBankInfo partnerBankInfo)
+        public static PartnerBankInfo MapToPartnerBankInfo(this ApiPartnerBankInfo partnerBankInfo, double timeZone)
         {
             return new PartnerBankInfo
             {
@@ -2615,8 +2533,8 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 Active = partnerBankInfo.Active,
                 Type = partnerBankInfo.Type,
                 Order = partnerBankInfo.Order,
-                CreationTime = partnerBankInfo.CreationTime,
-                LastUpdateTime = partnerBankInfo.LastUpdateTime
+                CreationTime = partnerBankInfo.CreationTime.GetUTCDateFromGMT(timeZone),
+                LastUpdateTime = partnerBankInfo.LastUpdateTime.GetUTCDateFromGMT(timeZone)
             };
         }
 
@@ -2726,99 +2644,6 @@ namespace IqSoft.CP.AdminWebApi.Helpers
         #endregion
 
         #region fnPartnerProductSettings
-
-        public static FilterfnPartnerProductSetting MapTofnPartnerProductSettings(this ApiFilterPartnerProductSetting setting)
-        {
-            return new FilterfnPartnerProductSetting
-            {
-                SkipCount = setting.SkipCount,
-                TakeCount = setting.TakeCount,
-                PartnerId = setting.PartnerId,
-                ProviderId = setting.ProviderId,
-                CategoryIds = setting.CategoryIds?.ToString(),
-                HasImages = setting.HasImages,
-                HasDemo = setting.HasDemo,
-                IsForDesktop = setting.IsForDesktop,
-                IsForMobile = setting.IsForMobile,
-                Ids = setting.Ids == null ? new FiltersOperation() : setting.Ids.MapToFiltersOperation(),
-                ProductIds = setting.ProductIds == null ? new FiltersOperation() : setting.ProductIds.MapToFiltersOperation(),
-                ProductDescriptions = setting.ProductDescriptions == null ? new FiltersOperation() : setting.ProductDescriptions.MapToFiltersOperation(),
-                ProductNames = setting.ProductNames == null ? new FiltersOperation() : setting.ProductNames.MapToFiltersOperation(),
-                ProductExternalIds = setting.ProductExternalIds == null ? new FiltersOperation() : setting.ProductExternalIds.MapToFiltersOperation(),
-                ProductGameProviders = setting.GameProviderIds == null ? new FiltersOperation() : setting.GameProviderIds.MapToFiltersOperation(),
-                SubProviderIds = setting.SubProviderIds == null ? new FiltersOperation() : setting.SubProviderIds.MapToFiltersOperation(),
-                Jackpots = setting.Jackpots == null ? new FiltersOperation() : setting.Jackpots.MapToFiltersOperation(),
-                States = setting.States == null ? new FiltersOperation() : setting.States.MapToFiltersOperation(),
-                Percents = setting.Percents == null ? new FiltersOperation() : setting.Percents.MapToFiltersOperation(),
-                OpenModes = setting.OpenModes == null ? new FiltersOperation() : setting.OpenModes.MapToFiltersOperation(),
-                RTPs = setting.RTPs == null ? new FiltersOperation() : setting.RTPs.MapToFiltersOperation(),
-                ExternalIds = setting.ExternalIds == null ? new FiltersOperation() : setting.ExternalIds.MapToFiltersOperation(),
-                Volatilities = setting.Volatilities == null ? new FiltersOperation() : setting.Volatilities.MapToFiltersOperation(),
-                Ratings = setting.Ratings == null ? new FiltersOperation() : setting.Ratings.MapToFiltersOperation(),
-                ProductIsLeaf = setting.ProductIsLeaf == null ? new FiltersOperation() : setting.ProductIsLeaf.MapToFiltersOperation(),
-                OrderBy = setting.OrderBy,
-                FieldNameToOrderBy = setting.FieldNameToOrderBy
-            };
-        }
-
-        public static FilterfnPartnerProductSetting MapTofnPartnerProductSettings(this ApiFilterfnProduct setting)
-        {
-            return new FilterfnPartnerProductSetting
-            {
-                SkipCount = setting.SkipCount,
-                TakeCount = setting.TakeCount,
-                IsForDesktop = setting.IsForDesktop,
-                IsForMobile = setting.IsForMobile,
-                ParentId = setting.ParentId,
-                Ids = setting.Ids == null ? new FiltersOperation() : setting.Ids.MapToFiltersOperation(),
-                ProductIds = setting.ProductIds == null ? new FiltersOperation() : setting.ProductIds.MapToFiltersOperation(),
-                ProductGameProviders = setting.GameProviderIds == null ? new FiltersOperation() : setting.GameProviderIds.MapToFiltersOperation(),
-                SubProviderIds = setting.SubProviderIds == null ? new FiltersOperation() : setting.SubProviderIds.MapToFiltersOperation(),
-                Jackpots = setting.Jackpots == null ? new FiltersOperation() : setting.Jackpots.MapToFiltersOperation(),
-                States = setting.States == null ? new FiltersOperation() : setting.States.MapToFiltersOperation(),
-                Percents = setting.Percents == null ? new FiltersOperation() : setting.Percents.MapToFiltersOperation(),
-                RTPs = setting.RTPs == null ? new FiltersOperation() : setting.RTPs.MapToFiltersOperation(),
-                ExternalIds = setting.ExternalIds == null ? new FiltersOperation() : setting.ExternalIds.MapToFiltersOperation(),
-                OrderBy = setting.OrderBy,
-                FieldNameToOrderBy = setting.FieldNameToOrderBy,
-                ProductId = setting.ProductId,
-                Pattern = setting.Pattern,
-                IsProviderActive = setting.IsProviderActive
-            };
-        }
-
-        public static FilterfnProduct MapTofnProductSettings(this ApiFilterPartnerProductSetting setting)
-        {
-            return new FilterfnProduct
-            {
-                SkipCount = setting.SkipCount,
-                TakeCount = setting.TakeCount,
-                HasImages = setting.HasImages,
-                IsForDesktop = setting.IsForDesktop,
-                IsForMobile = setting.IsForMobile,
-                Ids = setting.Ids == null ? new FiltersOperation() : setting.Ids.MapToFiltersOperation(),
-                Descriptions = setting.ProductDescriptions == null ? new FiltersOperation() : setting.ProductDescriptions.MapToFiltersOperation(),
-                Names = setting.ProductNames == null ? new FiltersOperation() : setting.ProductNames.MapToFiltersOperation(),
-                ExternalIds = setting.ProductExternalIds == null ? new FiltersOperation() : setting.ProductExternalIds.MapToFiltersOperation(),
-                GameProviderIds = setting.GameProviderIds == null ? new FiltersOperation() : setting.GameProviderIds.MapToFiltersOperation(),
-                SubProviderIds = setting.SubProviderIds == null ? new FiltersOperation() : setting.SubProviderIds.MapToFiltersOperation(),
-                States = setting.States == null ? new FiltersOperation() : setting.States.MapToFiltersOperation(),
-                Jackpots = setting.Jackpots == null ? new FiltersOperation() : setting.Jackpots.MapToFiltersOperation(),
-                RTPs = setting.RTPs == null ? new FiltersOperation() : setting.RTPs.MapToFiltersOperation(),
-            };
-        }
-
-        public static FilterfnProduct MapToFilterfnProduct(this FilterPartnerProductsMapping product)
-        {
-            return new FilterfnProduct
-            {
-                Ids = product.Ids,
-                Names = product.Names,
-                Descriptions = product.Descriptions,
-                GameProviderIds = product.GameProviderIds,
-                States = product.States,
-            };
-        }
 
         public static FnPartnerProductSettingModel MapTofnPartnerProductSettingModel(this fnPartnerProductSetting setting, double timeZone)
         {
@@ -3225,7 +3050,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
             };
         }
 
-        public static PartnerCurrencySetting ToPartnerCurrencySetting(this ApiPartnerCurrencySetting partnerCurrency)
+        public static PartnerCurrencySetting ToPartnerCurrencySetting(this ApiPartnerCurrencySetting partnerCurrency, double timeZone)
         {
             return new PartnerCurrencySetting
             {
@@ -3233,8 +3058,8 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 PartnerId = partnerCurrency.PartnerId,
                 CurrencyId = partnerCurrency.CurrencyId,
                 State = partnerCurrency.State,
-                CreationTime = partnerCurrency.CreationTime,
-                LastUpdateTime = partnerCurrency.LastUpdateTime,
+                CreationTime = partnerCurrency.CreationTime.GetUTCDateFromGMT(timeZone),
+                LastUpdateTime = partnerCurrency.LastUpdateTime.GetUTCDateFromGMT(timeZone),
                 Priority = partnerCurrency.Priority,
                 UserMinLimit = partnerCurrency.UserMinLimit,
                 UserMaxLimit = partnerCurrency.UserMaxLimit,
@@ -3242,7 +3067,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
             };
         }
 
-        public static ApiPartnerCurrencySetting ToApiPartnerCurrencySetting(this PartnerCurrencySetting partnerCurrency)
+        public static ApiPartnerCurrencySetting ToApiPartnerCurrencySetting(this PartnerCurrencySetting partnerCurrency, double timeZone)
         {
             return new ApiPartnerCurrencySetting
             {
@@ -3250,8 +3075,8 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 PartnerId = partnerCurrency.PartnerId,
                 CurrencyId = partnerCurrency.CurrencyId,
                 State = partnerCurrency.State,
-                CreationTime = partnerCurrency.CreationTime,
-                LastUpdateTime = partnerCurrency.LastUpdateTime,
+                CreationTime = partnerCurrency.CreationTime.GetGMTDateFromUTC(timeZone),
+                LastUpdateTime = partnerCurrency.LastUpdateTime.GetGMTDateFromUTC(timeZone),
                 Priority = partnerCurrency.Priority,
                 UserMinLimit = partnerCurrency.UserMinLimit,
                 UserMaxLimit = partnerCurrency.UserMaxLimit,
@@ -3290,7 +3115,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
 
         #region Bonuses
 
-        public static Bonu MapToBonus(this ApiBonus bonus)
+        public static Bonu MapToBonus(this ApiBonus bonus, double timeZone)
         {
             return new Bonu
             {
@@ -3300,9 +3125,9 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 PartnerId = bonus.PartnerId,
                 FinalAccountTypeId = bonus.FinalAccountTypeId,
                 Status = bonus.Status,
-                StartTime = bonus.StartTime,
-                FinishTime = bonus.FinishTime,
-                LastExecutionTime = bonus.StartTime,
+                StartTime = bonus.StartTime.GetUTCDateFromGMT(timeZone),
+                FinishTime = bonus.FinishTime.GetUTCDateFromGMT(timeZone),
+                LastExecutionTime = bonus.StartTime.GetUTCDateFromGMT(timeZone),
                 Period = bonus.Period ?? 0,
                 BonusProducts = bonus.Products?.Select(
                     x => new BonusProduct
@@ -3365,6 +3190,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 Regularity = bonus.Regularity,
                 DayOfWeek = bonus.DayOfWeek,
                 ReusingMaxCountInPeriod = bonus.ReusingMaxCountInPeriod,
+                Color = bonus.Color,
                 AmountCurrencySettings = bonus.AmountSettings?.Select(x => new AmountCurrencySetting
                 {
                     CurrencyId = x.CurrencyId,
@@ -3538,6 +3364,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 Regularity = bonus.Regularity,
                 DayOfWeek = bonus.DayOfWeek,
                 ReusingMaxCountInPeriod = bonus.ReusingMaxCountInPeriod,
+                Color = bonus.Color,
                 AmountSettings = bonus.AmountCurrencySettings == null ? null : bonus.AmountCurrencySettings.Select(x => new ApiAmountSetting
                 {
                     CurrencyId = x.CurrencyId,
@@ -3589,20 +3416,6 @@ namespace IqSoft.CP.AdminWebApi.Helpers
             };
         }
 
-        public static Bonu MapToBonus(this ApiFreeSpin freeSpin)
-        {
-            return new Bonu
-            {
-                Id = freeSpin.Id ?? 0,
-                Name = freeSpin.Name,
-                PartnerId = freeSpin.PartnerId,
-                Status = freeSpin.Status,
-                Sequence = freeSpin.SpinsCount,
-                StartTime = freeSpin.StartTime,
-                FinishTime = freeSpin.FinishTime,
-            };
-        }
-
         public static TriggerSetting MapToTriggerSetting(this ApiTriggerSetting apiTriggerSetting, double timeZone)
         {
             return new TriggerSetting
@@ -3612,9 +3425,9 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 Description = apiTriggerSetting.Description,
                 Type = apiTriggerSetting.Type,
                 PartnerId = apiTriggerSetting.PartnerId,
-                StartTime = apiTriggerSetting.StartTime,
-                FinishTime = apiTriggerSetting.FinishTime,
-                Percent = apiTriggerSetting.Percent ?? 0,
+                StartTime = apiTriggerSetting.StartTime.GetUTCDateFromGMT(timeZone),
+                FinishTime = apiTriggerSetting.FinishTime.GetUTCDateFromGMT(timeZone),
+                Percent = apiTriggerSetting.Percent,
                 BonusSettingCodes = !string.IsNullOrEmpty(apiTriggerSetting.BonusSettingCodes) ? apiTriggerSetting.BonusSettingCodes : apiTriggerSetting.PromoCode,
                 MinAmount = apiTriggerSetting.MinAmount,
                 MaxAmount = apiTriggerSetting.MaxAmount,
@@ -3787,7 +3600,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
             };
         }
 
-        public static Jackpot MapToJackpot(this ApiJackpot apiJackpot)
+        public static Jackpot MapToJackpot(this ApiJackpot apiJackpot, double timeZone)
         {
             var currentDate = DateTime.UtcNow;
             return new Jackpot
@@ -3799,7 +3612,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 Amount = apiJackpot.Amount,
                 RightBorder = apiJackpot.RightBorder,
                 LeftBorder = apiJackpot.LeftBorder,
-                FinishTime = apiJackpot.FinishTime,
+                FinishTime = apiJackpot.FinishTime.GetUTCDateFromGMT(timeZone),
                 JackpotSettings = apiJackpot.Products?.Select(
                      x => new JackpotSetting
                      {
@@ -3821,7 +3634,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 PartnerId = jackpot.PartnerId,
                 Type = jackpot.Type,
                 Amount = jackpot.Amount,
-                FinishTime = jackpot.FinishTime,
+                FinishTime = jackpot.FinishTime.GetGMTDateFromUTC(timeZone),
                 WinnedClient = jackpot.WinnerId,
                 Products = jackpot.JackpotSettings?.Select(x => new ApiBonusProducts
                 {
@@ -3833,6 +3646,16 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 }).ToList(),
                 CreationDate = jackpot.CreationDate.GetGMTDateFromUTC(timeZone),
                 LastUpdateDate = jackpot.LastUpdateDate.GetGMTDateFromUTC(timeZone),
+            };
+        }
+
+        public static Common.Models.WebSiteModels.ApiLeaderboardItem ToApiLeaderboardItem(this BllLeaderboardItem item, string currencyId)
+        {
+            var client = CacheManager.GetClientById(item.Id);
+            return new Common.Models.WebSiteModels.ApiLeaderboardItem
+            {
+                Name = client == null ? string.Empty : (string.IsNullOrEmpty(client.FirstName) ? client.Id.ToString() : client.FirstName),
+                Points = Math.Round(BaseBll.ConvertCurrency(item.CurrencyId, currencyId, item.Points))
             };
         }
 
@@ -3882,7 +3705,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 ClientId = info.ClientId,
                 CardholderName = info.ClientFullName,
                 CardNumber = info.CardNumber,
-                CardExpireDate = info.CardExpireDate,
+                CardExpireDate = info.CardExpireDate.GetGMTDateFromUTC(timeZone),
                 BankName = info.BankName,
                 BankAccountNumber = info.BankAccountNumber,
                 Iban = info.BankIBAN,
@@ -3896,7 +3719,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
             };
         }
 
-        public static ClientPaymentInfo MapToClientPaymentInfo(this ApiClientPaymentInfo info)
+        public static ClientPaymentInfo MapToClientPaymentInfo(this ApiClientPaymentInfo info, double timeZone)
         {
             return new ClientPaymentInfo
             {
@@ -3904,7 +3727,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 ClientId = info.ClientId,
                 ClientFullName = info.CardholderName,
                 CardNumber = info.CardNumber,
-                CardExpireDate = info.CardExpireDate,
+                CardExpireDate = info.CardExpireDate.GetUTCDateFromGMT(timeZone),
                 BankName = info.BankName,
                 BankIBAN = info.Iban,
                 BankAccountNumber = info.BankAccountNumber,
@@ -3913,8 +3736,8 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 State = info.State,
                 WalletNumber = info.WalletNumber,
                 PartnerPaymentSystemId = info.PaymentSystem,
-                CreationTime = info.CreationTime,
-                LastUpdateTime = info.LastUpdateTime
+                CreationTime = info.CreationTime.GetUTCDateFromGMT(timeZone),
+                LastUpdateTime = info.LastUpdateTime.GetUTCDateFromGMT(timeZone)
             };
         }
         #endregion
@@ -4124,7 +3947,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
 
         #region Provider
 
-        public static AffiliatePlatformModel MapToAffiliatePlatformModel(this AffiliatePlatform affiliatePlatform)
+        public static AffiliatePlatformModel MapToAffiliatePlatformModel(this AffiliatePlatform affiliatePlatform, double timeZone)
         {
             return new AffiliatePlatformModel
             {
@@ -4132,18 +3955,20 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 PartnerId = affiliatePlatform.PartnerId,
                 Name = affiliatePlatform.Name,
                 Status = affiliatePlatform.Status,
-                LastExecutionTime = affiliatePlatform.LastExecutionTime,
+                LastExecutionTime = affiliatePlatform.LastExecutionTime.GetGMTDateFromUTC(timeZone),
+                KickOffTime = affiliatePlatform.KickOffTime.GetGMTDateFromUTC(timeZone),
+                StepInHours = affiliatePlatform.StepInHours,
                 PeriodInHours = affiliatePlatform.PeriodInHours
             };
         }
 
-        public static NotificationServiceModel MapToNotificationServiceModel(this NotificationService notificationService)
+        public static NotificationServiceModel MapToNotificationServiceModel(this NotificationService notificationService, double timeZone)
         {
             return new NotificationServiceModel
             {
                 Id = notificationService.Id,
                 Name = notificationService.Name,
-                CreationTime = notificationService.CreationTime
+                CreationTime = notificationService.CreationTime.GetGMTDateFromUTC(timeZone)
             };
         }
 
@@ -4151,7 +3976,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
 
         #region Agents
 
-        public static UserModel MapToUserModel(this fnAgent user, double timeZone, List<AgentCommission> commissions, int currentUserId, ILog log)
+        public static ApiUser MapToUserModel(this fnAgent user, double timeZone, List<AgentCommission> commissions, int currentUserId, ILog log)
         {
             var commission = commissions.FirstOrDefault(x => x.AgentId == user.Id)?.TurnoverPercent;
             BllUserSetting parentSetting = null;
@@ -4166,7 +3991,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 parentState = parentSetting.ParentState.Value;
             else if (parent != null)
                 parentState = parent.State;
-            var resp = new UserModel
+            var resp = new ApiUser
             {
                 Id = user.Id,
                 NickName = user.NickName,
@@ -4341,28 +4166,6 @@ namespace IqSoft.CP.AdminWebApi.Helpers
 
         #region Announcements
 
-        public static FilterAnnouncement MapToFilterAnnouncement(this ApiFilterAnnouncement filter)
-        {
-            return new FilterAnnouncement
-            {
-                PartnerId = filter.PartnerId,
-                Type = filter.Type,
-                TakeCount = filter.TakeCount,
-                SkipCount = filter.SkipCount,
-                FromDate = filter.FromDate,
-                ToDate = filter.ToDate,
-                OrderBy = filter.OrderBy,
-                FieldNameToOrderBy = filter.FieldNameToOrderBy,
-
-                Ids = filter.Ids == null ? new FiltersOperation() : filter.Ids.MapToFiltersOperation(),
-                PartnerIds = filter.PartnerIds == null ? new FiltersOperation() : filter.PartnerIds.MapToFiltersOperation(),
-                UserIds = filter.UserIds == null ? new FiltersOperation() : filter.UserIds.MapToFiltersOperation(),
-                Types = filter.Types == null ? new FiltersOperation() : filter.Types.MapToFiltersOperation(),
-                ReceiverTypes = filter.ReceiverTypes == null ? new FiltersOperation() : filter.ReceiverTypes.MapToFiltersOperation(),
-                States = filter.States == null ? new FiltersOperation() : filter.States.MapToFiltersOperation()
-            };
-        }
-
         public static ApiAnnouncement MapToApiAnnouncement(this fnAnnouncement input, double timeZone)
         {
             return new ApiAnnouncement
@@ -4381,1980 +4184,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
 
         #endregion
 
-        #endregion
-
-        #region Filters
-
-        #region Reporting
-
-        #region Internet Reports
-        public static FilterfnDocument MapToFilterfnDocument(this ApiFilterfnDocument apiFilterClientDocument)
-        {
-            return new FilterfnDocument
-            {
-                ClientId = apiFilterClientDocument.ClientId,
-                FromDate = apiFilterClientDocument.FromDate,
-                ToDate = apiFilterClientDocument.ToDate,
-                AccountId = apiFilterClientDocument.AccountId,
-                Ids = apiFilterClientDocument.Ids == null ? new FiltersOperation() : apiFilterClientDocument.Ids.MapToFiltersOperation(),
-                ExternalTransactionIds = apiFilterClientDocument.ExternalTransactionIds == null ? new FiltersOperation() : apiFilterClientDocument.ExternalTransactionIds.MapToFiltersOperation(),
-                Amounts = apiFilterClientDocument.Amounts == null ? new FiltersOperation() : apiFilterClientDocument.Amounts.MapToFiltersOperation(),
-                States = apiFilterClientDocument.States == null ? new FiltersOperation() : apiFilterClientDocument.States.MapToFiltersOperation(),
-                OperationTypeIds = apiFilterClientDocument.OperationTypeIds == null ? new FiltersOperation() : apiFilterClientDocument.OperationTypeIds.MapToFiltersOperation(),
-                PaymentRequestIds = apiFilterClientDocument.PaymentRequestIds == null ? new FiltersOperation() : apiFilterClientDocument.PaymentRequestIds.MapToFiltersOperation(),
-                PaymentSystemIds = apiFilterClientDocument.PaymentSystemIds == null ? new FiltersOperation() : apiFilterClientDocument.PaymentSystemIds.MapToFiltersOperation(),
-                PaymentSystemNames = apiFilterClientDocument.PaymentSystemNames == null ? new FiltersOperation() : apiFilterClientDocument.PaymentSystemNames.MapToFiltersOperation(),
-                RoundIds = apiFilterClientDocument.RoundIds == null ? new FiltersOperation() : apiFilterClientDocument.RoundIds.MapToFiltersOperation(),
-                ProductIds = apiFilterClientDocument.ProductIds == null ? new FiltersOperation() : apiFilterClientDocument.ProductIds.MapToFiltersOperation(),
-                ProductNames = apiFilterClientDocument.ProductNames == null ? new FiltersOperation() : apiFilterClientDocument.ProductNames.MapToFiltersOperation(),
-                GameProviderIds = apiFilterClientDocument.GameProviderIds == null ? new FiltersOperation() : apiFilterClientDocument.GameProviderIds.MapToFiltersOperation(),
-                GameProviderNames = apiFilterClientDocument.GameProviderNames == null ? new FiltersOperation() : apiFilterClientDocument.GameProviderNames.MapToFiltersOperation(),
-                LastUpdateTimes = apiFilterClientDocument.LastUpdateTimes == null ? new FiltersOperation() : apiFilterClientDocument.LastUpdateTimes.MapToFiltersOperation(),
-                SkipCount = apiFilterClientDocument.SkipCount,
-                TakeCount = apiFilterClientDocument.TakeCount,
-                OrderBy = apiFilterClientDocument.OrderBy,
-                FieldNameToOrderBy = apiFilterClientDocument.FieldNameToOrderBy,
-
-            };
-        }
-
-
-        public static List<FilterInternetBet> MaptoFilterInternetBets(this IEnumerable<ApiFilterInternetBet> apiFilterInternetBets)
-        {
-            return apiFilterInternetBets.Select(MapToFilterInternetBet).ToList();
-        }
-
-        public static FilterInternetBet MapToFilterInternetBet(this ApiFilterInternetBet apiFilterInternetBet)
-        {
-            if (!string.IsNullOrEmpty(apiFilterInternetBet.FieldNameToOrderBy))
-            {
-                var orderBy = apiFilterInternetBet.FieldNameToOrderBy;
-                switch (orderBy)
-                {
-                    case "OriginalBetAmount":
-                        apiFilterInternetBet.FieldNameToOrderBy = "BetAmount";
-                        break;
-                    case "OriginalWinAmount":
-                        apiFilterInternetBet.FieldNameToOrderBy = "WinAmount";
-                        break;
-                    case "OriginalBonusAmount":
-                        apiFilterInternetBet.FieldNameToOrderBy = "BonusAmount";
-                        break;
-                    case "OriginalBonusWinAmount":
-                        apiFilterInternetBet.FieldNameToOrderBy = "BonusWinAmount";
-                        break;
-                    default:
-                        break;
-                }
-            }
-
-            return new FilterInternetBet
-            {
-                PartnerId = apiFilterInternetBet.PartnerId,
-                ClientId = apiFilterInternetBet.ClientId,
-                AccountId = apiFilterInternetBet.AccountId,
-                FromDate = apiFilterInternetBet.BetDateFrom,
-                ToDate = apiFilterInternetBet.BetDateBefore,
-                BetDocumentIds = apiFilterInternetBet.BetDocumentIds == null ? new FiltersOperation() : apiFilterInternetBet.BetDocumentIds.MapToFiltersOperation(),
-                ClientIds = apiFilterInternetBet.ClientIds == null ? new FiltersOperation() : apiFilterInternetBet.ClientIds.MapToFiltersOperation(),
-                UserIds = apiFilterInternetBet.UserIds == null ? new FiltersOperation() : apiFilterInternetBet.UserIds.MapToFiltersOperation(),
-                Names = apiFilterInternetBet.Names == null ? new FiltersOperation() : apiFilterInternetBet.Names.MapToFiltersOperation(),
-                ClientUserNames = apiFilterInternetBet.UserNames == null ? new FiltersOperation() : apiFilterInternetBet.UserNames.MapToFiltersOperation(),
-                Categories = apiFilterInternetBet.Categories == null ? new FiltersOperation() : apiFilterInternetBet.Categories.MapToFiltersOperation(),
-                ProductIds = apiFilterInternetBet.ProductIds == null ? new FiltersOperation() : apiFilterInternetBet.ProductIds.MapToFiltersOperation(),
-                ProductNames = apiFilterInternetBet.ProductNames == null ? new FiltersOperation() : apiFilterInternetBet.ProductNames.MapToFiltersOperation(),
-                ProviderNames = apiFilterInternetBet.ProviderNames == null ? new FiltersOperation() : apiFilterInternetBet.ProviderNames.MapToFiltersOperation(),
-                SubproviderIds = apiFilterInternetBet.SubproviderIds == null ? new FiltersOperation() : apiFilterInternetBet.SubproviderIds.MapToFiltersOperation(),
-                SubproviderNames = apiFilterInternetBet.SubproviderNames == null ? new FiltersOperation() : apiFilterInternetBet.SubproviderNames.MapToFiltersOperation(),
-                CurrencyIds = apiFilterInternetBet.CurrencyIds == null ? new FiltersOperation() : apiFilterInternetBet.CurrencyIds.MapToFiltersOperation(),
-                RoundIds = apiFilterInternetBet.RoundIds == null ? new FiltersOperation() : apiFilterInternetBet.RoundIds.MapToFiltersOperation(),
-                DeviceTypes = apiFilterInternetBet.DeviceTypes == null ? new FiltersOperation() : apiFilterInternetBet.DeviceTypes.MapToFiltersOperation(),
-                ClientIps = apiFilterInternetBet.ClientIps == null ? new FiltersOperation() : apiFilterInternetBet.ClientIps.MapToFiltersOperation(),
-                Countries = apiFilterInternetBet.Countries == null ? new FiltersOperation() : apiFilterInternetBet.Countries.MapToFiltersOperation(),
-                States = apiFilterInternetBet.States == null ? new FiltersOperation() : apiFilterInternetBet.States.MapToFiltersOperation(),
-                BetTypes = apiFilterInternetBet.BetTypes == null ? new FiltersOperation() : apiFilterInternetBet.BetTypes.MapToFiltersOperation(),
-                PossibleWins = apiFilterInternetBet.PossibleWins == null ? new FiltersOperation() : apiFilterInternetBet.PossibleWins.MapToFiltersOperation(),
-                BetAmounts = apiFilterInternetBet.BetAmounts == null ? new FiltersOperation() : apiFilterInternetBet.BetAmounts.MapToFiltersOperation(),
-                OriginalBetAmounts = apiFilterInternetBet.OriginalBetAmounts == null ? new FiltersOperation() : apiFilterInternetBet.OriginalBetAmounts.MapToFiltersOperation(),
-                Coefficients = apiFilterInternetBet.Coefficients == null ? new FiltersOperation() : apiFilterInternetBet.Coefficients.MapToFiltersOperation(),
-                WinAmounts = apiFilterInternetBet.WinAmounts == null ? new FiltersOperation() : apiFilterInternetBet.WinAmounts.MapToFiltersOperation(),
-                OriginalWinAmounts = apiFilterInternetBet.OriginalWinAmounts == null ? new FiltersOperation() : apiFilterInternetBet.OriginalWinAmounts.MapToFiltersOperation(),
-                BetDates = apiFilterInternetBet.BetDates == null ? new FiltersOperation() : apiFilterInternetBet.BetDates.MapToFiltersOperation(),
-                WinDates = apiFilterInternetBet.CalculationDates == null ? new FiltersOperation() : apiFilterInternetBet.CalculationDates.MapToFiltersOperation(),
-                LastUpdateTimes = apiFilterInternetBet.LastUpdateTimes == null ? new FiltersOperation() : apiFilterInternetBet.LastUpdateTimes.MapToFiltersOperation(),
-                BonusIds = apiFilterInternetBet.BonusIds == null ? new FiltersOperation() : apiFilterInternetBet.BonusIds.MapToFiltersOperation(),
-                GGRs = apiFilterInternetBet.GGRs == null ? new FiltersOperation() : apiFilterInternetBet.GGRs.MapToFiltersOperation(),
-                Rakes = apiFilterInternetBet.Rakes == null ? new FiltersOperation() : apiFilterInternetBet.Rakes.MapToFiltersOperation(),
-                BonusAmounts = apiFilterInternetBet.BonusAmounts == null ? new FiltersOperation() : apiFilterInternetBet.BonusAmounts.MapToFiltersOperation(),
-                OriginalBonusAmounts = apiFilterInternetBet.OriginalBonusAmounts == null ? new FiltersOperation() : apiFilterInternetBet.OriginalBonusAmounts.MapToFiltersOperation(),
-                BonusWinAmounts = apiFilterInternetBet.BonusWinAmounts == null ? new FiltersOperation() : apiFilterInternetBet.BonusWinAmounts.MapToFiltersOperation(),
-                OriginalBonusWinAmounts = apiFilterInternetBet.OriginalBonusWinAmounts == null ? new FiltersOperation() : apiFilterInternetBet.OriginalBonusWinAmounts.MapToFiltersOperation(),
-                Balances = apiFilterInternetBet.Balances == null ? new FiltersOperation() : apiFilterInternetBet.Balances.MapToFiltersOperation(),
-                TotalBetsCounts = apiFilterInternetBet.TotalBetsCounts == null ? new FiltersOperation() : apiFilterInternetBet.TotalBetsCounts.MapToFiltersOperation(),
-                TotalBetsAmounts = apiFilterInternetBet.TotalBetsAmounts == null ? new FiltersOperation() : apiFilterInternetBet.TotalBetsAmounts.MapToFiltersOperation(),
-                TotalWinsAmounts = apiFilterInternetBet.TotalWinsAmounts == null ? new FiltersOperation() : apiFilterInternetBet.TotalWinsAmounts.MapToFiltersOperation(),
-                MaxBetAmounts = apiFilterInternetBet.MaxBetAmounts == null ? new FiltersOperation() : apiFilterInternetBet.MaxBetAmounts.MapToFiltersOperation(),
-                TotalDepositsCounts = apiFilterInternetBet.TotalDepositsCounts == null ? new FiltersOperation() : apiFilterInternetBet.TotalDepositsCounts.MapToFiltersOperation(),
-                TotalDepositsAmounts = apiFilterInternetBet.TotalDepositsAmounts == null ? new FiltersOperation() : apiFilterInternetBet.TotalDepositsAmounts.MapToFiltersOperation(),
-                TotalWithdrawalsCounts = apiFilterInternetBet.TotalWithdrawalsCounts == null ? new FiltersOperation() : apiFilterInternetBet.TotalWithdrawalsCounts.MapToFiltersOperation(),
-                TotalWithdrawalsAmounts = apiFilterInternetBet.TotalWithdrawalsAmounts == null ? new FiltersOperation() : apiFilterInternetBet.TotalWithdrawalsAmounts.MapToFiltersOperation(),
-                SkipCount = apiFilterInternetBet.SkipCount,
-                TakeCount = Math.Min(apiFilterInternetBet.TakeCount, 5000),
-                OrderBy = apiFilterInternetBet.OrderBy,
-                FieldNameToOrderBy = apiFilterInternetBet.FieldNameToOrderBy,
-                AgentId = apiFilterInternetBet.AgentId
-            };
-        }
-
-        public static FilterInternetGame MapToFilterInternetGame(this ApiFilterInternetBet apiFilterInternetBet)
-        {
-            return new FilterInternetGame
-            {
-                PartnerId = apiFilterInternetBet.PartnerId,
-                FromDate = apiFilterInternetBet.BetDateFrom,
-                ToDate = apiFilterInternetBet.BetDateBefore,
-                ProductIds = apiFilterInternetBet.ProductIds == null ? new FiltersOperation() : apiFilterInternetBet.ProductIds.MapToFiltersOperation(),
-                ProductNames = apiFilterInternetBet.ProductNames == null ? new FiltersOperation() : apiFilterInternetBet.ProductNames.MapToFiltersOperation(),
-                Currencies = apiFilterInternetBet.CurrencyIds == null ? new FiltersOperation() : apiFilterInternetBet.CurrencyIds.MapToFiltersOperation(),
-                BetAmounts = apiFilterInternetBet.BetAmounts == null ? new FiltersOperation() : apiFilterInternetBet.BetAmounts.MapToFiltersOperation(),
-                WinAmounts = apiFilterInternetBet.WinAmounts == null ? new FiltersOperation() : apiFilterInternetBet.WinAmounts.MapToFiltersOperation(),
-                OriginalBetAmounts = apiFilterInternetBet.OriginalBetAmounts == null ? new FiltersOperation() : apiFilterInternetBet.OriginalBetAmounts.MapToFiltersOperation(),
-                OriginalWinAmounts = apiFilterInternetBet.OriginalWinAmounts == null ? new FiltersOperation() : apiFilterInternetBet.OriginalWinAmounts.MapToFiltersOperation(),
-                GGRs = apiFilterInternetBet.GGRs == null ? new FiltersOperation() : apiFilterInternetBet.GGRs.MapToFiltersOperation(),
-                SkipCount = apiFilterInternetBet.SkipCount,
-                TakeCount = Math.Min(apiFilterInternetBet.TakeCount, 5000),
-                OrderBy = apiFilterInternetBet.OrderBy,
-                FieldNameToOrderBy = apiFilterInternetBet.FieldNameToOrderBy
-            };
-        }
-
-        #endregion
-
-        #region BetShop Reports
-        public static FilterReportByClientIdentity MapToFilterClientIdentity(this ApiFilterReportByClientIdentity filter)
-        {
-            return new FilterReportByClientIdentity
-            {
-                FromDate = filter.FromDate,
-                ToDate = filter.ToDate,
-                SkipCount = filter.SkipCount,
-                TakeCount = filter.TakeCount,
-                OrderBy = filter.OrderBy,
-                FieldNameToOrderBy = filter.FieldNameToOrderBy,
-                HasNote = filter.HasNote,
-                Ids = filter.Ids == null ? new FiltersOperation() : filter.Ids.MapToFiltersOperation(),
-                ClientIds = filter.ClientIds == null ? new FiltersOperation() : filter.ClientIds.MapToFiltersOperation(),
-                UserNames = filter.UserNames == null ? new FiltersOperation() : filter.UserNames.MapToFiltersOperation(),
-                PartnerIds = filter.PartnerIds == null ? new FiltersOperation() : filter.PartnerIds.MapToFiltersOperation(),
-                UserIds = filter.UserIds == null ? new FiltersOperation() : filter.UserIds.MapToFiltersOperation(),
-                DocumentTypeIds = filter.DocumentTypeIds == null ? new FiltersOperation() : filter.DocumentTypeIds.MapToFiltersOperation(),
-                Statuses = filter.States == null ? new FiltersOperation() : filter.States.MapToFiltersOperation(),
-                ExpirationTimes = filter.ExpirationTimes == null ? new FiltersOperation() : filter.ExpirationTimes.MapToFiltersOperation(),
-                CreationTimes = filter.CreationTimes == null ? new FiltersOperation() : filter.CreationTimes.MapToFiltersOperation(),
-                LastUpdateTimes = filter.LastUpdateTimes == null ? new FiltersOperation() : filter.LastUpdateTimes.MapToFiltersOperation()
-            };
-        }
-
-        public static FilterBetShopBet MapToFilterBetShopBet(this ApiFilterBetShopBet filter)
-        {
-            return new FilterBetShopBet
-            {
-                SkipCount = filter.SkipCount,
-                TakeCount = Math.Min(filter.TakeCount, 5000),
-                PartnerId = filter.PartnerId,
-                FromDate = filter.BetDateFrom,
-                ToDate = filter.BetDateBefore,
-                BetShopGroupIds = !filter.BetShopGroupId.HasValue ? new FiltersOperation() :
-                                  new ApiFiltersOperation
-                                  {
-                                      IsAnd = true,
-                                      ApiOperationTypeList = new List<ApiFiltersOperationType>
-                                      {new ApiFiltersOperationType{OperationTypeId =1, IntValue = (int)filter.BetShopGroupId } }
-                                  }.MapToFiltersOperation(),
-                Ids = filter.Ids == null ? new FiltersOperation() : filter.Ids.MapToFiltersOperation(),
-                CashierIds = filter.CashierIds == null ? new FiltersOperation() : filter.CashierIds.MapToFiltersOperation(),
-                CashDeskIds = filter.CashDeskIds == null ? new FiltersOperation() : filter.CashDeskIds.MapToFiltersOperation(),
-                BetShopIds = filter.BetShopIds == null ? new FiltersOperation() : filter.BetShopIds.MapToFiltersOperation(),
-                BetShopNames = filter.BetShopNames == null ? new FiltersOperation() : filter.BetShopNames.MapToFiltersOperation(),
-                BetShopGroupNames = filter.BetShopGroupNames == null ? new FiltersOperation() : filter.BetShopGroupNames.MapToFiltersOperation(),
-                ProductIds = filter.ProductIds == null ? new FiltersOperation() : filter.ProductIds.MapToFiltersOperation(),
-                ProductNames = filter.ProductNames == null ? new FiltersOperation() : filter.ProductNames.MapToFiltersOperation(),
-                ProviderIds = filter.ProviderIds == null ? new FiltersOperation() : filter.ProviderIds.MapToFiltersOperation(),
-                ProviderNames = filter.ProviderNames == null ? new FiltersOperation() : filter.ProviderNames.MapToFiltersOperation(),
-                Currencies = filter.Currencies == null ? new FiltersOperation() : filter.Currencies.MapToFiltersOperation(),
-                RoundIds = filter.RoundIds == null ? new FiltersOperation() : filter.RoundIds.MapToFiltersOperation(),
-                States = filter.States == null ? new FiltersOperation() : filter.States.MapToFiltersOperation(),
-                BetTypes = filter.BetTypes == null ? new FiltersOperation() : filter.BetTypes.MapToFiltersOperation(),
-                PossibleWins = filter.PossibleWins == null ? new FiltersOperation() : filter.PossibleWins.MapToFiltersOperation(),
-                BetAmounts = filter.BetAmounts == null ? new FiltersOperation() : filter.BetAmounts.MapToFiltersOperation(),
-                WinAmounts = filter.WinAmounts == null ? new FiltersOperation() : filter.WinAmounts.MapToFiltersOperation(),
-                OriginalBetAmounts = filter.OriginalBetAmounts == null ? new FiltersOperation() : filter.OriginalBetAmounts.MapToFiltersOperation(),
-                OriginalWinAmounts = filter.OriginalWinAmounts == null ? new FiltersOperation() : filter.OriginalWinAmounts.MapToFiltersOperation(),
-                Barcodes = filter.Barcodes == null ? new FiltersOperation() : filter.Barcodes.MapToFiltersOperation(),
-                TicketNumbers = filter.TicketNumbers == null ? new FiltersOperation() : filter.TicketNumbers.MapToFiltersOperation(),
-                OrderBy = filter.OrderBy,
-                FieldNameToOrderBy = filter.FieldNameToOrderBy
-            };
-        }
-
-        public static FilterBetShopBet MapToFilterBetShopBet(this ApiFilterReportByBetShop filter)
-        {
-            return new FilterBetShopBet
-            {
-                PartnerId = filter.PartnerId,
-                FromDate = filter.BetDateFrom,
-                ToDate = filter.BetDateBefore,
-                ProductIds = filter.ProductIds == null ? new FiltersOperation() : filter.ProductIds.MapToFiltersOperation(),
-                BetShopIds = filter.BetShopIds == null ? new FiltersOperation() : filter.BetShopIds.MapToFiltersOperation(),
-                BetShopGroupIds = filter.BetShopGroupIds == null ? new FiltersOperation() : filter.BetShopGroupIds.MapToFiltersOperation(),
-                BetShopNames = filter.BetShopNames == null ? new FiltersOperation() : filter.BetShopNames.MapToFiltersOperation(),
-                Currencies = filter.Currencies == null ? new FiltersOperation() : filter.Currencies.MapToFiltersOperation()
-            };
-        }
-
-        public static FilterReportByBetShopPayment MapToFilterReportByBetShopPayment(this ApiFilterReportByBetShopPayment filter)
-        {
-            return new FilterReportByBetShopPayment
-            {
-                SkipCount = filter.SkipCount,
-                TakeCount = filter.TakeCount,
-                FromDate = filter.FromDate,
-                ToDate = filter.ToDate,
-                BetShopIds = filter.BetShopIds == null ? new FiltersOperation() : filter.BetShopIds.MapToFiltersOperation(),
-                GroupIds = filter.GroupIds == null ? new FiltersOperation() : filter.GroupIds.MapToFiltersOperation(),
-                BetShopNames = filter.BetShopNames == null ? new FiltersOperation() : filter.BetShopNames.MapToFiltersOperation(),
-                PendingDepositCounts = filter.TotalPendingDepositsCounts == null ? new FiltersOperation() : filter.TotalPendingDepositsCounts.MapToFiltersOperation(),
-                PendingDepositAmounts = filter.TotalPendingDepositsAmounts == null ? new FiltersOperation() : filter.TotalPendingDepositsAmounts.MapToFiltersOperation(),
-                PayedDepositCounts = filter.TotalPayedDepositsCounts == null ? new FiltersOperation() : filter.TotalPayedDepositsCounts.MapToFiltersOperation(),
-                PayedDepositAmounts = filter.TotalPayedDepositsAmounts == null ? new FiltersOperation() : filter.TotalPayedDepositsAmounts.MapToFiltersOperation(),
-                CanceledDepositCounts = filter.TotalCanceledDepositsCounts == null ? new FiltersOperation() : filter.TotalCanceledDepositsCounts.MapToFiltersOperation(),
-                CanceledDepositAmounts = filter.TotalCanceledDepositsAmounts == null ? new FiltersOperation() : filter.TotalCanceledDepositsAmounts.MapToFiltersOperation(),
-                PendingWithdrawalCounts = filter.TotalPendingWithdrawalsCounts == null ? new FiltersOperation() : filter.TotalPendingWithdrawalsCounts.MapToFiltersOperation(),
-                PendingWithdrawalAmounts = filter.TotalPendingWithdrawalsAmounts == null ? new FiltersOperation() : filter.TotalPendingWithdrawalsAmounts.MapToFiltersOperation(),
-                PayedWithdrawalCounts = filter.TotalPayedWithdrawalsCounts == null ? new FiltersOperation() : filter.TotalPayedWithdrawalsCounts.MapToFiltersOperation(),
-                PayedWithdrawalAmounts = filter.TotalPayedWithdrawalsAmounts == null ? new FiltersOperation() : filter.TotalPayedWithdrawalsAmounts.MapToFiltersOperation(),
-                CanceledWithdrawalCounts = filter.TotalCanceledWithdrawalsCounts == null ? new FiltersOperation() : filter.TotalCanceledWithdrawalsCounts.MapToFiltersOperation(),
-                CanceledWithdrawalAmounts = filter.TotalCanceledWithdrawalsAmounts == null ? new FiltersOperation() : filter.TotalCanceledWithdrawalsAmounts.MapToFiltersOperation()
-            };
-        }
-
-        public static FilterReportByBetShopLimitChanges MapToFilterReportByBetShopLimitChanges(this ApiFilterBetShopLimitChanges filter)
-        {
-            return new FilterReportByBetShopLimitChanges
-            {
-                SkipCount = filter.SkipCount,
-                TakeCount = filter.TakeCount,
-                OrderBy = filter.OrderBy,
-                FromDate = filter.FromDate,
-                ToDate = filter.ToDate,
-                BetShopIds = filter.BetShopIds == null ? new FiltersOperation() : filter.BetShopIds.MapToFiltersOperation(),
-                UserIds = filter.UserIds == null ? new FiltersOperation() : filter.UserIds.MapToFiltersOperation()
-            };
-        }
-
-        public static ApiBetShopLimitChanges MapToApiBetShopLimitChanges(this ObjectDataChangeHistory input, double timeZone)
-        {
-            return new ApiBetShopLimitChanges
-            {
-                Id = input.Id,
-                UserId = input.UserId,
-                BetShopId = input.ObjectId,
-                LimitValue = input.NumericValue,
-                CreationTime = input.CreationTime.GetGMTDateFromUTC(timeZone)
-            };
-        }
-
-        public static FilterReportByBonus MapToFilterReportByBonus(this ApiFilterReportByBonus filter)
-        {
-            if (!string.IsNullOrEmpty(filter.FieldNameToOrderBy))
-            {
-                var orderBy = filter.FieldNameToOrderBy;
-                switch (orderBy)
-                {
-                    case "BonusType":
-                        filter.FieldNameToOrderBy = "Type";
-                        break;
-                    case "BonusName":
-                        filter.FieldNameToOrderBy = "Name";
-                        break;
-                    case "ClientBonusStatus":
-                        filter.FieldNameToOrderBy = "Status";
-                        break;
-                    default:
-                        break;
-                }
-            }
-
-            return new FilterReportByBonus
-            {
-                FromDate = filter.FromDate,
-                ToDate = filter.ToDate,
-                SkipCount = filter.SkipCount,
-                TakeCount = filter.TakeCount,
-                OrderBy = filter.OrderBy,
-                FieldNameToOrderBy = filter.FieldNameToOrderBy,
-                Ids = filter.Ids == null ? new FiltersOperation() : filter.Ids.MapToFiltersOperation(),
-                PartnerIds = filter.PartnerIds == null ? new FiltersOperation() : filter.PartnerIds.MapToFiltersOperation(),
-                BonusIds = filter.BonusIds == null ? new FiltersOperation() : filter.BonusIds.MapToFiltersOperation(),
-                BonusNames = filter.BonusNames == null ? new FiltersOperation() : filter.BonusNames.MapToFiltersOperation(),
-                BonusTypes = filter.BonusTypes == null ? new FiltersOperation() : filter.BonusTypes.MapToFiltersOperation(),
-                BonusStatuses = filter.BonusStatuses == null ? new FiltersOperation() : filter.BonusStatuses.MapToFiltersOperation(),
-                ClientIds = filter.ClientIds == null ? new FiltersOperation() : filter.ClientIds.MapToFiltersOperation(),
-                UserNames = filter.UserNames == null ? new FiltersOperation() : filter.UserNames.MapToFiltersOperation(),
-                FirstNames = filter.FirstNames == null ? new FiltersOperation() : filter.FirstNames.MapToFiltersOperation(),
-                LastNames = filter.LastNames == null ? new FiltersOperation() : filter.LastNames.MapToFiltersOperation(),
-                CurrencyIds = filter.CurrencyIds == null ? new FiltersOperation() : filter.CurrencyIds.MapToFiltersOperation(),
-                Emails = filter.Emails == null ? new FiltersOperation() : filter.Emails.MapToFiltersOperation(),
-                MobileNumbers = filter.MobileNumbers == null ? new FiltersOperation() : filter.MobileNumbers.MapToFiltersOperation(),
-                CategoryIds = filter.CategoryIds == null ? new FiltersOperation() : filter.CategoryIds.MapToFiltersOperation(),
-                BonusPrizes = filter.BonusPrizes == null ? new FiltersOperation() : filter.BonusPrizes.MapToFiltersOperation(),
-                SpinsCounts = filter.SpinsCounts == null ? new FiltersOperation() : filter.SpinsCounts.MapToFiltersOperation(),
-                TurnoverAmountLefts = filter.TurnoverAmountLefts == null ? new FiltersOperation() : filter.TurnoverAmountLefts.MapToFiltersOperation(),
-                RemainingCredits = filter.RemainingCredits == null ? new FiltersOperation() : filter.RemainingCredits.MapToFiltersOperation(),
-                WageringTargets = filter.WageringTargets == null ? new FiltersOperation() : filter.WageringTargets.MapToFiltersOperation(),
-                FinalAmounts = filter.FinalAmounts == null ? new FiltersOperation() : filter.FinalAmounts.MapToFiltersOperation(),
-                ClientBonusStatuses = filter.Statuses == null ? new FiltersOperation() : filter.Statuses.MapToFiltersOperation(),
-                AwardingTimes = filter.AwardingTimes == null ? new FiltersOperation() : filter.AwardingTimes.MapToFiltersOperation(),
-                CalculationTimes = filter.CalculationTimes == null ? new FiltersOperation() : filter.CalculationTimes.MapToFiltersOperation(),
-                CreationTimes = filter.CreationTimes == null ? new FiltersOperation() : filter.CreationTimes.MapToFiltersOperation(),
-                ValidUntils = filter.ValidUntils == null ? new FiltersOperation() : filter.ValidUntils.MapToFiltersOperation()
-            };
-        }
-
-        public static FilterReportByfnClientSession MapToFilterReportByfnClientSession(this ApiFilterReportByClientSession filter)
-        {
-            return new FilterReportByfnClientSession
-            {
-                FromDate = filter.FromDate,
-                ToDate = filter.ToDate,
-                SkipCount = filter.SkipCount,
-                TakeCount = filter.TakeCount,
-                OrderBy = filter.OrderBy,
-                FieldNameToOrderBy = filter.FieldNameToOrderBy,
-                PartnerId = filter.PartnerId,
-                Ids = filter.Ids == null ? new FiltersOperation() : filter.Ids.MapToFiltersOperation(),
-                PartnerIds = filter.PartnerIds == null ? new FiltersOperation() : filter.PartnerIds.MapToFiltersOperation(),
-                ClientIds = filter.ClientIds == null ? new FiltersOperation() : filter.ClientIds.MapToFiltersOperation(),
-                FirstNames = filter.FirstNames == null ? new FiltersOperation() : filter.FirstNames.MapToFiltersOperation(),
-                LastNames = filter.LastNames == null ? new FiltersOperation() : filter.LastNames.MapToFiltersOperation(),
-                UserNames = filter.UserNames == null ? new FiltersOperation() : filter.UserNames.MapToFiltersOperation(),
-                LanguageIds = filter.LanguageIds == null ? new FiltersOperation() : filter.LanguageIds.MapToFiltersOperation(),
-                Ips = filter.Ips == null ? new FiltersOperation() : filter.Ips.MapToFiltersOperation(),
-                Countries = filter.Countries == null ? new FiltersOperation() : filter.Countries.MapToFiltersOperation(),
-                States = filter.States == null ? new FiltersOperation() : filter.States.MapToFiltersOperation(),
-                LogoutTypes = filter.LogoutTypes == null ? new FiltersOperation() : filter.LogoutTypes.MapToFiltersOperation(),
-                ProductIds = filter.ProductIds == null ? new FiltersOperation() : filter.ProductIds.MapToFiltersOperation(),
-                StartTimes = filter.StartTimes == null ? new FiltersOperation() : filter.StartTimes.MapToFiltersOperation(),
-                LastUpdateTimes = filter.LastUpdateTimes == null ? new FiltersOperation() : filter.LastUpdateTimes.MapToFiltersOperation(),
-                EndTimes = filter.EndTimes == null ? new FiltersOperation() : filter.EndTimes.MapToFiltersOperation()
-            };
-        }
-
-        public static FilterReportByClientSession MapToFilterReportByClientSession(this ApiFilterReportByClientSession filter)
-        {
-            return new FilterReportByClientSession
-            {
-                FromDate = filter.FromDate,
-                ToDate = filter.ToDate,
-                SkipCount = filter.SkipCount,
-                TakeCount = filter.TakeCount,
-                OrderBy = filter.OrderBy,
-                FieldNameToOrderBy = filter.FieldNameToOrderBy,
-                ClientId = filter.ClientId,
-                ProductId = filter.ProductId,
-                Ids = filter.Ids == null ? new FiltersOperation() : filter.Ids.MapToFiltersOperation(),
-                LanguageIds = filter.LanguageIds == null ? new FiltersOperation() : filter.LanguageIds.MapToFiltersOperation(),
-                Ips = filter.Ips == null ? new FiltersOperation() : filter.Ips.MapToFiltersOperation(),
-                Countries = filter.Countries == null ? new FiltersOperation() : filter.Countries.MapToFiltersOperation(),
-                States = filter.States == null ? new FiltersOperation() : filter.States.MapToFiltersOperation(),
-                LogoutTypes = filter.LogoutTypes == null ? new FiltersOperation() : filter.LogoutTypes.MapToFiltersOperation(),
-                ProductIds = filter.ProductIds == null ? new FiltersOperation() : filter.ProductIds.MapToFiltersOperation(),
-                StartTimes = filter.StartTimes == null ? new FiltersOperation() : filter.StartTimes.MapToFiltersOperation(),
-                LastUpdateTimes = filter.LastUpdateTimes == null ? new FiltersOperation() : filter.LastUpdateTimes.MapToFiltersOperation(),
-                EndTimes = filter.EndTimes == null ? new FiltersOperation() : filter.EndTimes.MapToFiltersOperation()
-            };
-        }
-
-        public static FilterReportByUserSession MapToFilterReportByUserSession(this ApiFilterReportByUserSession filter)
-        {
-            return new FilterReportByUserSession
-            {
-                FromDate = filter.FromDate,
-                ToDate = filter.ToDate,
-                SkipCount = filter.SkipCount,
-                TakeCount = filter.TakeCount,
-                OrderBy = filter.OrderBy,
-                FieldNameToOrderBy = filter.FieldNameToOrderBy,
-                PartnerId = filter.PartnerId,
-                UserId = filter.UserId,
-                Type = filter.Type,
-                Ids = filter.Ids == null ? new FiltersOperation() : filter.Ids.MapToFiltersOperation(),
-                PartnerIds = filter.PartnerIds == null ? new FiltersOperation() : filter.PartnerIds.MapToFiltersOperation(),
-                UserIds = filter.UserIds == null ? new FiltersOperation() : filter.UserIds.MapToFiltersOperation(),
-                FirstNames = filter.FirstNames == null ? new FiltersOperation() : filter.FirstNames.MapToFiltersOperation(),
-                LastNames = filter.LastNames == null ? new FiltersOperation() : filter.LastNames.MapToFiltersOperation(),
-                UserNames = filter.UserNames == null ? new FiltersOperation() : filter.UserNames.MapToFiltersOperation(),
-                Emails = filter.Emails == null ? new FiltersOperation() : filter.Emails.MapToFiltersOperation(),
-                LanguageIds = filter.LanguageIds == null ? new FiltersOperation() : filter.LanguageIds.MapToFiltersOperation(),
-                Ips = filter.Ips == null ? new FiltersOperation() : filter.Ips.MapToFiltersOperation(),
-                Types = filter.Types == null ? new FiltersOperation() : filter.Types.MapToFiltersOperation(),
-                States = filter.States == null ? new FiltersOperation() : filter.States.MapToFiltersOperation(),
-                LogoutTypes = filter.LogoutTypes == null ? new FiltersOperation() : filter.LogoutTypes.MapToFiltersOperation(),
-                EndTimes = filter.EndTimes == null ? new FiltersOperation() : filter.EndTimes.MapToFiltersOperation()
-            };
-        }
-        public static FilterClientExclusion MapToFilterClientExclusion(this ApiFilterReportByClientExclusion filter)
-        {
-            return new FilterClientExclusion
-            {
-                SkipCount = filter.SkipCount,
-                TakeCount = filter.TakeCount,
-                OrderBy = filter.OrderBy,
-                FieldNameToOrderBy = filter.FieldNameToOrderBy,
-                PartnerIds = filter.PartnerIds == null ? new FiltersOperation() : filter.PartnerIds.MapToFiltersOperation(),
-                ClientIds = filter.ClientIds == null ? new FiltersOperation() : filter.ClientIds.MapToFiltersOperation(),
-                Usernames = filter.Usernames == null ? new FiltersOperation() : filter.Usernames.MapToFiltersOperation(),
-                DepositLimitDailys = filter.DepositLimitDailys == null ? new FiltersOperation() : filter.DepositLimitDailys.MapToFiltersOperation(),
-                DepositLimitWeeklys = filter.DepositLimitWeeklys == null ? new FiltersOperation() : filter.DepositLimitWeeklys.MapToFiltersOperation(),
-                DepositLimitMonthlys = filter.DepositLimitMonthlys == null ? new FiltersOperation() : filter.DepositLimitMonthlys.MapToFiltersOperation(),
-                TotalBetAmountLimitDailys = filter.TotalBetAmountLimitDailys == null ? new FiltersOperation() : filter.TotalBetAmountLimitDailys.MapToFiltersOperation(),
-                TotalBetAmountLimitWeeklys = filter.TotalBetAmountLimitWeeklys == null ? new FiltersOperation() : filter.TotalBetAmountLimitWeeklys.MapToFiltersOperation(),
-                TotalBetAmountLimitMonthlys = filter.TotalBetAmountLimitMonthlys == null ? new FiltersOperation() : filter.TotalBetAmountLimitMonthlys.MapToFiltersOperation(),
-                TotalLossLimitDailys = filter.TotalLossLimitDailys == null ? new FiltersOperation() : filter.TotalLossLimitDailys.MapToFiltersOperation(),
-                TotalLossLimitWeeklys = filter.TotalLossLimitWeeklys == null ? new FiltersOperation() : filter.TotalLossLimitWeeklys.MapToFiltersOperation(),
-                TotalLossLimitMonthlys = filter.TotalLossLimitMonthlys == null ? new FiltersOperation() : filter.TotalLossLimitMonthlys.MapToFiltersOperation(),
-                SystemDepositLimitDailys = filter.SystemDepositLimitDailys == null ? new FiltersOperation() : filter.SystemDepositLimitDailys.MapToFiltersOperation(),
-                SystemDepositLimitWeeklys = filter.SystemDepositLimitWeeklys == null ? new FiltersOperation() : filter.SystemDepositLimitWeeklys.MapToFiltersOperation(),
-                SystemDepositLimitMonthlys = filter.SystemDepositLimitMonthlys == null ? new FiltersOperation() : filter.SystemDepositLimitMonthlys.MapToFiltersOperation(),
-                SystemTotalBetAmountLimitDailys = filter.SystemTotalBetAmountLimitDailys == null ? new FiltersOperation() : filter.SystemTotalBetAmountLimitDailys.MapToFiltersOperation(),
-                SystemTotalBetAmountLimitWeeklys = filter.SystemTotalBetAmountLimitWeeklys == null ? new FiltersOperation() : filter.SystemTotalBetAmountLimitWeeklys.MapToFiltersOperation(),
-                SystemTotalBetAmountLimitMonthlys = filter.SystemTotalBetAmountLimitMonthlys == null ? new FiltersOperation() : filter.SystemTotalBetAmountLimitMonthlys.MapToFiltersOperation(),
-                SystemTotalLossLimitDailys = filter.SystemTotalLossLimitDailys == null ? new FiltersOperation() : filter.SystemTotalLossLimitDailys.MapToFiltersOperation(),
-                SystemTotalLossLimitWeeklys = filter.SystemTotalLossLimitWeeklys == null ? new FiltersOperation() : filter.SystemTotalLossLimitWeeklys.MapToFiltersOperation(),
-                SystemTotalLossLimitMonthlys = filter.SystemTotalLossLimitMonthlys == null ? new FiltersOperation() : filter.SystemTotalLossLimitMonthlys.MapToFiltersOperation(),
-                SessionLimits = filter.SessionLimits == null ? new FiltersOperation() : filter.SessionLimits.MapToFiltersOperation(),
-                SystemSessionLimits = filter.SystemSessionLimits == null ? new FiltersOperation() : filter.SystemSessionLimits.MapToFiltersOperation()
-            };
-        }
-
-        public static FilterReportByObjectChangeHistory MapToFilterObjectChangeHistory(this ApiFilterReportByObjectChangeHistory filter)
-        {
-            return new FilterReportByObjectChangeHistory
-            {
-                FromDate = filter.FromDate,
-                ToDate = filter.ToDate,
-                SkipCount = filter.SkipCount,
-                TakeCount = filter.TakeCount,
-                OrderBy = filter.OrderBy,
-                FieldNameToOrderBy = filter.FieldNameToOrderBy,
-                PartnerId = filter.PartnerId,
-                ObjectId = filter.ObjectId,
-                ObjectTypeId = filter.ObjectTypeId,
-                Ids = filter.Ids == null ? new FiltersOperation() : filter.Ids.MapToFiltersOperation(),
-                ObjectIds = filter.ObjectIds == null ? new FiltersOperation() : filter.ObjectIds.MapToFiltersOperation(),
-                UserIds = filter.UserIds == null ? new FiltersOperation() : filter.UserIds.MapToFiltersOperation()
-            };
-        }
-        public static ApiReportByObjectChangeHistory MapToApiReportByObjectChangeHistory(this spObjectChangeHistory input, double timeZone)
-        {
-            return new ApiReportByObjectChangeHistory
-            {
-                Id = input.Id,
-                ObjectId = input.ObjectId,
-                ObjectTypeId = input.ObjectTypeId,
-                Object = input.Object,
-                Comment = input.Comment,
-                ChangeDate = input.ChangeDate.GetGMTDateFromUTC(timeZone),
-                PartnerId = input.PartnerId,
-                UserId = input.UserId,
-                FirstName = input.FirstName,
-                LastName = input.LastName
-            };
-        }
-
-        #endregion
-
-        #region BusinessIntelligence Reports
-
-        public static FilterReportByProvider MapToFilterReportByProvider(this ApiFilterReportByProvider filter)
-        {
-            return new FilterReportByProvider
-            {
-                FromDate = filter.FromDate,
-                ToDate = filter.ToDate,
-                AgentId = filter.AgentId,
-                ProviderNames = filter.ProviderNames == null ? new FiltersOperation() : filter.ProviderNames.MapToFiltersOperation(),
-                Currencies = filter.Currencies == null ? new FiltersOperation() : filter.Currencies.MapToFiltersOperation(),
-                TotalBetsCounts = filter.TotalBetsCounts == null ? new FiltersOperation() : filter.TotalBetsCounts.MapToFiltersOperation(),
-                TotalBetsAmounts = filter.TotalBetsAmounts == null ? new FiltersOperation() : filter.TotalBetsAmounts.MapToFiltersOperation(),
-                TotalWinsAmounts = filter.TotalWinsAmounts == null ? new FiltersOperation() : filter.TotalWinsAmounts.MapToFiltersOperation(),
-                TotalUncalculatedBetsCounts = filter.TotalUncalculatedBetsCounts == null ? new FiltersOperation() : filter.TotalUncalculatedBetsCounts.MapToFiltersOperation(),
-                TotalUncalculatedBetsAmounts = filter.TotalUncalculatedBetsAmounts == null ? new FiltersOperation() : filter.TotalUncalculatedBetsAmounts.MapToFiltersOperation(),
-                GGRs = filter.GGRs == null ? new FiltersOperation() : filter.GGRs.MapToFiltersOperation()
-            };
-        }
-
-        public static FilterReportByPaymentSystem MapToFilterReportByPaymentSystem(this ApiFilterReportByPaymentSystem filter)
-        {
-            return new FilterReportByPaymentSystem
-            {
-                PartnerId = filter.PartnerId,
-                FromDate = filter.FromDate,
-                ToDate = filter.ToDate,
-                PartnerIds = filter.PartnerIds == null ? new FiltersOperation() : filter.PartnerIds.MapToFiltersOperation(),
-                PaymentSystemIds = filter.PaymentSystemIds == null ? new FiltersOperation() : filter.PaymentSystemIds.MapToFiltersOperation(),
-                PaymentSystemNames = filter.PaymentSystemNames == null ? new FiltersOperation() : filter.PaymentSystemNames.MapToFiltersOperation(),
-                Statuses = filter.Statuses == null ? new FiltersOperation() : filter.Statuses.MapToFiltersOperation(),
-                Counts = filter.Counts == null ? new FiltersOperation() : filter.Counts.MapToFiltersOperation(),
-                TotalAmounts = filter.TotalAmounts == null ? new FiltersOperation() : filter.TotalAmounts.MapToFiltersOperation()
-            };
-        }
-        public static FilterReportByPartner MapToFilterReportByPartner(this ApiFilterReportByPartner filter)
-        {
-            return new FilterReportByPartner
-            {
-                FromDate = filter.FromDate,
-                ToDate = filter.ToDate,
-                PartnerIds = filter.PartnerIds == null ? new FiltersOperation() : filter.PartnerIds.MapToFiltersOperation(),
-                PartnerNames = filter.PartnerNames == null ? new FiltersOperation() : filter.PartnerNames.MapToFiltersOperation(),
-                TotalBetAmounts = filter.TotalBetAmounts == null ? new FiltersOperation() : filter.TotalBetAmounts.MapToFiltersOperation(),
-                TotalBetsCounts = filter.TotalBetsCounts == null ? new FiltersOperation() : filter.TotalBetsCounts.MapToFiltersOperation(),
-                TotalWinAmounts = filter.TotalWinAmounts == null ? new FiltersOperation() : filter.TotalWinAmounts.MapToFiltersOperation(),
-                TotalGGRs = filter.TotalGGRs == null ? new FiltersOperation() : filter.TotalGGRs.MapToFiltersOperation()
-            };
-        }
-
-        public static FilterReportByUserTransaction MapToFilterReportByUserTransaction(this ApiFilterReportByUserTransaction filter)
-        {
-            return new FilterReportByUserTransaction
-            {
-                PartnerId = filter.PartnerId,
-                FromDate = filter.FromDate,
-                ToDate = filter.ToDate,
-                PartnerIds = filter.PartnerIds == null ? new FiltersOperation() : filter.PartnerIds.MapToFiltersOperation(),
-                UserIds = filter.UserIds == null ? new FiltersOperation() : filter.UserIds.MapToFiltersOperation(),
-                Usernames = filter.Usernames == null ? new FiltersOperation() : filter.Usernames.MapToFiltersOperation(),
-                NickNames = filter.NickNames == null ? new FiltersOperation() : filter.NickNames.MapToFiltersOperation(),
-                UserFirstNames = filter.UserFirstNames == null ? new FiltersOperation() : filter.UserFirstNames.MapToFiltersOperation(),
-                UserLastNames = filter.UserLastNames == null ? new FiltersOperation() : filter.UserLastNames.MapToFiltersOperation(),
-                FromUserIds = filter.FromUserIds == null ? new FiltersOperation() : filter.FromUserIds.MapToFiltersOperation(),
-                FromUsernames = filter.FromUsernames == null ? new FiltersOperation() : filter.FromUsernames.MapToFiltersOperation(),
-                ClientIds = filter.ClientIds == null ? new FiltersOperation() : filter.ClientIds.MapToFiltersOperation(),
-                ClientUsernames = filter.ClientUsernames == null ? new FiltersOperation() : filter.ClientUsernames.MapToFiltersOperation(),
-                OperationTypeIds = filter.OperationTypeIds == null ? new FiltersOperation() : filter.OperationTypeIds.MapToFiltersOperation(),
-                Amounts = filter.Amounts == null ? new FiltersOperation() : filter.Amounts.MapToFiltersOperation(),
-                CurrencyIds = filter.CurrencyIds == null ? new FiltersOperation() : filter.CurrencyIds.MapToFiltersOperation()
-            };
-        }
-
-        public static FilterReportByProduct MapToFilterReportByProduct(this ApiFilterReportByProduct filter)
-        {
-            return new FilterReportByProduct
-            {
-                FromDate = filter.FromDate,
-                ToDate = filter.ToDate,
-                ClientIds = filter.ClientIds == null ? new FiltersOperation() : filter.ClientIds.MapToFiltersOperation(),
-                ClientNames = filter.ClientNames == null ? new FiltersOperation() : filter.ClientNames.MapToFiltersOperation(),
-                Currencies = filter.Currencies == null ? new FiltersOperation() : filter.Currencies.MapToFiltersOperation(),
-                ProductIds = filter.ProductIds == null ? new FiltersOperation() : filter.ProductIds.MapToFiltersOperation(),
-                ProductNames = filter.ProductNames == null ? new FiltersOperation() : filter.ProductNames.MapToFiltersOperation(),
-                DeviceTypeIds = filter.DeviceTypeIds == null ? new FiltersOperation() : filter.DeviceTypeIds.MapToFiltersOperation(),
-                ProviderNames = filter.ProviderNames == null ? new FiltersOperation() : filter.ProviderNames.MapToFiltersOperation(),
-                TotalBetsAmounts = filter.TotalBetsAmounts == null ? new FiltersOperation() : filter.TotalBetsAmounts.MapToFiltersOperation(),
-                TotalWinsAmounts = filter.TotalWinsAmounts == null ? new FiltersOperation() : filter.TotalWinsAmounts.MapToFiltersOperation(),
-                TotalBetsCounts = filter.TotalBetsCounts == null ? new FiltersOperation() : filter.TotalBetsCounts.MapToFiltersOperation(),
-                TotalUncalculatedBetsCounts = filter.TotalUncalculatedBetsCounts == null ? new FiltersOperation() : filter.TotalUncalculatedBetsCounts.MapToFiltersOperation(),
-                TotalUncalculatedBetsAmounts = filter.TotalUncalculatedBetsAmounts == null ? new FiltersOperation() : filter.TotalUncalculatedBetsAmounts.MapToFiltersOperation(),
-                GGRs = filter.GGRs == null ? new FiltersOperation() : filter.GGRs.MapToFiltersOperation()
-            };
-        }
-
-        #endregion
-
-        #region BusinessAudit Reports
-
-        public static FilterReportByActionLog MapToFilterReportByActionLog(this ApiFilterReportByActionLog filter)
-        {
-            return new FilterReportByActionLog
-            {
-                FromDate = filter.FromDate,
-                ToDate = filter.ToDate,
-                Ids = filter.Ids == null ? new FiltersOperation() : filter.Ids.MapToFiltersOperation(),
-                ActionNames = filter.ActionNames == null ? new FiltersOperation() : filter.ActionNames.MapToFiltersOperation(),
-                ActionGroups = filter.ActionGroups == null ? new FiltersOperation() : filter.ActionGroups.MapToFiltersOperation(),
-                UserIds = filter.UserIds == null ? new FiltersOperation() : filter.UserIds.MapToFiltersOperation(),
-                Domains = filter.Domains == null ? new FiltersOperation() : filter.Domains.MapToFiltersOperation(),
-                Ips = filter.Ips == null ? new FiltersOperation() : filter.Ips.MapToFiltersOperation(),
-                Sources = filter.Sources == null ? new FiltersOperation() : filter.Sources.MapToFiltersOperation(),
-                Countries = filter.Countries == null ? new FiltersOperation() : filter.Countries.MapToFiltersOperation(),
-                SessionIds = filter.SessionIds == null ? new FiltersOperation() : filter.SessionIds.MapToFiltersOperation(),
-                Languages = filter.Languages == null ? new FiltersOperation() : filter.Languages.MapToFiltersOperation(),
-                ResultCodes = filter.ResultCodes == null ? new FiltersOperation() : filter.ResultCodes.MapToFiltersOperation(),
-                Pages = filter.Pages == null ? new FiltersOperation() : filter.Pages.MapToFiltersOperation(),
-                Descriptions = filter.Descriptions == null ? new FiltersOperation() : filter.Descriptions.MapToFiltersOperation(),
-                SkipCount = filter.SkipCount,
-                TakeCount = filter.TakeCount,
-                OrderBy = filter.OrderBy,
-                FieldNameToOrderBy = filter.FieldNameToOrderBy
-            };
-        }
-
-        public static List<ApiReportByActionLog> MapToApiReportByActionLog(this IEnumerable<fnActionLog> input, double timeZone)
-        {
-            return input.Select(x => x.MapToApiReportByActionLog(timeZone)).ToList();
-        }
-
-        public static ApiReportByActionLog MapToApiReportByActionLog(this fnActionLog input, double timeZone)
-        {
-            return new ApiReportByActionLog
-            {
-                Id = input.Id,
-                UserId = input.ObjectId,
-                ActionName = input.ActionName,
-                ActionGroup = input.ActionGroup,
-                Domain = input.Domain,
-                Source = input.Source,
-                Country = input.Country,
-                Ip = input.Ip,
-                SessionId = input.SessionId,
-                Language = input.Language,
-                ResultCode = input.ResultCode,
-                Description = input.Description,
-                Page = input.Page,
-                Info = input.Info,
-                CreationTime = input.CreationTime.GetGMTDateFromUTC(timeZone)
-            };
-        }
-
-        public static FilterReportByPopupStatistics MapToFilterReportByPopupStatistics(this ApiFilterReportByPopupStatistics filter)
-        {
-            return new FilterReportByPopupStatistics
-            {
-                PopupId = filter.PopupId,
-                FromDate = filter.FromDate,
-                ToDate = filter.ToDate,
-                Ids = filter.Ids == null ? new FiltersOperation() : filter.Ids.MapToFiltersOperation(),
-                PartnerIds = filter.PartnerIds == null ? new FiltersOperation() : filter.PartnerIds.MapToFiltersOperation(),
-                NickNames = filter.NickNames == null ? new FiltersOperation() : filter.NickNames.MapToFiltersOperation(),
-                Types = filter.Types == null ? new FiltersOperation() : filter.Types.MapToFiltersOperation(),
-                DeviceTypes = filter.DeviceTypes == null ? new FiltersOperation() : filter.DeviceTypes.MapToFiltersOperation(),
-                States = filter.States == null ? new FiltersOperation() : filter.States.MapToFiltersOperation(),
-                CreationTimes = filter.CreationTimes == null ? new FiltersOperation() : filter.CreationTimes.MapToFiltersOperation(),
-                LastUpdateTimes = filter.LastUpdateTimes == null ? new FiltersOperation() : filter.LastUpdateTimes.MapToFiltersOperation(),
-                Vieweds = filter.Vieweds == null ? new FiltersOperation() : filter.Vieweds.MapToFiltersOperation(),
-                Closeds = filter.Closeds == null ? new FiltersOperation() : filter.Closeds.MapToFiltersOperation(),
-                Redirecteds = filter.Redirecteds == null ? new FiltersOperation() : filter.Redirecteds.MapToFiltersOperation(),
-                SkipCount = filter.SkipCount,
-                TakeCount = filter.TakeCount,
-                OrderBy = filter.OrderBy,
-                FieldNameToOrderBy = filter.FieldNameToOrderBy
-            };
-        }
-
-        #endregion
-
-        #region Accounting Reports
-
-        public static FilterPartnerPaymentsSummary MapToFilterPartnerPaymentsSummary(this ApiFilterPartnerPaymentsSummary filter)
-        {
-            return new FilterPartnerPaymentsSummary
-            {
-                PartnerId = filter.PartnerId,
-                Type = filter.Type,
-                FromDate = filter.FromDate,
-                ToDate = filter.ToDate
-            };
-        }
-
-        #endregion
-
-        #region Affiliates And Agents
-
-        public static FilterfnAffiliateTransaction ToFilterfnAffiliateTransaction(this ApiFilterfnAgentTransaction apiFilterfnAgentTransaction)
-        {
-            var currentDate = DateTime.UtcNow;
-            if (!string.IsNullOrEmpty(apiFilterfnAgentTransaction.FieldNameToOrderBy))
-            {
-                var orderBy = apiFilterfnAgentTransaction.FieldNameToOrderBy;
-                switch (orderBy)
-                {
-                    case "ProductGroupId":
-                        apiFilterfnAgentTransaction.FieldNameToOrderBy = "ProductId";
-                        break;
-                    default:
-                        break;
-                }
-            }
-            return new FilterfnAffiliateTransaction
-            {
-                FromDate = apiFilterfnAgentTransaction.FromDate ??
-                currentDate.AddDays((apiFilterfnAgentTransaction.IsYesterday.HasValue && apiFilterfnAgentTransaction.IsYesterday.Value) ? -2 : -1),
-                ToDate = apiFilterfnAgentTransaction.ToDate ?? currentDate.AddDays(1),
-                Ids = apiFilterfnAgentTransaction.Ids == null ? new FiltersOperation() : apiFilterfnAgentTransaction.Ids.MapToFiltersOperation(),
-                ExternalTransactionIds = apiFilterfnAgentTransaction.ExternalTransactionIds == null ? new FiltersOperation() : apiFilterfnAgentTransaction.ExternalTransactionIds.MapToFiltersOperation(),
-                Amounts = apiFilterfnAgentTransaction.Amounts == null ? new FiltersOperation() : apiFilterfnAgentTransaction.Amounts.MapToFiltersOperation(),
-                CurrencyIds = apiFilterfnAgentTransaction.CurrencyIds == null ? new FiltersOperation() : apiFilterfnAgentTransaction.CurrencyIds.MapToFiltersOperation(),
-                ProductIds = apiFilterfnAgentTransaction.ProductIds == null ? new FiltersOperation() : apiFilterfnAgentTransaction.ProductIds.MapToFiltersOperation(),
-                ProductNames = apiFilterfnAgentTransaction.ProductNames == null ? new FiltersOperation() : apiFilterfnAgentTransaction.ProductNames.MapToFiltersOperation(),
-                TransactionTypes = apiFilterfnAgentTransaction.TransactionTypes == null ? new FiltersOperation() : apiFilterfnAgentTransaction.TransactionTypes.MapToFiltersOperation(),
-                CreationTimes = apiFilterfnAgentTransaction.CreationTimes == null ? new FiltersOperation() : apiFilterfnAgentTransaction.CreationTimes.MapToFiltersOperation(),
-                LastUpdateTimes = apiFilterfnAgentTransaction.LastUpdateTimes == null ? new FiltersOperation() : apiFilterfnAgentTransaction.LastUpdateTimes.MapToFiltersOperation(),
-                SkipCount = apiFilterfnAgentTransaction.SkipCount,
-                TakeCount = Math.Min(apiFilterfnAgentTransaction.TakeCount, 5000),
-                OrderBy = apiFilterfnAgentTransaction.OrderBy,
-                FieldNameToOrderBy = apiFilterfnAgentTransaction.FieldNameToOrderBy
-            };
-        }
-
-        public static FilterfnAgentTransaction ToFilterfnAgentTransaction(this ApiFilterfnAgentTransaction apiFilterfnAgentTransaction)
-        {
-            var currentDate = DateTime.UtcNow;
-            return new FilterfnAgentTransaction
-            {
-                FromDate = apiFilterfnAgentTransaction.FromDate ??
-                currentDate.AddDays((apiFilterfnAgentTransaction.IsYesterday.HasValue && apiFilterfnAgentTransaction.IsYesterday.Value) ? -2 : -1),
-                ToDate = apiFilterfnAgentTransaction.ToDate ?? currentDate.AddDays(1),
-                UserState = apiFilterfnAgentTransaction.UserState,
-                Ids = apiFilterfnAgentTransaction.Ids == null ? new FiltersOperation() : apiFilterfnAgentTransaction.Ids.MapToFiltersOperation(),
-                FromUserIds = apiFilterfnAgentTransaction.FromUserIds == null ? new FiltersOperation() : apiFilterfnAgentTransaction.FromUserIds.MapToFiltersOperation(),
-                UserIds = apiFilterfnAgentTransaction.UserIds == null ? new FiltersOperation() : apiFilterfnAgentTransaction.UserIds.MapToFiltersOperation(),
-                ExternalTransactionIds = apiFilterfnAgentTransaction.ExternalTransactionIds == null ? new FiltersOperation() : apiFilterfnAgentTransaction.ExternalTransactionIds.MapToFiltersOperation(),
-                Amounts = apiFilterfnAgentTransaction.Amounts == null ? new FiltersOperation() : apiFilterfnAgentTransaction.Amounts.MapToFiltersOperation(),
-                CurrencyIds = apiFilterfnAgentTransaction.CurrencyIds == null ? new FiltersOperation() : apiFilterfnAgentTransaction.CurrencyIds.MapToFiltersOperation(),
-                States = apiFilterfnAgentTransaction.States == null ? new FiltersOperation() : apiFilterfnAgentTransaction.States.MapToFiltersOperation(),
-                OperationTypeIds = apiFilterfnAgentTransaction.OperationTypeIds == null ? new FiltersOperation() : apiFilterfnAgentTransaction.OperationTypeIds.MapToFiltersOperation(),
-                ProductIds = apiFilterfnAgentTransaction.ProductIds == null ? new FiltersOperation() : apiFilterfnAgentTransaction.ProductIds.MapToFiltersOperation(),
-                ProductNames = apiFilterfnAgentTransaction.ProductNames == null ? new FiltersOperation() : apiFilterfnAgentTransaction.ProductNames.MapToFiltersOperation(),
-                TransactionTypes = apiFilterfnAgentTransaction.TransactionTypes == null ? new FiltersOperation() : apiFilterfnAgentTransaction.TransactionTypes.MapToFiltersOperation(),
-                SkipCount = apiFilterfnAgentTransaction.SkipCount,
-                TakeCount = Math.Min(apiFilterfnAgentTransaction.TakeCount, 5000),
-                OrderBy = apiFilterfnAgentTransaction.OrderBy,
-                FieldNameToOrderBy = apiFilterfnAgentTransaction.FieldNameToOrderBy
-            };
-        }
-
-        #endregion
-
-        #endregion
-
-        #region Clients
-
-        public static FilterAccountsBalanceHistory MapToFilterAccountsBalanceHistory(this ApiFilterAccountsBalanceHistory filter, double timeZone)
-        {
-            return new FilterAccountsBalanceHistory
-            {
-                FromDate = filter.FromDate.AddHours(timeZone),
-                ToDate = filter.ToDate.AddHours(timeZone),
-                ClientId = filter.ClientId,
-                UserId = filter.UserId,
-                AccountId = filter.AccountId
-            };
-        }
-
-        public static FilterfnDuplicateClient MapToFilterDuplicateClient(this ApiFilterfnDuplicateClient filterClient)
-        {
-            return new FilterfnDuplicateClient
-            {
-                ClientId = filterClient.ClientId,
-                DuplicatedClientIds = filterClient.DuplicatedClientIds == null ? new FiltersOperation() : filterClient.DuplicatedClientIds.MapToFiltersOperation(),
-                DuplicatedDatas = filterClient.DuplicatedDatas == null ? new FiltersOperation() : filterClient.DuplicatedDatas.MapToFiltersOperation(),
-                MatchDates = filterClient.MatchDates == null ? new FiltersOperation() : filterClient.MatchDates.MapToFiltersOperation(),
-                SkipCount = filterClient.SkipCount,
-                TakeCount = filterClient.TakeCount,
-                OrderBy = filterClient.OrderBy,
-                FieldNameToOrderBy = filterClient.FieldNameToOrderBy
-            };
-        }
-
-        public static FilterClientGame MapToFilterClientGame(this ApiFilterClientGame apiFilterClientGame)
-        {
-            return new FilterClientGame
-            {
-                PartnerId = apiFilterClientGame.PartnerId,
-                FromDate = apiFilterClientGame.FromDate,
-                ToDate = apiFilterClientGame.ToDate,
-                ClientIds = apiFilterClientGame.ClientIds == null ? new FiltersOperation() : apiFilterClientGame.ClientIds.MapToFiltersOperation(),
-                FirstNames = apiFilterClientGame.FirstNames == null ? new FiltersOperation() : apiFilterClientGame.FirstNames.MapToFiltersOperation(),
-                LastNames = apiFilterClientGame.LastNames == null ? new FiltersOperation() : apiFilterClientGame.LastNames.MapToFiltersOperation(),
-                ProductIds = apiFilterClientGame.ProductIds == null ? new FiltersOperation() : apiFilterClientGame.ProductIds.MapToFiltersOperation(),
-                ProductNames = apiFilterClientGame.ProductNames == null ? new FiltersOperation() : apiFilterClientGame.ProductNames.MapToFiltersOperation(),
-                ProviderNames = apiFilterClientGame.ProviderNames == null ? new FiltersOperation() : apiFilterClientGame.ProviderNames.MapToFiltersOperation(),
-                Currencies = apiFilterClientGame.CurrencyIds == null ? new FiltersOperation() : apiFilterClientGame.CurrencyIds.MapToFiltersOperation(),
-            };
-        }
-
-        #endregion
-
-        #region FilterBetshop
-
-        public static FilterfnBetShop MaptToFilterfnBetShop(this ApiFilterBetShop filter)
-        {
-            return new FilterfnBetShop
-            {
-                SkipCount = filter.SkipCount,
-                TakeCount = filter.TakeCount,
-                CreatedBefore = filter.CreatedBefore,
-                CreatedFrom = filter.CreatedFrom,
-                PartnerId = filter.PartnerId,
-                Ids = filter.Ids == null ? new FiltersOperation() : filter.Ids.MapToFiltersOperation(),
-                GroupIds = filter.GroupIds == null ? new FiltersOperation() : filter.GroupIds.MapToFiltersOperation(),
-                States = filter.States == null ? new FiltersOperation() : filter.States.MapToFiltersOperation(),
-                CurrencyIds = filter.CurrencyIds == null ? new FiltersOperation() : filter.CurrencyIds.MapToFiltersOperation(),
-                Names = filter.Names == null ? new FiltersOperation() : filter.Names.MapToFiltersOperation(),
-                Addresses = filter.Addresses == null ? new FiltersOperation() : filter.Addresses.MapToFiltersOperation(),
-                Balances = filter.Balances == null ? new FiltersOperation() : filter.Balances.MapToFiltersOperation(),
-                CurrentLimits = filter.CurrentLimits == null ? new FiltersOperation() : filter.CurrentLimits.MapToFiltersOperation(),
-                AgentIds = filter.AgentIds == null ? new FiltersOperation() : filter.AgentIds.MapToFiltersOperation(),
-                MaxCopyCounts = filter.MaxCopyCounts == null ? new FiltersOperation() : filter.MaxCopyCounts.MapToFiltersOperation(),
-                MaxWinAmounts = filter.MaxWinAmounts == null ? new FiltersOperation() : filter.MaxWinAmounts.MapToFiltersOperation(),
-                MinBetAmounts = filter.MinBetAmounts == null ? new FiltersOperation() : filter.MinBetAmounts.MapToFiltersOperation(),
-                MaxEventCountPerTickets = filter.MaxEventCountPerTickets == null ? new FiltersOperation() : filter.MaxEventCountPerTickets.MapToFiltersOperation(),
-                CommissionTypes = filter.CommissionTypes == null ? new FiltersOperation() : filter.CommissionTypes.MapToFiltersOperation(),
-                CommissionRates = filter.CommissionRates == null ? new FiltersOperation() : filter.CommissionRates.MapToFiltersOperation(),
-                AnonymousBets = filter.AnonymousBets == null ? new FiltersOperation() : filter.AnonymousBets.MapToFiltersOperation(),
-                AllowCashouts = filter.AllowCashouts == null ? new FiltersOperation() : filter.AllowCashouts.MapToFiltersOperation(),
-                AllowLives = filter.AllowLives == null ? new FiltersOperation() : filter.AllowLives.MapToFiltersOperation(),
-                UsePins = filter.UsePins == null ? new FiltersOperation() : filter.UsePins.MapToFiltersOperation(),
-                OrderBy = filter.OrderBy,
-                FieldNameToOrderBy = filter.FieldNameToOrderBy
-            };
-        }
-
-        #endregion
-
-        #region FilterBetshopGroup
-
-        public static FilterBetShopGroup MaptToFilterBetShopGroup(this ApiFilterBetShopGroup filterBetShopGroup)
-        {
-            return new FilterBetShopGroup
-            {
-                Id = filterBetShopGroup.Id,
-                TakeCount = filterBetShopGroup.TakeCount,
-                SkipCount = filterBetShopGroup.SkipCount,
-                Name = filterBetShopGroup.Name,
-                ParentId = filterBetShopGroup.ParentId,
-                PartnerId = filterBetShopGroup.PartnerId,
-                IsRoot = filterBetShopGroup.IsRoot,
-                IsLeaf = filterBetShopGroup.IsLeaf,
-                State = filterBetShopGroup.State,
-                OrderBy = filterBetShopGroup.OrderBy,
-                FieldNameToOrderBy = filterBetShopGroup.FieldNameToOrderBy
-            };
-        }
-
-        public static List<FilterBetShopGroup> MapToFilterBetShopGroups(this IEnumerable<ApiFilterBetShopGroup> filterBetShopGroups)
-        {
-            return filterBetShopGroups.Select(MaptToFilterBetShopGroup).ToList();
-        }
-
-        #endregion
-
-        #region FilterCashDesk
-
-        public static FilterfnCashDesk MapToFilterfnCashDesk(this ApiFilterCashDesk cashDesk)
-        {
-            return new FilterfnCashDesk
-            {
-                Id = cashDesk.Id,
-                BetShopId = cashDesk.BetShopId,
-                Name = cashDesk.Name,
-                CreatedBefore = cashDesk.CreatedBefore,
-                CreatedFrom = cashDesk.CreatedFrom,
-                SkipCount = cashDesk.SkipCount,
-                TakeCount = cashDesk.TakeCount,
-                OrderBy = cashDesk.OrderBy,
-                FieldNameToOrderBy = cashDesk.FieldNameToOrderBy
-            };
-        }
-
-        public static List<FilterfnCashDesk> MapToFilterCashDesks(this IEnumerable<ApiFilterCashDesk> filterCashDesks)
-        {
-            return filterCashDesks.Select(MapToFilterfnCashDesk).ToList();
-        }
-
-        #endregion
-
-        #region FilterfnTranslationEntry
-
-        public static FilterfnObjectTranslationEntry MaptToFilterTranslation(this ApiFilterTranslationEntry filterTranslationEntry)
-        {
-            return new FilterfnObjectTranslationEntry
-            {
-                ObjectTypeId = filterTranslationEntry.ObjectTypeId,
-                TakeCount = filterTranslationEntry.TakeCount,
-                SkipCount = filterTranslationEntry.SkipCount,
-                SelectedLanguages = filterTranslationEntry.SelectedLanguages,
-                SearchText = filterTranslationEntry.SearchText,
-                SearchLanguage = filterTranslationEntry.SearchLanguage
-            };
-        }
-
-        public static List<FilterfnObjectTranslationEntry> MapToFilterTranslations(this IEnumerable<ApiFilterTranslationEntry> filterTranslationEntries)
-        {
-            return filterTranslationEntries.Select(MaptToFilterTranslation).ToList();
-        }
-
-        #endregion
-
-        #region FilterUser
-        public static FilterUser MaptToFilterUser(this ApiFilterUser filterUser)
-        {
-            return new FilterUser
-            {
-                PartnerId = filterUser.PartnerId,
-                Ids = filterUser.Ids == null ? new FiltersOperation() : filterUser.Ids.MapToFiltersOperation(),
-                FirstNames = filterUser.FirstNames == null ? new FiltersOperation() : filterUser.FirstNames.MapToFiltersOperation(),
-                LastNames = filterUser.LastNames == null ? new FiltersOperation() : filterUser.LastNames.MapToFiltersOperation(),
-                UserNames = filterUser.UserNames == null ? new FiltersOperation() : filterUser.UserNames.MapToFiltersOperation(),
-                Emails = filterUser.Emails == null ? new FiltersOperation() : filterUser.Emails.MapToFiltersOperation(),
-                Genders = filterUser.Genders == null ? new FiltersOperation() : filterUser.Genders.MapToFiltersOperation(),
-                Currencies = filterUser.Currencies == null ? new FiltersOperation() : filterUser.Currencies.MapToFiltersOperation(),
-                LanguageIds = filterUser.LanguageIds == null ? new FiltersOperation() : filterUser.LanguageIds.MapToFiltersOperation(),
-                UserStates = filterUser.UserStates == null ? new FiltersOperation() : filterUser.UserStates.MapToFiltersOperation(),
-                UserTypes = filterUser.UserTypes == null ? new FiltersOperation() : filterUser.UserTypes.MapToFiltersOperation(),
-                SkipCount = filterUser.SkipCount,
-                TakeCount = filterUser.TakeCount,
-                OrderBy = filterUser.OrderBy,
-                FieldNameToOrderBy = filterUser.FieldNameToOrderBy
-            };
-        }
-        public static FilterfnUser ToFilterfnUser(this ApiFilterUser filterUser)
-        {
-            if (!string.IsNullOrEmpty(filterUser.FieldNameToOrderBy))
-            {
-                var orderBy = filterUser.FieldNameToOrderBy;
-                switch (orderBy)
-                {
-                    case "UserType":
-                        filterUser.FieldNameToOrderBy = "Type";
-                        break;
-                    default:
-                        break;
-                }
-            }
-
-            return new FilterfnUser
-            {
-                PartnerId = filterUser.PartnerId,
-                Ids = filterUser.Ids == null ? new FiltersOperation() : filterUser.Ids.MapToFiltersOperation(),
-                FirstNames = filterUser.FirstNames == null ? new FiltersOperation() : filterUser.FirstNames.MapToFiltersOperation(),
-                LastNames = filterUser.LastNames == null ? new FiltersOperation() : filterUser.LastNames.MapToFiltersOperation(),
-                UserNames = filterUser.UserNames == null ? new FiltersOperation() : filterUser.UserNames.MapToFiltersOperation(),
-                Emails = filterUser.Emails == null ? new FiltersOperation() : filterUser.Emails.MapToFiltersOperation(),
-                Genders = filterUser.Genders == null ? new FiltersOperation() : filterUser.Genders.MapToFiltersOperation(),
-                Currencies = filterUser.Currencies == null ? new FiltersOperation() : filterUser.Currencies.MapToFiltersOperation(),
-                LanguageIds = filterUser.LanguageIds == null ? new FiltersOperation() : filterUser.LanguageIds.MapToFiltersOperation(),
-                UserStates = filterUser.UserStates == null ? new FiltersOperation() : filterUser.UserStates.MapToFiltersOperation(),
-                UserTypes = filterUser.UserTypes == null ? new FiltersOperation() : filterUser.UserTypes.MapToFiltersOperation(),
-                UserRoles = filterUser.UserRoles == null ? new FiltersOperation() : filterUser.UserRoles.MapToFiltersOperation(),
-                SkipCount = filterUser.SkipCount,
-                TakeCount = filterUser.TakeCount,
-                OrderBy = filterUser.OrderBy,
-                FieldNameToOrderBy = filterUser.FieldNameToOrderBy
-            };
-        }
-
-        public static FilterfnUser ToFilterfnUser(this ApiFilterfnAgent filter)
-        {
-            if (!string.IsNullOrEmpty(filter.FieldNameToOrderBy))
-            {
-                var orderBy = filter.FieldNameToOrderBy;
-                switch (orderBy)
-                {
-                    case "UserType":
-                        filter.FieldNameToOrderBy = "Type";
-                        break;
-                    default:
-                        break;
-                }
-            }
-
-            return new FilterfnUser
-            {
-                FromDate = filter.FromDate,
-                ToDate = filter.ToDate,
-                PartnerId = filter.PartnerId,
-                ParentId = filter.ParentId,
-                Ids = filter.Ids == null ? new FiltersOperation() : filter.Ids.MapToFiltersOperation(),
-                FirstNames = filter.FirstNames == null ? new FiltersOperation() : filter.FirstNames.MapToFiltersOperation(),
-                LastNames = filter.LastNames == null ? new FiltersOperation() : filter.LastNames.MapToFiltersOperation(),
-                UserNames = filter.UserNames == null ? new FiltersOperation() : filter.UserNames.MapToFiltersOperation(),
-                Emails = filter.Emails == null ? new FiltersOperation() : filter.Emails.MapToFiltersOperation(),
-                Genders = filter.Genders == null ? new FiltersOperation() : filter.Genders.MapToFiltersOperation(),
-                Currencies = filter.Currencies == null ? new FiltersOperation() : filter.Currencies.MapToFiltersOperation(),
-                LanguageIds = filter.LanguageIds == null ? new FiltersOperation() : filter.LanguageIds.MapToFiltersOperation(),
-                SkipCount = filter.SkipCount,
-                TakeCount = filter.TakeCount,
-                OrderBy = filter.OrderBy,
-                FieldNameToOrderBy = filter.FieldNameToOrderBy
-            };
-        }
-
-        public static List<FilterUser> MapToFilterUsers(this IEnumerable<ApiFilterUser> filterUsers)
-        {
-            return filterUsers.Select(MaptToFilterUser).ToList();
-        }
-
-        public static FilterCorrection MapToFilterCorrection(this ApiFilterUserCorrection filter)
-        {
-            return new FilterCorrection
-            {
-                UserId = filter.UserId,
-                TakeCount = filter.TakeCount,
-                SkipCount = filter.SkipCount,
-                FromDate = filter.FromDate,
-                ToDate = filter.ToDate,
-                OrderBy = filter.OrderBy,
-                FieldNameToOrderBy = filter.FieldNameToOrderBy,
-                Ids = filter.Ids == null ? new FiltersOperation() : filter.Ids.MapToFiltersOperation(),
-                Creators = filter.FromUserIds == null ? new FiltersOperation() : filter.FromUserIds.MapToFiltersOperation(),
-                Amounts = filter.Amounts == null ? new FiltersOperation() : filter.Amounts.MapToFiltersOperation(),
-                States = filter.States == null ? new FiltersOperation() : filter.States.MapToFiltersOperation(),
-                CurrencyIds = filter.CurrencyIds == null ? new FiltersOperation() : filter.CurrencyIds.MapToFiltersOperation(),
-                UserIds = filter.UserIds == null ? new FiltersOperation() : filter.UserIds.MapToFiltersOperation(),
-                OperationTypeNames = filter.OperationTypeNames == null ? new FiltersOperation() : filter.OperationTypeNames.MapToFiltersOperation(),
-                FirstNames = filter.FirstNames == null ? new FiltersOperation() : filter.FirstNames.MapToFiltersOperation(),
-                LastNames = filter.LastNames == null ? new FiltersOperation() : filter.LastNames.MapToFiltersOperation()
-            };
-        }
-        public static FilterUserCorrection MapToFilterUserCorrection(this ApiFilterUserCorrection filter)
-        {
-            return new FilterUserCorrection
-            {
-                UserId = filter.UserId,
-                TakeCount = filter.TakeCount,
-                SkipCount = filter.SkipCount,
-                FromDate = filter.FromDate,
-                ToDate = filter.ToDate,
-                OrderBy = filter.OrderBy,
-                FieldNameToOrderBy = filter.FieldNameToOrderBy,
-                Ids = filter.Ids == null ? new FiltersOperation() : filter.Ids.MapToFiltersOperation(),
-                Creators = filter.FromUserIds == null ? new FiltersOperation() : filter.FromUserIds.MapToFiltersOperation(),
-                Amounts = filter.Amounts == null ? new FiltersOperation() : filter.Amounts.MapToFiltersOperation(),
-                States = filter.States == null ? new FiltersOperation() : filter.States.MapToFiltersOperation(),
-                CurrencyIds = filter.CurrencyIds == null ? new FiltersOperation() : filter.CurrencyIds.MapToFiltersOperation(),
-                UserIds = filter.UserIds == null ? new FiltersOperation() : filter.UserIds.MapToFiltersOperation(),
-                OperationTypeNames = filter.OperationTypeNames == null ? new FiltersOperation() : filter.OperationTypeNames.MapToFiltersOperation(),
-                CreatorFirstNames = filter.FirstNames == null ? new FiltersOperation() : filter.FirstNames.MapToFiltersOperation(),
-                CreatorLastNames = filter.LastNames == null ? new FiltersOperation() : filter.LastNames.MapToFiltersOperation()
-            };
-        }
-        public static ApiUserCorrections MapToApiCorrections(this PagedModel<fnCorrection> input, double timeZone)
-        {
-            return new ApiUserCorrections
-            {
-                Count = input.Count,
-                Entities = input.Entities.Select(x => x.MapToApiCorrection(timeZone)).ToList()
-            };
-        }
-        public static ApiUserCorrection MapToApiCorrection(this fnCorrection input, double timeZone)
-        {
-            return new ApiUserCorrection
-            {
-                Id = input.Id,
-                Amount = input.Amount,
-                CurrencyId = input.CurrencyId,
-                State = input.State,
-                Info = input.Info,
-                UserId = input.UserId,
-                FromUserId = input.Creator,
-                CreationTime = input.CreationTime.GetGMTDateFromUTC(timeZone),
-                LastUpdateTime = input.LastUpdateTime.GetGMTDateFromUTC(timeZone),
-                OperationTypeName = input.OperationTypeName,
-                UserFirstName = input.FirstName,
-                UserLastName = input.LastName,
-                HasNote = input.HasNote ?? false
-            };
-        }
-        public static ApiUserCorrections MapToApiUserCorrections(this PagedModel<fnUserCorrection> input, double timeZone, int? userId)
-        {
-            return new ApiUserCorrections
-            {
-                Count = input.Count,
-                Entities = input.Entities.Select(x => x.MapToApiUserCorrection(timeZone, userId)).ToList()
-            };
-        }
-        public static ApiUserCorrection MapToApiUserCorrection(this fnUserCorrection input, double timeZone, int? userId)
-        {
-            return new ApiUserCorrection
-            {
-                Id = input.Id,
-                Amount = input.Amount,
-                CurrencyId = input.CurrencyId,
-                State = input.State,
-                Info = input.Info,
-                UserId = input.UserId,
-                FromUserId = input.Creator,
-                CreationTime = input.CreationTime.GetGMTDateFromUTC(timeZone),
-                LastUpdateTime = input.LastUpdateTime.GetGMTDateFromUTC(timeZone),
-                OperationTypeName = input.OperationTypeName,
-                CreatorFirstName = input.CreatorFirstName,
-                CreatorLastName = input.CreatorLastName,
-                UserFirstName = input.UserFirstName,
-                UserLastName = input.UserLastName,
-                ClientFirstName = input.ClientFirstName,
-                ClientLastName = input.ClientLastName,
-                ClientId = input.ClientId,
-                FirstName = input.Creator == userId ? (input.UserId == null ? input.ClientFirstName : input.UserFirstName) : input.CreatorFirstName,
-                LastName = input.Creator == userId ? (input.UserId == null ? input.ClientLastName : input.UserLastName) : input.CreatorLastName,
-                HasNote = input.HasNote ?? false
-            };
-        }
-
-        #endregion
-
-        #region FilterClient
-
-        public static List<FilterClient> MapToFilterClients(this IEnumerable<Filters.ApiFilterClient> filterClients)
-        {
-            return filterClients.Select(MapToFilterClient).ToList();
-        }
-
-        public static FilterClient MapToFilterClient(this Filters.ApiFilterClient filterClient)
-        {
-            return new FilterClient
-            {
-                Id = filterClient.Id,
-                Email = filterClient.Email,
-                UserName = filterClient.UserName,
-                CurrencyId = filterClient.CurrencyId,
-                PartnerId = filterClient.PartnerId,
-                Gender = filterClient.Gender,
-                FirstName = filterClient.FirstName,
-                LastName = filterClient.LastName,
-                DocumentNumber = filterClient.DocumentNumber,
-                DocumentIssuedBy = filterClient.DocumentIssuedBy,
-                Address = filterClient.Address,
-                MobileNumber = filterClient.MobileNumber,
-                LanguageId = filterClient.LanguageId,
-                Info = filterClient.Info,
-                CreatedFrom = filterClient.CreatedFrom,
-                CreatedBefore = filterClient.CreatedBefore,
-                TakeCount = filterClient.TakeCount,
-                SkipCount = filterClient.SkipCount
-            };
-        }
-
-        #endregion
-
-        #region FilterfnClient
-
-        public static FilterfnClient MapToFilterfnClient(this ApiFilterfnClient filterClient)
-        {
-            if (!string.IsNullOrEmpty(filterClient.FieldNameToOrderBy))
-            {
-                var orderBy = filterClient.FieldNameToOrderBy;
-                switch (orderBy)
-                {
-                    case "MobileCode":
-                        filterClient.FieldNameToOrderBy = "PhoneNumber";
-                        break;
-                    default:
-                        break;
-                }
-            }
-
-            return new FilterfnClient
-            {
-                PartnerId = filterClient.PartnerId,
-                AgentId = filterClient.AgentId,
-                IsDocumentVerified = filterClient.IsDocumentVerified,
-                CreatedFrom = filterClient.CreatedFrom,
-                CreatedBefore = filterClient.CreatedBefore,
-                UnderMonitoringTypes = filterClient.UnderMonitoringTypes?.ToString(),
-                Duplicated = filterClient.Duplicated,
-                Ids = filterClient.Ids == null ? new FiltersOperation() : filterClient.Ids.MapToFiltersOperation(),
-                Emails = filterClient.Emails == null ? new FiltersOperation() : filterClient.Emails.MapToFiltersOperation(),
-                UserNames = filterClient.UserNames == null ? new FiltersOperation() : filterClient.UserNames.MapToFiltersOperation(),
-                Currencies = filterClient.Currencies == null ? new FiltersOperation() : filterClient.Currencies.MapToFiltersOperation(),
-                Genders = filterClient.Genders == null ? new FiltersOperation() : filterClient.Genders.MapToFiltersOperation(),
-                FirstNames = filterClient.FirstNames == null ? new FiltersOperation() : filterClient.FirstNames.MapToFiltersOperation(),
-                LastNames = filterClient.LastNames == null ? new FiltersOperation() : filterClient.LastNames.MapToFiltersOperation(),
-                NickNames = filterClient.NickNames == null ? new FiltersOperation() : filterClient.NickNames.MapToFiltersOperation(),
-                SecondNames = filterClient.SecondNames == null ? new FiltersOperation() : filterClient.SecondNames.MapToFiltersOperation(),
-                SecondSurnames = filterClient.SecondSurnames == null ? new FiltersOperation() : filterClient.SecondSurnames.MapToFiltersOperation(),
-                DocumentNumbers = filterClient.DocumentNumbers == null ? new FiltersOperation() : filterClient.DocumentNumbers.MapToFiltersOperation(),
-                DocumentIssuedBys = filterClient.DocumentIssuedBys == null ? new FiltersOperation() : filterClient.DocumentIssuedBys.MapToFiltersOperation(),
-                LanguageIds = filterClient.LanguageIds == null ? new FiltersOperation() : filterClient.LanguageIds.MapToFiltersOperation(),
-                Categories = filterClient.Categories == null ? new FiltersOperation() : filterClient.Categories.MapToFiltersOperation(),
-                MobileNumbers = filterClient.MobileNumbers == null ? new FiltersOperation() : filterClient.MobileNumbers.MapToFiltersOperation(),
-                ZipCodes = filterClient.ZipCodes == null ? new FiltersOperation() : filterClient.ZipCodes.MapToFiltersOperation(),
-                Cities = filterClient.Cities == null ? new FiltersOperation() : filterClient.Cities.MapToFiltersOperation(),
-                PhoneNumbers = filterClient.MobileCodes == null ? new FiltersOperation() : filterClient.MobileCodes.MapToFiltersOperation(),
-                RegionIds = filterClient.RegionIds == null ? new FiltersOperation() : filterClient.RegionIds.MapToFiltersOperation(),
-                CountryIds = filterClient.CountryIds == null ? new FiltersOperation() : filterClient.CountryIds.MapToFiltersOperation(),
-                BirthDates = filterClient.BirthDates == null ? new FiltersOperation() : filterClient.BirthDates.MapToFiltersOperation(),
-                Ages = filterClient.Ages == null ? new FiltersOperation() : filterClient.Ages.MapToFiltersOperation(),
-                RegionIsoCodes = filterClient.RegionIsoCodes == null ? new FiltersOperation() : filterClient.RegionIsoCodes.MapToFiltersOperation(),
-                States = filterClient.States == null ? new FiltersOperation() : filterClient.States.MapToFiltersOperation(),
-                CreationTimes = filterClient.CreationTimes == null ? new FiltersOperation() : filterClient.CreationTimes.MapToFiltersOperation(),
-                RealBalances = filterClient.RealBalances == null ? new FiltersOperation() : filterClient.RealBalances.MapToFiltersOperation(),
-                BonusBalances = filterClient.BonusBalances == null ? new FiltersOperation() : filterClient.BonusBalances.MapToFiltersOperation(),
-                GGRs = filterClient.GGRs == null ? new FiltersOperation() : filterClient.GGRs.MapToFiltersOperation(),
-                NETGamings = filterClient.NETGamings == null ? new FiltersOperation() : filterClient.NETGamings.MapToFiltersOperation(),
-                AffiliatePlatformIds = filterClient.AffiliatePlatformIds == null ? new FiltersOperation() : filterClient.AffiliatePlatformIds.MapToFiltersOperation(),
-                AffiliateIds = filterClient.AffiliateIds == null ? new FiltersOperation() : filterClient.AffiliateIds.MapToFiltersOperation(),
-                AffiliateReferralIds = filterClient.AffiliateReferralIds == null ? new FiltersOperation() : filterClient.AffiliateReferralIds.MapToFiltersOperation(),
-                UserIds = filterClient.UserIds == null ? new FiltersOperation() : filterClient.UserIds.MapToFiltersOperation(),
-                LastDepositDates = filterClient.LastDepositDates == null ? new FiltersOperation() : filterClient.LastDepositDates.MapToFiltersOperation(),
-                LastUpdateTimes = filterClient.LastUpdateTimes == null ? new FiltersOperation() : filterClient.LastUpdateTimes.MapToFiltersOperation(),
-                LastSessionDates = filterClient.LastSessionDates == null ? new FiltersOperation() : filterClient.LastSessionDates.MapToFiltersOperation(),
-                SkipCount = filterClient.SkipCount,
-                TakeCount = filterClient.TakeCount,
-                OrderBy = filterClient.OrderBy,
-                FieldNameToOrderBy = filterClient.FieldNameToOrderBy,
-                Message = filterClient.Message,
-                Subject = filterClient.Subject
-
-            };
-        }
-
-        public static FilterfnSegmentClient MapToFilterfnSegmentClient(this ApiFilterfnSegmentClient filterClient)
-        {
-            return new FilterfnSegmentClient
-            {
-                PartnerId = filterClient.PartnerId,
-                SegmentId = filterClient.SegmentId,
-                CreatedFrom = filterClient.CreatedFrom,
-                CreatedBefore = filterClient.CreatedBefore,
-                Ids = filterClient.Ids == null ? new FiltersOperation() : filterClient.Ids.MapToFiltersOperation(),
-                Emails = filterClient.Emails == null ? new FiltersOperation() : filterClient.Emails.MapToFiltersOperation(),
-                UserNames = filterClient.UserNames == null ? new FiltersOperation() : filterClient.UserNames.MapToFiltersOperation(),
-                Currencies = filterClient.Currencies == null ? new FiltersOperation() : filterClient.Currencies.MapToFiltersOperation(),
-                Genders = filterClient.Genders == null ? new FiltersOperation() : filterClient.Genders.MapToFiltersOperation(),
-                FirstNames = filterClient.FirstNames == null ? new FiltersOperation() : filterClient.FirstNames.MapToFiltersOperation(),
-                LastNames = filterClient.LastNames == null ? new FiltersOperation() : filterClient.LastNames.MapToFiltersOperation(),
-                SecondNames = filterClient.SecondNames == null ? new FiltersOperation() : filterClient.SecondNames.MapToFiltersOperation(),
-                SecondSurnames = filterClient.SecondSurnames == null ? new FiltersOperation() : filterClient.SecondSurnames.MapToFiltersOperation(),
-                DocumentNumbers = filterClient.DocumentNumbers == null ? new FiltersOperation() : filterClient.DocumentNumbers.MapToFiltersOperation(),
-                DocumentIssuedBys = filterClient.DocumentIssuedBys == null ? new FiltersOperation() : filterClient.DocumentIssuedBys.MapToFiltersOperation(),
-                LanguageIds = filterClient.LanguageIds == null ? new FiltersOperation() : filterClient.LanguageIds.MapToFiltersOperation(),
-                Categories = filterClient.Categories == null ? new FiltersOperation() : filterClient.Categories.MapToFiltersOperation(),
-                MobileNumbers = filterClient.MobileNumbers == null ? new FiltersOperation() : filterClient.MobileNumbers.MapToFiltersOperation(),
-                ZipCodes = filterClient.ZipCodes == null ? new FiltersOperation() : filterClient.ZipCodes.MapToFiltersOperation(),
-                IsDocumentVerifieds = filterClient.IsDocumentVerifieds == null ? new FiltersOperation() : filterClient.IsDocumentVerifieds.MapToFiltersOperation(),
-                PhoneNumbers = filterClient.PhoneNumbers == null ? new FiltersOperation() : filterClient.PhoneNumbers.MapToFiltersOperation(),
-                RegionIds = filterClient.RegionIds == null ? new FiltersOperation() : filterClient.RegionIds.MapToFiltersOperation(),
-                BirthDates = filterClient.BirthDates == null ? new FiltersOperation() : filterClient.BirthDates.MapToFiltersOperation(),
-                States = filterClient.States == null ? new FiltersOperation() : filterClient.States.MapToFiltersOperation(),
-                CreationTimes = filterClient.CreationTimes == null ? new FiltersOperation() : filterClient.CreationTimes.MapToFiltersOperation(),
-                UserIds = filterClient.UserIds == null ? new FiltersOperation() : filterClient.UserIds.MapToFiltersOperation(),
-                AffiliatePlatformIds = filterClient.AffiliatePlatformIds == null ? new FiltersOperation() : filterClient.AffiliatePlatformIds.MapToFiltersOperation(),
-                AffiliateIds = filterClient.AffiliateIds == null ? new FiltersOperation() : filterClient.AffiliateIds.MapToFiltersOperation(),
-                AffiliateReferralIds = filterClient.AffiliateReferralIds == null ? new FiltersOperation() : filterClient.AffiliateReferralIds.MapToFiltersOperation(),
-                SegmentIds = filterClient.SegmentIds == null ? new FiltersOperation() : filterClient.SegmentIds.MapToFiltersOperation(),
-                SkipCount = filterClient.SkipCount,
-                TakeCount = filterClient.TakeCount,
-                OrderBy = filterClient.OrderBy,
-                FieldNameToOrderBy = filterClient.FieldNameToOrderBy
-            };
-        }
-
-        #endregion
-
-        #region FilterAffiliates
-
-        public static FilterfnAffiliate MapToFilterfnAffiliate(this ApiFilterfnAffiliate filterAffiliate)
-        {
-            return new FilterfnAffiliate
-            {
-                PartnerId = filterAffiliate.PartnerId,
-                CreatedFrom = filterAffiliate.CreatedFrom,
-                CreatedBefore = filterAffiliate.CreatedBefore,
-                Ids = filterAffiliate.Ids == null ? new FiltersOperation() : filterAffiliate.Ids.MapToFiltersOperation(),
-                Emails = filterAffiliate.Emails == null ? new FiltersOperation() : filterAffiliate.Emails.MapToFiltersOperation(),
-                UserNames = filterAffiliate.UserNames == null ? new FiltersOperation() : filterAffiliate.UserNames.MapToFiltersOperation(),
-                FirstNames = filterAffiliate.FirstNames == null ? new FiltersOperation() : filterAffiliate.FirstNames.MapToFiltersOperation(),
-                LastNames = filterAffiliate.LastNames == null ? new FiltersOperation() : filterAffiliate.LastNames.MapToFiltersOperation(),
-                MobileNumbers = filterAffiliate.MobileNumbers == null ? new FiltersOperation() : filterAffiliate.MobileNumbers.MapToFiltersOperation(),
-                RegionIds = filterAffiliate.RegionIds == null ? new FiltersOperation() : filterAffiliate.RegionIds.MapToFiltersOperation(),
-                States = filterAffiliate.States == null ? new FiltersOperation() : filterAffiliate.States.MapToFiltersOperation(),
-                CreationTimes = filterAffiliate.CreationTimes == null ? new FiltersOperation() : filterAffiliate.CreationTimes.MapToFiltersOperation()
-            };
-        }
-        public static FilterfnAffiliateCorrection MapToFilterAffiliateCorrection(this ApiFilterAffiliateCorrection filter)
-        {
-            return new FilterfnAffiliateCorrection
-            {
-                AffiliateId = filter.AffiliateId,
-                FromDate = filter.FromDate,
-                ToDate = filter.ToDate,
-                FieldNameToOrderBy = filter.FieldNameToOrderBy,
-                Ids = filter.Ids == null ? new FiltersOperation() : filter.Ids.MapToFiltersOperation(),
-                PartnerIds = filter.PartnerIds == null ? new FiltersOperation() : filter.PartnerIds.MapToFiltersOperation(),
-                AffiliateIds = filter.AffiliateIds == null ? new FiltersOperation() : filter.AffiliateIds.MapToFiltersOperation(),
-                FirstNames = filter.FirstNames == null ? new FiltersOperation() : filter.FirstNames.MapToFiltersOperation(),
-                LastNames = filter.LastNames == null ? new FiltersOperation() : filter.LastNames.MapToFiltersOperation(),
-                Amounts = filter.Amounts == null ? new FiltersOperation() : filter.Amounts.MapToFiltersOperation(),
-                CurrencyIds = filter.CurrencyIds == null ? new FiltersOperation() : filter.CurrencyIds.MapToFiltersOperation(),
-                Creators = filter.Creators == null ? new FiltersOperation() : filter.Creators.MapToFiltersOperation(),
-                CreationTimes = filter.CreationTimes == null ? new FiltersOperation() : filter.CreationTimes.MapToFiltersOperation(),
-                LastUpdateTimes = filter.LastUpdateTimes == null ? new FiltersOperation() : filter.LastUpdateTimes.MapToFiltersOperation(),
-                OperationTypeNames = filter.OperationTypeNames == null ? new FiltersOperation() : filter.OperationTypeNames.MapToFiltersOperation(),
-                CreatorFirstNames = filter.CreatorFirstNames == null ? new FiltersOperation() : filter.CreatorFirstNames.MapToFiltersOperation(),
-                CreatorLastNames = filter.CreatorLastNames == null ? new FiltersOperation() : filter.CreatorLastNames.MapToFiltersOperation(),
-                DocumentTypeIds = filter.DocumentTypeIds == null ? new FiltersOperation() : filter.DocumentTypeIds.MapToFiltersOperation(),
-                ClientIds = filter.ClientIds == null ? new FiltersOperation() : filter.ClientIds.MapToFiltersOperation(),
-                ClientFirstNames = filter.ClientFirstNames == null ? new FiltersOperation() : filter.ClientFirstNames.MapToFiltersOperation(),
-                ClientLastNames = filter.ClientLastNames == null ? new FiltersOperation() : filter.ClientLastNames.MapToFiltersOperation(),
-                TakeCount = filter.TakeCount,
-                SkipCount = filter.SkipCount,
-                OrderBy = filter.OrderBy
-            };
-        }
-        #endregion
-
-        #region Filter Client Correction
-
-        public static FilterCorrection MapToFilterCorrection(this ApiFilterClientCorrection filter)
-        {
-            return new FilterCorrection
-            {
-                ClientId = filter.ClientId,
-                AccountId = filter.AccountId,
-                TakeCount = filter.TakeCount,
-                SkipCount = filter.SkipCount,
-                FromDate = filter.FromDate,
-                ToDate = filter.ToDate,
-                OrderBy = filter.OrderBy,
-                FieldNameToOrderBy = filter.FieldNameToOrderBy,
-                Ids = filter.Ids == null ? new FiltersOperation() : filter.Ids.MapToFiltersOperation(),
-                ClientIds = filter.ClientIds == null ? new FiltersOperation() : filter.ClientIds.MapToFiltersOperation(),
-                ClientUserNames = filter.ClientUserNames == null ? new FiltersOperation() : filter.ClientUserNames.MapToFiltersOperation(),
-                Amounts = filter.Amounts == null ? new FiltersOperation() : filter.Amounts.MapToFiltersOperation(),
-                States = filter.States == null ? new FiltersOperation() : filter.States.MapToFiltersOperation(),
-                CurrencyIds = filter.CurrencyIds == null ? new FiltersOperation() : filter.CurrencyIds.MapToFiltersOperation(),
-                Creators = filter.UserIds == null ? new FiltersOperation() : filter.UserIds.MapToFiltersOperation(),
-                OperationTypeNames = filter.OperationTypeNames == null ? new FiltersOperation() : filter.OperationTypeNames.MapToFiltersOperation(),
-                OperationTypeIds = filter.OperationTypeIds == null ? new FiltersOperation() : filter.OperationTypeIds.MapToFiltersOperation(),
-                FirstNames = filter.FirstNames == null ? new FiltersOperation() : filter.FirstNames.MapToFiltersOperation(),
-                LastNames = filter.LastNames == null ? new FiltersOperation() : filter.LastNames.MapToFiltersOperation(),
-                ProductNames = filter.ProductNames == null ? new FiltersOperation() : filter.ProductNames.MapToFiltersOperation()
-            };
-        }
-
-
-        #endregion
-
-        #region FilterClientMessage
-
-        public static List<FilterfnClientLog> MapToFilterClientLogs(this IEnumerable<ApiFilterClientLog> filterClientLogs)
-        {
-            return filterClientLogs.Select(MapToFilterClientLog).ToList();
-        }
-
-        public static FilterfnClientLog MapToFilterClientLog(this ApiFilterClientLog request)
-        {
-            return new FilterfnClientLog
-            {
-                SkipCount = request.SkipCount,
-                TakeCount = request.TakeCount,
-                Ids = request.Ids == null ? new FiltersOperation() : request.Ids.MapToFiltersOperation(),
-                ClientIds = request.ClientIds == null ? new FiltersOperation() : request.ClientIds.MapToFiltersOperation(),
-                Actions = request.Actions == null ? new FiltersOperation() : request.Actions.MapToFiltersOperation(),
-                UserIds = request.UserIds == null ? new FiltersOperation() : request.UserIds.MapToFiltersOperation(),
-                Ips = request.Ips == null ? new FiltersOperation() : request.Ips.MapToFiltersOperation(),
-                Pages = request.Pages == null ? new FiltersOperation() : request.Pages.MapToFiltersOperation(),
-                SessionIds = request.SessionIds == null ? new FiltersOperation() : request.SessionIds.MapToFiltersOperation(),
-                CreatedFrom = request.CreatedFrom,
-                CreatedBefore = request.CreatedBefore,
-                OrderBy = request.OrderBy,
-                FieldNameToOrderBy = request.FieldNameToOrderBy
-            };
-        }
-
-        public static MessageTemplateModel MapToMessageTemplateModel(this MessageTemplate messageTemplate)
-        {
-            return new MessageTemplateModel
-            {
-                Id = messageTemplate.Id,
-                PartnerId = messageTemplate.PartnerId,
-                NickName = messageTemplate.NickName,
-                ClientInfoType = messageTemplate.ClientInfoType,
-                ExternalTemplateId = messageTemplate.ExternalTemplateId,
-                State = messageTemplate.State
-            };
-        }
-
-        public static MessageTemplate MapToMessageTemplate(this MessageTemplateModel messageTemplateModel)
-        {
-            return new MessageTemplate
-            {
-                Id = messageTemplateModel.Id.HasValue ? messageTemplateModel.Id.Value : 0,
-                PartnerId = messageTemplateModel.PartnerId,
-                NickName = messageTemplateModel.NickName,
-                ClientInfoType = messageTemplateModel.ClientInfoType,
-                ExternalTemplateId = messageTemplateModel.ExternalTemplateId,
-                State = messageTemplateModel.State
-            };
-        }
-
-        #endregion
-
-        #region FilterPartner
-
-        public static FilterPartner MapToFilterPartner(this ApiFilterPartner apiFilterPartner)
-        {
-            return new FilterPartner
-            {
-                Id = apiFilterPartner.Id,
-                Name = apiFilterPartner.Name,
-                CurrencyId = apiFilterPartner.CurrencyId,
-                State = apiFilterPartner.State,
-                AdminSiteUrl = apiFilterPartner.AdminSiteUrl,
-                CreatedFrom = apiFilterPartner.CreatedFrom,
-                CreatedBefore = apiFilterPartner.CreatedBefore,
-                SkipCount = apiFilterPartner.SkipCount,
-                TakeCount = apiFilterPartner.TakeCount,
-                OrderBy = apiFilterPartner.OrderBy,
-                FieldNameToOrderBy = apiFilterPartner.FieldNameToOrderBy
-            };
-        }
-
-        public static List<FilterPartner> MapToFilterPartners(this IEnumerable<ApiFilterPartner> apiFilterPartners)
-        {
-            return apiFilterPartners.Select(MapToFilterPartner).ToList();
-        }
-
-        #endregion
-
-        #region FiltersOperation
-
-        public static FiltersOperation MapToFiltersOperation(this ApiFiltersOperation apiFiltersOperation)
-        {
-            if (apiFiltersOperation.ApiOperationTypeList.Count == 0)
-            {
-                apiFiltersOperation.ApiOperationTypeList.Add(new ApiFiltersOperationType { OperationTypeId = (int)FilterOperations.IsNull });
-            }
-            return new FiltersOperation
-            {
-                IsAnd = apiFiltersOperation.IsAnd,
-                OperationTypeList = apiFiltersOperation.ApiOperationTypeList.MapToFiltersOperationTypes()
-            };
-        }
-
-        #endregion
-
-        #region OperationTypes
-
-        public static List<FiltersOperationType> MapToFiltersOperationTypes(this List<ApiFiltersOperationType> apiFiltersOperationTypes)
-        {
-            return apiFiltersOperationTypes.Select(MapToFiltersOperationType).ToList();
-        }
-
-        public static FiltersOperationType MapToFiltersOperationType(this ApiFiltersOperationType apiFiltersOperationType)
-        {
-            return new FiltersOperationType
-            {
-                OperationTypeId = apiFiltersOperationType.OperationTypeId,
-                StringValue = apiFiltersOperationType.ArrayValue != null && apiFiltersOperationType.ArrayValue.Any() ?
-                              string.Join(",", apiFiltersOperationType.ArrayValue) : apiFiltersOperationType.StringValue,
-                IntValue = apiFiltersOperationType.IntValue,
-                DecimalValue = apiFiltersOperationType.DecimalValue,
-                DateTimeValue = apiFiltersOperationType.DateTimeValue
-            };
-        }
-
-        #endregion
-
-        #region FilterPaymentRequest
-
-        public static List<FilterfnPaymentRequest> MapToFilterPaymentRequests(this IEnumerable<ApiFilterfnPaymentRequest> requests)
-        {
-            return requests.Select(MapToFilterfnPaymentRequest).ToList();
-        }
-
-        public static FilterfnPaymentRequest MapToFilterfnPaymentRequest(this ApiFilterfnPaymentRequest request)
-        {
-            if (!string.IsNullOrEmpty(request.FieldNameToOrderBy))
-            {
-                var orderBy = request.FieldNameToOrderBy;
-                switch (orderBy)
-                {
-                    case "ExternalId":
-                        request.FieldNameToOrderBy = "ExternalTransactionId";
-                        break;
-                    case "State":
-                        request.FieldNameToOrderBy = "Status";
-                        break;
-                    default:
-                        break;
-                }
-            }
-            return new FilterfnPaymentRequest
-            {
-                PartnerId = request.PartnerId,
-                FromDate = request.FromDate == null ? 0 : (long)request.FromDate.Value.Year * 100000000 + (long)request.FromDate.Value.Month * 1000000 +
-                    (long)request.FromDate.Value.Day * 10000 + (long)request.FromDate.Value.Hour * 100 + request.FromDate.Value.Minute,
-                ToDate = request.ToDate == null ? 0 : (long)request.ToDate.Value.Year * 100000000 + (long)request.ToDate.Value.Month * 1000000 +
-                    (long)request.ToDate.Value.Day * 10000 + (long)request.ToDate.Value.Hour * 100 + request.ToDate.Value.Minute,
-                Type = request.Type,
-                HasNote = request.HasNote,
-                AgentId = request.AgentId,
-                AccountIds = request.AccountId == null ? null : new List<long> { request.AccountId.Value },
-                Ids = request.Ids == null ? new FiltersOperation() : request.Ids.MapToFiltersOperation(),
-                UserNames = request.UserNames == null ? new FiltersOperation() : request.UserNames.MapToFiltersOperation(),
-                Names = request.Names == null ? new FiltersOperation() : request.Names.MapToFiltersOperation(),
-                FirstNames = request.FirstNames == null ? new FiltersOperation() : request.FirstNames.MapToFiltersOperation(),
-                LastNames = request.LastNames == null ? new FiltersOperation() : request.LastNames.MapToFiltersOperation(),
-                CreatorNames = request.CreatorNames == null ? new FiltersOperation() : request.CreatorNames.MapToFiltersOperation(),
-                ClientIds = request.ClientIds == null ? new FiltersOperation() : request.ClientIds.MapToFiltersOperation(),
-                ClientEmails = request.Emails == null ? new FiltersOperation() : request.Emails.MapToFiltersOperation(),
-                UserIds = request.UserIds == null ? new FiltersOperation() : request.UserIds.MapToFiltersOperation(),
-                PartnerPaymentSettingIds = request.PartnerPaymentSettingIds == null ? new FiltersOperation() : request.PartnerPaymentSettingIds.MapToFiltersOperation(),
-                PaymentSystemIds = request.PaymentSystemIds == null ? new FiltersOperation() : request.PaymentSystemIds.MapToFiltersOperation(),
-                Currencies = request.CurrencyIds == null ? new FiltersOperation() : request.CurrencyIds.MapToFiltersOperation(),
-                States = request.States == null ? new FiltersOperation() : request.States.MapToFiltersOperation(),
-                Types = request.Types == null ? new FiltersOperation() : request.Types.MapToFiltersOperation(),
-                BetShopIds = request.BetShopIds == null ? new FiltersOperation() : request.BetShopIds.MapToFiltersOperation(),
-                BetShopNames = request.BetShopNames == null ? new FiltersOperation() : request.BetShopNames.MapToFiltersOperation(),
-                Amounts = request.Amounts == null ? new FiltersOperation() : request.Amounts.MapToFiltersOperation(),
-                FinalAmounts = request.FinalAmounts == null ? new FiltersOperation() : request.FinalAmounts.MapToFiltersOperation(),
-                CreationTimes = request.CreationTimes == null ? new FiltersOperation() : request.CreationTimes.MapToFiltersOperation(),
-                AffiliatePlatformIds = request.AffiliatePlatformIds == null ? new FiltersOperation() : request.AffiliatePlatformIds.MapToFiltersOperation(),
-                AffiliateIds = request.AffiliateIds == null ? new FiltersOperation() : request.AffiliateIds.MapToFiltersOperation(),
-                ActivatedBonusTypes = request.ActivatedBonusTypes == null ? new FiltersOperation() : request.ActivatedBonusTypes.MapToFiltersOperation(),
-                CommissionAmounts = request.CommissionAmounts == null ? new FiltersOperation() : request.CommissionAmounts.MapToFiltersOperation(),
-                CardNumbers = request.CardNumbers == null ? new FiltersOperation() : request.CardNumbers.MapToFiltersOperation(),
-                CountryCodes = request.CountryCodes == null ? new FiltersOperation() : request.CountryCodes.MapToFiltersOperation(),
-                SegmentNames = request.SegmentNames == null ? new FiltersOperation() : request.SegmentNames.MapToFiltersOperation(),
-                SegmentIds = request.SegmentIds == null ? new FiltersOperation() : request.SegmentIds.MapToFiltersOperation(),
-                LastUpdateTimes = request.LastUpdateTimes == null ? new FiltersOperation() : request.LastUpdateTimes.MapToFiltersOperation(),
-                ExternalTransactionIds = request.ExternalIds == null ? new FiltersOperation() : request.ExternalIds.MapToFiltersOperation(),
-                TakeCount = request.TakeCount,
-                SkipCount = request.SkipCount,
-                OrderBy = request.OrderBy,
-                FieldNameToOrderBy = request.FieldNameToOrderBy
-            };
-        }
-
-        #endregion
-
-        #region FilterPaymentRequest
-
-        public static FilterRole MapToFilterFilterRole(this ApiFilterRole filterRole)
-        {
-            return new FilterRole
-            {
-                Id = filterRole.Id,
-                Name = filterRole.Name,
-                PermissionIds = filterRole.PermissionIds,
-                SkipCount = filterRole.SkipCount,
-                TakeCount = filterRole.TakeCount
-            };
-        }
-
-        public static List<FilterRole> MapToFilterFilterRoles(this IEnumerable<ApiFilterRole> filterRoles)
-        {
-            return filterRoles.Select(MapToFilterFilterRole).ToList();
-        }
-
-
-        #endregion
-
-        #region FilterProducts
-
-        public static FilterProduct MapToFilterProduct(this ApiFilterProduct product)
-        {
-            return new FilterProduct
-            {
-                Id = product.Id,
-                Description = product.Description,
-                ExternalId = product.ExternalId,
-                GameProviderId = product.GameProviderId,
-                ParentId = product.ParentId,
-                PaymentSystemId = product.PaymentSystemId,
-                SkipCount = product.SkipCount,
-                TakeCount = product.TakeCount
-            };
-        }
-
-        public static List<FilterProduct> MapToFilterProducts(this IEnumerable<ApiFilterProduct> products)
-        {
-            return products.Select(MapToFilterProduct).ToList();
-        }
-        #endregion
-
-        #region FilterfnProduct
-
-        public static FilterfnProduct MapToFilterfnProduct(this ApiFilterfnProduct filter)
-        {
-            if (!string.IsNullOrEmpty(filter.FieldNameToOrderBy))
-            {
-                var orderBy = filter.FieldNameToOrderBy;
-                switch (orderBy)
-                {
-                    case "Description":
-                        filter.FieldNameToOrderBy = "NickName";
-                        break;
-                    case "GameProviderId":
-                        filter.FieldNameToOrderBy = "ProductGameProviderId";
-                        break;
-                    default:
-                        break;
-                }
-            }
-            var filterfnProduct = new FilterfnProduct
-            {
-                ParentId = filter.ParentId,
-                ProductId = filter.ProductId,
-                Pattern = filter.Pattern,
-                IsProviderActive = filter.IsProviderActive,
-                IsForMobile = filter.IsForMobile,
-                IsForDesktop = filter.IsForDesktop,
-                Ids = filter.Ids == null ? new FiltersOperation() : filter.Ids.MapToFiltersOperation(),
-                Names = filter.Names == null ? new FiltersOperation() : filter.Names.MapToFiltersOperation(),
-                Descriptions = filter.Descriptions == null ? new FiltersOperation() : filter.Descriptions.MapToFiltersOperation(),
-                ExternalIds = filter.ExternalIds == null ? new FiltersOperation() : filter.ExternalIds.MapToFiltersOperation(),
-                States = filter.States == null ? new FiltersOperation() : filter.States.MapToFiltersOperation(),
-                GameProviderIds = filter.GameProviderIds == null ? new FiltersOperation() : filter.GameProviderIds.MapToFiltersOperation(),
-                SubProviderIds = filter.SubProviderIds == null ? new FiltersOperation() : filter.SubProviderIds.MapToFiltersOperation(),
-                FreeSpinSupports = filter.FreeSpinSupports == null ? new FiltersOperation() : filter.FreeSpinSupports.MapToFiltersOperation(),
-                Jackpots = filter.Jackpots == null ? new FiltersOperation() : filter.Jackpots.MapToFiltersOperation(),
-                RTPs = filter.RTPs == null ? new FiltersOperation() : filter.RTPs.MapToFiltersOperation(),
-                SkipCount = filter.SkipCount,
-                TakeCount = filter.TakeCount,
-                OrderBy = filter.OrderBy,
-                FieldNameToOrderBy = filter.FieldNameToOrderBy
-            };
-            return filterfnProduct;
-        }
-
-        public static FilterGameProvider MapToFilterGameProvider(this ApiFilterGameProvider filter)
-        {
-            return new FilterGameProvider
-            {
-                Id = filter.Id,
-                ParentId = filter.ParentId,
-                PartnerId = filter.PartnerId,
-                SettingPartnerId = filter.SettingPartnerId,
-                Name = filter.Name,
-                IsActive = filter.IsActive
-            };
-        }
-
-        #endregion
-
-        #region FilterBetShopReconing
-
-        public static FilterfnBetShopReconing MapToFilterBetShopReconing(this ApiFilterBetShopReconing filter)
-        {
-            return new FilterfnBetShopReconing
-            {
-                SkipCount = filter.SkipCount,
-                TakeCount = filter.TakeCount,
-                Ids = filter.Ids == null ? new List<FiltersOperationType>() : filter.Ids.MapToFiltersOperationTypes(),
-                UserIds = filter.UserIds == null ? new List<FiltersOperationType>() : filter.UserIds.MapToFiltersOperationTypes(),
-                Currencies = filter.Currencies == null ? new List<FiltersOperationType>() : filter.Currencies.MapToFiltersOperationTypes(),
-                BetShopIds = filter.BetShopIds == null ? new List<FiltersOperationType>() : filter.BetShopIds.MapToFiltersOperationTypes(),
-                BetShopNames = filter.BetShopNames == null ? new List<FiltersOperationType>() : filter.BetShopNames.MapToFiltersOperationTypes(),
-                BetShopAvailiableBalances = filter.BetShopAvailiableBalances == null ? new List<FiltersOperationType>() : filter.BetShopAvailiableBalances.MapToFiltersOperationTypes(),
-                Amounts = filter.Amounts == null ? new List<FiltersOperationType>() : filter.Amounts.MapToFiltersOperationTypes(),
-                CreationTimes = filter.CreationTimes == null ? new List<FiltersOperationType>() : filter.CreationTimes.MapToFiltersOperationTypes()
-            };
-        }
-
-        public static List<FilterfnBetShopReconing> MapToFilterBetShopReconings(this IEnumerable<ApiFilterBetShopReconing> filters)
-        {
-            return filters.Select(MapToFilterBetShopReconing).ToList();
-        }
-        #endregion
-
-        #region FilterCashDeskTransaction
-
-        public static FilterCashDeskTransaction MapToFilterCashDeskTransaction(
-            this ApiFilterCashDeskTransaction transaction)
-        {
-            return new FilterCashDeskTransaction
-            {
-                FromDate = transaction.CreatedFrom,
-                ToDate = transaction.CreatedBefore,
-                Ids = transaction.Ids == null ? new FiltersOperation() : transaction.Ids.MapToFiltersOperation(),
-                BetShopNames = transaction.BetShopNames == null ? new FiltersOperation() : transaction.BetShopNames.MapToFiltersOperation(),
-                CashDeskIds = transaction.CashDeskIds == null ? new FiltersOperation() : transaction.CashDeskIds.MapToFiltersOperation(),
-                CashierIds = transaction.CashierIds == null ? new FiltersOperation() : transaction.CashierIds.MapToFiltersOperation(),
-                BetShopIds = transaction.BetShopIds == null ? new FiltersOperation() : transaction.BetShopIds.MapToFiltersOperation(),
-                OperationTypeNames = transaction.OperationTypeNames == null ? new FiltersOperation() : transaction.OperationTypeNames.MapToFiltersOperation(),
-                Amounts = transaction.Amounts == null ? new FiltersOperation() : transaction.Amounts.MapToFiltersOperation(),
-                Currencies = transaction.Currencies == null ? new FiltersOperation() : transaction.Currencies.MapToFiltersOperation(),
-                CreationTimes = transaction.CreationTimes == null ? new FiltersOperation() : transaction.CreationTimes.MapToFiltersOperation(),
-                TakeCount = transaction.TakeCount,
-                SkipCount = transaction.SkipCount
-            };
-        }
-        #endregion
-
-        #region FilterfnPartnerPaymentSetting
-
-        public static FilterfnPartnerPaymentSetting MapToFilterfnPartnerPaymentSetting(
-            this ApiFilterfnPartnerPaymentSetting filter)
-        {
-            return new FilterfnPartnerPaymentSetting
-            {
-                Id = filter.Id,
-                Status = filter.Status,
-                Type = filter.Type,
-                PaymentSystemId = filter.PaymentSystemId,
-                PartnerId = filter.PartnerId,
-                CurrencyId = filter.CurrencyId,
-                CreatedFrom = filter.CreatedFrom,
-                CreatedBefore = filter.CreatedBefore
-            };
-        }
-        #endregion
-
-        #region FilterDashboard
-
-        public static FilterDashboard MapToFilterDashboard(this ApiFilterDashboard filter, double timeZone)
-        {
-            var fromDate = filter.FromDate ?? DateTime.UtcNow;
-            var toDate = filter.ToDate ?? DateTime.UtcNow;
-            
-            var fromDay = fromDate.AddHours(timeZone);
-            var toDay = toDate.AddHours(timeZone);
-            return new FilterDashboard
-            {
-                PartnerId = filter.PartnerId,
-                FromDate = fromDay,
-                ToDate = toDay,
-                FromDay = (long)fromDay.Year * 10000 + (long)fromDay.Month * 100 + (long)fromDay.Day,
-                ToDay = (long)toDay.Year * 10000 + (long)toDay.Month * 100 + (long)toDay.Day
-            };
-        }
-
-        public static FilterRealTime MapToFilterRealTime(this ApiFilterRealTime filter)
-        {
-            return new FilterRealTime
-            {
-                PartnerId = filter.PartnerId,
-                ClientIds = filter.ClientIds == null ? new FiltersOperation() : filter.ClientIds.MapToFiltersOperation(),
-                LanguageIds = filter.LanguageIds == null ? new FiltersOperation() : filter.LanguageIds.MapToFiltersOperation(),
-                Names = filter.Names == null ? new FiltersOperation() : filter.Names.MapToFiltersOperation(),
-                UserNames = filter.UserNames == null ? new FiltersOperation() : filter.UserNames.MapToFiltersOperation(),
-                Categories = filter.Categories == null ? new FiltersOperation() : filter.Categories.MapToFiltersOperation(),
-                RegionIds = filter.RegionIds == null ? new FiltersOperation() : filter.RegionIds.MapToFiltersOperation(),
-                Currencies = filter.Currencies == null ? new FiltersOperation() : filter.Currencies.MapToFiltersOperation(),
-                LoginIps = filter.LoginIps == null ? new FiltersOperation() : filter.LoginIps.MapToFiltersOperation(),
-                Balances = filter.Balances == null ? new FiltersOperation() : filter.Balances.MapToFiltersOperation(),
-                TotalDepositsCounts = filter.TotalDepositsCounts == null ? new FiltersOperation() : filter.TotalDepositsCounts.MapToFiltersOperation(),
-                TotalDepositsAmounts = filter.TotalDepositsAmounts == null ? new FiltersOperation() : filter.TotalDepositsAmounts.MapToFiltersOperation(),
-                TotalWithdrawalsCounts = filter.TotalWithdrawalsCounts == null ? new FiltersOperation() : filter.TotalWithdrawalsCounts.MapToFiltersOperation(),
-                TotalWithdrawalsAmounts = filter.TotalWithdrawalsAmounts == null ? new FiltersOperation() : filter.TotalWithdrawalsAmounts.MapToFiltersOperation(),
-                TotalBetsCounts = filter.TotalBetsCounts == null ? new FiltersOperation() : filter.TotalBetsCounts.MapToFiltersOperation(),
-                GGRs = filter.GGRs == null ? new FiltersOperation() : filter.GGRs.MapToFiltersOperation(),
-                TakeCount = filter.TakeCount,
-                SkipCount = filter.SkipCount,
-                OrderBy = filter.OrderBy,
-                FieldNameToOrderBy = filter.FieldNameToOrderBy
-            };
-        }
-
-        #endregion
-
-        #region fnClientDashboard
-
-        public static FilterfnClientDashboard MapToFilterfnClientDashboard(this ApiFilterfnClientDashboard filter)
-        {
-            return new FilterfnClientDashboard
-            {
-                PartnerId = filter.PartnerId,
-                FromDate = filter.FromDate,
-                ToDate = filter.ToDate,
-                ClientIds = filter.ClientIds == null ? new FiltersOperation() : filter.ClientIds.MapToFiltersOperation(),
-                UserNames = filter.UserNames == null ? new FiltersOperation() : filter.UserNames.MapToFiltersOperation(),
-                PartnerIds = filter.PartnerIds == null ? new FiltersOperation() : filter.PartnerIds.MapToFiltersOperation(),
-                CurrencyIds = filter.CurrencyIds == null ? new FiltersOperation() : filter.CurrencyIds.MapToFiltersOperation(),
-                FirstNames = filter.FirstNames == null ? new FiltersOperation() : filter.FirstNames.MapToFiltersOperation(),
-                LastNames = filter.LastNames == null ? new FiltersOperation() : filter.LastNames.MapToFiltersOperation(),
-                Emails = filter.Emails == null ? new FiltersOperation() : filter.Emails.MapToFiltersOperation(),
-                AffiliatePlatformIds = filter.AffiliatePlatformIds == null ? new FiltersOperation() : filter.AffiliatePlatformIds.MapToFiltersOperation(),
-                AffiliateIds = filter.AffiliateIds == null ? new FiltersOperation() : filter.AffiliateIds.MapToFiltersOperation(),
-                AffiliateReferralIds = filter.AffiliateReferralIds == null ? new FiltersOperation() : filter.AffiliateReferralIds.MapToFiltersOperation(),
-                TotalWithdrawalAmounts = filter.TotalWithdrawalAmounts == null ? new FiltersOperation() : filter.TotalWithdrawalAmounts.MapToFiltersOperation(),
-                WithdrawalsCounts = filter.WithdrawalsCounts == null ? new FiltersOperation() : filter.WithdrawalsCounts.MapToFiltersOperation(),
-                TotalDepositAmounts = filter.TotalDepositAmounts == null ? new FiltersOperation() : filter.TotalDepositAmounts.MapToFiltersOperation(),
-                DepositsCounts = filter.DepositsCounts == null ? new FiltersOperation() : filter.DepositsCounts.MapToFiltersOperation(),
-                TotalBetAmounts = filter.TotalBetAmounts == null ? new FiltersOperation() : filter.TotalBetAmounts.MapToFiltersOperation(),
-                TotalBetsCounts = filter.TotalBetsCounts == null ? new FiltersOperation() : filter.TotalBetsCounts.MapToFiltersOperation(),
-                SportBetsCounts = filter.SportBetsCounts == null ? new FiltersOperation() : filter.SportBetsCounts.MapToFiltersOperation(),
-                TotalWinAmounts = filter.TotalWinAmounts == null ? new FiltersOperation() : filter.TotalWinAmounts.MapToFiltersOperation(),
-                WinsCounts = filter.WinsCounts == null ? new FiltersOperation() : filter.WinsCounts.MapToFiltersOperation(),
-                GGRs = filter.GGRs == null ? new FiltersOperation() : filter.GGRs.MapToFiltersOperation(),
-                NGRs = filter.NGRs == null ? new FiltersOperation() : filter.NGRs.MapToFiltersOperation(),
-                TotalDebitCorrections = filter.TotalDebitCorrections == null ? new FiltersOperation() : filter.TotalDebitCorrections.MapToFiltersOperation(),
-                DebitCorrectionsCounts = filter.DebitCorrectionsCounts == null ? new FiltersOperation() : filter.DebitCorrectionsCounts.MapToFiltersOperation(),
-                TotalCreditCorrections = filter.TotalCreditCorrections == null ? new FiltersOperation() : filter.TotalCreditCorrections.MapToFiltersOperation(),
-                CreditCorrectionsCounts = filter.CreditCorrectionsCounts == null ? new FiltersOperation() : filter.CreditCorrectionsCounts.MapToFiltersOperation(),
-                ComplementaryBalances = filter.ComplementaryBalances == null ? new FiltersOperation() : filter.ComplementaryBalances.MapToFiltersOperation(),
-                SkipCount = filter.SkipCount,
-                TakeCount = filter.TakeCount,
-                OrderBy = filter.OrderBy,
-                FieldNameToOrderBy = filter.FieldNameToOrderBy
-            };
-        }
-
-        #endregion
-
-        #region FilterNote
-
-        public static FilterNote MapToFilterNote(this ApiFilterNote note)
-        {
-            return new FilterNote
-            {
-                Id = note.Id,
-                State = note.State,
-                Message = note.Message,
-                ObjectId = note.ObjectId,
-                ObjectTypeId = note.ObjectTypeId,
-                Type = note.Type,
-                FromDate = note.FromDate,
-                ToDate = note.ToDate
-            };
-        }
-
-        public static List<FilterNote> MapToNoteModels(this IEnumerable<ApiFilterNote> models)
-        {
-            return models.Select(MapToFilterNote).ToList();
-        }
-        #endregion
-
-        #region Shift Reports
-
-        public static FilterAdminShift MapToFilterfnAdminShiftReport(this ApiFilterShiftReport apiFilterShift)
-        {
-            return new FilterAdminShift
-            {
-                FromDate = apiFilterShift.FromDate,
-                ToDate = apiFilterShift.ToDate,
-                Ids = apiFilterShift.Ids == null ? new FiltersOperation() : apiFilterShift.Ids.MapToFiltersOperation(),
-                BetShopIds = apiFilterShift.BetShopIds == null ? new FiltersOperation() : apiFilterShift.BetShopIds.MapToFiltersOperation(),
-                BetShopGroupIds = apiFilterShift.BetShopGroupIds == null ? new FiltersOperation() : apiFilterShift.BetShopGroupIds.MapToFiltersOperation(),
-                BetShopNames = apiFilterShift.BetShopNames == null ? new FiltersOperation() : apiFilterShift.BetShopNames.MapToFiltersOperation(),
-                BetShopGroupNames = apiFilterShift.BetShopGroupNames == null ? new FiltersOperation() : apiFilterShift.BetShopGroupNames.MapToFiltersOperation(),
-                CashierIds = apiFilterShift.CashierIds == null ? new FiltersOperation() : apiFilterShift.CashierIds.MapToFiltersOperation(),
-                CashdeskIds = apiFilterShift.CashdeskIds == null ? new FiltersOperation() : apiFilterShift.CashdeskIds.MapToFiltersOperation(),
-                FirstNames = apiFilterShift.FirstNames == null ? new FiltersOperation() : apiFilterShift.FirstNames.MapToFiltersOperation(),
-                EndAmounts = apiFilterShift.EndAmounts == null ? new FiltersOperation() : apiFilterShift.EndAmounts.MapToFiltersOperation(),
-                BetAmounts = apiFilterShift.BetAmounts == null ? new FiltersOperation() : apiFilterShift.BetAmounts.MapToFiltersOperation(),
-                PayedWinAmounts = apiFilterShift.PayedWinAmounts == null ? new FiltersOperation() : apiFilterShift.PayedWinAmounts.MapToFiltersOperation(),
-                DepositAmounts = apiFilterShift.DepositAmounts == null ? new FiltersOperation() : apiFilterShift.DepositAmounts.MapToFiltersOperation(),
-                WithdrawAmounts = apiFilterShift.WithdrawAmounts == null ? new FiltersOperation() : apiFilterShift.WithdrawAmounts.MapToFiltersOperation(),
-                DebitCorrectionAmounts = apiFilterShift.DebitCorrectionAmounts == null ? new FiltersOperation() : apiFilterShift.DebitCorrectionAmounts.MapToFiltersOperation(),
-                CreditCorrectionAmounts = apiFilterShift.CreditCorrectionAmounts == null ? new FiltersOperation() : apiFilterShift.CreditCorrectionAmounts.MapToFiltersOperation(),
-                StartDates = apiFilterShift.StartDates == null ? new FiltersOperation() : apiFilterShift.StartDates.MapToFiltersOperation(),
-                EndDates = apiFilterShift.EndDates == null ? new FiltersOperation() : apiFilterShift.EndDates.MapToFiltersOperation(),
-                ShiftNumbers = apiFilterShift.ShiftNumbers == null ? new FiltersOperation() : apiFilterShift.ShiftNumbers.MapToFiltersOperation(),
-                PartnerIds = apiFilterShift.PartnerIds == null ? new FiltersOperation() : apiFilterShift.PartnerIds.MapToFiltersOperation(),
-                BonusAmounts = apiFilterShift.BonusAmounts == null ? new FiltersOperation() : apiFilterShift.BonusAmounts.MapToFiltersOperation(),
-
-                SkipCount = apiFilterShift.SkipCount,
-                TakeCount = apiFilterShift.TakeCount,
-
-                OrderBy = apiFilterShift.OrderBy,
-                FieldNameToOrderBy = apiFilterShift.FieldNameToOrderBy
-            };
-        }
-
-        public static ApiShiftReportModel MapToApiShiftReportModel(this AdminShiftReportOutput report, double timeZone)
-        {
-            return new ApiShiftReportModel
-            {
-                Count = report.Count,
-                TotalAmount = report.TotalAmount,
-                TotalBonusAmount = report.TotalBonusAmount,
-                TotalBetAmount = report.TotalBetAmount,
-                TotalPayedWinAmount = report.TotalPayedWinAmount,
-                TotalDepositAmount = report.TotalDepositAmount,
-                TotalWithdrawAmount = report.TotalWithdrawAmount,
-                TotalDebitCorrectionAmount = report.TotalDebitCorrectionAmount,
-                TotalCreditCorrectionAmount = report.TotalCreditCorrectionAmount,
-                Entities = report.Entities.Select(x => x.MapToApiShiftReportElement(timeZone)).ToList()
-            };
-        }
-
-        public static ApiShiftReportElement MapToApiShiftReportElement(this fnAdminShiftReport element, double timeZone)
-        {
-            return new ApiShiftReportElement
-            {
-                Id = element.ShiftId,
-                BetShopId = element.BetShopId,
-                BetShopGroupId = element.BetShopGroupId,
-                BetShopName = element.BetShopName,
-                BetShopGroupName = element.BetShopGroupName,
-                CashdeskId = element.CashdeskId,
-                CashdeskName = element.CashdeskName,
-                CashierId = element.CashierId,
-                FirstName = element.FirstName,
-                LastName = element.LastName,
-                BetAmount = element.BetAmount,
-                PayedWinAmount = element.PayedWinAmount,
-                DepositAmount = element.DepositAmount,
-                WithdrawAmount = element.WithdrawAmount,
-                DebitCorrectionAmount = element.DebitCorrectionAmount,
-                CreditCorrectionAmount = element.CreditCorrectionAmount,
-                EndAmount = element.EndAmount ?? 0,
-                StartDate = element.StartDate.GetGMTDateFromUTC(timeZone),
-                EndDate = element.EndDate.GetGMTDateFromUTC(timeZone),
-                ShiftNumber = element.ShiftNumber ?? 0,
-                PartnerName = element.PartnerName,
-                BonusAmount = element.BonusAmount
-            };
-        }
-
-        #endregion
-
-        #region Content
-        public static FilterfnBanner MaptToFilterfnBanner(this ApiFilterBanner filter)
-        {
-            return new FilterfnBanner
-            {
-                SkipCount = filter.SkipCount,
-                TakeCount = filter.TakeCount,
-                PartnerId = filter.PartnerId,
-                IsEnabled = filter.IsEnabled,
-                ShowDescription = filter.ShowDescription,
-                Visibility = filter.Visibility,
-                Ids = filter.Ids == null ? new FiltersOperation() : filter.Ids.MapToFiltersOperation(),
-                PartnerIds = filter.PartnerIds == null ? new FiltersOperation() : filter.PartnerIds.MapToFiltersOperation(),
-                Orders = filter.Orders == null ? new FiltersOperation() : filter.Orders.MapToFiltersOperation(),
-                NickNames = filter.NickNames == null ? new FiltersOperation() : filter.NickNames.MapToFiltersOperation(),
-                Images = filter.Images == null ? new FiltersOperation() : filter.Images.MapToFiltersOperation(),
-                Types = filter.Types == null ? new FiltersOperation() : filter.Types.MapToFiltersOperation(),
-                FragmentNames = filter.FragmentNames == null ? new FiltersOperation() : filter.FragmentNames.MapToFiltersOperation(),
-                Heads = filter.Heads == null ? new FiltersOperation() : filter.Heads.MapToFiltersOperation(),
-                Bodies = filter.Bodies == null ? new FiltersOperation() : filter.Bodies.MapToFiltersOperation(),
-                StartDates = filter.StartDates == null ? new FiltersOperation() : filter.StartDates.MapToFiltersOperation(),
-                EndDates = filter.EndDates == null ? new FiltersOperation() : filter.EndDates.MapToFiltersOperation(),
-                OrderBy = filter.OrderBy,
-                FieldNameToOrderBy = filter.FieldNameToOrderBy
-            };
-        }
-
-        public static FilterPopup MaptToFilterPopup(this ApiFilterPopup filter)
-        {
-            return new FilterPopup
-            {
-                SkipCount = filter.SkipCount,
-                TakeCount = filter.TakeCount,
-                PartnerId = filter.PartnerId,
-                Ids = filter.Ids == null ? new FiltersOperation() : filter.Ids.MapToFiltersOperation(),
-                PartnerIds = filter.PartnerIds == null ? new FiltersOperation() : filter.PartnerIds.MapToFiltersOperation(),
-                NickNames = filter.NickNames == null ? new FiltersOperation() : filter.NickNames.MapToFiltersOperation(),
-                States = filter.States == null ? new FiltersOperation() : filter.States.MapToFiltersOperation(),
-                Types = filter.Types == null ? new FiltersOperation() : filter.Types.MapToFiltersOperation(),
-                Orders = filter.Orders == null ? new FiltersOperation() : filter.Orders.MapToFiltersOperation(),
-                Pages = filter.Pages == null ? new FiltersOperation() : filter.Pages.MapToFiltersOperation(),
-                DeviceTypes = filter.DeviceTypes == null ? new FiltersOperation() : filter.DeviceTypes.MapToFiltersOperation(),
-                StartDates = filter.StartDates == null ? new FiltersOperation() : filter.StartDates.MapToFiltersOperation(),
-                FinishDates = filter.FinishDates == null ? new FiltersOperation() : filter.FinishDates.MapToFiltersOperation(),
-                CreationTimes = filter.CreationTimes == null ? new FiltersOperation() : filter.CreationTimes.MapToFiltersOperation(),
-                LastUpdateTimes = filter.LastUpdateTimes == null ? new FiltersOperation() : filter.LastUpdateTimes.MapToFiltersOperation(),
-                OrderBy = filter.OrderBy,
-                FieldNameToOrderBy = filter.FieldNameToOrderBy
-            };
-        }
-
-        public static CRMSetting ToCRMSetting(this ApiCRMSetting apiCRMSetting)
+        public static CRMSetting ToCRMSetting(this ApiCRMSetting apiCRMSetting, double timeZone)
         {
             return new CRMSetting
             {
@@ -6364,13 +4194,13 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 State = apiCRMSetting.State,
                 Type = apiCRMSetting.Type,
                 Condition = apiCRMSetting.Condition,
-                StartTime = apiCRMSetting.StartTime,
-                FinishTime = apiCRMSetting.FinishTime,
+                StartTime = apiCRMSetting.StartTime.GetUTCDateFromGMT(timeZone),
+                FinishTime = apiCRMSetting.FinishTime.GetUTCDateFromGMT(timeZone),
                 Sequence = apiCRMSetting.Sequence
             };
         }
 
-        public static ApiCRMSetting ToApiCRMSetting(this CRMSetting setting)
+        public static ApiCRMSetting ToApiCRMSetting(this CRMSetting setting, double timeZone)
         {
             return new ApiCRMSetting
             {
@@ -6380,13 +4210,13 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 State = setting.State,
                 Type = setting.Type,
                 Condition = setting.Condition,
-                StartTime = setting.StartTime,
-                FinishTime = setting.FinishTime,
+                StartTime = setting.StartTime.GetGMTDateFromUTC(timeZone),
+                FinishTime = setting.FinishTime.GetGMTDateFromUTC(timeZone),
                 Sequence = setting.Sequence
             };
         }
 
-        public static DAL.Banner MapToBanner(this ApiBanner input)
+        public static DAL.Banner MapToBanner(this ApiBanner input, double timeZone)
         {
             return new DAL.Banner
             {
@@ -6402,8 +4232,8 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 ButtonType = Convert.ToInt32(string.Format("1{0}{1}", Convert.ToInt32(input.ShowRegistration), Convert.ToInt32(input.ShowLogin))),
                 Order = input.Order,
                 IsEnabled = input.IsEnabled,
-                StartDate = input.StartDate,
-                EndDate = input.EndDate,
+                StartDate = input.StartDate.GetUTCDateFromGMT(timeZone),
+                EndDate = input.EndDate.GetUTCDateFromGMT(timeZone),
                 Image = string.IsNullOrEmpty(input.Image) ? string.Empty : input.Image,
                 ImageSize = input.ImageSize,
                 BannerSegmentSettings = (input.Segments == null || input.Segments.Ids == null) ? new List<BannerSegmentSetting>() :
@@ -6461,7 +4291,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
             };
         }
 
-        public static Promotion MapToPromotion(this ApiPromotion input)
+        public static Promotion MapToPromotion(this ApiPromotion input, double timeZone)
         {
             return new Promotion
             {
@@ -6474,14 +4304,22 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 Description = input.Description,
                 ImageName = input.ImageName,
                 State = input.State,
-                StartDate = input.StartDate,
-                FinishDate = input.FinishDate,
+                StartDate = input.StartDate.GetUTCDateFromGMT(timeZone),
+                FinishDate = input.FinishDate.GetUTCDateFromGMT(timeZone),
                 PromotionSegmentSettings = (input.Segments == null || input.Segments.Ids == null) ? new List<PromotionSegmentSetting>() :
-                                          input.Segments?.Ids?.Select(x => new PromotionSegmentSetting { PromotionId = input.Id, SegmentId = x,
-                                              Type = input.Segments.Type ?? (int)BonusSettingConditionTypes.InSet }).ToList(),
+                                          input.Segments?.Ids?.Select(x => new PromotionSegmentSetting
+                                          {
+                                              PromotionId = input.Id,
+                                              SegmentId = x,
+                                              Type = input.Segments.Type ?? (int)BonusSettingConditionTypes.InSet
+                                          }).ToList(),
                 PromotionLanguageSettings = (input.Languages == null || input.Languages.Names == null) ? new List<PromotionLanguageSetting>() :
-                                           input.Languages?.Names?.Select(x => new PromotionLanguageSetting { PromotionId = input.Id, LanguageId = x,
-                                               Type = input.Languages.Type ?? (int)BonusSettingConditionTypes.InSet }).ToList(),
+                                           input.Languages?.Names?.Select(x => new PromotionLanguageSetting
+                                           {
+                                               PromotionId = input.Id,
+                                               LanguageId = x,
+                                               Type = input.Languages.Type ?? (int)BonusSettingConditionTypes.InSet
+                                           }).ToList(),
                 Order = input.Order,
                 ParentId = input.ParentId,
                 StyleType = input.StyleType,
@@ -6490,7 +4328,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
             };
         }
 
-        public static News ToNews(this ApiNews input)
+        public static News ToNews(this ApiNews input, double timeZone)
         {
             return new News
             {
@@ -6503,8 +4341,8 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 Description = input.Description,
                 ImageName = input.ImageName,
                 State = input.State,
-                StartDate = input.StartDate,
-                FinishDate = input.FinishDate,
+                StartDate = input.StartDate.GetUTCDateFromGMT(timeZone),
+                FinishDate = input.FinishDate.GetUTCDateFromGMT(timeZone),
                 NewsSegmentSettings = (input.Segments == null || input.Segments.Ids == null) ? new List<NewsSegmentSetting>() :
                                           input.Segments?.Ids?.Select(x => new NewsSegmentSetting
                                           {
@@ -6590,6 +4428,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 ParentId = input.ParentId
             };
         }
+
         public static ApiPopup MapToApiPopup(this Popup popup, double timeZone)
         {
             return new ApiPopup
@@ -6604,40 +4443,28 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 DeviceType = popup.DeviceType,
                 StartDate = popup.StartDate.GetGMTDateFromUTC(timeZone),
                 FinishDate = popup.FinishDate.GetGMTDateFromUTC(timeZone),
-                CreationTime   = popup.CreationTime.GetGMTDateFromUTC(timeZone),
-                LastUpdateTime  = popup.LastUpdateTime.GetGMTDateFromUTC(timeZone),
+                CreationTime = popup.CreationTime.GetGMTDateFromUTC(timeZone),
+                LastUpdateTime = popup.LastUpdateTime.GetGMTDateFromUTC(timeZone),
                 TranslationId = popup.ContentTranslationId,
                 ImageName = popup.ImageName,
                 SegmentIds = popup.PopupSettings.Where(x => x.ObjectTypeId == (int)ObjectTypes.Segment).Select(x => x.ObjectId).ToList(),
                 ClientIds = popup.PopupSettings.Where(x => x.ObjectTypeId == (int)ObjectTypes.Client).Select(x => x.ObjectId).ToList()
             };
         }
-        
-        #endregion
 
-        #region Languages
-
-        public static List<PartnerLanguageSettingModel> MapToPartnerLanguageSettingModels(this IEnumerable<PartnerLanguageSetting> partnerLanguages, double timeZone)
+        public static ApiNotification ToApiNotification(this UserNotification input, double timeZone)
         {
-            return partnerLanguages.Select(x => x.MapToPartnerLanguageSettingModel(timeZone)).ToList();
-        }
-
-        public static PartnerLanguageSettingModel MapToPartnerLanguageSettingModel(this PartnerLanguageSetting partnerLanguage, double timeZone)
-        {
-            return new PartnerLanguageSettingModel
+            return new ApiNotification
             {
-                Id = partnerLanguage.Id,
-                PartnerId = partnerLanguage.PartnerId,
-                LanguageId = partnerLanguage.LanguageId,
-                State = partnerLanguage.State,
-                Order = partnerLanguage.Order,
-                CreationTime = partnerLanguage.CreationTime.GetGMTDateFromUTC(timeZone),
-                LastUpdateTime = partnerLanguage.LastUpdateTime.GetGMTDateFromUTC(timeZone)
+                Id = input.Id,
+                UserId = input.UserId,
+                TypeId = input.TypeId,
+                ClientId = input.ClientId,
+                PaymentRequestId = input.PaymentRequestId,
+                BonusId = input.BonusId,
+                Status = input.Status,
+                CreationTime = input.CreationTime.GetGMTDateFromUTC(timeZone)
             };
         }
-
-        #endregion
-
-        #endregion
     }
 }

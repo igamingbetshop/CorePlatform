@@ -33,7 +33,7 @@ using System.Web.Http.Cors;
 
 namespace IqSoft.CP.AdminWebApi.Controllers
 {
-    [EnableCors(origins: "*", headers: "*", methods: "GET,POST")]
+    //[EnableCors(origins: "*", headers: "*", methods: "GET,POST")]
     public class CRMController : ApiController
     {
         private static readonly string logTemplate = "Code: {0}, Message: {1}";
@@ -243,7 +243,7 @@ namespace IqSoft.CP.AdminWebApi.Controllers
                 }
                 return new ApiResponseBase
                 {
-                    ResponseObject = clientBl.GetClientInfo(clientId, true).MapToClientInfoModel(hideClientContactInfo)
+                    ResponseObject = clientBl.GetClientInfo(clientId, true).MapToClientInfoModel(hideClientContactInfo, identity.TimeZone)
                 };
             }
         }
@@ -504,12 +504,12 @@ namespace IqSoft.CP.AdminWebApi.Controllers
                     throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongHash);
                 using (var affiliateService = new AffiliateService(new SessionIdentity(), WebApiApplication.DbLogger))
                 {
-                    var toDate = DateTime.UtcNow;
                     var fromDate = Convert.ToDateTime(registrationDate);
+                    var toDate = fromDate.AddDays(1);
                     var affiliate = affiliateService.GetAffiliatePlatform(partner.Id, AffiliatePlatforms.Wynta) ??
                      throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.AffiliateNotFound);
 
-                    var clients = affiliateService.GetAffiliateClients(affiliate.Id, fromDate).Select(x => new
+                    var clients = affiliateService.GetAffiliateClients(affiliate.Id, fromDate, toDate).Select(x => new
                     {
                         Alias = $"{x.FirstName} {x.LastName}",
                         CasinoName = partner.Name,
@@ -568,12 +568,12 @@ namespace IqSoft.CP.AdminWebApi.Controllers
                     throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongHash);
                 using (var affiliateService = new AffiliateService(new SessionIdentity(), WebApiApplication.DbLogger))
                 {
-                    var toDate = DateTime.UtcNow;
                     var fromDate = Convert.ToDateTime(activityDate);
+                    var toDate = fromDate.AddDays(1);
                     var affiliate = affiliateService.GetAffiliatePlatform(partner.Id, AffiliatePlatforms.Wynta) ??
                      throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.AffiliateNotFound);
 
-                    var clients = affiliateService.GetAffiliateClients(affiliate.Id, null).Select(x => new AffiliatePlatformModel
+                    var clients = affiliateService.GetAffiliateClients(affiliate.Id, null, null).Select(x => new AffiliatePlatformModel
                     {
                         PartnerId = x.PartnerId,
                         ClientId = x.Id,

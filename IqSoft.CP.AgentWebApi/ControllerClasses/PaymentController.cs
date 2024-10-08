@@ -38,6 +38,8 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                     return GetPaymentRequestHistories(JsonConvert.DeserializeObject<GetPaymentRequestHistoriesInput>(request.RequestData), identity, log);
                 case "GetPaymentRequestById":
                     return GetPaymentRequestById(Convert.ToInt64(request.RequestData), identity, log);
+                case "PayPaymentRequest":
+                    return PayPaymentRequest(Convert.ToInt64(request.RequestData), identity, log);
             }
             throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.MethodNotFound);
         }
@@ -97,12 +99,19 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                             if (r.Type == (int)PaymentRequestTypes.Deposit)
                                 clientBl.CancelDeposit(request.PaymentRequestId, request.Comment);
                             else
+                            {
                                 clientBl.ChangeWithdrawRequestState(
                                     request.PaymentRequestId,
                                     PaymentRequestStates.CanceledByUser,
                                     request.Comment,
                                     request.CashDeskId,
-                                    null, true, string.Empty, documentBl, notificationBl);
+                                    null, true, string.Empty, documentBl, notificationBl, out List<int> userIds);
+
+                                foreach (var uId in userIds)
+                                {
+                                    Helpers.Helpers.InvokeMessage("NotificationsCount", uId);
+                                }
+                            }
                             CacheManager.RemoveClientBalance(r.ClientId.Value);
                             CacheManager.RemoveClientDepositCount(r.ClientId.Value);
                             Helpers.Helpers.InvokeMessage("ClientDeposit", r.ClientId);
@@ -155,6 +164,42 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                 clientBl.ChangeDepositRequestState(request.Id, PaymentRequestStates.ApprovedManually, string.Empty, notificationBl);
                 Helpers.Helpers.InvokeMessage("ClientDepositWithBonus", request.ClientId);
                 Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}", Constants.CacheItems.ClientBalance, client.Id));
+                return new ApiResponseBase();
+            }
+        }
+
+        public static ApiResponseBase PayPaymentRequest(long paymentRequestId, SessionIdentity identity, ILog log)
+        {
+            var userIds = new List<int>();
+            using (var paymentSystemBl = new PaymentSystemBll(identity, log))
+            using (var clientBl = new ClientBll(paymentSystemBl))
+            {
+                var user = CacheManager.GetUserById(identity.Id);
+                if (user.Type == (int)UserTypes.AdminUser)
+                    throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.NotAllowed);
+                if (user.Type == (int)UserTypes.AgentEmployee)
+                {
+                    paymentSystemBl.CheckPermission(Constants.Permissions.ViewClient);
+                    paymentSystemBl.CheckPermission(Constants.Permissions.PayPaymentRequest);
+                    user = CacheManager.GetUserById(user.ParentId.Value);
+                }
+                var paymentRequest = paymentSystemBl.GetPaymentRequestById(paymentRequestId) ??
+                    throw BaseBll.CreateException(string.Empty, Constants.Errors.PaymentRequestNotFound);
+                var client = CacheManager.GetClientById(paymentRequest.ClientId.Value);
+                if (client == null || client.UserId != user.Id)
+                    throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.ClientNotFound);
+
+                var paymentSystem = CacheManager.GetPaymentSystemById(paymentRequest.PaymentSystemId);
+                if ((paymentRequest.Type == (int)PaymentRequestTypes.Deposit || paymentRequest.Type == (int)PaymentRequestTypes.ManualDeposit) &&
+                    Constants.ManualPaymentSystems.Contains(paymentSystem.Name))
+                    clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out userIds, comment: "Manually Approved From Agent System");
+                else
+                    throw BaseBll.CreateException(string.Empty, Constants.Errors.WrongPaymentRequest);
+                Helpers.Helpers.InvokeMessage("ClientDepositWithBonus", client.Id);
+                Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}", Constants.CacheItems.ClientBalance, client.Id));
+                foreach (var uId in userIds)
+                    Helpers.Helpers.InvokeMessage("NotificationsCount", uId);
+
                 return new ApiResponseBase();
             }
         }

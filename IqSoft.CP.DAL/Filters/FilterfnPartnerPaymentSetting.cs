@@ -14,6 +14,7 @@ namespace IqSoft.CP.DAL.Filters
         public string CurrencyId { get; set; }
 
         public int? Status { get; set; }
+
         public int? Type { get; set; }
 
         public DateTime? CreatedFrom { get; set; }

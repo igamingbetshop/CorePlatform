@@ -60,6 +60,18 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                     return UpdateClientSettings(JsonConvert.DeserializeObject<NewClientModel>(request.RequestData), identity, log);
                 case "GetClientRegistrationFields":
                     return GetClientRegistrationFields(identity, log);
+                case "GetPartnerMobileCodes":
+                    return GetPartnerMobileCodes(identity, log);
+                case "GetClientBonuses":
+                    return GetClientBonuses(Convert.ToInt32(request.RequestObject), identity, log);
+                case "GetClientBonuseTriggers":
+                    return GetClientBonuseTriggers(JsonConvert.DeserializeObject<ApiBonusInput>(request.RequestData), identity, log);
+                case "ChangeClientBonusTrigger":
+                    return ChangeClientBonusTrigger(JsonConvert.DeserializeObject<ApiBonusInput>(request.RequestData), identity, log);
+                case "GetClientAvailableBonuses":
+                    return GetClientAvailableBonuses(JsonConvert.DeserializeObject<ApiBonusInput>(request.RequestData), identity, log);
+                case "GiveBonusToClient":
+                    return GiveBonusToClient(JsonConvert.DeserializeObject<ApiBonusInput>(request.RequestData), identity, log);
             }
             throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.MethodNotFound);
         }
@@ -192,7 +204,7 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                         client = RegisterClient(identity, new ClientRegistrationInput
                         {
                             ClientData = client,
-                            RegistrationType = (int)Constants.RegisterTypes.Email,
+                            RegistrationType = (int)Constants.RegisterTypes.Agent,
                             GeneratedUsername = generatedUsername
                         }, log);
                         resultList.Add(client.MapTofnClientModel(identity.TimeZone));
@@ -362,7 +374,12 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
             using (var clientBl = new ClientBll(identity, log))
             {
                 input.IsFromAdmin = true;
-                return clientBl.RegisterClient(input);
+                var resp = clientBl.RegisterClient(input, out List<int> userIds);
+                foreach (var uId in userIds)
+                {
+                    Helpers.Helpers.InvokeMessage("NotificationsCount", uId);
+                }
+                return resp;
             }
         }
 
@@ -432,7 +449,10 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                     var commissions = userBl.GetAgentCommissions(agentIds);
 
                     var caller = CacheManager.GetUserById(callerId);
-                    var r = resp.Select(x => x.MapTofnClientModelItem(identity.TimeZone, commissions, caller.Level ?? 0, agent.Id, log))
+                    var partnerSetting = CacheManager.GetConfigKey(agent.PartnerId, Constants.PartnerKeys.HideClientContactInfo);
+                    var hideClientContactInfo = partnerSetting == "1";
+
+                    var r = resp.Select(x => x.MapTofnClientModelItem(identity.TimeZone, commissions, caller.Level ?? 0, agent.Id, hideClientContactInfo, log))
                                        .Where(x => (!filter.AllowDoubleCommission.HasValue || x.AllowDoubleCommission == filter.AllowDoubleCommission) &&
                                                     (string.IsNullOrEmpty(filter.AgentIdentifier) ||
                                                     (x.UserName.Contains(filter.AgentIdentifier) ||
@@ -613,17 +633,25 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
             {
                 using (var userBl = new UserBll(clientBl))
                 {
-                    var user = userBl.GetUserById(identity.Id);
-                    if (user == null)
-                        throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.UserNotFound);
-                    var response = new ApiResponseBase
+                    var user = CacheManager.GetUserById(identity.Id);
+                    if (user.Type == (int)UserTypes.AgentEmployee)
                     {
-                        ResponseObject = clientBl.GetClientInfo(clientId, false).MapToClientInfoModel()
+                        clientBl.CheckPermission(Constants.Permissions.ViewClient);
+                        user = CacheManager.GetUserById(user.PartnerId);
+                    }
+                    var client = CacheManager.GetClientById(clientId);
+                    if (client == null || !user.Path.Contains($"/{client.UserId}/"))
+                        throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.ClientNotFound);
+                    var hideClientContactInfo = CacheManager.GetConfigKey(user.PartnerId, Constants.PartnerKeys.HideClientContactInfo) == "1";
+
+                    return new ApiResponseBase
+                    {
+                        ResponseObject = clientBl.GetClientInfo(clientId, false).MapToClientInfoModel(hideClientContactInfo)
                     };
-                    return response;
                 }
             }
         }
+
         public static ApiResponseBase GetClientAccounts(int clientId, SessionIdentity identity, ILog log)
         {
             using (var clientBl = new ClientBll(identity, log))
@@ -668,6 +696,12 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
             var user = CacheManager.GetUserById(identity.Id);
             if (user.Type == (int)UserTypes.AdminUser)
                 throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.NotAllowed);
+            var partnerConfig = CacheManager.GetConfigKey(user.PartnerId, Constants.PartnerKeys.DisallowMemberCorrection);
+            if (!string.IsNullOrEmpty(partnerConfig))
+            {
+                if (Int32.TryParse(partnerConfig, out int disallowMemberCorrection) && disallowMemberCorrection == 1)
+                    throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.NotAllowed);
+            }
             using (var clientBl = new ClientBll(identity, log))
             {
                 using (var documentBl = new DocumentBll(clientBl))
@@ -686,7 +720,7 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                         var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, paymentSystem.Id, client.CurrencyId, (int)PaymentRequestTypes.Deposit);
                         if (partnerPaymentSetting != null && partnerPaymentSetting.Id > 0 && partnerPaymentSetting.State != (int)PartnerPaymentSettingStates.Inactive)
                         {
-                            var acc = documentBl.GetAccountIfExists(client.Id, (int)ObjectTypes.Client, client.CurrencyId, 
+                            var acc = documentBl.GetAccountIfExists(client.Id, (int)ObjectTypes.Client, client.CurrencyId,
                                 (int)AccountTypes.ClientUnusedBalance, null, paymentSystem.Id);
                             if (acc != null)
                             {
@@ -714,6 +748,14 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
             var user = CacheManager.GetUserById(identity.Id);
             if (user.Type == (int)UserTypes.AdminUser)
                 throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.NotAllowed);
+
+            var partnerConfig = CacheManager.GetConfigKey(user.PartnerId, Constants.PartnerKeys.DisallowMemberCorrection);
+            if (!string.IsNullOrEmpty(partnerConfig))
+            {
+                if (Int32.TryParse(partnerConfig, out int disallowMemberCorrection) && disallowMemberCorrection == 1)
+                    throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.NotAllowed);
+            }
+
             using (var clientBl = new ClientBll(identity, log))
             {
                 using (var documentBl = new DocumentBll(clientBl))
@@ -745,7 +787,7 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                         }
 
                         var result = clientBl.CreateCreditCorrectionOnClient(input, documentBl, false);
-                       
+
                         Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}", Constants.CacheItems.ClientBalance, client.Id));
                         return new ApiResponseBase
                         {
@@ -898,6 +940,188 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                 {
                     ResponseObject = contentBl.GetClientRegistrationFields(user.PartnerId, (int)SystemModuleTypes.AgentSystem)
                 };
+            }
+        }
+
+        public static ApiResponseBase GetPartnerMobileCodes(SessionIdentity identity, ILog log)
+        {
+            using (var contentBl = new ContentBll(identity, log))
+            {
+                var user = CacheManager.GetUserById(identity.Id);
+                return new ApiResponseBase
+                {
+                    ResponseObject = contentBl.GetPartnerMobileCodes(user.PartnerId, false)
+                };
+            }
+        }
+
+        private static ApiResponseBase GetClientBonuses(int clientId, SessionIdentity identity, ILog log)
+        {
+            using (var clientBl = new ClientBll(identity, log))
+            {
+                var user = CacheManager.GetUserById(identity.Id);
+                if (user.Type == (int)UserTypes.AdminUser)
+                    throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.NotAllowed);
+                if (user.Type == (int)UserTypes.AgentEmployee)
+                {
+                    clientBl.CheckPermission(Constants.Permissions.ViewClient);
+                    clientBl.CheckPermission(Constants.Permissions.ViewBonuses);
+                    user = CacheManager.GetUserById(user.ParentId.Value);
+                }
+                var client = CacheManager.GetClientById(clientId);
+                if (client == null || client.UserId != user.Id)
+                    throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.ClientNotFound);
+                var clientBonuses = clientBl.GetClientBonuses(clientId, null);
+                return new ApiResponseBase
+                {
+                    ResponseObject = clientBonuses.Entities.Select(x => new
+                    {
+                        x.Id,
+                        x.BonusId,
+                        x.Description,
+                        x.Status,
+                        x.Type,
+                        x.BonusPrize,
+                        x.SpinsCount,
+                        x.TurnoverAmountLeft,
+                        x.FinalAmount,
+                        x.ReuseNumber,
+                        CreationTime = x.CreationTime.GetGMTDateFromUTC(identity.TimeZone),
+                        AwardingTime = x.AwardingTime.GetGMTDateFromUTC(identity.TimeZone),
+                        CalculationTime = x.CalculationTime.GetGMTDateFromUTC(identity.TimeZone)
+                    }).ToList()
+                };
+            }
+        }
+
+        private static ApiResponseBase GetClientBonuseTriggers(ApiBonusInput apiBonusInput, SessionIdentity identity, ILog log)
+        {
+            using (var clientBl = new ClientBll(identity, log))
+            {
+                var user = CacheManager.GetUserById(identity.Id);
+                if (user.Type == (int)UserTypes.AdminUser)
+                    throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.NotAllowed);
+                if (user.Type == (int)UserTypes.AgentEmployee)
+                {
+                    clientBl.CheckPermission(Constants.Permissions.ViewClient);
+                    clientBl.CheckPermission(Constants.Permissions.ViewBonuses);
+                    user = CacheManager.GetUserById(user.ParentId.Value);
+                }
+                var client = CacheManager.GetClientById(apiBonusInput.ClientId);
+                if (client == null || client.UserId != user.Id)
+                    throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.ClientNotFound);
+                var triggerSettingTypeNames = CacheManager.GetEnumerations(Constants.EnumerationTypes.TriggerTypes, identity.LanguageId);
+                var bonusTriggers = clientBl.GetClientBonusTriggers(client.Id, apiBonusInput.BonusId, apiBonusInput.ReuseNumber ?? 1, true)
+                                            .Select(x => new
+                                            {
+                                                x.Id,
+                                                x.Name,
+                                                x.Type,
+                                                TypeName = triggerSettingTypeNames.FirstOrDefault(y => y.Value == x.Type)?.NickName,
+                                                StartTime = x.StartTime.GetGMTDateFromUTC(identity.TimeZone),
+                                                FinishTime = x.FinishTime.GetGMTDateFromUTC(identity.TimeZone),
+                                                x.Percent,
+                                                x.BonusSettingCodes,
+                                                x.MinAmount,
+                                                x.MaxAmount,
+                                                CreationTime = x.CreationTime.GetGMTDateFromUTC(identity.TimeZone),
+                                                UpdateTime = x.LastUpdateTime.GetGMTDateFromUTC(identity.TimeZone),
+                                                x.Order,
+                                                x.Status,
+                                                x.SourceAmount,
+                                                x.MinBetCount,
+                                                x.BetCount,
+                                                x.WageringAmount
+                                            }).ToList();
+                return new ApiResponseBase
+                {
+                    ResponseObject = bonusTriggers
+                };
+            }
+        }
+
+        private static ApiResponseBase ChangeClientBonusTrigger(ApiBonusInput apiBonusInput, SessionIdentity identity, ILog log)
+        {
+            using (var clientBl = new ClientBll(identity, log))
+            {
+                var user = CacheManager.GetUserById(identity.Id);
+                if (user.Type == (int)UserTypes.AdminUser)
+                    throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.NotAllowed);
+                if (user.Type == (int)UserTypes.AgentEmployee)
+                {
+                    clientBl.CheckPermission(Constants.Permissions.ViewClient);
+                    clientBl.CheckPermission(Constants.Permissions.ViewBonuses);
+                    clientBl.CheckPermission(Constants.Permissions.CreateBonus);
+                    user = CacheManager.GetUserById(user.ParentId.Value);
+                }
+                var client = CacheManager.GetClientById(apiBonusInput.ClientId);
+                if (client == null || client.UserId != user.Id)
+                    throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.ClientNotFound);
+                var clientBonus = clientBl.GetClientBonusById(apiBonusInput.ClientBonusId) ??
+                    throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.BonusNotFound);
+                var clientTrigger = clientBl.ChangeClientBonusTriggerManually(apiBonusInput.ClientId, apiBonusInput.TriggerId, apiBonusInput.BonusId,
+                                                                              apiBonusInput.ReuseNumber ?? 1, apiBonusInput.SourceAmount, apiBonusInput.Status);
+                return new ApiResponseBase
+                {
+                    ResponseObject = new
+                    {
+                        clientTrigger.TriggerId,
+                        clientTrigger.SourceAmount
+                    }
+                };
+            }
+        }
+
+        private static ApiResponseBase GetClientAvailableBonuses(ApiBonusInput apiBonusInput, SessionIdentity identity, ILog log)
+        {
+            using (var bonusService = new BonusService(identity, log))
+            {
+                var user = CacheManager.GetUserById(identity.Id);
+                if (user.Type == (int)UserTypes.AdminUser)
+                    throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.NotAllowed);
+                if (user.Type == (int)UserTypes.AgentEmployee)
+                {
+                    bonusService.CheckPermission(Constants.Permissions.ViewClient);
+                    bonusService.CheckPermission(Constants.Permissions.ViewBonuses);
+                    user = CacheManager.GetUserById(user.ParentId.Value);
+                }
+                var client = CacheManager.GetClientById(apiBonusInput.ClientId);
+                if (client == null || client.UserId != user.Id)
+                    throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.ClientNotFound);
+                return new ApiResponseBase
+                {
+                    ResponseObject = bonusService.GetClientAvailableBonuses(apiBonusInput.ClientId, apiBonusInput.BonusType, true)
+                                    .Select(x => new
+                                    {
+                                        x.Id,
+                                        x.Name,
+                                        x.Description
+                                    }).ToList()
+                };
+            }
+        }
+
+        private static ApiResponseBase GiveBonusToClient(ApiBonusInput apiBonusInput, SessionIdentity identity, ILog log)
+        {
+            using (var bonusService = new BonusService(identity, log))
+            {
+                var user = CacheManager.GetUserById(identity.Id);
+                if (user.Type == (int)UserTypes.AdminUser)
+                    throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.NotAllowed);
+                if (user.Type == (int)UserTypes.AgentEmployee)
+                {
+                    bonusService.CheckPermission(Constants.Permissions.ViewClient);
+                    bonusService.CheckPermission(Constants.Permissions.ViewBonuses);
+                    bonusService.CheckPermission(Constants.Permissions.CreateBonus);
+                    user = CacheManager.GetUserById(user.ParentId.Value);
+                }
+                var client = CacheManager.GetClientById(apiBonusInput.ClientId);
+                if (client == null || client.UserId != user.Id)
+                    throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.ClientNotFound);
+                bonusService.GiveCompainToClientManually(client.Id, apiBonusInput.BonusId);
+                CacheManager.RemoveClientNotAwardedCampaigns(client.Id);
+                Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}", Constants.CacheItems.NotAwardedCampaigns, client.Id));
+                return new ApiResponseBase();
             }
         }
     }

@@ -54,7 +54,11 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                         {
                             request.ExternalTransactionId = input.PaymentId.ToString();
                             paymentSystemBl.ChangePaymentRequestDetails(request);
-                            clientBl.ApproveDepositFromPaymentSystem(request, false);
+                            clientBl.ApproveDepositFromPaymentSystem(request, false, out List<int> userIds);
+                            foreach (var uId in userIds)
+                            {
+                                PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                            }
                             PaymentHelpers.RemoveClientBalanceFromCache(request.ClientId.Value);
                             BaseHelpers.BroadcastBalance(request.ClientId.Value);
                             response = "OK";
@@ -124,7 +128,11 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                 {
                                     request.ExternalTransactionId = input.PaymentId.ToString();
                                     var resp = clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Approved, 
-                                        string.Empty, request.CashDeskId, null, true, request.Parameters, documentBl, notificationBl);
+                                        string.Empty, request.CashDeskId, null, true, request.Parameters, documentBl, notificationBl, out List<int> userIds);
+                                    foreach (var uId in userIds)
+                                    {
+                                        PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                    }
                                     clientBl.PayWithdrawFromPaymentSystem(resp, documentBl, notificationBl);
                                     PaymentHelpers.RemoveClientBalanceFromCache(request.ClientId.Value);
                                     BaseHelpers.BroadcastBalance(request.ClientId.Value);

@@ -145,8 +145,9 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             }
         }
 
-        public static PaymentResponse ApprovedMobileRequest(string code, int requestId, SessionIdentity session, ILog log)
+        public static PaymentResponse ApprovedMobileRequest(string code, int requestId, SessionIdentity session, ILog log, out List<int> userIds)
         {
+            userIds = new List<int>();
             using (var partnerBl = new PartnerBll(session, log))
             {
                 using (var paymentSystemBl = new PaymentSystemBll(partnerBl))
@@ -194,7 +195,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 
                             if (output.pg_status.ToLower() == "ok")
                             {
-								clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
+								clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out userIds);
                                 return new PaymentResponse
                                 {
                                     Status = PaymentRequestStates.Confirmed,
@@ -480,8 +481,9 @@ using (Stream stream = CommonFunctions.SendHttpRequestForStream(httpRequestInput
             }
         }
 
-        public static void GetPayoutRequestStatus(PaymentRequest input, SessionIdentity session, ILog log)
+        public static List<int> GetPayoutRequestStatus(PaymentRequest input, SessionIdentity session, ILog log)
         {
+            var userIds = new List<int>();
             var client = CacheManager.GetClientById(input.ClientId.Value);
             if (client == null)
                 throw BaseBll.CreateException(session.LanguageId, Constants.Errors.ClientNotFound);
@@ -540,18 +542,19 @@ using (Stream stream = CommonFunctions.SendHttpRequestForStream(httpRequestInput
                         if (response.pg_status.ToLower() == "success")
                         {
                             var resp = clientBl.ChangeWithdrawRequestState(input.Id, PaymentRequestStates.Approved, 
-                                string.Empty, null, null, false, string.Empty, documentBl, notificationBl);
+                                string.Empty, null, null, false, string.Empty, documentBl, notificationBl, out userIds);
                             clientBl.PayWithdrawFromPaymentSystem(resp, documentBl, notificationBl);
                         }
                         else if (response.pg_status.ToLower() != "process" && string.IsNullOrEmpty(response.pg_error_code))
                         {
                             clientBl.ChangeWithdrawRequestState(input.Id, PaymentRequestStates.Failed, "Expierd", 
-                                null, null, false, string.Empty, documentBl, notificationBl);
+                                null, null, false, string.Empty, documentBl, notificationBl, out userIds);
                         }
                     }
                 }
             }
             ServicePointManager.SecurityProtocol = defaultProtocol;
+            return userIds;
         }
 
         #endregion

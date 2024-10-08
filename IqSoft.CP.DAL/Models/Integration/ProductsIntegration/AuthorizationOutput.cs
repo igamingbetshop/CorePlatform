@@ -30,6 +30,7 @@ namespace IqSoft.CP.DAL.Models.Integration.ProductsIntegration
         public int? UserId { get; set; }
         public bool IsShopWallet { get; set; }
         public int? AffiliateReferralId { get; set; }
+        public int PartnerId { get; set; }
         public List<ApiBonus> Bonuses { get; set; }
     }
 }

@@ -284,11 +284,12 @@ namespace IqSoft.CP.BLL.Helpers
             var partner = CacheManager.GetPartnerById(apiSMSModel.PartnerId);
             var apiKey = CacheManager.GetNotificationServiceValueByKey(apiSMSModel.PartnerId, Constants.PartnerKeys.SMSToApiKey, (int)NotificationServices.SMSTo);
             var url = CacheManager.GetNotificationServiceValueByKey(apiSMSModel.PartnerId, Constants.PartnerKeys.SMSToApiUrl, (int)NotificationServices.SMSTo);
+            var sender = CacheManager.GetNotificationServiceValueByKey(apiSMSModel.PartnerId, Constants.PartnerKeys.SMSToSender, (int)NotificationServices.SMSTo);
             var smsRequestInput = new
             {
                 message = apiSMSModel.MessegeText,
                 to = "+" + apiSMSModel.Recipient.Replace(" ", string.Empty).Replace("+", string.Empty),
-                sender_id = partner.Name
+                sender_id = string.IsNullOrEmpty(sender) ? partner.Name : sender
             };
             log.Info(JsonConvert.SerializeObject(smsRequestInput) + "_" + apiKey + "_" + url);
             var httpRequestInput = new HttpRequestInput

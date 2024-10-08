@@ -35,6 +35,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
             {
                 WebApiApplication.DbLogger.Info(JsonConvert.SerializeObject(input));
                 BaseBll.CheckIp(WhitelistedIps);
+                var userIds = new List<int>();
                 using (var paymentSystemBl = new PaymentSystemBll(new SessionIdentity(), WebApiApplication.DbLogger))
                 {
                     using (var clientBl = new ClientBll(paymentSystemBl))
@@ -85,7 +86,9 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                 if (paymentRequest.Type == (int)PaymentRequestTypes.Deposit)
                                 {
                                     if (paymentStatus.Status == 4)
-                                        clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
+                                    {
+                                        clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out userIds);
+                                    }
                                     else if (paymentStatus.Status == 5)
                                         clientBl.ChangeDepositRequestState(paymentRequest.Id, PaymentRequestStates.Failed, paymentStatus.Status.ToString(), notificationBl);
                                 }
@@ -98,13 +101,13 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                         {
 
                                             var resp = clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Approved, string.Empty,
-                                                                                           null, null, false, string.Empty, documentBll, notificationBl);
+                                                                                           null, null, false, string.Empty, documentBll, notificationBl, out userIds);
                                             clientBl.PayWithdrawFromPaymentSystem(resp, documentBll, notificationBl);
 
                                         }
                                         else if (paymentStatus.Status == 5)
                                             clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed, paymentStatus.Status.ToString(),
-                                                                                null, null, false, string.Empty, documentBll, notificationBl);
+                                                                                null, null, false, string.Empty, documentBll, notificationBl, out userIds);
                                     }
                                 }
                                 Helpers.PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
@@ -119,11 +122,15 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                     using (var documentBll = new DocumentBll(paymentSystemBl))
                                     {
                                         clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed, string.Empty,
-                                                                            null, null, false, string.Empty, documentBll, notificationBl);
+                                                                            null, null, false, string.Empty, documentBll, notificationBl, out userIds);
                                         Helpers.PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
                                         BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);
                                     }
                                 }
+                            }
+                            foreach (var uId in userIds)
+                            {
+                                Helpers.PaymentHelpers.InvokeMessage("NotificationsCount", uId);
                             }
                         }
                     }

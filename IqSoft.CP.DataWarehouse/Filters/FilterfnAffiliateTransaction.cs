@@ -38,9 +38,9 @@ namespace IqSoft.CP.DataWarehouse.Filters
             return affiliateTransaction;
         }
 
-        public long SelectedObjectsCount(IQueryable<fnAffiliateTransaction> affiliateTransaction, bool ordering)
+        public long SelectedObjectsCount(IQueryable<fnAffiliateTransaction> affiliateTransaction)
         {
-            CreateQuery(ref affiliateTransaction, ordering);
+            CreateQuery(ref affiliateTransaction, false);
             return affiliateTransaction.Count();
         }
     }

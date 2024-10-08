@@ -55,7 +55,11 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                 throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongHash);
                             if (input.Status.ToUpper() == "APPROVED")
                             {
-                                clientBl.ApproveDepositFromPaymentSystem(request, false);
+                                clientBl.ApproveDepositFromPaymentSystem(request, false, out List<int> userIds);
+                                foreach (var uId in userIds)
+                                {
+                                    PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                }
                                 PaymentHelpers.RemoveClientBalanceFromCache(request.ClientId.Value);
                                 BaseHelpers.BroadcastBalance(request.ClientId.Value);
                             }
@@ -158,6 +162,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 
                 WebApiApplication.DbLogger.Info(inputString);
                 BaseBll.CheckIp(WhitelistedIps);
+                var userIds = new List<int>();
                 var inputSign = HttpContext.Current.Request.Headers.Get("Signature");
                 using (var paymentSystemBl = new PaymentSystemBll(new SessionIdentity(), WebApiApplication.DbLogger))
                 {
@@ -179,12 +184,16 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                 if (input.Status.ToUpper() == "APPROVED")
                                 {
                                     var resp = clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Approved, string.Empty,
-                                         null, null, false, string.Empty, documentBll, notificationBl);
+                                         null, null, false, string.Empty, documentBll, notificationBl, out userIds);
                                     clientBl.PayWithdrawFromPaymentSystem(resp, documentBll, notificationBl);
                                 }
                                 else if (input.Status.ToUpper() == "CANCELLED")
                                     clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Failed, 
-                                        input.Status, null, null, false, string.Empty, documentBll, notificationBl);
+                                        input.Status, null, null, false, string.Empty, documentBll, notificationBl, out userIds);
+                                foreach (var uId in userIds)
+                                {
+                                    PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                }
                                 PaymentHelpers.RemoveClientBalanceFromCache(request.ClientId.Value);
                                 BaseHelpers.BroadcastBalance(request.ClientId.Value);
                             }

@@ -34,7 +34,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             {
                 var agentUser = CacheManager.GetUserById(identity.Id);
                 
-                var filter = apiFilter.ToFilterfnAgentTransaction();
+                var filter = apiFilter.ToFilterfnAgentTransaction(identity.TimeZone);
                 var result = reportBl.GetAgentTransactions(filter, identity.Id, true);
 
                 return new ApiResponseBase
@@ -54,7 +54,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             {
                 var agentUser = CacheManager.GetUserById(identity.Id);
 
-                var filter = apiFilter.ToFilterfnUser();
+                var filter = apiFilter.ToFilterfnUser(identity.TimeZone);
                 var result = reportBl.GetAgentsReport(filter, true);
 
                 return new ApiResponseBase

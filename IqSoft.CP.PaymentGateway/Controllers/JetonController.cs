@@ -28,6 +28,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
         public HttpResponseMessage ApiRequest(PaymentInput input)
         {
             var response = string.Empty;
+            var userIds = new List<int>();
             try
             {
                 //   BaseBll.CheckIp(WhitelistedIps);
@@ -49,7 +50,9 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                             if (paymentRequest.Type == (int)PaymentRequestTypes.Deposit && input.Type.ToUpper() == "PAY")
                             {
                                 if (input.Status.ToUpper() == "SUCCESS")
-                                    clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
+                                {
+                                    clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out userIds);
+                                }
                                 else if (input.Status.ToUpper() == "ERROR") // to check
                                     clientBl.ChangeDepositRequestState(paymentRequest.Id, PaymentRequestStates.Deleted, input.Message, notificationBl);
                             }
@@ -60,15 +63,19 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                     if (input.Status.ToUpper() == "SUCCESS")
                                     {
                                         var resp = clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Approved, string.Empty,
-                                         null, null, false, string.Empty, documentBll, notificationBl);
+                                         null, null, false, string.Empty, documentBll, notificationBl, out userIds);
                                         clientBl.PayWithdrawFromPaymentSystem(resp, documentBll, notificationBl);
                                     }
                                     else if (input.Status.ToUpper() == "ERROR") // to check statuses
                                     {
                                         clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed,
-                                            input.Message, null, null, false, string.Empty, documentBll, notificationBl);
+                                            input.Message, null, null, false, string.Empty, documentBll, notificationBl, out userIds);
                                     }
                                 }
+                            }
+                            foreach (var uId in userIds)
+                            {
+                                PaymentHelpers.InvokeMessage("NotificationsCount", uId);
                             }
                             PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
                             BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);
@@ -109,6 +116,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
         public HttpResponseMessage CashRequest(CashInput input)
         {
             var response = string.Empty;
+            var userIds = new List<int>();
             try
             {
                 //   BaseBll.CheckIp(WhitelistedIps);
@@ -134,7 +142,9 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                             if (paymentRequest.Type == (int)PaymentRequestTypes.Deposit && input.PaymentMethod == "REDEEM_VOUCHER")
                             {
                                 if (input.Status.ToUpper() == "APPROVED")
-                                    clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
+                                {
+                                    clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out userIds);
+                                }
                                 else if (input.Status.ToUpper() == "DECLINED")
                                     clientBl.ChangeDepositRequestState(paymentRequest.Id, PaymentRequestStates.Deleted, input.Message, notificationBl);
                             }
@@ -145,15 +155,19 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                     if (input.Status.ToUpper() == "APPROVED")
                                     {
                                         var resp = clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Approved, string.Empty,
-                                         null, null, false, string.Empty, documentBll, notificationBl);
+                                         null, null, false, string.Empty, documentBll, notificationBl, out userIds);
                                         clientBl.PayWithdrawFromPaymentSystem(resp, documentBll, notificationBl);
                                     }
                                     else if (input.Status.ToUpper() == "DECLINED")
                                     {
                                         clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed,
-                                            input.Message, null, null, false, string.Empty, documentBll, notificationBl);
+                                            input.Message, null, null, false, string.Empty, documentBll, notificationBl, out userIds);
                                     }
                                 }
+                            }
+                            foreach (var uId in userIds)
+                            {
+                                PaymentHelpers.InvokeMessage("NotificationsCount", uId);
                             }
                             PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
                             BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);

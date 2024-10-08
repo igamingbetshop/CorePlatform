@@ -676,8 +676,6 @@
     <ReturnType>
       <CollectionType>
         <RowType>
-          <Property Name="ProductGroupId" Type="int" />
-          <Property Name="ProductGroupName" Type="varchar" MaxLength="50" />
           <Property Name="ProductId" Type="int" Nullable="false" />
           <Property Name="RecieverAgentId" Type="int" Nullable="false" />
           <Property Name="AgentId" Type="int" Nullable="false" />
@@ -1001,17 +999,6 @@
       </CollectionType>
     </ReturnType>
   </Function>
-  <Function Name="fn_ProductGroup" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
-    <Parameter Name="productId" Type="int" Mode="In" />
-    <ReturnType>
-      <CollectionType>
-        <RowType>
-          <Property Name="Id" Type="int" />
-          <Property Name="NickName" Type="varchar" MaxLength="50" />
-        </RowType>
-      </CollectionType>
-    </ReturnType>
-  </Function>
   <Function Name="fn_ProfitByAgent" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
     <Parameter Name="FromDate" Type="bigint" Mode="In" />
     <Parameter Name="ToDate" Type="bigint" Mode="In" />
@@ -1101,7 +1088,8 @@
     </ReturnType>
   </Function>
   <Function Name="sp_InsertDocuments" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
-    <Parameter Name="minId" Type="bigint" Mode="In" />
+    <Parameter Name="minDate" Type="datetime2" Mode="In" />
+    <Parameter Name="existings" Type="varchar(max)" Mode="In" />
   </Function>
   <EntityContainer Name="DataWarehouseModelStoreContainer">
     <EntitySet Name="AccountBalance" EntityType="Self.AccountBalance" Schema="dbo" store:Type="Tables" />

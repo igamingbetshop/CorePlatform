@@ -9,6 +9,7 @@ using IqSoft.CP.PaymentGateway.Helpers;
 using IqSoft.CP.PaymentGateway.Models.GumballPay;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.ServiceModel;
@@ -53,8 +54,12 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 							if (input.Status == "approved")
 							{
 								WebApiApplication.DbLogger.Info("Log before approving");
-								clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
-								PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
+								clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out List<int> userIds);
+                                foreach (var uId in userIds)
+                                {
+                                    PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                }
+                                PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
 								BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);
 							}
 							else

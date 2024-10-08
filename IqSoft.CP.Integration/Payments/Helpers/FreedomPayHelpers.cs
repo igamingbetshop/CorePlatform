@@ -66,12 +66,12 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                     paymentSystemBl.ChangePaymentRequestDetails(input);
                 }
                 var sign = $"{CommonFunctions.ComputeMd5(input.Id.ToString())}" +
-                           $"{CommonFunctions.ComputeMd5(((int)input.Amount).ToString())}" +
+                           $"{CommonFunctions.ComputeMd5(((int)amount).ToString())}" +
                            $"{CommonFunctions.ComputeMd5(currencyId)}";
                 var paymentRequestInput = new
                 {
                     ORDER_ID = input.Id.ToString(),
-                    AMOUNT = amount,
+                    AMOUNT = (int)amount,
                     CURRENCY = currencyId,
                     DESCRIPTION = partner.Name,
                     SIGNATURE = CommonFunctions.ComputeSha512(sign),

@@ -82,7 +82,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                     RedirectUrl = cashierPageUrl,
                     ResponseUrl = string.Format("{0}/api/Omer/ProcessPaymentRequest", paymentGatewayUrl),
                     CancelUrl = string.Format("{0}/api/Omer/CancelPaymentRequest", paymentGatewayUrl),
-                    Currency= client.CurrencyId,
+                    Currency= Constants.Currencies.USADollar,
                     BillingAddress = client.Address?.Trim(),
                     HolderName = string.Format("{0} {1}", client.FirstName, client.LastName),
                     PartnerDomain = session.Domain,

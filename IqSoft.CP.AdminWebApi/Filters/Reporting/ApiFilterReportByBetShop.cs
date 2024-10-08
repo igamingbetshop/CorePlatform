@@ -6,8 +6,8 @@ using System.Web;
 
 namespace IqSoft.CP.AdminWebApi.Filters.Reporting
 {
-	public class ApiFilterReportByBetShop
-	{
+	public class ApiFilterReportByBetShop : ApiFilterBase
+    {
 		public int? PartnerId { get; set; }
 
 		public DateTime BetDateFrom { get; set; }

@@ -29,6 +29,7 @@ namespace IqSoft.CP.DAL
             this.ClientBonus = new HashSet<ClientBonu>();
             this.ClientBonus1 = new HashSet<ClientBonu>();
             this.BonusProducts = new HashSet<BonusProduct>();
+            this.UserNotifications = new HashSet<UserNotification>();
         }
     
         public int Id { get; set; }
@@ -70,6 +71,7 @@ namespace IqSoft.CP.DAL
         public Nullable<int> Regularity { get; set; }
         public Nullable<int> DayOfWeek { get; set; }
         public Nullable<int> ReusingMaxCountInPeriod { get; set; }
+        public string Color { get; set; }
     
         public virtual AccountType AccountType { get; set; }
         public virtual AccountType AccountType1 { get; set; }
@@ -100,5 +102,7 @@ namespace IqSoft.CP.DAL
         public virtual ICollection<ClientBonu> ClientBonus1 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<BonusProduct> BonusProducts { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<UserNotification> UserNotifications { get; set; }
     }
 }

@@ -70,7 +70,13 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 							if (input.type == "PAYIN_COMPLETE" && data.transactionStatus == "COMPLETE")
 							{
 								if (paymentRequest.Type == (int)PaymentRequestTypes.Deposit)
-									clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
+								{
+									clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out List<int> userIds);
+                                    foreach (var uId in userIds)
+                                    {
+                                        PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                    }
+                                }
 								//else if (paymentRequest.Type == (int)PaymentRequestTypes.Withdraw)
 								//{
 								//	var resp = clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Approved, string.Empty,

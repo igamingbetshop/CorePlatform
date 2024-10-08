@@ -145,6 +145,7 @@ namespace IqSoft.CP.BLL.Services
             userSession.LogoutType = (int)LogoutTypes.Manual;
             Db.SaveChanges();
         }
+
         private void CheckCaptcha(int partnerId, string reCaptcha)
         {
             if (CacheManager.GetConfigKey(partnerId, Constants.PartnerKeys.AdminCaptchaEnabled) == "1")
@@ -157,6 +158,7 @@ namespace IqSoft.CP.BLL.Services
                 }
             }
         }
+
         public void BlockUserForce(int userId, int blockState = (int)UserStates.ForceBlock)
         {
             var currentTime = DateTime.UtcNow;
@@ -414,22 +416,25 @@ namespace IqSoft.CP.BLL.Services
             return userSetting;
         }
 
-        public void SaveUserConfiguration(int userId, string configName, string stringValue, decimal? numericValue)
+        public void SaveUserConfiguration(UserConfiguration configuration, bool checkPermission)
         {
-            CheckPermission(Constants.Permissions.ViewUserSetting);
-            CheckPermission(Constants.Permissions.EditUserSetting);
-
-            var dbConfig = Db.UserConfigurations.FirstOrDefault(x => x.UserId == userId && x.Name == configName);
+            if (checkPermission)
+            {
+                CheckPermission(Constants.Permissions.ViewUserSetting);
+                CheckPermission(Constants.Permissions.EditUserSetting);
+            }
+            var dbConfig = Db.UserConfigurations.FirstOrDefault(x => x.UserId == configuration.UserId && x.Name == configuration.Name);
             var currentTime = DateTime.UtcNow;
-            if (dbConfig==null)
+            if (dbConfig == null)
             {
                 Db.UserConfigurations.Add(new UserConfiguration
                 {
-                    UserId = userId,
-                    Name = configName,
+                    UserId = configuration.UserId,
+                    Name = configuration.Name,
                     CreatedBy = Identity.Id,
-                    StringValue = stringValue,
-                    NumericValue = numericValue,
+                    StringValue = configuration.StringValue,
+                    BooleanValue = configuration.BooleanValue,
+                    NumericValue = configuration.NumericValue,
                     CreationTime = currentTime,
                     LastUpdateTime = currentTime
                 });
@@ -442,18 +447,19 @@ namespace IqSoft.CP.BLL.Services
                     dbConfig.UserId,
                     dbConfig.CreatedBy,
                     dbConfig.Name,
+                    dbConfig.BooleanValue,
                     dbConfig.StringValue,
                     dbConfig.NumericValue
                 };
-
-                dbConfig.StringValue = stringValue;
-                dbConfig.NumericValue = numericValue;
+                dbConfig.BooleanValue = configuration.BooleanValue;
+                dbConfig.StringValue = configuration.StringValue;
+                dbConfig.NumericValue = configuration.NumericValue;
                 dbConfig.LastUpdateTime = currentTime;
                 dbConfig.CreatedBy = Identity.Id;
                 Db.SaveChanges();
                 SaveChangesWithHistory((int)ObjectTypes.UserConfiguration, dbConfig.UserId, JsonConvert.SerializeObject(oldValue), string.Empty);
             }
-            CacheManager.RemoveUserConfiguration(userId, configName);
+            CacheManager.RemoveUserConfiguration(configuration.UserId, configuration.Name);
         }
 
         public User AddUser(User user, bool checkPermission = true, AgentEmployeePermissionModel permission = null)
@@ -951,6 +957,7 @@ namespace IqSoft.CP.BLL.Services
                 ViewLog = accessList.Contains(Constants.Permissions.ViewReportByUserLog)
             };
         }
+
         public void UpdateUserImage(int userId, byte[] imageData)
         {
             Db.Users.Where(x => x.Id == userId).UpdateFromQuery(x => new User { ImageData = imageData });
@@ -982,9 +989,6 @@ namespace IqSoft.CP.BLL.Services
                 if (dbUser.UserName != user.UserName)
                     throw CreateException(LanguageId, Constants.Errors.InvalidUserName);
             }
-            var correctionConfiguration = CacheManager.GetUserConfiguration(dbUser.Id, Constants.UserConfigurations.CorrectonMaxAmount);
-            dbUser.CorrectionMaxAmount =  correctionConfiguration?.NumericValue;
-            dbUser.CorrectionMaxAmountCurrency = correctionConfiguration?.StringValue;
             var oldValue = JsonConvert.SerializeObject(dbUser.ToUserInfo());
             user.PasswordHash = dbUser.PasswordHash;
             if (!string.IsNullOrWhiteSpace(user.Password))
@@ -1048,15 +1052,32 @@ namespace IqSoft.CP.BLL.Services
                 dbUser.OddsType = user.OddsType;
                 CacheManager.RemoveUserSetting(dbUser.Id);
             }
-            if (user.CorrectionMaxAmount.HasValue)
+            if (user.UserConfigurations != null && user.UserConfigurations.Any())
             {
-                if (Identity.Id == dbUser.Id)
-                    throw CreateException(LanguageId, Constants.Errors.NotAllowed);
-                if (string.IsNullOrEmpty(user.CorrectionMaxAmountCurrency))
-                    throw CreateException(LanguageId, Constants.Errors.WrongCurrencyId);
-                dbUser.CorrectionMaxAmount = user.CorrectionMaxAmount;
-                dbUser.CorrectionMaxAmountCurrency = user.CorrectionMaxAmountCurrency;
-                SaveUserConfiguration(dbUser.Id, Constants.UserConfigurations.CorrectonMaxAmount, user.CorrectionMaxAmountCurrency, user.CorrectionMaxAmount);
+                foreach (var uc in user.UserConfigurations)
+                {
+                    if(uc.Name == UserConfigurations.CorrectonMaxAmount)
+                    {
+                        if (Identity.Id == dbUser.Id) continue;
+                        try
+                        {
+                            SaveUserConfiguration(uc, true);
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(ex);
+                        }
+                    }
+                    else if(uc.Name == UserConfigurations.DepositSubscription ||
+                            uc.Name == UserConfigurations.WithdrawSubscription ||
+                            uc.Name == UserConfigurations.RegistrationSubscription ||
+                            uc.Name == UserConfigurations.BonusSubscription ||
+                            uc.Name == UserConfigurations.KYCSubscription)
+                    {
+                        if (Identity.Id != dbUser.Id) continue;
+                        SaveUserConfiguration(uc, false);
+                    }
+                }
             }
             SaveChangesWithHistory((int)ObjectTypes.User, user.Id, oldValue);
 
@@ -1231,9 +1252,9 @@ namespace IqSoft.CP.BLL.Services
             return query.FirstOrDefault();
         }
 
-        public string GetUserPasswordRegex(int partnerId, int userId, int userType)
+        public string GetUserPasswordRegex(int partnerId, int userId, int userType, bool isRecovery = false)
         {
-            if (userId != Identity.Id)
+            if (userId != Identity.Id && !isRecovery)
             {
                 var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
@@ -1774,14 +1795,52 @@ namespace IqSoft.CP.BLL.Services
             if (clientInfo.State == (int)ClientInfoStates.Expired)
                 throw CreateException(LanguageId, Constants.Errors.TokenExpired);
             var user = Db.Users.First(x => x.Id == clientInfo.ObjectId);
-            var passwordReqex = GetUserPasswordRegex(user.PartnerId, user.Id, user.Type);
-            if (!Regex.IsMatch(user.Password, passwordReqex))
+            var passwordReqex = GetUserPasswordRegex(user.PartnerId, user.Id, user.Type, true);
+            if (!Regex.IsMatch(newPassword, passwordReqex))
                 throw CreateException(LanguageId, Constants.Errors.InvalidPassword);
             user.PasswordHash = CommonFunctions.ComputeUserPasswordHash(newPassword, user.Salt);
             user.LastUpdateTime = DateTime.UtcNow;
             clientInfo.State = (int)ClientInfoStates.Expired;
             Db.SaveChanges();
             return user;
+        }
+
+        public List<UserConfiguration> GetUserConfigurations(int userId)
+        {
+            var resp = Db.UserConfigurations.Where(x => x.UserId == userId).OrderBy(x => x.Name).ToList();
+            foreach(var uct in Constants.UserConfigurationTypes)
+            {
+                if(!resp.Any(x => x.Name == uct))
+                {
+                    resp.Add(new UserConfiguration
+                    {
+                        UserId = userId,
+                        Name = uct
+                    });
+                }
+            }
+            return resp;
+        }
+
+        public List<UserNotification> GetNotifications(int skipCount, int takeCount)
+        {
+            takeCount = Math.Min(takeCount, 100);
+            return Db.UserNotifications.Where(x => x.UserId == Identity.Id).OrderByDescending(x => x.Id).Skip(skipCount * takeCount).Take(takeCount).ToList();
+        }
+
+        public void ReadNotification(long notificationId)
+        {
+            var notification = Db.UserNotifications.FirstOrDefault(x => x.Id == notificationId);
+            if (notification == null)
+                throw CreateException(LanguageId, Constants.Errors.MessageNotFound);
+            if (notification.UserId != Identity.Id)
+                throw CreateException(LanguageId, Constants.Errors.NotAllowed);
+            if (notification.Status != (int)NotificationStates.Pending)
+                throw CreateException(LanguageId, Constants.Errors.NotAllowed);
+
+            notification.Status = (int)NotificationStates.Considered;
+            Db.SaveChanges();
+            CacheManager.DeleteUserNotificationsCount(notification.UserId);
         }
 
         #region UserDocument
@@ -2490,116 +2549,54 @@ namespace IqSoft.CP.BLL.Services
         public fnAgent UpdateAgent(int subAgentId, int state, string pass, out List<int> clientIds)
         {
             var currentDate = DateTime.UtcNow;
+            clientIds = new List<int>();
             var user = CacheManager.GetUserById(Identity.Id);
             if (user.Type == (int)UserTypes.AgentEmployee)
             {
                 CheckPermission(Constants.Permissions.CreateUser);
                 user = CacheManager.GetUserById(user.ParentId.Value);
             }
-            var subAgent = GetUserById(subAgentId);
-            if (subAgent == null)
+            var subAgent = GetUserById(subAgentId) ??
                 throw CreateException(Identity.LanguageId, Constants.Errors.UserNotFound);
-
             var parentAgent = CacheManager.GetUserById(subAgent.ParentId.Value);
-            if (!Enum.IsDefined(typeof(UserStates), state) || 
-                !subAgent.Path.Contains("/" + user.Id.ToString() + "/") ||
-                subAgent.State == (int)UserStates.Disabled || 
-               (state == (int)UserStates.Disabled && subAgent.State != (int)UserStates.Closed && subAgent.State != (int)UserStates.InactivityClosed) || 
-               (parentAgent.State != state && (parentAgent.State != (int)UserStates.ForceBlock && parentAgent.State != (int)UserStates.ForceBlockBySecurityCode) &&
-                CustomHelper.Greater((UserStates)parentAgent.State, (UserStates)state)))
+            var subAgentState = GetAgentState(subAgent.Id);
+            var parentAgentState = GetAgentState(parentAgent.Id);
+            if (!Enum.IsDefined(typeof(UserStates), state))
+                throw CreateException(Identity.LanguageId, Constants.Errors.WrongInputParameters);
+            if (!subAgent.Path.Contains("/" + user.Id.ToString() + "/"))
+                throw CreateException(Identity.LanguageId, Constants.Errors.UserNotFound);
+            if (subAgentState == (int)UserStates.Disabled ||
+               (state == (int)UserStates.Disabled && subAgentState != (int)UserStates.Closed && subAgentState != (int)UserStates.InactivityClosed) ||
+               (parentAgentState != state && (parentAgentState != (int)UserStates.ForceBlock && parentAgentState != (int)UserStates.ForceBlockBySecurityCode) &&
+                CustomHelper.Greater((UserStates)parentAgentState, (UserStates)state)))
                 throw CreateException(Identity.LanguageId, Constants.Errors.NotAllowed);
+            if (subAgentState == state)
+                return GetfnAgent(subAgentId);
 
-            clientIds = new List<int>();
             using (var documentBll = new DocumentBll(this))
+            using (var clientBll = new ClientBll(this))
             {
-                using (var clientBll = new ClientBll(this))
+                UpdateDownlineStates(subAgentId, state, documentBll, clientBll, out clientIds);
+                
+                if (!string.IsNullOrEmpty(pass))
                 {
-                    if (subAgent.State != state)
-                    {
-                        if ((subAgent.State != (int)UserStates.Closed && subAgent.State != (int)UserStates.InactivityClosed) || state == (int)UserStates.Disabled)
-                        {
-                            subAgent.State = state;
-                            Db.SaveChanges();
-                            if (state == (int)UserStates.Closed)
-                            {
-                                Db.UserSessions.Where(x => x.UserId == subAgent.Id && x.State == (int)SessionStates.Active).
-                                     UpdateFromQuery(x => new UserSession { State = (int)SessionStates.Inactive, EndTime = currentDate, LogoutType = (int)LogoutTypes.System });
-                            }
-                            else if (state == (int)UserStates.Disabled)
-                            {
-                                var userBalance = GetUserBalance(subAgent.Id);
-                                var userTransferInput = new TransferInput
-                                {
-                                    FromUserId = subAgent.Id,
-                                    UserId = subAgent.ParentId,
-                                    Amount = userBalance.Balance,
-                                    CurrencyId = subAgent.CurrencyId
-                                };
-                                CreateDebitOnUser(userTransferInput, documentBll);
-                                var levelLimits = JsonConvert.SerializeObject(Enum.GetValues(typeof(AgentLevels)).Cast<int>()
-                                                 .Where(x => x >= user.Level).Select(x => new { Level = x, Limit = 0 }).ToList());
-                                Db.UserSettings.Where(x => x.UserId == subAgent.Id).UpdateFromQuery(x => new UserSetting { LevelLimits = levelLimits, AgentMaxCredit = 0 });
-                            }
-                            Db.SaveChanges();
-
-                            CacheManager.RemoveUserSetting(subAgent.Id);
-                            if (subAgent.State == (int)UserStates.ForceBlock)
-                                CacheManager.RemoveUserFailedLoginCountFromCache(subAgent.Id);
-                            else if (subAgent.State == (int)UserStates.ForceBlockBySecurityCode)
-                                CacheManager.RemoveUserSecurityCodeCountFromCache(subAgent.Id);
-                            
-                            CacheManager.RemoveUserFromCache(subAgentId);
-                            subAgent = GetUserById(subAgentId);
-                            
-                            var clients = Db.Clients.Where(x => x.UserId == subAgent.Id && x.State != (int)ClientStates.Disabled).ToList();
-                            clients.ForEach(x =>
-                            {
-                                var cState = CustomHelper.MapUserStateToClient[subAgent.State];
-                                clientBll.SaveClientSetting(new ClientCustomSettings
-                                {
-                                    ClientId = x.Id,
-                                    ParentState = cState
-                                });
-                                if (cState == (int)ClientStates.Disabled)
-                                {
-                                    var balance = CacheManager.GetClientCurrentBalance(x.Id).Balances
-                                    .Where(y => y.TypeId != (int)AccountTypes.ClientBonusBalance &&
-                                                y.TypeId != (int)AccountTypes.ClientCompBalance &&
-                                                y.TypeId != (int)AccountTypes.ClientCoinBalance)
-                                    .Sum(y => y.Balance);
-                                    var clientCorrectionInput = new ClientCorrectionInput
-                                    {
-                                        Amount = balance,
-                                        CurrencyId = x.CurrencyId,
-                                        ClientId = x.Id
-                                    };
-                                    clientBll.CreateCreditCorrectionOnClient(clientCorrectionInput, documentBll, false);
-                                    clientBll.SaveClientSetting(new ClientCustomSettings
-                                    {
-                                        ClientId = x.Id,
-                                        MaxCredit = 0
-                                    });
-                                }
-                                else if (cState == (int)ClientStates.FullBlocked)
-                                    clientBll.LogoutClientById(x.Id, (int)LogoutTypes.Admin);
-                            });
-                            clientIds.AddRange(clients.Select(x => x.Id).ToList());
-
-                            UpdateDownlineStates(subAgentId, documentBll, clientBll, out List<int> dClientIds);
-                            clientIds.AddRange(dClientIds);
-                        }
-
-                    }
-                    if (!string.IsNullOrEmpty(pass))
-                    {
-                        subAgent.PasswordHash = CommonFunctions.ComputeUserPasswordHash(pass, subAgent.Salt);
-                        subAgent.PasswordChangedDate = GetServerDate();
-                        Db.SaveChanges();
-                        CacheManager.RemoveUserFromCache(subAgentId);
-                    }
-                    return Db.fn_Agent(subAgentId).FirstOrDefault(x => x.Id == subAgentId);
+                    subAgent.PasswordHash = CommonFunctions.ComputeUserPasswordHash(pass, subAgent.Salt);
+                    subAgent.PasswordChangedDate = GetServerDate();
+                    Db.SaveChanges();
+                    CacheManager.RemoveUserFromCache(subAgentId);
                 }
+                return GetfnAgent(subAgentId);
             }
+        }
+
+        private int GetAgentState(int agentId)
+        {
+            var agent = GetUserById(agentId) ??
+               throw CreateException(Identity.LanguageId, Constants.Errors.UserNotFound);
+            var agentParentState = CacheManager.GetUserSetting(agentId)?.ParentState;
+            if (agentParentState.HasValue && CustomHelper.Greater((UserStates)agentParentState.Value, (UserStates)agent.State))
+               return agentParentState.Value;
+            return agent.State;
         }
 
         public fnAgent GetfnAgent(int agentId)
@@ -2607,142 +2604,169 @@ namespace IqSoft.CP.BLL.Services
             return Db.fn_Agent(agentId).FirstOrDefault(x => x.Id == agentId);
         }
 
-        private void UpdateDownlineStates(int userId, DocumentBll documentBll, ClientBll clientBll, out List<int> clientIds)
+        private void UpdateDownlineStates(int userId, int state, DocumentBll documentBll, ClientBll clientBll, out List<int> clientIds)
         {
             var currentDate = DateTime.UtcNow;
+            clientIds = new List<int>();
+
             var user = GetUserById(userId);
             var path = "/" + userId + "/";
-            var downline = Db.Users.Where(x => x.Id != userId && x.Path.Contains(path)).ToList();
-            clientIds = new List<int>();
-            foreach (var agent in downline)
+            var clientState = CustomHelper.MapUserStateToClient[state];
+            var downlineAgents = Db.Users.Where(x => x.Path.Contains(path) && x.State != (int)UserStates.Disabled).OrderByDescending(x => x.Id).ToList();
+            foreach (var agent in downlineAgents)
             {
-                var us = Db.UserSettings.Where(x => x.UserId == agent.Id).FirstOrDefault();
-                if (us == null)
+                var agentState = agent.State;
+                var parentState = CacheManager.GetUserSetting(agent.Id)?.ParentState;
+                if (parentState.HasValue && CustomHelper.Greater((UserStates)parentState.Value, (UserStates)agentState))
+                    agentState = parentState.Value;
+                if (userId == agent.Id ||
+                   (state == (int)UserStates.Active && parentState.HasValue && parentState.Value == (int)UserStates.Suspended && agent.State != (int)UserStates.Suspended) ||
+                   (state == (int)UserStates.Suspended && (agentState == (int)UserStates.Active ||
+                   agentState == (int)UserStates.Suspended ||
+                   agentState == (int)UserStates.ForceBlock || agentState == (int)UserStates.ForceBlockBySecurityCode)) ||
+                  ((state == (int)UserStates.Closed || state == (int)UserStates.InactivityClosed) && agentState != (int)UserStates.Disabled) ||
+                    state == (int)UserStates.Disabled)
                 {
-                    us = new UserSetting { UserId = agent.Id, AllowOutright = false, AllowDoubleCommission = false };
-                    Db.UserSettings.Add(us);
-                }
-                var initialState = us.ParentState;
-                var parents = agent.Path.Split('/');
-                foreach (var sPId in parents)
-                {
-                    if (int.TryParse(sPId, out int pId) && pId != agent.Id)
+                    Db.UserSettings.Where(x => x.UserId == agent.Id).UpdateFromQuery(x => new UserSetting { ParentState = state });
+                    if (state == (int)UserStates.Closed || state == (int)UserStates.Disabled)
                     {
-                        var p = CacheManager.GetUserById(Convert.ToInt32(pId));
-                        if (us.ParentState == null || CustomHelper.Greater((UserStates)p.State, (UserStates)us.ParentState.Value))
-                            us.ParentState = p.State;
-                    }
-                }
-                Db.SaveChanges();
-                if(initialState != us.ParentState && us.ParentState == (int)UserStates.Disabled)
-                {
-                    Db.UserSessions.Where(x => x.UserId == agent.Id && x.State == (int)SessionStates.Active).
-                        UpdateFromQuery(x => new UserSession { State = (int)SessionStates.Inactive, EndTime = currentDate, LogoutType = (int)LogoutTypes.System });
-                }
-
-                CacheManager.RemoveUserSetting(agent.Id);
-                if (us.ParentState == (int)UserStates.ForceBlock)
-                    CacheManager.RemoveUserFailedLoginCountFromCache(agent.Id);
-                else if (us.ParentState == (int)UserStates.ForceBlockBySecurityCode)
-                    CacheManager.RemoveUserSecurityCodeCountFromCache(agent.Id);
-
-                CacheManager.RemoveUserFromCache(agent.Id);
-                var subAgent = GetUserById(agent.Id);
-
-                var clients = Db.Clients.Where(x => x.UserId == subAgent.Id && x.State != (int)ClientStates.Disabled).ToList();
-                clients.ForEach(x =>
-                {
-                    var cState = CustomHelper.MapUserStateToClient[subAgent.State];
-                    clientBll.SaveClientSetting(new ClientCustomSettings
-                    {
-                        ClientId = x.Id,
-                        ParentState = cState
-                    });
-                    if (cState == (int)ClientStates.Disabled)
-                    {
-                        var balance = CacheManager.GetClientCurrentBalance(x.Id).Balances
-                        .Where(y => y.TypeId != (int)AccountTypes.ClientBonusBalance &&
-                                    y.TypeId != (int)AccountTypes.ClientCompBalance &&
-                                    y.TypeId != (int)AccountTypes.ClientCoinBalance)
-                        .Sum(y => y.Balance);
-                        var clientCorrectionInput = new ClientCorrectionInput
+                        Db.UserSessions.Where(x => x.UserId == userId && x.State == (int)SessionStates.Active)
+                                       .UpdateFromQuery(x => new UserSession { State = (int)SessionStates.Inactive, EndTime = currentDate, LogoutType = (int)LogoutTypes.System });
+                        if (state == (int)UserStates.Disabled)
                         {
-                            Amount = balance,
-                            CurrencyId = x.CurrencyId,
-                            ClientId = x.Id
-                        };
-                        clientBll.CreateCreditCorrectionOnClient(clientCorrectionInput, documentBll, false);
-                        clientBll.SaveClientSetting(new ClientCustomSettings
-                        {
-                            ClientId = x.Id,
-                            MaxCredit = 0
-                        });
+                            var userBalance = GetUserBalance(user.Id);
+                            var userTransferInput = new TransferInput
+                            {
+                                FromUserId = userId,
+                                UserId = user.ParentId,
+                                Amount = userBalance.Balance,
+                                CurrencyId = user.CurrencyId
+                            };
+                            CreateDebitOnUser(userTransferInput, documentBll);
+                            var levelLimits = JsonConvert.SerializeObject(Enum.GetValues(typeof(AgentLevels)).Cast<int>()
+                                             .Where(x => x >= user.Level).Select(x => new { Level = x, Limit = 0 }).ToList());
+                            Db.UserSettings.Where(x => x.UserId == userId).UpdateFromQuery(x => new UserSetting { LevelLimits = levelLimits, AgentMaxCredit = 0 });
+                        }
                     }
-                    else if (cState == (int)ClientStates.FullBlocked)
-                        clientBll.LogoutClientById(x.Id, (int)LogoutTypes.Admin);
-                });
-                clientIds.AddRange(clients.Select(x => x.Id).ToList());
+                    if (agent.Id == userId)
+                        agent.State = state;
+                    Db.SaveChanges();
+                    CacheManager.RemoveUserSetting(agent.Id);
+                    CacheManager.RemoveUserFromCache(agent.Id);
+                    if (parentState == (int)UserStates.ForceBlock)
+                        CacheManager.RemoveUserFailedLoginCountFromCache(agent.Id);
+                    else if (parentState == (int)UserStates.ForceBlockBySecurityCode)
+                        CacheManager.RemoveUserSecurityCodeCountFromCache(agent.Id);
+                }
+                clientIds.AddRange(ChangeAgentClientsState(agent.Id, clientState, clientBll, documentBll));
             }
         }
 
+        private List<int> ChangeAgentClientsState(int agentId, int clientState, ClientBll clientBll, DocumentBll documentBll)
+        {
+            var clients = Db.Clients.Where(x => x.UserId == agentId && x.State != (int)ClientStates.Disabled).ToList();         
+            clients.ForEach(x =>
+            {
+                var currState = x.State;
+                var st = CacheManager.GetClientSettingByName(x.Id, ClientSettings.ParentState);
+                if (st.NumericValue.HasValue && CustomHelper.Greater((ClientStates)st.NumericValue, (ClientStates)currState))
+                    currState = Convert.ToInt32(st.NumericValue.Value);
+
+                if ((clientState == (int)ClientStates.Active && currState == (int)ClientStates.Suspended && x.State != (int)ClientStates.Suspended) ||
+                (clientState == (int)ClientStates.Suspended && (currState == (int)ClientStates.Active || currState == (int)ClientStates.ForceBlock)) ||
+                  ((clientState == (int)ClientStates.FullBlocked) && currState != (int)ClientStates.Disabled) ||
+                    clientState == (int)ClientStates.Disabled)
+                {
+                    var clientSetting = new ClientCustomSettings
+                    {
+                        ClientId = x.Id,
+                        ParentState = clientState
+                    };
+                    clientBll.SaveClientSetting(clientSetting);
+                }
+                if (clientState == (int)ClientStates.Disabled)
+                {
+                    var balance = CacheManager.GetClientCurrentBalance(x.Id).Balances
+                    .Where(y => y.TypeId != (int)AccountTypes.ClientBonusBalance &&
+                                y.TypeId != (int)AccountTypes.ClientCompBalance &&
+                                y.TypeId != (int)AccountTypes.ClientCoinBalance)
+                    .Sum(y => y.Balance);
+                    var clientCorrectionInput = new ClientCorrectionInput
+                    {
+                        Amount = balance,
+                        CurrencyId = x.CurrencyId,
+                        ClientId = x.Id
+                    };
+                    clientBll.CreateCreditCorrectionOnClient(clientCorrectionInput, documentBll, false);
+                    var clientSetting = new ClientCustomSettings
+                    {
+                        ClientId = x.Id,
+                        MaxCredit = 0
+                    };
+                    clientBll.SaveClientSetting(clientSetting);
+                }
+                else if (clientState == (int)ClientStates.FullBlocked)
+                    clientBll.LogoutClientById(x.Id, (int)LogoutTypes.Admin);
+                CacheManager.RemoveClientFromCache(x.Id);
+            });
+            return clients.Select(x => x.Id).ToList();
+        }
+     
         public List<CommissionItem> GetAgentTurnoverProfit(long fromDate, long toDate)
         {
             var result = new List<CommissionItem>();
             using (var dwh = new IqSoftDataWarehouseEntities())
             {
                 var currentTime = DateTime.UtcNow;
-                var clients = dwh.fn_ProfitByClientProduct(fromDate, toDate).ToList();
+                var clientProducts = dwh.fn_ProfitByClientProduct(fromDate, toDate).ToList();
 
-                foreach (var client in clients)
+                foreach (var clientProduct in clientProducts)
                 {
-                    var clientCommissionTree = CacheManager.GetClientProductCommissionTree(client.ClientId, client.ProductId);
-                    var senderId = client.AgentId.Value;
+                    var clientCommissionTree = CacheManager.GetClientProductCommissionTree(clientProduct.ClientId, clientProduct.ProductId);
+                    var senderId = clientProduct.AgentId.Value;
                     decimal previousItemInitialPercent = 0;
                     for (int i = clientCommissionTree.Count - 1; i >= 0; i--)
                     {
                         if (clientCommissionTree[i].AgentId != null && senderId != clientCommissionTree[i].AgentId)
                             senderId = CacheManager.GetUserById(clientCommissionTree[i].AgentId.Value).ParentId.Value;
                         decimal percent = 0;
-                        if (!decimal.TryParse(clientCommissionTree[i].TurnoverPercent, out percent))
+                        if (!decimal.TryParse(clientCommissionTree[i].TurnoverSharePercent, out percent))
                         {
-                            var percents = JsonConvert.DeserializeObject<List<TurnoverPercent>>(clientCommissionTree[i].TurnoverPercent);
-                            var p = percents.FirstOrDefault(x => client.SelectionsCount >= x.FromCount && client.SelectionsCount <= x.ToCount);
+                            var percents = string.IsNullOrEmpty(clientCommissionTree[i].TurnoverSharePercent) ? new List<TurnoverPercent>() :
+                                JsonConvert.DeserializeObject<List<TurnoverPercent>>(clientCommissionTree[i].TurnoverSharePercent);
+                            var p = percents.FirstOrDefault(x => clientProduct.SelectionsCount >= x.FromCount && clientProduct.SelectionsCount <= x.ToCount);
                             percent = p == null ? 0 : p.Percent;
                         }
                         var finalPercent = percent - previousItemInitialPercent;
                         previousItemInitialPercent = percent;
-                        if (finalPercent > 0)
+
+                        var item = result.FirstOrDefault(x => x.RecieverAgentId == clientCommissionTree[i].AgentId &&
+                        x.RecieverClientId == clientCommissionTree[i].ClientId &&
+                        x.SenderAgentId == senderId && x.ProductId == clientProduct.ProductId);
+                        if (item != null)
                         {
-                            var item = result.FirstOrDefault(x => x.RecieverAgentId == clientCommissionTree[i].AgentId &&
-                            x.RecieverClientId == clientCommissionTree[i].ClientId &&
-                            x.SenderAgentId == senderId && x.ProductId == client.ProductId);
-                            if (item != null)
+                            item.TotalBetAmount += clientProduct.TotalBetAmount ?? 0;
+                            item.TotalWinAmount += clientProduct.TotalWinAmount ?? 0;
+                            item.TotalProfit += (clientProduct.TotalBetAmount ?? 0) * Math.Max(finalPercent, 0) / 100;
+                            item.TotalBetsCount += clientProduct.TotalBetsCount ?? 0;
+                            item.TotalUnsettledBetsCount += clientProduct.TotalUnsettledBetsCount ?? 0;
+                            item.TotalDeletedBetsCount += clientProduct.TotalDeletedBetsCount ?? 0;
+                        }
+                        else
+                        {
+                            result.Add(new CommissionItem
                             {
-                                item.TotalBetAmount += client.TotalBetAmount ?? 0;
-                                item.TotalWinAmount += client.TotalWinAmount ?? 0;
-                                item.TotalProfit += (client.TotalBetAmount ?? 0) * finalPercent / 100;
-                                item.TotalBetsCount += client.TotalBetsCount ?? 0;
-                                item.TotalUnsettledBetsCount += client.TotalUnsettledBetsCount ?? 0;
-                                item.TotalDeletedBetsCount += client.TotalDeletedBetsCount ?? 0;
-                            }
-                            else
-                            {
-                                var productGroupId = Db.fn_ProductGroup(client.ProductId).FirstOrDefault()?.Id;
-                                result.Add(new CommissionItem
-                                {
-                                    RecieverAgentId = clientCommissionTree[i].AgentId,
-                                    RecieverClientId = clientCommissionTree[i].ClientId,
-                                    SenderAgentId = senderId,
-                                    TotalBetAmount = client.TotalBetAmount ?? 0,
-                                    TotalWinAmount = client.TotalWinAmount ?? 0,
-                                    TotalProfit = (client.TotalBetAmount ?? 0) * finalPercent / 100,
-                                    ProductId = client.ProductId,
-                                    ProductGroupId = productGroupId,
-                                    TotalBetsCount = client.TotalBetsCount ?? 0,
-                                    TotalUnsettledBetsCount = client.TotalUnsettledBetsCount ?? 0,
-                                    TotalDeletedBetsCount = client.TotalDeletedBetsCount ?? 0
-                                });
-                            }
+                                RecieverAgentId = clientCommissionTree[i].AgentId,
+                                RecieverClientId = clientCommissionTree[i].ClientId,
+                                SenderAgentId = senderId,
+                                TotalBetAmount = clientProduct.TotalBetAmount ?? 0,
+                                TotalWinAmount = clientProduct.TotalWinAmount ?? 0,
+                                TotalProfit = (clientProduct.TotalBetAmount ?? 0) * Math.Max(finalPercent, 0) / 100,
+                                ProductId = clientProduct.ProductId,
+                                TotalBetsCount = clientProduct.TotalBetsCount ?? 0,
+                                TotalUnsettledBetsCount = clientProduct.TotalUnsettledBetsCount ?? 0,
+                                TotalDeletedBetsCount = clientProduct.TotalDeletedBetsCount ?? 0
+                            });
                         }
                     }
                 }
@@ -2758,11 +2782,11 @@ namespace IqSoft.CP.BLL.Services
             }
         }
 
-        public List<DataWarehouse.Document> GetAgentTransfers(long fromDate, long toDate)
+        public List<DataWarehouse.Document> GetAgentTransfers(long fromDate, long toDate, DateTime toDateTime)
         {
             using (var dwh = new IqSoftDataWarehouseEntities())
             {
-                return dwh.Documents.Where(x => x.Date >= fromDate && x.Date < toDate && 
+                return dwh.Documents.Where(x => x.Date >= fromDate && x.CreationTime < toDateTime && 
                     (x.OperationTypeId == (int)OperationTypes.DebitCorrectionOnClient || x.OperationTypeId == (int)OperationTypes.CreditCorrectionOnClient || 
                     x.OperationTypeId == (int)OperationTypes.DebitCorrectionOnUser || x.OperationTypeId == (int)OperationTypes.CreditCorrectionOnUser)).ToList();
             }

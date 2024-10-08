@@ -1,4 +1,5 @@
-﻿using System;
+﻿using IqSoft.CP.Common.Models.WebSiteModels.Bonuses;
+using System;
 using System.Collections.Generic;
 
 namespace IqSoft.CP.Common.Models.WebSiteModels
@@ -20,7 +21,7 @@ namespace IqSoft.CP.Common.Models.WebSiteModels
         public int StatusId { get; set; }
         public int TypeId { get; set; }
         public int? TurnoverCount { get; set; }
-        public List<KeyValuePair<int, string>> ConnectedBonuses { get; set; }
+        public List<ApiConnectedBonusItem> ConnectedBonuses { get; set; }
 
         //
         //public int PlayerId { get; set; }

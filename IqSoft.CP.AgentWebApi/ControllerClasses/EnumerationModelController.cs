@@ -77,6 +77,10 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                     return GetBetShopGroupsEnum(identity, log);
                 case "GetOperationTypesEnum":
                     return GetOperationTypesEnum(identity, log);
+                case "GetBonusTypesEnum":
+                    return GetTypesEnumByType(nameof(BonusTypes), identity, log);
+                case "GetClientBonusStatusesEnum":
+                    return GetTypesEnumByType(nameof(ClientBonusStatuses), identity, log);
             }
 
             throw BaseBll.CreateException(string.Empty, Constants.Errors.MethodNotFound);

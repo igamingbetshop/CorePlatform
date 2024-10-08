@@ -585,14 +585,18 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                         var clientRegistrationInput = new ClientRegistrationInput
                         {
                             ClientData = input.MapToClient(),
-                            RegistrationType = (int)Constants.RegisterTypes.Full,
+                            RegistrationType = (int)Constants.RegisterTypes.Betshop,
                             IsFromAdmin = true,
                             GeneratedUsername = generatedUsername,
                             BetShopId = identity.BetShopId,
                             BetShopPaymentSystems = input.BetShopPaymentSystems
                         };
                         clientRegistrationInput.ClientData.RegistrationIp = apiRequestBase.Ip ?? Constants.DefaultIp;
-                        var client = clientBl.RegisterClient(clientRegistrationInput);
+                        var client = clientBl.RegisterClient(clientRegistrationInput, out List<int> userIds);
+                        foreach (var uId in userIds)
+                        {
+                            Helpers.Helpers.InvokeMessage("NotificationsCount", uId);
+                        }
                         var response = client.MapToApiLoginClientOutput(apiRequestBase.TimeZone);
                         var verificationPlatform = CacheManager.GetConfigKey(client.PartnerId, Constants.PartnerKeys.VerificationPlatform);
                         if (!string.IsNullOrEmpty(verificationPlatform) && int.TryParse(verificationPlatform, out int verificationPatformId))
@@ -1008,10 +1012,17 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                     {
                         using (var notificationBl = new NotificationBll(documentBl))
                         {
+                            var userIds = new List<int>();
                             clientBl.ChangeWithdrawRequestState(input.PaymentRequestId, PaymentRequestStates.PayPanding,
-                            input.Comment, apiRequestBase.CashDeskId, input.CashierId, true, string.Empty, documentBl, notificationBl);
+                            input.Comment, apiRequestBase.CashDeskId, input.CashierId, true, string.Empty, documentBl, notificationBl, out userIds);
+                            
                             var resp = clientBl.ChangeWithdrawRequestState(input.PaymentRequestId, PaymentRequestStates.Approved,
-                            input.Comment, apiRequestBase.CashDeskId, input.CashierId, true, string.Empty, documentBl, notificationBl, false, true);
+                            input.Comment, apiRequestBase.CashDeskId, input.CashierId, true, string.Empty, documentBl, notificationBl, out userIds, false, true);
+
+                            foreach (var uId in userIds)
+                            {
+                                Helpers.Helpers.InvokeMessage("NotificationsCount", uId);
+                            }
 
                             clientBl.PayWithdrawFromBetShop(resp, apiRequestBase.CashDeskId, input.CashierId, documentBl);
                             Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}", Constants.CacheItems.ClientBalance, resp.ClientId));
@@ -1704,7 +1715,14 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                             var autoConfirmWithdrawMaxAmount = BaseBll.ConvertCurrency(partner.CurrencyId, betShop.CurrencyId, partner.AutoConfirmWithdrawMaxAmount);
                             var resp = new ChangeWithdrawRequestStateOutput();
                             if (autoConfirmWithdrawMaxAmount > input.Amount)
-                                resp = clientBll.ChangeWithdrawRequestState(document.Id, PaymentRequestStates.Confirmed, "", cashDesk.Id, null, true, string.Empty, documentBll, notificationBll);
+                            {
+                                resp = clientBll.ChangeWithdrawRequestState(document.Id, PaymentRequestStates.Confirmed, "", cashDesk.Id, 
+                                    null, true, string.Empty, documentBll, notificationBll, out List<int> userIds);
+                                foreach (var uId in userIds)
+                                {
+                                    Helpers.Helpers.InvokeMessage("NotificationsCount", uId);
+                                }
+                            }
                             //resp = clientBll.ChangeWithdrawRequestState(document.Id, PaymentRequestStates.PayPanding, "", cashDesk.Id, null, true, string.Empty, documentBll, notificationBll);
                             //resp = clientBll.ChangeWithdrawRequestState(document.Id, PaymentRequestStates.Approved, "", cashDesk.Id, null, true, string.Empty, documentBll, notificationBll, false, true);
                             //clientBll.PayWithdrawFromPaymentSystem(resp, documentBll, notificationBll);
@@ -1838,8 +1856,8 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                 var input = JsonConvert.DeserializeObject<ReportByBetInput>(apiRequestBase.RequestObject);
                 using (var repaymentSystemBl = new PaymentSystemBll(identity, WebApiApplication.DbLogger))
                 {
-                    var fromDate = input.FromDate.Value.GetUTCDateFromGmt(apiRequestBase.TimeZone);
-                    var toDate = input.ToDate.Value.GetUTCDateFromGmt(apiRequestBase.TimeZone);
+                    var fromDate = input.FromDate.Value.GetUTCDateFromGMT(apiRequestBase.TimeZone);
+                    var toDate = input.ToDate.Value.GetUTCDateFromGMT(apiRequestBase.TimeZone);
                     if ((toDate - fromDate).TotalDays > 30)
                         throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.WrongParameters);
                     var cashDesk = CacheManager.GetCashDeskById(apiRequestBase.CashDeskId);
@@ -1933,8 +1951,8 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                 var input = JsonConvert.DeserializeObject<ApiCashierInput>(apiRequestBase.RequestObject);
                 using (var reportBl = new ReportBll(identity, WebApiApplication.DbLogger))
                 {
-                    var startTime = input.FromDate.GetUTCDateFromGmt(apiRequestBase.TimeZone);
-                    var endTime = input.ToDate.GetUTCDateFromGmt(apiRequestBase.TimeZone);
+                    var startTime = input.FromDate.GetUTCDateFromGMT(apiRequestBase.TimeZone);
+                    var endTime = input.ToDate.GetUTCDateFromGMT(apiRequestBase.TimeZone);
                     if (startTime < DateTime.UtcNow.AddDays(-8))
                         throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.WrongParameters);
 
@@ -1984,10 +2002,10 @@ namespace IqSoft.CP.BetShopGatewayWebApi.Controllers
                     {
                         var currentTime = DateTime.UtcNow;
                         var fromDate = (input.FromDate == null || input.FromDate == DateTime.MinValue) ? currentTime.AddDays(-1) :
-                            input.FromDate.GetUTCDateFromGmt(apiRequestBase.TimeZone);
+                            input.FromDate.GetUTCDateFromGMT(apiRequestBase.TimeZone);
 
                         var toDate = (input.ToDate == null || input.ToDate == DateTime.MinValue) ? currentTime.AddDays(1) :
-                            input.ToDate.GetUTCDateFromGmt(apiRequestBase.TimeZone);
+                            input.ToDate.GetUTCDateFromGMT(apiRequestBase.TimeZone);
                         if (input.LastShiftsNumber != null)
                         {
                             if (input.LastShiftsNumber < 1 || input.LastShiftsNumber > 3)

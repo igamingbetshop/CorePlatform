@@ -72,6 +72,8 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     return SaveJackpot(JsonConvert.DeserializeObject<ApiJackpot>(request.RequestData), identity, log);
                 case "GetJackpots":
                     return GetJackpots(JsonConvert.DeserializeObject<ApiJackpot>(request.RequestData), identity, log);
+                case "GetTournamentLeaderboard":
+                    return GetTournamentLeaderboard(JsonConvert.DeserializeObject<ApiFilterBonus>(request.RequestData), identity, log);
             }
             throw BaseBll.CreateException(string.Empty, Constants.Errors.MethodNotFound);
         }
@@ -102,10 +104,9 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var bonusService = new BonusService(identity, log))
             {
-
                 return new ApiResponseBase
                 {
-                    ResponseObject = bonusService.GetClientAvailableBonus(input.ClientId ?? 0,input.Type, true).Select(x => x.MapToApiBonus(identity.TimeZone)).ToList()
+                    ResponseObject = bonusService.GetClientAvailableBonuses(input.ClientId ?? 0,input.Type, true).Select(x => x.MapToApiBonus(identity.TimeZone)).ToList()
                 };
             }
         }
@@ -150,7 +151,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.WrongInputParameters);
             using (var bonusBl = new BonusService(identity, log))
             {
-                var input = createBonusInput.MapToBonus();
+                var input = createBonusInput.MapToBonus(identity.TimeZone);
                 if (createBonusInput.BonusTypeId == (int)BonusTypes.CampaignWagerSport ||
                     createBonusInput.BonusTypeId == (int)BonusTypes.CampaignWagerCasino ||
                     createBonusInput.BonusTypeId == (int)BonusTypes.CampaignFreeBet)
@@ -183,7 +184,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
 
             using (var bonusBl = new BonusService(identity, log))
             {
-                var input = inp.MapToBonus();
+                var input = inp.MapToBonus(identity.TimeZone);
                 if (inp.BonusTypeId == (int)BonusTypes.CampaignWagerSport ||
                     inp.BonusTypeId == (int)BonusTypes.CampaignFreeBet)
                 {
@@ -207,7 +208,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             }
         }
 
-        public static ApiResponseBase DeleteBonus(int bonusId, SessionIdentity identity, ILog log)
+        private static ApiResponseBase DeleteBonus(int bonusId, SessionIdentity identity, ILog log)
         {
 
             using (var bonusBl = new BonusService(identity, log))
@@ -223,7 +224,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             }
         }
 
-        public static ApiResponseBase ClaimBonusForClients(ApiClientBonusInput input, SessionIdentity identity, ILog log)
+        private static ApiResponseBase ClaimBonusForClients(ApiClientBonusInput input, SessionIdentity identity, ILog log)
         {
             var clients = new List<string>();
             try
@@ -307,13 +308,34 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             return new ApiResponseBase();
         }
 
-        public static ApiResponseBase CloneBonus(int bonusId, SessionIdentity identity, ILog log)
+        private static ApiResponseBase CloneBonus(int bonusId, SessionIdentity identity, ILog log)
         {
             using (var bonusBl = new BonusService(identity, log))
             {
                 return new ApiResponseBase
                 {
                     ResponseObject = bonusBl.CloneBonus(bonusId).MapToApiBonus(identity.TimeZone)
+                };
+            }
+        }
+
+        private static ApiResponseBase GetTournamentLeaderboard(ApiFilterBonus input, SessionIdentity identity, ILog log)
+        {
+            using (var bonusBl = new BonusService(identity, log))
+            {
+                var bonus = bonusBl.GetBonusById(null, input.BonusId.Value);
+                if (bonus == null)
+                    throw BaseBll.CreateException(input.LanguageId, Constants.Errors.PartnerNotFound);
+
+                var response = CacheManager.GetTournamentLeaderboard(input.BonusId.Value);
+                var resp = response.Select(x => x.ToApiLeaderboardItem(identity.CurrencyId)).OrderByDescending(x => x.Points).ThenBy(x => x.Name).ToList();
+                foreach (var item in resp)
+                {
+                    item.Order = resp.IndexOf(item) + 1;
+                }
+                return new ApiResponseBase
+                {
+                    ResponseObject = resp
                 };
             }
         }
@@ -496,7 +518,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             {
                 return new ApiResponseBase
                 {
-                    ResponseObject = bonusBl.SaveJackpot(apiJackpot.MapToJackpot()).MapToApiJackpot(identity.TimeZone)
+                    ResponseObject = bonusBl.SaveJackpot(apiJackpot.MapToJackpot(identity.TimeZone)).MapToApiJackpot(identity.TimeZone)
                 };
             }
         }

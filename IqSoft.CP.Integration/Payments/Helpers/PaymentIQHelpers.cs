@@ -187,8 +187,9 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             }
         }
 
-        public static PaymentResponse PayPayoutRequest(PaymentRequest paymentRequest, SessionIdentity session, ILog log)
+        public static PaymentResponse PayPayoutRequest(PaymentRequest paymentRequest, SessionIdentity session, ILog log, out List<int> userIds)
         {
+            userIds = new List<int>();
             using (var paymentSystemBl = new PaymentSystemBll(session, log))
             {
                 using (var clientBl = new ClientBll(paymentSystemBl))
@@ -201,7 +202,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                             var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, paymentRequest.PaymentSystemId,
                                                                                                paymentRequest.CurrencyId, (int)PaymentRequestTypes.Withdraw);
                             clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.PayPanding, string.Empty,
-                                                                null, null, true, paymentRequest.Parameters, documentBl, notificationBl, false);
+                                                                null, null, true, paymentRequest.Parameters, documentBl, notificationBl, out userIds, false);
 
                             var paymentSystem = CacheManager.GetPaymentSystemById(paymentRequest.PaymentSystemId);
                             var url = CacheManager.GetPartnerPaymentSystemByKey(client.PartnerId, paymentRequest.PaymentSystemId, Constants.PartnerKeys.PaymentIQPayoutApiUrl);

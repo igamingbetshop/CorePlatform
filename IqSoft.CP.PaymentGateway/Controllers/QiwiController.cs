@@ -179,8 +179,12 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                             BaseHelpers.BroadcastDepositLimit(info);
                         }
 
-						clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
-						response = new OutputBase
+						clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out List<int> userIds);
+                        foreach (var uId in userIds)
+                        {
+                            PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                        }
+                        response = new OutputBase
 						{
 							OsmpTxnId = input.Txn_id,
 							Sum = input.Sum,

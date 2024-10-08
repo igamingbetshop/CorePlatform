@@ -106,7 +106,6 @@ namespace IqSoft.CP.DAL
         public virtual DbSet<ClientSecurityAnswer> ClientSecurityAnswers { get; set; }
         public virtual DbSet<UserSetting> UserSettings { get; set; }
         public virtual DbSet<PromotionLanguageSetting> PromotionLanguageSettings { get; set; }
-        public virtual DbSet<AgentProfit> AgentProfits { get; set; }
         public virtual DbSet<NotificationService> NotificationServices { get; set; }
         public virtual DbSet<ProductCountrySetting> ProductCountrySettings { get; set; }
         public virtual DbSet<ClientPaymentInfo> ClientPaymentInfoes { get; set; }
@@ -132,7 +131,6 @@ namespace IqSoft.CP.DAL
         public virtual DbSet<BannerLanguageSetting> BannerLanguageSettings { get; set; }
         public virtual DbSet<AmountCurrencySetting> AmountCurrencySettings { get; set; }
         public virtual DbSet<GameProviderCurrencySetting> GameProviderCurrencySettings { get; set; }
-        public virtual DbSet<UserConfiguration> UserConfigurations { get; set; }
         public virtual DbSet<PartnerLanguageSetting> PartnerLanguageSettings { get; set; }
         public virtual DbSet<Account> Accounts { get; set; }
         public virtual DbSet<Translation> Translations { get; set; }
@@ -148,13 +146,11 @@ namespace IqSoft.CP.DAL
         public virtual DbSet<GameProvider> GameProviders { get; set; }
         public virtual DbSet<PaymentSystem> PaymentSystems { get; set; }
         public virtual DbSet<PopupSetting> PopupSettings { get; set; }
-        public virtual DbSet<Product> Products { get; set; }
         public virtual DbSet<ClientMessageState> ClientMessageStates { get; set; }
         public virtual DbSet<Client> Clients { get; set; }
         public virtual DbSet<ClientPaymentSetting> ClientPaymentSettings { get; set; }
         public virtual DbSet<ClientInfo> ClientInfoes { get; set; }
         public virtual DbSet<ClientMessage> ClientMessages { get; set; }
-        public virtual DbSet<TriggerSetting> TriggerSettings { get; set; }
         public virtual DbSet<AdminMenu> AdminMenus { get; set; }
         public virtual DbSet<PartnerPaymentSetting> PartnerPaymentSettings { get; set; }
         public virtual DbSet<ClientBonu> ClientBonus { get; set; }
@@ -172,6 +168,11 @@ namespace IqSoft.CP.DAL
         public virtual DbSet<JackpotSetting> JackpotSettings { get; set; }
         public virtual DbSet<Promotion> Promotions { get; set; }
         public virtual DbSet<Segment> Segments { get; set; }
+        public virtual DbSet<TriggerSetting> TriggerSettings { get; set; }
+        public virtual DbSet<Product> Products { get; set; }
+        public virtual DbSet<AgentProfit> AgentProfits { get; set; }
+        public virtual DbSet<UserNotification> UserNotifications { get; set; }
+        public virtual DbSet<UserConfiguration> UserConfigurations { get; set; }
     
         public virtual int sp_GetBetShopLock(Nullable<int> id)
         {
@@ -546,16 +547,6 @@ namespace IqSoft.CP.DAL
             return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnProductCategory>("[IqSoftCorePlatformEntities].[fn_ProductCategory](@languageId)", languageIdParameter);
         }
     
-        [DbFunction("IqSoftCorePlatformEntities", "fn_ProductGroup")]
-        public virtual IQueryable<fnProductGroup> fn_ProductGroup(Nullable<int> productId)
-        {
-            var productIdParameter = productId.HasValue ?
-                new ObjectParameter("productId", productId) :
-                new ObjectParameter("productId", typeof(int));
-    
-            return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnProductGroup>("[IqSoftCorePlatformEntities].[fn_ProductGroup](@productId)", productIdParameter);
-        }
-    
         [DbFunction("IqSoftCorePlatformEntities", "fn_RealTimeInfo")]
         public virtual IQueryable<fnRealTimeInfo> fn_RealTimeInfo(string currency)
         {
@@ -761,20 +752,6 @@ namespace IqSoft.CP.DAL
                 new ObjectParameter("id", typeof(long));
     
             return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("sp_GetAccountLockById", idParameter);
-        }
-    
-        [DbFunction("IqSoftCorePlatformEntities", "fn_ClientProductCommission")]
-        public virtual IQueryable<fnClientProductCommission> fn_ClientProductCommission(Nullable<int> productId, Nullable<int> clientId)
-        {
-            var productIdParameter = productId.HasValue ?
-                new ObjectParameter("ProductId", productId) :
-                new ObjectParameter("ProductId", typeof(int));
-    
-            var clientIdParameter = clientId.HasValue ?
-                new ObjectParameter("ClientId", clientId) :
-                new ObjectParameter("ClientId", typeof(int));
-    
-            return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnClientProductCommission>("[IqSoftCorePlatformEntities].[fn_ClientProductCommission](@ProductId, @ClientId)", productIdParameter, clientIdParameter);
         }
     
         [DbFunction("IqSoftCorePlatformEntities", "fn_ProductCommission")]

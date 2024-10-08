@@ -10,6 +10,8 @@ namespace IqSoft.CP.Common.Models.WebSiteModels.Filters
 
         public int? PaymentSystemId { get; set; }
 
+        public string CurrencyId { get; set; }
+
         public int? Status { get; set; }
 
         public DateTime? CreatedFrom { get; set; }

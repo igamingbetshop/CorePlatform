@@ -63,7 +63,11 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                         {
                             request.ExternalTransactionId = input.transactionReference;
                             paymentSystemBl.ChangePaymentRequestDetails(request);
-							clientBl.ApproveDepositFromPaymentSystem(request, false);
+							clientBl.ApproveDepositFromPaymentSystem(request, false, out List<int> userIds);
+                            foreach (var uId in userIds)
+                            {
+                                PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                            }
                             PaymentHelpers.RemoveClientBalanceFromCache(request.ClientId.Value);
                             BaseHelpers.BroadcastBalance(request.ClientId.Value);
                             return new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent("OK", Encoding.UTF8) };
@@ -135,10 +139,15 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                 {
                                     request.ExternalTransactionId = input.TransactionReference;
                                     var resp = clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Approved, 
-                                        string.Empty, request.CashDeskId, null, true, request.Parameters, documentBl, notificationBl);
+                                        string.Empty, request.CashDeskId, null, true, request.Parameters, documentBl, notificationBl, out List<int> userIds);
                                     clientBl.PayWithdrawFromPaymentSystem(resp, documentBl, notificationBl);
                                     PaymentHelpers.RemoveClientBalanceFromCache(request.ClientId.Value);
                                     BaseHelpers.BroadcastBalance(request.ClientId.Value);
+                                    foreach (var uId in userIds)
+                                    {
+                                        PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                    }
+
                                     return new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent("OK", Encoding.UTF8) };
                                 }
                                 return new HttpResponseMessage { StatusCode = HttpStatusCode.Conflict, Content = new StringContent("FAILED", Encoding.UTF8) };

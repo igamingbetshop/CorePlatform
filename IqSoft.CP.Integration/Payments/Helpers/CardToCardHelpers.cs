@@ -11,6 +11,7 @@ using IqSoft.CP.Integration.Payments.Models.CardToCard;
 using log4net;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 
 namespace IqSoft.CP.Integration.Payments.Helpers
 {
@@ -135,8 +136,9 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             }
         }
 
-        public static void GetPayoutRequestStatus(PaymentRequest paymentRequest, SessionIdentity session, ILog log)
+        public static List<int> GetPayoutRequestStatus(PaymentRequest paymentRequest, SessionIdentity session, ILog log)
         {
+            var userIds = new List<int>();
             using (var clientBl = new ClientBll(session, log))
             {
                 using (var partnerBl = new PartnerBll(clientBl))
@@ -166,13 +168,14 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                             using (var documentBl = new DocumentBll(clientBl))
                             {
                                 var resp = clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Approved, string.Empty, 
-                                    null, null, false, string.Empty, documentBl, notificationBl);
+                                    null, null, false, string.Empty, documentBl, notificationBl, out userIds);
                                 clientBl.PayWithdrawFromPaymentSystem(resp, documentBl, notificationBl);
                             }
                         }
                     }
                 }
             }
+            return userIds;
         }
     }
 }

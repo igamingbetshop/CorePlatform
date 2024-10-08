@@ -261,7 +261,8 @@ namespace IqSoft.CP.BLL.Helpers
 				FreezeBonusBalance = input.FreezeBonusBalance,
 				Regularity = input.Regularity,
 				DayOfWeek = input.DayOfWeek,
-				ReusingMaxCountInPeriod = input.ReusingMaxCountInPeriod
+				ReusingMaxCountInPeriod = input.ReusingMaxCountInPeriod,
+				Color = input.Color
 			};
 		}
 
@@ -297,9 +298,7 @@ namespace IqSoft.CP.BLL.Helpers
 				ImageData = input.ImageData,
 				PasswordChangedDate = input.PasswordChangedDate,
 				LoginByNickName = input.LoginByNickName,
-				OddsTypes = input.OddsType,
-				input.CorrectionMaxAmount,
-				input.CorrectionMaxAmountCurrency
+				OddsTypes = input.OddsType
 			};
 		}
 
@@ -712,7 +711,7 @@ namespace IqSoft.CP.BLL.Helpers
 					ConditionItems = JsonConvert.DeserializeObject<List<ConditionItem>>(segment.Region)
 				} : null,
 				AffiliateId = !string.IsNullOrEmpty(segment.AffiliateId) ?
-					String.Join("&", JsonConvert.DeserializeObject<List<ConditionItem>>(segment.AffiliateId).Select(x => GetOperationByTypeId(x.OperationTypeId) + " " + x.StringValue)) : null,
+                    String.Join(",", JsonConvert.DeserializeObject<List<ConditionItem>>(segment.AffiliateId).Select(x => x.StringValue)) : null,
                 AffiliateIdObject = !string.IsNullOrEmpty(segment.AffiliateId) ? new Condition
 				{
 					ConditionItems = JsonConvert.DeserializeObject<List<ConditionItem>>(segment.AffiliateId)

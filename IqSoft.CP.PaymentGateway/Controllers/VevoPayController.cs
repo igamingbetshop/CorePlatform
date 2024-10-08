@@ -69,7 +69,11 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                     throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongHash);
                                 paymentRequest.ExternalTransactionId = input.Id;
                                 paymentSystemBl.ChangePaymentRequestDetails(paymentRequest);
-                                clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
+                                clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out List<int> userIds);
+                                foreach (var uId in userIds)
+                                {
+                                    PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                }
                             }
                             else
                             {
@@ -120,6 +124,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
             {
                 //BaseBll.CheckIp(WhitelistedIps);
                 WebApiApplication.DbLogger.Info(JsonConvert.SerializeObject(input));
+                var userIds = new List<int>();
                 using (var paymentSystemBl = new PaymentSystemBll(new SessionIdentity(), WebApiApplication.DbLogger))
                 {
                     using (var clientBl = new ClientBll(paymentSystemBl))
@@ -144,12 +149,17 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                     request.ExternalTransactionId = input.Id;
                                     paymentSystemBl.ChangePaymentRequestDetails(request);
                                     var resp = clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Approved, string.Empty,
-                                         null, null, false, string.Empty, documentBll, notificationBl);
+                                         null, null, false, string.Empty, documentBll, notificationBl, out userIds);
                                     clientBl.PayWithdrawFromPaymentSystem(resp, documentBll, notificationBl);
                                 }
                                 else if (input.Status.ToUpper() == "RET")
                                     clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Failed,
-                                        input.Status, null, null, false, string.Empty, documentBll, notificationBl);
+                                        input.Status, null, null, false, string.Empty, documentBll, notificationBl, out userIds);
+
+                                foreach (var uId in userIds)
+                                {
+                                    PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                }
                                 PaymentHelpers.RemoveClientBalanceFromCache(request.ClientId.Value);
                                 BaseHelpers.BroadcastBalance(request.ClientId.Value);
                             }

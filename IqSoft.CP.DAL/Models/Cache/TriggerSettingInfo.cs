@@ -16,7 +16,7 @@ namespace IqSoft.CP.DAL.Models.Cache
         public int Type { get; set; }
         public System.DateTime StartTime { get; set; }
         public System.DateTime FinishTime { get; set; }
-        public int Percent { get; set; }
+        public int? Percent { get; set; }
         public string BonusSettingCodes { get; set; }
         public int PartnerId { get; set; }
         public System.DateTime CreationTime { get; set; }

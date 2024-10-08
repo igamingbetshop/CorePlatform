@@ -4,6 +4,7 @@
     {
         Pending = 1,
         Sent = 2,
-        Failed = 3
+        Failed = 3,
+        Considered = 4
     }
 }

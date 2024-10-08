@@ -120,7 +120,6 @@
         </MappingFragment>
       </EntityTypeMapping>
     </EntitySetMapping>
-    <FunctionImportMapping FunctionImportName="sp_InsertDocuments" FunctionName="DataWarehouseModel.Store.sp_InsertDocuments" />
     <FunctionImportMapping FunctionImportName="fn_AffiliateClient" FunctionName="DataWarehouseModel.Store.fn_AffiliateClient">
       <ResultMapping>
         <ComplexTypeMapping TypeName="DataWarehouseModel.fnAffiliateClient">
@@ -732,33 +731,11 @@
         </MappingFragment>
       </EntityTypeMapping>
     </EntitySetMapping>
-    <FunctionImportMapping FunctionImportName="fn_AgentProfit" FunctionName="DataWarehouseModel.Store.fn_AgentProfit">
-      <ResultMapping>
-        <ComplexTypeMapping TypeName="DataWarehouseModel.fnAgentProfit">
-          <ScalarProperty Name="ProductGroupId" ColumnName="ProductGroupId" />
-          <ScalarProperty Name="ProductGroupName" ColumnName="ProductGroupName" />
-          <ScalarProperty Name="ProductId" ColumnName="ProductId" />
-          <ScalarProperty Name="RecieverAgentId" ColumnName="RecieverAgentId" />
-          <ScalarProperty Name="AgentId" ColumnName="AgentId" />
-          <ScalarProperty Name="TotalProfit" ColumnName="TotalProfit" />
-          <ScalarProperty Name="TotalBetAmount" ColumnName="TotalBetAmount" />
-          <ScalarProperty Name="TotalWinAmount" ColumnName="TotalWinAmount" />
-        </ComplexTypeMapping>
-      </ResultMapping>
-    </FunctionImportMapping>
     <FunctionImportMapping FunctionImportName="fn_ProductCommission" FunctionName="DataWarehouseModel.Store.fn_ProductCommission">
       <ResultMapping>
         <ComplexTypeMapping TypeName="DataWarehouseModel.fnProductCommission">
           <ScalarProperty Name="Percent" ColumnName="Percent" />
           <ScalarProperty Name="TurnoverPercent" ColumnName="TurnoverPercent" />
-        </ComplexTypeMapping>
-      </ResultMapping>
-    </FunctionImportMapping>
-    <FunctionImportMapping FunctionImportName="fn_ProductGroup" FunctionName="DataWarehouseModel.Store.fn_ProductGroup">
-      <ResultMapping>
-        <ComplexTypeMapping TypeName="DataWarehouseModel.fnProductGroup">
-          <ScalarProperty Name="Id" ColumnName="Id" />
-          <ScalarProperty Name="NickName" ColumnName="NickName" />
         </ComplexTypeMapping>
       </ResultMapping>
     </FunctionImportMapping>
@@ -1032,5 +1009,18 @@
         </MappingFragment>
       </EntityTypeMapping>
     </EntitySetMapping>
+    <FunctionImportMapping FunctionImportName="fn_AgentProfit" FunctionName="DataWarehouseModel.Store.fn_AgentProfit">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="DataWarehouseModel.fnAgentProfit">
+          <ScalarProperty Name="ProductId" ColumnName="ProductId" />
+          <ScalarProperty Name="RecieverAgentId" ColumnName="RecieverAgentId" />
+          <ScalarProperty Name="AgentId" ColumnName="AgentId" />
+          <ScalarProperty Name="TotalProfit" ColumnName="TotalProfit" />
+          <ScalarProperty Name="TotalBetAmount" ColumnName="TotalBetAmount" />
+          <ScalarProperty Name="TotalWinAmount" ColumnName="TotalWinAmount" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="sp_InsertDocuments" FunctionName="DataWarehouseModel.Store.sp_InsertDocuments" />
   </EntityContainerMapping>
 </Mapping>

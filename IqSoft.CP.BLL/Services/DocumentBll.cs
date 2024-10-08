@@ -910,177 +910,184 @@ namespace IqSoft.CP.BLL.Services
             }
         }
 
-        public List<ClientBonu> FinalizeWageringBonusDocument()
+        public List<ClientBonu> FinalizeWageringBonusDocument(out List<int> usersList)
         {
-            var currentTime = DateTime.UtcNow;
-            var resultList = new List<ClientBonu>();
-            var dbClientBonuses = Db.ClientBonus.Include(x => x.Bonu.AmountCurrencySettings).Where(x => x.Bonu.Type != (int)BonusTypes.CampaignFreeSpin &&
-                                  (x.Status == (int)ClientBonusStatuses.Finished || x.Status == (int)ClientBonusStatuses.Lost)).Take(1000).ToList();
-            var currencies = Db.Currencies.ToDictionary(x => x.Id, x => x.CurrentRate);
-            foreach (var clientBonus in dbClientBonuses)
+            using (var clientService = new ClientBll(this))
             {
-                clientBonus.Status = clientBonus.Status == (int)ClientBonusStatuses.Finished ? 
-                    (int)ClientBonusStatuses.Closed : (int)ClientBonusStatuses.Expired;
-                clientBonus.CalculationTime = DateTime.UtcNow;
-                if (clientBonus.Bonu.Type != (int)BonusTypes.CampaignFreeSpin && clientBonus.Bonu.MaxReceiversCount.HasValue)
-                    ++clientBonus.Bonu.TotalReceiversCount;
-                if (clientBonus.Bonu.Type == (int)BonusTypes.CampaignWagerCasino || clientBonus.Bonu.Type == (int)BonusTypes.CampaignWagerSport)
+                var currentTime = DateTime.UtcNow;
+                var resultList = new List<ClientBonu>();
+                usersList = new List<int>();
+                var dbClientBonuses = Db.ClientBonus.Include(x => x.Bonu.AmountCurrencySettings).Where(x => x.Bonu.Type != (int)BonusTypes.CampaignFreeSpin &&
+                                      (x.Status == (int)ClientBonusStatuses.Finished || x.Status == (int)ClientBonusStatuses.Lost)).Take(1000).ToList();
+                var currencies = Db.Currencies.ToDictionary(x => x.Id, x => x.CurrentRate);
+                foreach (var clientBonus in dbClientBonuses)
                 {
-                    decimal bonusBalance = 0;
-                    if (clientBonus.FinalAmount == null)
+                    clientBonus.Status = clientBonus.Status == (int)ClientBonusStatuses.Finished ?
+                        (int)ClientBonusStatuses.Closed : (int)ClientBonusStatuses.Expired;
+                    clientBonus.CalculationTime = DateTime.UtcNow;
+                    if (clientBonus.Bonu.Type != (int)BonusTypes.CampaignFreeSpin && clientBonus.Bonu.MaxReceiversCount.HasValue)
+                        ++clientBonus.Bonu.TotalReceiversCount;
+                    if (clientBonus.Bonu.Type == (int)BonusTypes.CampaignWagerCasino || clientBonus.Bonu.Type == (int)BonusTypes.CampaignWagerSport)
                     {
-                        var bonusAccount = Db.Accounts.FirstOrDefault(x => x.ObjectTypeId == (int)ObjectTypes.Client && 
-                                                                           x.ObjectId == clientBonus.ClientId &&
-                                                                           x.TypeId == (int)AccountTypes.ClientBonusBalance);
-                        if (bonusAccount != null)
-                            bonusBalance = bonusAccount.Balance;
-
-                        clientBonus.FinalAmount = clientBonus.Status == (int)ClientBonusStatuses.Expired ? 0 : 
-                            (clientBonus.Bonu.Percent != null && clientBonus.Bonu.Percent > 0 ?
-                            clientBonus.BonusPrize * clientBonus.Bonu.Percent / 100 : bonusBalance);
-                    }
-                    var client = Db.Clients.Include(x => x.Partner).FirstOrDefault(x => x.Id == clientBonus.ClientId);
-                    if (clientBonus.Bonu.MaxAmount != null)
-                    {
-                        var cItem = clientBonus.Bonu.AmountCurrencySettings?.FirstOrDefault(x => x.CurrencyId == client.CurrencyId);
-                        var maxAmount = cItem != null && cItem.MaxAmount.HasValue ? cItem.MaxAmount.Value :
-                            ConvertCurrency(client.Partner.CurrencyId, client.CurrencyId, clientBonus.Bonu.MaxAmount.Value);
-
-                        clientBonus.FinalAmount = Math.Min(clientBonus.FinalAmount.Value, maxAmount);
-                    }
-                    if (bonusBalance > 0 || clientBonus.FinalAmount > 0)
-                    {
-                        var operationType = clientBonus.Status == (int)ClientBonusStatuses.Expired ? 
-                            (int)OperationTypes.BonusExpiration : (int)OperationTypes.BonusWin;
-
-                        if (clientBonus.Bonu.Info != "1")
+                        decimal bonusBalance = 0;
+                        if (clientBonus.FinalAmount == null)
                         {
-                            var input = new Operation
-                            {
-                                Amount = Math.Max(clientBonus.FinalAmount.Value, bonusBalance),
-                                CurrencyId = client.CurrencyId,
-                                Type = operationType,
-                                ClientId = client.Id,
-                                OperationItems = new List<OperationItem>()
-                            };
-                            if (bonusBalance > 0)
-                            {
-                                input.OperationItems.Add(new OperationItem
-                                {
-                                    AccountTypeId = (int)AccountTypes.ClientBonusBalance,
-                                    ObjectId = client.Id,
-                                    ObjectTypeId = (int)ObjectTypes.Client,
-                                    Amount = bonusBalance,
-                                    CurrencyId = client.CurrencyId,
-                                    Type = (int)TransactionTypes.Credit,
-                                    OperationTypeId = operationType
-                                });
-                            }
-                            if (clientBonus.FinalAmount.Value > 0)
-                            {
-                                input.OperationItems.Add(new OperationItem
-                                {
-                                    AccountTypeId = clientBonus.Bonu.FinalAccountTypeId == null || 
-                                        clientBonus.Bonu.FinalAccountTypeId == (int)AccountTypes.ClientBonusBalance ?
-                                        (int)AccountTypes.BonusWin : clientBonus.Bonu.FinalAccountTypeId.Value,
-                                    ObjectId = client.Id,
-                                    ObjectTypeId = (int)ObjectTypes.Client,
-                                    Amount = clientBonus.FinalAmount.Value,
-                                    CurrencyId = client.CurrencyId,
-                                    Type = (int)TransactionTypes.Debit,
-                                    OperationTypeId = operationType
-                                });
-                            }
-                            if (bonusBalance != clientBonus.FinalAmount.Value)
-                                input.OperationItems.Add(new OperationItem
-                                {
-                                    AccountTypeId = (int)AccountTypes.PartnerBalance,
-                                    ObjectId = client.PartnerId,
-                                    ObjectTypeId = (int)ObjectTypes.Partner,
-                                    Amount = Math.Abs(bonusBalance - clientBonus.FinalAmount.Value),
-                                    CurrencyId = client.CurrencyId,
-                                    Type = bonusBalance > clientBonus.FinalAmount.Value ? 
-                                        (int)TransactionTypes.Debit : (int)TransactionTypes.Credit,
-                                    OperationTypeId = operationType
-                                });
+                            var bonusAccount = Db.Accounts.FirstOrDefault(x => x.ObjectTypeId == (int)ObjectTypes.Client &&
+                                                                               x.ObjectId == clientBonus.ClientId &&
+                                                                               x.TypeId == (int)AccountTypes.ClientBonusBalance);
+                            if (bonusAccount != null)
+                                bonusBalance = bonusAccount.Balance;
 
-                            var document = CreateDocument(input);
-                            clientBonus.Bonu.TotalGranted += ConvertCurrency(client.CurrencyId, client.Partner.CurrencyId, input.Amount);
+                            clientBonus.FinalAmount = clientBonus.Status == (int)ClientBonusStatuses.Expired ? 0 :
+                                (clientBonus.Bonu.Percent != null && clientBonus.Bonu.Percent > 0 ?
+                                clientBonus.BonusPrize * clientBonus.Bonu.Percent / 100 : bonusBalance);
                         }
-                        else
+                        var client = Db.Clients.Include(x => x.Partner).FirstOrDefault(x => x.Id == clientBonus.ClientId);
+                        if (clientBonus.Bonu.MaxAmount != null)
                         {
-                            var clientSegmentsIds = new List<int>();
-                            var clientClassifications = CacheManager.GetClientClassifications(client.Id);
-                            if (clientClassifications.Any())
-                                clientSegmentsIds = clientClassifications.Where(x => x.SegmentId.HasValue && x.ProductId == (int)Constants.PlatformProductId)
-                                                                        .Select(x => x.SegmentId.Value).ToList();
-                            var bonuses = Db.Bonus.Include(x => x.TriggerGroups
-                                                  .Select(y => y.TriggerGroupSettings))
-                                                  .Where(x => x.Status == (int)BonusStatuses.Active && x.StartTime < currentTime && x.FinishTime > currentTime &&
-                                                     x.PartnerId == client.PartnerId &&
-                                                   (!x.MaxGranted.HasValue || x.TotalGranted < x.MaxGranted) &&
-                                                   (!x.MaxReceiversCount.HasValue || x.TotalReceiversCount < x.MaxReceiversCount) &&
-                                                   (!x.BonusSegmentSettings.Any() ||
-                                                    (x.BonusSegmentSettings.Any(y => y.Type == (int)BonusSettingConditionTypes.InSet && clientSegmentsIds.Contains(y.SegmentId)) &&
-                                                    !x.BonusSegmentSettings.Any(y => y.Type == (int)BonusSettingConditionTypes.OutOfSet && clientSegmentsIds.Contains(y.SegmentId)))) &&
-                                                   (!x.BonusCountrySettings.Any() ||
-                                                    (x.BonusCountrySettings.Any(y => y.Type == (int)BonusSettingConditionTypes.InSet && y.CountryId == (client.CountryId ?? client.RegionId)) &&
-                                                    !x.BonusCountrySettings.Any(y => y.Type == (int)BonusSettingConditionTypes.OutOfSet && y.CountryId == (client.CountryId ?? client.RegionId)))) &&
-                                                   (!x.BonusCurrencySettings.Any() ||
-                                                    (x.BonusCurrencySettings.Any(y => y.Type == (int)BonusSettingConditionTypes.InSet && y.CurrencyId == client.CurrencyId) &&
-                                                    !x.BonusCurrencySettings.Any(y => y.Type == (int)BonusSettingConditionTypes.OutOfSet && y.CurrencyId == client.CurrencyId))) &&
-                                                   (!x.BonusLanguageSettings.Any() ||
-                                                    (x.BonusLanguageSettings.Any(y => y.Type == (int)BonusSettingConditionTypes.InSet && y.LanguageId == client.LanguageId) &&
-                                                    !x.BonusLanguageSettings.Any(y => y.Type == (int)BonusSettingConditionTypes.OutOfSet && y.LanguageId == client.LanguageId)))
-                                                   ).ToList();
-                            var claimedBonuses = new List<int>();
-                            var date = (long)currentTime.Year * 100000000 + currentTime.Month * 1000000 + currentTime.Day * 10000 + currentTime.Hour * 100 + currentTime.Minute;
-                            foreach (var b in bonuses)
-                            {
-                                var bon = bonuses.FirstOrDefault(x => x.Id == b.Id).TriggerGroups.FirstOrDefault(x => x.Priority == 0 && x.TriggerGroupSettings.Count() == 1);
-                                if (bon != null)
-                                {
-                                    var sId = bon.TriggerGroupSettings.First().SettingId;
-                                    var setting = Db.TriggerSettings.Include(x => x.AmountCurrencySettings).First(x => x.Id == sId);
-                                    if (setting.Type == (int)TriggerTypes.CampainLinkCode && setting.BonusSettingCodes == clientBonus.BonusId.ToString() &&
-                                        setting.StartTime <= currentTime && setting.FinishTime > currentTime)
-                                    {
-                                        var dbBonuses = Db.ClientBonus.Where(x => x.ClientId == clientBonus.ClientId && x.BonusId == b.Id).ToList();
-                                        var maxNumber = dbBonuses.Any() ? dbBonuses.Max(x => x.ReuseNumber) : 0;
-                                        if (maxNumber < (b.ReusingMaxCount ?? 1))
-                                        {
-                                            var cItem = setting.AmountCurrencySettings?.FirstOrDefault(x => x.CurrencyId == client.CurrencyId);
-                                            var triggerMinAmount = setting.MinAmount.HasValue ? (cItem != null && cItem.MinAmount.HasValue ? cItem.MinAmount :
-                                                ConvertCurrency(client.Partner.CurrencyId, client.CurrencyId, setting.MinAmount.Value)) : (decimal?)null;
-                                            var triggerMaxAmount = setting.MaxAmount.HasValue ? (cItem != null && cItem.MaxAmount.HasValue ? cItem.MaxAmount :
-                                                ConvertCurrency(client.Partner.CurrencyId, client.CurrencyId, setting.MaxAmount.Value)) : (decimal?)null;
+                            var cItem = clientBonus.Bonu.AmountCurrencySettings?.FirstOrDefault(x => x.CurrencyId == client.CurrencyId);
+                            var maxAmount = cItem != null && cItem.MaxAmount.HasValue ? cItem.MaxAmount.Value :
+                                ConvertCurrency(client.Partner.CurrencyId, client.CurrencyId, clientBonus.Bonu.MaxAmount.Value);
 
-                                            var amount = setting.Percent > 0 ? clientBonus.FinalAmount * setting.Percent / 100 : (triggerMinAmount ?? 0);
-                                            if ((triggerMinAmount == null || amount >= triggerMinAmount.Value))
+                            clientBonus.FinalAmount = Math.Min(clientBonus.FinalAmount.Value, maxAmount);
+                        }
+                        if (bonusBalance > 0 || clientBonus.FinalAmount > 0)
+                        {
+                            var operationType = clientBonus.Status == (int)ClientBonusStatuses.Expired ?
+                                (int)OperationTypes.BonusExpiration : (int)OperationTypes.BonusWin;
+
+                            if (clientBonus.Bonu.Info != "1")
+                            {
+                                var input = new Operation
+                                {
+                                    Amount = Math.Max(clientBonus.FinalAmount.Value, bonusBalance),
+                                    CurrencyId = client.CurrencyId,
+                                    Type = operationType,
+                                    ClientId = client.Id,
+                                    OperationItems = new List<OperationItem>()
+                                };
+                                if (bonusBalance > 0)
+                                {
+                                    input.OperationItems.Add(new OperationItem
+                                    {
+                                        AccountTypeId = (int)AccountTypes.ClientBonusBalance,
+                                        ObjectId = client.Id,
+                                        ObjectTypeId = (int)ObjectTypes.Client,
+                                        Amount = bonusBalance,
+                                        CurrencyId = client.CurrencyId,
+                                        Type = (int)TransactionTypes.Credit,
+                                        OperationTypeId = operationType
+                                    });
+                                }
+                                if (clientBonus.FinalAmount.Value > 0)
+                                {
+                                    input.OperationItems.Add(new OperationItem
+                                    {
+                                        AccountTypeId = clientBonus.Bonu.FinalAccountTypeId == null ||
+                                            clientBonus.Bonu.FinalAccountTypeId == (int)AccountTypes.ClientBonusBalance ?
+                                            (int)AccountTypes.BonusWin : clientBonus.Bonu.FinalAccountTypeId.Value,
+                                        ObjectId = client.Id,
+                                        ObjectTypeId = (int)ObjectTypes.Client,
+                                        Amount = clientBonus.FinalAmount.Value,
+                                        CurrencyId = client.CurrencyId,
+                                        Type = (int)TransactionTypes.Debit,
+                                        OperationTypeId = operationType
+                                    });
+                                }
+                                if (bonusBalance != clientBonus.FinalAmount.Value)
+                                    input.OperationItems.Add(new OperationItem
+                                    {
+                                        AccountTypeId = (int)AccountTypes.PartnerBalance,
+                                        ObjectId = client.PartnerId,
+                                        ObjectTypeId = (int)ObjectTypes.Partner,
+                                        Amount = Math.Abs(bonusBalance - clientBonus.FinalAmount.Value),
+                                        CurrencyId = client.CurrencyId,
+                                        Type = bonusBalance > clientBonus.FinalAmount.Value ?
+                                            (int)TransactionTypes.Debit : (int)TransactionTypes.Credit,
+                                        OperationTypeId = operationType
+                                    });
+
+                                var document = CreateDocument(input);
+                                usersList.AddRange(clientService.AddUserNotification(client.PartnerId, (int)UserNotificationTypes.Bonus, null, 
+                                    null, clientBonus.BonusId, ConvertCurrency(client.CurrencyId, client.Partner.CurrencyId, input.Amount), null));
+                                clientBonus.Bonu.TotalGranted += ConvertCurrency(client.CurrencyId, client.Partner.CurrencyId, input.Amount);
+                            }
+                            else
+                            {
+                                var clientSegmentsIds = new List<int>();
+                                var clientClassifications = CacheManager.GetClientClassifications(client.Id);
+                                if (clientClassifications.Any())
+                                    clientSegmentsIds = clientClassifications.Where(x => x.SegmentId.HasValue && x.ProductId == (int)Constants.PlatformProductId)
+                                                                            .Select(x => x.SegmentId.Value).ToList();
+                                var bonuses = Db.Bonus.Include(x => x.TriggerGroups
+                                                      .Select(y => y.TriggerGroupSettings))
+                                                      .Where(x => x.Status == (int)BonusStatuses.Active && x.StartTime < currentTime && x.FinishTime > currentTime &&
+                                                         x.PartnerId == client.PartnerId &&
+                                                       (!x.MaxGranted.HasValue || x.TotalGranted < x.MaxGranted) &&
+                                                       (!x.MaxReceiversCount.HasValue || x.TotalReceiversCount < x.MaxReceiversCount) &&
+                                                       (!x.BonusSegmentSettings.Any() ||
+                                                        (x.BonusSegmentSettings.Any(y => y.Type == (int)BonusSettingConditionTypes.InSet && clientSegmentsIds.Contains(y.SegmentId)) &&
+                                                        !x.BonusSegmentSettings.Any(y => y.Type == (int)BonusSettingConditionTypes.OutOfSet && clientSegmentsIds.Contains(y.SegmentId)))) &&
+                                                       (!x.BonusCountrySettings.Any() ||
+                                                        (x.BonusCountrySettings.Any(y => y.Type == (int)BonusSettingConditionTypes.InSet && y.CountryId == (client.CountryId ?? client.RegionId)) &&
+                                                        !x.BonusCountrySettings.Any(y => y.Type == (int)BonusSettingConditionTypes.OutOfSet && y.CountryId == (client.CountryId ?? client.RegionId)))) &&
+                                                       (!x.BonusCurrencySettings.Any() ||
+                                                        (x.BonusCurrencySettings.Any(y => y.Type == (int)BonusSettingConditionTypes.InSet && y.CurrencyId == client.CurrencyId) &&
+                                                        !x.BonusCurrencySettings.Any(y => y.Type == (int)BonusSettingConditionTypes.OutOfSet && y.CurrencyId == client.CurrencyId))) &&
+                                                       (!x.BonusLanguageSettings.Any() ||
+                                                        (x.BonusLanguageSettings.Any(y => y.Type == (int)BonusSettingConditionTypes.InSet && y.LanguageId == client.LanguageId) &&
+                                                        !x.BonusLanguageSettings.Any(y => y.Type == (int)BonusSettingConditionTypes.OutOfSet && y.LanguageId == client.LanguageId)))
+                                                       ).ToList();
+                                var claimedBonuses = new List<int>();
+                                var date = (long)currentTime.Year * 100000000 + currentTime.Month * 1000000 + currentTime.Day * 10000 + currentTime.Hour * 100 + currentTime.Minute;
+                                foreach (var b in bonuses)
+                                {
+                                    var bon = bonuses.FirstOrDefault(x => x.Id == b.Id).TriggerGroups.FirstOrDefault(x => x.Priority == 0 && x.TriggerGroupSettings.Count() == 1);
+                                    if (bon != null)
+                                    {
+                                        var sId = bon.TriggerGroupSettings.First().SettingId;
+                                        var setting = Db.TriggerSettings.Include(x => x.AmountCurrencySettings).First(x => x.Id == sId);
+                                        if (setting.Type == (int)TriggerTypes.CampainLinkCode && setting.BonusSettingCodes == clientBonus.BonusId.ToString() &&
+                                            setting.StartTime <= currentTime && setting.FinishTime > currentTime)
+                                        {
+                                            var dbBonuses = Db.ClientBonus.Where(x => x.ClientId == clientBonus.ClientId && x.BonusId == b.Id).ToList();
+                                            var maxNumber = dbBonuses.Any() ? dbBonuses.Max(x => x.ReuseNumber) : 0;
+                                            if (maxNumber < (b.ReusingMaxCount ?? 1))
                                             {
-                                                if (triggerMaxAmount != null && amount > triggerMaxAmount.Value)
-                                                    amount = triggerMaxAmount.Value;
-                                                Db.ClientBonus.Add(new ClientBonu
+                                                var cItem = setting.AmountCurrencySettings?.FirstOrDefault(x => x.CurrencyId == client.CurrencyId);
+                                                var triggerMinAmount = setting.MinAmount.HasValue ? (cItem != null && cItem.MinAmount.HasValue ? cItem.MinAmount :
+                                                    ConvertCurrency(client.Partner.CurrencyId, client.CurrencyId, setting.MinAmount.Value)) : (decimal?)null;
+                                                var triggerMaxAmount = setting.MaxAmount.HasValue ? (cItem != null && cItem.MaxAmount.HasValue ? cItem.MaxAmount :
+                                                    ConvertCurrency(client.Partner.CurrencyId, client.CurrencyId, setting.MaxAmount.Value)) : (decimal?)null;
+
+                                                var amount = (setting.Percent != null && setting.Percent > 0) ?
+                                                    clientBonus.FinalAmount * setting.Percent.Value / 100 : (triggerMinAmount ?? 0);
+                                                if ((triggerMinAmount == null || amount >= triggerMinAmount.Value))
                                                 {
-                                                    BonusId = b.Id,
-                                                    ClientId = clientBonus.ClientId,
-                                                    Status = (int)ClientBonusStatuses.NotAwarded,
-                                                    CreationTime = currentTime,
-                                                    CreationDate = date,
-                                                    ValidUntil = b.ValidForAwarding == null ? (DateTime?)null : currentTime.AddHours(b.ValidForAwarding.Value),
-                                                    CalculationTime = (DateTime?)null,
-                                                    ReuseNumber = maxNumber + 1
-                                                });
-                                                Db.ClientBonusTriggers.Add(new ClientBonusTrigger
-                                                {
-                                                    ClientId = clientBonus.ClientId,
-                                                    TriggerId = setting.Id,
-                                                    BonusId = b.Id,
-                                                    SourceAmount = amount,
-                                                    CreationTime = currentTime,
-                                                    ReuseNumber = maxNumber + 1
-                                                });
-                                                Db.SaveChanges();
+                                                    if (triggerMaxAmount != null && amount > triggerMaxAmount.Value)
+                                                        amount = triggerMaxAmount.Value;
+                                                    Db.ClientBonus.Add(new ClientBonu
+                                                    {
+                                                        BonusId = b.Id,
+                                                        ClientId = clientBonus.ClientId,
+                                                        Status = (int)ClientBonusStatuses.NotAwarded,
+                                                        CreationTime = currentTime,
+                                                        CreationDate = date,
+                                                        ValidUntil = b.ValidForAwarding == null ? (DateTime?)null : currentTime.AddHours(b.ValidForAwarding.Value),
+                                                        CalculationTime = (DateTime?)null,
+                                                        ReuseNumber = maxNumber + 1
+                                                    });
+                                                    Db.ClientBonusTriggers.Add(new ClientBonusTrigger
+                                                    {
+                                                        ClientId = clientBonus.ClientId,
+                                                        TriggerId = setting.Id,
+                                                        BonusId = b.Id,
+                                                        SourceAmount = amount,
+                                                        CreationTime = currentTime,
+                                                        ReuseNumber = maxNumber + 1
+                                                    });
+                                                    Db.SaveChanges();
+                                                }
                                             }
                                         }
                                     }
@@ -1088,62 +1095,65 @@ namespace IqSoft.CP.BLL.Services
                             }
                         }
                     }
-                }
-                else if (clientBonus.Bonu.Type == (int)BonusTypes.CampaignCash)
-                {
-                    if (clientBonus.FinalAmount == null)
+                    else if (clientBonus.Bonu.Type == (int)BonusTypes.CampaignCash)
                     {
-                        clientBonus.FinalAmount = clientBonus.Status == (int)ClientBonusStatuses.Expired ? 0 : (clientBonus.Bonu.Percent != null && clientBonus.Bonu.Percent > 0 ?
-                            clientBonus.BonusPrize * clientBonus.Bonu.Percent / 100 : 0);
-                    }
-                    var client = Db.Clients.Include(x => x.Partner).FirstOrDefault(x => x.Id == clientBonus.ClientId);
-                    if (clientBonus.Bonu.MaxAmount != null)
-                    {
-                        var cItem = clientBonus.Bonu.AmountCurrencySettings?.FirstOrDefault(x => x.CurrencyId == client.CurrencyId);
-                        var maxAmount = cItem != null && cItem.MaxAmount.HasValue ? cItem.MaxAmount.Value :
-                            ConvertCurrency(client.Partner.CurrencyId, client.CurrencyId, clientBonus.Bonu.MaxAmount.Value);
+                        if (clientBonus.FinalAmount == null)
+                        {
+                            clientBonus.FinalAmount = clientBonus.Status == (int)ClientBonusStatuses.Expired ? 0 : (clientBonus.Bonu.Percent != null && clientBonus.Bonu.Percent > 0 ?
+                                clientBonus.BonusPrize * clientBonus.Bonu.Percent / 100 : 0);
+                        }
+                        var client = Db.Clients.Include(x => x.Partner).FirstOrDefault(x => x.Id == clientBonus.ClientId);
+                        if (clientBonus.Bonu.MaxAmount != null)
+                        {
+                            var cItem = clientBonus.Bonu.AmountCurrencySettings?.FirstOrDefault(x => x.CurrencyId == client.CurrencyId);
+                            var maxAmount = cItem != null && cItem.MaxAmount.HasValue ? cItem.MaxAmount.Value :
+                                ConvertCurrency(client.Partner.CurrencyId, client.CurrencyId, clientBonus.Bonu.MaxAmount.Value);
 
-                        clientBonus.FinalAmount = Math.Min(clientBonus.FinalAmount.Value, maxAmount);
-                    }
-                    if (clientBonus.FinalAmount > 0)
-                    {
-                        var input = new Operation
+                            clientBonus.FinalAmount = Math.Min(clientBonus.FinalAmount.Value, maxAmount);
+                        }
+                        if (clientBonus.FinalAmount > 0)
                         {
-                            Amount = clientBonus.FinalAmount.Value,
-                            CurrencyId = client.CurrencyId,
-                            Type = (int)OperationTypes.BonusWin,
-                            ClientId = client.Id,
-                            OperationItems = new List<OperationItem>()
+                            var input = new Operation
+                            {
+                                Amount = clientBonus.FinalAmount.Value,
+                                CurrencyId = client.CurrencyId,
+                                Type = (int)OperationTypes.BonusWin,
+                                ClientId = client.Id,
+                                OperationItems = new List<OperationItem>()
 
-                        };
-                        input.OperationItems.Add(new OperationItem
-                        {
-                            AccountTypeId = (int)AccountTypes.PartnerBalance,
-                            ObjectId = client.PartnerId,
-                            ObjectTypeId = (int)ObjectTypes.Partner,
-                            Amount = clientBonus.FinalAmount.Value,
-                            CurrencyId = client.CurrencyId,
-                            Type = (int)TransactionTypes.Credit,
-                            OperationTypeId = (int)OperationTypes.BonusWin
-                        });
-                        input.OperationItems.Add(new OperationItem
-                        {
-                            AccountTypeId = clientBonus.Bonu.FinalAccountTypeId == null ?
-                                    (int)AccountTypes.ClientUnusedBalance : clientBonus.Bonu.FinalAccountTypeId.Value,
-                            ObjectId = client.Id,
-                            ObjectTypeId = (int)ObjectTypes.Client,
-                            Amount = clientBonus.FinalAmount.Value,
-                            CurrencyId = client.CurrencyId,
-                            Type = (int)TransactionTypes.Debit,
-                            OperationTypeId = (int)OperationTypes.BonusWin
-                        });
-                        var document = CreateDocument(input);
+                            };
+                            input.OperationItems.Add(new OperationItem
+                            {
+                                AccountTypeId = (int)AccountTypes.PartnerBalance,
+                                ObjectId = client.PartnerId,
+                                ObjectTypeId = (int)ObjectTypes.Partner,
+                                Amount = clientBonus.FinalAmount.Value,
+                                CurrencyId = client.CurrencyId,
+                                Type = (int)TransactionTypes.Credit,
+                                OperationTypeId = (int)OperationTypes.BonusWin
+                            });
+                            input.OperationItems.Add(new OperationItem
+                            {
+                                AccountTypeId = clientBonus.Bonu.FinalAccountTypeId == null ?
+                                        (int)AccountTypes.ClientUnusedBalance : clientBonus.Bonu.FinalAccountTypeId.Value,
+                                ObjectId = client.Id,
+                                ObjectTypeId = (int)ObjectTypes.Client,
+                                Amount = clientBonus.FinalAmount.Value,
+                                CurrencyId = client.CurrencyId,
+                                Type = (int)TransactionTypes.Debit,
+                                OperationTypeId = (int)OperationTypes.BonusWin
+                            });
+                            var document = CreateDocument(input);
+
+                            usersList.AddRange(clientService.AddUserNotification(client.PartnerId, (int)UserNotificationTypes.Bonus, null, 
+                                null, clientBonus.BonusId, ConvertCurrency(client.CurrencyId, client.Partner.CurrencyId, clientBonus.FinalAmount.Value), null));
+                        }
                     }
+                    resultList.Add(clientBonus);
                 }
-                resultList.Add(clientBonus);
+                Db.SaveChanges();
+                return resultList;
             }
-            Db.SaveChanges();
-            return resultList;
         }
 
         public List<int> CloseTournaments()

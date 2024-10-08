@@ -5,14 +5,14 @@ namespace IqSoft.CP.Common.Helpers
 {
     public static class DateTimeHelper
     {
-        public static DateTime GetUTCDateFromGmt(this DateTime date, double timeZone)
+        public static DateTime GetUTCDateFromGMT(this DateTime date, double timeZone)
         {
 			if (date == DateTime.MaxValue || date == DateTime.MinValue)
 				return date;
 			return date.AddHours(-timeZone);
         }
 
-        public static DateTime? GetUTCDateFromGmt(this DateTime? date, double timeZone)
+        public static DateTime? GetUTCDateFromGMT(this DateTime? date, double timeZone)
         {
             if (date.HasValue)
             {

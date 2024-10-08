@@ -8,6 +8,7 @@ using IqSoft.CP.PaymentGateway.Helpers;
 using IqSoft.CP.PaymentGateway.Models.Huch;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -49,10 +50,16 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 						using (var notificationBl = new NotificationBll(paymentSystemBl))
 						{
 							if (input.payment_status == "PAID_RECEIVED" || input.payment_status == "PAID")
-								clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
-							else if (input.payment_status == "EXPIRED" || input.payment_status == "CANCELLED" || input.payment_status == "FAILED" || 
-								     input.payment_status == "AUTH_FAILED" || input.payment_status == "EXECUTE_FAILED")
-									clientBl.ChangeDepositRequestState(paymentRequest.Id, PaymentRequestStates.Deleted, input.payment_status, notificationBl);
+							{
+								clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out List<int> userIds);
+                                foreach (var uId in userIds)
+                                {
+                                    PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                }
+                            }
+							else if (input.payment_status == "EXPIRED" || input.payment_status == "CANCELLED" || input.payment_status == "FAILED" ||
+									 input.payment_status == "AUTH_FAILED" || input.payment_status == "EXECUTE_FAILED")
+								clientBl.ChangeDepositRequestState(paymentRequest.Id, PaymentRequestStates.Deleted, input.payment_status, notificationBl);
 							PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
 							BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);
 						}

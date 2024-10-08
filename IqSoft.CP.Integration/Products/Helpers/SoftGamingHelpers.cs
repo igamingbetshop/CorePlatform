@@ -21,7 +21,10 @@ namespace IqSoft.CP.Integration.Products.Helpers
         {
             Constants.Currencies.ColumbianPeso,
             Constants.Currencies.IranianTuman,
-            Constants.Currencies.USDT
+            Constants.Currencies.USDT,
+            Constants.Currencies.USDC,
+            Constants.Currencies.PYUSD,
+            Constants.Currencies.BUSD
         };
 
         private static readonly List<string> NotSupportedLanguages = new List<string>

@@ -193,6 +193,7 @@
     <Compile Include="ControllerClasses\AffiliateController.cs" />
     <Compile Include="ControllerClasses\BetShopController.cs" />
     <Compile Include="Filter\ApiFilterBetShopGroup.cs" />
+    <Compile Include="Models\ApiBonusInput.cs" />
     <Compile Include="Models\PasswordRecovery.cs" />
     <Compile Include="Models\Affiliate\ApiFilterfnAffiliateClientInfo.cs" />
     <Compile Include="Models\Affiliate\ApiFnAffiliateModel.cs" />

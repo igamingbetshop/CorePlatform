@@ -66,7 +66,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var betShopBl = new BetShopBll(identity, log))
             {
-                var betshops = betShopBl.GetBetShopsPagedModel(filter.MaptToFilterfnBetShop(), true);
+                var betshops = betShopBl.GetBetShopsPagedModel(filter.MaptToFilterfnBetShop(identity.TimeZone), true);
 
                 return new ApiResponseBase
                 {
@@ -155,7 +155,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     throw BaseBll.CreateException(string.Empty, Constants.Errors.NotAllowed);
                 var response = new ApiResponseBase();
                 
-                var savedBetShop = betShopBl.SaveBetShop(betShop.MapToBetshop());
+                var savedBetShop = betShopBl.SaveBetShop(betShop.MapToBetshop(identity.TimeZone));
 
                 var dataToSend = savedBetShop.ToBetshopModel(betShopBl.GetUserIdentity().TimeZone);
                 using (var partnerBl = new PartnerBll(betShopBl))
@@ -255,7 +255,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var betShopBl = new BetShopBll(identity, log))
             {
-                var filter = input.MapToFilterfnAdminShiftReport();
+                var filter = input.MapToFilterfnAdminShiftReport(identity.TimeZone);
 				if (input.PartnerId != null && input.PartnerId.Value > 0)
 					filter.PartnerIds = new FiltersOperation {
 						IsAnd = true, OperationTypeList = new System.Collections.Generic.List<FiltersOperationType>
@@ -295,7 +295,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 using (var betShopBl = new BetShopBll(clientBl))
                 {
                     var timeZone = clientBl.GetUserIdentity().TimeZone;
-                    var filter = input.MapToFilterfnAdminShiftReport();
+                    var filter = input.MapToFilterfnAdminShiftReport(identity.TimeZone);
                     var result = betShopBl.GetfnAdminShiftReports(filter);
                     string fileName = "ExporShiftReports.csv";
                     string fileAbsPath = clientBl.ExportToCSV<fnAdminShiftReport>(fileName, result, null, null, timeZone);

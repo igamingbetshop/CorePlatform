@@ -17,6 +17,7 @@ using System.Text;
 using System.Web;
 using System.Web.Http;
 using System.Web.Http.Cors;
+using System.Collections.Generic;
 
 namespace IqSoft.CP.PaymentGateway.Controllers
 {
@@ -36,6 +37,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 			{
 				var inputString = httpRequestMessage.Content.ReadAsStringAsync().Result;
 				WebApiApplication.DbLogger.Info(inputString);
+				var userIds = new List<int>();
 				using (var paymentSystemBl = new PaymentSystemBll(new SessionIdentity(), WebApiApplication.DbLogger))
 				{
 					using (var clientBl = new ClientBll(paymentSystemBl))
@@ -50,12 +52,14 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 								if (input.Status == "approved")
 								{
 									if (paymentRequest.Type == (int)PaymentRequestTypes.Deposit)
-										clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
+									{
+										clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out userIds);
+                                    }
 									else if (paymentRequest.Type == (int)PaymentRequestTypes.Withdraw)
 									{
 
 										var resp = clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Approved, string.Empty,
-										  null, null, false, string.Empty, documentBll, notificationBl);
+										  null, null, false, string.Empty, documentBll, notificationBl, out userIds);
 										clientBl.PayWithdrawFromPaymentSystem(resp, documentBll, notificationBl);
 									}
 									PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
@@ -69,9 +73,13 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 										clientBl.ChangeDepositRequestState(paymentRequest.Id, PaymentRequestStates.Failed, input.AdminDescription, notificationBl);
 									else
 										clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed,
-											input.AdminDescription, null, null, false, string.Empty, documentBll, notificationBl);
+											input.AdminDescription, null, null, false, string.Empty, documentBll, notificationBl, out userIds);
 								}
-							}
+                                foreach (var uId in userIds)
+                                {
+                                    PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                }
+                            }
 						}
 					}
 				}

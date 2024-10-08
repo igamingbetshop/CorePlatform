@@ -24,7 +24,7 @@ namespace IqSoft.CP.DAL
         public Nullable<decimal> Amount { get; set; }
     
         public virtual Bonu Bonu { get; set; }
-        public virtual TriggerSetting TriggerSetting { get; set; }
         public virtual Currency Currency { get; set; }
+        public virtual TriggerSetting TriggerSetting { get; set; }
     }
 }

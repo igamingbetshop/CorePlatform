@@ -24,8 +24,8 @@ namespace IqSoft.CP.DAL
         public Nullable<int> SegmentId { get; set; }
     
         public virtual ClientCategory ClientCategory { get; set; }
-        public virtual Product Product { get; set; }
         public virtual Client Client { get; set; }
         public virtual Segment Segment { get; set; }
+        public virtual Product Product { get; set; }
     }
 }

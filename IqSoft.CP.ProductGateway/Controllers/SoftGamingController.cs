@@ -36,7 +36,10 @@ namespace IqSoft.CP.ProductGateway.Controllers
         {
             Constants.Currencies.ColumbianPeso,
             Constants.Currencies.IranianTuman,
-            Constants.Currencies.USDT
+            Constants.Currencies.USDT,
+            Constants.Currencies.USDC,
+            Constants.Currencies.PYUSD,
+            Constants.Currencies.BUSD
         };
 
         private static string GenerateHmac(String secret_key, string value)
@@ -455,6 +458,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                             BaseHelpers.RemoveClientBalanceFromeCache(client.Id);
                             BaseHelpers.BroadcastWin(new ApiWin
                             {
+                                BetId = betDocument?.Id ?? 0,
                                 GameName = product.NickName,
                                 ClientId = client.Id,
                                 ClientName = client.FirstName,

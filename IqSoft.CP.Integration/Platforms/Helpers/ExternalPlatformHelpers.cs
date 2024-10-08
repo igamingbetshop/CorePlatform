@@ -19,8 +19,9 @@ namespace IqSoft.CP.Integration.Platforms.Helpers
 {
     public class ExternalPlatformHelpers
     {
-        public static BllClient CreateClientSession(LoginInput input, out string newToken, out int clientId, SessionIdentity sessionIdentity, ILog log)
+        public static BllClient CreateClientSession(LoginInput input, out string newToken, out int clientId, SessionIdentity sessionIdentity, ILog log, out List<int> userIds)
         {
+            userIds = new List<int>();
             switch (input.ExternalPlatformType.Value)
             {
                 case (int)ExternalPlatformTypes.CashCenter:
@@ -41,7 +42,7 @@ namespace IqSoft.CP.Integration.Platforms.Helpers
                                     Gender = (int)Gender.Male,
                                     //BirthDate = Convert.ToDateTime(externalClient.BirthDate),
                                     FirstName = externalClient.UserName
-                                });
+                                }, out userIds);
                                 client = CacheManager.GetClientById(newClient.Id);
                             }
                             clientId = client.Id;

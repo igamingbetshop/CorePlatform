@@ -54,9 +54,9 @@ namespace IqSoft.CP.DataWarehouse.Filters
             CreateQuery(ref sessions, ordering);
             return sessions;
         }
-        public long SelectedObjectsCount(IQueryable<ClientSession> sessions, bool ordering)
+        public long SelectedObjectsCount(IQueryable<ClientSession> sessions)
         {
-            CreateQuery(ref sessions, ordering);
+            CreateQuery(ref sessions, false);
             return sessions.Count();
         }
     }

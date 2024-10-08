@@ -19,7 +19,7 @@ namespace IqSoft.CP.DAL
         public int ProductId { get; set; }
         public decimal Percent { get; set; }
     
-        public virtual Product Product { get; set; }
         public virtual TriggerSetting TriggerSetting { get; set; }
+        public virtual Product Product { get; set; }
     }
 }

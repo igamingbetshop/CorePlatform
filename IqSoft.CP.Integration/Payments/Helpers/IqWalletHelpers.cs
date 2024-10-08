@@ -19,7 +19,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 {
     public static class IqWalletHelpers
     {
-        public static PaymentResponse CreatePayoutRequest(PaymentRequest paymentRequest, SessionIdentity session, ILog log)
+        public static PaymentResponse CreatePayoutRequest(PaymentRequest paymentRequest, SessionIdentity session, ILog log, out List<int> userIds)
         {
             var paymentInfo = JsonConvert.DeserializeObject<PaymentInfo>(paymentRequest.Info);
             if (!Int32.TryParse(paymentInfo.WalletNumber, out int toClientId))
@@ -49,7 +49,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             using (var notificationBl = new NotificationBll(clientBl))
             {
                 clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.PayPanding, string.Empty,
-                                                    null, null, true, paymentRequest.Parameters, documentBl, notificationBl, false);
+                                                    null, null, true, paymentRequest.Parameters, documentBl, notificationBl, out userIds, false);
             }
             return new PaymentResponse
             {
@@ -58,8 +58,9 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             };
         }
 
-        public static void ApprovePayoutRequest(PaymentRequest paymentRequest, SessionIdentity session, ILog log, out int toClientId)
+        public static List<int> ApprovePayoutRequest(PaymentRequest paymentRequest, SessionIdentity session, ILog log, out int toClientId)
         {
+            var userIds = new List<int>();
             toClientId = 0;
             if (paymentRequest.Type == (int)PaymentRequestTypes.Withdraw && paymentRequest.Status == (int)PaymentRequestStates.PayPanding)
             {
@@ -114,7 +115,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                             paymentRequest.Parameters = JsonConvert.SerializeObject(parameters);
                             paymentSystemBl.ChangePaymentRequestDetails(paymentRequest);
                             var resp = clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Approved,
-                                               string.Empty, null, null, false, paymentRequest.Parameters, documentBl, notificationBl);
+                                               string.Empty, null, null, false, paymentRequest.Parameters, documentBl, notificationBl, out userIds);
                             clientBl.PayWithdrawFromPaymentSystem(resp, documentBl, notificationBl);
 
                             // creating deposit request for reciver
@@ -133,7 +134,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                             var receiverRequest = clientBl.CreateDepositFromPaymentSystem(receiverPaymentRequest, out LimitInfo info, false);
                             paymentRequest.ExternalTransactionId = receiverRequest.Id.ToString();
                             paymentSystemBl.ChangePaymentRequestDetails(paymentRequest);
-                            clientBl.ApproveDepositFromPaymentSystem(receiverRequest, false, "Approved");
+                            clientBl.ApproveDepositFromPaymentSystem(receiverRequest, false, out userIds, "Approved");
                             transactionScope.Complete();
                             CacheManager.RemoveClientBalance(toClientId);
                             CacheManager.RemoveClientBalance(fromClient.Id);
@@ -147,7 +148,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                     using (var documentBl = new DocumentBll(clientBl))
                     using (var notificationBl = new NotificationBll(clientBl))
                         clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed, ex.Detail.Message,
-                                         null, null, false, paymentRequest.Parameters, documentBl, notificationBl);
+                                         null, null, false, paymentRequest.Parameters, documentBl, notificationBl, out userIds);
                     throw;
                 }
                 catch (Exception ex)
@@ -158,10 +159,11 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                     using (var notificationBl = new NotificationBll(clientBl))
 
                         clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed, ex.Message,
-                                                            null, null, false, paymentRequest.Parameters, documentBl, notificationBl);
+                                                            null, null, false, paymentRequest.Parameters, documentBl, notificationBl, out userIds);
                     throw;
                 }
             }
+            return userIds;
         }
     }
 }

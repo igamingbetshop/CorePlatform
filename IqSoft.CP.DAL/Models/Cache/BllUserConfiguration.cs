@@ -9,6 +9,7 @@ namespace IqSoft.CP.DAL.Models.Cache
         public int UserId { get; set; }
         public int? CreatedBy { get; set; }
         public string Name { get; set; }
+        public bool? BooleanValue { get; set; }
         public decimal? NumericValue { get; set; }
         public string StringValue { get; set; }
         public DateTime CreationTime { get; set; }

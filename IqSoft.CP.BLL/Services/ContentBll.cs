@@ -26,7 +26,6 @@ using System.ComponentModel;
 using IqSoft.CP.Common.Attributes;
 using IqSoft.CP.Common.Models.Filters;
 using IqSoft.CP.Common.Models.WebSiteModels;
-using System.Reflection;
 
 namespace IqSoft.CP.BLL.Services
 {
@@ -344,8 +343,7 @@ namespace IqSoft.CP.BLL.Services
             });
             if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != promotion.PartnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
-            if (!Enum.IsDefined(typeof(PromotionTypes), promotion.Type) ||
-                promotion.StartDate == DateTime.MinValue || promotion.FinishDate == DateTime.MinValue ||
+            if (promotion.StartDate == DateTime.MinValue || promotion.FinishDate == DateTime.MinValue ||
                 promotion.StartDate >= promotion.FinishDate)
                 throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
             var currentDate = DateTime.Now;
@@ -902,7 +900,6 @@ namespace IqSoft.CP.BLL.Services
         public List<ApiPromotion> GetPromotions(int partnerId, string languageId) //For WebSite
         {
             var currentDate = DateTime.UtcNow;
-            var pts = GetEnumerations(nameof(PromotionTypes), languageId);
             var resp = Db.fn_Promotion(languageId, false)
                 .Where(x => x.PartnerId == partnerId &&
                            (x.ParentId == null || (x.State == (int)BaseStates.Active && x.FinishDate > currentDate)))
@@ -928,9 +925,6 @@ namespace IqSoft.CP.BLL.Services
             foreach (var promotion in resp)
             {
                 promotion.Visibility = string.IsNullOrEmpty(promotion.VisibilityInfo) ? new List<int>() : JsonConvert.DeserializeObject<List<int>>(promotion.VisibilityInfo);
-
-                promotion.Type = pts.FirstOrDefault(y => y.Value == Convert.ToInt32(promotion.Type)).Text;
-
                 var pSegments = segments.Where(x => x.PromotionId == promotion.Id).ToList();
                 promotion.Segments = new ApiSetting { Type = pSegments.Any() ? pSegments[0].Type : 0, Ids = pSegments.Select(x => x.SegmentId).ToList() };
 
@@ -1286,10 +1280,6 @@ namespace IqSoft.CP.BLL.Services
 
                 CacheManager.RemoveConfigKey(generalMenu.PartnerId, webSiteMenuItem.Title);
                 CacheManager.RemoveFromCache(string.Format("{0}_{1}_{2}", Constants.CacheItems.ConfigParameters, partnerId, webSiteMenuItem.Title));
-            }
-            else if (generalMenu.Type == Constants.WebSiteConfiguration.CasinoMenu)
-            {
-                CacheManager.RemoveCasinoMenues(generalMenu.PartnerId);
             }
             if (!string.IsNullOrEmpty(webSiteMenuItem.Image))
                 UploadMenuImage(webSiteMenuItem.PartnerId, webSiteMenuItem.Icon, webSiteMenuItem.Image,
@@ -1974,6 +1964,25 @@ namespace IqSoft.CP.BLL.Services
             return query.Select(x => new { x.Title, x.Type, x.StyleType, x.Href, x.Icon, x.Order }).ToList();
         }
 
+        public object GetPartnerMobileCodes(int partnerId, bool checkPermission = true)
+        {
+            if (checkPermission)
+            {
+                CheckPermission(Constants.Permissions.ViewWebSiteMenu);
+                var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
+                {
+                    Permission = Constants.Permissions.ViewPartner,
+                    ObjectTypeId = (int)ObjectTypes.Partner
+                });
+                if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != partnerId))
+                    throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
+            }
+            return Db.WebSiteSubMenuItems.Where(x => x.WebSiteMenuItem.WebSiteMenu.PartnerId == partnerId &&
+                                                                x.WebSiteMenuItem.WebSiteMenu.Type == Constants.WebSiteConfiguration.Config &&
+                                                                x.WebSiteMenuItem.Title == Constants.WebSiteConfiguration.MobileCodes)
+                                                    .Select(x => new { x.Title, x.Type, Mask = x.Href, x.StyleType }).ToList();
+        }
+
         public void GenerateWebSiteStylesFile(int partnerId, FtpModel ftpInput)
         {
             CheckPermission(Constants.Permissions.EditStyles);
@@ -2106,6 +2115,7 @@ namespace IqSoft.CP.BLL.Services
             var rt = webSiteConfig?.Items.FirstOrDefault(x => x.Title == "RegisterType");
             var qrt = webSiteConfig?.Items.FirstOrDefault(x => x.Title == "QuickRegisterType");
             var snp = webSiteConfig?.Items.FirstOrDefault(x => x.Title == "SocialNetworkProviders");
+            var qdn = webSiteConfig?.Items.FirstOrDefault(x => x.Title == "QuickDepositNominals");
             var eb = webSiteConfig?.Items.FirstOrDefault(x => x.Title == "ExternalBalance");
             var license = webSiteConfig?.Items.FirstOrDefault(x => x.Title == "LicenseUrl");
             var hp = webSiteConfig?.Items.FirstOrDefault(x => x.Title == "HomePage");
@@ -2173,6 +2183,7 @@ namespace IqSoft.CP.BLL.Services
                     qrt.SubMenu.Select(x => new { Title = x.Title, Order = x.Order, Type = x.Type }).ToList()),
                 SocialNetworkProviders = (snp == null ? new List<object>().Select(x => new { Title = "", ProviderId = "", Order = 0 }).ToList() : 
                     snp.SubMenu.Select(x => new { Title = x.Title, ProviderId = x.Href, Order = x.Order }).ToList()),
+                QuickDepositNominals = (qdn == null ? new List<string>() : qdn.SubMenu.Select(x => x.Title).ToList()),
                 ExternalBalance = eb == null ? new List<int>() : eb.SubMenu.Select(x => Convert.ToInt32(x.Type)).ToList(),
                 LicenseUrl = license == null ? string.Empty : license.Href,
                 FooterVisibility = (fv == null ? new List<object>().Select(x => new { Title = "", Type = "" }).ToList() : 
@@ -2194,7 +2205,7 @@ namespace IqSoft.CP.BLL.Services
                 {
                     Position = x.Key,
                     Items = x.Select(z => new { z.Id, z.Order, z.Title, z.StyleType, z.Href, z.Icon,
-                        SubMenu = z.SubMenu.Select(k => new { k.Id, k.Order, k.Title, k.StyleType, k.Href, k.Icon }).ToList()
+                        SubMenu = z.SubMenu.Select(k => new { k.Id, k.Order, k.Title, k.StyleType, k.Href, k.Icon, k.Type }).ToList()
                     })
                 })),
                 MobileFragments = mf?.Where(x => !x.OpenInRouting).GroupBy(x => x.Title.Split('_')[0])
@@ -2202,7 +2213,7 @@ namespace IqSoft.CP.BLL.Services
                 {
                     Position = x.Key,
                     Items = x.Select(z => new { z.Id, z.Order, z.Title, z.StyleType, z.Href, z.Icon,
-                        SubMenu = z.SubMenu.Select(k => new { k.Id, k.Order, k.Title, k.StyleType, k.Href, k.Icon }).ToList() })
+                        SubMenu = z.SubMenu.Select(k => new { k.Id, k.Order, k.Title, k.StyleType, k.Href, k.Icon, k.Type }).ToList() })
                 })),
                 WinnersWidget = (ww != null && ww.Href == "0") ? 0 : 1,
                 RegExProperty = new RegExProperty(partner.PasswordRegExp),
@@ -2337,13 +2348,6 @@ namespace IqSoft.CP.BLL.Services
                    }).OrderBy(y => y.Order).ToList()
                }).ToList();
 
-            var cm = menu.FirstOrDefault(x => x.Type == Constants.WebSiteConfiguration.CasinoMenu);
-            foreach (var cmi in cm?.Items)
-            {
-                if (Int32.TryParse(cmi.Type, out int href))
-                    cmi.Href = cmi.Type;
-            }
-
             var documentTypes = JsonConvert.SerializeObject(BaseBll.GetEnumerations(typeof(KYCDocumentTypes).Name, Constants.DefaultLanguageId)
                                                             .Where(x => registrationKYCTypes.ContainsKey(x.Value.ToString()))
                 .Select(x => new
@@ -2440,7 +2444,7 @@ namespace IqSoft.CP.BLL.Services
         {
             string content = string.Empty;
             var currentVersion = CacheManager.GetConfigKey(partnerId, Constants.PartnerKeys.TermsConditionVersion);
-            Dictionary<string, fnTranslation> pages;
+         //   Dictionary<string, fnTranslation> pages;
             var translations = Db.WebSiteMenuItems.Where(x => x.WebSiteMenu.PartnerId == partnerId && x.WebSiteMenu.Type == Constants.WebSiteConfiguration.Translations &&
                 x.Type != "promotion" && x.Type != "news" && x.Type != "page").Select(x => new
                 {
@@ -2488,24 +2492,29 @@ namespace IqSoft.CP.BLL.Services
                         subT.Text = string.Empty;
                 }
             }
-            pages = Db.WebSiteMenuItems.Include(x => x.WebSiteSubMenuItems).FirstOrDefault(x => x.WebSiteMenu.PartnerId == partnerId && x.WebSiteMenu.Type == Constants.WebSiteConfiguration.Translations && x.Type == "page")?.
+           var  pages = Db.WebSiteMenuItems.Include(x => x.WebSiteSubMenuItems).FirstOrDefault(x => x.WebSiteMenu.PartnerId == partnerId && x.WebSiteMenu.Type == Constants.WebSiteConfiguration.Translations && x.Type == "page")?.
                 WebSiteSubMenuItems.Select(x => new
                 {
                     PageName = x.Title,
+                    x.Type,
                     Content = Db.fn_Translation(languageId).
                     Where(o => o.TranslationId == x.TranslationId).FirstOrDefault()
-                }).ToDictionary(y => y.PageName, y => y.Content);
+                }).ToDictionary(y => y.PageName, y => new { y.Content, IsDownloadable = (y.Type?.ToLower() == "downloadable") });
             var partner = CacheManager.GetPartnerById(partnerId);
 
             content = JsonConvert.SerializeObject(translations.ToDictionary(y => y.Title,
                                                y => y.SubMenu.ToDictionary(z => z.Title,
                                                                           (z => z.Text == null ? string.Empty : z.Text))));
             UploadFile(content, "/coreplatform/website/" + partner.Name.ToLower() + "/assets/json/translations/" + languageId.ToLower() + ".json", ftpInput);
-            if (pages != null)
+            if (pages != null && pages.Any())
+            {
                 foreach (var page in pages)
                 {
-                    UploadFile(page.Value.Text, "/coreplatform/website/" + partner.Name.ToLower() + "/assets/html/" + page.Key + "_" + languageId.ToLower() + ".html", ftpInput);
+                    UploadFile(page.Value.Content.Text, "/coreplatform/website/" + partner.Name.ToLower() + "/assets/html/" + page.Key + "_" + languageId.ToLower() + ".html", ftpInput);
+                    if (page.Value.IsDownloadable)
+                        UploadFtpImage(StringToPdfBytes(page.Value.Content.Text), ftpInput, $"ftp://{ftpInput.Url}/coreplatform/website/{partner.Name.ToLower()}/assets/pdf/{page.Key}_{languageId.ToLower()}.pdf");
                 }
+            }
             UploadFile(string.Format("window.VERSION = {0};", (new Random()).Next(1, 1000)), "/coreplatform/website/" + partner.Name.ToLower() + "/assets/js/version.js", ftpInput);
         }
 
@@ -2552,7 +2561,6 @@ namespace IqSoft.CP.BLL.Services
         {
             var partner = CacheManager.GetPartnerById(partnerId);
             var pathTemplate = "/assets/json/promotions/{0}_{1}.json";
-            var pts = CacheManager.GetEnumerations(nameof(PromotionTypes), languageId);
             Db.fn_Promotion(languageId, true).Where(x => x.PartnerId == partnerId && x.State == (int)BaseStates.Active)
                                                                 .Select(x => new PromotionItem
                                                                 {
@@ -2564,7 +2572,6 @@ namespace IqSoft.CP.BLL.Services
                                                                     title = x.Title
                                                                 }).ToList().ForEach(p =>
                                                                 {
-                                                                    p.type = pts.FirstOrDefault(y => y.Value == Convert.ToUInt32(p.type)).Text;
                                                                     UploadFile(JsonConvert.SerializeObject(p), "/coreplatform/website/" + partner.Name.ToLower() + String.Format(pathTemplate, p.id, languageId.ToLower()), ftpInput);
                                                                 });
             UploadFile($"window.VERSION = {new Random().Next(1, 1000)};", $"/coreplatform/website/{partner.Name.ToLower()}/assets/js/version.js", ftpInput);
@@ -2641,8 +2648,6 @@ namespace IqSoft.CP.BLL.Services
                     path += ("header-panel-1-menu/" + imageName);
                 else if (menuType == Constants.WebSiteConfiguration.HeaderPanel2Menu)
                     path += ("header-panel-2-menu/" + imageName);
-                else if (menuType == Constants.WebSiteConfiguration.CasinoMenu)
-                    path += ("casino-menu/" + imageName);
                 else if (menuType == Constants.WebSiteConfiguration.FooterMenu)
                     path += ("footer-menu/" + imageName);
                 else if (menuType == Constants.WebSiteConfiguration.WebFragments)

@@ -18,8 +18,9 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 {
     public static class FlexepinHelpers
     {
-        public static PaymentResponse RedeemVoucher(PaymentRequest input, SessionIdentity session, ILog log)
+        public static PaymentResponse RedeemVoucher(PaymentRequest input, SessionIdentity session, ILog log, out List<int> userIds)
         {
+            userIds = new List<int>();
             using (var paymentSystemBl = new PaymentSystemBll(session, log))
             using (var clientBl = new ClientBll(paymentSystemBl))
             {
@@ -83,7 +84,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                         NullValueHandling = NullValueHandling.Ignore
                     });
                     paymentSystemBl.ChangePaymentRequestDetails(input);
-                    clientBl.ApproveDepositFromPaymentSystem(input, false);
+                    clientBl.ApproveDepositFromPaymentSystem(input, false, out userIds);
                     return new PaymentResponse
                     {
                         Status = PaymentRequestStates.Approved,

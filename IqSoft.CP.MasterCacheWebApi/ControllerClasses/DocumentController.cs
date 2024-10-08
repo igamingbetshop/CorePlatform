@@ -227,6 +227,7 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
             SessionIdentity session, ILog log)
         {
             input.ClientId = clientId;
+            var userIds = new List<int>();
             using (var paymentSystemBl = new PaymentSystemBll(session, log))
             {
                 using (var clientBl = new ClientBll(paymentSystemBl))
@@ -247,15 +248,18 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                             {
                                 case PayoutCancelationTypes.ExternallyWithCallback:
                                     clientBl.ChangeWithdrawRequestState(input.RequestId, PaymentRequestStates.CancelPending, request.Parameters, null, null, false,
-                                    request.Parameters, documentBl, notificationBl);
-                                    PaymentHelpers.CancelPayoutRequest(paymentSystem, request, session, log);
+                                    request.Parameters, documentBl, notificationBl, out userIds);
+                                    userIds = PaymentHelpers.CancelPayoutRequest(paymentSystem, request, session, log);
                                     break;
                                 default:
                                     clientBl.ChangeWithdrawRequestState(input.RequestId, PaymentRequestStates.CanceledByClient, request.Parameters, null, null, false,
-                                                                request.Parameters, documentBl, notificationBl);
+                                                                request.Parameters, documentBl, notificationBl, out userIds);
                                     break;
                             }
-
+                            foreach (var uId in userIds)
+                            {
+                                Helpers.Helpers.InvokeMessage("NotificationsCount", uId);
+                            }
                             CacheManager.RemoveClientBalance(request.ClientId.Value);
                             Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}", Constants.CacheItems.ClientBalance, request.ClientId));
                             return new CancelPaymentRequestOutput
@@ -299,6 +303,7 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
 
         private static ApiResponseBase CreatePaymentRequest(PaymentRequestModel input, int clientId, SessionIdentity session, ILog log)
         {
+            var userIds = new List<int>();
             if (input.Amount <= 0)
                 throw BaseBll.CreateException(session.LanguageId, Constants.Errors.WrongOperationAmount);
             input.ClientId = clientId;
@@ -353,14 +358,14 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                             WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(exc.Detail));
                             clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Failed,
                                                                 exc.Detail != null ? exc.Detail.Message : exc.Message, null, null, false,
-                                                                request.Parameters, documentBl, notificationBl);
+                                                                request.Parameters, documentBl, notificationBl, out userIds);
                             throw;
                         }
                         catch (Exception exc)
                         {
                             WebApiApplication.DbLogger.Error(exc);
                             clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Failed,
-                                                                exc.Message, null, null, false, request.Parameters, documentBl, notificationBl);
+                                                                exc.Message, null, null, false, request.Parameters, documentBl, notificationBl, out userIds);
                             throw;
                         }
                         Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}", Constants.CacheItems.ActiveBonusId, client.Id));
@@ -374,7 +379,13 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                         if ((partnerAutoConfirmWithdrawMaxAmount > request.Amount && (client.IsDocumentVerified || requireDocument != "1")) || client.Email == Constants.CardReaderClientEmail ||
                             paymentSystem.Name.ToLower() == Constants.PaymentSystems.IqWallet.ToLower())
                         {
-                            clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Confirmed, "", request.CashDeskId, null, false, request.Parameters, documentBl, notificationBl);
+                            clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Confirmed, "", request.CashDeskId, null, false, 
+                                request.Parameters, documentBl, notificationBl, out userIds);
+                        }
+
+                        foreach (var uId in userIds)
+                        {
+                            Helpers.Helpers.InvokeMessage("NotificationsCount", uId);
                         }
                         var response = request.MapToPaymentRequestModel();
                         response.Url = initializeUrl;
@@ -534,7 +545,13 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                                 Helpers.Helpers.InvokeMessage("PaymentRequst", paymentRequest.Id);
                                 try
                                 {
-                                    var response = PaymentHelpers.SendPaymentDepositRequest(paymentRequest, partnerId, input.GoBackUrl, input.ErrorPageUrl, session, log);
+                                    var response = PaymentHelpers.SendPaymentDepositRequest(paymentRequest, partnerId, 
+                                        input.GoBackUrl, input.ErrorPageUrl, session, log, out List<int> userIds);
+                                    foreach (var uId in userIds)
+                                    {
+                                        Helpers.Helpers.InvokeMessage("NotificationsCount", uId);
+                                    }
+
                                     if (VoucherPaymentSystems.Contains(paymentSystem.Name))
                                         Helpers.Helpers.InvokeMessage("ClientDepositWithBonus", paymentRequest.ClientId);
                                     var res = new ApiResponseBase
@@ -834,7 +851,11 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
 
         private static ApiResponseBase ApprovedPayBoxMobileRequest(int requestId, string smsCode, SessionIdentity identity, ILog log)
         {
-            PayBoxHelpers.ApprovedMobileRequest(smsCode, requestId, identity, log);
+            PayBoxHelpers.ApprovedMobileRequest(smsCode, requestId, identity, log, out List<int> userIds);
+            foreach (var uId in userIds)
+            {
+                Helpers.Helpers.InvokeMessage("NotificationsCount", uId);
+            }
             return new ApiResponseBase();
         }
 
@@ -900,7 +921,7 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                             clientBonus = clientBl.CancelClientBonus(clientBonusId, false);
                         CacheManager.RemoveClientBalance(clientBonus.ClientId);
                         CacheManager.RemoveClientActiveBonus(clientBonus.ClientId);
-                        CacheManager.RemoveClientBonus(clientBonus.ClientId, clientBonus.BonusId);
+                        CacheManager.RemoveClientBonus(clientBonus.ClientId, clientBonus.BonusId, clientBonus.ReuseNumber ?? 1);
                         Helpers.Helpers.InvokeMessage("ClientBonus", clientBonus.ClientId);
 
                         var resp = clientBonus.ToApiClientBonusItem(identity.TimeZone, identity.LanguageId);

@@ -24,14 +24,14 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 {
     public class ExternalCashierController : ApiController
     {
-        private readonly static int PaymentSystemId = CacheManager.GetPaymentSystemByName(Constants.PaymentSystems.ExternalCashier).Id;
+     //   private readonly static int PaymentSystemId = CacheManager.GetPaymentSystemByName(Constants.PaymentSystems.ExternalCashier).Id;
 
         public static List<string> WhitelistedIps = CacheManager.GetProviderWhitelistedIps(Constants.PaymentSystems.ExternalCashier);
 
 
         [HttpPost]
-        [Route("api/ExternalCashier/Authentication")]
-        public HttpResponseMessage Authentication(AuthenticationInput input)
+        [Route("api/{paymentSystemName}/Auth")] // Authentication conflicting 
+        public HttpResponseMessage Authentication(string paymentSystemName, AuthenticationInput input)
         {
             var result = new AuthenticationOutput();
             try
@@ -42,7 +42,9 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                 var client = CacheManager.GetClientById(clientId);
                 if (client == null)
                     throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.ClientNotFound);
-                var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, PaymentSystemId,
+                var paymentSystemId = CacheManager.GetPaymentSystemByName(paymentSystemName).Id;
+
+                var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, paymentSystemId,
                                                                                    client.CurrencyId, (int)PaymentRequestTypes.Deposit);
                 if (partnerPaymentSetting == null)
                     throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.PaymentSystemNotFound);
@@ -99,8 +101,8 @@ namespace IqSoft.CP.PaymentGateway.Controllers
         }
 
         [HttpPost]
-        [Route("api/ExternalCashier/Payment")]
-        public HttpResponseMessage CreatePaymentRequest(PaymentInput input)
+        [Route("api/{paymentSystemName}/Payment")]
+        public HttpResponseMessage CreatePaymentRequest([FromUri]string paymentSystemName, PaymentInput input)
         {
             var result = new PaymentOutput();
             try
@@ -111,7 +113,8 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                 var client = CacheManager.GetClientById(clientId);
                 if (client == null)
                     throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.ClientNotFound);
-                var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, PaymentSystemId,
+                var paymentSystemId = CacheManager.GetPaymentSystemByName(paymentSystemName).Id;
+                var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, paymentSystemId,
                                                                                    client.CurrencyId, (int)PaymentRequestTypes.Deposit);
                 if (partnerPaymentSetting == null)
                     throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.PaymentSystemNotFound);
@@ -161,7 +164,11 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                         {
                             var request = clientBl.CreateDepositFromPaymentSystem(paymentRequest, out LimitInfo info);
                             PaymentHelpers.InvokeMessage("PaymentRequst", request.ClientId);
-                            clientBl.ApproveDepositFromPaymentSystem(request, false);
+                            clientBl.ApproveDepositFromPaymentSystem(request, false, out List<int> userIds);
+                            foreach (var uId in userIds)
+                            {
+                                PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                            }
                             scope.Complete();
                             PaymentHelpers.RemoveClientBalanceFromCache(request.ClientId.Value);
                             BaseHelpers.BroadcastBalance(request.ClientId.Value);
@@ -195,8 +202,8 @@ namespace IqSoft.CP.PaymentGateway.Controllers
         }
 
         [HttpPost]
-        [Route("api/ExternalCashier/PayPaymentRequest")]
-        public HttpResponseMessage PayPaymentRequest(PaymentInput input)
+        [Route("api/{paymentSystemName}/PayPaymentRequest")] //check payone
+        public HttpResponseMessage PayPaymentRequest([FromUri]string paymentSystemName, PaymentInput input)
         {
             var result = new PaymentOutput();
             try
@@ -210,7 +217,8 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                     if (input.ClientId != paymentRequest.ClientId.ToString())
                         throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.ClientNotFound);
                     var client = CacheManager.GetClientById(paymentRequest.ClientId.Value);
-                    var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, PaymentSystemId,
+                    var paymentSystemId = CacheManager.GetPaymentSystemByName(paymentSystemName).Id;
+                    var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, paymentSystemId,
                                                                                        client.CurrencyId, (int)PaymentRequestTypes.Deposit) ??
                         throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.PaymentSystemNotFound);
 
@@ -223,7 +231,11 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                   //  paymentRequest.Amount = input.Amount;
                     paymentRequest.ExternalTransactionId = input.TransactionId;
                     result.OrderId = paymentRequest.Id.ToString();
-                    clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
+                    clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out List<int> userIds);
+                    foreach (var uId in userIds)
+                    {
+                        PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                    }
                     PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
                     BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);
                 }

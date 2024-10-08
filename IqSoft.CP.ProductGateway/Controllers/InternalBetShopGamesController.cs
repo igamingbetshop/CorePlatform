@@ -53,7 +53,8 @@ namespace IqSoft.CP.ProductGateway.Controllers
                         BetShopId = betShop.Id,
                         CashDeskId = cashDesk.Id,
                         BetShopName = betShop.Name,
-                        BetShopAddress = betShop.Address
+                        BetShopAddress = betShop.Address,
+                        PartnerId = betShop.PartnerId
                     };
                     return Ok(response);
                 }

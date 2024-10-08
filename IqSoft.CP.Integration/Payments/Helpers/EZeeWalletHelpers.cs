@@ -58,8 +58,9 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             }
         }
 
-        public static PaymentResponse CreatePayoutRequest(PaymentRequest input, SessionIdentity session, ILog log)
+        public static PaymentResponse CreatePayoutRequest(PaymentRequest input, SessionIdentity session, ILog log, out List<int> userIds)
         {
+            userIds = new List<int>();
             using (var paymentSystemBl = new PaymentSystemBll(session, log))
             {
                 using (var documentBl = new DocumentBll(paymentSystemBl))
@@ -76,7 +77,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                             if (string.IsNullOrEmpty(paymentInfo.WalletNumber))
                                 throw BaseBll.CreateException(session.LanguageId, Constants.Errors.WrongInputParameters);
                             clientBl.ChangeWithdrawRequestState(input.Id, PaymentRequestStates.PayPanding, string.Empty,
-                                                                null, null, true, input.Parameters, documentBl, notificationBl, false);
+                                                                null, null, true, input.Parameters, documentBl, notificationBl, out userIds, false);
                             var paymentRequestInput = new
                             {
                                 email = paymentInfo.WalletNumber,
@@ -108,9 +109,8 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                                 };
                             if (!string.IsNullOrEmpty(response.Code))
                             {
-
                                 clientBl.ChangeWithdrawRequestState(input.Id, PaymentRequestStates.Failed,
-                            response.Message, null, null, false, string.Empty, documentBl, notificationBl);
+                                    response.Message, null, null, false, string.Empty, documentBl, notificationBl, out userIds);
                                 return new PaymentResponse
                                 {
                                     Status = PaymentRequestStates.Failed,

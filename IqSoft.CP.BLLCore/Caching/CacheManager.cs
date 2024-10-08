@@ -2990,7 +2990,6 @@ namespace IqSoft.CP.BLL.Caching
         private static List<BllPromotion> GetBllPromotionsFromDb(int partnerId, string languageId)
         {
             var currentDate = DateTime.UtcNow;
-            var pts = GetEnumerations(nameof(PromotionTypes), languageId);
             using (var db = new IqSoftCorePlatformEntities())
             {
                 var resp = db.fn_Promotion(languageId).Where(x => x.PartnerId == partnerId && x.State == (int)BaseStates.Active &&
@@ -3012,7 +3011,6 @@ namespace IqSoft.CP.BLL.Caching
                 var languages = db.PromotionLanguageSettings.Where(x => ids.Contains(x.PromotionId)).ToList();
                 foreach (var promotion in resp)
                 {
-                    promotion.Type = pts.FirstOrDefault(y => y.Value == Convert.ToInt32(promotion.Type)).Text;
                     var pSegments = segments.Where(x => x.PromotionId == promotion.Id).ToList();
                     promotion.Segments = new BllSetting { Type = pSegments.Any() ? pSegments[0].Type : 0, Ids = pSegments.Select(x => x.SegmentId).ToList() };
 

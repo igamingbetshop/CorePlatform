@@ -26,12 +26,16 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity.Validation;
 using System.Linq;
+using System.Net.Http;
 using System.ServiceModel;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
+using System.Web;
 using System.Web.Http;
 using System.Web.Http.Cors;
 using static IqSoft.CP.Common.Constants;
+using System.Net;
 
 namespace IqSoft.CP.MasterCacheWebApi.Controllers
 {
@@ -125,7 +129,11 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                                 FirstName = authOutput.FirstName,
                                 LastName = authOutput.LastName,
                                 AffiliateReferralId = authOutput.AffiliateReferralId
-                            });
+                            }, out List<int> userIds);
+                            foreach (var uId in userIds)
+                            {
+                                Helpers.Helpers.InvokeMessage("NotificationsCount", uId);
+                            }
                         }
                         if (authOutput.Token.Length < 100)
                             platformToken = authOutput.Token;
@@ -622,7 +630,11 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                 if (input.ExternalPlatformId.HasValue)
                 {
                     loginInput.ExternalPlatformType = input.ExternalPlatformId.Value;
-                    var resp = ExternalPlatformHelpers.CreateClientSession(loginInput, out newToken, out clientId, sessionIdentity, WebApiApplication.DbLogger);
+                    var resp = ExternalPlatformHelpers.CreateClientSession(loginInput, out newToken, out clientId, sessionIdentity, WebApiApplication.DbLogger, out List<int> userIds);
+                    foreach (var uId in userIds)
+                    {
+                        Helpers.Helpers.InvokeMessage("NotificationsCount", uId);
+                    }
                     return resp.MapToApiLoginClientOutput(newToken, input.TimeZone);
                 }
                 BllClient client = null;
@@ -997,13 +1009,19 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                             UserName = "tg_" + input.id,
                             PartnerId = partnerId,
                             CurrencyId = partner.CurrencyId
-                        }).ToBllClient();
+                        }, out List<int> userIds).ToBllClient();
                         clientBl.SaveKYCDocument(new DAL.ClientIdentity {
                             ClientId = client.Id,
                             DocumentTypeId = (int)KYCDocumentTypes.ProfilePicture,
                             Status = (int)KYCDocumentStates.Approved,
                             ImagePath = input.photo_url
-                        }, string.Empty, null, false);
+                        }, string.Empty, null, false, out List<int> kycUserIds);
+                        userIds.AddRange(kycUserIds);
+                        userIds = userIds.Distinct().ToList();
+                        foreach (var uId in userIds)
+                        {
+                            Helpers.Helpers.InvokeMessage("NotificationsCount", uId);
+                        }
                     }
                 }
                 if (client == null)
@@ -1220,7 +1238,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                                     }
                                     else
                                     {
-                                        var cryptoAddress = PaymentHelpers.GetClientPaymentAddress(item.PaymentSystemId, input.ClientId, WebApiApplication.DbLogger);
+                                        var cryptoAddress = PaymentHelpers.GetClientPaymentAddress(item.PaymentSystemId, input.ClientId, ps.CurrencyId, paymentSystemBl.Identity,  WebApiApplication.DbLogger);
                                         item.Address = cryptoAddress.Address;
                                         item.DestinationTag = cryptoAddress.DestinationTag;
                                         if (!string.IsNullOrEmpty(item.Address))
@@ -1645,7 +1663,11 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                             quickRegistrationInput.UserId = agentId;
                         }
                     }
-                    var client = clientBl.QuickRegisteration(quickRegistrationInput);
+                    var client = clientBl.QuickRegisteration(quickRegistrationInput, out List<int> userIds);
+                    foreach (var uId in userIds)
+                    {
+                        Helpers.Helpers.InvokeMessage("NotificationsCount", uId);
+                    }
                     var response = client.MapToApiLoginClientOutput(input.TimeZone);
                     return response;
                 }
@@ -1756,7 +1778,11 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                 }
                 using (var clientBl = new ClientBll(new SessionIdentity { LanguageId = input.LanguageId, Domain = input.Domain, Country = input.CountryCode }, WebApiApplication.DbLogger))
                 {
-                    var client = clientBl.QuickRegisteration(quickRegistrationInput);
+                    var client = clientBl.QuickRegisteration(quickRegistrationInput, out List<int> userIds);
+                    foreach (var uId in userIds)
+                    {
+                        Helpers.Helpers.InvokeMessage("NotificationsCount", uId);
+                    }
                     var response = client.MapToApiLoginClientOutput(input.TimeZone);
                     return response;
                 }
@@ -1885,7 +1911,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                                 RefId = input.RefId
                             };
                         }
-                        else if (!string.IsNullOrEmpty(input.AffiliateCode))
+                        else if (!string.IsNullOrEmpty(input.AffiliateCode) && input.AffiliateCode.Contains("_"))
                         {
                             var affData = input.AffiliateCode.Split('_');
                             if (int.TryParse(affData[0], out int affPlatformId))
@@ -1931,7 +1957,11 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                             if (existingClient != null)
                                 throw BaseBll.CreateException(input.LanguageId, Constants.Errors.ClientExist);
                         }
-						var client = clientBl.RegisterClient(clientRegistrationInput);
+						var client = clientBl.RegisterClient(clientRegistrationInput, out List<int> userIds);
+                        foreach (var uId in userIds)
+                        {
+                            Helpers.Helpers.InvokeMessage("NotificationsCount", uId);
+                        }
                         var verificationPlatform = CacheManager.GetConfigKey(client.PartnerId, Constants.PartnerKeys.VerificationPlatform);
                         if (!string.IsNullOrEmpty(verificationPlatform) && int.TryParse(verificationPlatform, out int verificationPatformId))
                         {
@@ -3148,11 +3178,12 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                 
                 using (var clientBl = new ClientBll(sessionIdentity, WebApiApplication.DbLogger))
                 {
+                    var resp = clientBl.VerifyClientEmail(request.Code, request.Email,
+                            request.Type == (int)VerificationCodeTypes.PasswordRecoveryByEmailOrMobile ? request.ClientId : null,
+                            request.PartnerId, false, null, clientInfoType);
                     return new ApiResponseBase
                     {
-                        ResponseObject = clientBl.VerifyClientEmail(request.Code, request.Email,
-                            request.Type == (int)VerificationCodeTypes.PasswordRecoveryByEmailOrMobile ? request.ClientId : null, 
-                            request.PartnerId, false, null, clientInfoType)
+                        ResponseObject = resp
                     };
                 }
             }
@@ -3283,8 +3314,10 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                         blockedProviders.AddRange(CacheManager.GetRestrictedGameProviders(client.CurrencyId));
                     }
                     
-                    var games = (input.IsForMobile ? CacheManager.GetPartnerProductSettings(input.PartnerId, input.CountryCode, (int)DeviceTypes.Mobile, input.LanguageId, WebApiApplication.DbLogger) :
-                                                     CacheManager.GetPartnerProductSettings(input.PartnerId, input.CountryCode, (int)DeviceTypes.Desktop, input.LanguageId, WebApiApplication.DbLogger))
+                    var games = (input.IsForMobile ? CacheManager.GetPartnerProductSettings(input.PartnerId, input.CountryCode, 
+                                                     (int)DeviceTypes.Mobile, input.LanguageId, WebApiApplication.DbLogger) :
+                                                     CacheManager.GetPartnerProductSettings(input.PartnerId, input.CountryCode, 
+                                                     (int)DeviceTypes.Desktop, input.LanguageId, WebApiApplication.DbLogger))
                         .Where(x => !blockedProviders.Contains(x.SI)).AsEnumerable();
                     if (input.CategoryId != null)
                     {
@@ -3297,18 +3330,17 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                     {
                         if (input.CategoryIds != null && input.CategoryIds.Any())
                             games = games.Where(x => x.CI != null && x.CI.Any(y=> input.CategoryIds.Contains(y)));
-                        else
-                        {
-                            var casinoMenues = CacheManager.GetCasinoMenues(partner.Id);
-                            games = games.Where(x => x.CI != null &&  casinoMenues.Any(y => int.TryParse(y.Type, out int t) && x.CI.Contains(t)));
-                        }
                     }
 
-                    if (!string.IsNullOrEmpty(input.Name))
-                    {
-                        games = games.Where(x => x.N.ToLower().Contains(input.Name.ToLower())).ToList();
-                    }
-                    games = games.OrderByDescending(x => x.R).ThenBy(x => x.N).ToList();
+                    if (!string.IsNullOrEmpty(input.Pattern))
+                        games = games.Where(x => x.N.ToLower().Contains(input.Pattern.ToLower())).ToList();
+                    
+                    if (input.OrderByNameDesc.HasValue && input.OrderByNameDesc.Value)
+                        games = games.OrderByDescending(x => x.N).ToList();
+                    else if (input.OrderByNameDesc.HasValue)
+                        games = games.OrderBy(x => x.N).ToList();
+                    else
+                       games = games.OrderByDescending(x => x.R).ThenBy(x => x.N).ToList();
 
                     var gamesCategories = games.Where(x => x.CI != null).SelectMany(x => x.CI).Distinct().ToList();
                     var categories = CacheManager.GetProductCategories(input.PartnerId, input.LanguageId, (int)ProductCategoryTypes.ForPartner)
@@ -3326,6 +3358,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                     foreach (var g in games)
                     {
                         var product = CacheManager.GetProductById(g.I, input.LanguageId, WebApiApplication.DbLogger);
+                        var count = CacheManager.GetProductSessionsCount(g.I);
                         result.Add(new ApiPartnerProduct
                         {
                             i = input.IsForMobile ? product.MobileImageUrl : product.WebImageUrl,
@@ -3338,7 +3371,8 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                             o = g.OM ?? (int)GameOpenModes.Small,
                             hd = product.HasDemo && g.HD.HasValue ? g.HD.Value : product.HasDemo,
                             c = g.CI,
-                            f = favoriteProducts.Contains(g.I)
+                            f = favoriteProducts.Contains(g.I),
+                            pc = count
                         });
                     }
                     var output = new ApiResponseBase
@@ -3433,11 +3467,6 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                     {
                         if (input.CategoryIds != null && input.CategoryIds.Any())
                             product = product.Where(x => x.CI != null && x.CI.Any(y => input.CategoryIds.Contains(y)));
-                        else
-                        {
-                            var casinoMenues = CacheManager.GetCasinoMenues(partner.Id);
-                            product = product.Where(x => x.CI != null && casinoMenues.Any(y => int.TryParse(y.Type, out int t) && x.CI.Contains(t)));
-                        }
                     }
 
                     var providerIds = product.GroupBy(x=> x.SI).Select(x => new { ProviderId = x.Key, Count = x.Count()}).ToList();
@@ -3514,10 +3543,6 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                     var categories = CacheManager.GetProductCategories(input.PartnerId, input.LanguageId, (int)ProductCategoryTypes.ForPartner)
                                                  .Where(x => x.Type == (int)ProductCategoryTypes.ForPartner && x.Name.ToLower().Contains(input.Pattern ?? string.Empty))
                                                  .Select(x => new { x.Id, x.Name }).ToList();
-
-                    var casinoMenues = CacheManager.GetCasinoMenues(partner.Id);
-                    product = product.Where(x => x.CI != null && casinoMenues.Any(y => int.TryParse(y.Type, out int t) && x.CI.Contains(t)));
-
                     var providerIds = product.Select(x => x.SI).Distinct().ToList();
                     var providers = providerIds.Select(x => new ApiProviderInfo
                     {
@@ -3802,33 +3827,41 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
             }
         }
 
-        [HttpPost]
-        public ApiResponseBase GetProfilePicture(RequestBase request)
+        [HttpGet]
+        public async Task<HttpResponseMessage> GetProfilePicture([FromUri]RequestBase request)
         {
             try
             {
                 var partner = CacheManager.GetPartnerById(request.PartnerId);
                 if (partner == null || !partner.SiteUrl.Split(',').Any(x => x == request.Domain))
                     throw BaseBll.CreateException(request.LanguageId, Constants.Errors.PartnerNotFound);
+                var client = CacheManager.GetClientById(request.ClientId) ??
+                throw BaseBll.CreateException(request.LanguageId, Constants.Errors.ClientNotFound);
                 var session = Helpers.Helpers.CheckToken(request.Token, request.ClientId, request.TimeZone);
-
+                var filePath = string.Empty;
                 using (var clientBl = new ClientBll(new SessionIdentity(), WebApiApplication.DbLogger))
                 {
                     var imagePath = clientBl.GetClientIdentities(request.ClientId)
                                     .Where(x => x.DocumentTypeId == (int)KYCDocumentTypes.ProfilePicture).FirstOrDefault()?.ImagePath;
-                    if (string.IsNullOrEmpty(imagePath))
-                        return new ApiResponseBase();
-                    var statementPath = CacheManager.GetPartnerSettingByKey(Constants.MainPartnerId, Constants.PartnerKeys.StatementPath).StringValue;
-
-                    return new ApiResponseBase
+                    if (!string.IsNullOrEmpty(imagePath))
                     {
-                        ResponseObject = new
-                        {
-                            StatementPath = statementPath,
-                            FileName = imagePath,
-                            FilePath = $"{statementPath}/ClientDocuments/{imagePath}"
-                        }
-                    };
+                        var statementPath = CacheManager.GetPartnerSettingByKey(Constants.MainPartnerId, Constants.PartnerKeys.StatementPath).StringValue;
+                        filePath = $"{statementPath}/{imagePath}";
+                    }
+                }
+                if (string.IsNullOrEmpty(filePath))
+                {
+                    var gender = client.Gender == (int)Gender.Female ? "female" : "male";
+                    filePath = $"https://{request.Domain}/assets/images/avatars/default_{gender}.png";
+                }
+                using (var httpClient = new HttpClient())
+                {
+                    var ind = filePath.LastIndexOf("/");
+                    var fileName = filePath.Substring(ind + 1);
+                    httpClient.BaseAddress = new Uri(filePath);
+                    httpClient.DefaultRequestHeaders.Clear();
+                    HttpContext.Current.Response.Headers.Add("Content-Disposition", $"attachment; filename={fileName}");
+                    return await httpClient.GetAsync(filePath);
                 }
             }
             catch (FaultException<BllFnErrorType> ex)
@@ -3839,17 +3872,18 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                     Description = ex.Detail.Message
                 };
                 WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(response));
-                return response;
+                return Request.CreateResponse(HttpStatusCode.OK, response);
             }
             catch (Exception ex)
             {
-                WebApiApplication.DbLogger.Error(ex);
                 var response = new ApiResponseBase
                 {
                     ResponseCode = Constants.Errors.GeneralException,
                     Description = ex.Message
                 };
-                return response;
+
+                WebApiApplication.DbLogger.Error(ex);
+                return Request.CreateResponse(HttpStatusCode.OK, ex.Message);
             }
         }
 

@@ -79,7 +79,11 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 							{
 								if (cashGetOperationDataResponse.response.records[0].sum != (float)request.Amount)
 									throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongOperationAmount);
-								clientBl.ApproveDepositFromPaymentSystem(request, false);
+								clientBl.ApproveDepositFromPaymentSystem(request, false, out List<int> userIds);
+                                foreach (var uId in userIds)
+                                {
+                                    PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                }
                                 PaymentHelpers.RemoveClientBalanceFromCache(request.ClientId.Value);
                                 BaseHelpers.BroadcastBalance(request.ClientId.Value);
                                 var response = new
@@ -189,7 +193,11 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 
                             var request = clientBl.CreateDepositFromPaymentSystem(paymentRequest, out LimitInfo info);
                             PaymentHelpers.InvokeMessage("PaymentRequst", request.Id);
-                            clientBl.ApproveDepositFromPaymentSystem(request, false);
+                            clientBl.ApproveDepositFromPaymentSystem(request, false, out List<int> userIds);
+                            foreach (var uId in userIds)
+                            {
+                                PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                            }
                             scope.Complete();
                             PaymentHelpers.RemoveClientBalanceFromCache(request.ClientId.Value);
                             BaseHelpers.BroadcastBalance(request.ClientId.Value);

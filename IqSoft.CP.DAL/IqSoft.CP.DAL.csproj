@@ -422,9 +422,6 @@
     <Compile Include="fnClientMessage.cs">
       <DependentUpon>IqSoftCP.tt</DependentUpon>
     </Compile>
-    <Compile Include="fnClientProductCommission.cs">
-      <DependentUpon>IqSoftCP.tt</DependentUpon>
-    </Compile>
     <Compile Include="fnClientSession.cs">
       <DependentUpon>IqSoftCP.tt</DependentUpon>
     </Compile>
@@ -498,9 +495,6 @@
       <DependentUpon>IqSoftCP.tt</DependentUpon>
     </Compile>
     <Compile Include="fnProductCommission.cs">
-      <DependentUpon>IqSoftCP.tt</DependentUpon>
-    </Compile>
-    <Compile Include="fnProductGroup.cs">
       <DependentUpon>IqSoftCP.tt</DependentUpon>
     </Compile>
     <Compile Include="fnPromotion.cs">
@@ -656,7 +650,7 @@
     <Compile Include="Models\Cache\BllAsianCommissionPlan.cs" />
     <Compile Include="Models\Cache\BllBetShopGroup.cs" />
     <Compile Include="Models\Cache\BllBonus.cs" />
-    <Compile Include="Models\Cache\BllClientProductCommission.cs" />
+    <Compile Include="Models\Cache\BllProductCommission.cs" />
     <Compile Include="Models\Cache\BllCommentTemplate.cs" />
     <Compile Include="Models\Cache\BllComplimentaryPointRate.cs" />
     <Compile Include="Models\Cache\BllCurrencyRate.cs" />
@@ -734,7 +728,6 @@
     <Compile Include="Models\Notification\NotificationModel.cs" />
     <Compile Include="Models\Notification\ObjectMessageModel.cs" />
     <Compile Include="Models\Notification\PaymentNotificationInfo.cs" />
-    <Compile Include="Models\Notification\VerifyCodeOutput.cs" />
     <Compile Include="Models\ObjectTranslations.cs" />
     <Compile Include="Models\Products\PartnerProduct.cs" />
     <Compile Include="Models\CashDeskCorrectionInput.cs" />
@@ -1108,6 +1101,9 @@
       <DependentUpon>IqSoftCP.tt</DependentUpon>
     </Compile>
     <Compile Include="UserLog.cs">
+      <DependentUpon>IqSoftCP.tt</DependentUpon>
+    </Compile>
+    <Compile Include="UserNotification.cs">
       <DependentUpon>IqSoftCP.tt</DependentUpon>
     </Compile>
     <Compile Include="UserRole.cs">

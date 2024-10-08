@@ -33,6 +33,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
         public HttpResponseMessage ApiRequest(JObject inp)
         {
             var response = string.Empty;
+			var userIds = new List<int>();
             using (var paymentSystemBl = new PaymentSystemBll(new SessionIdentity(), WebApiApplication.DbLogger))
             {
 				using (var clientBl = new ClientBll(paymentSystemBl))
@@ -74,13 +75,13 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 										request.Info = JsonConvert.SerializeObject(input.CardAccount);
 										request.ExternalTransactionId = input.PaymentDetails.Id.ToString();
 										paymentSystemBl.ChangePaymentRequestDetails(request);
-										clientBl.ApproveDepositFromPaymentSystem(request, false);
-									}
+										clientBl.ApproveDepositFromPaymentSystem(request, false, out userIds);
+                                    }
 									else
 									{
 										request.ExternalTransactionId = input.PayoutDetails.Id.ToString();
 										var resp = clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Approved, string.Empty,
-											request.CashDeskId, null, false, request.Parameters, documentBl, notificationBl);
+											request.CashDeskId, null, false, request.Parameters, documentBl, notificationBl, out userIds);
 										clientBl.PayWithdrawFromPaymentSystem(resp, documentBl, notificationBl);
 										PaymentHelpers.RemoveClientBalanceFromCache(request.ClientId.Value);
 									}
@@ -95,14 +96,18 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 										clientBl.ChangeDepositRequestState(request.Id, PaymentRequestStates.Deleted, string.Empty, notificationBl);
 									else
 										clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Failed, 
-											input.PayoutDetails.DeclineReason, null, null, false, string.Empty, documentBl, notificationBl);
+											input.PayoutDetails.DeclineReason, null, null, false, string.Empty, documentBl, notificationBl, out userIds);
 								}
 								else
 								{
 									response = "Error";
 									return new HttpResponseMessage { StatusCode = HttpStatusCode.Conflict, Content = new StringContent(response, Encoding.UTF8) };
 								}
-							}
+                                foreach (var uId in userIds)
+                                {
+                                    PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                }
+                            }
 							catch (FaultException<BllFnErrorType> ex)
 							{
 								if (ex.Detail != null &&

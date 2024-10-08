@@ -8,7 +8,6 @@ using IqSoft.CP.DAL.Models;
 using IqSoft.CP.BLL.Services;
 using IqSoft.CP.AdminWebApi.Models.CommonModels;
 using log4net;
-using IqSoft.CP.BLL.Caching;
 using IqSoft.CP.AdminWebApi.Models.UserModels;
 
 namespace IqSoft.CP.AdminWebApi.ControllerClasses

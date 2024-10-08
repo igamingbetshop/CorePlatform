@@ -1,6 +1,4 @@
-﻿
-
-using IqSoft.CP.AgentWebApi.Filters;
+﻿using IqSoft.CP.AgentWebApi.Filters;
 using IqSoft.CP.AgentWebApi.Helpers;
 using IqSoft.CP.AgentWebApi.Models;
 using IqSoft.CP.BLL.Services;
@@ -8,7 +6,6 @@ using IqSoft.CP.Common;
 using IqSoft.CP.DAL.Models;
 using log4net;
 using Newtonsoft.Json;
-using System.Linq;
 
 namespace IqSoft.CP.AgentWebApi.ControllerClasses
 {

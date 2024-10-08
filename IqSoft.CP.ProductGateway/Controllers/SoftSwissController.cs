@@ -67,9 +67,12 @@ namespace IqSoft.CP.ProductGateway.Controllers
                 if(clientSession == null)
                 {
                     var gameData = input.GameId.Split(':');
-                    product = CacheManager.GetProductByExternalId(ProviderId, $"{gameData[0]}:{gameData[1].TrimEnd(digits)}");
                     if (product == null)
-                        throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongHash);
+                    {
+                        product = CacheManager.GetProductByExternalId(ProviderId, $"{gameData[0]}:{gameData[1].TrimEnd(digits)}");
+                        if (product == null)
+                            throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongHash);
+                    }
                     clientSession = clientSessions.FirstOrDefault(x => x.ProductId == product.Id);
                     if (clientSession == null)
                     {
@@ -321,6 +324,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                     BaseHelpers.RemoveClientBalanceFromeCache(client.Id);
                     BaseHelpers.BroadcastWin(new ApiWin
                     {
+                        BetId = betDocument?.Id ?? 0,
                         GameName = product.NickName,
                         ClientId = client.Id,
                         ClientName = client.FirstName,
@@ -603,6 +607,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                         BaseHelpers.RemoveClientBalanceFromeCache(client.Id);
                         BaseHelpers.BroadcastWin(new ApiWin
                         {
+                            BetId = betDocument?.Id ?? 0,
                             GameName = product.NickName,
                             ClientId = client.Id,
                             ClientName = client.FirstName,

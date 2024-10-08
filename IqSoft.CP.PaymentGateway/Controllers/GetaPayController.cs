@@ -29,6 +29,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
         public HttpResponseMessage PayoutRequest(HttpRequestMessage httpRequestMessage/*PayoutInput input*/)
         {
             var response = "OK";
+            var userIds = new List<int>();
             try
             {
                 var inputString = httpRequestMessage.Content.ReadAsStringAsync().Result;
@@ -74,12 +75,17 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                 if (input.PayoutStatus.ToLower() == "payout_completed")
                                 {
                                     var resp = clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Approved, input.PayoutStatus,
-                                         null, null, false, request.Parameters, documentBll, notificationBl);
+                                         null, null, false, request.Parameters, documentBll, notificationBl, out userIds);
                                     clientBl.PayWithdrawFromPaymentSystem(resp, documentBll, notificationBl);
                                 }
                                 else if (input.PayoutStatus.ToLower() == "payout_failed")
                                     clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Failed,
-                                        input.PayoutStatus, null, null, false, request.Parameters, documentBll, notificationBl);
+                                        input.PayoutStatus, null, null, false, request.Parameters, documentBll, notificationBl, out userIds);
+
+                                foreach (var uId in userIds)
+                                {
+                                    PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                }
                                 PaymentHelpers.RemoveClientBalanceFromCache(request.ClientId.Value);
                                 BaseHelpers.BroadcastBalance(request.ClientId.Value);
                             }

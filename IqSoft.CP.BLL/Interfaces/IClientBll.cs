@@ -13,12 +13,13 @@ using IqSoft.CP.Common.Models;
 using IqSoft.CP.BLL.Services;
 using IqSoft.CP.Common.Models.WebSiteModels;
 using IqSoft.CP.DAL.Models.Notification;
+using IqSoft.CP.Common.Models.Notification;
 
 namespace IqSoft.CP.BLL.Interfaces
 {
     public interface IClientBll : IBaseBll
     {
-        Client RegisterClient(ClientRegistrationInput clientRegistrationInput);
+        Client RegisterClient(ClientRegistrationInput clientRegistrationInput, out List<int> userIds);
 
         VerifyCodeOutput VerifyClientMobileNumber(string key, string mobileNumber, int? clientId, int partnerId, bool expire, 
                                            List<Common.Models.WebSiteModels.SecurityQuestion> securityQuestions, int type, bool checkSecQuestions = true);
@@ -57,7 +58,7 @@ namespace IqSoft.CP.BLL.Interfaces
 
         Note SaveNote(Note note);
 
-        List<AccountsBalanceHistoryElement> GetClientAccountsBalanceHistoryPaging(FilterAccountsBalanceHistory filter);
+        List<AccountsBalanceHistoryElement> GetClientAccountsBalanceHistoryPaging(FilterAccountsBalanceHistory filter, double timeZone);
 
         PagedModel<fnClientLog> GetClientLogs(FilterfnClientLog filter);
 
@@ -92,11 +93,12 @@ namespace IqSoft.CP.BLL.Interfaces
         PaymentRequest CreateWithdrawPaymentRequest(PaymentRequestModel request, decimal percent, BllClient client, DocumentBll documentBl, NotificationBll notificationBl);
 
         ChangeWithdrawRequestStateOutput ChangeWithdrawRequestState(long requestId, PaymentRequestStates state, string comment,
-            int? cashDeskId, int? cashierId, bool checkPermission, string parameters, DocumentBll documentBl, NotificationBll notificationBl, bool sendEmail, bool changeFromPaymentSystem = false);
+            int? cashDeskId, int? cashierId, bool checkPermission, string parameters, DocumentBll documentBl, NotificationBll notificationBl, 
+            out List<int> userIds, bool sendEmail, bool changeFromPaymentSystem = false);
 
         PaymentRequest CreateDepositFromPaymentSystem(PaymentRequest request, out LimitInfo info, bool checkLimits = true);
         // Transfer money from PartnerPaymentSetting to client
-        void ApproveDepositFromPaymentSystem(PaymentRequest request, bool fromAdmin, string comment = "", ClientPaymentInfo info = null, MerchantRequest mr = null, long? accountId = null);
+        void ApproveDepositFromPaymentSystem(PaymentRequest request, bool fromAdmin, out List<int> userIds, string comment = "", ClientPaymentInfo info = null, MerchantRequest mr = null, long? accountId = null);
 
         // Transfer money from BetShop to client
         PaymentRequest CreateDepositFromBetShop(PaymentRequest transaction);
@@ -123,7 +125,7 @@ namespace IqSoft.CP.BLL.Interfaces
 
         Document CreateDebitToClient(ClientOperation transaction, int clientId, string userName, DocumentBll documentBl, Document creditTransaction);
 
-		void ChangeWithdrawPaymentRequestState(long requestId, string comment, int? cashDeskId, int? cashierId, PaymentRequestStates state);
+        List<int> ChangeWithdrawPaymentRequestState(long requestId, string comment, int? cashDeskId, int? cashierId, PaymentRequestStates state);
 
 		PayWithdrawFromBetShopOutput PayWithdrawFromBetShop(ChangeWithdrawRequestStateOutput resp, int cashDeskId, int? cashierId, DocumentBll documentBl);
 

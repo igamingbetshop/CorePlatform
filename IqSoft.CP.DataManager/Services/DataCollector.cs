@@ -1,4 +1,5 @@
 ﻿using IqSoft.CP.DataWarehouse;
+using Newtonsoft.Json;
 using System;
 using System.Configuration;
 using System.Data.Entity;
@@ -22,12 +23,16 @@ namespace IqSoft.CP.DataManager.Services
                 using (var db = new IqSoftDataWarehouseEntities())
                 {
                     db.Database.CommandTimeout = 600;
-
-                    var lastDocumentId = db.Documents.OrderByDescending(x => x.Id).Select(x => x.Id).FirstOrDefault();
-                    db.sp_InsertDocuments(lastDocumentId);
-
+                    var lastDocumentDate = db.Documents.OrderByDescending(x => x.CreationTime).Select(x => x.CreationTime).FirstOrDefault();
+                    var ids = db.Documents.Where(x => x.CreationTime == lastDocumentDate).Select(x => x.Id).ToList();
+                    var existings = string.Empty;
+                    if (ids.Any())
+                        existings = String.Join(",", ids);
+                    else
+                        existings = "0";
+                    db.sp_InsertDocuments(lastDocumentDate, existings);
                 }
-               // Program.DbLogger.Info("MigrateDocuments_Finished");
+                //Program.DbLogger.Info("MigrateDocuments_Finished");
             }
             catch (Exception ex)
             {

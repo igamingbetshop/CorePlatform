@@ -13,8 +13,6 @@ namespace IqSoft.CP.DataWarehouse
     
     public partial class fnAgentProfit
     {
-        public Nullable<int> ProductGroupId { get; set; }
-        public string ProductGroupName { get; set; }
         public int ProductId { get; set; }
         public int RecieverAgentId { get; set; }
         public int AgentId { get; set; }

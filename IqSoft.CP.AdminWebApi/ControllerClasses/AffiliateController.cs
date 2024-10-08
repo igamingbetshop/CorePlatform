@@ -49,7 +49,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var affiliateBl = new AffiliateService(identity, log))
             {
-                var input = filter.MapToFilterfnAffiliate();
+                var input = filter.MapToFilterfnAffiliate(identity.TimeZone);
                 var resp = affiliateBl.GetfnAffiliates(input);
                 return new ApiResponseBase
                 {
@@ -134,7 +134,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var result = reportBl.GetAffiliateTransactions(apiFilter.ToFilterfnAffiliateTransaction(), apiFilter.AffiliateId);
+                var result = reportBl.GetAffiliateTransactions(apiFilter.ToFilterfnAffiliateTransaction(identity.TimeZone), apiFilter.AffiliateId);
                 return new ApiResponseBase
                 {
                     ResponseObject = new
@@ -150,7 +150,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var result = reportBl.GetAffiliateCorrections(apiFilter.MapToFilterAffiliateCorrection());
+                var result = reportBl.GetAffiliateCorrections(apiFilter.MapToFilterAffiliateCorrection(identity.TimeZone));
                 return new ApiResponseBase
                 {
                     ResponseObject = new

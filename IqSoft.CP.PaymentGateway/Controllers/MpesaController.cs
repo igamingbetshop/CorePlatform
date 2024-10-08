@@ -65,7 +65,11 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                             paymentSystemBl.ChangePaymentRequestDetails(paymentRequest);
                             if (input.ResultCode == 0)
                             {
-                                clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, comment: input.ResultDesc);
+                                clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out List<int> userIds, comment: input.ResultDesc);
+                                foreach (var uId in userIds)
+                                {
+                                    PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                }
                                 PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
                                 BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);
                             }
@@ -101,6 +105,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
         public HttpResponseMessage PaymentRequest(DirectPaymentInput paymentInput)
         {
             var response = "Failed";
+            var userIds = new List<int>();
             try
             {
                 var bodyStream = new StreamReader(HttpContext.Current.Request.InputStream); // for log
@@ -120,19 +125,23 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                                                                        client.CurrencyId, (int)PaymentRequestTypes.Withdraw);
                     if (paymentInput.Result.ResultCode != 0)
                         clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed, paymentInput.Result.ResultDesc,
-                                                            null, null, false, paymentRequest.Parameters, documentBl, notificationBl, true);
+                                                            null, null, false, paymentRequest.Parameters, documentBl, notificationBl, out userIds, true);
                     else
                     {
                         paymentRequest.ExternalTransactionId = paymentInput.Result.TransactionID;
                         paymentSystemBl.ChangePaymentRequestDetails(paymentRequest);
                         var resp = clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Approved,
-                                   paymentInput.Result.ResultDesc, null, null, false, paymentRequest.Parameters, documentBl, notificationBl);
+                                   paymentInput.Result.ResultDesc, null, null, false, paymentRequest.Parameters, documentBl, notificationBl, out userIds);
                         clientBl.PayWithdrawFromPaymentSystem(resp, documentBl, notificationBl);
                         PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
                         BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);
                     }
                 }
                 response = "ok";
+                foreach (var uId in userIds)
+                {
+                    PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                }
             }
             catch (FaultException<BllFnErrorType> ex)
             {
@@ -158,6 +167,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
         public HttpResponseMessage PayoutRequest(PayoutInput input)
         {
             var response = "Failed";
+            var userIds = new List<int>();
             try
             {
                 var bodyStream = new StreamReader(HttpContext.Current.Request.InputStream); // for log
@@ -181,13 +191,17 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                     if (input.TransactionStatus.ToUpper() == "SUCCESS")
                     {
                         var resp = clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Approved, input.TransactionMessage,
-                                                                       null, null, false, paymentRequest.Parameters, documentBl, notificationBl);
+                                                                       null, null, false, paymentRequest.Parameters, documentBl, notificationBl, out userIds);
                         clientBl.PayWithdrawFromPaymentSystem(resp, documentBl, notificationBl);
                     }
                     else if (input.TransactionStatus.ToUpper() == "FAILED")
                     {
                         clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed, input.TransactionMessage, null, null,
-                                                            false, paymentRequest.Parameters, documentBl, notificationBl);
+                                                            false, paymentRequest.Parameters, documentBl, notificationBl, out userIds);
+                    }
+                    foreach (var uId in userIds)
+                    {
+                        PaymentHelpers.InvokeMessage("NotificationsCount", uId);
                     }
                     PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
                     BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);
@@ -302,7 +316,11 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                 using (var scope = CommonFunctions.CreateTransactionScope())
                 {
                     var request = clientBl.CreateDepositFromPaymentSystem(paymentRequest, out LimitInfo info, false);
-                    clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, comment: paymentInput.TransactionType);
+                    clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out List<int> userIds, comment: paymentInput.TransactionType);
+                    foreach (var uId in userIds)
+                    {
+                        PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                    }
                     PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
                     BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);
                     BaseHelpers.BroadcastDepositLimit(info);

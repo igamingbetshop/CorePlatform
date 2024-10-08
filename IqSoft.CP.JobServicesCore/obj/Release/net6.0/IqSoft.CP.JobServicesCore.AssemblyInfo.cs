@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("IqSoft.CP.JobServicesCore")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7a7cbbafa50212e79d59edd5d14c6cec464671d6")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8bbbf70c389c46e987b152285a9801953aedb654")]
 [assembly: System.Reflection.AssemblyProductAttribute("IqSoft.CP.JobServicesCore")]
 [assembly: System.Reflection.AssemblyTitleAttribute("IqSoft.CP.JobServicesCore")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

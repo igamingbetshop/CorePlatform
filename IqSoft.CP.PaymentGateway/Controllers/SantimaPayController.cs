@@ -7,6 +7,7 @@ using IqSoft.CP.PaymentGateway.Helpers;
 using IqSoft.CP.PaymentGateway.Models.SantimaPay;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -47,8 +48,12 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 
 							if (transaction.Status == "COMPLETED")
 							{
-								clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
-								PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
+								clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out List<int> userIds);
+                                foreach (var uId in userIds)
+                                {
+                                    PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                }
+                                PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
 								BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);
 							}
 							else if (transaction.Status.ToLower() == "declined")

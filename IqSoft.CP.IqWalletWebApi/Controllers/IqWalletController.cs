@@ -48,6 +48,7 @@ namespace IqSoft.CP.IqWalletWebApi.Controllers
 						try
 						{
 							//BaseBll.CheckIp(WhitelistedIps);
+							var userIds = new List<int>();
 							var paymentSystem = CacheManager.GetPaymentSystemByName(Constants.PaymentSystems.IqWallet);
 							if (paymentSystem == null)
 								throw BaseBll.CreateException(string.Empty, Constants.Errors.PaymentSystemNotFound);
@@ -62,8 +63,12 @@ namespace IqSoft.CP.IqWalletWebApi.Controllers
 								input.MerchantClient.PartnerId = merchant.PartnerId;
 								input.MerchantClient.UserName = input.MerchantClient.UserName + "_" + partner.Name + "_" + partner.Id;
 								input.MerchantClient.CurrencyId = partner.CurrencyId;
-								clientBl.InsertClient(input.MerchantClient);
-								throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.LowBalance);
+								clientBl.InsertClient(input.MerchantClient, out userIds);
+                                foreach (var uId in userIds)
+                                {
+                                    //Helpers.Helpers.InvokeMessage("NotificationsCount", uId);
+                                }
+                                throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.LowBalance);
 							}
 							input.MerchantClient = null;
 							var sign = input.Sign.ToLower();
@@ -88,9 +93,13 @@ namespace IqSoft.CP.IqWalletWebApi.Controllers
 							var request = clientBl.CreateWithdrawPaymentRequest(payoutRequest, 0, client, documentBl, notificationBl);//??
 							request.ExternalTransactionId = input.MerchantPaymentId.ToString();
 							var resp = clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Approved, 
-								string.Empty, null, null, true, request.Parameters, documentBl, notificationBl);
+								string.Empty, null, null, true, request.Parameters, documentBl, notificationBl, out userIds);
+                            foreach (var uId in userIds)
+                            {
+                                //Helpers.Helpers.InvokeMessage("NotificationsCount", uId);
+                            }
 
-							response.Status = (int)PaymentRequestStates.Approved;
+                            response.Status = (int)PaymentRequestStates.Approved;
 							response.Amount = string.Format("{0:N2}", input.Amount);
 							response.PaymentId = request.Id;
 							response.MerchantPaymentId = input.MerchantPaymentId;
@@ -150,6 +159,7 @@ namespace IqSoft.CP.IqWalletWebApi.Controllers
 					try
 					{
 						WebApiApplication.DbLogger.Info(JsonConvert.SerializeObject(input));
+						var userIds = new List<int>();
 						//BaseBll.CheckIp(WhitelistedIps);
 						var paymentSystem = CacheManager.GetPaymentSystemByName(Constants.PaymentSystems.IqWallet);
 						if (paymentSystem == null)
@@ -164,8 +174,8 @@ namespace IqSoft.CP.IqWalletWebApi.Controllers
 							input.MerchantClient.PartnerId = merchant.PartnerId;
 							input.MerchantClient.UserName = input.MerchantClient.UserName + "_" + partner.Name + "_" + partner.Id;
 							input.MerchantClient.CurrencyId = partner.CurrencyId;
-							clientBl.InsertClient(input.MerchantClient);
-							client = CacheManager.GetClientByMobileNumber(merchant.PartnerId, input.MobileNumber);
+                            clientBl.InsertClient(input.MerchantClient, out userIds);
+                            client = CacheManager.GetClientByMobileNumber(merchant.PartnerId, input.MobileNumber);
 						}
 						input.MerchantClient = null;
 						var sign = input.Sign.ToLower();
@@ -207,8 +217,12 @@ namespace IqSoft.CP.IqWalletWebApi.Controllers
 							Response = string.Empty,
 							RetryCount = 0
 						};
-						clientBl.ApproveDepositFromPaymentSystem(request, false, mr: merchantRequest);
-					}
+						clientBl.ApproveDepositFromPaymentSystem(request, false, out userIds, mr: merchantRequest);
+                        foreach (var uId in userIds)
+                        {
+                            //Helpers.Helpers.InvokeMessage("NotificationsCount", uId);
+                        }
+                    }
 					catch (FaultException<BllFnErrorType> ex)
 					{
 						if (ex.Detail != null &&

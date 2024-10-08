@@ -10,6 +10,7 @@ using System;
 using IqSoft.CP.Common.Models.Enums;
 using IqSoft.CP.AdminWebApi.Hubs;
 using IqSoft.CP.Common.Models.WebSiteModels;
+using System.Web.Http;
 
 namespace IqSoft.CP.AdminWebApi
 {
@@ -21,16 +22,11 @@ namespace IqSoft.CP.AdminWebApi
         public static Timer Timer;
         protected void Application_Start()
         {
+            GlobalConfiguration.Configure(WebApiConfig.Register);
+
             XmlConfigurator.Configure();
-/*            var formatter = GlobalConfiguration.Configuration.Formatters.JsonFormatter;
-            formatter.SerializerSettings = new JsonSerializerSettings
-            {
-                Formatting = Formatting.Indented,
-                TypeNameHandling = TypeNameHandling.Objects,
-                ContractResolver = new DefaultContractResolver()
-            };
-*/
             DbLogger = LogManager.GetLogger("DbLogAppender");
+
             var qParams = new Dictionary<string, string>();
             qParams.Add("ProjectId", ((int)ProjectTypes.AdminWebApi).ToString());
             _jobConnection = new HubConnection(ConfigurationManager.AppSettings["JobHostAddress"], qParams);
@@ -68,6 +64,10 @@ namespace IqSoft.CP.AdminWebApi
             JobHubProxy.On<ApiWin>("BroadcastBalance", (balance) =>
             {
                 WebSiteHub.BroadcastBalance(balance);
+            });
+            JobHubProxy.On<int>("onNotificationsCount", (userId) =>
+            {
+                BaseHub.BroadcastNotificationsCount(userId, CacheManager.GetUserNotificationsCount(userId).Count);
             });
 
             Timer = new Timer(Reconnect, null, 5000, 5000);

@@ -5,7 +5,7 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
 <Project>
   <PropertyGroup>
     <_PublishTargetUrl>C:\inetpub\wwwroot\CorePlatform\MainCacheWebApi</_PublishTargetUrl>
-    <History>True|2024-08-30T13:31:13.5074269Z||;True|2024-08-30T15:20:21.8329386+04:00||;True|2024-08-29T18:33:32.3103824+04:00||;True|2024-08-27T20:58:02.2089888+04:00||;True|2024-08-26T12:34:39.2799969+04:00||;True|2024-08-19T10:59:02.2956882+04:00||;True|2024-08-19T10:58:25.7369180+04:00||;True|2024-08-14T17:53:50.6656724+04:00||;True|2024-08-14T17:29:15.7743020+04:00||;True|2024-08-14T17:12:05.3314191+04:00||;True|2024-08-13T16:34:13.7244425+04:00||;True|2024-08-13T12:59:54.3906709+04:00||;True|2024-08-13T12:59:17.1197334+04:00||;True|2024-08-09T14:13:16.7341992+04:00||;True|2024-08-09T14:10:23.7480929+04:00||;True|2024-08-09T14:06:24.7635817+04:00||;True|2024-08-09T12:52:06.0088454+04:00||;True|2024-08-09T12:50:39.3274227+04:00||;True|2024-08-09T12:49:41.5384687+04:00||;True|2024-08-08T15:00:43.1329392+04:00||;</History>
+    <History>True|2024-10-03T10:30:18.5067750Z||;True|2024-10-03T11:03:39.7301598+04:00||;True|2024-10-02T17:11:15.3621164+04:00||;True|2024-10-01T17:37:00.9296283+04:00||;True|2024-10-01T17:34:40.4770531+04:00||;True|2024-10-01T17:21:15.5074035+04:00||;True|2024-10-01T17:04:15.8095553+04:00||;True|2024-09-30T12:18:47.1714355+04:00||;True|2024-09-30T12:13:46.0991272+04:00||;True|2024-09-19T13:10:49.4727987+04:00||;True|2024-09-19T13:09:44.5135181+04:00||;True|2024-09-17T15:52:34.6445474+04:00||;True|2024-09-17T15:38:26.2755423+04:00||;True|2024-09-17T15:29:36.4459346+04:00||;True|2024-09-17T15:21:31.3939993+04:00||;True|2024-09-17T15:19:26.9141709+04:00||;True|2024-09-11T20:02:30.8299581+04:00||;True|2024-09-11T17:04:32.9805822+04:00||;True|2024-09-11T12:55:02.0734645+04:00||;True|2024-09-06T17:46:11.3925194+04:00||;True|2024-09-05T19:27:19.3198514+04:00||;True|2024-09-05T19:26:13.0367198+04:00||;True|2024-09-05T19:17:47.7545939+04:00||;True|2024-09-05T19:04:08.3161117+04:00||;True|2024-09-05T15:17:23.7124453+04:00||;True|2024-09-05T12:51:01.6744483+04:00||;True|2024-09-04T16:25:11.1739048+04:00||;True|2024-09-03T18:47:25.2067655+04:00||;True|2024-09-02T19:44:26.5938760+04:00||;True|2024-09-02T18:50:06.0115514+04:00||;True|2024-09-02T16:51:10.5487047+04:00||;True|2024-09-02T14:58:49.6404239+04:00||;True|2024-08-30T17:31:13.5074269+04:00||;True|2024-08-30T15:20:21.8329386+04:00||;True|2024-08-29T18:33:32.3103824+04:00||;True|2024-08-27T20:58:02.2089888+04:00||;True|2024-08-26T12:34:39.2799969+04:00||;True|2024-08-19T10:59:02.2956882+04:00||;True|2024-08-19T10:58:25.7369180+04:00||;True|2024-08-14T17:53:50.6656724+04:00||;True|2024-08-14T17:29:15.7743020+04:00||;True|2024-08-14T17:12:05.3314191+04:00||;True|2024-08-13T16:34:13.7244425+04:00||;True|2024-08-13T12:59:54.3906709+04:00||;True|2024-08-13T12:59:17.1197334+04:00||;True|2024-08-09T14:13:16.7341992+04:00||;True|2024-08-09T14:10:23.7480929+04:00||;True|2024-08-09T14:06:24.7635817+04:00||;True|2024-08-09T12:52:06.0088454+04:00||;True|2024-08-09T12:50:39.3274227+04:00||;True|2024-08-09T12:49:41.5384687+04:00||;True|2024-08-08T15:00:43.1329392+04:00||;</History>
     <LastFailureDetails />
   </PropertyGroup>
   <ItemGroup>
@@ -16,7 +16,7 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
       <publishTime>06/09/2024 16:38:15</publishTime>
     </File>
     <File Include="bin/de/PdfSharp.resources.dll">
-      <publishTime>06/09/2024 16:38:58</publishTime>
+      <publishTime>09/17/2024 17:18:50</publishTime>
     </File>
     <File Include="bin/EntityFramework.dll">
       <publishTime>06/09/2024 16:38:23</publishTime>
@@ -48,56 +48,62 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
     <File Include="bin/GraphQLParser.dll">
       <publishTime>06/09/2024 16:38:27</publishTime>
     </File>
+    <File Include="bin/HtmlRenderer.PdfSharp.dll">
+      <publishTime>09/17/2024 17:18:50</publishTime>
+    </File>
+    <File Include="bin/HtmlRenderer.PdfSharp.pdb">
+      <publishTime>09/17/2024 17:18:50</publishTime>
+    </File>
     <File Include="bin/IqSoft.CP.BLL.dll">
-      <publishTime>08/30/2024 15:20:16</publishTime>
+      <publishTime>10/03/2024 11:03:33</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.BLL.dll.config">
       <publishTime>06/09/2024 16:37:08</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.BLL.pdb">
-      <publishTime>08/30/2024 15:20:16</publishTime>
+      <publishTime>10/03/2024 11:03:33</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Common.dll">
-      <publishTime>08/30/2024 15:20:09</publishTime>
+      <publishTime>10/03/2024 11:03:25</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Common.dll.config">
       <publishTime>06/09/2024 16:37:09</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Common.pdb">
-      <publishTime>08/30/2024 15:20:09</publishTime>
+      <publishTime>10/03/2024 11:03:25</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DAL.dll">
-      <publishTime>08/30/2024 15:20:12</publishTime>
+      <publishTime>10/03/2024 11:03:29</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DAL.dll.config">
       <publishTime>08/14/2024 16:31:54</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DAL.pdb">
-      <publishTime>08/30/2024 15:20:12</publishTime>
+      <publishTime>10/03/2024 11:03:29</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DataWarehouse.dll">
-      <publishTime>08/30/2024 15:20:10</publishTime>
+      <publishTime>10/03/2024 11:03:26</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DataWarehouse.dll.config">
-      <publishTime>06/09/2024 16:37:34</publishTime>
+      <publishTime>09/12/2024 19:17:47</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DataWarehouse.pdb">
-      <publishTime>08/30/2024 15:20:10</publishTime>
+      <publishTime>10/03/2024 11:03:26</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Integration.dll">
-      <publishTime>08/30/2024 17:31:11</publishTime>
+      <publishTime>10/03/2024 11:03:37</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Integration.dll.config">
       <publishTime>06/09/2024 16:37:37</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Integration.pdb">
-      <publishTime>08/30/2024 17:31:11</publishTime>
+      <publishTime>10/03/2024 11:03:37</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.MasterCacheWebApi.dll">
-      <publishTime>08/30/2024 17:31:12</publishTime>
+      <publishTime>10/03/2024 14:30:16</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.MasterCacheWebApi.pdb">
-      <publishTime>08/30/2024 17:31:12</publishTime>
+      <publishTime>10/03/2024 14:30:16</publishTime>
     </File>
     <File Include="bin/jose-jwt.dll">
       <publishTime>06/09/2024 16:38:27</publishTime>
@@ -160,7 +166,7 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
       <publishTime>06/09/2024 16:38:56</publishTime>
     </File>
     <File Include="bin/PdfSharp.dll">
-      <publishTime>06/09/2024 16:38:58</publishTime>
+      <publishTime>09/17/2024 17:18:50</publishTime>
     </File>
     <File Include="bin/RabbitMQ.Client.dll">
       <publishTime>06/09/2024 16:38:58</publishTime>
@@ -238,7 +244,7 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
       <publishTime>06/09/2024 16:37:52</publishTime>
     </File>
     <File Include="Web.config">
-      <publishTime>08/30/2024 15:20:21</publishTime>
+      <publishTime>09/30/2024 12:18:46</publishTime>
     </File>
   </ItemGroup>
 </Project>

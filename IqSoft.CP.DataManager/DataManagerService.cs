@@ -8,7 +8,6 @@ namespace IqSoft.CP.DataManager
     public partial class DataManagerService : ServiceBase
     {
         private readonly Timer _betGroupingTimer;
-        private readonly Timer _betCleaningTimer;
 
         private readonly Timer _documentMigrationTimer;
         private readonly Timer _clientMigrationTimer;
@@ -37,7 +36,6 @@ namespace IqSoft.CP.DataManager
             InitializeComponent();
 
             _betGroupingTimer = new Timer(GroupBets, null, Timeout.Infinite, Timeout.Infinite);
-            _betCleaningTimer = new Timer(CleanBets, null, Timeout.Infinite, Timeout.Infinite);
             
             _documentMigrationTimer = new Timer(MigrateDocuments, null, Timeout.Infinite, Timeout.Infinite);
             _clientMigrationTimer = new Timer(MigrateClients, null, Timeout.Infinite, Timeout.Infinite);
@@ -65,7 +63,6 @@ namespace IqSoft.CP.DataManager
         protected override void OnStart(string[] args)
         {
             _betGroupingTimer.Change(1000, 1000);
-            _betCleaningTimer.Change(10000, 10000);
             _documentMigrationTimer.Change(1000, 1000);
             _clientMigrationTimer.Change(1000, 1000);
             _userMigrationTimer.Change(60000, 60000);
@@ -92,7 +89,6 @@ namespace IqSoft.CP.DataManager
         protected override void OnStop()
         {
             _betGroupingTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            _betCleaningTimer.Change(Timeout.Infinite, Timeout.Infinite);
             _documentMigrationTimer.Change(Timeout.Infinite, Timeout.Infinite);
             _clientMigrationTimer.Change(Timeout.Infinite, Timeout.Infinite);
             _userMigrationTimer.Change(Timeout.Infinite, Timeout.Infinite);
@@ -119,22 +115,11 @@ namespace IqSoft.CP.DataManager
         public void GroupBets(Object sender)
         {
             _betGroupingTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            var documentId = DataCombiner.LastProcessedBetDocumentId;
-            if (documentId >= 0)
-            {
-                DataCombiner.GroupNewBets(documentId, Program.DbLogger);
-            }
-            _betGroupingTimer.Change(0, 1000);
-        }
-
-        public void CleanBets(Object sender)
-        {
-            _betCleaningTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            var count = DataCombiner.CleanBets(Program.DbLogger);
-            if(count > 0)
-                _betCleaningTimer.Change(10000, 60000);
+            var count = DataCombiner.GroupNewBets(Program.DbLogger);
+            if (count > 0)
+                _betGroupingTimer.Change(0, 1000);
             else
-                _betCleaningTimer.Change(300000, 300000);
+                _betGroupingTimer.Change(1000, 1000);
         }
 
         public void MigrateDocuments(Object sender)

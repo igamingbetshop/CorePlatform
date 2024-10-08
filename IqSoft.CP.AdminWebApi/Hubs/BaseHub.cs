@@ -37,7 +37,7 @@ namespace IqSoft.CP.AdminWebApi.Hubs
 
 					using (var clientBl = new ClientBll(identity, WebApiApplication.DbLogger))
 					{
-						var resp = clientBl.GetTickets(filter.MapToFilterTicket(), true);
+						var resp = clientBl.GetTickets(filter.MapToFilterTicket(identity.TimeZone), true);
 						return new ApiResponseBase
 						{
 							ResponseObject = new
@@ -438,5 +438,15 @@ namespace IqSoft.CP.AdminWebApi.Hubs
 			};
 			return userIdentity;
 		}
-	}
+
+
+        public static void BroadcastNotificationsCount(int userId, int count)
+        {
+			var user = ConnectedUsers.FirstOrDefault(x => x.Value.Id == userId);
+			if (!string.IsNullOrEmpty(user.Key))
+			{
+				_connectedClients.Client(user.Key).onNotificationsCount(count);
+			}
+        }
+    }
 }

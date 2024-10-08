@@ -86,6 +86,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                     }
 
                     var response = client.MapToAuthorizationOutput(newToken, isShopWallet);
+                    response.PartnerId = 0;
                     response.AvailableBalance = BaseHelpers.GetClientProductBalance(client.Id, productId);
                     if (productId == Constants.SportsbookProductId)
                     {
@@ -586,6 +587,9 @@ namespace IqSoft.CP.ProductGateway.Controllers
                             case Constants.GameProviders.Endorphina:
                                 granted = Integration.Products.Helpers.EndorphinaHelpers.AddFreeRound(freespinModel, WebApiApplication.DbLogger);                             
                                 break;
+                            case Constants.GameProviders.RelaxGaming:
+                                granted = Integration.Products.Helpers.RelaxGamingHelpers.AddFreeRound(freespinModel, WebApiApplication.DbLogger);                             
+                                break;
                             default:
                                 break;
                         }
@@ -700,6 +704,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                     BaseHelpers.RemoveClientBalanceFromeCache(client.Id);
                     BaseHelpers.BroadcastWin(new ApiWin
                     {
+                        BetId = creditTransaction?.Id ?? 0,
                         GameName = product.NickName,
                         ClientId = client.Id,
                         ClientName = client.FirstName,

@@ -138,8 +138,9 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             }
         }
 
-        public static void GetPayoutRequestStatus(PaymentRequest paymentRequest, SessionIdentity session, ILog log)
+        public static List<int> GetPayoutRequestStatus(PaymentRequest paymentRequest, SessionIdentity session, ILog log)
         {
+            var userIds = new List<int>();
             using (var clientBl = new ClientBll(session, log))
             {
                 using (var notificationBl = new NotificationBll(clientBl))
@@ -177,19 +178,20 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                             if (response.Response.Status == 1)
                             {
                                 var resp = clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Approved, 
-                                    string.Empty, null, null, false, string.Empty, documentBl, notificationBl);
+                                    string.Empty, null, null, false, string.Empty, documentBl, notificationBl, out userIds);
                                 clientBl.PayWithdrawFromPaymentSystem(resp, documentBl, notificationBl);
                             }
 
                             else if (response.Response.Status != 2)
                             {
                                 clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed,
-                                string.Empty, null, null, false, string.Empty, documentBl, notificationBl);
+                                string.Empty, null, null, false, string.Empty, documentBl, notificationBl, out userIds);
                             }
                         }
                     }
                 }
             }
+            return userIds;
         }
     }
 }

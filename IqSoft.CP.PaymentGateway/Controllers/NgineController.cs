@@ -22,6 +22,7 @@ using System.Text.RegularExpressions;
 using System.Web.Http;
 using System.Web.Http.Cors;
 using TransferInput = IqSoft.CP.PaymentGateway.Models.Ngine.TransferInput;
+using System.Collections.Generic;
 
 namespace IqSoft.CP.PaymentGateway.Controllers
 {
@@ -166,6 +167,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
         {
             WebApiApplication.DbLogger.Info(JsonConvert.SerializeObject(input));
             var action = input.First.Path;
+            var userIds = new List<int>();
             var httpResponseMessage = new HttpResponseMessage
             {
                 StatusCode = HttpStatusCode.OK
@@ -237,7 +239,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                         {
                                             if (transferInput.Transfer.ErrorCode == null)
                                             {
-                                                clientBl.ApproveDepositFromPaymentSystem(request, false);
+                                                clientBl.ApproveDepositFromPaymentSystem(request, false, out userIds);
                                                 PaymentHelpers.RemoveClientBalanceFromCache(request.ClientId.Value);
                                                 BaseHelpers.BroadcastBalance(request.ClientId.Value);
                                             }
@@ -252,7 +254,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                             {
                                                 var resp = clientBl.ChangeWithdrawRequestState(Convert.ToInt64(transferInput.Transfer.CustPIN),
                                                                             PaymentRequestStates.Approved, string.Empty, null, null, false,
-                                                                            string.Empty, documentBll, notificationBl);
+                                                                            string.Empty, documentBll, notificationBl, out userIds);
                                                 clientBl.PayWithdrawFromPaymentSystem(resp, documentBll, notificationBl);
                                                 PaymentHelpers.RemoveClientBalanceFromCache(request.ClientId.Value);
                                                 BaseHelpers.BroadcastBalance(request.ClientId.Value);
@@ -260,7 +262,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                             else
                                             {
                                                 clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Failed,
-                                                transferInput.Transfer.ErrorDescription, null, null, false, string.Empty, documentBll, notificationBl);
+                                                transferInput.Transfer.ErrorDescription, null, null, false, string.Empty, documentBll, notificationBl, out userIds);
                                             }
                                         }
                                         response = JsonConvert.SerializeObject(new TransferOutput
@@ -285,7 +287,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                             throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.PaymentRequestNotFound);
                                         clientBl.ChangeWithdrawRequestState(Convert.ToInt64(payoutCanceled.PayoutCanceled.CustPIN),
                                                                         PaymentRequestStates.CanceledByUser, string.Empty, null, null, false,
-                                                                        string.Empty, documentBll, notificationBl);
+                                                                        string.Empty, documentBll, notificationBl, out userIds);
                                         response = JsonConvert.SerializeObject(new TransferOutput
                                         {
                                             TransactionID = request.Id
@@ -296,6 +298,10 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                             }
                         }
                     }
+                }
+                foreach (var uId in userIds)
+                {
+                    PaymentHelpers.InvokeMessage("NotificationsCount", uId);
                 }
             }
             catch (FaultException<BllFnErrorType> ex)

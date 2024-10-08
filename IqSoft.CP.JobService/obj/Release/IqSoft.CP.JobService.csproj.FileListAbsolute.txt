@@ -129,6 +129,8 @@ D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.JobService\obj\Release\Iq
 D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.JobService\obj\Release\IqSoft.C.80758B1F.Up2Date
 D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.JobService\obj\Release\IqSoft.CP.JobService.exe
 D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.JobService\obj\Release\IqSoft.CP.JobService.pdb
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.JobService\bin\Release\HtmlRenderer.PdfSharp.dll
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.JobService\bin\Release\HtmlRenderer.PdfSharp.pdb
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.JobService\bin\Release\IqSoft.CP.JobService.exe.config
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.JobService\bin\Release\IqSoft.CP.JobService.exe
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.JobService\bin\Release\IqSoft.CP.JobService.pdb
@@ -160,6 +162,7 @@ D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.JobService\bin\Rele
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.JobService\bin\Release\Z.EntityFramework.Extensions.dll
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.JobService\bin\Release\Enyim.Caching.dll
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.JobService\bin\Release\PdfSharp.dll
+D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.JobService\bin\Release\HtmlRenderer.PdfSharp.dll
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.JobService\bin\Release\LinqKit.Core.dll
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.JobService\bin\Release\LinqKit.dll
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.JobService\bin\Release\GraphQL.dll
@@ -224,6 +227,7 @@ D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.JobService\bin\Rele
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.JobService\bin\Release\Z.EntityFramework.Extensions.xml
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.JobService\bin\Release\Enyim.Caching.xml
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.JobService\bin\Release\PdfSharp.xml
+D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.JobService\bin\Release\HtmlRenderer.PdfSharp.pdb
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.JobService\bin\Release\LinqKit.Core.xml
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.JobService\bin\Release\LinqKit.xml
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.JobService\bin\Release\GraphQL.xml

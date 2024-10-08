@@ -19,21 +19,20 @@ namespace IqSoft.CP.DAL
         {
             this.AffiliateCommissions = new HashSet<AffiliateCommission>();
             this.AgentCommissions = new HashSet<AgentCommission>();
-            this.AgentProfits = new HashSet<AgentProfit>();
-            this.AgentProfits1 = new HashSet<AgentProfit>();
             this.BetShopTickets = new HashSet<BetShopTicket>();
+            this.BonusProducts = new HashSet<BonusProduct>();
             this.ClientClassifications = new HashSet<ClientClassification>();
             this.ClientFavoriteProducts = new HashSet<ClientFavoriteProduct>();
             this.ClientSessions = new HashSet<ClientSession>();
             this.ComplimentaryPointRates = new HashSet<ComplimentaryPointRate>();
             this.Documents = new HashSet<Document>();
+            this.JackpotSettings = new HashSet<JackpotSetting>();
             this.PartnerProductSettings = new HashSet<PartnerProductSetting>();
             this.Product1 = new HashSet<Product>();
             this.ProductCountrySettings = new HashSet<ProductCountrySetting>();
             this.ProductLimits = new HashSet<ProductLimit>();
             this.TriggerProductSettings = new HashSet<TriggerProductSetting>();
-            this.BonusProducts = new HashSet<BonusProduct>();
-            this.JackpotSettings = new HashSet<JackpotSetting>();
+            this.AgentProfits = new HashSet<AgentProfit>();
         }
     
         public int Id { get; set; }
@@ -68,11 +67,9 @@ namespace IqSoft.CP.DAL
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<AgentCommission> AgentCommissions { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<AgentProfit> AgentProfits { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<AgentProfit> AgentProfits1 { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<BetShopTicket> BetShopTickets { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<BonusProduct> BonusProducts { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ClientClassification> ClientClassifications { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
@@ -86,10 +83,13 @@ namespace IqSoft.CP.DAL
         public virtual GameProvider GameProvider { get; set; }
         public virtual GameProvider GameProvider1 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<JackpotSetting> JackpotSettings { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PartnerProductSetting> PartnerProductSettings { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Product> Product1 { get; set; }
         public virtual Product Product2 { get; set; }
+        public virtual ProductCategory ProductCategory { get; set; }
         public virtual Translation Translation { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ProductCountrySetting> ProductCountrySettings { get; set; }
@@ -97,10 +97,7 @@ namespace IqSoft.CP.DAL
         public virtual ICollection<ProductLimit> ProductLimits { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<TriggerProductSetting> TriggerProductSettings { get; set; }
-        public virtual ProductCategory ProductCategory { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<BonusProduct> BonusProducts { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<JackpotSetting> JackpotSettings { get; set; }
+        public virtual ICollection<AgentProfit> AgentProfits { get; set; }
     }
 }

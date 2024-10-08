@@ -83,8 +83,9 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             }
         }
 
-        public static void GetPaymentRequestStatus(PaymentRequest paymentRequest, SessionIdentity session, ILog log)
+        public static List<int> GetPaymentRequestStatus(PaymentRequest paymentRequest, SessionIdentity session, ILog log)
         {
+            var userIds = new List<int>();
             using (var clientBl = new ClientBll(session, log))
             {
                 using (var notificationBl = new NotificationBll(clientBl))
@@ -114,7 +115,9 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                     {
                         var verifyOutput = (VerifyOutput)deserializer.Deserialize(stream);
                         if (verifyOutput.Result == "000")
-                            clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
+                        {
+                            clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out userIds);
+                        }
                         else if (verifyOutput.Result == "901" || verifyOutput.Result == "904")
                             clientBl.ChangeDepositRequestState(paymentRequest.Id, PaymentRequestStates.Deleted, verifyOutput.ResultExplanation, notificationBl);
                         else if (verifyOutput.Result == "903")
@@ -124,6 +127,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                     }
                 }
             }
+            return userIds;
         }
     }
 }

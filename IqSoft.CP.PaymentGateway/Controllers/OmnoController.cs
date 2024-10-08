@@ -54,7 +54,13 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                         using (var notificationBl = new NotificationBll(paymentSystemBl))
                         {
                             if (input.Status.ToUpper() == "SUCCESS")
-                                clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
+                            {
+                                clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out List<int> userIds);
+                                foreach (var uId in userIds)
+                                {
+                                    PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                }
+                            }
                             else if (input.Status.ToUpper() == "DECLINED" || input.Status.ToUpper() == "TIMEOUT" || input.Status.ToUpper() == "PENDING3DS")
                                 clientBl.ChangeDepositRequestState(paymentRequest.Id, PaymentRequestStates.Deleted, input.Status, notificationBl);
                             PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);

@@ -78,8 +78,12 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 									ObjectId = client.Id,
 									ObjectTypeId = (int)ObjectTypes.Client
 								}).FirstOrDefault(x => x.PaymentSystemId == paymentRequest.PaymentSystemId && x.BetShopId == null)?.Id;
-								clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, info: info, accountId: accountId);
-								PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
+								clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out List<int> userIds, info: info, accountId: accountId);
+                                foreach (var uId in userIds)
+                                {
+                                    PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                }
+                                PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
 								BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);
 							}
 							else
@@ -166,8 +170,12 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 									ObjectId = client.Id,
 									ObjectTypeId = (int)ObjectTypes.Client
 								}).FirstOrDefault(x => x.PaymentSystemId == request.PaymentSystemId)?.Id;
-								clientBl.ApproveDepositFromPaymentSystem(request, false, input.status_text, paymentInfo, accountId: accountId);
-								PaymentHelpers.RemoveClientBalanceFromCache(client.Id);
+								clientBl.ApproveDepositFromPaymentSystem(request, false, out List<int> userIds, input.status_text, paymentInfo, accountId: accountId);
+                                foreach (var uId in userIds)
+                                {
+                                    PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                }
+                                PaymentHelpers.RemoveClientBalanceFromCache(client.Id);
 								BaseHelpers.BroadcastBalance(client.Id);
 							}
 							response = "OK";

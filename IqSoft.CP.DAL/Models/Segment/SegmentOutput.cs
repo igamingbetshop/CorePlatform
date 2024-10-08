@@ -99,7 +99,18 @@ namespace IqSoft.CP.DAL.Models.Segment
             }
         }
         public Condition RegionSet { get; set; }
-        
+        public string AffiliateId { get; set; }
+        public Condition AffiliateIdObject
+        {
+            set
+            {
+                AffiliateIdSet = !string.IsNullOrEmpty(AffiliateId) ? new Condition
+                {
+                    ConditionItems = new List<ConditionItem> { new ConditionItem { OperationTypeId =  (int)FilterOperations.InSet, StringValue = AffiliateId } }
+                } : null;
+            }
+        }
+        public Condition AffiliateIdSet { get; set; }
         public string MobileCode { get; set; }
         public Condition MobileCodeObject
         {
@@ -118,20 +129,7 @@ namespace IqSoft.CP.DAL.Models.Segment
 
         public string SignUpPeriod { get; set; }
         public Condition SignUpPeriodObject { get; set; }
-        //public string Profit { get; set; }
-        //public Condition ProfitObject { get; set; }
-        //public string Bonus { get; set; }
-        //public Condition BonusObject
-        //{
-        //    set
-        //    {
-        //        BonusSet = !string.IsNullOrEmpty(Bonus) ? new Condition
-        //        {
-        //            ConditionItems = new List<ConditionItem> { new ConditionItem { OperationTypeId =  (int)FilterOperations.InSet, StringValue = Bonus } }
-        //        } : null;
-        //    }
-        //}
-        //public Condition BonusSet { get; set; }
+
         public string SuccessDepositPaymentSystem { get; set; }
         public Condition SuccessDepositPaymentSystemObject
         {
@@ -155,8 +153,6 @@ namespace IqSoft.CP.DAL.Models.Segment
         }
         public List<int> SuccessWithdrawalPaymentSystemList { get; set; }
 
-        public string AffiliateId { get; set; }
-        public Condition AffiliateIdObject { get; set; }
         public string AgentId { get; set; }
         public Condition AgentIdObject { get; set; }
 

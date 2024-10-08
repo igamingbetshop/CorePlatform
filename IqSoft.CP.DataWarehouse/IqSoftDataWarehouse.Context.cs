@@ -54,15 +54,6 @@ namespace IqSoft.CP.DataWarehouse
         public DbSet<Gtd_Client_Info> Gtd_Client_Info { get; set; }
         public DbSet<Currency> Currencies { get; set; }
     
-        public virtual int sp_InsertDocuments(Nullable<long> minId)
-        {
-            var minIdParameter = minId.HasValue ?
-                new ObjectParameter("minId", minId) :
-                new ObjectParameter("minId", typeof(long));
-    
-            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("sp_InsertDocuments", minIdParameter);
-        }
-    
         [DbFunction("IqSoftDataWarehouseEntities", "fn_AffiliateClient")]
         public virtual IQueryable<fnAffiliateClient> fn_AffiliateClient(Nullable<long> fromDate, Nullable<long> toDate, Nullable<int> partnerId)
         {
@@ -211,20 +202,6 @@ namespace IqSoft.CP.DataWarehouse
             return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnInternetBet>("[IqSoftDataWarehouseEntities].[fn_InternetBet]()");
         }
     
-        [DbFunction("IqSoftDataWarehouseEntities", "fn_AgentProfit")]
-        public virtual IQueryable<fnAgentProfit> fn_AgentProfit(Nullable<long> fromDate, Nullable<long> toDate)
-        {
-            var fromDateParameter = fromDate.HasValue ?
-                new ObjectParameter("FromDate", fromDate) :
-                new ObjectParameter("FromDate", typeof(long));
-    
-            var toDateParameter = toDate.HasValue ?
-                new ObjectParameter("ToDate", toDate) :
-                new ObjectParameter("ToDate", typeof(long));
-    
-            return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnAgentProfit>("[IqSoftDataWarehouseEntities].[fn_AgentProfit](@FromDate, @ToDate)", fromDateParameter, toDateParameter);
-        }
-    
         [DbFunction("IqSoftDataWarehouseEntities", "fn_ProductCommission")]
         public virtual IQueryable<fnProductCommission> fn_ProductCommission(Nullable<int> productId, Nullable<int> agentId)
         {
@@ -237,16 +214,6 @@ namespace IqSoft.CP.DataWarehouse
                 new ObjectParameter("agentId", typeof(int));
     
             return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnProductCommission>("[IqSoftDataWarehouseEntities].[fn_ProductCommission](@productId, @agentId)", productIdParameter, agentIdParameter);
-        }
-    
-        [DbFunction("IqSoftDataWarehouseEntities", "fn_ProductGroup")]
-        public virtual IQueryable<fnProductGroup> fn_ProductGroup(Nullable<int> productId)
-        {
-            var productIdParameter = productId.HasValue ?
-                new ObjectParameter("productId", productId) :
-                new ObjectParameter("productId", typeof(int));
-    
-            return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnProductGroup>("[IqSoftDataWarehouseEntities].[fn_ProductGroup](@productId)", productIdParameter);
         }
     
         [DbFunction("IqSoftDataWarehouseEntities", "fn_ProfitByClientProduct")]
@@ -347,6 +314,33 @@ namespace IqSoft.CP.DataWarehouse
                 new ObjectParameter("AgentId", typeof(int));
     
             return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnReportByProvider>("[IqSoftDataWarehouseEntities].[fn_ReportByProvider](@FromDate, @ToDate, @AgentId)", fromDateParameter, toDateParameter, agentIdParameter);
+        }
+    
+        [DbFunction("IqSoftDataWarehouseEntities", "fn_AgentProfit")]
+        public virtual IQueryable<fnAgentProfit> fn_AgentProfit(Nullable<long> fromDate, Nullable<long> toDate)
+        {
+            var fromDateParameter = fromDate.HasValue ?
+                new ObjectParameter("FromDate", fromDate) :
+                new ObjectParameter("FromDate", typeof(long));
+    
+            var toDateParameter = toDate.HasValue ?
+                new ObjectParameter("ToDate", toDate) :
+                new ObjectParameter("ToDate", typeof(long));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnAgentProfit>("[IqSoftDataWarehouseEntities].[fn_AgentProfit](@FromDate, @ToDate)", fromDateParameter, toDateParameter);
+        }
+    
+        public virtual int sp_InsertDocuments(Nullable<System.DateTime> minDate, string existings)
+        {
+            var minDateParameter = minDate.HasValue ?
+                new ObjectParameter("minDate", minDate) :
+                new ObjectParameter("minDate", typeof(System.DateTime));
+    
+            var existingsParameter = existings != null ?
+                new ObjectParameter("existings", existings) :
+                new ObjectParameter("existings", typeof(string));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("sp_InsertDocuments", minDateParameter, existingsParameter);
         }
     }
 }

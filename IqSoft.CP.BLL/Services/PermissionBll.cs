@@ -415,7 +415,7 @@ namespace IqSoft.CP.BLL.Services
                                 resp.Add("Percent", "Number");
                             resp.Add("Rating", "Number");
                             resp.Add("OpenMode", "Number");
-                            resp.Add("Category", "ProductCategory");
+                            resp.Add("CategoryIds", "ProductCategory");
                             resp.Add("State", "ProductState");
                             break;
                         case 1:
@@ -424,7 +424,7 @@ namespace IqSoft.CP.BLL.Services
                             resp.Add("Rating", "Number");
                             resp.Add("OpenMode", "Number");
                             resp.Add("RTP", "Number");
-                            resp.Add("Category", "ProductCategory");
+                            resp.Add("CategoryIds", "ProductCategory");
                             resp.Add("State", "ProductState");
                             break;
                         default:

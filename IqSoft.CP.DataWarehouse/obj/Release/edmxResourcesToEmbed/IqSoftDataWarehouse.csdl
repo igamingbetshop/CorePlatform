@@ -56,9 +56,6 @@
     <EntitySet Name="Settings" EntityType="Self.Setting" />
     <EntitySet Name="Products" EntityType="DataWarehouseModel.Product" />
     <EntitySet Name="Users" EntityType="DataWarehouseModel.User" />
-    <FunctionImport Name="sp_InsertDocuments">
-      <Parameter Name="minId" Mode="In" Type="Int64" />
-    </FunctionImport>
     <FunctionImport Name="fn_AffiliateClient" IsComposable="true" ReturnType="Collection(DataWarehouseModel.fnAffiliateClient)">
       <Parameter Name="FromDate" Mode="In" Type="Int64" />
       <Parameter Name="ToDate" Mode="In" Type="Int64" />
@@ -114,16 +111,9 @@
     <EntitySet Name="Bets" EntityType="DataWarehouseModel.Bet" />
     <FunctionImport Name="fn_InternetBet" IsComposable="true" ReturnType="Collection(DataWarehouseModel.fnInternetBet)" />
     <EntitySet Name="AgentCommissions" EntityType="DataWarehouseModel.AgentCommission" />
-    <FunctionImport Name="fn_AgentProfit" IsComposable="true" ReturnType="Collection(DataWarehouseModel.fnAgentProfit)">
-      <Parameter Name="FromDate" Mode="In" Type="Int64" />
-      <Parameter Name="ToDate" Mode="In" Type="Int64" />
-    </FunctionImport>
     <FunctionImport Name="fn_ProductCommission" IsComposable="true" ReturnType="Collection(DataWarehouseModel.fnProductCommission)">
       <Parameter Name="productId" Mode="In" Type="Int32" />
       <Parameter Name="agentId" Mode="In" Type="Int32" />
-    </FunctionImport>
-    <FunctionImport Name="fn_ProductGroup" IsComposable="true" ReturnType="Collection(DataWarehouseModel.fnProductGroup)">
-      <Parameter Name="productId" Mode="In" Type="Int32" />
     </FunctionImport>
     <FunctionImport Name="fn_ProfitByClientProduct" IsComposable="true" ReturnType="Collection(DataWarehouseModel.fnProfitByClientProduct)">
       <Parameter Name="FromDate" Mode="In" Type="Int64" />
@@ -163,6 +153,14 @@
       <Parameter Name="AgentId" Mode="In" Type="Int32" />
     </FunctionImport>
     <EntitySet Name="Currencies" EntityType="DataWarehouseModel.Currency" />
+    <FunctionImport Name="fn_AgentProfit" IsComposable="true" ReturnType="Collection(DataWarehouseModel.fnAgentProfit)">
+      <Parameter Name="FromDate" Mode="In" Type="Int64" />
+      <Parameter Name="ToDate" Mode="In" Type="Int64" />
+    </FunctionImport>
+    <FunctionImport Name="sp_InsertDocuments">
+      <Parameter Name="minDate" Mode="In" Type="DateTime" />
+      <Parameter Name="existings" Mode="In" Type="String" />
+    </FunctionImport>
   </EntityContainer>
   <EntityType Name="Product">
     <Key>
@@ -776,23 +774,9 @@
     <Property Name="TurnoverPercent" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
     <Property Name="ClientId" Type="Int32" />
   </EntityType>
-  <ComplexType Name="fnAgentProfit">
-    <Property Type="Int32" Name="ProductGroupId" Nullable="true" />
-    <Property Type="String" Name="ProductGroupName" Nullable="true" MaxLength="50" />
-    <Property Type="Int32" Name="ProductId" Nullable="false" />
-    <Property Type="Int32" Name="RecieverAgentId" Nullable="false" />
-    <Property Type="Int32" Name="AgentId" Nullable="false" />
-    <Property Type="Decimal" Name="TotalProfit" Nullable="true" Precision="38" Scale="6" />
-    <Property Type="Decimal" Name="TotalBetAmount" Nullable="true" Precision="38" Scale="4" />
-    <Property Type="Decimal" Name="TotalWinAmount" Nullable="true" Precision="38" Scale="4" />
-  </ComplexType>
   <ComplexType Name="fnProductCommission">
     <Property Type="Decimal" Name="Percent" Nullable="true" Precision="5" Scale="2" />
     <Property Type="String" Name="TurnoverPercent" Nullable="true" />
-  </ComplexType>
-  <ComplexType Name="fnProductGroup">
-    <Property Type="Int32" Name="Id" Nullable="true" />
-    <Property Type="String" Name="NickName" Nullable="true" MaxLength="50" />
   </ComplexType>
   <ComplexType Name="fnProfitByClientProduct">
     <Property Type="Int32" Name="ClientId" Nullable="false" />
@@ -1039,4 +1023,12 @@
     <Property Name="Name" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
     <Property Name="Type" Type="Int32" Nullable="false" />
   </EntityType>
+  <ComplexType Name="fnAgentProfit">
+    <Property Type="Int32" Name="ProductId" Nullable="false" />
+    <Property Type="Int32" Name="RecieverAgentId" Nullable="false" />
+    <Property Type="Int32" Name="AgentId" Nullable="false" />
+    <Property Type="Decimal" Name="TotalProfit" Nullable="true" Precision="38" Scale="6" />
+    <Property Type="Decimal" Name="TotalBetAmount" Nullable="true" Precision="38" Scale="4" />
+    <Property Type="Decimal" Name="TotalWinAmount" Nullable="true" Precision="38" Scale="4" />
+  </ComplexType>
 </Schema>

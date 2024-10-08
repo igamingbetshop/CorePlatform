@@ -2,7 +2,6 @@
 using IqSoft.CP.BLL.Services;
 using IqSoft.CP.Common;
 using IqSoft.CP.Common.Enums;
-using IqSoft.CP.Common.Helpers;
 using IqSoft.CP.Common.Models;
 using IqSoft.CP.Common.Models.CacheModels;
 using IqSoft.CP.DAL.Models;
@@ -15,6 +14,7 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Security.Cryptography;
 using System.ServiceModel;
 using System.Text;
 using System.Web;
@@ -25,10 +25,10 @@ namespace IqSoft.CP.PaymentGateway.Controllers
     public class LiberSaveController : ApiController
     {
         [HttpPost]
-        [Route("api/nixxe/ApiRequest")]
+        [Route("api/LiberSave/ApiRequest")]
         public HttpResponseMessage ApiRequest(PaymentEncryptedInput encryptedInput)
         {
-            var response = "SUCCESS";
+            var response = "OK";
             var httpResponseMessage = new HttpResponseMessage
             {
                 StatusCode = HttpStatusCode.OK
@@ -50,8 +50,9 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                         throw BaseBll.CreateException(string.Empty, Constants.Errors.PaymentRequestNotFound);
                     var client = CacheManager.GetClientById(paymentRequest.ClientId.Value);
                     var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, paymentRequest.PaymentSystemId,
-                                                                                      client.CurrencyId, (int)PaymentRequestTypes.Deposit);
-                    var sign = CommonFunctions.ComputeHMACSha256(inputString, partnerPaymentSetting.Password);
+                                                                                       client.CurrencyId, (int)PaymentRequestTypes.Deposit);
+
+                    var sign = GetHash(encryptedInput.Data, partnerPaymentSetting.Password);
                     if (sign.ToLower() != encryptedInput.Sign.ToLower())
                         throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongHash);
                     if (input.Amount != paymentRequest.Amount)
@@ -65,7 +66,11 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                     paymentSystemBl.ChangePaymentRequestDetails(paymentRequest);
                     if (input.Status.ToUpper() == "SUCCESS")
                     {
-                        clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
+                        clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out List<int> userIds);
+                        foreach (var uId in userIds)
+                        {
+                            PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                        }
                         PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
                         BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);
                     }
@@ -98,5 +103,17 @@ namespace IqSoft.CP.PaymentGateway.Controllers
             httpResponseMessage.Content.Headers.ContentType = new MediaTypeHeaderValue(Constants.HttpContentTypes.ApplicationJson);
             return httpResponseMessage;
         }
+
+        public static string GetHash(string dataInBase64, string secret)
+        {
+            byte[] keyBytes = Encoding.UTF8.GetBytes(secret);
+            using (var hmac = new HMACSHA256(keyBytes))
+            {
+                byte[] dataBytes = Encoding.UTF8.GetBytes(dataInBase64);
+                byte[] hashBytes = hmac.ComputeHash(dataBytes);
+                return Convert.ToBase64String(hashBytes);
+            }
+        }
+
     }
 }

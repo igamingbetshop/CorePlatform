@@ -177,8 +177,10 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             }
             return resState;
         }
-        public static void GetPayoutRequestStatus(PaymentRequest paymentRequest, SessionIdentity session, ILog log)
+
+        public static List<int> GetPayoutRequestStatus(PaymentRequest paymentRequest, SessionIdentity session, ILog log)
         {
+            var userIds = new List<int>();
             using (var partnerBl = new PartnerBll(session, log))
             {
                 using (var clientBl = new ClientBll(partnerBl))
@@ -204,7 +206,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                             using (var documentBl = new DocumentBll(clientBl))
                             {
                                 var resp = clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Approved,
-                                    string.Empty, null, null, false, string.Empty, documentBl, notificationBl);
+                                    string.Empty, null, null, false, string.Empty, documentBl, notificationBl, out userIds);
                                 clientBl.PayWithdrawFromPaymentSystem(resp, documentBl, notificationBl);
                             }
                         }
@@ -212,11 +214,12 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                             using (var documentBl = new DocumentBll(clientBl))
                             {
                                 clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed,
-                                finalOutput.State.Description, null, null, false, string.Empty, documentBl, notificationBl);
+                                finalOutput.State.Description, null, null, false, string.Empty, documentBl, notificationBl, out userIds);
                             }
                     }
                 }
             }
+            return userIds;
         }
 
         private static string SendRequest(string url, string token, string key, string postData, string method, string w1PaymentId, ILog log)

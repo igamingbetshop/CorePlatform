@@ -32,6 +32,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
         public HttpResponseMessage ApiRequest(PaymentInput input)
         {
             var response = string.Empty;
+            var userIds = new List<int>();
             var httpResponseMessage = new HttpResponseMessage
             {
                 StatusCode = HttpStatusCode.OK
@@ -79,7 +80,9 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                             if (paymentRequest.Type == (int)PaymentRequestTypes.Deposit)
                             {
                                 if (input.Status.ToLower() == "ok")
-                                    clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
+                                {
+                                    clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out userIds);
+                                }
                                 else if (input.Status.ToLower() == "error")
                                     clientBl.ChangeDepositRequestState(paymentRequest.Id, PaymentRequestStates.Deleted,
                                         string.Format("ErrorMessage: {0}", input.Message), notificationBl);
@@ -91,16 +94,20 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                     if (input.Status.ToLower() == "ok")
                                     {
                                         var resp = clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Approved, string.Empty,
-                                         null, null, false, string.Empty, documentBll, notificationBl);
+                                         null, null, false, string.Empty, documentBll, notificationBl, out userIds);
                                         clientBl.PayWithdrawFromPaymentSystem(resp, documentBll, notificationBl);
                                     }
                                     else if (input.Status.ToUpper() == "error")
                                     {
                                         var reason = string.Format("ErrorMessage: {0}", input.Message );
                                         clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed,
-                                            reason, null, null, false, string.Empty, documentBll, notificationBl);
+                                            reason, null, null, false, string.Empty, documentBll, notificationBl, out userIds);
                                     }
                                 }
+                            }
+                            foreach (var uId in userIds)
+                            {
+                                PaymentHelpers.InvokeMessage("NotificationsCount", uId);
                             }
                             PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
                             BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);

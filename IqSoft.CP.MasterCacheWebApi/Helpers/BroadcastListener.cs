@@ -133,6 +133,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Helpers
             foreach (var s in sessionsToRemove)
             {
                 CacheManager.RemoveClientProductSession(s.Token, s.ProductId);
+                CacheManager.RemoveProductSessionsCount(s.ProductId);
                 Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}_0", Constants.CacheItems.ClientSessions, s.Token));
                 Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}_{2}", Constants.CacheItems.ClientSessions, s.Token, s.ProductId));
             }

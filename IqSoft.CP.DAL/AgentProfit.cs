@@ -23,17 +23,15 @@ namespace IqSoft.CP.DAL
         public decimal GGR { get; set; }
         public decimal Profit { get; set; }
         public int Type { get; set; }
-        public int ProductGroupId { get; set; }
         public System.DateTime CreationTime { get; set; }
         public System.DateTime CalculationStartingTime { get; set; }
         public long CreationDate { get; set; }
         public long CalculationStartingDate { get; set; }
         public int ProductId { get; set; }
     
+        public virtual Client Client { get; set; }
+        public virtual Product Product { get; set; }
         public virtual User User { get; set; }
         public virtual User User1 { get; set; }
-        public virtual Product Product { get; set; }
-        public virtual Product Product1 { get; set; }
-        public virtual Client Client { get; set; }
     }
 }

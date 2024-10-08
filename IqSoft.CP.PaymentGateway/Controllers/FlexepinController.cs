@@ -50,7 +50,11 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                 parameters.Add(v.VoucherPin, v.VoucherSerialNumber);
                         paymentRequest.ExternalTransactionId = input.TransactionNo;
                         paymentRequest.Amount = input.VoucherValue; // check amount
-                        clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, string.Empty);
+                        clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out List<int> userIds, string.Empty);
+                        foreach (var uId in userIds)
+                        {
+                            PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                        }
                         PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
                         BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);
                     }

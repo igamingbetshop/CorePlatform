@@ -38,7 +38,7 @@ namespace IqSoft.CP.DAL.Models.Segment
         [PropertyCustomTypeAttribute(TypeName = "IntArray")]
         public Condition Region { get; set; }
 
-        [PropertyCustomTypeAttribute(TypeName = "Int")]
+        [PropertyCustomTypeAttribute(TypeName = "StringArray")]
         public Condition AffiliateId { get; set; }
 
         [PropertyCustomTypeAttribute(TypeName = "Int")]

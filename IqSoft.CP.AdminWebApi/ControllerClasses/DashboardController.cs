@@ -149,11 +149,11 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var filter = input.MapToFilterRealTime();
+                var filter = input.MapToFilterRealTime(identity.TimeZone);
 
                 return new ApiResponseBase
                 {
-                    ResponseObject = reportBl.GetOnlineClients(filter).MapToApiRealTimeInfo()
+                    ResponseObject = reportBl.GetOnlineClients(filter).MapToApiRealTimeInfo(identity.TimeZone)
                 };
             }
         }
@@ -164,7 +164,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             {
                 return new ApiResponseBase
                 {
-                    ResponseObject = reportBl.GetClientsInfoList(input.MapToFilterfnClientDashboard())
+                    ResponseObject = reportBl.GetClientsInfoList(input.MapToFilterfnClientDashboard(identity.TimeZone))
                 };
             }
         }
@@ -327,7 +327,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var filter = input.MapToFilterfnClientDashboard();
+                var filter = input.MapToFilterfnClientDashboard(identity.TimeZone);
                 var clients = reportBl.ExportClientsInfoList(filter);
                 string fileName = "ExportPlayersDashboard.csv";
                 string fileAbsPath = reportBl.ExportToCSV<DashboardClientInfo>(fileName, clients, input.FromDate, input.ToDate, reportBl.GetUserIdentity().TimeZone, input.AdminMenuId);

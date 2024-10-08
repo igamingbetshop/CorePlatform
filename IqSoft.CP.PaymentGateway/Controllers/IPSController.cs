@@ -156,7 +156,11 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                         case 1:
                                             request.ExternalTransactionId = transactionResult.proccccontainer.internalorderid.ToString();
                                             paymentSystemBl.ChangePaymentRequestDetails(request);
-                                            clientBl.ApproveDepositFromPaymentSystem(request, false, comment: transactionResult.procccerror.procccmessage);
+                                            clientBl.ApproveDepositFromPaymentSystem(request, false, out List<int> userIds, comment: transactionResult.procccerror.procccmessage);
+                                            foreach (var uId in userIds)
+                                            {
+                                                PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                            }
                                             PaymentHelpers.RemoveClientBalanceFromCache(request.ClientId.Value);
                                             BaseHelpers.BroadcastBalance(request.ClientId.Value);
                                             break;
@@ -245,7 +249,11 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                 {
                                     if (transactionResult.proccccontainer.approved == 1)
                                     {
-                                        clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
+                                        clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out List<int> userIds);
+                                        foreach (var uId in userIds)
+                                        {
+                                            PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                        }
                                         PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
                                         BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);
 

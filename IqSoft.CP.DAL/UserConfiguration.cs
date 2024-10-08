@@ -18,6 +18,7 @@ namespace IqSoft.CP.DAL
         public int UserId { get; set; }
         public Nullable<int> CreatedBy { get; set; }
         public string Name { get; set; }
+        public Nullable<bool> BooleanValue { get; set; }
         public Nullable<decimal> NumericValue { get; set; }
         public string StringValue { get; set; }
         public System.DateTime CreationTime { get; set; }

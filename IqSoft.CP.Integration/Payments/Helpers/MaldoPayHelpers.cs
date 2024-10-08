@@ -19,12 +19,12 @@ namespace IqSoft.CP.Integration.Payments.Helpers
     {
         public static Dictionary<string, int> PaymentServices { get; set; } = new Dictionary<string, int>
         {
-            { Constants.PaymentSystems.MaldoPayHavale, 2036},
+            { Constants.PaymentSystems.MaldoPayHavale, 2166},
             { Constants.PaymentSystems.MaldoPayBankTransfer, 2006},
-            { Constants.PaymentSystems.MaldoPayInstantlyPapara, 2044},
+            { Constants.PaymentSystems.MaldoPayInstantlyPapara, 2044}, // AnindaPapara
             { Constants.PaymentSystems.MaldoPayPapara, 2038},
             { Constants.PaymentSystems.MaldoPayCrypto, 2047},
-            { Constants.PaymentSystems.MaldoPayCreditCard, 2116},
+            { Constants.PaymentSystems.MaldoPayCreditCard, 2031},
             { Constants.PaymentSystems.MaldoPayMefete, 2093},
             { Constants.PaymentSystems.MaldoPayPayFix, 2078},
             { Constants.PaymentSystems.MaldoPayPix, 2146},
@@ -77,16 +77,17 @@ namespace IqSoft.CP.Integration.Payments.Helpers
         public static string CallMaldoPay(PaymentRequest input, string cashierPageUrl, SessionIdentity session, ILog log)
         {
             var client = CacheManager.GetClientById(input.ClientId.Value);
+            log.Info("client: " + JsonConvert.SerializeObject(client));
             if (client.CurrencyId != Constants.Currencies.TurkishLira)
-                BaseBll.CreateException(session.LanguageId, Constants.Errors.WrongCurrencyId);
+               throw BaseBll.CreateException(session.LanguageId, Constants.Errors.WrongCurrencyId);
+
             if (string.IsNullOrEmpty(client.Email))
-                BaseBll.CreateException(session.LanguageId, Constants.Errors.EmailCantBeEmpty);
+                throw BaseBll.CreateException(session.LanguageId, Constants.Errors.EmailCantBeEmpty);
             if (string.IsNullOrEmpty(client.FirstName))
-                BaseBll.CreateException(session.LanguageId, Constants.Errors.FirstNameCantBeEmpty);
+                throw BaseBll.CreateException(session.LanguageId, Constants.Errors.FirstNameCantBeEmpty);
             if (string.IsNullOrEmpty(client.LastName))
-                BaseBll.CreateException(session.LanguageId, Constants.Errors.LastNameCantBeEmpty);
-            if (string.IsNullOrEmpty(client.ZipCode.Trim()))
-                BaseBll.CreateException(session.LanguageId, Constants.Errors.ZipCodeCantBeEmpty);
+                throw BaseBll.CreateException(session.LanguageId, Constants.Errors.LastNameCantBeEmpty);
+
             var paymentSystem = CacheManager.GetPaymentSystemById(input.PaymentSystemId);
             if (!PaymentServices.ContainsKey(paymentSystem.Name))
                 BaseBll.CreateException(session.LanguageId, Constants.Errors.PaymentSystemNotFound);
@@ -102,6 +103,23 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             var apiKey = keys[1];
             var url = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.MaldoPayApiUrl).StringValue;
             var paymentInfo = JsonConvert.DeserializeObject<PaymentInfo>(input.Info);
+            object serviceData = null;
+            if (paymentSystem.Name ==  Constants.PaymentSystems.MaldoPayCreditCard)
+            {
+                serviceData = new
+                {
+                    serviceData1 = paymentInfo.NationalId, //MaldoCard  NationalId Customer CPF.
+                    locale = session.LanguageId
+                };
+            }
+            else if (paymentSystem.Name ==  Constants.PaymentSystems.MaldoPayCreditCard)
+            {
+                serviceData = new
+                {
+                    serviceData3 = paymentInfo.Info, //MaldoPix Customer CPF.
+                };
+            }
+
             var paymentJson = new
             {
                 transaction = new
@@ -122,11 +140,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                         currencyCode = client.CurrencyId,
                         amount = (int)input.Amount,
                         referenceOrderId = input.Id.ToString(),
-                        serviceData = new
-                        {
-                            serviceData3 = paymentInfo.Info, //MaldoPix Customer CPF.
-                            locale = session.LanguageId
-                        }
+                        serviceData
                     },
                     user = new
                     {
@@ -135,7 +149,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                         birthDate = client.BirthDate.ToString("yyyy-MM-dd"),
                         countryCode = session.Country,
                         playerId = client.Id.ToString(),
-                        postCode = client.ZipCode.Trim(),
+                        postCode = string.IsNullOrWhiteSpace(client.ZipCode.Trim()) ? "dummy" : client.ZipCode.Trim(),
                         languageCode = session.LanguageId,
                         emailAddress = client.Email
                     }

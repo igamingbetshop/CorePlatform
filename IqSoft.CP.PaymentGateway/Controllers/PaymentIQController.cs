@@ -203,14 +203,24 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                             });
                             paymentSystemBl.ChangePaymentRequestDetails(paymentRequest);
                             if (paymentRequest.Type == (int)PaymentRequestTypes.Deposit)
-                                clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
+                            {
+                                clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out List<int> userIds);
+                                foreach (var uId in userIds)
+                                {
+                                    PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                }
+                            }
                             else if (paymentRequest.Type == (int)PaymentRequestTypes.Withdraw)
                             {
                                 using (var notificationBl = new NotificationBll(paymentSystemBl))
                                 {
                                     var resp = clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Approved, string.Empty,
-                                                                                   null, null, false, paymentRequest.Parameters, documentBll, notificationBl);
+                                                                                   null, null, false, paymentRequest.Parameters, documentBll, notificationBl, out List<int> userIds);
                                     clientBl.PayWithdrawFromPaymentSystem(resp, documentBll, notificationBl);
+                                    foreach (var uId in userIds)
+                                    {
+                                        PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                    }
                                 }
                             }
                             PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
@@ -276,7 +286,11 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                 else if (paymentRequest.Type == (int)PaymentRequestTypes.Withdraw)
                                 {
                                     clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed,
-                                                                        "canceled", null, null, false, string.Empty, documentBll, notificationBl);
+                                                                        "canceled", null, null, false, string.Empty, documentBll, notificationBl, out List<int> userIds);
+                                    foreach (var uId in userIds)
+                                    {
+                                        PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                    }
                                     PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
                                     BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);
                                 }

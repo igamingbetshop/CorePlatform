@@ -15,8 +15,6 @@ namespace IqSoft.CP.Integration.Payments.Models.NOWPay
         public string Order_id { get; set; }
         public string Order_description { get; set; }
         public string Ipn_callback_url { get; set; }
-        public DateTime Created_at { get; set; }
-        public DateTime Updated_at { get; set; }
         public string Purchase_id { get; set; }
         public string Smart_contract { get; set; }
         public string Network { get; set; }

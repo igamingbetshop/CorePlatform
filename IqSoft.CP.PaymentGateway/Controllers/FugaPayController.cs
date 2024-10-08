@@ -27,6 +27,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
         public HttpResponseMessage ApiRequest(PaymentInput input)
         {
             var response = "Failed";
+            var userIds = new List<int>();
             try
             {
                 var bodyStream = new StreamReader(HttpContext.Current.Request.InputStream);
@@ -72,12 +73,14 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                     if (input.TransactionDetails.Status.ToUpper() == "CMD")
                     {
                         if (paymentRequest.Type == (int)PaymentRequestTypes.Deposit)
-                            clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, comment: input.Desc);
+                        {
+                            clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out userIds, comment: input.Desc);
+                        }
                         else if (paymentRequest.Type == (int)PaymentRequestTypes.Withdraw)
                         {
 
                             var resp = clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Approved, input.TransactionDetails.Status,
-                                                                           null, null, false, paymentRequest.Parameters, documentBl, notificationBl);
+                                                                           null, null, false, paymentRequest.Parameters, documentBl, notificationBl, out userIds);
                             clientBl.PayWithdrawFromPaymentSystem(resp, documentBl, notificationBl);
                         }
                         PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
@@ -88,7 +91,12 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                         clientBl.ChangeDepositRequestState(paymentRequest.Id, PaymentRequestStates.Deleted, input.Desc, notificationBl);
                     else if(paymentRequest.Type == (int)PaymentRequestTypes.Withdraw)
                             clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed, input.Desc, null, null, 
-                                                                false, paymentRequest.Parameters, documentBl, notificationBl);
+                                                                false, paymentRequest.Parameters, documentBl, notificationBl, out userIds);
+
+                    foreach (var uId in userIds)
+                    {
+                        PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                    }
                     response = "OK";
                 }
             }

@@ -38,7 +38,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                 var bodyStream = new StreamReader(HttpContext.Current.Request.InputStream);
                 var inputString = bodyStream.ReadToEnd();
                 WebApiApplication.DbLogger.Info(inputString);
-
+                var userIds = new List<int>();
                 var inputSign = HttpContext.Current.Request.Headers.Get("Xcoins-Signature");
                 if (string.IsNullOrEmpty(inputSign))
                     throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongHash);
@@ -88,11 +88,13 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                 if (input.Status.ToUpper() == "ACCEPTED" || input.Status.ToUpper() == "COMPLETED")
                                 {
                                     if (request.Type == (int)PaymentRequestTypes.Deposit)
-                                        clientBl.ApproveDepositFromPaymentSystem(request, false);
+                                    {
+                                        clientBl.ApproveDepositFromPaymentSystem(request, false, out userIds);
+                                    }
                                     else
                                     {
                                         var resp = clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Approved, string.Empty,
-                                                                                       null, null, false, request.Parameters, documentBll, notificationBl);
+                                                                                       null, null, false, request.Parameters, documentBll, notificationBl, out userIds);
                                         clientBl.PayWithdrawFromPaymentSystem(resp, documentBll, notificationBl);
                                     }
                                 }
@@ -103,8 +105,13 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                         clientBl.ChangeDepositRequestState(request.Id, PaymentRequestStates.Deleted, reason, notificationBl);
                                     else
                                         clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Failed, reason,
-                                                                            null, null, false, string.Empty, documentBll, notificationBl);   
+                                                                            null, null, false, string.Empty, documentBll, notificationBl, out userIds);   
                                 }
+                                foreach (var uId in userIds)
+                                {
+                                    PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                }
+
                                 PaymentHelpers.RemoveClientBalanceFromCache(request.ClientId.Value);
                                 BaseHelpers.BroadcastBalance(request.ClientId.Value);
                             }

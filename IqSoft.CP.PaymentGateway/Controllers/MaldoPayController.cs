@@ -28,6 +28,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
         public HttpResponseMessage ApiRequest(PaymentInput input)
         {
             var response = "Failed";
+            var userIds = new List<int>();
             WebApiApplication.DbLogger.Info("input: " + JsonConvert.SerializeObject(input));
             try
             {
@@ -75,14 +76,14 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                     request.Amount = input.Amount;
                                     request.Parameters = JsonConvert.SerializeObject(parameters);
                                     paymentSystemBl.ChangePaymentRequestDetails(request);
-                                    clientBl.ApproveDepositFromPaymentSystem(request, false, comment: input.Reason);
+                                    clientBl.ApproveDepositFromPaymentSystem(request, false, out userIds, comment: input.Reason);
                                 }
                                 else if (request.Type == (int)PaymentRequestTypes.Withdraw)
                                 {
                                     using (var documentBll = new DocumentBll(paymentSystemBl))
                                     {
                                         var resp = clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Approved, string.Empty,
-                                                                                       null, null, false, string.Empty, documentBll, notificationBl);
+                                                                                       null, null, false, string.Empty, documentBll, notificationBl, out userIds);
                                         clientBl.PayWithdrawFromPaymentSystem(resp, documentBll, notificationBl);
                                     }
                                 }
@@ -96,7 +97,11 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                     clientBl.ChangeDepositRequestState(request.Id, PaymentRequestStates.Deleted, desc, notificationBl);
                                 else if (request.Type == (int)PaymentRequestTypes.Withdraw)
                                     using (var documentBll = new DocumentBll(paymentSystemBl))
-                                        clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Failed, desc, null, null, false, string.Empty, documentBll, notificationBl);
+                                        clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Failed, desc, null, null, false, string.Empty, documentBll, notificationBl, out userIds);
+                            }
+                            foreach (var uId in userIds)
+                            {
+                                PaymentHelpers.InvokeMessage("NotificationsCount", uId);
                             }
                             response = "OK";
                         }

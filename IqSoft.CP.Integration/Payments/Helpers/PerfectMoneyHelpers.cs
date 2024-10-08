@@ -80,8 +80,9 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             }
         }
 
-        public static PaymentResponse PayVoucher(PaymentRequest input, SessionIdentity session, ILog log)
+        public static PaymentResponse PayVoucher(PaymentRequest input, SessionIdentity session, ILog log, out List<int> userIds)
         {
+            userIds = new List<int>();
             using (var clientBl = new ClientBll(session, log))
             {
                 using (var notificationBl = new NotificationBll(clientBl))
@@ -138,7 +139,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                     {
 
                         paymentSystemBl.ChangePaymentRequestDetails(input);
-                        clientBl.ApproveDepositFromPaymentSystem(input, false);
+                        clientBl.ApproveDepositFromPaymentSystem(input, false, out userIds);
                         return new PaymentResponse
                         {
                             Status = PaymentRequestStates.Approved,
@@ -221,8 +222,9 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             }
         }
 
-        public static PaymentResponse CreateVoucher(PaymentRequest input, SessionIdentity session, ILog log)
+        public static PaymentResponse CreateVoucher(PaymentRequest input, SessionIdentity session, ILog log, out List<int> userIds)
         {
+            userIds = new List<int>();
             using (var clientBl = new ClientBll(session, log))
             {
                 using (var notificationBl = new NotificationBll(clientBl))
@@ -290,9 +292,9 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                             });
                             paymentSystemBl.ChangePaymentRequestDetails(input);
                             clientBl.ChangeWithdrawRequestState(input.Id, PaymentRequestStates.PayPanding, string.Empty,
-                                                                null, null, true, input.Parameters, documentBl, notificationBl, false);
+                                                                null, null, true, input.Parameters, documentBl, notificationBl, out userIds, false);
                             var resp = clientBl.ChangeWithdrawRequestState(input.Id, PaymentRequestStates.Approved, string.Empty,
-                                                                           null, null, false, string.Empty, documentBl, notificationBl);
+                                                                           null, null, false, string.Empty, documentBl, notificationBl, out userIds);
                             clientBl.PayWithdrawFromPaymentSystem(resp, documentBl, notificationBl);
                             return new PaymentResponse
                             {

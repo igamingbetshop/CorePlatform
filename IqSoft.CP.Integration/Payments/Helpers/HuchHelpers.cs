@@ -65,8 +65,9 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 			return paymentOuthput.url;
 		}
 
-		public static void GetPaymentRequestStatus(PaymentRequest input, SessionIdentity session, ILog log)
+		public static List<int> GetPaymentRequestStatus(PaymentRequest input, SessionIdentity session, ILog log)
 		{
+			var userIds = new List<int>();
 			var client = CacheManager.GetClientById(input.ClientId.Value);
 			var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, input.PaymentSystemId, client.CurrencyId, (int)PaymentRequestTypes.Deposit);
 			var url = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.HuchAuthenticationUrl).StringValue;
@@ -100,11 +101,12 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 			using (var notificationBl = new NotificationBll(clientBl))
 			{
 				if (paymentOuthput.payment_status == "PAID_RECEIVED" || paymentOuthput.payment_status == "PAID")
-					clientBl.ApproveDepositFromPaymentSystem(input, false);
+					clientBl.ApproveDepositFromPaymentSystem(input, false, out userIds);
 				else if (paymentOuthput.payment_status == "EXPIRED" || paymentOuthput.payment_status == "CANCELLED" ||
 						 paymentOuthput.payment_status == "FAILED" || paymentOuthput.payment_status == "AUTH_FAILED" || paymentOuthput.payment_status == "EXECUTE_FAILED")
 					clientBl.ChangeDepositRequestState(input.Id, PaymentRequestStates.Deleted, paymentOuthput.payment_status, notificationBl);
 			}
+			return userIds;
 		}
 	}
 }

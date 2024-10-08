@@ -73,7 +73,13 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                             {
                                 var verifyOutput = (VerifyOutput)deserializer.Deserialize(stream);
                                 if (verifyOutput.Result == "000")
-                                    clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
+                                {
+                                    clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out List<int> userIds);
+                                    foreach (var uId in userIds)
+                                    {
+                                        PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                    }
+                                }
                                 else if (verifyOutput.Result == "901" || verifyOutput.Result == "904")
                                     clientBl.ChangeDepositRequestState(paymentRequest.Id, PaymentRequestStates.Deleted, verifyOutput.ResultExplanation, notificationBl);
                             }

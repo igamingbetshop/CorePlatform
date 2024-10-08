@@ -13,60 +13,24 @@ namespace IqSoft.CP.DataManager.Services
 {
     public class DataCombiner
     {
-        public static long LastProcessedBetDocumentId = 0;
         static DataCombiner()
         {
-            using (var db = new IqSoftDataWarehouseEntities())
-            {
-                LastProcessedBetDocumentId = Convert.ToInt64(db.Settings.First(x => x.Name == Constants.PartnerKeys.LastProcessedBetDocumentId).NumericValue.Value);
-            }
         }
 
-        public static void GroupNewBets(long lastId, ILog logger)
+        public static int GroupNewBets(ILog logger)
         {
             try
             {
                 using (var db = new IqSoftDataWarehouseEntities())
                 {
-                    var documents = db.Documents.Where(x => x.Id > lastId).OrderBy(x => x.Id).Take(10000).ToList();
-                    var newLast = GroupDocuments(documents, db);
-
-                    if (newLast > lastId)
-                    {
-                        var key = db.Settings.First(x => x.Name == Constants.PartnerKeys.LastProcessedBetDocumentId);
-                        key.NumericValue = newLast;
-                        db.SaveChanges();
-                        LastProcessedBetDocumentId = newLast;
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                logger.Error(e);
-            }
-        }
-
-        public static int CleanBets(ILog logger)
-        {
-            try
-            {
-                var currentTime = DateTime.UtcNow;
-                var startTime = currentTime.AddDays(-35);
-                var endTime = currentTime.AddHours(-2);
-                var fromDate = (long)startTime.Year * 1000000 + startTime.Month * 10000 + startTime.Day * 100 + startTime.Hour;
-                var toDate = (long)endTime.Year * 1000000 + endTime.Month * 10000 + endTime.Day * 100 + endTime.Hour;
-                using (var db = new IqSoftDataWarehouseEntities())
-                {
-                    db.Database.CommandTimeout = 300;
-                    var rows = db.Opt_Document_Considered.Where(x => x.Date >= fromDate &&
-                        x.Date < toDate).OrderBy(x => x.Id).Take(5000).ToList();
+                    var rows = db.Opt_Document_Considered.OrderBy(x => x.Id).Take(10000).ToList();
                     if (rows.Any())
                     {
                         var dIds = rows.Select(x => x.DocumentId).ToList();
                         var documents = db.Documents.Where(x => dIds.Contains(x.Id)).ToList();
                         var newLast = GroupDocuments(documents, db);
                         db.Opt_Document_Considered.DeleteRangeByKey(rows);
-                        Program.DbLogger.Info("CleanBets_Finished");
+                        Program.DbLogger.Info("GroupNewBets_Finished");
                         return documents.Count;
                     }
                     else
@@ -76,7 +40,7 @@ namespace IqSoft.CP.DataManager.Services
             catch (Exception e)
             {
                 logger.Error(e);
-                return 0;
+                return 1;
             }
         }
 

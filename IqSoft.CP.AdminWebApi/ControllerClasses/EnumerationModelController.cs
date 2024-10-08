@@ -108,8 +108,6 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     return GetTypesEnumByType(nameof(EmailStates), identity);
                 case "GetClientPaymentStatesEnum":
                     return GetTypesEnumByType(nameof(ClientPaymentStates), identity);
-                case "GetPromotionTypesEnum":
-                    return GetTypesEnumByType(nameof(PromotionTypes), identity);
                 case "GetReferralTypesEnum":
                     return GetTypesEnumByType(nameof(ReferralTypes), identity);
                 case "GetMessageTemplateStatesEnum":

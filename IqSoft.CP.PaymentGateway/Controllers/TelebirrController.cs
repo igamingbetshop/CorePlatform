@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -56,8 +57,12 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 										var paymentRequest = paymentSystemBl.GetPaymentRequestById(Convert.ToInt64(input.OutTradeNo)) ??
 												 throw BaseBll.CreateException(string.Empty, Constants.Errors.PaymentRequestNotFound);
 										paymentRequest.ExternalTransactionId = input.TransactionNo;
-										clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
-										PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
+										clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out List<int> userIds);
+                                        foreach (var uId in userIds)
+                                        {
+                                            PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                        }
+                                        PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
 										BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);
 										response = JsonConvert.SerializeObject(new
 										{

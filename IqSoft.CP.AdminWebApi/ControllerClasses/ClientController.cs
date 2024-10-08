@@ -242,6 +242,8 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     return CheckClientExternalStatus(Convert.ToInt32(request.RequestData), identity, log);
                 case "GetClientSegments":
                     return GetClientSegments(Convert.ToInt32(request.RequestData), identity, log);
+                case "ReconsiderClientSegments":
+                    return ReconsiderClientSegments(Convert.ToInt32(request.RequestData), identity, log);
                 case "GetSegmentClients":
                     return GetSegmentClients(JsonConvert.DeserializeObject<ApiFilterfnSegmentClient>(request.RequestData), identity, log);
                 case "ExportSegmentClients":
@@ -287,7 +289,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     filter.CreatedFrom = null;
                     filter.CreatedBefore = null;
                 }
-                var input = filter.MapToFilterfnClient();
+                var input = filter.MapToFilterfnClient(identity.TimeZone);
                 var resp = clientBl.GetfnClientsPagedModel(input, true);
                 return new ApiResponseBase
                 {
@@ -377,7 +379,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     AffiliateId = request.AffiliateId ?? dbClient.AffiliateReferral?.AffiliateId,
                     RefId = request.RefId?? dbClient.AffiliateReferral?.RefId
                 };
-                clientBl.ChangeClientDetails(request.MapToClient(dbClient), affModel, out isSessionExpired, request.ReferralType);
+                clientBl.ChangeClientDetails(request.MapToClient(dbClient, identity.TimeZone), affModel, out isSessionExpired, request.ReferralType);
             }
             CacheManager.RemoveClientFromCache(request.Id);
             Helpers.Helpers.InvokeMessage("RemoveClient", request.Id);
@@ -441,7 +443,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var clientBl = new ClientBll(identity, log))
             {
-                var resp = clientBl.GetClientLogs(request.MapToFilterClientLog());
+                var resp = clientBl.GetClientLogs(request.MapToFilterClientLog(identity.TimeZone));
                 return new ApiResponseBase
                 {
                     ResponseObject = new { resp.Count, Entities = resp.Entities.MapToApiClientLogs(clientBl.GetUserIdentity().TimeZone) }
@@ -506,7 +508,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     var user = userBl.GetUserById(identity.Id);
                     if (user == null)
                         throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.UserNotFound);
-                    var corrections = reportBl.GetClientCorrections(filter.MapToFilterCorrection(), true);
+                    var corrections = reportBl.GetClientCorrections(filter.MapToFilterCorrection(identity.TimeZone), true);
                     return new ApiResponseBase
                     {
                         ResponseObject = corrections.MapToApiClientCorrections(identity.TimeZone)
@@ -541,7 +543,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             using (var reportBll = new ReportBll(identity, log))
             {
                 filter.ProductId = Constants.PlatformProductId;
-                var resp = reportBll.GetClientLoginsPagedModel(filter.MapToFilterReportByClientSession());
+                var resp = reportBll.GetClientLoginsPagedModel(filter.MapToFilterReportByClientSession(identity.TimeZone));
                 return new ApiResponseBase
                 {
                     ResponseObject = new { resp.Count, Entities = resp.Entities.MapToClientSessionModels(identity.TimeZone) }
@@ -565,7 +567,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 }
                 return new ApiResponseBase
                 {
-                    ResponseObject = clientBl.GetClientInfo(clientId, true).MapToClientInfoModel(hideClientContactInfo)
+                    ResponseObject = clientBl.GetClientInfo(clientId, true).MapToClientInfoModel(hideClientContactInfo, identity.TimeZone)
                 };
             }
         }
@@ -596,7 +598,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 using (var clientBl = new ClientBll(identity, log))
                 {
                     clientBl.CheckPermission(Constants.Permissions.SendEmailToPlayers);
-                    var filterfnClient = input.MapToFilterfnClient();
+                    var filterfnClient = input.MapToFilterfnClient(identity.TimeZone);
                     var resp = clientBl.GetfnClientsPagedModel(filterfnClient, true);
                     if(resp.Count > 5000)
                         throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.MaxLimitExceeded);
@@ -648,7 +650,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             {
                 return new ApiResponseBase
                 {
-                    ResponseObject = clientBl.GetClientAccountsBalanceHistoryPaging(input.MapToFilterAccountsBalanceHistory(identity.TimeZone))
+                    ResponseObject = clientBl.GetClientAccountsBalanceHistoryPaging(input.MapToFilterAccountsBalanceHistory(identity.TimeZone), identity.TimeZone)
                 };
             }
         }
@@ -678,7 +680,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
 
             using (var clientBl = new ClientBll(identity, log))
             {
-                var result = clientBl.ExportClientAccountsBalanceHistory(filter.MapToFilterAccountsBalanceHistory(identity.TimeZone));
+                var result = clientBl.ExportClientAccountsBalanceHistory(filter.MapToFilterAccountsBalanceHistory(identity.TimeZone), identity.TimeZone);
                 var fileName = "ExportClientAccountsBalanceHistory.csv";
                 var fileAbsPath = clientBl.ExportToCSV(fileName, result, filter.FromDate, filter.ToDate, identity.TimeZone, filter.AdminMenuId, customLines: customLines);
                 return new ApiResponseBase
@@ -709,8 +711,12 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.WrongInputParameters);
             using (var clientBl = new ClientBll(identity, log))
             {
-                var resp = clientBl.SaveKYCDocument(input.ToClientIdentity(identity.TimeZone), input.Name, Convert.FromBase64String(input.ImageData), true)
-                                  .ToClientIdentityModel(identity.TimeZone);
+                var resp = clientBl.SaveKYCDocument(input.ToClientIdentity(identity.TimeZone), input.Name, 
+                    Convert.FromBase64String(input.ImageData), true, out List<int> userIds).ToClientIdentityModel(identity.TimeZone);
+                foreach (var uId in userIds)
+                {
+                    Helpers.Helpers.InvokeMessage("NotificationsCount", uId);
+                }
                 Helpers.Helpers.InvokeMessage("RemoveClient", input.ClientId);
                 return new ApiResponseBase
                 {
@@ -740,8 +746,12 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var clientBl = new ClientBll(identity, log))
             {
-                var resp = clientBl.SaveKYCDocument(input.ToClientIdentity(identity.TimeZone), input.Name, null, true)
-                                   .ToClientIdentityModel(identity.TimeZone);
+                var resp = clientBl.SaveKYCDocument(input.ToClientIdentity(identity.TimeZone), 
+                    input.Name, null, true, out List<int> userIds).ToClientIdentityModel(identity.TimeZone);
+                foreach (var uId in userIds)
+                {
+                    Helpers.Helpers.InvokeMessage("NotificationsCount", uId);
+                }
                 Helpers.Helpers.InvokeMessage("RemoveClient", input.ClientId);
                 return new ApiResponseBase
                 {
@@ -757,7 +767,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var clientBl = new ClientBll(identity, log))
             {
-                return clientBl.SetPaymentLimit(paymentLimit.MapToPaymentLimit(), true).MapToApiResponseBase();
+                return clientBl.SetPaymentLimit(paymentLimit.MapToPaymentLimit(identity.TimeZone), true).MapToApiResponseBase();
             }
         }
 
@@ -767,7 +777,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             {
                 return new ApiResponseBase
                 {
-                    ResponseObject = clientBl.GetPaymentLimit(clientId).MapToApiPaymentLimit(clientId)
+                    ResponseObject = clientBl.GetPaymentLimit(clientId).MapToApiPaymentLimit(clientId, identity.TimeZone)
                 };
             }
         }
@@ -786,7 +796,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     if (fex.Detail.Id == Constants.Errors.DontHavePermission)
                         hideClientContactInfo = true;
                 }
-                var input = filter.MapToFilterfnClient();
+                var input = filter.MapToFilterfnClient(identity.TimeZone);
                 var result = clientBl.ExportClients(input).Select(x => x.MapTofnClientModelItem(identity.TimeZone, hideClientContactInfo, identity.LanguageId)).ToList();
                 string fileName = "ExportClients.csv";
                 string fileAbsPath = clientBl.ExportToCSV<fnClientModel>(fileName, result, filter.CreatedFrom, filter.CreatedBefore, identity.TimeZone, filter.AdminMenuId);
@@ -805,7 +815,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var corrections = reportBl.ExportClientCorrections(filter.MapToFilterCorrection())
+                var corrections = reportBl.ExportClientCorrections(filter.MapToFilterCorrection(identity.TimeZone))
                                           .Select(x=>x.MapToApiClientCorrection(identity.TimeZone)).ToList();
                 string fileName = "ExportClientCorrections.csv";
                 string fileAbsPath = reportBl.ExportToCSV<ApiClientCorrection>(fileName, corrections, null, null, reportBl.GetUserIdentity().TimeZone, filter.AdminMenuId);
@@ -867,7 +877,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             {
                 return new ApiResponseBase
                 {
-                    ResponseObject = clientBl.GetPaymentLimitExclusion(clientId, true).MapToApiPaymentLimit(clientId)
+                    ResponseObject = clientBl.GetPaymentLimitExclusion(clientId, true).MapToApiPaymentLimit(clientId, identity.TimeZone)
                 };
             }
         }
@@ -876,7 +886,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var clientBl = new ClientBll(identity, log))
             {
-                return clientBl.SetPaymentLimitExclusion(paymentLimit.MapToPaymentLimit()).MapToApiResponseBase();
+                return clientBl.SetPaymentLimitExclusion(paymentLimit.MapToPaymentLimit(identity.TimeZone)).MapToApiResponseBase();
             }
         }
 
@@ -942,7 +952,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     if (ip == null)
                         ip = Constants.DefaultIp;
 
-                    var client = input.MapToClient();
+                    var client = input.MapToClient(identity.TimeZone);
                     client.RegistrationIp = ip;
                     clientBl.CheckPermission(Constants.Permissions.CreateClient);
                     DAL.Client existingClient = null;
@@ -964,13 +974,18 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                         var clientRegistrationInput = new ClientRegistrationInput
                         {
                             ClientData = client,
-                            RegistrationType = (int)Constants.RegisterTypes.Full,
+                            RegistrationType = (int)Constants.RegisterTypes.Admin,
                             IsFromAdmin = true,
                             GeneratedUsername = string.IsNullOrEmpty(input.UserName),
                             BetShopId = client.BetShopId,
                             BetShopPaymentSystems = input.BetShopPaymentSystems
                         };
-                        client = clientBl.RegisterClient(clientRegistrationInput);
+                        client = clientBl.RegisterClient(clientRegistrationInput, out List<int> userIds);
+                        foreach (var uId in userIds)
+                        {
+                            Helpers.Helpers.InvokeMessage("NotificationsCount", uId);
+                        }
+
                         var verificationPlatform = CacheManager.GetConfigKey(client.PartnerId, Constants.PartnerKeys.VerificationPlatform);
                         if (!string.IsNullOrEmpty(verificationPlatform) && int.TryParse(verificationPlatform, out int verificationPatformId))
                         {
@@ -983,11 +998,11 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                                     break;
                             }
                         }
-                        return new ApiResponseBase { ResponseObject = client.MapTofnClientModel() };
+                        return new ApiResponseBase { ResponseObject = client.MapTofnClientModel(identity.TimeZone) };
                     }
                     clientBl.RegisterClientAccounts(existingClient.Id, existingClient.CurrencyId, client.BetShopId, input.BetShopPaymentSystems);
 
-                    return new ApiResponseBase { ResponseObject = existingClient.MapTofnClientModel() };
+                    return new ApiResponseBase { ResponseObject = existingClient.MapTofnClientModel(identity.TimeZone) };
                 }
             }
         }
@@ -1049,56 +1064,9 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var bonusService = new BonusService(session, log))
             {
-                var client = CacheManager.GetClientById(apiClientBonus.ClientId);
-                if (client == null)
-                    throw BaseBll.CreateException(session.LanguageId, Constants.Errors.ClientNotFound);
-                var bonus = bonusService.GetAvailableBonus(apiClientBonus.BonusSettingId, true);
-
-                if (!Constants.ClaimingBonusTypes.Contains(bonus.Type))
-                    throw BaseBll.CreateException(session.LanguageId, Constants.Errors.BonusNotFound);
-
-                var clientSegmentsIds = new List<int>();
-                if (bonus.BonusSegmentSettings.Any())
-                {
-                    var clientClassifications = CacheManager.GetClientClassifications(client.Id);
-                    if (clientClassifications.Any())
-                        clientSegmentsIds = clientClassifications.Where(x => x.SegmentId.HasValue && x.ProductId == (int)Constants.PlatformProductId)
-                                                                .Select(x => x.SegmentId.Value).ToList();
-                }
-                if ((bonus.BonusSegmentSettings.Any() &&
-                    (bonus.BonusSegmentSettings.Any(x => x.Type == (int)BonusSettingConditionTypes.InSet && !clientSegmentsIds.Contains(x.SegmentId)) ||
-                     bonus.BonusSegmentSettings.Any(x => x.Type == (int)BonusSettingConditionTypes.OutOfSet && clientSegmentsIds.Contains(x.SegmentId)))) ||
-                    (bonus.BonusCountrySettings.Any() &&
-                    (bonus.BonusCountrySettings.Any(y => y.Type == (int)BonusSettingConditionTypes.InSet && y.CountryId != (client.CountryId ?? client.RegionId)) ||
-                     bonus.BonusCountrySettings.Any(y => y.Type == (int)BonusSettingConditionTypes.OutOfSet && y.CountryId == (client.CountryId ?? client.RegionId)))) ||
-                    (bonus.BonusCurrencySettings.Any() &&
-                    (bonus.BonusCurrencySettings.Any(y => y.Type == (int)BonusSettingConditionTypes.InSet && y.CurrencyId != client.CurrencyId) ||
-                     bonus.BonusCurrencySettings.Any(y => y.Type == (int)BonusSettingConditionTypes.OutOfSet && y.CurrencyId == client.CurrencyId))) ||
-                    (bonus.BonusLanguageSettings.Any() &&
-                     bonus.BonusLanguageSettings.Any(y => y.Type == (int)BonusSettingConditionTypes.InSet && y.LanguageId != client.LanguageId) &&
-                     bonus.BonusLanguageSettings.Any(y => y.Type == (int)BonusSettingConditionTypes.OutOfSet && y.LanguageId == client.LanguageId)))
-                    throw BaseBll.CreateException(session.LanguageId, Constants.Errors.NotAllowed);
-
-                var input = new Common.Models.Bonus.ClientBonusItem
-                {
-                    PartnerId = client.PartnerId,
-                    BonusId = bonus.Id,
-                    Type = bonus.Type,
-                    ClientId = client.Id,
-                    ClientUserName = client.UserName,
-                    ClientCurrencyId = client.CurrencyId,
-                    FinalAccountTypeId = bonus.FinalAccountTypeId ?? (int)AccountTypes.BonusWin,
-                    ReusingMaxCount = bonus.ReusingMaxCount,
-                    WinAccountTypeId = bonus.WinAccountTypeId,
-                    ValidForAwarding = bonus.ValidForAwarding == null ? (DateTime?)null : DateTime.Now.AddHours(bonus.ValidForAwarding.Value),
-                    ValidForSpending = bonus.ValidForSpending == null ? (DateTime?)null : DateTime.Now.AddHours(bonus.ValidForSpending.Value)
-                };
-                bonusService.GiveCompainToClient(input, out int awardedStatus);
-                if(awardedStatus > 0)
-                    throw BaseBll.CreateException(session.LanguageId, Constants.Errors.NotAllowed);
-
-                CacheManager.RemoveClientNotAwardedCampaigns(client.Id);
-                Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}", Constants.CacheItems.NotAwardedCampaigns, client.Id));
+                bonusService.GiveCompainToClientManually(apiClientBonus.ClientId, apiClientBonus.BonusSettingId);
+                CacheManager.RemoveClientNotAwardedCampaigns(apiClientBonus.ClientId);
+                Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}", Constants.CacheItems.NotAwardedCampaigns, apiClientBonus.ClientId));
             }
             return new ApiResponseBase();
         }
@@ -1152,7 +1120,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 var clientBonus = clientBl.CancelClientBonus(clientBonusId, true);
                 CacheManager.RemoveClientBalance(clientBonus.ClientId);
                 CacheManager.RemoveClientActiveBonus(clientBonus.ClientId);
-                CacheManager.RemoveClientBonus(clientBonus.ClientId, clientBonus.BonusId);
+                CacheManager.RemoveClientBonus(clientBonus.ClientId, clientBonus.BonusId, clientBonus.ReuseNumber ?? 1);
                 Helpers.Helpers.InvokeMessage("ClientBonus", clientBonus.ClientId);
                 return new ApiResponseBase();
             }
@@ -1164,7 +1132,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             {
                 var clientBonus = clientBl.ApproveClientCashbackBonus(clientBonusId);
                 CacheManager.RemoveClientActiveBonus(clientBonus.ClientId);
-                CacheManager.RemoveClientBonus(clientBonus.ClientId, clientBonus.BonusId);
+                CacheManager.RemoveClientBonus(clientBonus.ClientId, clientBonus.BonusId, clientBonus.ReuseNumber ?? 1);
                 Helpers.Helpers.InvokeMessage("ClientBonus", clientBonus.ClientId);
                 return new ApiResponseBase
                 {
@@ -1235,7 +1203,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 if (string.IsNullOrEmpty(filter.LanguageId))
                     filter.LanguageId = Constants.DefaultLanguageId;
 
-                var result = clientBl.ExportReportByPartners(filter.MapToFilterTicket())
+                var result = clientBl.ExportReportByPartners(filter.MapToFilterTicket(identity.TimeZone))
                                      .Entities.MapToTickets(identity.TimeZone, filter.LanguageId).ToList();
                 var fileName = "ExportReportByPartners.csv";
                 var fileAbsPath = clientBl.ExportToCSV(fileName, result, filter.CreatedFrom, filter.CreatedBefore, identity.TimeZone, filter.AdminMenuId);
@@ -1255,7 +1223,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             {
                 return new ApiResponseBase
                 {
-                    ResponseObject = clientBl.UpdateClientPaymentAccount(input.MapToClientPaymentInfo()).MapToApiClientPaymentInfo(session.TimeZone)
+                    ResponseObject = clientBl.UpdateClientPaymentAccount(input.MapToClientPaymentInfo(session.TimeZone)).MapToApiClientPaymentInfo(session.TimeZone)
                 };
             }
         }
@@ -1494,11 +1462,19 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             }
         }
 
+        private static ApiResponseBase ReconsiderClientSegments(int clientId, SessionIdentity identity, ILog log)
+        {
+            using (var clientBl = new ClientBll(identity, log))
+            {
+                return new ApiResponseBase ();
+            }
+        }
+
         private static ApiResponseBase GetSegmentClients(ApiFilterfnSegmentClient filter, SessionIdentity identity, ILog log)
         {
             using (var clientBl = new ClientBll(identity, log))
             {
-                var res = clientBl.GetSegmentClients(filter.MapToFilterfnSegmentClient());
+                var res = clientBl.GetSegmentClients(filter.MapToFilterfnSegmentClient(identity.TimeZone));
                 var hideClientContactInfo = false;
                 try
                 {
@@ -1525,7 +1501,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var clientBl = new ClientBll(identity, log))
             {
-                var result = clientBl.ExportSegmentClients(filter.MapToFilterfnSegmentClient()).MapTofnSegmentClientModelList(false, identity.TimeZone);
+                var result = clientBl.ExportSegmentClients(filter.MapToFilterfnSegmentClient(identity.TimeZone)).MapTofnSegmentClientModelList(false, identity.TimeZone);
                 var fileName = "ExportSegmentClient.csv";
                 var fileAbsPath = clientBl.ExportToCSV(fileName, result, filter.CreatedFrom, filter.CreatedBefore, identity.TimeZone, filter.AdminMenuId);
                 return new ApiResponseBase
@@ -1677,7 +1653,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var result = reportBl.GetfnDocuments(filter.MapToFilterfnDocument());
+                var result = reportBl.GetfnDocuments(filter.MapToFilterfnDocument(identity.TimeZone));
                 return new ApiResponseBase
                 {
                     ResponseObject = new
@@ -1693,7 +1669,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var result = reportBl.ExportfnDocuments(filter.MapToFilterfnDocument());
+                var result = reportBl.ExportfnDocuments(filter.MapToFilterfnDocument(identity.TimeZone));
                 var fileName = "ExportClientDocument.csv";
                 var fileAbsPath = reportBl.ExportToCSV(fileName, result, filter.FromDate, filter.ToDate, identity.TimeZone, filter.AdminMenuId);
                 return new ApiResponseBase
@@ -1706,7 +1682,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             }
         }
 
-            private static ApiResponseBase StakeNFT(ApiNFTInfo input, SessionIdentity session, ILog log)
+        private static ApiResponseBase StakeNFT(ApiNFTInfo input, SessionIdentity session, ILog log)
         {
             using (var clientBl = new ClientBll(session, log))
             {

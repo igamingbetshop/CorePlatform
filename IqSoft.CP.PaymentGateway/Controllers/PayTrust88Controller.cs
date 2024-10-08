@@ -69,7 +69,11 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                 });
                                 request.ExternalTransactionId = input.transaction.ToString();
                                 paymentSystemBl.ChangePaymentRequestDetails(request);
-                                clientBl.ApproveDepositFromPaymentSystem(request, false);
+                                clientBl.ApproveDepositFromPaymentSystem(request, false, out List<int> userIds);
+                                foreach (var uId in userIds)
+                                {
+                                    PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                }
                                 PaymentHelpers.RemoveClientBalanceFromCache(request.ClientId.Value);
                                 BaseHelpers.BroadcastBalance(request.ClientId.Value);
                                 response = "State=OK";
@@ -116,6 +120,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
             {
                 WebApiApplication.DbLogger.Info("Input: " + JsonConvert.SerializeObject(input));
                 BaseBll.CheckIp(WhitelistedIps);
+                var userIds = new List<int>();
                 using (var paymentSystemBl = new PaymentSystemBll(new SessionIdentity(), WebApiApplication.DbLogger))
                 {
                     using (var clientBl = new ClientBll(paymentSystemBl))
@@ -150,21 +155,29 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                 if (input.status >= 0)//success
                                 {
                                     var resp = clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Approved, string.Empty,
-                                                                                   null, null, false, string.Empty, documentBl, notificationBl);
+                                                                                   null, null, false, string.Empty, documentBl, notificationBl, out userIds);
                                     clientBl.PayWithdrawFromPaymentSystem(resp, documentBl, notificationBl);
                                     PaymentHelpers.RemoveClientBalanceFromCache(request.ClientId.Value);
                                     BaseHelpers.BroadcastBalance(request.ClientId.Value);
                                     response = "State=OK";
+                                    foreach (var uId in userIds)
+                                    {
+                                        PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                    }
                                     return new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(response, Encoding.UTF8) };
                                 }
                                 else
                                 {
                                     var resp = clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Failed, string.Empty,
-                                                                                   null, null, false, string.Empty, documentBl, notificationBl);
+                                                                                   null, null, false, string.Empty, documentBl, notificationBl, out userIds);
                                     clientBl.ChangeDepositRequestState(request.Id, PaymentRequestStates.Failed, input.status_message, notificationBl);
                                     PaymentHelpers.RemoveClientBalanceFromCache(request.ClientId.Value);
                                     BaseHelpers.BroadcastBalance(request.ClientId.Value);
                                     response = "State=RETRY";
+                                    foreach (var uId in userIds)
+                                    {
+                                        PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                    }
                                     return new HttpResponseMessage { StatusCode = HttpStatusCode.Conflict, Content = new StringContent(response, Encoding.UTF8) };
                                 }
                             }

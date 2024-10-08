@@ -170,6 +170,8 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                 return Integration.Products.Helpers.AleaPlayHelpers.GetUrl(token, input.ClientId, input.PartnerId, input.ProductId, input.IsForDemo, clientSession);
             else if (providerName == Constants.GameProviders.PlaynGo.ToLower())
                 return PlaynGoHelpers.GetUrl(token, input.PartnerId, input.ProductId, input.IsForDemo, input.IsForMobile ?? false, clientSession);
+            else if (providerName == Constants.GameProviders.RelaxGaming.ToLower())
+                return Integration.Products.Helpers.RelaxGamingHelpers.GetUrl(input.ClientId, token, input.PartnerId, input.ProductId, input.IsForDemo, input.IsForMobile ?? false, clientSession);
             else if (providerName == Constants.GameProviders.Elite.ToLower())
                 return Integration.Products.Helpers.EliteHelpers.GetUrl(token, input.ClientId, input.PartnerId, input.ProductId, input.IsForDemo, clientSession, WebApiApplication.DbLogger);
             else if (providerName == Constants.GameProviders.SoftLand.ToLower())

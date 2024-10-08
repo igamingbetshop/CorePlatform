@@ -132,8 +132,9 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             }
         }
 
-        public static void GetPayoutRequestStatus(PaymentRequest paymentRequest, SessionIdentity session, ILog log)
+        public static List<int> GetPayoutRequestStatus(PaymentRequest paymentRequest, SessionIdentity session, ILog log)
         {
+            var userIds = new List<int>();
             using (var clientBl = new ClientBll(session, log))
             {
                 using (var documentBl = new DocumentBll(clientBl))
@@ -162,7 +163,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                             if (output.PaymentHandles[0].Status.ToUpper() == "COMPLETED")
                             {
                                 var resp = clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Approved,
-                                    output.PaymentHandles[0].StatusReason, null, null, false, string.Empty, documentBl, notificationBl);
+                                    output.PaymentHandles[0].StatusReason, null, null, false, string.Empty, documentBl, notificationBl, out userIds);
                                 clientBl.PayWithdrawFromPaymentSystem(resp, documentBl, notificationBl);
                             }
                             else if (output.PaymentHandles[0].Status.ToUpper() == "CANCELLED" ||
@@ -171,12 +172,13 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                             {
 
                                 clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed,
-                                output.PaymentHandles[0].StatusReason, null, null, false, string.Empty, documentBl, notificationBl);
+                                output.PaymentHandles[0].StatusReason, null, null, false, string.Empty, documentBl, notificationBl, out userIds);
                             }
                         }
                     }
                 }
             }
+            return userIds;
         }
     }
 }

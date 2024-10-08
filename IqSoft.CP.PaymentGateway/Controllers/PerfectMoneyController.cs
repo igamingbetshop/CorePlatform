@@ -83,7 +83,11 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                             ClientId = request.ClientId.Value,
                             AccountNickName = Constants.PaymentSystems.PerfectMoneyWallet
                         });
-                        clientBl.ApproveDepositFromPaymentSystem(request, false, string.Empty, pInfo);
+                        clientBl.ApproveDepositFromPaymentSystem(request, false, out List<int> userIds, string.Empty, pInfo);
+                        foreach (var uId in userIds)
+                        {
+                            PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                        }
                         PaymentHelpers.RemoveClientBalanceFromCache(request.ClientId.Value);
                         BaseHelpers.BroadcastBalance(request.ClientId.Value);
                         response = "OK";

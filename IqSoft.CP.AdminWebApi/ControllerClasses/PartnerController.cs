@@ -113,7 +113,9 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 case "GetVipLevels":
                     return GetVipLevels(identity, log);
                 case "GetClientRegistrationFields":
-                    return GetClientRegistrationFields(identity, log);
+                    return GetClientRegistrationFields(JsonConvert.DeserializeObject<ApiFilterPartnerKey>(request.RequestData), identity, log);
+                case "GetPartnerMobileCodes":
+                    return GetPartnerMobileCodes(JsonConvert.DeserializeObject<ApiFilterPartnerKey>(request.RequestData), identity, log);
             }
             throw BaseBll.CreateException(string.Empty, Constants.Errors.MethodNotFound);
         }
@@ -133,7 +135,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var partnerBl = new PartnerBll(identity, log))
             {
-                var resp = partnerBl.GetPartnersPagedModel(request.MapToFilterPartner());
+                var resp = partnerBl.GetPartnersPagedModel(request.MapToFilterPartner(identity.TimeZone));
                 return new ApiResponseBase
                 {
                     ResponseObject = new { resp.Count, Entities = resp.Entities.MapToPartnerModels(identity.TimeZone) }
@@ -145,7 +147,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var partnerBl = new PartnerBll(identity, log))
             {
-                var partnerEnum = partnerBl.GetPartners(request.MapToFilterPartner(), true).Select(x => new EnumerationModel<int>
+                var partnerEnum = partnerBl.GetPartners(request.MapToFilterPartner(identity.TimeZone), true).Select(x => new EnumerationModel<int>
                 {
                     Id = x.Id,
                     Name = x.Name
@@ -207,7 +209,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var partnerBl = new PartnerBll(identity, log))
             {
-                var partnerEnum = partnerBl.ExportPartners(request.MapToFilterPartner(), true).Select(x => new EnumerationModel<int>
+                var partnerEnum = partnerBl.ExportPartners(request.MapToFilterPartner(identity.TimeZone), true).Select(x => new EnumerationModel<int>
                 {
                     Id = x.Id,
                     Name = x.Name
@@ -231,7 +233,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var partnerBl = new PartnerBll(identity, log))
             {
-                var filteredList = partnerBl.ExportPartnersModel(request.MapToFilterPartner()).MapToPartnerModels(identity.TimeZone);
+                var filteredList = partnerBl.ExportPartnersModel(request.MapToFilterPartner(identity.TimeZone)).MapToPartnerModels(identity.TimeZone);
                 string fileName = "ExportPartnersModel.csv";
                 string fileAbsPath = partnerBl.ExportToCSV<PartnerModel>(fileName, filteredList, request.CreatedFrom, request.CreatedBefore,
                     identity.TimeZone, request.AdminMenuId);
@@ -379,7 +381,8 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             {
                 return new ApiResponseBase
                 {
-                    ResponseObject = paymentSystemBll.UpdatePartnerBankInfo(apiPartnerBankInfo.MapToPartnerBankInfo()).MapToApiPartnerBankInfo(identity.TimeZone)
+                    ResponseObject = paymentSystemBll.UpdatePartnerBankInfo(apiPartnerBankInfo.MapToPartnerBankInfo(identity.TimeZone)).
+                        MapToApiPartnerBankInfo(identity.TimeZone)
                 };
             }
         }
@@ -651,8 +654,8 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                                                                ObjectId = partnerId,
                                                                GameProviderId = x.Id,
                                                                GameProviderName = x.Name,
-                                                               State = (int)BaseStates.Active, 
-                                                               Order = 10000 
+                                                               State = (int)BaseStates.Active,
+                                                               Order = 10000
                                                            }));
                 return new ApiResponseBase
                 {
@@ -690,7 +693,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var partnerBl = new PartnerBll(identity, log))
             {
-                var filter = apiFilterEmail.MapToFilterEmail();
+                var filter = apiFilterEmail.MapToFilterEmail(identity.TimeZone);
                 var resp = partnerBl.GetEmails(filter, true);
                 return new ApiResponseBase
                 {
@@ -741,13 +744,13 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 {
                     ResponseObject = new
                     {
-                        partnerCountrySetting.Id,
-                        partnerCountrySetting.PartnerId,
-                        partnerCountrySetting.Type,
-                        partnerCountrySetting.CountryNickName,
-                        partnerCountrySetting.CountryName,
-                        partnerCountrySetting.IsoCode,
-                        partnerCountrySetting.IsoCode3
+                        partnerCountrySetting?.Id,
+                        partnerCountrySetting?.PartnerId,
+                        partnerCountrySetting?.Type,
+                        partnerCountrySetting?.CountryNickName,
+                        partnerCountrySetting?.CountryName,
+                        partnerCountrySetting?.IsoCode,
+                        partnerCountrySetting?.IsoCode3
                     }
                 };
             }
@@ -799,20 +802,20 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             {
                 var characters = partnerBll.GetCharacters(partnerId, null).Select(x => x.MapToApiCharacter());
                 var parentIds = characters.Where(x => x.ParentId == null).Select(x => x.Id);
-				var relations = new List<ApiCharacterRelations>();
-				foreach (var pId in parentIds)
-				{
-					var relation = new ApiCharacterRelations
-					{
-						Parent = characters.FirstOrDefault(x => x.Id == pId),
-						Children = characters.Where(x => x.ParentId == pId).ToList()
-					};
-					relations.Add(relation);
-				}
-				return new ApiResponseBase
+                var relations = new List<ApiCharacterRelations>();
+                foreach (var pId in parentIds)
+                {
+                    var relation = new ApiCharacterRelations
+                    {
+                        Parent = characters.FirstOrDefault(x => x.Id == pId),
+                        Children = characters.Where(x => x.ParentId == pId).ToList()
+                    };
+                    relations.Add(relation);
+                }
+                return new ApiResponseBase
                 {
                     ResponseObject = relations
-				};
+                };
             }
         }
 
@@ -825,7 +828,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 var siteurl = partner.SiteUrl.Split(',')[0];
                 character.SiteUrl = siteurl;
 
-				return new ApiResponseBase
+                return new ApiResponseBase
                 {
                     ResponseObject = character
                 };
@@ -847,9 +850,9 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         private static ApiResponseBase DeleteCharacterById(ApiCharacter input, SessionIdentity identity, ILog log)
         {
             using (var partnerBll = new PartnerBll(identity, log))
-			{
-				var character = input.MapToCharacter();
-				partnerBll.DeleteCharacterById(character);
+            {
+                var character = input.MapToCharacter();
+                partnerBll.DeleteCharacterById(character);
                 return new ApiResponseBase();
             }
         }
@@ -863,15 +866,24 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             }
         }
 
-        public static ApiResponseBase GetClientRegistrationFields(SessionIdentity identity, ILog log)
+        public static ApiResponseBase GetClientRegistrationFields(ApiFilterPartnerKey apiFilterPartner, SessionIdentity identity, ILog log)
         {
             using (var contentBl = new ContentBll(identity, log))
             {
-                var user = CacheManager.GetUserById(identity.Id);
-
                 return new ApiResponseBase
                 {
-                    ResponseObject = contentBl.GetClientRegistrationFields(user.PartnerId, (int)SystemModuleTypes.ManagementSystem)
+                    ResponseObject = contentBl.GetClientRegistrationFields(apiFilterPartner.PartnerId, (int)SystemModuleTypes.ManagementSystem)
+                };
+            }
+        }
+
+        public static ApiResponseBase GetPartnerMobileCodes(ApiFilterPartnerKey apiFilterPartner, SessionIdentity identity, ILog log)
+        {
+            using (var contentBl = new ContentBll(identity, log))
+            {
+                return new ApiResponseBase
+                {
+                    ResponseObject = contentBl.GetPartnerMobileCodes(apiFilterPartner.PartnerId)
                 };
             }
         }

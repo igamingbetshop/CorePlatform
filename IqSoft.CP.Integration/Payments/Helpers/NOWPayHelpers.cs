@@ -8,6 +8,7 @@ using IqSoft.CP.DAL;
 using IqSoft.CP.DAL.Models;
 using IqSoft.CP.Integration.Payments.Models;
 using IqSoft.CP.Integration.Payments.Models.NOWPay;
+using IqSoft.CP.Integration.Payments.Models.Payment;
 using log4net;
 using Newtonsoft.Json;
 using System;
@@ -18,6 +19,27 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 {
     public static class NOWPayHelpers
     {
+        private static Dictionary<string, string> CryptoChannels { get; set; } = new Dictionary<string, string>
+        {
+            { Constants.PaymentSystems.NowPayBTC, "BTC" },
+            { Constants.PaymentSystems.NowPayBCH, "BCH" },
+            { Constants.PaymentSystems.NowPayETH, "ETH" },
+            { Constants.PaymentSystems.NowPayLTC, "LTC" },
+            { Constants.PaymentSystems.NowPayUSDTTRC20, "USDTTRC20"},
+            { Constants.PaymentSystems.NowPayUSDTERC20, "USDTERC20" },
+            { Constants.PaymentSystems.NowPayUSDC,"USDC"},
+            { Constants.PaymentSystems.NowPayDAI, "DAI"},
+            { Constants.PaymentSystems.NowPayXRP, "XRP" },
+            { Constants.PaymentSystems.NowPayXLM, "XLM" },
+            { Constants.PaymentSystems.NowPayADA, "ADA"},
+            { Constants.PaymentSystems.NowPaySHIB,"SHIB" },
+            { Constants.PaymentSystems.NowPaySOL, "SOL" },
+            { Constants.PaymentSystems.NowPayUSDTBSC, "USDTBSC" },
+            { Constants.PaymentSystems.NowPayUSDTSOL, "USDTSOL" },
+            { Constants.PaymentSystems.NowPayUSDTPolygon, "USDTMATIC" },
+            { Constants.PaymentSystems.NowPayUSDCPolygon, "USDCMATIC" }
+        };
+
         public static string CallNOWPayApi(PaymentRequest input, SessionIdentity session, ILog log)
         {
             var client = CacheManager.GetClientById(input.ClientId.Value);
@@ -104,9 +126,9 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             };
 
             var headers = new Dictionary<string, string>
-                        {
-                            {"x-api-key",partnerPaymentSetting.Password }
-                        };
+            {
+                {"x-api-key",partnerPaymentSetting.Password }
+            };
             var httpRequestInput = new HttpRequestInput
             {
                 ContentType = Constants.HttpContentTypes.ApplicationJson,
@@ -121,6 +143,55 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             if (resp.Payment_status?.ToLower() == "failed")
                 throw new Exception(resp.Payment_status);
             return resp.Pay_address;
+        }
+
+        public static CryptoAddress CreateNowPayChannel(int clientId, string currencyId, int paymentSystemId, SessionIdentity sessionIdentity, ILog log)
+        {
+            var cryptoAddress = new CryptoAddress();
+            try
+            {
+                var client = CacheManager.GetClientById(clientId);
+                var url = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.NOWPayApiUrl).StringValue;
+                var paymentSystem = CacheManager.GetPaymentSystemById(paymentSystemId);
+                if (paymentSystem == null || !CryptoChannels.ContainsKey(paymentSystem.Name))
+                    throw BaseBll.CreateException(sessionIdentity.LanguageId, Constants.Errors.PaymentSystemNotFound);
+                var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, paymentSystem.Id,
+                                                                                   currencyId, (int)PaymentRequestTypes.Deposit);
+                var paymentGatewayUrl = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.PaymentGateway).StringValue;
+                var paymentRequestInput = new
+                {
+                    price_amount = Math.Round(partnerPaymentSetting.MinAmount, 2),
+                    price_currency = currencyId,
+                    pay_currency = CryptoChannels[paymentSystem.Name]?.ToLower(),
+                    ipn_callback_url = $"{paymentGatewayUrl}/api/NOWPay/CreatePayment",
+                    order_description = clientId.ToString()
+                };
+
+                var headers = new Dictionary<string, string>
+            {
+                {"x-api-key", partnerPaymentSetting.Password }
+            };
+                var httpRequestInput = new HttpRequestInput
+                {
+                    ContentType = Constants.HttpContentTypes.ApplicationJson,
+                    RequestMethod = Constants.HttpRequestMethods.Post,
+                    RequestHeaders = headers,
+                    Url = string.Format("{0}{1}", url, "payment"),
+                    PostData = JsonConvert.SerializeObject(paymentRequestInput)
+                };
+                var response = CommonFunctions.SendHttpRequest(httpRequestInput, out _);
+                log.Info("NOWPayCreateChannel: " + response);
+                var resp = JsonConvert.DeserializeObject<PaymentOutput>(response);
+                if (resp.Payment_status?.ToLower() == "failed")
+                    throw new Exception(resp.Payment_status);
+                cryptoAddress.Address = resp.Pay_address;
+                //  cryptoAddress.DestinationTag = resp.Pay_address; check 
+            }
+            catch (Exception ex)
+            {
+                log.Info(string.Format("NOWPayCreateChannel: {0}", ex));
+            }
+            return cryptoAddress;
         }
 
         public static string CallNOWPayFiatApi(PaymentRequest input, SessionIdentity session, ILog log)
@@ -171,9 +242,9 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 var paymentGateway = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.PaymentGateway).StringValue;
 
                 var headers = new Dictionary<string, string>
-                        {
-                            {"x-api-key",partnerPaymentSetting.Password }
-                        };
+                {
+                    {"x-api-key",partnerPaymentSetting.Password }
+                };
                 var info = partnerPaymentSetting.UserName.Split(',');
                 var body = new
                 {

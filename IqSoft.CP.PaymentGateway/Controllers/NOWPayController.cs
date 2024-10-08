@@ -18,6 +18,11 @@ using System.Web;
 using System.Net;
 using static IqSoft.CP.Common.Constants;
 using IqSoft.CP.PaymentGateway.Helpers;
+using System.Net.Http.Headers;
+using IqSoft.CP.DAL;
+using IqSoft.CP.Common.Models;
+using IqSoft.CP.Common.Helpers;
+using IqSoft.CP.DAL.Models.Clients;
 
 namespace IqSoft.CP.PaymentGateway.Controllers
 {
@@ -42,28 +47,31 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                     {
                         using (var notificationBl = new NotificationBll(paymentSystemBl))
                         {
-                            var request = paymentSystemBl.GetPaymentRequestById(Convert.ToInt64(input.Order_id));
+                            var request = paymentSystemBl.GetPaymentRequestById(Convert.ToInt64(input.OrderId));
                             if (request == null)
                                 throw BaseBll.CreateException(string.Empty, Constants.Errors.PaymentRequestNotFound);
                             var client = CacheManager.GetClientById(request.ClientId.Value);
 
                             var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, request.PaymentSystemId,
-                                                                                               client.CurrencyId, (int)PaymentRequestTypes.Deposit);                           
+                                                                                               client.CurrencyId, (int)PaymentRequestTypes.Deposit);
 
-                            request.ExternalTransactionId = input.Payment_id;
-                            request.Info = JsonConvert.SerializeObject(input);
-                            if (input.Payment_status.ToUpper() != "WAITING")
-                                request.Amount = Math.Round(input.Price_amount * input.Actually_paid / input.Pay_amount, 2);
+                            request.ExternalTransactionId = input.PaymentId;
+                            if (input.PaymentStatus.ToUpper() != "WAITING")
+                                request.Amount = Math.Round(input.PriceAmount * input.Actually_paid / input.PayAmount, 2);
                             paymentSystemBl.ChangePaymentRequestDetails(request);
-                            if (input.Payment_status.ToUpper() == "FINISHED" || input.Payment_status.ToUpper() == "PARTIALLY_PAID")
+                            if (input.PaymentStatus.ToUpper() == "FINISHED" || input.PaymentStatus.ToUpper() == "PARTIALLY_PAID")
                             {
-                                clientBl.ApproveDepositFromPaymentSystem(request, false);
+                                clientBl.ApproveDepositFromPaymentSystem(request, false, out List<int> userIds);
+                                foreach (var uId in userIds)
+                                {
+                                    PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                }
                                 PaymentHelpers.RemoveClientBalanceFromCache(request.ClientId.Value);
                                 BaseHelpers.BroadcastBalance(request.ClientId.Value);
                             }
-                            else if (input.Payment_status.ToUpper() == "FAILED" || input.Payment_status.ToUpper() == "EXPIRED")
+                            else if (input.PaymentStatus.ToUpper() == "FAILED" || input.PaymentStatus.ToUpper() == "EXPIRED")
                             {
-                                clientBl.ChangeDepositRequestState(request.Id, PaymentRequestStates.Deleted, input.Order_description, notificationBl);
+                                clientBl.ChangeDepositRequestState(request.Id, PaymentRequestStates.Deleted, input.OrderDescription, notificationBl);
                             }
                         }
                     }
@@ -74,15 +82,15 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                 if (ex.Detail != null && ex.Detail.Id != Constants.Errors.ClientDocumentAlreadyExists &&
                     ex.Detail.Id != Constants.Errors.RequestAlreadyPayed)
                 {
-                    input.Payment_status = "1";
-                    input.Order_description = ex.Detail == null ? ex.Message : ex.Detail.Id + " " + ex.Detail.NickName;
+                    input.PaymentStatus = "1";
+                    input.OrderDescription = ex.Detail == null ? ex.Message : ex.Detail.Id + " " + ex.Detail.NickName;
                 }
                 WebApiApplication.DbLogger.Error(ex.Detail);
             }
             catch (Exception ex)
             {
-                input.Payment_status = "-1";
-                input.Order_description = ex.Message;
+                input.PaymentStatus = "-1";
+                input.OrderDescription = ex.Message;
                 WebApiApplication.DbLogger.Error(ex);
             }
             return new HttpResponseMessage
@@ -103,6 +111,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                 var inputString = bodyStream.ReadToEnd();
                 WebApiApplication.DbLogger.Info(inputString);
                 BaseBll.CheckIp(WhitelistedIps);
+                var userIds = new List<int>();
 
                 using (var paymentSystemBl = new PaymentSystemBll(new SessionIdentity(), WebApiApplication.DbLogger))
                 {
@@ -118,7 +127,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                 {
                                     var request = paymentSystemBl.GetPaymentRequestByExternalId(transaction.Batch_withdrawal_id, CacheManager.GetPaymentSystemByName(PaymentSystems.NOWPay).Id);
                                     var resp = clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Approved, string.Empty,
-                                                    null, null, false, string.Empty, documentBll, notificationBl);
+                                                    null, null, false, string.Empty, documentBll, notificationBl, out userIds);
                                     clientBl.PayWithdrawFromPaymentSystem(resp, documentBll, notificationBl);
                                     clientId = request.ClientId.Value;
                                 }
@@ -126,8 +135,12 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                 {
                                     var request = paymentSystemBl.GetPaymentRequestByExternalId(transaction.Batch_withdrawal_id, CacheManager.GetPaymentSystemByName(PaymentSystems.NOWPay).Id);
                                     var resp = clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Failed, string.Empty,
-                                                    null, null, false, string.Empty, documentBll, notificationBl);
+                                                    null, null, false, string.Empty, documentBll, notificationBl, out userIds);
                                     clientId = request.ClientId.Value;
+                                }
+                                foreach (var uId in userIds)
+                                {
+                                    PaymentHelpers.InvokeMessage("NotificationsCount", uId);
                                 }
                                 PaymentHelpers.RemoveClientBalanceFromCache(clientId);
                                 BaseHelpers.BroadcastBalance(clientId);
@@ -153,6 +166,113 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                 response = ex.Message;
             }
             return new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(response, Encoding.UTF8) };
+        }
+
+        [HttpPost]
+        [Route("api/NowPay/CreatePayment")]
+        public HttpResponseMessage CreatePayment(HttpRequestMessage httpRequestMessage)
+        {
+            var response = string.Empty;
+            try
+            {
+                var inputString = httpRequestMessage.Content.ReadAsStringAsync().Result;
+                WebApiApplication.DbLogger.Info("inputString:" + inputString);
+                BaseBll.CheckIp(WhitelistedIps);
+                var paymentInput = JsonConvert.DeserializeObject<PaymentInput>(inputString);
+                if (!Int32.TryParse(paymentInput.OrderDescription, out int clientId))
+                    throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongClientId);
+                var client = CacheManager.GetClientById(clientId) ??
+                    throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.ClientNotFound);
+                var paymentSystem = CacheManager.GetPaymentSystemByName(Constants.PaymentSystems.NOWPay + paymentInput.PayCurrency.ToUpper()) ??
+                    throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.PaymentSystemNotFound);
+                var partnerConfig = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.AllowMultiCurrencyAccounts);
+                var allowMultiCurrencyAccounts = partnerConfig != null && partnerConfig.Id > 0 && partnerConfig.NumericValue == 1;
+                var paymentRequestCurrency = allowMultiCurrencyAccounts ? paymentInput.PriceCurrency : client.CurrencyId;
+                var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, paymentSystem.Id,
+                                                                                   paymentRequestCurrency, (int)PaymentRequestTypes.Deposit);
+                if (partnerPaymentSetting == null)
+                    throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.PaymentSystemNotFound);
+                if (partnerPaymentSetting.State != (int)PartnerPaymentSettingStates.Active)
+                    throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.PartnerPaymentSettingBlocked);
+                if (client.State == (int)ClientStates.BlockedForDeposit || client.State == (int)ClientStates.FullBlocked ||
+                    client.State == (int)ClientStates.Suspended || client.State == (int)ClientStates.Disabled)
+                    throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.ClientBlocked);
+                var amount = Math.Round(paymentInput.PriceAmount * paymentInput.Actually_paid / paymentInput.PayAmount, 2);
+                var paymentInfo = new PaymentInfo
+                {
+                    WalletNumber = paymentInput.PayAddress
+                };
+                var paymentRequest = new PaymentRequest
+                {
+                    Type = (int)PaymentRequestTypes.Deposit,
+                    Amount = amount,
+                    ClientId = client.Id,
+                    CurrencyId = paymentRequestCurrency,
+                    PaymentSystemId = partnerPaymentSetting.PaymentSystemId,
+                    PartnerPaymentSettingId = partnerPaymentSetting.Id,
+                    ExternalTransactionId = paymentInput.PaymentId,
+                    Parameters = "{}",
+                    Info = JsonConvert.SerializeObject(paymentInfo, new JsonSerializerSettings()
+                    {
+                        NullValueHandling = NullValueHandling.Ignore,
+                        DefaultValueHandling = DefaultValueHandling.Ignore
+                    })
+                };
+                using (var paymentSystemBl = new PaymentSystemBll(new SessionIdentity(), WebApiApplication.DbLogger))
+                using (var clientBl = new ClientBll(paymentSystemBl))
+                using (var notificationBl = new NotificationBll(paymentSystemBl))
+                using (var scope = CommonFunctions.CreateTransactionScope())
+                {
+                    var request = clientBl.CreateDepositFromPaymentSystem(paymentRequest, out LimitInfo info, false);
+                    request.Amount = amount;
+                    request.Parameters =  paymentRequest.Parameters;
+                    paymentSystemBl.ChangePaymentRequestDetails(request);
+                    PaymentHelpers.InvokeMessage("PaymentRequst", request.ClientId);
+                    if (paymentInput.PaymentStatus.ToUpper() == "FINISHED" || paymentInput.PaymentStatus.ToUpper() == "PARTIALLY_PAID")
+                    {
+                        if (request.Amount < partnerPaymentSetting.MinAmount || request.Amount > partnerPaymentSetting.MaxAmount)
+                        {
+                            scope.Complete();
+                            throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.PaymentRequestInValidAmount);
+                        }
+                        clientBl.ApproveDepositFromPaymentSystem(request, false, out List<int> userIds, paymentInput.PaymentStatus);
+                        foreach (var uId in userIds)
+                        {
+                            PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                        }
+                    }
+                    else if (paymentInput.PaymentStatus.ToUpper() == "FAILED" || paymentInput.PaymentStatus.ToUpper() == "EXPIRED")
+                        clientBl.ChangeDepositRequestState(request.Id, PaymentRequestStates.Deleted, paymentInput.PaymentStatus, notificationBl);
+                    PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
+                    BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);
+                    BaseHelpers.BroadcastDepositLimit(info);
+                    scope.Complete();
+                }
+                response = "OK";
+            }
+            catch (FaultException<BllFnErrorType> ex)
+            {
+                if (ex.Detail != null &&
+                    (ex.Detail.Id == Constants.Errors.ClientDocumentAlreadyExists ||
+                    ex.Detail.Id == Constants.Errors.RequestAlreadyPayed))
+                {
+                    response = "OK";
+                }
+                response = ex.Detail == null ? ex.Message : ex.Detail.Id + " " + ex.Detail.NickName;
+                WebApiApplication.DbLogger.Error(response);
+            }
+            catch (Exception ex)
+            {
+                response = ex.Message;
+                WebApiApplication.DbLogger.Error(ex);
+            }
+            var httpResponseMessage = new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(response, Encoding.UTF8)
+            };
+            httpResponseMessage.Content.Headers.ContentType = new MediaTypeHeaderValue(Constants.HttpContentTypes.ApplicationJson);
+            return httpResponseMessage;
         }
     }
 }

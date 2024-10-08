@@ -506,9 +506,10 @@ namespace IqSoft.CP.AgentWebApi.Controllers
                     PartnerBll.CheckApiRestrictions(partner.Id, isAffiliate ? Constants.SystemModuleTypes.AffilliateSystem : Constants.SystemModuleTypes.AgentSystem);
                     if (isAffiliate)
                         using (var affiliateService = new AffiliateService(partnerBl))
-                            affiliateService.RecoverPassword(partner.Id, input.Token, input.NewPassword);
+                            affiliateService.RecoverPassword(partner.Id, input.RecoveryToken, input.NewPassword);
                     else
-                        using (var userBll = new UserBll(partnerBl))userBll.RecoverPassword(partner.Id, input.Token, input.NewPassword);
+                        using (var userBll = new UserBll(partnerBl))
+                            userBll.RecoverPassword(partner.Id, input.RecoveryToken, input.NewPassword);
                 }
                 return new ApiResponseBase();
             }

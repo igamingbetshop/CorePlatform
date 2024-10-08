@@ -14,6 +14,7 @@ namespace IqSoft.CP.Common.Models.WebSiteModels
 		public decimal Balance { get; set; }
 		public decimal WithdrawableBalance { get; set; }
 		public string CurrencyId { get; set; }
+        public string CurrencySymbol { get; set; }
         public string AccountTypeName { get; set; }
 		public int? BetShopId { get; set; }
 		public int? PaymentSystemId { get; set; }

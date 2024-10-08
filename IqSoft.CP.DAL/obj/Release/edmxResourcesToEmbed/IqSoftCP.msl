@@ -1345,14 +1345,6 @@
         </ComplexTypeMapping>
       </ResultMapping>
     </FunctionImportMapping>
-    <FunctionImportMapping FunctionImportName="fn_ProductGroup" FunctionName="IqSoftCorePlatformModel.Store.fn_ProductGroup">
-      <ResultMapping>
-        <ComplexTypeMapping TypeName="IqSoftCorePlatformModel.fnProductGroup">
-          <ScalarProperty Name="Id" ColumnName="Id" />
-          <ScalarProperty Name="NickName" ColumnName="NickName" />
-        </ComplexTypeMapping>
-      </ResultMapping>
-    </FunctionImportMapping>
     <FunctionImportMapping FunctionImportName="fn_RealTimeInfo" FunctionName="IqSoftCorePlatformModel.Store.fn_RealTimeInfo">
       <ResultMapping>
         <ComplexTypeMapping TypeName="IqSoftCorePlatformModel.fnRealTimeInfo">
@@ -1784,16 +1776,6 @@
         </MappingFragment>
       </EntityTypeMapping>
     </EntitySetMapping>
-    <FunctionImportMapping FunctionImportName="fn_ClientProductCommission" FunctionName="IqSoftCorePlatformModel.Store.fn_ClientProductCommission">
-      <ResultMapping>
-        <ComplexTypeMapping TypeName="IqSoftCorePlatformModel.fnClientProductCommission">
-          <ScalarProperty Name="Percent" ColumnName="Percent" />
-          <ScalarProperty Name="TurnoverPercent" ColumnName="TurnoverPercent" />
-          <ScalarProperty Name="ClientId" ColumnName="ClientId" />
-          <ScalarProperty Name="AgentId" ColumnName="AgentId" />
-        </ComplexTypeMapping>
-      </ResultMapping>
-    </FunctionImportMapping>
     <FunctionImportMapping FunctionImportName="fn_ProductCommission" FunctionName="IqSoftCorePlatformModel.Store.fn_ProductCommission">
       <ResultMapping>
         <ComplexTypeMapping TypeName="IqSoftCorePlatformModel.fnProductCommission">
@@ -1802,27 +1784,6 @@
         </ComplexTypeMapping>
       </ResultMapping>
     </FunctionImportMapping>
-    <EntitySetMapping Name="AgentProfits">
-      <EntityTypeMapping TypeName="IqSoftCorePlatformModel.AgentProfit">
-        <MappingFragment StoreEntitySet="AgentProfit">
-          <ScalarProperty Name="ProductId" ColumnName="ProductId" />
-          <ScalarProperty Name="CalculationStartingDate" ColumnName="CalculationStartingDate" />
-          <ScalarProperty Name="CreationDate" ColumnName="CreationDate" />
-          <ScalarProperty Name="CalculationStartingTime" ColumnName="CalculationStartingTime" />
-          <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
-          <ScalarProperty Name="ProductGroupId" ColumnName="ProductGroupId" />
-          <ScalarProperty Name="Type" ColumnName="Type" />
-          <ScalarProperty Name="Profit" ColumnName="Profit" />
-          <ScalarProperty Name="GGR" ColumnName="GGR" />
-          <ScalarProperty Name="TotalWinAmount" ColumnName="TotalWinAmount" />
-          <ScalarProperty Name="TotalBetAmount" ColumnName="TotalBetAmount" />
-          <ScalarProperty Name="FromAgentId" ColumnName="FromAgentId" />
-          <ScalarProperty Name="ClientId" ColumnName="ClientId" />
-          <ScalarProperty Name="AgentId" ColumnName="AgentId" />
-          <ScalarProperty Name="Id" ColumnName="Id" />
-        </MappingFragment>
-      </EntityTypeMapping>
-    </EntitySetMapping>
     <EntitySetMapping Name="NotificationServices">
       <EntityTypeMapping TypeName="IqSoftCorePlatformModel.NotificationService">
         <MappingFragment StoreEntitySet="NotificationService">
@@ -2161,6 +2122,7 @@
     <EntitySetMapping Name="Bonus">
       <EntityTypeMapping TypeName="IqSoftCorePlatformModel.Bonu">
         <MappingFragment StoreEntitySet="Bonus">
+          <ScalarProperty Name="Color" ColumnName="Color" />
           <ScalarProperty Name="ReusingMaxCountInPeriod" ColumnName="ReusingMaxCountInPeriod" />
           <ScalarProperty Name="DayOfWeek" ColumnName="DayOfWeek" />
           <ScalarProperty Name="Regularity" ColumnName="Regularity" />
@@ -2567,20 +2529,6 @@
         </ComplexTypeMapping>
       </ResultMapping>
     </FunctionImportMapping>
-    <EntitySetMapping Name="UserConfigurations">
-      <EntityTypeMapping TypeName="IqSoftCorePlatformModel.UserConfiguration">
-        <MappingFragment StoreEntitySet="UserConfiguration">
-          <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
-          <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
-          <ScalarProperty Name="StringValue" ColumnName="StringValue" />
-          <ScalarProperty Name="NumericValue" ColumnName="NumericValue" />
-          <ScalarProperty Name="Name" ColumnName="Name" />
-          <ScalarProperty Name="CreatedBy" ColumnName="CreatedBy" />
-          <ScalarProperty Name="UserId" ColumnName="UserId" />
-          <ScalarProperty Name="Id" ColumnName="Id" />
-        </MappingFragment>
-      </EntityTypeMapping>
-    </EntitySetMapping>
     <EntitySetMapping Name="PartnerLanguageSettings">
       <EntityTypeMapping TypeName="IqSoftCorePlatformModel.PartnerLanguageSetting">
         <MappingFragment StoreEntitySet="PartnerLanguageSetting">
@@ -2959,38 +2907,6 @@
         </ComplexTypeMapping>
       </ResultMapping>
     </FunctionImportMapping>
-    <EntitySetMapping Name="Products">
-      <EntityTypeMapping TypeName="IqSoftCorePlatformModel.Product">
-        <MappingFragment StoreEntitySet="Product">
-          <ScalarProperty Name="Volatility" ColumnName="Volatility" />
-          <ScalarProperty Name="Path" ColumnName="Path" />
-          <ScalarProperty Name="BetValues" ColumnName="BetValues" />
-          <ScalarProperty Name="Lines" ColumnName="Lines" />
-          <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
-          <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
-          <ScalarProperty Name="RTP" ColumnName="RTP" />
-          <ScalarProperty Name="BackgroundImageUrl" ColumnName="BackgroundImageUrl" />
-          <ScalarProperty Name="FreeSpinSupport" ColumnName="FreeSpinSupport" />
-          <ScalarProperty Name="Jackpot" ColumnName="Jackpot" />
-          <ScalarProperty Name="CategoryId" ColumnName="CategoryId" />
-          <ScalarProperty Name="HasDemo" ColumnName="HasDemo" />
-          <ScalarProperty Name="SubproviderId" ColumnName="SubproviderId" />
-          <ScalarProperty Name="MobileImageUrl" ColumnName="MobileImageUrl" />
-          <ScalarProperty Name="WebImageUrl" ColumnName="WebImageUrl" />
-          <ScalarProperty Name="IsForMobile" ColumnName="IsForMobile" />
-          <ScalarProperty Name="IsForDesktop" ColumnName="IsForDesktop" />
-          <ScalarProperty Name="State" ColumnName="State" />
-          <ScalarProperty Name="ExternalId" ColumnName="ExternalId" />
-          <ScalarProperty Name="ParentId" ColumnName="ParentId" />
-          <ScalarProperty Name="NickName" ColumnName="NickName" />
-          <ScalarProperty Name="Level" ColumnName="Level" />
-          <ScalarProperty Name="PaymentSystemId" ColumnName="PaymentSystemId" />
-          <ScalarProperty Name="GameProviderId" ColumnName="GameProviderId" />
-          <ScalarProperty Name="TranslationId" ColumnName="TranslationId" />
-          <ScalarProperty Name="Id" ColumnName="Id" />
-        </MappingFragment>
-      </EntityTypeMapping>
-    </EntitySetMapping>
     <EntitySetMapping Name="ClientMessageStates">
       <EntityTypeMapping TypeName="IqSoftCorePlatformModel.ClientMessageState">
         <MappingFragment StoreEntitySet="ClientMessageState">
@@ -3161,34 +3077,6 @@
           <ScalarProperty Name="ObjectId" ColumnName="ObjectId" />
           <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
           <ScalarProperty Name="ParentId" ColumnName="ParentId" />
-          <ScalarProperty Name="Id" ColumnName="Id" />
-        </MappingFragment>
-      </EntityTypeMapping>
-    </EntitySetMapping>
-    <EntitySetMapping Name="TriggerSettings">
-      <EntityTypeMapping TypeName="IqSoftCorePlatformModel.TriggerSetting">
-        <MappingFragment StoreEntitySet="TriggerSetting">
-          <ScalarProperty Name="Amount" ColumnName="Amount" />
-          <ScalarProperty Name="ConsiderBonusBets" ColumnName="ConsiderBonusBets" />
-          <ScalarProperty Name="Status" ColumnName="Status" />
-          <ScalarProperty Name="UpToAmount" ColumnName="UpToAmount" />
-          <ScalarProperty Name="DayOfWeek" ColumnName="DayOfWeek" />
-          <ScalarProperty Name="SegmentId" ColumnName="SegmentId" />
-          <ScalarProperty Name="MinBetCount" ColumnName="MinBetCount" />
-          <ScalarProperty Name="Condition" ColumnName="Condition" />
-          <ScalarProperty Name="MaxAmount" ColumnName="MaxAmount" />
-          <ScalarProperty Name="MinAmount" ColumnName="MinAmount" />
-          <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
-          <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
-          <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
-          <ScalarProperty Name="BonusSettingCodes" ColumnName="BonusSettingCodes" />
-          <ScalarProperty Name="Percent" ColumnName="Percent" />
-          <ScalarProperty Name="FinishTime" ColumnName="FinishTime" />
-          <ScalarProperty Name="StartTime" ColumnName="StartTime" />
-          <ScalarProperty Name="Type" ColumnName="Type" />
-          <ScalarProperty Name="TranslationId" ColumnName="TranslationId" />
-          <ScalarProperty Name="Description" ColumnName="Description" />
-          <ScalarProperty Name="Name" ColumnName="Name" />
           <ScalarProperty Name="Id" ColumnName="Id" />
         </MappingFragment>
       </EntityTypeMapping>
@@ -3965,6 +3853,115 @@
           <ScalarProperty Name="State" ColumnName="State" />
           <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
           <ScalarProperty Name="Name" ColumnName="Name" />
+          <ScalarProperty Name="Id" ColumnName="Id" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="TriggerSettings">
+      <EntityTypeMapping TypeName="IqSoftCorePlatformModel.TriggerSetting">
+        <MappingFragment StoreEntitySet="TriggerSetting">
+          <ScalarProperty Name="Amount" ColumnName="Amount" />
+          <ScalarProperty Name="ConsiderBonusBets" ColumnName="ConsiderBonusBets" />
+          <ScalarProperty Name="Status" ColumnName="Status" />
+          <ScalarProperty Name="UpToAmount" ColumnName="UpToAmount" />
+          <ScalarProperty Name="DayOfWeek" ColumnName="DayOfWeek" />
+          <ScalarProperty Name="SegmentId" ColumnName="SegmentId" />
+          <ScalarProperty Name="MinBetCount" ColumnName="MinBetCount" />
+          <ScalarProperty Name="Condition" ColumnName="Condition" />
+          <ScalarProperty Name="MaxAmount" ColumnName="MaxAmount" />
+          <ScalarProperty Name="MinAmount" ColumnName="MinAmount" />
+          <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
+          <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
+          <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+          <ScalarProperty Name="BonusSettingCodes" ColumnName="BonusSettingCodes" />
+          <ScalarProperty Name="Percent" ColumnName="Percent" />
+          <ScalarProperty Name="FinishTime" ColumnName="FinishTime" />
+          <ScalarProperty Name="StartTime" ColumnName="StartTime" />
+          <ScalarProperty Name="Type" ColumnName="Type" />
+          <ScalarProperty Name="TranslationId" ColumnName="TranslationId" />
+          <ScalarProperty Name="Description" ColumnName="Description" />
+          <ScalarProperty Name="Name" ColumnName="Name" />
+          <ScalarProperty Name="Id" ColumnName="Id" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Products">
+      <EntityTypeMapping TypeName="IqSoftCorePlatformModel.Product">
+        <MappingFragment StoreEntitySet="Product">
+          <ScalarProperty Name="Volatility" ColumnName="Volatility" />
+          <ScalarProperty Name="Path" ColumnName="Path" />
+          <ScalarProperty Name="BetValues" ColumnName="BetValues" />
+          <ScalarProperty Name="Lines" ColumnName="Lines" />
+          <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
+          <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
+          <ScalarProperty Name="RTP" ColumnName="RTP" />
+          <ScalarProperty Name="BackgroundImageUrl" ColumnName="BackgroundImageUrl" />
+          <ScalarProperty Name="FreeSpinSupport" ColumnName="FreeSpinSupport" />
+          <ScalarProperty Name="Jackpot" ColumnName="Jackpot" />
+          <ScalarProperty Name="CategoryId" ColumnName="CategoryId" />
+          <ScalarProperty Name="HasDemo" ColumnName="HasDemo" />
+          <ScalarProperty Name="SubproviderId" ColumnName="SubproviderId" />
+          <ScalarProperty Name="MobileImageUrl" ColumnName="MobileImageUrl" />
+          <ScalarProperty Name="WebImageUrl" ColumnName="WebImageUrl" />
+          <ScalarProperty Name="IsForMobile" ColumnName="IsForMobile" />
+          <ScalarProperty Name="IsForDesktop" ColumnName="IsForDesktop" />
+          <ScalarProperty Name="State" ColumnName="State" />
+          <ScalarProperty Name="ExternalId" ColumnName="ExternalId" />
+          <ScalarProperty Name="ParentId" ColumnName="ParentId" />
+          <ScalarProperty Name="NickName" ColumnName="NickName" />
+          <ScalarProperty Name="Level" ColumnName="Level" />
+          <ScalarProperty Name="PaymentSystemId" ColumnName="PaymentSystemId" />
+          <ScalarProperty Name="GameProviderId" ColumnName="GameProviderId" />
+          <ScalarProperty Name="TranslationId" ColumnName="TranslationId" />
+          <ScalarProperty Name="Id" ColumnName="Id" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="AgentProfits">
+      <EntityTypeMapping TypeName="IqSoftCorePlatformModel.AgentProfit">
+        <MappingFragment StoreEntitySet="AgentProfit">
+          <ScalarProperty Name="ProductId" ColumnName="ProductId" />
+          <ScalarProperty Name="CalculationStartingDate" ColumnName="CalculationStartingDate" />
+          <ScalarProperty Name="CreationDate" ColumnName="CreationDate" />
+          <ScalarProperty Name="CalculationStartingTime" ColumnName="CalculationStartingTime" />
+          <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
+          <ScalarProperty Name="Type" ColumnName="Type" />
+          <ScalarProperty Name="Profit" ColumnName="Profit" />
+          <ScalarProperty Name="GGR" ColumnName="GGR" />
+          <ScalarProperty Name="TotalWinAmount" ColumnName="TotalWinAmount" />
+          <ScalarProperty Name="TotalBetAmount" ColumnName="TotalBetAmount" />
+          <ScalarProperty Name="FromAgentId" ColumnName="FromAgentId" />
+          <ScalarProperty Name="ClientId" ColumnName="ClientId" />
+          <ScalarProperty Name="AgentId" ColumnName="AgentId" />
+          <ScalarProperty Name="Id" ColumnName="Id" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="UserNotifications">
+      <EntityTypeMapping TypeName="IqSoftCorePlatformModel.UserNotification">
+        <MappingFragment StoreEntitySet="UserNotification">
+          <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
+          <ScalarProperty Name="Status" ColumnName="Status" />
+          <ScalarProperty Name="BonusId" ColumnName="BonusId" />
+          <ScalarProperty Name="PaymentRequestId" ColumnName="PaymentRequestId" />
+          <ScalarProperty Name="ClientId" ColumnName="ClientId" />
+          <ScalarProperty Name="TypeId" ColumnName="TypeId" />
+          <ScalarProperty Name="UserId" ColumnName="UserId" />
+          <ScalarProperty Name="Id" ColumnName="Id" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="UserConfigurations">
+      <EntityTypeMapping TypeName="IqSoftCorePlatformModel.UserConfiguration">
+        <MappingFragment StoreEntitySet="UserConfiguration">
+          <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
+          <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
+          <ScalarProperty Name="StringValue" ColumnName="StringValue" />
+          <ScalarProperty Name="NumericValue" ColumnName="NumericValue" />
+          <ScalarProperty Name="BooleanValue" ColumnName="BooleanValue" />
+          <ScalarProperty Name="Name" ColumnName="Name" />
+          <ScalarProperty Name="CreatedBy" ColumnName="CreatedBy" />
+          <ScalarProperty Name="UserId" ColumnName="UserId" />
           <ScalarProperty Name="Id" ColumnName="Id" />
         </MappingFragment>
       </EntityTypeMapping>

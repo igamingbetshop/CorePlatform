@@ -121,8 +121,9 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             }
         }
 
-        public static void GetPayoutRequestStatus(PaymentRequest paymentRequest, SessionIdentity session, ILog log)
+        public static List<int> GetPayoutRequestStatus(PaymentRequest paymentRequest, SessionIdentity session, ILog log)
         {
+            var userIds = new List<int>();
             var client = CacheManager.GetClientById(paymentRequest.ClientId.Value);
             var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, paymentRequest.PaymentSystemId,
                 paymentRequest.CurrencyId, (int)PaymentRequestTypes.Withdraw);
@@ -161,18 +162,20 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                             if (payoutOutput.Status.ToLower() == "verified")
                             {
                                 var resp = clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Approved,
-                                    string.Empty, null, null, false, string.Empty, documentBl, notificationBl);
-                                clientBl.PayWithdrawFromPaymentSystem(resp, documentBl, notificationBl);
+                                    string.Empty, null, null, false, string.Empty, documentBl, notificationBl, out userIds);
+                                    clientBl.PayWithdrawFromPaymentSystem(resp, documentBl, notificationBl);
                             }
                             else if (payoutOutput.Status.ToLower() != "confirmed")
                             {
                                 clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed,
-                               string.Format("Code: {0}, Message: {1}", payoutOutput.Status, payoutOutput.Message), null, null, false, string.Empty, documentBl, notificationBl);
+                                string.Format("Code: {0}, Message: {1}", payoutOutput.Status, payoutOutput.Message), null, null, 
+                                false, string.Empty, documentBl, notificationBl, out userIds);
                             }
                         }
                     }
                 }
             }
+            return userIds;
         }
     }
 }

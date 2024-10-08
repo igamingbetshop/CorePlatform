@@ -39,6 +39,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
             {
                 //   BaseBll.CheckIp(WhitelistedIps);
                 WebApiApplication.DbLogger.Info(JsonConvert.SerializeObject(input));
+                var userIds = new List<int>();
                 using (var paymentSystemBl = new PaymentSystemBll(new SessionIdentity(), WebApiApplication.DbLogger))
                 {
                     using (var clientBl = new ClientBll(paymentSystemBl))
@@ -63,7 +64,9 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                             if (paymentRequest.Type == (int)PaymentRequestTypes.Deposit)
                             {
                                 if (input.Result.ToUpper() == "OK")
-                                    clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
+                                {
+                                    clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out userIds);
+                                }
                                 else if (input.Result.ToUpper() == "ERROR")
                                     clientBl.ChangeDepositRequestState(paymentRequest.Id, PaymentRequestStates.Deleted,
                                         string.Format("ErrorMessage: {0}, AdapterMessage {1}", input.Message, input.AdapterMessage), notificationBl);
@@ -75,16 +78,20 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                     if (input.Result.ToUpper() == "OK")
                                     {
                                         var resp = clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Approved, string.Empty,
-                                         null, null, false, string.Empty, documentBll, notificationBl);
+                                         null, null, false, string.Empty, documentBll, notificationBl, out userIds);
                                         clientBl.PayWithdrawFromPaymentSystem(resp, documentBll, notificationBl);
                                     }
                                     else if (input.Result.ToUpper() == "ERROR")
                                     {
                                         var reason = string.Format("ErrorMessage: {0}, AdapterMessage {1}", input.Message, input.AdapterMessage);
                                         clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed, 
-                                            reason, null, null, false, string.Empty, documentBll, notificationBl);
+                                            reason, null, null, false, string.Empty, documentBll, notificationBl, out userIds);
                                     }
                                 }
+                            }
+                            foreach (var uId in userIds)
+                            {
+                                PaymentHelpers.InvokeMessage("NotificationsCount", uId);
                             }
                             PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
                             BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);

@@ -151,6 +151,7 @@
     <Compile Include="Controllers\TomHornController.cs" />
     <Compile Include="Controllers\TotalProcessingController.cs" />
     <Compile Include="Controllers\TVBetController.cs" />
+    <Compile Include="Controllers\WebPaysController.cs" />
     <Compile Include="Models\BetMakers\LaunchGameInput.cs" />
     <Compile Include="Models\CModule\InitGameOutput.cs" />
     <Compile Include="Models\HttpRequestMethods.cs" />
@@ -172,6 +173,7 @@
     <Compile Include="Models\TotalProcessing\RequestResult.cs" />
     <Compile Include="Models\TotalProcessing\StatusResponse.cs" />
     <Compile Include="Models\WalletOneWithdrawRequest.cs" />
+    <Compile Include="Models\WebPays\FormInput.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

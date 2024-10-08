@@ -86,6 +86,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
             {
                 using (var clientBl = new ClientBll(paymentSystemBl))
                 {
+                    var userIds = new List<int>();
                     var paymentRequest = paymentSystemBl.GetPaymentRequestById(Convert.ToInt32(paymentInput.Details.CustomId));
                     if (paymentRequest == null)
                         throw BaseBll.CreateException(string.Empty, Constants.Errors.PaymentRequestNotFound);
@@ -137,12 +138,17 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                 if (paymentInput.Details.Status.ToLower() == "completed")
                                 {
                                     var req = clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Approved, paymentInput.Details.Status,
-                                                                                    null, null, false, paymentRequest.Parameters, documentBl, notificationBl);
+                                                                                    null, null, false, paymentRequest.Parameters, documentBl, notificationBl, out userIds);
                                     clientBl.PayWithdrawFromPaymentSystem(req, documentBl, notificationBl);
                                 }
                                 else if (paymentInput.Details.Status.ToLower() == "cancelled" || paymentInput.Details.Status.ToLower() == "refunded")
                                     clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed, paymentInput.Details.Status, null,
-                                                                        null, false, paymentRequest.Parameters, documentBl, notificationBl);
+                                                                        null, false, paymentRequest.Parameters, documentBl, notificationBl, out userIds);
+
+                                foreach (var uId in userIds)
+                                {
+                                    PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                }
                             }
                         }
                     }
@@ -161,8 +167,12 @@ namespace IqSoft.CP.PaymentGateway.Controllers
             var paymentSystem = CacheManager.GetPaymentSystemByName(Constants.PaymentSystems.CryptoPay + currency);
             if (paymentSystem == null)
                 throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.PaymentSystemNotFound);
+            var allowMultiCurrencyAccounts = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.AllowMultiCurrencyAccounts);
+            var amca = allowMultiCurrencyAccounts != null && allowMultiCurrencyAccounts.Id > 0 && allowMultiCurrencyAccounts.NumericValue == 1;
+
             var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, paymentSystem.Id,
-                                                                               client.CurrencyId, (int)PaymentRequestTypes.Deposit);
+                                                                               amca ? paymentInput.Details.ReceivedCurrency : client.CurrencyId, 
+                                                                               (int)PaymentRequestTypes.Deposit);
             if (partnerPaymentSetting == null)
                 throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.PaymentSystemNotFound);
             if (partnerPaymentSetting.State != (int)PartnerPaymentSettingStates.Active)
@@ -177,19 +187,22 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                 throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongInputParameters);
             var amount = paymentInput.Details.ReceivedAmount;
             var parameters = new Dictionary<string, string>();
-            if (client.CurrencyId != paymentInput.Details.ReceivedCurrency)
+            var currencyId = paymentInput.Details.ReceivedCurrency;
+
+            if (!amca && client.CurrencyId != paymentInput.Details.ReceivedCurrency)
             {
                 var rate = BaseBll.GetCurrenciesDifference(paymentInput.Details.ReceivedCurrency, client.CurrencyId);
                 parameters.Add("Currency", paymentInput.Details.ReceivedCurrency);
                 parameters.Add("AppliedRate", rate.ToString("F"));
                 amount = Math.Round(rate * paymentInput.Details.ReceivedAmount, 2);
+                currencyId = client.CurrencyId;
             }
             var paymentRequest = new PaymentRequest
             {
                 Type = (int)PaymentRequestTypes.Deposit,
                 Amount = amount,
                 ClientId = client.Id,
-                CurrencyId = client.CurrencyId,
+                CurrencyId = currencyId,
                 PaymentSystemId = partnerPaymentSetting.PaymentSystemId,
                 PartnerPaymentSettingId = partnerPaymentSetting.Id,
                 ExternalTransactionId = paymentInput.Details.TxId
@@ -249,7 +262,11 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                     scope.Complete();
                                     throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.PaymentRequestInValidAmount);
                                 }
-                                clientBl.ApproveDepositFromPaymentSystem(request, false, paymentInput.Details.Status);
+                                clientBl.ApproveDepositFromPaymentSystem(request, false, out List<int> userIds, paymentInput.Details.Status);
+                                foreach (var uId in userIds)
+                                {
+                                    PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                }
                             }
                             else if (paymentInput.Details.Status.ToLower() == "cancelled" || paymentInput.Details.Status.ToLower() == "refunded")
                                 clientBl.ChangeDepositRequestState(request.Id, PaymentRequestStates.Deleted, paymentInput.Details.Status, notificationBl);

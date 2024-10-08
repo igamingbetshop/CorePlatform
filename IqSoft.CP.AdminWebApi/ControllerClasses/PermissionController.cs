@@ -141,7 +141,8 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                         x.User.UserName,
                         x.User.FirstName,
                         x.User.LastName,
-                        x.RoleId,
+                        x.User.State,
+                        x.RoleId
                     })
                 };
             }

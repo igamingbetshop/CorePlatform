@@ -57,7 +57,11 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 
                             if (input.ResponseCode == 1)
                             {
-                                clientBl.ApproveDepositFromPaymentSystem(request, false, comment: input.ResponseMessage);
+                                clientBl.ApproveDepositFromPaymentSystem(request, false, out List<int> userIds, comment: input.ResponseMessage);
+                                foreach (var uId in userIds)
+                                {
+                                    PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                }
                                 PaymentHelpers.RemoveClientBalanceFromCache(request.ClientId.Value);
                                 BaseHelpers.BroadcastBalance(request.ClientId.Value);
                             }

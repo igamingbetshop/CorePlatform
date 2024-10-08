@@ -65,8 +65,12 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 						{
 							if (input.status == "COMPLETED")
 							{
-								clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
-							}
+								clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out List<int> userIds);
+                                foreach (var uId in userIds)
+                                {
+                                    PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                }
+                            }
 							else if (input.status == "REJECT")
 								clientBl.ChangeDepositRequestState(paymentRequest.Id, PaymentRequestStates.Deleted, input.status, notificationBl);
 
@@ -109,6 +113,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 		{
 			WebApiApplication.DbLogger.Info(JsonConvert.SerializeObject(input));
 			var response = "OK";
+			var userIds = new List<int>();
 			var httpResponseMessage = new HttpResponseMessage
 			{
 				StatusCode = HttpStatusCode.OK
@@ -137,14 +142,17 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 							if (input.status == "accepted")
 							{
 								var resp = clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Approved, string.Empty,
-																				null, null, false, paymentRequest.Parameters, documentBll, notificationBl);
+																				null, null, false, paymentRequest.Parameters, documentBll, notificationBl, out userIds);
 									clientBl.PayWithdrawFromPaymentSystem(resp, documentBll, notificationBl);
 							}
 							else if (input.status == "rejected")
 								clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed, input.status,
-																		   null, null, false, string.Empty, documentBll, notificationBl);
-
-							PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
+																		   null, null, false, string.Empty, documentBll, notificationBl, out userIds);
+                            foreach (var uId in userIds)
+                            {
+                                PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                            }
+                            PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
 							BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);
 						}
 					}

@@ -169,9 +169,6 @@
     <Compile Include="fnProductCommission.cs">
       <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
     </Compile>
-    <Compile Include="fnProductGroup.cs">
-      <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
-    </Compile>
     <Compile Include="fnProfitByAgent.cs">
       <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
     </Compile>

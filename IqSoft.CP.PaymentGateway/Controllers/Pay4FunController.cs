@@ -48,7 +48,11 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                 throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongHash);
                             if (input.Status == "201")
                             {
-                                clientBl.ApproveDepositFromPaymentSystem(request, false, comment: input.Message);
+                                clientBl.ApproveDepositFromPaymentSystem(request, false, out List<int> userIds, comment: input.Message);
+                                foreach (var uId in userIds)
+                                {
+                                    PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                }
                                 PaymentHelpers.RemoveClientBalanceFromCache(request.ClientId.Value);
                                 BaseHelpers.BroadcastBalance(request.ClientId.Value);
                             }

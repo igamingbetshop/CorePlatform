@@ -31,7 +31,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 {
                     ResponseObject =
                         result.Select(
-                            x => x.MapToAffiliatePlatformModel())
+                            x => x.MapToAffiliatePlatformModel(identity.TimeZone))
                 };
             }
         }
@@ -45,7 +45,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 {
                     ResponseObject =
                         result.Select(
-                            x => x.MapToNotificationServiceModel())
+                            x => x.MapToNotificationServiceModel(identity.TimeZone))
                 };
             }
         }

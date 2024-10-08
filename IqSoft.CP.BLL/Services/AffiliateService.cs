@@ -630,6 +630,7 @@ namespace IqSoft.CP.BLL.Services
             if (clientInfo.State == (int)ClientInfoStates.Expired)
                 throw CreateException(LanguageId, Constants.Errors.TokenExpired);
             var affiliate = Db.Affiliates.First(x => x.Id == clientInfo.ObjectId);
+            affiliate.Password = newPassword;
             VerifyAffiliatePassword(affiliate);
             affiliate.PasswordHash = CommonFunctions.ComputeClientPasswordHash(newPassword, affiliate.Salt);
             affiliate.LastUpdateTime = DateTime.UtcNow;
@@ -903,11 +904,13 @@ namespace IqSoft.CP.BLL.Services
                                                                        x.CreationTime > fromDate && x.CreationTime < toDate);
         }
 
-        public List<Client> GetAffiliateClients(int affiliateId, DateTime? creationDate)
+        public List<Client> GetAffiliateClients(int affiliateId, DateTime? creationDate, DateTime? toDate)
         {
             var query = Db.Clients.Include(x => x.AffiliateReferral.AffiliatePlatform).Where(x => x.AffiliateReferral.AffiliatePlatformId == affiliateId);
             if (creationDate.HasValue)
                 query = query.Where(x => x.CreationTime >= creationDate);
+            if (toDate.HasValue)
+                query = query.Where(x => x.CreationTime < toDate);
             return query.ToList();
         }
 
@@ -1472,14 +1475,15 @@ namespace IqSoft.CP.BLL.Services
                                join ar in dwh.AffiliateReferrals on c.AffiliateReferralId equals ar.Id
                                where b.State != (int)BetDocumentStates.Deleted &&
                                      b.State != (int)BetDocumentStates.Uncalculated && b.CalculationDate.HasValue &&
-                                     (b.BonusId == null || b.BonusId == 0) &&
                                      b.CalculationDate >= fDate && b.CalculationDate < tDate && ar.AffiliatePlatformId == affiliatePlatformId
                                group b by b.ClientId into g
                                select new
                                {
                                    ClientId = g.Key,
-                                   BetAmount = g.Sum(y => y.BetAmount),
-                                   WinAmount = g.Sum(y => y.WinAmount)
+                                   TotalBetAmount = g.Sum(y => y.BetAmount),
+                                   TotalWinAmount = g.Sum(y => y.WinAmount),
+                                   BonusBetAmount = g.Sum(y => y.BonusAmount),
+                                   BonusWinAmount = g.Sum(y => y.BonusWinAmount),
                                }).ToList();
 
                 foreach (var client in affClients)
@@ -1502,13 +1506,16 @@ namespace IqSoft.CP.BLL.Services
                                                     allChargeBacks.Where(x => x.ClientId == client.ClientId).FirstOrDefault()?.Amount ?? 0);
 
 
-                    wyntaActivityItem.Sidegamesbets = ConvertCurrency(client.CurrencyId, Constants.Currencies.Euro,
-                                                                      allBets.FirstOrDefault(x => x.ClientId == client.ClientId)?.BetAmount ?? 0);
-                    wyntaActivityItem.Sidegameswins = ConvertCurrency(client.CurrencyId, Constants.Currencies.Euro,
-                                                                      allBets.FirstOrDefault(x => x.ClientId == client.ClientId)?.WinAmount ?? 0);
+                    var clientBets = allBets.FirstOrDefault(x => x.ClientId == client.ClientId);
+                    if (clientBets != null)
+                    {
+                        wyntaActivityItem.Sidegamesbets = ConvertCurrency(client.CurrencyId, Constants.Currencies.Euro, clientBets.TotalBetAmount - (clientBets.BonusBetAmount ?? 0));
+                        wyntaActivityItem.Sidegameswins = ConvertCurrency(client.CurrencyId, Constants.Currencies.Euro, clientBets.TotalWinAmount - (clientBets.BonusWinAmount ?? 0));
+                    }
                     wyntaActivityItem.Revenue = ConvertCurrency(client.CurrencyId, Constants.Currencies.Euro, wyntaActivityItem.Sidegamesbets  - wyntaActivityItem.Sidegameswins);
 
-                    affiliateClientActivies.Add(wyntaActivityItem);
+                    if (wyntaActivityItem.Deposits > 0 || wyntaActivityItem.Sidegamesbets > 0 || wyntaActivityItem.Sidegameswins > 0)
+                        affiliateClientActivies.Add(wyntaActivityItem);
                 }
             }
             return affiliateClientActivies;

@@ -68,7 +68,11 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                     paymentSystemBl.ChangePaymentRequestDetails(request);
 
                                     response = "State=OK";
-                                    clientBl.ApproveDepositFromPaymentSystem(request, false);
+                                    clientBl.ApproveDepositFromPaymentSystem(request, false, out List<int> userIds);
+                                    foreach (var uId in userIds)
+                                    {
+                                        PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                    }
                                     PaymentHelpers.RemoveClientBalanceFromCache(request.ClientId.Value);
                                     BaseHelpers.BroadcastBalance(request.ClientId.Value);
                                     return new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(response, Encoding.UTF8) };
@@ -167,6 +171,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                 StatusCode = Help2PayHelpers.Statuses.Success,
                 Message = "Succes"
             };
+            var userIds = new List<int>();
             try
             {
                 BaseBll.CheckIp(WhitelistedIps);
@@ -209,12 +214,17 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                 if (input.Status == Help2PayHelpers.Statuses.Success)//success
                                 {
                                     var req = clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Approved, string.Empty,
-                                                                                  null, null, false, request.Parameters, documentBl, notificationBl);
+                                                                                  null, null, false, request.Parameters, documentBl, notificationBl, out userIds);
                                     clientBl.PayWithdrawFromPaymentSystem(req, documentBl, notificationBl);
                                 }
                                 else if (input.Status == Help2PayHelpers.Statuses.Failed && request.Status == (int)PaymentRequestStates.PayPanding)
                                     clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Failed, input.Message, null, null, false,
-                                                                        request.Parameters, documentBl, notificationBl);
+                                                                        request.Parameters, documentBl, notificationBl, out userIds);
+
+                                foreach (var uId in userIds)
+                                {
+                                    PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                }
                                 PaymentHelpers.RemoveClientBalanceFromCache(request.ClientId.Value);
                                 BaseHelpers.BroadcastBalance(request.ClientId.Value);
                             }

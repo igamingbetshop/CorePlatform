@@ -34,6 +34,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
             try
             {
                 WebApiApplication.DbLogger.Info(JsonConvert.SerializeObject(input));
+                var userIds = new List<int>();
                 //   BaseBll.CheckIp(WhitelistedIps);
                 using (var paymentSystemBl = new PaymentSystemBll(new SessionIdentity(), WebApiApplication.DbLogger))
                 {
@@ -52,7 +53,9 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                         if (input.DataDetails.Code == 0 && input.DataDetails.Status.ToUpper() == "CAPTURED")
                         {
                             if (request.Type == (int)PaymentRequestTypes.Deposit)
-                                clientBl.ApproveDepositFromPaymentSystem(request, false);
+                            {
+                                clientBl.ApproveDepositFromPaymentSystem(request, false, out userIds);
+                            }
                             else if (request.Type == (int)PaymentRequestTypes.Withdraw)
                             {
                                 using (var documentBll = new DocumentBll(paymentSystemBl))
@@ -61,7 +64,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                     {
 
                                         var resp = clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Approved, string.Empty,
-                                         null, null, false, request.Parameters, documentBll, notificationBl);
+                                         null, null, false, request.Parameters, documentBll, notificationBl, out userIds);
                                         clientBl.PayWithdrawFromPaymentSystem(resp, documentBll, notificationBl);
                                     }
                                 }
@@ -78,9 +81,13 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                         clientBl.ChangeDepositRequestState(request.Id, PaymentRequestStates.Deleted, input.DataDetails.Message, notificationBl);
                                     else if (request.Type == (int)PaymentRequestTypes.Withdraw)
                                         clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Failed, input.DataDetails.Message, null,
-                                                                            null, false, request.Parameters, documentBll, notificationBl);
+                                                                            null, false, request.Parameters, documentBll, notificationBl, out userIds);
                                 }
                             }
+                        }
+                        foreach (var uId in userIds)
+                        {
+                            PaymentHelpers.InvokeMessage("NotificationsCount", uId);
                         }
                         PaymentHelpers.RemoveClientBalanceFromCache(request.ClientId.Value);
                         BaseHelpers.BroadcastBalance(request.ClientId.Value);

@@ -115,8 +115,9 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             };
         }
 
-        public static void CancelPayoutRequest(PaymentRequest paymentRequest, SessionIdentity session, ILog log)
+        public static List<int> CancelPayoutRequest(PaymentRequest paymentRequest, SessionIdentity session, ILog log)
         {
+            var userIds = new List<int>();
             using (var paymentSystemBl = new PaymentSystemBll(session, log))
             using (var clientBl = new ClientBll(paymentSystemBl))
             using (var documentBl = new DocumentBll(clientBl))
@@ -130,8 +131,8 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 if (string.IsNullOrEmpty(paymentRequest.ExternalTransactionId))
                 {
                     clientBl.ChangeWithdrawRequestState(paymentRequest.Id, status, status.ToString(), null, null, false,
-                                                        paymentRequest.Parameters, documentBl, notificationBl);
-                    return;
+                                                        paymentRequest.Parameters, documentBl, notificationBl, out userIds);
+                    return userIds;
                 }
 
                 var client = CacheManager.GetClientById(paymentRequest.ClientId.Value);
@@ -155,8 +156,9 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 if (payoutOutput.TransactionStatus.ToLower() != "successful")
                     status = PaymentRequestStates.CancelPending;
                 clientBl.ChangeWithdrawRequestState(paymentRequest.Id, status, payoutOutput.TransactionStatus, null, null, false,
-                                                    paymentRequest.Parameters, documentBl, notificationBl);
+                                                    paymentRequest.Parameters, documentBl, notificationBl, out userIds);
             }
+            return userIds;
         }
     }
 }

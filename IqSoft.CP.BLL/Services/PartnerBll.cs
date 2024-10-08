@@ -705,7 +705,12 @@ namespace IqSoft.CP.BLL.Services
                 return dbSetting;
             Db.PartnerCountrySettings.Add(input);
             Db.SaveChanges();
-            CacheManager.RemoveKeysFromCache(string.Format("{0}_{1}_{2}_", Constants.CacheItems.PartnerCountrySetting, input.PartnerId, input.Type));
+
+            var ls = CacheManager.GetPartnerLanguages(input.PartnerId);
+            foreach (var l in ls)
+            {
+                CacheManager.RemoveFromCache(string.Format("{0}_{1}_{2}_{3}", Constants.CacheItems.PartnerCountrySetting, input.PartnerId, input.Type, l.Id));
+            }
             if (input.Type == (int)PartnerCountrySettingTypes.HighRisk)
             {
                 clientIds = Db.Clients.Where(x => x.PartnerId == input.PartnerId &&
@@ -739,7 +744,11 @@ namespace IqSoft.CP.BLL.Services
             if (!partnerAccess.HaveAccessForAllObjects && !partnerAccess.AccessibleIntegerObjects.Contains(partner.Id))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             Db.PartnerCountrySettings.Where(x => x.Id == input.Id).DeleteFromQuery();
-            CacheManager.RemoveKeysFromCache(string.Format("{0}_{1}_{2}_", Constants.CacheItems.PartnerCountrySetting, input.PartnerId, input.Type));
+            var ls = CacheManager.GetPartnerLanguages(input.PartnerId);
+            foreach (var l in ls)
+            {
+                CacheManager.RemoveFromCache(string.Format("{0}_{1}_{2}_{3}", Constants.CacheItems.PartnerCountrySetting, input.PartnerId, input.Type, l.Id));
+            }
             clientIds = new List<int>();
 
             if (input.Type == (int)PartnerCountrySettingTypes.HighRisk)
@@ -975,6 +984,16 @@ namespace IqSoft.CP.BLL.Services
             if (!apiRestrictions.WhitelistedIps.Any(x => x.IsIpEqual(ip)) &&
                 apiRestrictions.WhitelistedCountries.Any() && !apiRestrictions.WhitelistedCountries.Contains(ipCountry))
                 throw CreateException(string.Empty, Constants.Errors.DontHavePermission);
+        }
+
+        public static string GetCasinoPageUrl(int partnerId, string domain)
+        {
+            var casinoPageUrl = CacheManager.GetPartnerSettingByKey(partnerId, Constants.PartnerKeys.CasinoPageUrl).StringValue;
+            if (string.IsNullOrEmpty(casinoPageUrl))
+                casinoPageUrl = string.Format("https://{0}/casino/all-games", domain);
+            else
+                casinoPageUrl = string.Format(casinoPageUrl, domain);
+            return casinoPageUrl;
         }
     }
 }

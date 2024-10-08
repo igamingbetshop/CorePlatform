@@ -16,8 +16,8 @@ namespace IqSoft.CP.Integration.Payments.Helpers
         public static string CallExternalCashierApi(PaymentRequest input, string cashierPageUrl, ILog log)
         {
             var client = CacheManager.GetClientById(input.ClientId.Value);
-            var redirectUrl = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.ExternalCashierRedirectUrl).StringValue;
-            var apiUrl = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.ExternalCashierApiUrl).StringValue;
+            var redirectUrl = CacheManager.GetPartnerPaymentSystemByKey(client.PartnerId, input.PaymentSystemId, Constants.PartnerKeys.ExternalCashierRedirectUrl);
+            var apiUrl = CacheManager.GetPartnerPaymentSystemByKey(client.PartnerId, input.PaymentSystemId, Constants.PartnerKeys.ExternalCashierApiUrl);
             var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, input.PaymentSystemId,
                                                                                input.CurrencyId, (int)PaymentRequestTypes.Deposit);
             if (!string.IsNullOrEmpty(apiUrl))

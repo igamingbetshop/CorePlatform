@@ -23,6 +23,7 @@ using IqSoft.CP.DAL;
 using IqSoft.CP.Integration.Payments.Models.MoneyPay;
 using System.Web.Http.Cors;
 using IqSoft.CP.PaymentGateway.Helpers;
+using System.Collections.Generic;
 
 namespace IqSoft.CP.PaymentGateway.Controllers
 {
@@ -165,7 +166,11 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                 }
                                 request.ExternalTransactionId = response.Transaction_id;
                                 paymentSystemBl.ChangePaymentRequestDetails(request);
-                                clientBl.ApproveDepositFromPaymentSystem(request, false);
+                                clientBl.ApproveDepositFromPaymentSystem(request, false, out List<int> userIds);
+                                foreach (var uId in userIds)
+                                {
+                                    PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                }
                                 BaseHelpers.BroadcastBalance(request.ClientId.Value);
                             }
                         }

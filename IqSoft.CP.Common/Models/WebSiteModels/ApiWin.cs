@@ -2,6 +2,7 @@
 {
 	public class ApiWin
 	{
+		public long BetId { get; set; }
 		public string GameName { get; set; }
 		public int ClientId { get; set; }
 		public string ClientName { get; set; }

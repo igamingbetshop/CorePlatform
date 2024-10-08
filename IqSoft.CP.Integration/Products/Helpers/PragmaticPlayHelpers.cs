@@ -9,7 +9,6 @@ using IqSoft.CP.Integration.Products.Models.PragmaticPlay;
 using log4net;
 using Newtonsoft.Json;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -173,7 +172,6 @@ namespace IqSoft.CP.Integration.Products.Helpers
             var secureKey = CacheManager.GetGameProviderValueByKey(client.PartnerId, Provider.Id, Constants.PartnerKeys.PragmaticPlaySecureKey);
             var currency = NotSupportedCurrencies.Contains(client.CurrencyId) ? Constants.Currencies.USADollar : client.CurrencyId;
             var product = CacheManager.GetProductByExternalId(Provider.Id, freeSpinModel.ProductExternalId);
-
             decimal? bValue = null;
             if (!string.IsNullOrEmpty(freeSpinModel.BetValues))
             {
@@ -189,7 +187,6 @@ namespace IqSoft.CP.Integration.Products.Helpers
             }
             if (bValue == null)
                 return false;
-
             var input = new
             {
                 secureLogin,
@@ -200,13 +197,13 @@ namespace IqSoft.CP.Integration.Products.Helpers
                 playerId = freeSpinModel.ClientId,
                 currency
             };
-            var games = freeSpinModel.ProductExternalIds.Select(x => new
+            var games = new List<object> { new
             {
-                gameId = x,
+                gameId = freeSpinModel.ProductExternalId,
                 betValues = new List<object> {
                     new { totalBet = bValue.Value, currency }
                 }
-            }).ToList();
+            } };
 
             var gameList = new { gameList = games };
             var inputString = CommonFunctions.GetSortedParamWithValuesAsString(input, "&");

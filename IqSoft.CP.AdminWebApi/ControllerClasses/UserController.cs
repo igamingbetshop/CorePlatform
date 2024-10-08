@@ -19,6 +19,7 @@ using IqSoft.CP.BLL.Caching;
 using IqSoft.CP.Common.Models.Commission;
 using IqSoft.CP.Common.Helpers;
 using IqSoft.CP.Common.Models;
+using IqSoft.CP.AdminWebApi.Models.NotificationModels;
 
 namespace IqSoft.CP.AdminWebApi.ControllerClasses
 {
@@ -35,7 +36,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 case "GetAgents":
                     return GetAgents(JsonConvert.DeserializeObject<ApiFilterUser>(request.RequestData), identity, log);
                 case "SaveUser":
-                    return SaveUser(JsonConvert.DeserializeObject<UserModel>(request.RequestData), identity, log);
+                    return SaveUser(JsonConvert.DeserializeObject<ApiUser>(request.RequestData), identity, log);
                 case "IsUserNameExists":
                     return IsUserNameExists(JsonConvert.DeserializeObject<UserNameModel>(request.RequestData), identity, log);
                 case "GetUserById":
@@ -85,6 +86,10 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     return DisableTwoFactor(JsonConvert.DeserializeObject<ApiQRCodeInput>(request.RequestData), identity, log);
                 case "GetExistingLevels":
                     return GetAgentDownline(Convert.ToInt32(request.RequestData), identity, log);
+                case "GetNotifications":
+                    return GetNotifications(JsonConvert.DeserializeObject<ApiFilterBase>(request.RequestData), identity, log);
+                case "ReadNotification":
+                    return ReadNotification(JsonConvert.DeserializeObject<ApiNotification>(request.RequestData), identity, log);
             }
             throw BaseBll.CreateException(string.Empty, Constants.Errors.MethodNotFound);
         }
@@ -143,13 +148,10 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 var resp = userBl.GetUserById(id).MapToUserModel(identity.TimeZone);
                 if (identity.Id == id)
                     resp.OddsType = CacheManager.GetUserSetting(identity.Id)?.OddsType;
-                var correctionConfig = CacheManager.GetUserConfiguration(id, Constants.UserConfigurations.CorrectonMaxAmount);
-                if (correctionConfig != null)
-                {
-                    resp.CorrectionMaxAmount = correctionConfig.NumericValue;
-                    resp.CorrectionMaxAmountCurrency = correctionConfig.StringValue;
-                }
+
+                var configs = userBl.GetUserConfigurations(id).Select(x => x.ToApiUserConfiguration(identity.TimeZone)).ToList();
                 resp.Accounts = BaseBll.GetObjectBalance((int)ObjectTypes.User, id).Balances.ToList();
+                resp.Configurations = configs;
                 return new ApiResponseBase
                 {
                     ResponseObject = resp
@@ -290,7 +292,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                                     if (clientSetting != null && clientSetting.NumericValue.HasValue && CustomHelper.Greater((ClientStates)clientSetting.NumericValue.Value, (ClientStates)clientState))
                                         clientState = Convert.ToInt32(clientSetting.NumericValue.Value);
 
-                                    agents.Add(new UserModel
+                                    agents.Add(new ApiUser
                                     {
 
                                         Id = c.Id,
@@ -321,7 +323,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             }
         }
 
-        public static ApiResponseBase SaveUser(UserModel request, SessionIdentity identity, ILog log)
+        public static ApiResponseBase SaveUser(ApiUser request, SessionIdentity identity, ILog log)
         {
             if (string.IsNullOrWhiteSpace(request.FirstName) || string.IsNullOrWhiteSpace(request.LastName) ||
                (request.Email != null && string.IsNullOrWhiteSpace(request.Email)) ||
@@ -329,18 +331,21 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.WrongInputParameters);
             using (var userBl = new UserBll(identity, log))
             {
-                var timeZone = userBl.GetUserIdentity().TimeZone;
-                var input = request.MapToUser(timeZone);
+                var input = request.ToUser(identity.TimeZone);
                 input.IsTwoFactorEnabled = false;
+                
                 if (input.Type == (int)UserTypes.CompanyAgent)
                     input.Level = (int)AgentLevels.Company;
-                else input.Level = 0;
-                UserModel user;
+                else 
+                    input.Level = 0;
+                
+                ApiUser user;
                 if (input.Id == 0)
-                    user = userBl.AddUser(input).MapToUserModel(timeZone);
+                    user = userBl.AddUser(input).MapToUserModel(identity.TimeZone);
                 else
                 {
-                    user =  userBl.EditUser(input, true).MapToUserModel(timeZone);
+                    user = userBl.EditUser(input, true).MapToUserModel(identity.TimeZone);
+                    user.Configurations = userBl.GetUserConfigurations(user.Id).Select(x => x.ToApiUserConfiguration(identity.TimeZone)).ToList();
                     CacheManager.RemoveUserFromCache(user.Id);
                     Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}", Constants.CacheItems.User, user.Id));
                     Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}", Constants.CacheItems.UserConfiguration, user.Id, 
@@ -370,7 +375,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             {
                 var users = userBl.ExportUsersModel(request.MaptToFilterUser()).Select(x => x.MapToUserModel(identity.TimeZone)).ToList();
                 string fileName = "ExportUsers.csv";
-                string fileAbsPath = userBl.ExportToCSV<UserModel>(fileName, users, null, null, 0, request.AdminMenuId);
+                string fileAbsPath = userBl.ExportToCSV<ApiUser>(fileName, users, null, null, 0, request.AdminMenuId);
 
                 return new ApiResponseBase
                 {
@@ -463,7 +468,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             {
                 return new ApiResponseBase
                 {
-                    ResponseObject = userBl.GetUserCorrections(filter.MapToFilterUserCorrection()).MapToApiUserCorrections(identity.TimeZone, filter.UserId)
+                    ResponseObject = userBl.GetUserCorrections(filter.MapToFilterUserCorrection(identity.TimeZone)).MapToApiUserCorrections(identity.TimeZone, filter.UserId)
                 };
             }
         }
@@ -626,6 +631,27 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                         TotalCount = all.FirstOrDefault(y => y.Level == x.Level)?.Count ?? 0
                     })
                 };
+            }
+        }
+
+        private static ApiResponseBase GetNotifications(ApiFilterBase input, SessionIdentity identity, ILog log)
+        {
+            using (var userBl = new UserBll(identity, log))
+            {
+                var result = userBl.GetNotifications(input.SkipCount, input.TakeCount).Select(x => x.ToApiNotification(identity.TimeZone)).ToList();
+                return new ApiResponseBase
+                {
+                    ResponseObject = result
+                };
+            }
+        }
+
+        private static ApiResponseBase ReadNotification(ApiNotification input, SessionIdentity identity, ILog log)
+        {
+            using (var userBl = new UserBll(identity, log))
+            {
+                userBl.ReadNotification(input.Id);
+                return new ApiResponseBase();
             }
         }
     }

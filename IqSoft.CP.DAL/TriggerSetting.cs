@@ -31,7 +31,7 @@ namespace IqSoft.CP.DAL
         public int Type { get; set; }
         public System.DateTime StartTime { get; set; }
         public System.DateTime FinishTime { get; set; }
-        public int Percent { get; set; }
+        public Nullable<int> Percent { get; set; }
         public string BonusSettingCodes { get; set; }
         public int PartnerId { get; set; }
         public System.DateTime CreationTime { get; set; }
@@ -54,11 +54,11 @@ namespace IqSoft.CP.DAL
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ClientBonusTrigger> ClientBonusTriggers { get; set; }
         public virtual Partner Partner { get; set; }
+        public virtual Segment Segment { get; set; }
         public virtual Translation Translation { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<TriggerGroupSetting> TriggerGroupSettings { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<TriggerProductSetting> TriggerProductSettings { get; set; }
-        public virtual Segment Segment { get; set; }
     }
 }

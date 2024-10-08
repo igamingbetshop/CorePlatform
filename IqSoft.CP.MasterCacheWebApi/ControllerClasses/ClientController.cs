@@ -23,6 +23,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.ServiceModel;
+using IqSoft.CP.Common.Models.CacheModels;
 using static IqSoft.CP.Common.Constants;
 
 namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
@@ -131,6 +133,8 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                     return GetVerificationPageUrl(null, session, log);
                 case "UploadImage":
                     return UploadImage(JsonConvert.DeserializeObject<AddClientIdentityModel>(request.RequestData), session, log);
+                case "UploadKYCDocument":
+                    return UploadKYCDocument(JsonConvert.DeserializeObject<AddClientIdentityModel>(request.RequestData), session, log);
                 case "GetKYCDocumentTypesEnum":
                     return GetKYCDocumentTypesEnum(session, log);
                 case "GetKYCDocumentStatesEnum":
@@ -179,6 +183,10 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                     return ViewPopup(request.ClientId, JsonConvert.DeserializeObject<ApiPopupWebSiteModel>(request.RequestData), session, log);
                 case "SpinWheel":
                     return SpinWheel(request.ClientId, JsonConvert.DeserializeObject<ApiClientBonusItem>(request.RequestData), session, log);
+                case "GetPaymentSystemInfo":
+                    return GetPaymentSystemInfo(JsonConvert.DeserializeObject<ApiFilterPartnerPaymentSetting>(request.RequestData), session, log);
+                case "GetClientStatistics":
+                    return GetClientStatistics(JsonConvert.DeserializeObject<ApiWin>(request.RequestData), session, log);
                 default:
                     throw BaseBll.CreateException(string.Empty, Constants.Errors.MethodNotFound);
             }
@@ -187,6 +195,7 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
         private static ApiResponseBase ChangeClientDetails(ChangeClientFieldsInput input, int clientId, SessionIdentity session, ILog log)
         {
             using (var clientBl = new ClientBll(session, log))
+            using (var notificationBll = new NotificationBll(clientBl))
             {
                 var dbClient = clientBl.GetClientById(clientId, false);
                 var changeClientFields = new ChangeClientFieldsInput
@@ -221,7 +230,7 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                     Citizenship = input.Citizenship ?? dbClient.Citizenship,
                     SecurityQuestions = input.SecurityQuestions
                 };
-                var client = clientBl.ChangeClientDataFromWebSite(changeClientFields);
+                var client = clientBl.ChangeClientDataFromWebSite(changeClientFields, notificationBll);
                 var clientLoginOut = new ClientLoginOut();
                 clientBl.GetClientRegionInfo(client.RegionId, ref clientLoginOut);
                 CacheManager.RemoveClientFromCache(clientId);
@@ -797,19 +806,59 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
         {
             if (string.IsNullOrEmpty(input.ImageData))
                 throw BaseBll.CreateException(session.LanguageId, Constants.Errors.WrongInputParameters);
-            input.ClientId = session.Id;
+
             using (var clientBl = new ClientBll(session, log))
             {
+                var clientIdentity = new ClientIdentity
+                {
+                    ClientId = session.Id,
+                    DocumentTypeId = input.DocumentTypeId,
+                    Status = (int)KYCDocumentStates.InProcess
+                };
+                var resp = clientBl.SaveKYCDocument(clientIdentity, input.Name, Convert.FromBase64String(input.ImageData), false, out List<int> userIds)
+                                                     .ToClientIdentityModel(session.TimeZone);
+                foreach (var uId in userIds)
+                {
+                    Helpers.Helpers.InvokeMessage("NotificationsCount", uId);
+                }
                 return new ApiResponseBase
                 {
                     ResponseObject = new
                     {
-                        ClientIdentityData = clientBl.SaveKYCDocument(input.ToClientIdentity(), input.Name, Convert.FromBase64String(input.ImageData), false)
-                                                     .ToClientIdentityModel(session.TimeZone)
+                        ClientIdentityData = resp
                     }
                 };
             }
-        }       
+        }
+
+        private static ApiResponseBase UploadKYCDocument(AddClientIdentityModel documentInput, SessionIdentity session, ILog log)
+        {
+            var clientIdentity = new ClientIdentity
+            {
+                ClientId = session.Id,
+                DocumentTypeId = documentInput.DocumentTypeId,
+                Status = (int)KYCDocumentStates.InProcess
+            };
+            var userIds = new List<int>();
+            using (var clientBl = new ClientBll(session, log))
+                if (!string.IsNullOrEmpty(documentInput.ImageFrontData) && !string.IsNullOrEmpty(documentInput.ImageBackData))
+                {
+                    var docName = $"{Enum.GetName(typeof(KYCDocumentTypes), documentInput.DocumentTypeId)}_front.{documentInput.Extension}";
+                    clientBl.SaveKYCDocument(clientIdentity, docName, Convert.FromBase64String(documentInput.ImageFrontData), false, out userIds);
+                    docName = $"{Enum.GetName(typeof(KYCDocumentTypes), documentInput.DocumentTypeId)}_back.{documentInput.Extension}";
+                    clientBl.SaveKYCDocument(clientIdentity, docName, Convert.FromBase64String(documentInput.ImageFrontData), false, out userIds);
+                }
+                else if (!string.IsNullOrEmpty(documentInput.ImageData))
+                {
+                    var docName = $"{Enum.GetName(typeof(KYCDocumentTypes), documentInput.DocumentTypeId)}_front.{documentInput.Extension}";
+                    clientBl.SaveKYCDocument(clientIdentity, docName, Convert.FromBase64String(documentInput.ImageFrontData), false, out userIds);
+                }
+                else
+                    throw BaseBll.CreateException(session.LanguageId, Constants.Errors.WrongInputParameters);
+            foreach (var uId in userIds)
+                Helpers.Helpers.InvokeMessage("NotificationsCount", uId);
+            return new ApiResponseBase();
+        }
 
         private static ApiResponseBase GetKYCDocumentTypesEnum(SessionIdentity identity, ILog log)
         {
@@ -1596,6 +1645,172 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
             {
                 var index = clientBl.SpinWheel(clientId, input.Id);
                 return new ApiResponseBase { ResponseObject = index };
+            }
+        }
+
+        private static ApiResponseBase GetPaymentSystemInfo(ApiFilterPartnerPaymentSetting input, SessionIdentity session, ILog log)
+        {
+            try
+            {
+                using (var paymentSystemBl = new PaymentSystemBll(session, WebApiApplication.DbLogger))
+                {
+                    using (var clientBl = new ClientBll(paymentSystemBl))
+                    {
+                        var filter = new FilterfnPartnerPaymentSetting
+                        {
+                            Status = (int)PartnerPaymentSettingStates.Active,
+                            CurrencyId = input.CurrencyId,
+                            PartnerId = session.PartnerId
+                        };
+                        var client = CacheManager.GetClientById(session.Id);
+                        filter.CountryId = BLL.Helpers.CommonHelpers.GetCountryId(client.RegionId, session.LanguageId);
+                        var clientPaymentSettings = CacheManager.GetClientPaymentSettings(client.Id);
+                        
+                        var paymentSystems = paymentSystemBl.GetfnPartnerPaymentSettings(filter, false, session.PartnerId);
+
+                        DAL.PaymentLimit limits = null;
+                        var clientSegments = new List<int>();
+                        clientSegments = ClientBll.GetClientSegmentIds(session.Id);
+                        limits = clientBl.GetClientPaymentLimits(session.Id);
+
+                        if (session.AccountId != null)
+                        {
+                            var acc = clientBl.GetAccount(session.AccountId.Value);
+                            if (acc.PaymentSystemId != null)
+                            {
+                                paymentSystems = paymentSystems.Where(x => x.PaymentSystemId == acc.PaymentSystemId.Value).ToList();
+                            }
+                            else
+                            {
+                                if (acc.BetShopId != null)
+                                    paymentSystems = new List<DAL.fnPartnerPaymentSetting>();
+                            }
+                        }
+
+                        var psIdsWithBanks = paymentSystemBl.GetPartnerBanks(session.PartnerId, null, false, null).Select(y => (int)y.PaymentSystemId).Distinct().ToList();
+
+                        foreach (var ps in paymentSystems)
+                        {
+                            var setting = CacheManager.GetPartnerPaymentSettings(ps.PartnerId, ps.PaymentSystemId, ps.CurrencyId, ps.Type);
+                            if (setting != null && setting.Id > 0 &&
+                               (setting.OSTypes == null || setting.OSTypes.Count == 0 || setting.OSTypes.Contains(input.OSType)) &&
+                               (setting?.Countries?.Ids == null || setting?.Countries?.Ids.Count == 0 ||
+                               (setting.Countries.Type == (int)BonusSettingConditionTypes.InSet && setting.Countries.Ids.Contains(filter.CountryId ?? 0)) ||
+                               (setting.Countries.Type == (int)BonusSettingConditionTypes.OutOfSet && !setting.Countries.Ids.Contains(filter.CountryId ?? 0))) &&
+                               (setting.Segments?.Ids == null || !setting.Segments.Ids.Any() ||
+                               (setting.Segments.Type == (int)BonusSettingConditionTypes.InSet && clientSegments.Any(y => setting.Segments.Ids.Contains(y))) ||
+                               (setting.Segments.Type == (int)BonusSettingConditionTypes.OutOfSet && !clientSegments.Any(y => setting.Segments.Ids.Contains(y)))))
+                            {
+                                var item = ps.MapToPartnerPaymentSettingsModel();
+                                if (psIdsWithBanks.Contains(ps.PaymentSystemId))
+                                    item.HasBank = true;
+                                if (item.Type == (int)PaymentRequestTypes.Deposit)
+                                {
+                                    var settingName = string.Format("{0}_{1}", ClientSettings.PaymentAddress, item.PaymentSystemId);
+                                    var clientSetting = CacheManager.GetClientSettingByName(session.Id, settingName);
+                                    if (!string.IsNullOrEmpty(clientSetting.Name) && !string.IsNullOrEmpty(clientSetting.StringValue))
+                                    {
+                                        var address = clientSetting.StringValue.Split('|');
+                                        item.Address = address[0];
+                                        if (address.Length > 1)
+                                            item.DestinationTag = address[1];
+                                    }
+                                    else
+                                    {
+                                        var cryptoAddress = PaymentHelpers.GetClientPaymentAddress(item.PaymentSystemId, session.Id, input.CurrencyId, session, WebApiApplication.DbLogger);
+                                        item.Address = cryptoAddress.Address;
+                                        item.DestinationTag = cryptoAddress.DestinationTag;
+                                        if (!string.IsNullOrEmpty(item.Address))
+                                            clientBl.SaveClientSetting(session.Id, settingName, string.Format("{0}|{1}", item.Address, item.DestinationTag), null, null);
+                                    }
+                                }
+
+                                if (limits != null)
+                                {
+                                    if (item.Type == (int)PaymentSettingTypes.Deposit && limits.MaxDepositAmount != null)
+                                        item.MaxAmount = Math.Min(item.MaxAmount, limits.MaxDepositAmount.Value);
+                                    else if (item.Type == (int)PaymentSettingTypes.Withdraw && limits.MaxWithdrawAmount != null)
+                                        item.MaxAmount = Math.Min(item.MaxAmount, limits.MaxWithdrawAmount.Value);
+                                }
+                                if (clientPaymentSettings == null || !clientPaymentSettings.Any(x => x.PaymentSystemId == item.PaymentSystemId &&
+                                                                                                     x.Type == item.Type && x.State == (int)ClientPaymentStates.Blocked))
+                                    return new ApiResponseBase
+                                    {
+                                        ResponseObject = item
+                                    };
+                            }
+                        }
+                        throw BaseBll.CreateException(session.LanguageId, Constants.Errors.PaymentSystemNotFound);
+                    }
+                }
+            }
+            catch (FaultException<BllFnErrorType> ex)
+            {
+                var response = new GetPartnerPaymentSystemsOutput
+                {
+                    ResponseCode = ex.Detail.Id,
+                    Description = ex.Detail.Message
+                };
+                WebApiApplication.DbLogger.Info(JsonConvert.SerializeObject(response));
+                return response;
+            }
+            catch (Exception ex)
+            {
+                WebApiApplication.DbLogger.Error(ex);
+                return new GetPartnerPaymentSystemsOutput
+                {
+                    ResponseCode = Constants.Errors.GeneralException,
+                    Description = ex.Message
+                };
+            }
+        }
+
+        private static ApiResponseBase GetClientStatistics(ApiWin input, SessionIdentity session, ILog log)
+        {
+            try
+            {
+                using (var documentBl = new DocumentBll(session, WebApiApplication.DbLogger))
+                {
+                    using (var clientBl = new ClientBll(documentBl))
+                    {
+                        var currentTime = DateTime.UtcNow;
+                        var document = documentBl.GetDocumentById(input.BetId);
+                        var client = CacheManager.GetClientById(document.ClientId.Value);
+                        if (document == null || document.CreationTime < currentTime.AddMinutes(-10) && document.Client == null)
+                            throw BaseBll.CreateException(session.LanguageId, Constants.Errors.NotAllowed);
+                        if(client.PartnerId != session.PartnerId)
+                            throw BaseBll.CreateException(session.LanguageId, Constants.Errors.NotAllowed); 
+                        //TO DO: Check if client is hidden
+                        var stats = clientBl.GetClientStatisticsInfo(document.ClientId.Value);
+                        stats.Username = client.UserName;
+                        stats.CreationTime = client.CreationTime.GetGMTDateFromUTC(session.TimeZone);
+                        stats.TotalBetAmount = Math.Round(BaseBll.ConvertCurrency(client.CurrencyId, 
+                            string.IsNullOrEmpty(input.CurrencyId) ? Constants.DefaultCurrencyId : input.CurrencyId, stats.TotalBetAmount), 4);
+                        return new ApiResponseBase
+                        {
+                            ResponseObject = stats
+                        };
+                    }
+                }
+            }
+            catch (FaultException<BllFnErrorType> ex)
+            {
+                var response = new GetPartnerPaymentSystemsOutput
+                {
+                    ResponseCode = ex.Detail.Id,
+                    Description = ex.Detail.Message
+                };
+                WebApiApplication.DbLogger.Info(JsonConvert.SerializeObject(response));
+                return response;
+            }
+            catch (Exception ex)
+            {
+                WebApiApplication.DbLogger.Error(ex);
+                return new GetPartnerPaymentSystemsOutput
+                {
+                    ResponseCode = Constants.Errors.GeneralException,
+                    Description = ex.Message
+                };
             }
         }
     }

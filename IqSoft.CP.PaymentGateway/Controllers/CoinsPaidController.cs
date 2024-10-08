@@ -68,7 +68,11 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                         else if (input.Transactions.FirstOrDefault().Type == "withdrawal")
                                         {
                                             clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed, input.Error, null,
-                                                                           null, false, paymentRequest.Parameters, documentBl, notificationBl);
+                                                                           null, false, paymentRequest.Parameters, documentBl, notificationBl, out List<int> userIds);
+                                            foreach (var uId in userIds)
+                                            {
+                                                PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                            }
                                         }
                                     }
                                 }
@@ -206,8 +210,12 @@ namespace IqSoft.CP.PaymentGateway.Controllers
             var paymentSystem = CacheManager.GetPaymentSystemByName(Constants.PaymentSystems.CoinsPaid + input.CryptoAddress.Currency.ToUpper());
             if (paymentSystem == null)
                 throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.PaymentSystemNotFound);
+            var allowMultiCurrencyAccounts = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.AllowMultiCurrencyAccounts);
+            var amca = allowMultiCurrencyAccounts != null && allowMultiCurrencyAccounts.Id > 0 && allowMultiCurrencyAccounts.NumericValue == 1;
+
             var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, paymentSystem.Id,
-                                                                               client.CurrencyId, (int)PaymentRequestTypes.Deposit);
+                                                                               amca ? input.CurrencyReceived.Currency : client.CurrencyId, 
+                                                                               (int)PaymentRequestTypes.Deposit);
             if (partnerPaymentSetting == null)
                 throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.PaymentSystemNotFound);
             if (partnerPaymentSetting.State != (int)PartnerPaymentSettingStates.Active)
@@ -218,21 +226,24 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                 throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.ClientBlocked);
             if (Convert.ToDecimal(input.CurrencyReceived.Amount) < 0)
                 throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongInputParameters);
+
             var amount = Math.Round(Convert.ToDecimal(input.CurrencyReceived.Amount));
             var parameters = new Dictionary<string, string>();
-            if (client.CurrencyId != input.CurrencyReceived.Currency)
+            var currencyId = input.CurrencyReceived.Currency;
+            
+            if (!amca && client.CurrencyId != input.CurrencyReceived.Currency)
             {
                 var rate = BaseBll.GetCurrenciesDifference(input.CurrencyReceived.Currency, client.CurrencyId);
-
                 parameters.Add("Currency", input.CurrencyReceived.Currency);
                 parameters.Add("AppliedRate", rate.ToString("F"));
                 amount = Math.Round(rate * amount);
+                currencyId = client.CurrencyId;
             }
             var paymentRequest = new PaymentRequest
             {
                 Amount = amount,
                 ClientId = client.Id,
-                CurrencyId = client.CurrencyId,
+                CurrencyId = currencyId,
                 PaymentSystemId = partnerPaymentSetting.PaymentSystemId,
                 PartnerPaymentSettingId = partnerPaymentSetting.Id,
                 ExternalTransactionId = input.Transactions?.FirstOrDefault()?.Id.ToString(),
@@ -262,7 +273,11 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                     scope.Complete();
                                     throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.PaymentRequestInValidAmount);
                                 }
-                                clientBl.ApproveDepositFromPaymentSystem(request, false);
+                                clientBl.ApproveDepositFromPaymentSystem(request, false, out List<int> userIds);
+                                foreach (var uId in userIds)
+                                {
+                                    PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                }
                                 PaymentHelpers.RemoveClientBalanceFromCache(request.ClientId.Value);
                                 BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);
                                 BaseHelpers.BroadcastDepositLimit(info);
@@ -301,7 +316,11 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                         using (var notificationBl = new NotificationBll(clientBl))
                         {
                             var resp = clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Approved, string.Empty,
-                             null, null, false, paymentRequest.Parameters, documentBll, notificationBl);
+                             null, null, false, paymentRequest.Parameters, documentBll, notificationBl, out List<int> userIds);
+                            foreach (var uId in userIds)
+                            {
+                                PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                            }
                             clientBl.PayWithdrawFromPaymentSystem(resp, documentBll, notificationBl);
                         }
                     }

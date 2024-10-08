@@ -188,6 +188,8 @@ D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.BetShopGatewayWebApi\obj\
 D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.BetShopGatewayWebApi\obj\Release\IqSoft.C.56812032.Up2Date
 D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.BetShopGatewayWebApi\obj\Release\IqSoft.CP.BetShopGatewayWebApi.dll
 D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.BetShopGatewayWebApi\obj\Release\IqSoft.CP.BetShopGatewayWebApi.pdb
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.BetShopGatewayWebApi\bin\HtmlRenderer.PdfSharp.dll
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.BetShopGatewayWebApi\bin\HtmlRenderer.PdfSharp.pdb
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.BetShopGatewayWebApi\bin\IqSoft.CP.BetShopGatewayWebApi.dll.config
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.BetShopGatewayWebApi\bin\IqSoft.CP.BetShopGatewayWebApi.dll
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.BetShopGatewayWebApi\bin\IqSoft.CP.BetShopGatewayWebApi.pdb
@@ -260,6 +262,7 @@ D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.BetShopGatewayWebAp
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.BetShopGatewayWebApi\bin\Renci.SshNet.dll
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.BetShopGatewayWebApi\bin\PdfSharp.dll
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.BetShopGatewayWebApi\bin\Z.EntityFramework.Extensions.dll
+D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.BetShopGatewayWebApi\bin\HtmlRenderer.PdfSharp.dll
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.BetShopGatewayWebApi\bin\LinqKit.Core.dll
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.BetShopGatewayWebApi\bin\LinqKit.dll
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.BetShopGatewayWebApi\bin\GraphQL.dll
@@ -353,6 +356,7 @@ D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.BetShopGatewayWebAp
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.BetShopGatewayWebApi\bin\Renci.SshNet.xml
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.BetShopGatewayWebApi\bin\PdfSharp.xml
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.BetShopGatewayWebApi\bin\Z.EntityFramework.Extensions.xml
+D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.BetShopGatewayWebApi\bin\HtmlRenderer.PdfSharp.pdb
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.BetShopGatewayWebApi\bin\LinqKit.Core.xml
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.BetShopGatewayWebApi\bin\LinqKit.xml
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.BetShopGatewayWebApi\bin\GraphQL.xml

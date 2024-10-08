@@ -18,7 +18,6 @@ namespace IqSoft.CP.DAL
         public Client()
         {
             this.AgentCommissions = new HashSet<AgentCommission>();
-            this.AgentProfits = new HashSet<AgentProfit>();
             this.ClientBonusTriggers = new HashSet<ClientBonusTrigger>();
             this.ClientClassifications = new HashSet<ClientClassification>();
             this.ClientClosedPeriods = new HashSet<ClientClosedPeriod>();
@@ -39,6 +38,8 @@ namespace IqSoft.CP.DAL
             this.ClientPaymentSettings = new HashSet<ClientPaymentSetting>();
             this.Affiliates = new HashSet<Affiliate>();
             this.ClientBonus = new HashSet<ClientBonu>();
+            this.AgentProfits = new HashSet<AgentProfit>();
+            this.UserNotifications = new HashSet<UserNotification>();
         }
     
         public int Id { get; set; }
@@ -100,8 +101,6 @@ namespace IqSoft.CP.DAL
         public virtual AffiliateReferral AffiliateReferral { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<AgentCommission> AgentCommissions { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<AgentProfit> AgentProfits { get; set; }
         public virtual Character Character { get; set; }
         public virtual ClientSession ClientSession { get; set; }
         public virtual JobArea JobArea1 { get; set; }
@@ -152,5 +151,9 @@ namespace IqSoft.CP.DAL
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ClientBonu> ClientBonus { get; set; }
         public virtual Currency Currency { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<AgentProfit> AgentProfits { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<UserNotification> UserNotifications { get; set; }
     }
 }

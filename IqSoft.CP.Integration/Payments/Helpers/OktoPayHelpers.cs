@@ -15,6 +15,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.ServiceModel;
 
 namespace IqSoft.CP.Integration.Payments.Helpers
@@ -231,8 +232,9 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 			return "";
 		}
 
-		public static void CancelPaymentRequest(PaymentRequest paymentRequest, SessionIdentity session, ILog log)
+		public static List<int> CancelPaymentRequest(PaymentRequest paymentRequest, SessionIdentity session, ILog log)
 		{
+			var userIds = new List<int>();
 			if (paymentRequest.LastUpdateTime.AddMinutes(5) < DateTime.UtcNow)
 			{
 				using (var clientBl = new ClientBll(session, log))
@@ -248,12 +250,13 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 							else
 							{
 								clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.CanceledByClient,
-																	  string.Empty, null, null, false, string.Empty, documentBll, notificationBl);
+																	  string.Empty, null, null, false, string.Empty, documentBll, notificationBl, out userIds);
 							}
 						}
 					}
 				}
 			}
-		}
+			return userIds;
+        }
 	}
 }

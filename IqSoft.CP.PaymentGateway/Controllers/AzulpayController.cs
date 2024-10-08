@@ -7,6 +7,7 @@ using IqSoft.CP.PaymentGateway.Helpers;
 using IqSoft.CP.PaymentGateway.Models.Azulpay;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.ServiceModel;
@@ -39,7 +40,11 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                 throw BaseBll.CreateException(string.Empty, Constants.Errors.PaymentRequestNotFound);
                             if (input.TransactionStatus == "APPROVED")
                             {
-                                clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
+                                clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out List<int> userIds);
+                                foreach (var uId in userIds)
+                                {
+                                    PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                }
                             }
                             else if (input.TransactionStatus == "DECLINED" || input.TransactionStatus == "ERROR")
                             {

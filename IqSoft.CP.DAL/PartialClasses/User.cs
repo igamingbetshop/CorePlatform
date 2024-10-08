@@ -18,7 +18,5 @@ namespace IqSoft.CP.DAL
         }
 
         public int? OddsType { get; set; }
-        public decimal? CorrectionMaxAmount { get; set; }
-        public string CorrectionMaxAmountCurrency { get; set; }
     }
 }

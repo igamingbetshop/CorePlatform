@@ -60,9 +60,11 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 			throw new Exception($"Error: {response.Status} {response.Message}");
 		}
 
-		public static void CheckTransactionStatus(PaymentRequest paymentRequest, SessionIdentity session, ILog log)
+		public static List<int> CheckTransactionStatus(PaymentRequest paymentRequest, SessionIdentity session, ILog log)
 		{
-			using (var clientBl = new ClientBll(session, log))
+			var userIds = new List<int>();
+
+            using (var clientBl = new ClientBll(session, log))
 			using (var paymentSystemBl = new PaymentSystemBll(clientBl))
 			using (var documentBl = new DocumentBll(clientBl))
 			using (var notificationBl = new NotificationBll(clientBl))
@@ -89,14 +91,14 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 							{
 								paymentRequest.ExternalTransactionId = response.Data.Reference;
 								paymentSystemBl.ChangePaymentRequestDetails(paymentRequest);
-								clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
+                                clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out userIds);
 							}								
 							else if (paymentRequest.Type == (int)PaymentRequestTypes.Withdraw)
 							{
 								paymentRequest.ExternalTransactionId = response.Data.ChapaTransferId;
 								paymentSystemBl.ChangePaymentRequestDetails(paymentRequest);
 								var resp = clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Approved, string.Empty,
-																			   null, null, false, paymentRequest.Parameters, documentBl, notificationBl, false, true);
+																			   null, null, false, paymentRequest.Parameters, documentBl, notificationBl, out userIds, false, true);
 								clientBl.PayWithdrawFromPaymentSystem(resp, documentBl, notificationBl);
 							}
 							else if (response.Data.Status == "failed")
@@ -105,7 +107,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 									clientBl.ChangeDepositRequestState(paymentRequest.Id, PaymentRequestStates.Deleted, response.Data.Status, notificationBl);
 								else if (paymentRequest.Type == (int)PaymentRequestTypes.Withdraw)
 									clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed, response.Data.Status,
-																		null, null, false, paymentRequest.Parameters, documentBl, notificationBl);
+																		null, null, false, paymentRequest.Parameters, documentBl, notificationBl, out userIds);
 							}
 					}
 				}
@@ -123,15 +125,17 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                             clientBl.ChangeDepositRequestState(paymentRequest.Id, PaymentRequestStates.Deleted, message.Message, notificationBl);
                         else if (paymentRequest.Type == (int)PaymentRequestTypes.Withdraw)
                             clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed, message.Message,
-                                                                null, null, false, paymentRequest.Parameters, documentBl, notificationBl);
+                                                                null, null, false, paymentRequest.Parameters, documentBl, notificationBl, out userIds);
                     }
 				}
 			}
-		}
+			return userIds;
+        }
 
-		public static PaymentResponse PayoutRequest(PaymentRequest paymentRequest, SessionIdentity session, ILog log)
+		public static PaymentResponse PayoutRequest(PaymentRequest paymentRequest, SessionIdentity session, ILog log, out List<int> userIds)
 		{
-			if (paymentRequest.CurrencyId != Constants.Currencies.EthiopianBirr && paymentRequest.CurrencyId != Constants.Currencies.USADollar)
+			userIds = new List<int>();
+            if (paymentRequest.CurrencyId != Constants.Currencies.EthiopianBirr && paymentRequest.CurrencyId != Constants.Currencies.USADollar)
 				throw BaseBll.CreateException(session.LanguageId, Constants.Errors.WrongCurrencyId);
 			using (var paymentSystemBl = new PaymentSystemBll(session, log))
 			{
@@ -191,7 +195,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 							using (var documentBl = new DocumentBll(paymentSystemBl))
 							using (var notificationBl = new NotificationBll(paymentSystemBl))
 								clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed, message.Message,
-																	null, null, false, paymentRequest.Parameters, documentBl, notificationBl);
+																	null, null, false, paymentRequest.Parameters, documentBl, notificationBl, out userIds);
 						}
 						throw new Exception($"Error: {message.Status} {message.Message}");
 					}

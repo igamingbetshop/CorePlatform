@@ -88,8 +88,9 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             }
         }
 
-        public static PaymentResponse CreatePayoutRequest(PaymentRequest input, SessionIdentity session, ILog log)
+        public static PaymentResponse CreatePayoutRequest(PaymentRequest input, SessionIdentity session, ILog log, out List<int> userIds)
         {
+            userIds = new List<int>();
             using (var paymentSystemBl = new PaymentSystemBll(session, log))
             {
 				using (var clientBl = new ClientBll(paymentSystemBl))
@@ -155,7 +156,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                                 throw new Exception(response.Result.Description);
 
                             var resp = clientBl.ChangeWithdrawRequestState(input.Id, PaymentRequestStates.Approved,
-                                string.Empty, null, null, true, input.Parameters, documentBl, notificationBl);
+                                string.Empty, null, null, true, input.Parameters, documentBl, notificationBl, out userIds);
                             return new PaymentResponse
                             {
                                 Status = PaymentRequestStates.Approved,

@@ -6,36 +6,36 @@ by editing this MSBuild file. In order to learn more about this please visit htt
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <_PublishTargetUrl>C:\inetpub\wwwroot\CP\DistributionService</_PublishTargetUrl>
-    <History>True|2024-04-24T14:28:46.0280730Z;True|2024-03-11T19:31:44.8012623+04:00;True|2023-08-22T13:48:38.7377951+04:00;True|2023-08-22T13:47:55.2932373+04:00;True|2023-08-22T13:47:49.4140898+04:00;True|2023-07-21T18:53:51.6653280+04:00;True|2023-07-21T18:53:46.5424957+04:00;True|2023-03-30T13:00:26.6605297+04:00;True|2023-03-22T18:54:02.6336107+04:00;True|2023-03-14T14:12:36.9847521+04:00;True|2023-03-14T14:12:24.7514193+04:00;True|2023-03-14T14:00:25.8917514+04:00;True|2023-03-14T14:00:15.4925169+04:00;True|2023-01-16T16:23:33.6242561+04:00;True|2023-01-16T15:27:18.7528713+04:00;True|2023-01-16T15:18:32.5836459+04:00;True|2023-01-16T15:11:40.9638628+04:00;True|2023-01-16T12:36:23.6023327+04:00;True|2023-01-16T12:29:58.0321215+04:00;True|2022-11-28T19:46:08.4880931+04:00;True|2022-11-14T16:27:54.4104752+04:00;True|2022-11-08T12:42:39.1634386+04:00;True|2022-11-08T12:40:53.9636097+04:00;True|2022-08-18T20:07:32.7199519+04:00;True|2022-08-18T19:52:30.0259373+04:00;True|2022-08-05T22:21:54.8334700+04:00;True|2022-07-26T15:10:55.8527009+04:00;True|2022-07-26T15:10:41.5525154+04:00;True|2022-07-20T18:10:07.2931705+04:00;True|2022-06-07T10:17:43.4629803+04:00;True|2022-06-07T10:17:08.9923669+04:00;True|2022-06-02T20:55:01.9779088+04:00;True|2022-06-02T20:47:09.6494489+04:00;True|2022-05-26T10:38:55.4628953+04:00;True|2022-05-26T10:33:58.1552291+04:00;True|2022-05-26T10:21:54.0443582+04:00;True|2022-05-26T10:18:19.6734688+04:00;True|2022-05-26T10:08:05.0486323+04:00;True|2022-05-26T10:08:00.1710840+04:00;True|2022-05-16T20:54:17.6817448+04:00;True|2022-05-16T20:54:05.3433872+04:00;True|2022-05-13T18:10:33.9627866+04:00;True|2022-05-13T18:10:27.7006788+04:00;True|2022-05-05T10:28:39.4975111+04:00;True|2022-05-05T10:27:56.2326565+04:00;True|2022-05-05T10:27:50.6167912+04:00;True|2022-01-08T22:15:51.6888020+04:00;True|2022-01-08T21:21:58.9526474+04:00;True|2021-10-21T12:40:31.6242945+04:00;True|2021-10-21T12:30:43.0617722+04:00;True|2021-08-13T10:54:46.7008043+04:00;True|2021-07-02T18:05:21.3373460+04:00;True|2021-07-02T17:49:26.5846933+04:00;True|2021-07-02T16:15:04.8687966+04:00;True|2021-07-02T16:13:16.2536566+04:00;True|2021-07-01T20:40:45.1461531+04:00;True|2021-07-01T17:59:03.8903500+04:00;</History>
+    <History>True|2024-10-03T08:48:39.7097605Z||;True|2024-10-03T11:18:48.9546267+04:00||;True|2024-04-24T18:28:46.0280730+04:00||;True|2024-03-11T19:31:44.8012623+04:00||;True|2023-08-22T13:48:38.7377951+04:00||;True|2023-08-22T13:47:55.2932373+04:00||;True|2023-08-22T13:47:49.4140898+04:00||;True|2023-07-21T18:53:51.6653280+04:00||;True|2023-07-21T18:53:46.5424957+04:00||;True|2023-03-30T13:00:26.6605297+04:00||;True|2023-03-22T18:54:02.6336107+04:00||;True|2023-03-14T14:12:36.9847521+04:00||;True|2023-03-14T14:12:24.7514193+04:00||;True|2023-03-14T14:00:25.8917514+04:00||;True|2023-03-14T14:00:15.4925169+04:00||;True|2023-01-16T16:23:33.6242561+04:00||;True|2023-01-16T15:27:18.7528713+04:00||;True|2023-01-16T15:18:32.5836459+04:00||;True|2023-01-16T15:11:40.9638628+04:00||;True|2023-01-16T12:36:23.6023327+04:00||;True|2023-01-16T12:29:58.0321215+04:00||;True|2022-11-28T19:46:08.4880931+04:00||;True|2022-11-14T16:27:54.4104752+04:00||;True|2022-11-08T12:42:39.1634386+04:00||;True|2022-11-08T12:40:53.9636097+04:00||;True|2022-08-18T20:07:32.7199519+04:00||;True|2022-08-18T19:52:30.0259373+04:00||;True|2022-08-05T22:21:54.8334700+04:00||;True|2022-07-26T15:10:55.8527009+04:00||;True|2022-07-26T15:10:41.5525154+04:00||;True|2022-07-20T18:10:07.2931705+04:00||;True|2022-06-07T10:17:43.4629803+04:00||;True|2022-06-07T10:17:08.9923669+04:00||;True|2022-06-02T20:55:01.9779088+04:00||;True|2022-06-02T20:47:09.6494489+04:00||;True|2022-05-26T10:38:55.4628953+04:00||;True|2022-05-26T10:33:58.1552291+04:00||;True|2022-05-26T10:21:54.0443582+04:00||;True|2022-05-26T10:18:19.6734688+04:00||;True|2022-05-26T10:08:05.0486323+04:00||;True|2022-05-26T10:08:00.1710840+04:00||;True|2022-05-16T20:54:17.6817448+04:00||;True|2022-05-16T20:54:05.3433872+04:00||;True|2022-05-13T18:10:33.9627866+04:00||;True|2022-05-13T18:10:27.7006788+04:00||;True|2022-05-05T10:28:39.4975111+04:00||;True|2022-05-05T10:27:56.2326565+04:00||;True|2022-05-05T10:27:50.6167912+04:00||;True|2022-01-08T22:15:51.6888020+04:00||;True|2022-01-08T21:21:58.9526474+04:00||;True|2021-10-21T12:40:31.6242945+04:00||;True|2021-10-21T12:30:43.0617722+04:00||;True|2021-08-13T10:54:46.7008043+04:00||;True|2021-07-02T18:05:21.3373460+04:00||;True|2021-07-02T17:49:26.5846933+04:00||;True|2021-07-02T16:15:04.8687966+04:00||;True|2021-07-02T16:13:16.2536566+04:00||;True|2021-07-01T20:40:45.1461531+04:00||;True|2021-07-01T17:59:03.8903500+04:00||;</History>
     <LastFailureDetails />
   </PropertyGroup>
   <ItemGroup>
     <File Include="bin/IqSoft.CP.Common.dll">
-      <publishTime>04/24/2024 18:21:31</publishTime>
+      <publishTime>10/03/2024 11:03:25</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Common.dll.config">
-      <publishTime>04/27/2022 21:31:02</publishTime>
+      <publishTime>06/09/2024 16:37:09</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Common.pdb">
-      <publishTime>04/24/2024 18:21:31</publishTime>
+      <publishTime>10/03/2024 11:03:25</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DistributionWebApi.dll">
-      <publishTime>04/24/2024 18:28:45</publishTime>
+      <publishTime>10/03/2024 11:18:48</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DistributionWebApi.pdb">
-      <publishTime>04/24/2024 18:28:45</publishTime>
+      <publishTime>10/03/2024 11:18:48</publishTime>
     </File>
     <File Include="bin/log4net.dll">
-      <publishTime>07/25/2022 11:40:06</publishTime>
+      <publishTime>06/09/2024 16:38:30</publishTime>
     </File>
     <File Include="bin/Newtonsoft.Json.dll">
-      <publishTime>03/17/2021 20:03:36</publishTime>
+      <publishTime>06/09/2024 16:38:56</publishTime>
     </File>
     <File Include="bin/System.Net.Http.dll">
       <publishTime>09/07/2018 10:59:08</publishTime>
     </File>
     <File Include="bin/System.Net.Http.Formatting.dll">
-      <publishTime>04/27/2022 21:31:07</publishTime>
+      <publishTime>06/09/2024 16:38:32</publishTime>
     </File>
     <File Include="bin/System.Security.Cryptography.Algorithms.dll">
       <publishTime>10/14/2017 18:34:18</publishTime>
@@ -50,25 +50,25 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>10/14/2017 18:34:18</publishTime>
     </File>
     <File Include="bin/System.Web.Cors.dll">
-      <publishTime>04/27/2022 21:31:06</publishTime>
+      <publishTime>06/09/2024 16:38:31</publishTime>
     </File>
     <File Include="bin/System.Web.Http.Cors.dll">
-      <publishTime>04/27/2022 21:31:07</publishTime>
+      <publishTime>06/09/2024 16:38:33</publishTime>
     </File>
     <File Include="bin/System.Web.Http.dll">
-      <publishTime>04/27/2022 21:31:07</publishTime>
+      <publishTime>06/09/2024 16:38:33</publishTime>
     </File>
     <File Include="bin/System.Web.Http.WebHost.dll">
-      <publishTime>04/27/2022 21:31:08</publishTime>
+      <publishTime>06/09/2024 16:38:34</publishTime>
     </File>
     <File Include="Global.asax">
-      <publishTime>03/16/2020 20:39:34</publishTime>
+      <publishTime>06/09/2024 16:37:35</publishTime>
     </File>
     <File Include="packages.config">
       <publishTime>03/13/2020 21:10:51</publishTime>
     </File>
     <File Include="Web.config">
-      <publishTime>04/24/2024 18:28:45</publishTime>
+      <publishTime>10/03/2024 11:18:48</publishTime>
     </File>
   </ItemGroup>
 </Project>

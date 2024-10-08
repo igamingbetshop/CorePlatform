@@ -40,13 +40,13 @@ namespace IqSoft.CP.DAL
             this.News1 = new HashSet<News>();
             this.News2 = new HashSet<News>();
             this.PaymentSystems = new HashSet<PaymentSystem>();
-            this.Products = new HashSet<Product>();
-            this.TriggerSettings = new HashSet<TriggerSetting>();
             this.WebSiteSubMenuItems = new HashSet<WebSiteSubMenuItem>();
             this.Popups = new HashSet<Popup>();
             this.Promotions = new HashSet<Promotion>();
             this.Promotions1 = new HashSet<Promotion>();
             this.Promotions2 = new HashSet<Promotion>();
+            this.TriggerSettings = new HashSet<TriggerSetting>();
+            this.Products = new HashSet<Product>();
         }
     
         public long Id { get; set; }
@@ -102,10 +102,6 @@ namespace IqSoft.CP.DAL
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PaymentSystem> PaymentSystems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Product> Products { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<TriggerSetting> TriggerSettings { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<WebSiteSubMenuItem> WebSiteSubMenuItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Popup> Popups { get; set; }
@@ -115,5 +111,9 @@ namespace IqSoft.CP.DAL
         public virtual ICollection<Promotion> Promotions1 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Promotion> Promotions2 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TriggerSetting> TriggerSettings { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Product> Products { get; set; }
     }
 }

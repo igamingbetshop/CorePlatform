@@ -133,12 +133,12 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                                 productIds = bonusService.GetBonusProducts(new FilterBonusProduct
                                 {
                                     BonusId = apiFilter.BonusId,
-                                    Percents = apiFilter.Percents == null ? new FiltersOperation() : apiFilter.Percents.MapToFiltersOperation(),
-                                    Counts = apiFilter.Counts == null ? new FiltersOperation() : apiFilter.Counts.MapToFiltersOperation(),
-                                    Lines = apiFilter.Lines == null ? new FiltersOperation() : apiFilter.Lines.MapToFiltersOperation(),
-                                    Coins = apiFilter.Coins == null ? new FiltersOperation() : apiFilter.Coins.MapToFiltersOperation(),
-                                    CoinValues = apiFilter.CoinValues == null ? new FiltersOperation() : apiFilter.CoinValues.MapToFiltersOperation(),
-                                    BetValues = apiFilter.BetValues == null ? new FiltersOperation() : apiFilter.BetValues.MapToFiltersOperation()
+                                    Percents = apiFilter.Percents == null ? new FiltersOperation() : apiFilter.Percents.MapToFiltersOperation(identity.TimeZone),
+                                    Counts = apiFilter.Counts == null ? new FiltersOperation() : apiFilter.Counts.MapToFiltersOperation(identity.TimeZone),
+                                    Lines = apiFilter.Lines == null ? new FiltersOperation() : apiFilter.Lines.MapToFiltersOperation(identity.TimeZone),
+                                    Coins = apiFilter.Coins == null ? new FiltersOperation() : apiFilter.Coins.MapToFiltersOperation(identity.TimeZone),
+                                    CoinValues = apiFilter.CoinValues == null ? new FiltersOperation() : apiFilter.CoinValues.MapToFiltersOperation(identity.TimeZone),
+                                    BetValues = apiFilter.BetValues == null ? new FiltersOperation() : apiFilter.BetValues.MapToFiltersOperation(identity.TimeZone)
                                 }).Select(x => x.ProductId).ToList();
 
                             filter.ParentId = null;
@@ -420,7 +420,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var productBl = new ProductBll(identity, log))
             {
-                var partnerProducts = productBl.GetfnPartnerProductSettings(input.MapTofnPartnerProductSettings(), true);
+                var partnerProducts = productBl.GetfnPartnerProductSettings(input.MapTofnPartnerProductSettings(identity.TimeZone), true);
 
                 return new ApiResponseBase
                 {
@@ -437,7 +437,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var productBl = new ProductBll(identity, log))
             {
-                var partnerSettings = productBl.ExportfnPartnerProductSettings(filter.MapTofnPartnerProductSettings()).Entities.ToList();
+                var partnerSettings = productBl.ExportfnPartnerProductSettings(filter.MapTofnPartnerProductSettings(identity.TimeZone)).Entities.ToList();
                 string fileName = "ExportPartnerProductSettings.csv";
                 string fileAbsPath = productBl.ExportToCSV<fnPartnerProductSetting>(fileName, partnerSettings, null, null, identity.TimeZone, filter.AdminMenuId);
 
@@ -972,6 +972,14 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                                 var parent = dbCategories.FirstOrDefault(y => y.Value == categoryId);
                                 providerGames = Integration.Products.Helpers.EndorphinaHelpers.GetGames(Constants.MainPartnerId, log).AsParallel()
                                                 .Select(x => x.ToFnProduct(gameProviderId, parent.Key)).ToList();
+                                break;
+                            case Constants.GameProviders.RelaxGaming:
+                                gamesList = new Dictionary<string, int> // check list
+                                {
+                                    { "slots", productCategories.FirstOrDefault(x => x.NickName.ToLower() == "slots").Id },
+                                };
+                                providerGames = Integration.Products.Helpers.RelaxGamingHelpers.GetGames(Constants.MainPartnerId).AsParallel()
+                                                .Select(x => x.ToFnProduct(gameProviderId, dbCategories, gamesList, providers)).ToList();
                                 break;
                             case Constants.GameProviders.Elite:
                                 var eliteGameList = new Dictionary<string, int>

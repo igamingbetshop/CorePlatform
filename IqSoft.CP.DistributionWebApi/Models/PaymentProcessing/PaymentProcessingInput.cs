@@ -21,5 +21,6 @@
         public string PaymentSystemName { get; set; }
         public decimal MinAmount { get; set; }
         public decimal MaxAmount { get; set; }
+
     }
 }

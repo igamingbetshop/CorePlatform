@@ -108,7 +108,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 
                 log.Info("WzrdPay paymentInput: " + JsonConvert.SerializeObject(paymentInput));
                 var PostData = JsonConvert.SerializeObject(paymentInput, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
-                var basicAuth = Convert.ToBase64String(Encoding.Default.GetBytes($"{partnerPaymentSetting.UserName}"));
+                var basicAuth = Convert.ToBase64String(Encoding.Default.GetBytes($"{partnerPaymentSetting.UserName}:{partnerPaymentSetting.Password}"));
                 var httpRequestInput = new HttpRequestInput
                 {
                     ContentType = Constants.HttpContentTypes.ApplicationJson,
@@ -202,7 +202,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 };
 
                 log.Info("WZRDPayout _" + JsonConvert.SerializeObject(paymentInput));
-                var basicAuth = Convert.ToBase64String(Encoding.Default.GetBytes($"{partnerPaymentSetting.UserName}"));
+                var basicAuth = Convert.ToBase64String(Encoding.Default.GetBytes($"{partnerPaymentSetting.UserName}:{partnerPaymentSetting.Password}"));
                 var httpRequestInput = new HttpRequestInput
                 {
                     ContentType = Constants.HttpContentTypes.ApplicationJson,

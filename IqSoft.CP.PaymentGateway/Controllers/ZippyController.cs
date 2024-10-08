@@ -10,6 +10,7 @@ using IqSoft.CP.PaymentGateway.Helpers;
 using IqSoft.CP.PaymentGateway.Models.Zippy;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.ServiceModel;
@@ -53,7 +54,11 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                             {
                                 request.ExternalTransactionId = string.IsNullOrEmpty(input.ZIPPYID) ? string.Format("{0}_{0}", request.Id) : input.ZIPPYID;
                                 paymentSystemBl.ChangePaymentRequestDetails(request);
-                                clientBl.ApproveDepositFromPaymentSystem(request, false);
+                                clientBl.ApproveDepositFromPaymentSystem(request, false, out List<int> userIds);
+                                foreach (var uId in userIds)
+                                {
+                                    PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                }
                                 PaymentHelpers.RemoveClientBalanceFromCache(request.ClientId.Value);
                                 BaseHelpers.BroadcastBalance(request.ClientId.Value);
                             }
@@ -120,7 +125,11 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                             {
                                 request.ExternalTransactionId = string.IsNullOrEmpty(input.ZIPPYID) ? string.Format("{0}_{0}", request.Id) : input.ZIPPYID;
                                 paymentSystemBl.ChangePaymentRequestDetails(request);
-                                clientBl.ApproveDepositFromPaymentSystem(request, false);
+                                clientBl.ApproveDepositFromPaymentSystem(request, false, out List<int> userIds);
+                                foreach (var uId in userIds)
+                                {
+                                    PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                }
                                 PaymentHelpers.RemoveClientBalanceFromCache(request.ClientId.Value);
                                 BaseHelpers.BroadcastBalance(request.ClientId.Value);
                             }
@@ -176,6 +185,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                             try
                             {
                                 WebApiApplication.DbLogger.Info(JsonConvert.SerializeObject(input));
+                                var userIds = new List<int>();
                                 var request = paymentSystemBl.GetPaymentRequestById(Convert.ToInt64(input.MERCHANTREQUESTID));
                                 if (request == null)
                                     throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.PaymentRequestNotFound);
@@ -195,12 +205,18 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                 if (input.CODE == 0)
                                 {
                                     var resp = clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Approved, string.Empty,
-                                          null, null, false, string.Empty, documentBl, notificationBl);
+                                          null, null, false, string.Empty, documentBl, notificationBl, out userIds);
                                     clientBl.PayWithdrawFromPaymentSystem(resp, documentBl, notificationBl);
                                 }
                                 else
                                     clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Failed, input.MESSAGE, 
-                                        null, null, false, string.Empty, documentBl, notificationBl);
+                                        null, null, false, string.Empty, documentBl, notificationBl, out userIds);
+
+                                foreach (var uId in userIds)
+                                {
+                                    PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                }
+
                                 PaymentHelpers.RemoveClientBalanceFromCache(request.ClientId.Value);
                                 BaseHelpers.BroadcastBalance(request.ClientId.Value);
                                 return new HttpResponseMessage

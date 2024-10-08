@@ -3,7 +3,6 @@ using IqSoft.CP.BLL.Services;
 using IqSoft.CP.Common;
 using IqSoft.CP.Common.Enums;
 using IqSoft.CP.DAL.Models;
-using IqSoft.CP.DAL.Models.User;
 using IqSoft.CP.AgentWebApi.Filters;
 using IqSoft.CP.AgentWebApi.Helpers;
 using IqSoft.CP.AgentWebApi.Models;
@@ -700,8 +699,8 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                 {
                     using (var transactionScope = CommonFunctions.CreateTransactionScope())
                     {
-                        var res = userBl.UpdateAgent(changeObjectStateInput.ObjectId,
-                            changeObjectStateInput.State, changeObjectStateInput.Password, out List<int> clientIds);
+                        var res = userBl.UpdateAgent(changeObjectStateInput.ObjectId, changeObjectStateInput.State,
+                                                     changeObjectStateInput.Password, out List<int> clientIds);
                         res.ParentId = user.ParentId;
                         var resp = res.MapToUserModel(identity.TimeZone, new List<AgentCommission>(), user.Id, log);
                         transactionScope.Complete();

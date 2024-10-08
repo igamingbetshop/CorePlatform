@@ -90,9 +90,10 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 		}
 
 
-		public static PaymentResponse CreatePayoutRequest(PaymentRequest paymentRequest, SessionIdentity session, ILog log)
+		public static PaymentResponse CreatePayoutRequest(PaymentRequest paymentRequest, SessionIdentity session, ILog log, out List<int> userIds)
 		{
-			using (var paymentSystemBl = new PaymentSystemBll(session, log))
+			userIds = new List<int>();
+            using (var paymentSystemBl = new PaymentSystemBll(session, log))
 			{
 				var client = CacheManager.GetClientById(paymentRequest.ClientId.Value);
 				var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, paymentRequest.PaymentSystemId,
@@ -121,7 +122,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 							using (var notificationBl = new NotificationBll(paymentSystemBl))
 							{
 								clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed, nameof(Constants.Errors.WrongInputParameters),
-																	null, null, false, paymentRequest.Parameters, documentBl, notificationBl);
+																	null, null, false, paymentRequest.Parameters, documentBl, notificationBl, out userIds);
 
 								throw BaseBll.CreateException(session.LanguageId, Constants.Errors.WrongInputParameters);
 							}
@@ -165,7 +166,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 					using (var notificationBl = new NotificationBll(paymentSystemBl))
 					{
 						clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed, ex.Message,
-															null, null, false, paymentRequest.Parameters, documentBl, notificationBl);
+															null, null, false, paymentRequest.Parameters, documentBl, notificationBl, out userIds);
                         return new PaymentResponse
                         {
                             Status = PaymentRequestStates.Failed,

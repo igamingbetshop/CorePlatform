@@ -1,5 +1,4 @@
-﻿using GraphQL;
-using IqSoft.CP.BLL.Caching;
+﻿using IqSoft.CP.BLL.Caching;
 using IqSoft.CP.BLL.Services;
 using IqSoft.CP.Common;
 using IqSoft.CP.Common.Enums;
@@ -10,7 +9,6 @@ using IqSoft.CP.DAL.Models;
 using IqSoft.CP.Integration.Products.Models.TimelessTech;
 using log4net;
 using Newtonsoft.Json;
-using Org.BouncyCastle.Pqc.Crypto.Lms;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,7 +17,14 @@ namespace IqSoft.CP.Integration.Products.Helpers
 {
 	public class TimelessTechHelpers
 	{
-		public static string GetUrl(string token, int clientId, int partnerId, int productId, bool isForDemo, SessionIdentity session, ILog log)
+        private static readonly List<string> NotSupportedCurrencies = new List<string>
+        {
+            Constants.Currencies.USDT,
+            Constants.Currencies.USDC,
+            Constants.Currencies.PYUSD,
+            Constants.Currencies.BUSD
+        };
+        public static string GetUrl(string token, int clientId, int partnerId, int productId, bool isForDemo, SessionIdentity session, ILog log)
 		{
 			var product = CacheManager.GetProductById(productId);
 			var provider = CacheManager.GetGameProviderById(product.GameProviderId.Value);
@@ -37,7 +42,11 @@ namespace IqSoft.CP.Integration.Products.Helpers
 			var url = $"{launchUrl}/?mode={mode}&{gameId}&language={session.LanguageId}&operator_id={operatorID}&device={device}";
 			if (isForDemo)
 				return url;
-			return $"{url}&currency={client.CurrencyId}&token={token}";
+			var currency = client.CurrencyId;
+            if (NotSupportedCurrencies.Contains(currency))
+                currency = Constants.Currencies.USADollar;
+
+            return $"{url}&currency={currency}&token={token}";
 		}
 
 		public static List<Game> GetGames(int partnerId, int providerId)

@@ -62,9 +62,9 @@ namespace IqSoft.CP.DataWarehouse.Filters
             return affiliateCorrection;
         }
 
-        public long SelectedObjectsCount(IQueryable<fnAffiliateCorrection> affiliateCorrection, bool ordering)
+        public long SelectedObjectsCount(IQueryable<fnAffiliateCorrection> affiliateCorrection)
         {
-            CreateQuery(ref affiliateCorrection, ordering);
+            CreateQuery(ref affiliateCorrection, false);
             return affiliateCorrection.Count();
         }
     }

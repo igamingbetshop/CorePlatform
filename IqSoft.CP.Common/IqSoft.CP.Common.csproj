@@ -130,7 +130,6 @@
     <Compile Include="Enums\PayoutCancelationTypes.cs" />
     <Compile Include="Enums\PopupTypes.cs" />
     <Compile Include="Enums\ProductCountrySettingTypes.cs" />
-    <Compile Include="Enums\PromotionTypes.cs" />
     <Compile Include="Enums\ReferralTypes.cs" />
     <Compile Include="Enums\RegistrationMessageTypes.cs" />
     <Compile Include="Enums\SegmentStates.cs" />
@@ -138,6 +137,7 @@
     <Compile Include="Enums\SocialMediaTypes.cs" />
     <Compile Include="Enums\TimeObservationTypes.cs" />
     <Compile Include="Enums\UnderMonitoringTypes.cs" />
+    <Compile Include="Enums\UserNotificationTypes.cs" />
     <Compile Include="Enums\VerificationCodeTypes.cs" />
     <Compile Include="Enums\VerificationPlatforms.cs" />
     <Compile Include="Enums\VerificationStates.cs" />
@@ -314,6 +314,7 @@
     <Compile Include="Models\Filters\ApiFilterClientCorrection.cs" />
     <Compile Include="Models\Filters\ApiFilterfnAgent.cs" />
     <Compile Include="Models\Filters\ApiFilterFnAgentTransaction.cs" />
+    <Compile Include="Models\Filters\ApiFilterReportByProvider.cs" />
     <Compile Include="Models\Filters\ApiFiltersOperation.cs" />
     <Compile Include="Models\Filters\ApiFiltersOperationType.cs" />
     <Compile Include="Models\Filters\Condition.cs" />
@@ -339,6 +340,7 @@
     <Compile Include="Models\Notification\SMSToOutput.cs" />
     <Compile Include="Models\Notification\TrackierTokenOutput.cs" />
     <Compile Include="Models\Notification\UniSenderInput.cs" />
+    <Compile Include="Models\Notification\VerifyCodeOutput.cs" />
     <Compile Include="Models\Notification\XeRateResponse.cs" />
     <Compile Include="Models\PagedModel.cs" />
     <Compile Include="Models\Partner\PartnerGamingLimit.cs" />
@@ -354,6 +356,7 @@
     <Compile Include="Models\ProviderData.cs" />
     <Compile Include="Models\RegExProperty.cs" />
     <Compile Include="Models\RegionTree.cs" />
+    <Compile Include="Models\Report\ApiReportByProvidersElement.cs" />
     <Compile Include="Models\Report\InternetBetByClient.cs" />
     <Compile Include="Models\UserModels\AgentEmployeePermissionModel.cs" />
     <Compile Include="Models\UserModels\AgentSubAccount.cs" />
@@ -396,6 +399,7 @@
     <Compile Include="Models\WebSiteModels\Bets\ApiGetBetInfoOutput.cs" />
     <Compile Include="Models\WebSiteModels\Bets\ApiTransferInput.cs" />
     <Compile Include="Models\WebSiteModels\Bets\TurnoverModel.cs" />
+    <Compile Include="Models\WebSiteModels\Bonuses\ApiConnectedBonusItem.cs" />
     <Compile Include="Models\WebSiteModels\Bonuses\ApiExternalBonus.cs" />
     <Compile Include="Models\WebSiteModels\Bonuses\ApiGetBonusBetsInput.cs" />
     <Compile Include="Models\WebSiteModels\Bonuses\ApiBonusInfo.cs" />
@@ -419,6 +423,7 @@
     <Compile Include="Models\WebSiteModels\Clients\ApiClientIdentityModel.cs" />
     <Compile Include="Models\WebSiteModels\Clients\ApiClientLimit.cs" />
     <Compile Include="Models\WebSiteModels\Clients\ApiClientPaymentInfo.cs" />
+    <Compile Include="Models\WebSiteModels\Clients\ApiClientStatistics.cs" />
     <Compile Include="Models\WebSiteModels\Clients\ApiCreateMessageInput.cs" />
     <Compile Include="Models\WebSiteModels\Clients\ApiExclusionInput.cs" />
     <Compile Include="Models\WebSiteModels\Clients\ApiInviteFriendInput.cs" />

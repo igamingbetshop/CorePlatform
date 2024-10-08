@@ -107,8 +107,9 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             }
         }
 
-        public static PaymentResponse CreatePayoutRequest(PaymentRequest paymentRequest, SessionIdentity session, ILog log)
+        public static PaymentResponse CreatePayoutRequest(PaymentRequest paymentRequest, SessionIdentity session, ILog log, out List<int> userIds)
         {
+            userIds = new List<int>();
             using (var paymentSystemBl = new PaymentSystemBll(session, log))
             {
                 var client = CacheManager.GetClientById(paymentRequest.ClientId.Value);
@@ -175,7 +176,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                     using (var documentBll = new DocumentBll(paymentSystemBl))
                     {
                         clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed, ex.Message,
-                                                            null, null, false, string.Empty, documentBll, notificationBl);
+                                                            null, null, false, string.Empty, documentBll, notificationBl, out userIds);
                     }
                     throw;
                 }

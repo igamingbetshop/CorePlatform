@@ -31,6 +31,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 			var inputString = httpRequestMessage.Content.ReadAsStringAsync().Result;
 			WebApiApplication.DbLogger.Info(inputString);
 			var response = string.Empty;
+			var userIds = new List<int>();
 			var httpResponseMessage = new HttpResponseMessage
 			{
 				StatusCode = HttpStatusCode.OK
@@ -84,8 +85,8 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 											State = (int)ClientPaymentInfoStates.Verified
 										});
 									}
-									clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, info: info ?? new ClientPaymentInfo());
-								}
+									clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out userIds, info: info ?? new ClientPaymentInfo());
+                                }
 								else if (input.Result.ToUpper() == "ERROR")
 									clientBl.ChangeDepositRequestState(paymentRequest.Id, PaymentRequestStates.Failed,
 										string.Format("ErrorCode: {0}, ErrorMessage: {1}", input.Code, input.Message), notificationBl);
@@ -97,14 +98,14 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 									if (input.Result.ToUpper() == "OK")
 									{
 										var resp = clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Approved, string.Empty,
-										 null, null, false, string.Empty, documentBll, notificationBl);
+										 null, null, false, string.Empty, documentBll, notificationBl, out userIds);
 										clientBl.PayWithdrawFromPaymentSystem(resp, documentBll, notificationBl);
 									}
 									else if (input.Result.ToUpper() == "ERROR")
 									{
 										var reason = string.Format("ErrorCode: {0}, ErrorMessage: {1} AdapterCode: {2}, AdapterMessage: {3}", input.AdapterCode, input.AdapterMessage);
 										clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed,
-											reason, null, null, false, string.Empty, documentBll, notificationBl);
+											reason, null, null, false, string.Empty, documentBll, notificationBl, out userIds);
 									}
 								}
 							}
@@ -116,7 +117,12 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 									throw BaseBll.CreateException(string.Empty, Constants.Errors.AccountNotFound);
 								clientBl.DeleteClientPaymentInfo(clientPaymentInfo.ClientId, clientPaymentInfo.Id);
 							}
-							PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
+                            foreach (var uId in userIds)
+                            {
+                                PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                            }
+
+                            PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
 							BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);
 							response = "OK";
 						}

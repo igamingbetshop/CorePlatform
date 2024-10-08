@@ -20,8 +20,6 @@ using Product = IqSoft.CP.DAL.Product;
 using System.Threading.Tasks;
 using IqSoft.CP.Common.Models;
 using IqSoft.CP.Common.Models.AdminModels;
-using IqSoft.CP.DataWarehouse;
-using IqSoft.CP.BLL.Models;
 
 namespace IqSoft.CP.BLL.Services
 {
@@ -82,16 +80,8 @@ namespace IqSoft.CP.BLL.Services
                     LanguageId = Constants.DefaultLanguageId
                 });
                 var parent = CacheManager.GetProductById(product.ParentId ?? 0);
-                var newId = product.Id;
-                if (newId == 0)
-                {
-                    var maxId = Db.Products.Where(x => x.Id < 1000).OrderByDescending(x => x.Id).FirstOrDefault();
-                    newId = maxId == null ? 0 : maxId.Id + 1;
-                }
-
                 dbProduct = new Product
                 {
-                    Id = newId,
                     GameProviderId = product.GameProviderId,
                     PaymentSystemId = null,
                     Level = parent.Level + 1,
@@ -1001,7 +991,7 @@ namespace IqSoft.CP.BLL.Services
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
 
             return Db.ProductLimits.Where(x => x.ObjectTypeId == objectTypeId && x.ObjectId == objectId &&
-                                                     x.LimitTypeId == limitType && x.ProductId.HasValue && x.Product.GameProvider.IsActive)
+                                               x.LimitTypeId == limitType && x.ProductId.HasValue && (x.Product.GameProvider == null || x.Product.GameProvider.IsActive))
                                          .Select(x => new DAL.Models.ProductLimit
                                          {
                                              Id = x.Id,
@@ -1106,14 +1096,6 @@ namespace IqSoft.CP.BLL.Services
             var allProducts = Db.Products.Include(x => x.GameProvider).Where(x => x.GameProviderId == gameProviderId &&
                                                                                   x.ExternalId.ToLower() != "lobby" &&
                                                                                   x.ExternalId.ToLower() != "promowin").ToList();
-			var maxId = allProducts.Count == 0 ? gameProviderId * 1000 : allProducts.Max(x => x.Id);
-			if (maxId == 1999)
-                maxId = 100000;
-            else if (maxId == 30000)
-                maxId = 75000;
-            else if (maxId == 79000) 
-                maxId = 250000;
-
             Log.Info("Provider Games Count: " + providerGames.Count);
             var existingGames = allProducts.Where(x => providerGames.Any(y => y.ExternalId.ToLower() == x.ExternalId.ToLower())).ToList();
             Log.Info("Existing Games Count: " + existingGames.Count);
@@ -1220,10 +1202,8 @@ namespace IqSoft.CP.BLL.Services
                         });
                         Db.Translations.Add(t);
                         Db.SaveChanges();
-                        ++maxId;
                         var prod = new Product
                         {
-                            Id = maxId,
                             GameProviderId = gameProviderId,
                             ParentId = product.ParentId.Value,
                             NickName = product.NickName,
@@ -1252,7 +1232,7 @@ namespace IqSoft.CP.BLL.Services
                         var parentProduct = Db.Products.First(x => x.Id == product.ParentId.Value);
                         prod.Path += parentProduct.Path + prod.Id + "/";
                         Db.SaveChanges();
-                        resp.Add(maxId);
+                        resp.Add(prod.Id);
                         if (product.ProductCountrySettings != null)
                             foreach (var cs in product.ProductCountrySettings)
                                 Db.ProductCountrySettings.Add(new ProductCountrySetting { ProductId = prod.Id, CountryId = cs.CountryId, Type = cs.Type });

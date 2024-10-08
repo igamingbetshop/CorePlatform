@@ -6,15 +6,15 @@ by editing this MSBuild file. In order to learn more about this please visit htt
 <Project>
   <PropertyGroup>
     <_PublishTargetUrl>C:\inetpub\wwwroot\CP\ProductGateway</_PublishTargetUrl>
-    <History>True|2024-08-29T17:54:02.3425640Z||;True|2024-08-29T21:43:06.9836845+04:00||;True|2024-08-29T21:36:32.8355136+04:00||;True|2024-08-29T18:36:13.2759735+04:00||;True|2024-08-14T17:33:19.0607771+04:00||;True|2024-08-01T15:00:56.1080445+04:00||;True|2024-08-01T14:28:59.1481415+04:00||;True|2024-07-26T12:01:27.0717930+04:00||;True|2024-07-22T14:33:05.9861470+04:00||;True|2024-07-05T18:06:31.1270485+04:00||;True|2024-07-05T18:05:43.9400316+04:00||;True|2024-07-04T18:39:48.9287742+04:00||;True|2024-07-04T15:05:21.5699492+04:00||;True|2024-07-01T16:59:27.4760111+04:00||;True|2024-07-01T16:58:57.4484687+04:00||;True|2024-06-29T14:58:32.9519454+04:00||;False|2024-06-29T14:55:49.7490286+04:00||;True|2024-06-29T12:36:09.5930908+04:00||;True|2024-06-29T12:35:42.3504410+04:00||;True|2024-06-28T12:58:36.8383979+04:00||;True|2024-06-24T21:13:58.9213353+04:00||;True|2024-06-24T20:08:27.1500532+04:00||;True|2024-06-24T13:25:55.5343826+04:00||;True|2024-06-19T14:18:24.3801689+04:00||;True|2024-06-19T14:18:05.4480066+04:00||;True|2024-06-18T16:45:20.7492902+04:00||;True|2024-06-14T18:38:25.9495897+04:00||;True|2024-06-14T18:37:33.7460278+04:00||;True|2024-06-14T18:34:48.0769680+04:00||;True|2024-06-13T13:43:44.3949831+04:00||;True|2024-06-07T18:34:22.7477977+04:00||;False|2024-05-15T18:20:01.6463865+04:00||;True|2024-05-14T21:38:29.3391040+04:00||;True|2024-05-14T21:37:11.7170022+04:00||;True|2024-05-06T11:21:53.1234093+04:00||;True|2024-04-26T13:18:01.6110272+04:00||;True|2024-04-25T16:16:25.0281091+04:00||;True|2024-04-23T00:59:58.2181725+04:00||;True|2024-04-17T13:27:41.3240312+04:00||;True|2024-04-12T13:23:07.6084949+04:00||;True|2024-04-08T14:06:10.4209265+04:00||;True|2024-03-18T11:54:53.6003811+04:00||;True|2024-03-14T22:39:21.6746708+04:00||;True|2024-03-14T22:38:36.1823371+04:00||;True|2024-03-13T22:49:16.1215182+04:00||;True|2024-03-12T22:10:51.8014382+04:00||;True|2024-03-12T22:10:23.7068708+04:00||;True|2024-03-12T18:20:30.8055970+04:00||;True|2024-03-12T18:20:08.8992542+04:00||;True|2024-03-11T21:10:35.5714528+04:00||;True|2024-03-07T20:05:55.0775083+04:00||;True|2024-03-07T20:05:22.4576966+04:00||;True|2024-03-07T16:50:48.9095307+04:00||;True|2024-03-07T16:50:15.7735761+04:00||;True|2024-03-07T16:30:11.1559392+04:00||;True|2024-03-07T16:08:09.9019298+04:00||;True|2024-03-07T15:40:45.4891808+04:00||;True|2024-03-07T14:27:51.8755943+04:00||;True|2024-03-05T14:53:39.0979607+04:00||;True|2024-03-05T14:53:14.3489093+04:00||;True|2024-03-05T01:36:43.5743724+04:00||;True|2024-03-02T15:23:45.9155414+04:00||;True|2024-03-02T15:23:15.9146428+04:00||;True|2024-03-02T14:25:22.9325394+04:00||;True|2024-03-02T14:24:55.4637374+04:00||;True|2024-03-02T14:08:45.8194282+04:00||;True|2024-03-02T11:26:15.9654758+04:00||;True|2024-02-28T11:05:54.9846666+04:00||;True|2024-02-24T18:48:04.7617032+04:00||;True|2024-02-24T18:47:36.5347550+04:00||;True|2024-02-23T20:47:22.6933435+04:00||;True|2024-02-23T18:11:16.3555895+04:00||;True|2024-02-12T20:59:53.4653242+04:00||;True|2024-01-31T23:00:53.1811440+04:00||;True|2024-01-31T22:58:37.4956971+04:00||;</History>
+    <History>True|2024-10-04T18:10:33.5706505Z||;True|2024-10-04T18:18:55.2112150+04:00||;True|2024-10-04T18:18:23.0601134+04:00||;True|2024-10-03T14:33:33.8702470+04:00||;True|2024-10-02T17:13:59.9544683+04:00||;True|2024-10-01T17:07:12.1682957+04:00||;True|2024-10-01T17:06:31.4828889+04:00||;True|2024-09-11T11:29:57.3890431+04:00||;True|2024-09-04T16:28:25.0207802+04:00||;True|2024-09-03T14:33:35.8756340+04:00||;True|2024-08-29T21:54:02.3425640+04:00||;True|2024-08-29T21:43:06.9836845+04:00||;True|2024-08-29T21:36:32.8355136+04:00||;True|2024-08-29T18:36:13.2759735+04:00||;True|2024-08-14T17:33:19.0607771+04:00||;True|2024-08-01T15:00:56.1080445+04:00||;True|2024-08-01T14:28:59.1481415+04:00||;True|2024-07-26T12:01:27.0717930+04:00||;True|2024-07-22T14:33:05.9861470+04:00||;True|2024-07-05T18:06:31.1270485+04:00||;True|2024-07-05T18:05:43.9400316+04:00||;True|2024-07-04T18:39:48.9287742+04:00||;True|2024-07-04T15:05:21.5699492+04:00||;True|2024-07-01T16:59:27.4760111+04:00||;True|2024-07-01T16:58:57.4484687+04:00||;True|2024-06-29T14:58:32.9519454+04:00||;False|2024-06-29T14:55:49.7490286+04:00||;True|2024-06-29T12:36:09.5930908+04:00||;True|2024-06-29T12:35:42.3504410+04:00||;True|2024-06-28T12:58:36.8383979+04:00||;True|2024-06-24T21:13:58.9213353+04:00||;True|2024-06-24T20:08:27.1500532+04:00||;True|2024-06-24T13:25:55.5343826+04:00||;True|2024-06-19T14:18:24.3801689+04:00||;True|2024-06-19T14:18:05.4480066+04:00||;True|2024-06-18T16:45:20.7492902+04:00||;True|2024-06-14T18:38:25.9495897+04:00||;True|2024-06-14T18:37:33.7460278+04:00||;True|2024-06-14T18:34:48.0769680+04:00||;True|2024-06-13T13:43:44.3949831+04:00||;True|2024-06-07T18:34:22.7477977+04:00||;False|2024-05-15T18:20:01.6463865+04:00||;True|2024-05-14T21:38:29.3391040+04:00||;True|2024-05-14T21:37:11.7170022+04:00||;True|2024-05-06T11:21:53.1234093+04:00||;True|2024-04-26T13:18:01.6110272+04:00||;True|2024-04-25T16:16:25.0281091+04:00||;True|2024-04-23T00:59:58.2181725+04:00||;True|2024-04-17T13:27:41.3240312+04:00||;True|2024-04-12T13:23:07.6084949+04:00||;True|2024-04-08T14:06:10.4209265+04:00||;True|2024-03-18T11:54:53.6003811+04:00||;True|2024-03-14T22:39:21.6746708+04:00||;True|2024-03-14T22:38:36.1823371+04:00||;True|2024-03-13T22:49:16.1215182+04:00||;True|2024-03-12T22:10:51.8014382+04:00||;True|2024-03-12T22:10:23.7068708+04:00||;True|2024-03-12T18:20:30.8055970+04:00||;True|2024-03-12T18:20:08.8992542+04:00||;True|2024-03-11T21:10:35.5714528+04:00||;True|2024-03-07T20:05:55.0775083+04:00||;True|2024-03-07T20:05:22.4576966+04:00||;True|2024-03-07T16:50:48.9095307+04:00||;True|2024-03-07T16:50:15.7735761+04:00||;True|2024-03-07T16:30:11.1559392+04:00||;True|2024-03-07T16:08:09.9019298+04:00||;True|2024-03-07T15:40:45.4891808+04:00||;True|2024-03-07T14:27:51.8755943+04:00||;True|2024-03-05T14:53:39.0979607+04:00||;True|2024-03-05T14:53:14.3489093+04:00||;True|2024-03-05T01:36:43.5743724+04:00||;True|2024-03-02T15:23:45.9155414+04:00||;True|2024-03-02T15:23:15.9146428+04:00||;True|2024-03-02T14:25:22.9325394+04:00||;True|2024-03-02T14:24:55.4637374+04:00||;True|2024-03-02T14:08:45.8194282+04:00||;True|2024-03-02T11:26:15.9654758+04:00||;True|2024-02-28T11:05:54.9846666+04:00||;True|2024-02-24T18:48:04.7617032+04:00||;True|2024-02-24T18:47:36.5347550+04:00||;True|2024-02-23T20:47:22.6933435+04:00||;True|2024-02-23T18:11:16.3555895+04:00||;True|2024-02-12T20:59:53.4653242+04:00||;True|2024-01-31T23:00:53.1811440+04:00||;True|2024-01-31T22:58:37.4956971+04:00||;</History>
     <LastFailureDetails />
   </PropertyGroup>
   <ItemGroup>
     <File Include="bin/App_global.asax.compiled">
-      <publishTime>08/29/2024 21:54:01</publishTime>
+      <publishTime>10/04/2024 22:10:32</publishTime>
     </File>
     <File Include="bin/App_global.asax.dll">
-      <publishTime>08/29/2024 21:54:01</publishTime>
+      <publishTime>10/04/2024 22:10:31</publishTime>
     </File>
     <File Include="bin/BCrypt.Net.dll">
       <publishTime>06/09/2024 16:38:14</publishTime>
@@ -26,7 +26,7 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>06/09/2024 16:38:15</publishTime>
     </File>
     <File Include="bin/de/PdfSharp.resources.dll">
-      <publishTime>06/09/2024 16:38:58</publishTime>
+      <publishTime>09/17/2024 17:18:50</publishTime>
     </File>
     <File Include="bin/EntityFramework.dll">
       <publishTime>06/09/2024 16:38:23</publishTime>
@@ -58,56 +58,62 @@ by editing this MSBuild file. In order to learn more about this please visit htt
     <File Include="bin/GraphQLParser.dll">
       <publishTime>06/09/2024 16:38:27</publishTime>
     </File>
+    <File Include="bin/HtmlRenderer.PdfSharp.dll">
+      <publishTime>09/17/2024 17:18:50</publishTime>
+    </File>
+    <File Include="bin/HtmlRenderer.PdfSharp.pdb">
+      <publishTime>09/17/2024 17:18:50</publishTime>
+    </File>
     <File Include="bin/IqSoft.CP.BLL.dll">
-      <publishTime>08/29/2024 21:53:47</publishTime>
+      <publishTime>10/04/2024 13:43:22</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.BLL.dll.config">
       <publishTime>06/09/2024 16:37:08</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.BLL.pdb">
-      <publishTime>08/29/2024 21:53:47</publishTime>
+      <publishTime>10/04/2024 13:43:22</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Common.dll">
-      <publishTime>08/29/2024 21:34:34</publishTime>
+      <publishTime>10/04/2024 13:43:04</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Common.dll.config">
       <publishTime>06/09/2024 16:37:09</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Common.pdb">
-      <publishTime>08/29/2024 21:34:34</publishTime>
+      <publishTime>10/04/2024 13:43:04</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DAL.dll">
-      <publishTime>08/29/2024 21:34:39</publishTime>
+      <publishTime>10/04/2024 13:43:14</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DAL.dll.config">
       <publishTime>08/14/2024 16:31:54</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DAL.pdb">
-      <publishTime>08/29/2024 21:34:39</publishTime>
+      <publishTime>10/04/2024 13:43:14</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DataWarehouse.dll">
-      <publishTime>08/29/2024 21:34:35</publishTime>
+      <publishTime>10/04/2024 13:43:06</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DataWarehouse.dll.config">
-      <publishTime>06/09/2024 16:37:34</publishTime>
+      <publishTime>09/12/2024 19:17:47</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DataWarehouse.pdb">
-      <publishTime>08/29/2024 21:34:35</publishTime>
+      <publishTime>10/04/2024 13:43:06</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Integration.dll">
-      <publishTime>08/29/2024 21:53:50</publishTime>
+      <publishTime>10/04/2024 13:43:33</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Integration.dll.config">
       <publishTime>06/09/2024 16:37:37</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Integration.pdb">
-      <publishTime>08/29/2024 21:53:50</publishTime>
+      <publishTime>10/04/2024 13:43:33</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.ProductGateway.dll">
-      <publishTime>08/29/2024 21:53:53</publishTime>
+      <publishTime>10/04/2024 22:10:13</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.ProductGateway.pdb">
-      <publishTime>08/29/2024 21:53:53</publishTime>
+      <publishTime>10/04/2024 22:10:13</publishTime>
     </File>
     <File Include="bin/jose-jwt.dll">
       <publishTime>06/09/2024 16:38:27</publishTime>
@@ -278,7 +284,7 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>06/09/2024 16:38:58</publishTime>
     </File>
     <File Include="bin/PdfSharp.dll">
-      <publishTime>06/09/2024 16:38:58</publishTime>
+      <publishTime>09/17/2024 17:18:50</publishTime>
     </File>
     <File Include="bin/Renci.SshNet.dll">
       <publishTime>06/09/2024 16:38:59</publishTime>
@@ -356,7 +362,7 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>06/09/2024 16:39:44</publishTime>
     </File>
     <File Include="PrecompiledApp.config">
-      <publishTime>08/29/2024 21:53:54</publishTime>
+      <publishTime>10/04/2024 22:10:20</publishTime>
     </File>
     <File Include="Scripts/jquery-3.6.0.js">
       <publishTime>06/09/2024 16:38:06</publishTime>
@@ -380,7 +386,7 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>06/09/2024 16:38:06</publishTime>
     </File>
     <File Include="Web.config">
-      <publishTime>08/29/2024 21:36:14</publishTime>
+      <publishTime>10/04/2024 18:17:49</publishTime>
     </File>
   </ItemGroup>
 </Project>

@@ -1,17 +1,14 @@
 ﻿namespace IqSoft.CP.Common.Models.WebSiteModels.Clients
 {
-    public class AddClientIdentityModel
+    public class AddClientIdentityModel 
     {
-        public int Id { get; set; } 
-
-        public int ClientId { get; set; } 
-
-        public string Name { get; set; }
-
-        public string ImageData { get; set; }
-
+        public int Id { get; set; }
+        public int ClientId { get; set; }
         public string Extension { get; set; }
-
+        public string Name { get; set; } 
         public int DocumentTypeId { get; set; }
+        public string ImageData { get; set; }
+        public string ImageFrontData { get; set; }
+        public string ImageBackData { get; set; }
     }
 }

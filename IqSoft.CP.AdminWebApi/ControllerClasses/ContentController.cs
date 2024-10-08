@@ -22,7 +22,6 @@ using IqSoft.CP.DAL.Models.Segment;
 using IqSoft.CP.Common.Models.AdminModels;
 using System.Collections.Generic;
 using IqSoft.CP.Common.Helpers;
-using System.Reflection;
 
 namespace IqSoft.CP.AdminWebApi.ControllerClasses
 {
@@ -214,7 +213,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     {
                         if (string.IsNullOrEmpty(apiBannerInput.ImageData))
                             apiBannerInput.ImageSize = String.Empty;
-                        var banner = apiBannerInput.MapToBanner();
+                        var banner = apiBannerInput.MapToBanner(identity.TimeZone);
                         banner = contentBl.SaveWebSiteBanner(banner);
                         Helpers.Helpers.InvokeMessage("RemoveBanners", apiBannerInput.PartnerId, apiBannerInput.Type);
                         var partner = CacheManager.GetPartnerById(banner.PartnerId);
@@ -356,7 +355,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             {
                 using (var partnerBl = new PartnerBll(contentBl))
                 {
-                    var dbPromotion = contentBl.SavePromotion(apiPromotionInput.MapToPromotion());
+                    var dbPromotion = contentBl.SavePromotion(apiPromotionInput.MapToPromotion(identity.TimeZone));
                     var partner = CacheManager.GetPartnerById(apiPromotionInput.PartnerId);
                     if (!string.IsNullOrEmpty(apiPromotionInput.ImageName) && (!string.IsNullOrEmpty(apiPromotionInput.ImageData) ||
 																			   !string.IsNullOrEmpty(apiPromotionInput.ImageDataMedium) ||
@@ -445,7 +444,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             {
                 using (var partnerBl = new PartnerBll(contentBl))
                 {
-                    var dbNews = contentBl.SaveNews(apiNewsInput.ToNews());
+                    var dbNews = contentBl.SaveNews(apiNewsInput.ToNews(identity.TimeZone));
                     var partner = CacheManager.GetPartnerById(apiNewsInput.PartnerId);
                     if (!string.IsNullOrEmpty(apiNewsInput.ImageName) && (!string.IsNullOrEmpty(apiNewsInput.ImageData) ||
                                                                                !string.IsNullOrEmpty(apiNewsInput.ImageDataMedium) ||
@@ -930,10 +929,10 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var contentBl = new ContentBll(identity, log))
             {
-                var setting = apiCRMSetting.ToCRMSetting();
+                var setting = apiCRMSetting.ToCRMSetting(identity.TimeZone);
                 return new ApiResponseBase
                 {
-                    ResponseObject = contentBl.SaveCRMSetting(setting).ToApiCRMSetting()
+                    ResponseObject = contentBl.SaveCRMSetting(setting).ToApiCRMSetting(identity.TimeZone)
                 };
             }
         }
@@ -944,7 +943,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             {
                 return new ApiResponseBase
                 {
-                    ResponseObject = contentBl.GetCRMSettings().Select(x => x.ToApiCRMSetting()).ToList()
+                    ResponseObject = contentBl.GetCRMSettings().Select(x => x.ToApiCRMSetting(identity.TimeZone)).ToList()
                 };
             }
         }
@@ -955,7 +954,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             {
                 return new ApiResponseBase
                 {
-                    ResponseObject = contentBl.GetCRMSettingById(settingId).ToApiCRMSetting()
+                    ResponseObject = contentBl.GetCRMSettingById(settingId).ToApiCRMSetting(identity.TimeZone)
                 };
             }
         }
@@ -1153,7 +1152,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var contentBl = new ContentBll(identity, log))
             {
-                var announcements = contentBl.GetAnnouncements(apiAnnouncement.MapToFilterAnnouncement(), true);
+                var announcements = contentBl.GetAnnouncements(apiAnnouncement.MapToFilterAnnouncement(identity.TimeZone), true);
                 return new ApiResponseBase
                 {
                     ResponseObject = new

@@ -100,7 +100,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                         ip = paymentInfo.TransactionIp,
                         date_of_birth = client.BirthDate.ToString("yyyy-MM-dd"),
                         description = "Deposit",
-                        currency = client.CurrencyId,
+                        currency = Constants.Currencies.USADollar,
                         amount = request.Amount,
                         ResourcesUrl = input.RedirectUrl,
                         custom_return_url = input.RedirectUrl,
@@ -220,7 +220,11 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                 if (input.Status.ToUpper() == "APPROVED")
                                 {
 
-                                    clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
+                                    clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out List<int> userIds);
+                                    foreach (var uId in userIds)
+                                    {
+                                        PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                    }
                                     response = "OK";
                                     PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
                                     BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);

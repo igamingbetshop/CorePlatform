@@ -250,8 +250,7 @@ namespace IqSoft.CP.BLL.Services
             });
             if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleObjects.All(x => x != promotion.PartnerId))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
-            if (!Enum.IsDefined(typeof(PromotionTypes), promotion.Type) ||
-                promotion.StartDate == DateTime.MinValue || promotion.FinishDate == DateTime.MinValue ||
+            if (promotion.StartDate == DateTime.MinValue || promotion.FinishDate == DateTime.MinValue ||
                 promotion.StartDate >= promotion.FinishDate)
                 throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
             var currentDate = DateTime.Now;
@@ -1645,7 +1644,6 @@ namespace IqSoft.CP.BLL.Services
         {
             var partner = CacheManager.GetPartnerById(partnerId);
             var pathTemplate = "/assets/json/promotions/{0}_{1}.json";
-            var pts = CacheManager.GetEnumerations(nameof(PromotionTypes), LanguageId);
             var dbPromotions = Db.Promotions.Where(x => x.PartnerId == partnerId  && x.State == (int)BaseStates.Active)
                                                  .Select(x => new PromotionItem
                                                  {
@@ -1661,7 +1659,6 @@ namespace IqSoft.CP.BLL.Services
                                                  }).ToList();
             foreach (var p in dbPromotions)
             {
-                p.type = pts.FirstOrDefault(y => y.Value == Convert.ToUInt32(p.type)).Text;
                 UploadFile(JsonConvert.SerializeObject(p), "/coreplatform/website/" + partner.Name.ToLower() + String.Format(pathTemplate, p.id, languageId.ToLower()), ftpInput);
             }
             UploadFile(string.Format("window.VERSION = {0};", (new Random()).Next(1, 1000)), "/coreplatform/website/" + partner.Name.ToLower() + "/assets/js/version.js", ftpInput);

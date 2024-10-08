@@ -540,8 +540,9 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             }
         }
 
-        public static void GetPayoutRequestStatus(PaymentRequest paymentRequest, SessionIdentity session, ILog log)
+        public static List<int> GetPayoutRequestStatus(PaymentRequest paymentRequest, SessionIdentity session, ILog log)
         {
+            var userIds = new List<int>();
             using (var clientBl = new ClientBll(session, log))
             {
                 var client = CacheManager.GetClientById(paymentRequest.ClientId.Value);
@@ -583,18 +584,19 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                         if (output.Data.Status == 5)
                         {
                             var resp = clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Approved,
-                                string.Empty, null, null, false, string.Empty, documentBl, notificationBl);
+                                string.Empty, null, null, false, string.Empty, documentBl, notificationBl, out userIds);
                             clientBl.PayWithdrawFromPaymentSystem(resp, documentBl, notificationBl);
 
                         }
                         else if (!WaitingStatuses.Contains(output.Data.Status))
                         {
                             clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed,
-                            output.Message, null, null, false, string.Empty, documentBl, notificationBl);
+                            output.Message, null, null, false, string.Empty, documentBl, notificationBl, out userIds);
                         }
                     }
                 }
             }
+            return userIds;
         }
 
         private static readonly List<int> WaitingStatuses = new List<int> { 1, 2, 3, 7 };

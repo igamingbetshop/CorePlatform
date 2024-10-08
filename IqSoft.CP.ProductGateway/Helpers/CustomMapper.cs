@@ -31,7 +31,8 @@ namespace IqSoft.CP.ProductGateway.Helpers
                 CategoryId = client.CategoryId,
                 CategoryName = client.CategoryName,
                 UserId = client.UserId,
-                IsShopWallet = isShopWallet
+                IsShopWallet = isShopWallet,
+                PartnerId = client.PartnerId
             };
         }
 

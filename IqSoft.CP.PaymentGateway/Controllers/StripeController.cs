@@ -9,6 +9,7 @@ using IqSoft.CP.PaymentGateway.Helpers;
 using IqSoft.CP.PaymentGateway.Models.Stripe;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -60,8 +61,12 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 								var client = CacheManager.GetClientById(paymentRequest.ClientId.Value);
 								var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId,
 															paymentRequest.PaymentSystemId, client.CurrencyId, paymentRequest.Type);
-								clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
-								PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
+								clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out List<int> userIds);
+                                foreach (var uId in userIds)
+                                {
+                                    PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                }
+                                PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
 								BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);
 								response = "OK";
 							}							

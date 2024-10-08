@@ -69,7 +69,6 @@ namespace IqSoft.CP.Common
             public const string FooterMenu = "FooterMenu";
             public const string Root = "root";
             public const string Fonts = "Fonts";
-            public const string CasinoMenu = "CasinoMenu";
 
             public const string MobileCentralMenu = "MobileCentralMenu";
             public const string MobileFooterMenu = "MobileFooterMenu";
@@ -77,6 +76,7 @@ namespace IqSoft.CP.Common
             public const string MobileMenu = "MobileMenu";
             public const string MobileRightSidebar = "MobileRightSidebar";
             public const string MobileHeaderPanel = "MobileHeaderPanel";
+            public const string MobileCodes = "MobileCodes";
             public const string HomeMenu = "HomeMenu";
             public const string MobileHomeMenu = "MobileHomeMenu";
             public const string FullRegister = "FullRegister";
@@ -304,6 +304,7 @@ namespace IqSoft.CP.Common
             public const string QiWiTerminal = "QiWiTerminal";
             public const string TronLink = "TronLink";
             public const string ExternalCashier = "ExternalCashier";
+            public const string CustomCashier = "CustomCashier";
             public const string Skrill = "Skrill";
             public const string Neteller = "Neteller";
             public const string WebMoney = "WebMoney";            
@@ -464,6 +465,16 @@ namespace IqSoft.CP.Common
             public const string Sofort = "Sofort";
             public const string Praxis = "Praxis";
             public const string PraxisFiat = "PraxisFiat";
+            public const string PraxisProcessingCC = "PraxisProcessingCC";
+            public const string PraxisLivitPay = "PraxisLivitPay";
+            public const string PraxisLuxonExpress = "PraxisLuxonExpress";
+            public const string PraxisApplePayLunu = "PraxisApplePayLunu";
+            public const string PraxisGooglePayLunu = "PraxisGooglePayLunu";
+            public const string PraxisMatch2Pay = "PraxisMatch2Pay";
+            public const string PraxisLuxonPay = "PraxisLuxonPay";
+            public const string PraxisBancontactLunu = "PraxisBancontactLunu";
+            public const string PraxisCreditCardLunu = "PraxisCreditCardLunu";
+            public const string PraxisInterac = "PraxisInterac";
             public const string PaymentAsia = "PaymentAsia";
             public const string PaymentIQ = "PaymentIQ";
             public const string PaymentIQLuxon = "PaymentIQLuxon";
@@ -522,6 +533,7 @@ namespace IqSoft.CP.Common
             public const string PayOpNeosurf = "PayOpNeosurf";
             public const string PayOpNeosurfAU = "PayOpNeosurfAU";
             public const string PayOpNeosurfUK = "PayOpNeosurfUK";
+            public const string PayOpNeosurfNZ = "PayOpNeosurfNZ";
             public const string PayOpRevolut = "PayOpRevolut";
             public const string PayOpRevolutUK = "PayOpRevolutUK";
             public const string PayOpInstantBankTransfer = "PayOpInstantBankTransfer";
@@ -648,7 +660,6 @@ namespace IqSoft.CP.Common
             public const string KralPayCrypto = "KralPayCrypto";
             public const string GatewayPay = "GatewayPay";
             public const string FreedomPay = "FreedomPay";
-            public const string Omer = "Omer";
             public const string Mpesa = "Mpesa";
             public const string MpesaB2C = "MpesaB2C";
             public const string MpesaC2B = "MpesaC2B";
@@ -667,12 +678,35 @@ namespace IqSoft.CP.Common
             public const string PayStagePesonet = "PayStagePesonet";
             public const string Nixxe = "Nixxe";
             public const string LiberSave = "LiberSave";
-
+            public const string LiberSaveRevolutGB = "LiberSaveRevolutGB";
+            public const string LiberSaveRevolutEU = "LiberSaveRevolutEU";
+            public const string LiberSaveMonzoGB = "LiberSaveMonzoGB";
+            public const string LiberSavePayPalGB = "LiberSavePayPalGB";
+            public const string LiberSaveSepaEU = "LiberSaveSepaEU";
+            public const string WebPaysCreditCard = "WebPaysCreditCard";
+            public const string WebPaysAPMs= "WebPaysAPMs";
 
             public const string MoneyPayVisaMaster = "MoneyPayVisaMaster";
             public const string MoneyPayAmericanExpress = "MoneyPayAmericanExpress";
             public const string NOWPay = "NOWPay";
             public const string NOWPayFiat = "NOWPayFiat";
+            public const string NowPayBTC = "NowPayBTC";
+            public const string NowPayBCH = "NowPayBCH";
+            public const string NowPayETH = "NowPayETH";
+            public const string NowPayLTC = "NowPayLTC";
+            public const string NowPayUSDTTRC20 = "NowPayUSDTTRC20";
+            public const string NowPayUSDTERC20 = "NowPayUSDTERC20";
+            public const string NowPayUSDTBSC = "NowPayUSDTBSC";
+            public const string NowPayUSDTSOL = "NowPayUSDTSOL";
+            public const string NowPayUSDTPolygon = "NowPayUSDTMATIC";
+            public const string NowPayUSDC = "NowPayUSDC";
+            public const string NowPayUSDCPolygon = "NowPayUSDCMATIC";
+            public const string NowPayDAI = "NowPayDAI";
+            public const string NowPayXRP = "NowPayXRP";
+            public const string NowPayXLM = "NowPayXLM";
+            public const string NowPayADA = "NowPayADA";
+            public const string NowPaySHIB = "NowPaySHIB";
+            public const string NowPaySOL = "NowPaySOL";
             public const string Pix = "Pix";
             public const string Azulpay = "Azulpay";
             public const string Transact365 = "Transact365";
@@ -768,8 +802,15 @@ namespace IqSoft.CP.Common
             public const string WzrdPayCreditCard = "WzrdPayCreditCard";
             public const string GetaPay = "GetaPay";
             public const string Omno = "Omno";
+            public const string Omer = "Omer";
 
         }
+        public static List<string> ManualPaymentSystems { get; private set; } = new List<string>
+        {
+            PaymentSystems.BankTransferSepa,
+            PaymentSystems.BankTransferSwift,
+            PaymentSystems.BankWire
+        };
 
         public static List<string> VoucherPaymentSystems { get; private set; } = new List<string>
         {
@@ -838,6 +879,7 @@ namespace IqSoft.CP.Common
             public const string PlaynGo = "PlaynGo";
             public const string AleaPartners = "AleaPartners";
             public const string BetMakers = "BetMakers";
+            public const string RelaxGaming = "RelaxGaming";
 
             public const string NetEnt = "NetEnt";
             public const string RedTiger = "RedTiger";
@@ -1024,7 +1066,6 @@ namespace IqSoft.CP.Common
             public const string BetsByRound = "BetsByRound";
             public const string ClientsCommissionPlan = "ClientsCommissionPlan";
             public const string ClientProductCommissionTree = "ClientProductCommissionTree";
-            public const string CasinoMenues = "CasinoMenues";
             public const string ClientFavoriteProducts = "ClientFavoriteProducts";
             public const string SecurityQuestions = "SecurityQuestions";
             public const string MessageTemplates = "MessageTemplates";
@@ -1035,6 +1076,8 @@ namespace IqSoft.CP.Common
             public const string Characters = "Characters";
             public const string Tournaments = "Tournaments";
             public const string TournamentLeaderboards = "TournamentLeaderboards";
+            public const string ProductSessionsCount = "ProductSessionsCount";
+            public const string UserNotifications = "UserNotifications";
         }
 
         public static class Currencies
@@ -1062,15 +1105,19 @@ namespace IqSoft.CP.Common
             public const string LaotianKip = "LAK";
             public const string MyanmarKyat = "MMK";
             public const string CambodianRiel = "KHR";
-            public const string USDT = "USDT";
-            public const string USDTTRC20 = "USDTTRC20";
-            public const string USDTERC20 = "USDTERC20";
             public const string JapaneseYen = "JPY";
             public const string CanadianDollar = "CAD";
             public const string TunisianDinar = "TND";
             public const string EthiopianBirr = "ETB";
             public const string BritainPound = "GBP";
             public const string KenyanShilling = "KES";
+
+            public const string USDT = "USDT";
+            public const string USDC = "USDC";
+            public const string PYUSD = "PYUSD";
+            public const string BUSD = "BUSD ";
+            public const string USDTTRC20 = "USDTTRC20";
+            public const string USDTERC20 = "USDTERC20";
         }
 
         public static List<string> CryptoCurrencies = new List<string>
@@ -1180,6 +1227,7 @@ namespace IqSoft.CP.Common
             public const string ViewSegment = "ViewSegment";
             public const string EditSegment = "EditSegment";
             public const string DeleteSegment = "DeleteSegment";
+            public const string ReconsiderClientSegments = "ReconsiderClientSegments";
             public const string ViewRegion = "ViewRegion";
             public const string CreateRegion = "CreateRegion";
             public const string ViewJobArea = "ViewJobArea";
@@ -1594,6 +1642,7 @@ namespace IqSoft.CP.Common
             public const string StatementFTPUsername = "StatementFTPUsername";
             public const string StatementFTPPassword = "StatementFTPPassword";
             public const string StatementPath = "StatementPath";
+            public const string AllowMultiCurrencyAccounts = "AllowMultiCurrencyAccounts";
 
             #region Services
 
@@ -1644,6 +1693,7 @@ namespace IqSoft.CP.Common
             public const string CustomerApiUrl = "CustomerApiUrl";
             public const string SMSToApiKey = "SMSToApiKey";
             public const string SMSToApiUrl = "SMSToApiUrl";
+            public const string SMSToSender = "SMSToSender";
             public const string MailgunUsername = "MailgunUsername";
             public const string MailgunPassword = "MailgunPassword";
             public const string MailgunDomain = "MailgunDomain";
@@ -1886,6 +1936,11 @@ namespace IqSoft.CP.Common
             public const string AleaPartnersInstance = "AleaPartnersInstance";
 
             public const string BetMakersApiKey = "BetMakersApiKey";
+            public const string RelaxGamingPartnerId = "RelaxGamingPartnerId";
+            public const string RelaxGamingPartnerName = "RelaxGamingPartnerName";
+            public const string RelaxGamingApiUrl = "RelaxGamingApiUrl";
+            public const string RelaxGamingApiUsername = "RelaxGamingApiUsername";
+            public const string RelaxGamingApiPassword = "RelaxGamingApiPassword";
 
             public const string JackpotGamingApiToken = "JackpotGamingApiToken";
 
@@ -2208,6 +2263,8 @@ namespace IqSoft.CP.Common
             public const string HasCustomerIo = "HasCustomerIo";
             public const string VerificationValidPeriodInMonth = "VerificationValidPeriodInMonth";
             public const string PaymentSystemAccountTypes = "PaymentSystemAccountTypes";
+            public const string DisallowMemberCorrection = "DisallowMemberCorrection";
+            public const string HideClientContactInfo = "HideClientContactInfo";
 
             #endregion
         }
@@ -2283,6 +2340,11 @@ namespace IqSoft.CP.Common
         public static class UserConfigurations
         {
             public const string CorrectonMaxAmount = "CorrectonMaxAmount";
+            public const string DepositSubscription = "DepositSubscription";
+            public const string WithdrawSubscription = "WithdrawSubscription";
+            public const string RegistrationSubscription = "RegistrationSubscription";
+            public const string BonusSubscription = "BonusSubscription";
+            public const string KYCSubscription = "KYCSubscription";
         }
 
         public static class SegmentSettings
@@ -2304,6 +2366,16 @@ namespace IqSoft.CP.Common
         {
             public const string Sportsbook = "Sportsbook";
             public const string VirtualGames = "VirtualGames";
+        };
+        
+        public static List<string> UserConfigurationTypes = new List<string>
+        {
+            UserConfigurations.CorrectonMaxAmount,
+            UserConfigurations.DepositSubscription,
+            UserConfigurations.WithdrawSubscription,
+            UserConfigurations.RegistrationSubscription,
+            UserConfigurations.BonusSubscription,
+            UserConfigurations.KYCSubscription
         };
 
         public static List<int> ClaimingBonusTypes = new List<int>

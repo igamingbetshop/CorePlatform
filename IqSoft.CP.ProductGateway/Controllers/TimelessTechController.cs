@@ -27,8 +27,16 @@ namespace IqSoft.CP.ProductGateway.Controllers
 {
 	[EnableCors(origins: "*", headers: "*", methods: "POST")]
 	public class TimelessTechController : ApiController
-	{
-		[HttpPost]
+    {
+        private static readonly List<string> NotSupportedCurrencies = new List<string>
+        {          
+            Constants.Currencies.USDT,
+            Constants.Currencies.USDC,
+            Constants.Currencies.PYUSD,
+            Constants.Currencies.BUSD
+        };
+
+        [HttpPost]
 		[Route("{partnerId}/api/tlt/{providerName}/authenticate")]
 		[Route("{partnerId}/api/tlt/{providerName}/balance")]
 		[Route("{partnerId}/api/tlt/{providerName}/changebalance")]
@@ -178,14 +186,20 @@ namespace IqSoft.CP.ProductGateway.Controllers
 			var isExternalPlatformClient = ExternalPlatformHelpers.IsExternalPlatformClient(client, out PartnerKey externalPlatformType);
 			var balance = isExternalPlatformClient ? ExternalPlatformHelpers.GetClientBalance(Convert.ToInt32(externalPlatformType.StringValue), client.Id) :
 													 CacheManager.GetClientCurrentBalance(client.Id).AvailableBalance;
-			var regionPath = CacheManager.GetRegionPathById(client.RegionId);
+            var currency = client.CurrencyId;
+            if (NotSupportedCurrencies.Contains(client.CurrencyId))
+            {
+                currency =  Constants.Currencies.USADollar;
+                balance = BaseBll.ConvertCurrency(client.CurrencyId, Constants.Currencies.USADollar, balance);
+            }
+            var regionPath = CacheManager.GetRegionPathById(client.RegionId);
 			var isoCode = regionPath.FirstOrDefault(x => x.TypeId == (int)RegionTypes.Country)?.IsoCode;
 			return new
 			{
 				user_id = client.Id.ToString(),
 				user_name = client.UserName,
 				user_country = isoCode ?? "AU",
-				currency_code = client.CurrencyId,
+				currency_code = currency,
 				balance
 			};
 		}
@@ -195,13 +209,19 @@ namespace IqSoft.CP.ProductGateway.Controllers
 			var isExternalPlatformClient = ExternalPlatformHelpers.IsExternalPlatformClient(client, out PartnerKey externalPlatformType);
 			var balance = isExternalPlatformClient ? ExternalPlatformHelpers.GetClientBalance(Convert.ToInt32(externalPlatformType.StringValue), client.Id) :
 													 CacheManager.GetClientCurrentBalance(client.Id).AvailableBalance;
+			var currency = client.CurrencyId;
+			if (NotSupportedCurrencies.Contains(client.CurrencyId))
+			{
+				currency =  Constants.Currencies.USADollar;
+				balance = BaseBll.ConvertCurrency(client.CurrencyId, Constants.Currencies.USADollar, balance);
+			}
 			return new
 			{
 				balance,
-				currency_code = client.CurrencyId
+				currency_code = currency
 			};
 		}
-
+		
 		private static object ChangeBalance(TransactionInput input, SessionIdentity session, BllClient client, int providerId)
 		{
 			var product = CacheManager.GetProductByExternalId (providerId, input.GameId.ToString()) ?? // for lobby
@@ -224,10 +244,16 @@ namespace IqSoft.CP.ProductGateway.Controllers
 			var isExternalPlatformClient = ExternalPlatformHelpers.IsExternalPlatformClient(client, out PartnerKey externalPlatformType);
 			var balance = isExternalPlatformClient ? ExternalPlatformHelpers.GetClientBalance(Convert.ToInt32(externalPlatformType.StringValue), client.Id) :
 													 CacheManager.GetClientCurrentBalance(client.Id).AvailableBalance;
-			return new
+            var currency = client.CurrencyId;
+            if (NotSupportedCurrencies.Contains(client.CurrencyId))
+            {
+                currency =  Constants.Currencies.USADollar;
+                balance = BaseBll.ConvertCurrency(client.CurrencyId, Constants.Currencies.USADollar, balance);
+            }
+            return new
 			{
 				balance,
-				currency_code = client.CurrencyId
+				currency_code = currency
 			};
 		}
 
@@ -340,7 +366,10 @@ namespace IqSoft.CP.ProductGateway.Controllers
 																			partnerProductSettingId, (int)OperationTypes.Bet);
 					if (document == null)
 					{
-						var operationsFromProduct = new ListOfOperationsFromApi
+						if (NotSupportedCurrencies.Contains(client.CurrencyId))
+							input.Amount =  BaseBll.ConvertCurrency(Constants.Currencies.USADollar, client.CurrencyId, input.Amount);
+
+                        var operationsFromProduct = new ListOfOperationsFromApi
 						{
 							SessionId = session.SessionId,
 							CurrencyId = client.CurrencyId,
@@ -404,7 +433,10 @@ namespace IqSoft.CP.ProductGateway.Controllers
 																		 partnerProductSettingId, (int)OperationTypes.Win);
 					if (winDocument == null)
 					{
-						var state = Convert.ToDecimal(input.Amount) > 0 ? (int)BetDocumentStates.Won : (int)BetDocumentStates.Lost;
+                        if (NotSupportedCurrencies.Contains(client.CurrencyId))
+                            input.Amount =  BaseBll.ConvertCurrency(Constants.Currencies.USADollar, client.CurrencyId, input.Amount);
+
+                        var state = Convert.ToDecimal(input.Amount) > 0 ? (int)BetDocumentStates.Won : (int)BetDocumentStates.Lost;
 						betDocument.State = state;
 						var operationsFromProduct = new ListOfOperationsFromApi
 						{
@@ -446,7 +478,8 @@ namespace IqSoft.CP.ProductGateway.Controllers
 							BaseHelpers.RemoveClientBalanceFromeCache(client.Id);
 							BaseHelpers.BroadcastWin(new ApiWin
 							{
-								GameName = product.NickName,
+                                BetId = betDocument?.Id ?? 0,
+                                GameName = product.NickName,
 								ClientId = client.Id,
 								ClientName = client.FirstName,
 								BetAmount = betDocument?.Amount,

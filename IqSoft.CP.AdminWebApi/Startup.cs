@@ -13,6 +13,7 @@ namespace IqSoft.CP.AdminWebApi
     {
         public void Configuration(IAppBuilder app)
         {
+            app.UseCors(CorsOptions.AllowAll);
             // Make long polling connections wait a maximum of 110 seconds for a
             // response. When that time expires, trigger a timeout command and
             // make the client reconnect.
@@ -32,16 +33,16 @@ namespace IqSoft.CP.AdminWebApi
             GlobalHost.Configuration.MaxIncomingWebSocketMessageSize = 1024 * 1024; //1MB
             //GlobalHost.HubPipeline.AddModule(new WebSitePipelineModule());
 
-            app.Map(string.Format("/{0}/{1}", "api", "signalr"), map =>
+            app.Map("/apisignalr", map =>
             {
-                map.UseCors(CorsOptions.AllowAll);
-                map.RunSignalR(new HubConfiguration
+                var hubConfiguration = new HubConfiguration
                 {
+                    EnableJSONP = true,
+                    EnableJavaScriptProxies = true,
                     EnableDetailedErrors = true
-                });
+                };
+                map.RunSignalR(hubConfiguration);
             });
-            //now start the WebAPI app
-            GlobalConfiguration.Configure(WebApiConfig.Register);
         }
     }
 }

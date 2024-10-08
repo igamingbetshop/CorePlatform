@@ -36,7 +36,8 @@ namespace IqSoft.CP.PaymentGateway.Controllers
             var response = string.Empty;
             try
             {
-             //   BaseBll.CheckIp(WhitelistedIps);
+                //   BaseBll.CheckIp(WhitelistedIps);
+                var userIds = new List<int>();
                 using (var paymentSystemBl = new PaymentSystemBll(new SessionIdentity(), WebApiApplication.DbLogger))
                 {
                     using (var clientBl = new ClientBll(paymentSystemBl))
@@ -70,12 +71,18 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 
                                     if (result.Error && result.Result == request.ExternalTransactionId)
                                     {
-                                        clientBl.ApproveDepositFromPaymentSystem(request, false);
+                                        clientBl.ApproveDepositFromPaymentSystem(request, false, out userIds);
                                         BaseHelpers.BroadcastBalance(request.ClientId.Value);
                                     }
                                     else
+                                    {
                                         clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Failed,
-                                            result.Message, null, null, false, string.Empty, documentBl, notificationBl);
+                                            result.Message, null, null, false, string.Empty, documentBl, notificationBl, out userIds);
+                                    }
+                                    foreach (var uId in userIds)
+                                    {
+                                        PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                    }
                                     return new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent("OK", Encoding.UTF8) };
                                 }
                             }

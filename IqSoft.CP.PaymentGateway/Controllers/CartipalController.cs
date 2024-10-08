@@ -88,7 +88,11 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                     });
                                     request.CardNumber = paymentInfo.CardNumber;
                                     paymentSystemBl.ChangePaymentRequestDetails(request);
-                                    clientBl.ApproveDepositFromPaymentSystem(request, false);
+                                    clientBl.ApproveDepositFromPaymentSystem(request, false, out List<int> userIds);
+                                    foreach (var uId in userIds)
+                                    {
+                                        PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                    }
                                     PaymentHelpers.RemoveClientBalanceFromCache(request.ClientId.Value);
                                     BaseHelpers.BroadcastBalance(request.ClientId.Value);
                                 }
@@ -170,7 +174,11 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                 if (result.Status == 1)
                                 {
                                     var resp = clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Approved, string.Empty,
-                                          null, null, false, string.Empty, documentBll, notificationBl);
+                                          null, null, false, string.Empty, documentBll, notificationBl, out List<int> userIds);
+                                    foreach (var uId in userIds)
+                                    {
+                                        PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                    }
                                     clientBl.PayWithdrawFromPaymentSystem(resp, documentBll, notificationBl);
                                     PaymentHelpers.RemoveClientBalanceFromCache(request.ClientId.Value);
                                 }

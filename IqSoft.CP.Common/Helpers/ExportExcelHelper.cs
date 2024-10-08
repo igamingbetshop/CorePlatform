@@ -76,7 +76,7 @@ namespace IqSoft.CP.Common.Helpers
                         }
                         var methodInfo = typeof(ExportExcelHelper).GetMethod(nameof(AddObjectToLine));
                         var generic = methodInfo.MakeGenericMethod(p.PropertyType.GetGenericArguments().Single());
-                        generic.Invoke(null, new object[] { val, lines, true, true });
+                        generic.Invoke(null, new object[] { val, null, lines, true, true });
                     }
                 }
                 if (!string.IsNullOrEmpty(valueLine.ToString()) && !string.IsNullOrEmpty(valueLine.ToString().Replace(",", string.Empty)))

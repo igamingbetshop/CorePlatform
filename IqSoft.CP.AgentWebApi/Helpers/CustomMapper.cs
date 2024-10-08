@@ -44,6 +44,7 @@ using AgentCommission = IqSoft.CP.DAL.AgentCommission;
 using IqSoft.CP.Common.Models.CacheModels;
 using IqSoft.CP.DAL.Models.Agents;
 using IqSoft.CP.Common.Models.Filters;
+using IqSoft.CP.Common.Models.Report;
 
 namespace IqSoft.CP.AgentWebApi.Helpers
 {
@@ -458,7 +459,7 @@ namespace IqSoft.CP.AgentWebApi.Helpers
                 FieldNameToOrderBy = filterClient.FieldNameToOrderBy
             };
         }
-        public static fnClientModel MapTofnClientModelItem(this Client arg, double timeZone, List<AgentCommission> agents, int callerLevel, int callerId, ILog log)
+        public static fnClientModel MapTofnClientModelItem(this Client arg, double timeZone, List<AgentCommission> agents, int callerLevel, int callerId, bool hideClientContactInfo,  ILog log)
         {
             var commissions1 = new List<MemberCommission>();
             var commissions2 = new List<MemberCommission>();
@@ -476,17 +477,17 @@ namespace IqSoft.CP.AgentWebApi.Helpers
             {
                 Id = arg.Id,
                 Level = (int)AgentLevels.Member,
-                Email = arg.Email,
+                Email = hideClientContactInfo ? "*****" : arg.Email ,
                 IsEmailVerified = arg.IsEmailVerified,
                 CurrencyId = arg.CurrencyId,
                 UserName = arg.UserName,
                 PartnerId = arg.PartnerId,
-                Gender = arg.Gender,
+                Gender = hideClientContactInfo ? null : arg.Gender,
                 BirthDate = arg.BirthDate.GetGMTDateFromUTC(timeZone),
                 SendMail = arg.SendMail,
                 SendSms = arg.SendSms,
-                FirstName = arg.FirstName,
-                LastName = arg.LastName,
+                FirstName = hideClientContactInfo ? "*****" : arg.FirstName,
+                LastName = hideClientContactInfo ? "*****" : arg.LastName,
                 RegionId = arg.RegionId,
                 RegistrationIp = arg.RegistrationIp,
                 DocumentNumber = arg.DocumentNumber,
@@ -494,9 +495,9 @@ namespace IqSoft.CP.AgentWebApi.Helpers
                 DocumentIssuedBy = arg.DocumentIssuedBy,
                 IsDocumentVerified = arg.IsDocumentVerified,
                 Address = arg.Address,
-                MobileNumber = arg.MobileNumber,
-                Phone = !string.IsNullOrEmpty(arg.PhoneNumber) ? arg.PhoneNumber.Split('/')[0] : string.Empty,
-                Fax = (!string.IsNullOrEmpty(arg.PhoneNumber) && arg.PhoneNumber.Split('/').Length > 1) ? arg.PhoneNumber.Split('/')[1] : string.Empty,
+                MobileNumber = hideClientContactInfo ? "*****" : arg.MobileNumber,
+                Phone = hideClientContactInfo ? "*****" : !string.IsNullOrEmpty(arg.PhoneNumber) ? arg.PhoneNumber.Split('/')[0] : string.Empty,
+                Fax = hideClientContactInfo ? "*****" : (!string.IsNullOrEmpty(arg.PhoneNumber) && arg.PhoneNumber.Split('/').Length > 1) ? arg.PhoneNumber.Split('/')[1] : string.Empty,
                 IsMobileNumberVerified = arg.IsMobileNumberVerified,
                 LanguageId = arg.LanguageId,
                 CreationTime = arg.CreationTime.GetGMTDateFromUTC(timeZone),
@@ -587,66 +588,23 @@ namespace IqSoft.CP.AgentWebApi.Helpers
             };
         }
 
-        public static fnClientModel MapTofnClientModelItem(this fnClient arg, double timeZone)
-        {
-            var parentState = CacheManager.GetClientSettingByName(arg.Id, ClientSettings.ParentState);
-            if (parentState.NumericValue.HasValue && CustomHelper.Greater((ClientStates)parentState.NumericValue.Value, (ClientStates)arg.State))
-                arg.State = Convert.ToInt32(parentState.NumericValue.Value);
-
-            return new fnClientModel
-            {
-                Id = arg.Id,
-                Email = "*****",
-                IsEmailVerified = arg.IsEmailVerified,
-                CurrencyId = arg.CurrencyId,
-                UserName = arg.UserName,
-                PartnerId = arg.PartnerId,
-                Gender = arg.Gender,
-                BirthDate = arg.BirthDate.GetGMTDateFromUTC(timeZone),
-                SendMail = arg.SendMail,
-                SendSms = arg.SendSms,
-                FirstName = arg.FirstName,
-                LastName = arg.LastName,
-                NickName = arg.NickName,
-                RegionId = arg.RegionId,
-                RegistrationIp = arg.RegistrationIp,
-                DocumentNumber = arg.DocumentNumber,
-                DocumentType = arg.DocumentType,
-                DocumentIssuedBy = arg.DocumentIssuedBy,
-                IsDocumentVerified = arg.IsDocumentVerified,
-                Address = arg.Address,
-                MobileNumber = "*****",
-                IsMobileNumberVerified = arg.IsMobileNumberVerified,
-                LanguageId = arg.LanguageId,
-                CreationTime = arg.CreationTime.GetGMTDateFromUTC(timeZone),
-                LastUpdateTime = arg.LastUpdateTime.GetGMTDateFromUTC(timeZone),
-                State = arg.State,
-                CallToPhone = arg.CallToPhone,
-                SendPromotions = arg.SendPromotions,
-                ZipCode = arg.ZipCode?.Trim(),
-                HasNote = arg.HasNote,
-                RealBalance = Math.Floor((arg.RealBalance ?? 0) * 100) / 100,
-                BonusBalance = Math.Floor((arg.BonusBalance ?? 0) * 100) / 100,
-                Info = arg.Info,
-                UserId = arg.UserId
-            };
-        }
         public static fnClientModel MapTofnClientModel(this Client client, double timeZone)
         {
+            var hideClientContactInfo = CacheManager.GetConfigKey(client.PartnerId, Constants.PartnerKeys.HideClientContactInfo) == "1";
             return new fnClientModel
             {
                 Id = client.Id,
-                Email = client.Email,
+                Email = hideClientContactInfo ? "*****" : client.Email,
                 IsEmailVerified = client.IsEmailVerified,
                 CurrencyId = client.CurrencyId,
                 UserName = client.UserName,
                 PartnerId = client.PartnerId,
-                Gender = client.Gender,
+                Gender = hideClientContactInfo ? null : client.Gender,
                 BirthDate = client.BirthDate.GetGMTDateFromUTC(timeZone),
                 SendMail = client.SendMail,
                 SendSms = client.SendSms,
-                FirstName = client.FirstName,
-                LastName = client.LastName,
+                FirstName = hideClientContactInfo ? "*****" : client.FirstName,
+                LastName = hideClientContactInfo ? "*****" : client.LastName,
                 RegionId = client.RegionId,
                 RegistrationIp = client.RegistrationIp,
                 DocumentNumber = client.DocumentNumber,
@@ -654,9 +612,9 @@ namespace IqSoft.CP.AgentWebApi.Helpers
                 DocumentIssuedBy = client.DocumentIssuedBy,
                 IsDocumentVerified = client.IsDocumentVerified,
                 Address = client.Address,
-                MobileNumber = client.MobileNumber,
-                Phone = !string.IsNullOrEmpty(client.PhoneNumber) ? client.PhoneNumber.Split('/')[0] : string.Empty,
-                Fax = (!string.IsNullOrEmpty(client.PhoneNumber) && client.PhoneNumber.Split('/').Length > 1) ? client.PhoneNumber.Split('/')[1] : string.Empty,
+                MobileNumber = hideClientContactInfo ? "*****" : client.MobileNumber,
+                Phone = hideClientContactInfo ? "*****" : !string.IsNullOrEmpty(client.PhoneNumber) ? client.PhoneNumber.Split('/')[0] : string.Empty,
+                Fax = hideClientContactInfo ? "*****" : (!string.IsNullOrEmpty(client.PhoneNumber) && client.PhoneNumber.Split('/').Length > 1) ? client.PhoneNumber.Split('/')[1] : string.Empty,
                 IsMobileNumberVerified = client.IsMobileNumberVerified,
                 LanguageId = client.LanguageId,
                 CreationTime = client.CreationTime,
@@ -675,7 +633,7 @@ namespace IqSoft.CP.AgentWebApi.Helpers
             };
         }
 
-        public static ClientInfoModel MapToClientInfoModel(this DAL.Models.Clients.ClientInfo client)
+        public static ClientInfoModel MapToClientInfoModel(this DAL.Models.Clients.ClientInfo client, bool hideClientContactInfo)
         {
             var adc = CacheManager.GetClientSettingByName(client.Id, ClientSettings.AllowDoubleCommission);
             var ao = CacheManager.GetClientSettingByName(client.Id, ClientSettings.AllowOutright);
@@ -685,9 +643,9 @@ namespace IqSoft.CP.AgentWebApi.Helpers
                 UserName = client.UserName,
                 CategoryId = client.CategoryId,
                 CurrencyId = client.CurrencyId,
-                FirstName = client.FirstName,
-                LastName = client.LastName,
-                Email = client.Email,
+                FirstName = hideClientContactInfo ? "*****" : client.FirstName,
+                LastName = hideClientContactInfo ? "*****" : client.LastName,
+                Email = hideClientContactInfo ? "*****" : client.Email,
                 RegistrationDate = client.RegistrationDate,
                 Status = client.Status,
                 Balance = client.Balance,
@@ -706,23 +664,13 @@ namespace IqSoft.CP.AgentWebApi.Helpers
                 AllowOutright = Convert.ToBoolean(ao == null || ao.Id == 0 ? 0 : (ao.NumericValue ?? 0))
             };
         }
+
         public static ApiClientCorrections MapToApiClientCorrections(this PagedModel<fnCorrection> input, double timeZone)
         {
             return new ApiClientCorrections
             {
                 Count = input.Count,
                 Entities = input.Entities.Select(x => x.MapToApiClientCorrection(timeZone)).ToList()
-            };
-        }
-
-
-        public static ApiClientCorrections MapToApiClientCorrections(this CorrectionsReport input, double timeZone)
-        {
-            return new ApiClientCorrections
-            {
-                Count = input.Count,
-                Entities = input.Entities.Select(x => x.MapToApiClientCorrection(timeZone)).ToList(),
-                TotalAmount = input.TotalAmount
             };
         }
 
@@ -1263,6 +1211,7 @@ namespace IqSoft.CP.AgentWebApi.Helpers
                 Name = filter.Name
             };
         }
+        
         public static FnProductModel MapTofnProductModel(this fnProduct product)
         {
             return new FnProductModel
@@ -1286,6 +1235,7 @@ namespace IqSoft.CP.AgentWebApi.Helpers
                 BackgroundImageUrl = product.BackgroundImageUrl
             };
         }
+        
         public static FilterInternetBet MapToFilterInternetBet(this ApiFilterInternetBet apiFilterInternetBet)
         {
             return new FilterInternetBet
@@ -1332,6 +1282,48 @@ namespace IqSoft.CP.AgentWebApi.Helpers
                 AgentId = apiFilterInternetBet.AgentId
             };
         }
+
+        public static ApiReportByProvidersElement MapToApiReportByProvidersElement(this ReportByProvidersElement element)
+        {
+            return new ApiReportByProvidersElement
+            {
+                PartnerId = element.PartnerId,
+                ProviderName = element.ProviderName,
+                Currency = element.Currency,
+                TotalBetsCount = element.TotalBetsCount,
+                TotalBetsAmount = element.TotalBetsAmount,
+                TotalWinsAmount = element.TotalWinsAmount,
+                TotalUncalculatedBetsCount = element.TotalUncalculatedBetsCount,
+                TotalUncalculatedBetsAmount = element.TotalUncalculatedBetsAmount,
+                GGR = element.GGR,
+                BetsCountPercent = element.BetsCountPercent,
+                BetsAmountPercent = element.BetsAmountPercent,
+                GGRPercent = element.GGRPercent
+            };
+        }
+
+        #endregion
+
+        #region Filters
+
+        public static FilterReportByProvider MapToFilterReportByProvider(this ApiFilterReportByProvider filter)
+        {
+            return new FilterReportByProvider
+            {
+                FromDate = filter.FromDate,
+                ToDate = filter.ToDate,
+                AgentId = filter.AgentId,
+                ProviderNames = filter.ProviderNames == null ? new FiltersOperation() : filter.ProviderNames.MapToFiltersOperation(),
+                Currencies = filter.Currencies == null ? new FiltersOperation() : filter.Currencies.MapToFiltersOperation(),
+                TotalBetsCounts = filter.TotalBetsCounts == null ? new FiltersOperation() : filter.TotalBetsCounts.MapToFiltersOperation(),
+                TotalBetsAmounts = filter.TotalBetsAmounts == null ? new FiltersOperation() : filter.TotalBetsAmounts.MapToFiltersOperation(),
+                TotalWinsAmounts = filter.TotalWinsAmounts == null ? new FiltersOperation() : filter.TotalWinsAmounts.MapToFiltersOperation(),
+                TotalUncalculatedBetsCounts = filter.TotalUncalculatedBetsCounts == null ? new FiltersOperation() : filter.TotalUncalculatedBetsCounts.MapToFiltersOperation(),
+                TotalUncalculatedBetsAmounts = filter.TotalUncalculatedBetsAmounts == null ? new FiltersOperation() : filter.TotalUncalculatedBetsAmounts.MapToFiltersOperation(),
+                GGRs = filter.GGRs == null ? new FiltersOperation() : filter.GGRs.MapToFiltersOperation()
+            };
+        }
+
         #endregion
 
         public static List<NoteModel> MapToNoteModels(this IEnumerable<fnNote> models, double timeZone)

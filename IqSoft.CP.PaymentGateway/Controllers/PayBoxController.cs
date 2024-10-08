@@ -191,7 +191,11 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                             }
 
                             paymentSystemBl.ChangePaymentRequestDetails(request);
-                            clientBl.ApproveDepositFromPaymentSystem(request, false);
+                            clientBl.ApproveDepositFromPaymentSystem(request, false, out List<int> userIds);
+                            foreach (var uId in userIds)
+                            {
+                                PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                            }
                             PaymentHelpers.RemoveClientBalanceFromCache(request.ClientId.Value);
                             BaseHelpers.BroadcastBalance(request.ClientId.Value);
                         }
@@ -292,7 +296,11 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                         request.ExternalTransactionId = input.pg_payment_id;
                                         paymentSystemBl.ChangePaymentRequestDetails(request);
                                         var resp = clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Approved, string.Empty, request.CashDeskId,
-                                            null, true, request.Parameters, documentBl, notificationBl);
+                                            null, true, request.Parameters, documentBl, notificationBl, out List<int> userIds);
+                                        foreach (var uId in userIds)
+                                        {
+                                            PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                        }
                                         clientBl.PayWithdrawFromPaymentSystem(resp, documentBl, notificationBl);
                                         PaymentHelpers.RemoveClientBalanceFromCache(request.ClientId.Value);
                                         BaseHelpers.BroadcastBalance(request.ClientId.Value);

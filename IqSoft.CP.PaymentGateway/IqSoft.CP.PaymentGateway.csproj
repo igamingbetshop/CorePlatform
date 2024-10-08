@@ -337,6 +337,7 @@
     <Compile Include="Controllers\TotalProcessingController.cs" />
     <Compile Include="Controllers\Transact365Controller.cs" />
     <Compile Include="Controllers\WalletOneController.cs" />
+    <Compile Include="Controllers\WebPaysController.cs" />
     <Compile Include="Controllers\WooppayController.cs" />
     <Compile Include="Controllers\PayBoxController.cs" />
     <Compile Include="Controllers\QiwiController.cs" />
@@ -567,6 +568,7 @@
     <Compile Include="Models\WalletOne\RequestInput.cs" />
     <Compile Include="Models\WalletOne\WalletOneRequestStatus.cs" />
     <Compile Include="Models\WalletOne\WalletOneResult.cs" />
+    <Compile Include="Models\WebPays\PaymentInput.cs" />
     <Compile Include="Models\Wooppay\PaymentInput.cs" />
     <Compile Include="Models\Wooppay\PaymentOutput.cs" />
     <Compile Include="Models\Wooppay\WooppayCompleteTransactionInput.cs" />

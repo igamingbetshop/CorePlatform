@@ -32,13 +32,15 @@ namespace IqSoft.CP.PaymentGateway.Controllers
         public HttpResponseMessage ApiRequest(HttpRequestMessage httpRequestMessage)
         {
             var response = "OK";
+
             #region Comm
+
             try
             {
                 var inputString = httpRequestMessage.Content.ReadAsStringAsync().Result;
                 WebApiApplication.DbLogger.Info("inputString: " + inputString);
                 var input = JsonConvert.DeserializeObject<PaymentInput>(inputString);
-
+                var userIds = new List<int>();
 
                 using (var paymentSystemBl = new PaymentSystemBll(new SessionIdentity(), WebApiApplication.DbLogger))
                 {
@@ -84,14 +86,14 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                         }
                                         paymentRequest.Parameters = JsonConvert.SerializeObject(parameters);
                                         paymentSystemBl.ChangePaymentRequestDetails(paymentRequest);
-                                        clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
+                                        clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out userIds);
                                     }
                                     else
                                     {
                                         paymentRequest.Parameters = JsonConvert.SerializeObject(parameters);
                                         paymentSystemBl.ChangePaymentRequestDetails(paymentRequest);
                                         var resp = clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Approved,
-                                       string.Empty, null, null, false, paymentRequest.Parameters, documentBl, notificationBl);
+                                       string.Empty, null, null, false, paymentRequest.Parameters, documentBl, notificationBl, out userIds);
                                         clientBl.PayWithdrawFromPaymentSystem(resp, documentBl, notificationBl);
                                     }
                                 }
@@ -104,7 +106,12 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                         clientBl.ChangeDepositRequestState(paymentRequest.Id, PaymentRequestStates.Deleted, input.Data.Attributes.Resolution, notificationBl);
                                     else
                                         clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed, input.Data.Attributes.Resolution,
-                                                                            null, null, false, paymentRequest.Parameters, documentBl, notificationBl);
+                                                                            null, null, false, paymentRequest.Parameters, documentBl, notificationBl, out userIds);
+                                }
+
+                                foreach (var uId in userIds)
+                                {
+                                    PaymentHelpers.InvokeMessage("NotificationsCount", uId);
                                 }
                                 PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
                                 BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);

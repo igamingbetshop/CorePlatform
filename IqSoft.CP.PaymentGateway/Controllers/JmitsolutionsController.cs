@@ -8,6 +8,7 @@ using IqSoft.CP.PaymentGateway.Helpers;
 using IqSoft.CP.PaymentGateway.Models.JmitSolutions;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -25,6 +26,7 @@ public class JmitSolutionsController : ApiController
 	public HttpResponseMessage ApiRequest(HttpRequestMessage httpRequestMessage)
 	{
 		var response = "SUCCESS";
+		var userIds = new List<int>();
 		var httpResponseMessage = new HttpResponseMessage
 		{
 			StatusCode = HttpStatusCode.OK
@@ -49,14 +51,14 @@ public class JmitSolutionsController : ApiController
 				{
 					if (paymentRequest.Type == (int)PaymentRequestTypes.Deposit)
 					{
-						clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
-						PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
+						clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out userIds);
+                        PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
 						BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);
 					}
 					else if (paymentRequest.Type == (int)PaymentRequestTypes.Withdraw)
 					{
 						var resp = clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Approved, input.Status,
-																	  null, null, false, paymentRequest.Parameters, documentBl, notificationBl);
+																	  null, null, false, paymentRequest.Parameters, documentBl, notificationBl, out userIds);
 						clientBl.PayWithdrawFromPaymentSystem(resp, documentBl, notificationBl);
 					}
 
@@ -68,12 +70,16 @@ public class JmitSolutionsController : ApiController
 					else if (paymentRequest.Type == (int)PaymentRequestTypes.Withdraw)
 					{
 						clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed, input.GatewayDetails?.DeclineReason, null, null,
-														   false, paymentRequest.Parameters, documentBl, notificationBl);
+														   false, paymentRequest.Parameters, documentBl, notificationBl, out userIds);
 						PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
 						BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);
 					}
 				}
-			}
+                foreach (var uId in userIds)
+                {
+                    PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                }
+            }
 		}
 		catch (FaultException<BllFnErrorType> ex)
 		{

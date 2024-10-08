@@ -78,9 +78,10 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 			}
 		}
 
-		public static PaymentResponse PayoutRequest(PaymentRequest paymentRequest, SessionIdentity session, ILog log)
+		public static PaymentResponse PayoutRequest(PaymentRequest paymentRequest, SessionIdentity session, ILog log, out List<int> userIds)
 		{
-			using (var paymentSystemBl = new PaymentSystemBll(session, log))
+			userIds = new List<int>();
+            using (var paymentSystemBl = new PaymentSystemBll(session, log))
 			using (var clientBl = new ClientBll(paymentSystemBl))
 			{
 				try
@@ -136,7 +137,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                         using (var documentBl = new DocumentBll(paymentSystemBl))
                         using (var notificationBl = new NotificationBll(paymentSystemBl))
                             clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed, message.Message,
-                                                                null, null, false, paymentRequest.Parameters, documentBl, notificationBl);
+                                                                null, null, false, paymentRequest.Parameters, documentBl, notificationBl, out userIds);
                     }
                     throw;
                 }

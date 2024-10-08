@@ -22,7 +22,7 @@ namespace IqSoft.CP.BLL.Interfaces
         PagedModel<Transaction> GetTransactions(FilterTransaction filter);
         PagedModel<fnTransaction> GetFnTransactions(FilterFnTransaction filter);
         List<Document> RollbackProductTransactions(ListOfOperationsFromApi transactions, bool checkProduct = true, string newExternalId = null, string externalTransactionId = null);
-        List<ClientBonu> FinalizeWageringBonusDocument();
+        List<ClientBonu> FinalizeWageringBonusDocument(out List<int> usersList);
         List<Document> RollBackPaymentRequest(List<Document> existingDocuments);
         Document GetDocumentOnlyByExternalId(string externalTransactionId, int gameProviderId, int clientId, int operationTypeId);
         Document GetDocumentByExternalId(string externalTransactionId, int clientId, int gameProviderId, int partnerProductSettingId, int operationTypeId);

@@ -197,8 +197,9 @@ namespace IqSoft.CP.Integration.Payments.Helpers
         }
 
 
-        public static void GetTransactionDetails(PaymentRequest input, SessionIdentity session, ILog log)
+        public static List<int> GetTransactionDetails(PaymentRequest input, SessionIdentity session, ILog log)
         {
+            var userIds = new List<int>();
             using (var paymentSystemBl = new PaymentSystemBll(session, log))            
             {
                 var client = CacheManager.GetClientById(input.ClientId.Value);
@@ -233,17 +234,18 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                                 if (data.stateName == "success")
                                 {
                                     var resp = clientBl.ChangeWithdrawRequestState(input.Id, PaymentRequestStates.Approved,
-                                        string.Empty, null, null, false, string.Empty, documentBl, notificationBl);
+                                        string.Empty, null, null, false, string.Empty, documentBl, notificationBl, out userIds);
                                     clientBl.PayWithdrawFromPaymentSystem(resp, documentBl, notificationBl);
                                 }
                                 else if(data.stateName == "canceled")
                                     clientBl.ChangeWithdrawRequestState(input.Id, PaymentRequestStates.Failed,
-											null, null, null, false, string.Empty, documentBl, notificationBl);
+											null, null, null, false, string.Empty, documentBl, notificationBl, out userIds);
                             }
                         }
                     }
                 }
             }
+            return userIds;
         }
     }
 }

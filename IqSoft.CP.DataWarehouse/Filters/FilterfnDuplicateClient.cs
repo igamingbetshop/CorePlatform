@@ -6,8 +6,6 @@ namespace IqSoft.CP.DataWarehouse.Filters
     public class FilterfnDuplicateClient : FilterBase<fnDuplicateClient>
     {
         public int ClientId { get; set; }
-        public FiltersOperation PartnerIds { get; set; }
-        public FiltersOperation ClientIds { get; set; }
         public FiltersOperation DuplicatedClientIds { get; set; }
         public FiltersOperation DuplicatedDatas { get; set; }
         public FiltersOperation MatchDates { get; set; }

@@ -66,7 +66,11 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                         });
                         paymentRequest.ExternalTransactionId = input.LMI_SYS_PAYMENT_ID;
                         paymentSystemBl.ChangePaymentRequestDetails(paymentRequest);
-                        clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
+                        clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out List<int> userIds);
+                        foreach (var uId in userIds)
+                        {
+                            PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                        }
                         PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
                         BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);
                         response = JsonConvert.SerializeObject(new { status = "OK" });

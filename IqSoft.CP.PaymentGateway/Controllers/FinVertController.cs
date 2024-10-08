@@ -68,7 +68,11 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                 {
                                     if (responseCode == ResponseCodes.Success)
                                     {
-                                        clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
+                                        clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out List<int> userIds);
+                                        foreach (var uId in userIds)
+                                        {
+                                            PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                        }
                                     }
                                     else if (responseCode == ResponseCodes.Fail || responseCode == ResponseCodes.Blocked)
                                     {

@@ -115,8 +115,10 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 				}
 			}
 		}
-		public static void GetTransactionDetails(PaymentRequest input, SessionIdentity session, ILog log)
+
+		public static List<int> GetTransactionDetails(PaymentRequest input, SessionIdentity session, ILog log)
 		{
+			var userIds = new List<int>();
 			using (var paymentSystemBl = new PaymentSystemBll(session, log))
 			{
 				var client = CacheManager.GetClientById(input.ClientId.Value);
@@ -167,12 +169,12 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 										}, null, false);
 									}
 
-									clientBl.ApproveDepositFromPaymentSystem(input, false, info: info);
+									clientBl.ApproveDepositFromPaymentSystem(input, false, out userIds, info: info);
 								}
 								else if (input.Type == (int)PaymentRequestTypes.Withdraw)
 								{
 									var resp = clientBl.ChangeWithdrawRequestState(input.Id, PaymentRequestStates.Approved,
-										string.Empty, null, null, false, string.Empty, documentBl, notificationBl);
+										string.Empty, null, null, false, string.Empty, documentBl, notificationBl, out userIds);
 									clientBl.PayWithdrawFromPaymentSystem(resp, documentBl, notificationBl);
 								}
 							}
@@ -186,14 +188,15 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 								else if (input.Type == (int)PaymentRequestTypes.Withdraw)
 								{
 									clientBl.ChangeWithdrawRequestState(input.Id, PaymentRequestStates.Failed,
-										reason, null, null, false, string.Empty, documentBl, notificationBl);
+										reason, null, null, false, string.Empty, documentBl, notificationBl, out userIds);
 								}
 							}
 						}
 					}
 				}
 			}
-		}
+			return userIds;
+        }
 	}
 }
 

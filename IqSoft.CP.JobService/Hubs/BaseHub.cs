@@ -57,6 +57,11 @@ namespace IqSoft.CP.JobService.Hubs
             });
         }
 
+        public static void BroadcastNotificationsCount(int userId)
+        {
+            _connectedClients.Group("BaseHub").onNotificationsCount(userId);
+        }
+
         public void UpdateCacheItem(string key, object newValue, TimeSpan timeSpan)
 		{
 			foreach (var item in Caches)
@@ -65,6 +70,7 @@ namespace IqSoft.CP.JobService.Hubs
 					Clients.Client(item.Key).onUpdateCacheItem(key, newValue, timeSpan);
 			}
 		}
+
 		public void UpdateClientFailedLoginCount(int clientId)
 		{
 			foreach (var item in Caches)
@@ -73,6 +79,7 @@ namespace IqSoft.CP.JobService.Hubs
 					Clients.Client(item.Key).onUpdateClientFailedLoginCount(clientId);
 			}
 		}
+
 		public void UpdateProduct(int productId)
 		{
 			foreach (var item in Caches)
@@ -172,6 +179,7 @@ namespace IqSoft.CP.JobService.Hubs
 					Clients.Client(item.Key).onRemoveBanners(key);
 			}
 		}
+
 		public void RemoveClient(int clientId)
 		{
 			foreach (var item in Caches)
@@ -207,6 +215,7 @@ namespace IqSoft.CP.JobService.Hubs
 					Clients.Client(item.Key).onClientBonus(clientId);
 			}
 		}
+
 		public void LoginClient(int clientId, string ip)
 		{
 			foreach (var item in Caches)
@@ -224,5 +233,14 @@ namespace IqSoft.CP.JobService.Hubs
 					Clients.Client(item.Key).onPaymentRequst(paymentRequestId);
 			}
 		}
-	}
+
+        public void NotificationsCount(int userId)
+        {
+            foreach (var item in Caches)
+            {
+                if (item.Key != Context.ConnectionId)
+                    Clients.Client(item.Key).onNotificationsCount(userId);
+            }
+        }
+    }
 }

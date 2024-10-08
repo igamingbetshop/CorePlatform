@@ -253,7 +253,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var filter = apiFilterClientMessage.MapToFilterClientMessage();
+                var filter = apiFilterClientMessage.MapToFilterClientMessage(identity.TimeZone);
                 filter.Types = new List<int> { (int)ClientMessageTypes.Email, (int)ClientMessageTypes.SecuredEmail };
                 return new ApiResponseBase
                 {
@@ -266,7 +266,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var filter = apiFilterClientMessage.MapToFilterClientMessage();
+                var filter = apiFilterClientMessage.MapToFilterClientMessage(identity.TimeZone);
                 filter.Types = new List<int> { (int)ClientMessageTypes.Sms, (int)ClientMessageTypes.SecuredSms };
                 return new ApiResponseBase
                 {
@@ -279,7 +279,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log, 120))
             {
-                var filter = input.MapToFilterInternetBet();
+                var filter = input.MapToFilterInternetBet(identity.TimeZone);
                 var bets = reportBl.GetInternetBetsPagedModel(filter, string.Empty, true);
                 var apibets = bets.MapToInternetBetsReportModel(reportBl.GetUserIdentity().TimeZone);
 
@@ -294,7 +294,9 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                         TotalPlayersCount = bets.TotalPlayersCount,
                         TotalProvidersCount = bets.TotalProvidersCount,
                         TotalPossibleWinAmount = bets.TotalPossibleWinAmount,
-                        TotalProductsCount = bets.TotalProductsCount
+                        TotalProductsCount = bets.TotalProductsCount,
+                        TotalBonusBetAmount = bets.TotalBonusBetAmount,
+                        TotalBonusWinAmount = bets.TotalBonusWinAmount
                     }
                 };
             }
@@ -304,7 +306,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var filter = input.MapToFilterInternetBet();
+                var filter = input.MapToFilterInternetBet(identity.TimeZone);
                 var bets = reportBl.GetInternetBetsByClientPagedModel(filter);
                 var apibets = bets.MapToApiInternetBetsByClient();
                 return new ApiResponseBase
@@ -322,7 +324,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.InvalidDataRange);
                 return new ApiResponseBase
                 {
-                    ResponseObject = reportBl.GetReportByInternetGames(filter.MapToFilterInternetGame()).ToApiInternetGamesReport()
+                    ResponseObject = reportBl.GetReportByInternetGames(filter.MapToFilterInternetGame(identity.TimeZone)).ToApiInternetGamesReport()
                 };
             }
         }
@@ -333,7 +335,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             {
                 if ((filter.BetDateBefore - filter.BetDateFrom).TotalDays > 40)
                     throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.InvalidDataRange);
-                var result = reportBl.ExportReportByInternetGames(filter.MapToFilterInternetGame()).Entities.Select(x => x.ToApiInternetGame()).ToList();
+                var result = reportBl.ExportReportByInternetGames(filter.MapToFilterInternetGame(identity.TimeZone)).Entities.Select(x => x.ToApiInternetGame()).ToList();
                 var fileName = "ExportReportByInternetGames.csv";
                 var fileAbsPath = reportBl.ExportToCSV(fileName, result, filter.BetDateFrom, filter.BetDateBefore, identity.TimeZone, filter.AdminMenuId);
                 return new ApiResponseBase
@@ -350,7 +352,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var filter = input.MapToFilterBetShopBet();
+                var filter = input.MapToFilterBetShopBet(identity.TimeZone);
                 var result = reportBl.GetBetshopBetsPagedModel(filter, string.Empty, Permissions.ViewBetShopBetsDashboard, true);
 
                 return new ApiResponseBase
@@ -364,7 +366,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var filter = input.MapToFilterBetShopBet();
+                var filter = input.MapToFilterBetShopBet(identity.TimeZone);
                 var result = reportBl.GetBetshopBetsPagedModel(filter, string.Empty, Permissions.ViewBetShopBets, true);
 
                 return new ApiResponseBase
@@ -378,7 +380,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var filter = input.MapToFilterReportByBetShopPayment();
+                var filter = input.MapToFilterReportByBetShopPayment(identity.TimeZone);
                 var result = reportBl.GetReportByBetShopPayments(filter);
 
                 return new ApiResponseBase
@@ -395,7 +397,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             {
                 if ((filter.BetDateBefore - filter.BetDateFrom).TotalDays > 40)
                     throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.InvalidDataRange);
-                var result = reportBl.GetReportByBetShops(filter.MapToFilterBetShopBet()).MapToBetShopsReportModel();
+                var result = reportBl.GetReportByBetShops(filter.MapToFilterBetShopBet(identity.TimeZone)).MapToBetShopsReportModel();
 
 
                 return new ApiResponseBase
@@ -411,7 +413,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             {
                 if ((filter.BetDateBefore - filter.BetDateFrom).TotalDays > 40)
                     throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.InvalidDataRange);
-                var result = reportBl.GetReportByBetShopGames(filter.MapToFilterBetShopBet()).ToApiBetShopGamesReport();
+                var result = reportBl.GetReportByBetShopGames(filter.MapToFilterBetShopBet(identity.TimeZone)).ToApiBetShopGamesReport();
 
                 return new ApiResponseBase
                 {
@@ -442,7 +444,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var result = reportBl.GetCashDeskTransactionsPage(filter.MapToFilterCashDeskTransaction());
+                var result = reportBl.GetCashDeskTransactionsPage(filter.MapToFilterCashDeskTransaction(identity.TimeZone));
 
                 return new ApiResponseBase
                 {
@@ -457,7 +459,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var result = reportBl.GetReportByProviders(filter.MapToFilterReportByProvider());
+                var result = reportBl.GetReportByProviders(filter.MapToFilterReportByProvider(identity.TimeZone));
 
                 return new ApiResponseBase
                 {
@@ -480,7 +482,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var result = reportBl.GetReportByPaymentSystems(filter.MapToFilterReportByPaymentSystem(), filter.Type);
+                var result = reportBl.GetReportByPaymentSystems(filter.MapToFilterReportByPaymentSystem(identity.TimeZone), filter.Type);
 
                 return new ApiResponseBase
                 {
@@ -497,7 +499,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var result = reportBl.ExportReportByPaymentSystems(filter.MapToFilterReportByPaymentSystem(), (int)PaymentRequestTypes.Deposit).Entities.ToList();
+                var result = reportBl.ExportReportByPaymentSystems(filter.MapToFilterReportByPaymentSystem(identity.TimeZone), (int)PaymentRequestTypes.Deposit).Entities.ToList();
                 var fileName = "ExportReportByPaymentSystems.csv";
                 var fileAbsPath = reportBl.ExportToCSV(fileName, result, filter.FromDate, filter.ToDate, identity.TimeZone, filter.AdminMenuId);
 
@@ -517,7 +519,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             {
                 return new ApiResponseBase
                 {
-                    ResponseObject = reportBl.GetReportByPartners(filter.MapToFilterReportByPartner()).Select(x => x.MapToFilterReportByPartner()).ToList()
+                    ResponseObject = reportBl.GetReportByPartners(filter.MapToFilterReportByPartner(identity.TimeZone)).Select(x => x.MapToFilterReportByPartner()).ToList()
                 };
             }
         }
@@ -526,7 +528,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var result = reportBl.ExportReportByPartners(filter.MapToFilterReportByPartner());
+                var result = reportBl.ExportReportByPartners(filter.MapToFilterReportByPartner(identity.TimeZone));
                 var fileName = "ExportReportByPartners.csv";
                 var fileAbsPath = reportBl.ExportToCSV(fileName, result, filter.FromDate, filter.ToDate, identity.TimeZone, filter.AdminMenuId);
 
@@ -544,14 +546,14 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var result = reportBl.GetReportByUserTransactions(filter.MapToFilterReportByUserTransaction());
+                var result = reportBl.GetReportByUserTransactions(filter.MapToFilterReportByUserTransaction(identity.TimeZone));
 
                 return new ApiResponseBase
                 {
                     ResponseObject = new
                     {
                         result.Count,
-                        Entities = result.Entities.Select(x => x.MapToApiReportByUserTransaction()).ToList()
+                        Entities = result.Entities.Select(x => x.MapToApiReportByUserTransaction(filter.TimeZone)).ToList()
                     }
                 };
             }
@@ -561,7 +563,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var result = reportBl.ExportReportByUserTransactions(filter.MapToFilterReportByUserTransaction()).Entities.ToList();
+                var result = reportBl.ExportReportByUserTransactions(filter.MapToFilterReportByUserTransaction(identity.TimeZone)).Entities.ToList();
                 var fileName = "ExportReportByUserTransactions.csv";
                 var fileAbsPath = reportBl.ExportToCSV(fileName, result, filter.FromDate, filter.ToDate, identity.TimeZone, filter.AdminMenuId);
 
@@ -580,7 +582,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var result = reportBl.GetReportByProducts(filter.MapToFilterReportByProduct());
+                var result = reportBl.GetReportByProducts(filter.MapToFilterReportByProduct(identity.TimeZone));
 
                 return new ApiResponseBase
                 {
@@ -593,7 +595,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var result = reportBl.GetReportByActionLogPaging(filter.MapToFilterReportByActionLog(), true);
+                var result = reportBl.GetReportByActionLogPaging(filter.MapToFilterReportByActionLog(identity.TimeZone), true);
 
                 return new ApiResponseBase
                 {
@@ -610,7 +612,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var request = filter.MapToFilterPartnerPaymentsSummary();
+                var request = filter.MapToFilterPartnerPaymentsSummary(identity.TimeZone);
                 var response = new ApiResponseBase
                 {
                     ResponseObject = new
@@ -726,7 +728,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             using (var reportBl = new ReportBll(identity, log, 120))
             {
                 var timeZone = reportBl.GetUserIdentity().TimeZone;
-                var filter = input.MapToFilterInternetBet();
+                var filter = input.MapToFilterInternetBet(identity.TimeZone);
                 var filteredList = reportBl.ExportInternetBet(filter).Select(x => x.MapToInternetBetModel(timeZone)).ToList();
                 string fileName = "ExportInternetBet.csv";
                 string fileAbsPath = reportBl.ExportToCSV<InternetBetModel>(fileName, filteredList, input.BetDateFrom, input.BetDateBefore, timeZone, input.AdminMenuId);
@@ -746,7 +748,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var filter = input.MapToFilterInternetBet();
+                var filter = input.MapToFilterInternetBet(identity.TimeZone);
                 var bets = reportBl.ExportInternetBetsByClient(filter);
                 var filteredList = bets.Select(x => x.MapToApiInternetBetByClient()).ToList();
                 string fileName = "ExportInternetBetsByClient.csv";
@@ -768,7 +770,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             using (var reportBl = new ReportBll(identity, log))
             {
                 var timeZone = reportBl.GetUserIdentity().TimeZone;
-                var filter = input.MapToFilterBetShopBet();
+                var filter = input.MapToFilterBetShopBet(identity.TimeZone);
                 var result = reportBl.ExportBetShopBets(filter);
                 var filteredList = result.Select(x => x.MapToBetShopBet(timeZone)).ToList();
                 string fileName = "ExportBetShopBets.csv";
@@ -788,7 +790,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var filter = input.MapToFilterReportByBetShopPayment();
+                var filter = input.MapToFilterReportByBetShopPayment(identity.TimeZone);
                 var result = reportBl.ExportByBetShopPayments(filter);
                 var filteredList = result.Select(x => x.MapToApiReportByBetShopPaymentsElement()).ToList();
                 string fileName = "ExportByBetShopPayments.csv";
@@ -809,7 +811,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var result = reportBl.ExportProducts(filter.MapToFilterReportByProduct());
+                var result = reportBl.ExportProducts(filter.MapToFilterReportByProduct(identity.TimeZone));
                 string fileName = "ExportProducts.csv";
                 string fileAbsPath = reportBl.ExportToCSV<fnReportByProduct>(fileName, result, filter.FromDate, filter.ToDate, identity.TimeZone, filter.AdminMenuId);
 
@@ -827,7 +829,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var result = reportBl.ExportBetShops(filter.MapToFilterBetShopBet()).Select(x => x.MapToBetShopReportModel()).ToList();
+                var result = reportBl.ExportBetShops(filter.MapToFilterBetShopBet(identity.TimeZone)).Select(x => x.MapToBetShopReportModel()).ToList();
                 string fileName = "ExportBetShops.csv";
                 string fileAbsPath = reportBl.ExportToCSV<ApiBetShopReport>(fileName, result, filter.BetDateFrom, filter.BetDateBefore,
                                                                             identity.TimeZone, filter.AdminMenuId);
@@ -846,7 +848,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var result = reportBl.ExportProviders(filter.MapToFilterReportByProvider());
+                var result = reportBl.ExportProviders(filter.MapToFilterReportByProvider(identity.TimeZone));
                 string fileName = "ExportProviders.csv";
                 string fileAbsPath = reportBl.ExportToCSV<ReportByProvidersElement>(fileName, result, filter.FromDate, filter.ToDate, 
                                                                                     identity.TimeZone, filter.AdminMenuId);
@@ -883,7 +885,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var result = reportBl.ExportByActionLogs(filter.MapToFilterReportByActionLog()).MapToApiReportByActionLog(identity.TimeZone);
+                var result = reportBl.ExportByActionLogs(filter.MapToFilterReportByActionLog(identity.TimeZone)).MapToApiReportByActionLog(identity.TimeZone);
                 string fileName = "ExportByUserLogs.csv";
                 string fileAbsPath = reportBl.ExportToCSV<ApiReportByActionLog>(fileName, result, filter.FromDate, filter.ToDate, 
                                                                                 identity.TimeZone, filter.AdminMenuId);
@@ -902,7 +904,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var corrections = reportBl.GetReportByCorrections(filter.MapToFilterCorrection());
+                var corrections = reportBl.GetReportByCorrections(filter.MapToFilterCorrection(identity.TimeZone));
 
                 return new ApiResponseBase
                 {
@@ -915,7 +917,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var betShopLimitChanges = reportBl.GetBetShopLimitChangesReport(filter.MapToFilterReportByBetShopLimitChanges());
+                var betShopLimitChanges = reportBl.GetBetShopLimitChangesReport(filter.MapToFilterReportByBetShopLimitChanges(identity.TimeZone));
                 return new ApiResponseBase
                 {
                     ResponseObject = new
@@ -931,7 +933,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var result = reportBl.GetClientSessions(filter.MapToFilterReportByfnClientSession(), true);
+                var result = reportBl.GetClientSessions(filter.MapToFilterReportByfnClientSession(identity.TimeZone), true);
 
                 return new ApiResponseBase
                 {
@@ -948,7 +950,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var result = reportBl.GetUserSessions(filter.MapToFilterReportByUserSession());
+                var result = reportBl.GetUserSessions(filter.MapToFilterReportByUserSession(identity.TimeZone));
 
                 return new ApiResponseBase
                 {
@@ -976,7 +978,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var result = reportBl.ExportClientSessions(filter.MapToFilterReportByfnClientSession()).MapToClientSessionModels(identity.TimeZone);
+                var result = reportBl.ExportClientSessions(filter.MapToFilterReportByfnClientSession(identity.TimeZone)).MapToClientSessionModels(identity.TimeZone);
                 var fileName = "ExportClientSessions.csv";
                 var fileAbsPath = reportBl.ExportToCSV(fileName, result, filter.FromDate, filter.ToDate, identity.TimeZone, filter.AdminMenuId);
 
@@ -994,7 +996,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var result = reportBl.GetReportByClientIdentity(filter.MapToFilterClientIdentity());
+                var result = reportBl.GetReportByClientIdentity(filter.MapToFilterClientIdentity(identity.TimeZone));
                 return new ApiResponseBase
                 {
                     ResponseObject = new
@@ -1010,7 +1012,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var result = reportBl.ExportClientIdentities(filter.MapToFilterClientIdentity()).Entities.ToList();
+                var result = reportBl.ExportClientIdentities(filter.MapToFilterClientIdentity(identity.TimeZone)).Entities.ToList();
                 var fileName = "ExportClientIdentities.csv";
                 var fileAbsPath = reportBl.ExportToCSV(fileName, result, filter.FromDate, filter.ToDate, identity.TimeZone, filter.AdminMenuId);
 
@@ -1028,7 +1030,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var result = reportBl.GetReportByObjectChangeHistory(filter.MapToFilterObjectChangeHistory());
+                var result = reportBl.GetReportByObjectChangeHistory(filter.MapToFilterObjectChangeHistory(identity.TimeZone));
                 return new ApiResponseBase
                 {
                     ResponseObject = new
@@ -1044,7 +1046,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var result = reportBl.ExportObjectChangeHistory(filter.MapToFilterObjectChangeHistory())
+                var result = reportBl.ExportObjectChangeHistory(filter.MapToFilterObjectChangeHistory(identity.TimeZone))
                     .Entities.Select(x => x.MapToApiReportByObjectChangeHistory(identity.TimeZone)).ToList();
                 var fileName = "ExportObjectChangeHistory.csv";
                 var fileAbsPath = reportBl.ExportToCSV(fileName, result, filter.FromDate, filter.ToDate, identity.TimeZone, filter.AdminMenuId);
@@ -1063,7 +1065,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var result = reportBl.GetReportByBonus(filter.MapToFilterReportByBonus());
+                var result = reportBl.GetReportByBonus(filter.MapToFilterReportByBonus(identity.TimeZone));
                 return new ApiResponseBase
                 {
                     ResponseObject = new
@@ -1081,7 +1083,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log))
             {
-                var result = reportBl.ExportReportByBonus(filter.MapToFilterReportByBonus()).Select(x => x.MapToApiClientBonus(identity.TimeZone)).ToList();
+                var result = reportBl.ExportReportByBonus(filter.MapToFilterReportByBonus(identity.TimeZone)).Select(x => x.MapToApiClientBonus(identity.TimeZone)).ToList();
                 var fileName = "ExportReportByBonus.csv";
                 var fileAbsPath = reportBl.ExportToCSV(fileName, result, filter.FromDate, filter.ToDate, identity.TimeZone, filter.AdminMenuId);
                 return new ApiResponseBase
@@ -1278,7 +1280,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log, 120))
             {
-                var filter = input.MapToFilterClientGame();
+                var filter = input.MapToFilterClientGame(identity.TimeZone);
                 var games = reportBl.GetClientGamePagedModel(filter, string.Empty, true);
 
                 return new ApiResponseBase
@@ -1292,7 +1294,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log, 120))
             {
-                var pageModel = reportBl.GetDuplicateClients(input.MapToFilterDuplicateClient());
+                var pageModel = reportBl.GetDuplicateClients(input.MapToFilterDuplicateClient(identity.TimeZone));
 
                 return new ApiResponseBase
                 {
@@ -1314,7 +1316,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log, 120))
             {
-                var pageModel = reportBl.GetAffiliateCorrections(input.MapToFilterAffiliateCorrection());
+                var pageModel = reportBl.GetAffiliateCorrections(input.MapToFilterAffiliateCorrection(identity.TimeZone));
 
                 return new ApiResponseBase
                 {
@@ -1350,7 +1352,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log, 120))
             {
-                var pageModel = reportBl.GetReportByPopupStatistics(input.MapToFilterReportByPopupStatistics());
+                var pageModel = reportBl.GetReportByPopupStatistics(input.MapToFilterReportByPopupStatistics(identity.TimeZone));
 
                 return new ApiResponseBase
                 {
@@ -1379,7 +1381,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var reportBl = new ReportBll(identity, log, 120))
             {
-                var result = reportBl.ExportReportByPopupStatistics(input.MapToFilterReportByPopupStatistics()).Entities.ToList();
+                var result = reportBl.ExportReportByPopupStatistics(input.MapToFilterReportByPopupStatistics(identity.TimeZone)).Entities.ToList();
                 var fileName = "ExportReportByPopupStatistics.csv";
                 var fileAbsPath = reportBl.ExportToCSV(fileName, result, input.FromDate, input.ToDate, identity.TimeZone, input.AdminMenuId);
 

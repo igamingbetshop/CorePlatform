@@ -24,7 +24,6 @@ namespace IqSoft.CP.DAL.Models.Cache
 		public int? ValidForAwarding { get; set; }
 		public int? ValidForSpending { get; set; }
 		public int? Sequence { get; set; }
-        public decimal Percent{ get; set; }
 		public string Condition { get; set; }
 		public List<int> PaymentSystems { get; set; }
 		public bool HasPromo { get; set; }
@@ -34,6 +33,7 @@ namespace IqSoft.CP.DAL.Models.Cache
 		public int? DayOfWeek { get; set; }
 		public int? ReusingMaxCountInPeriod { get; set; }
 		public long TranslationId { get; set; }
+        public string Color { get; set; }
 
         public List<TriggerGroupInfo> TriggerGroups { get; set; }
 

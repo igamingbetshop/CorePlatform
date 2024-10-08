@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.ServiceModel;
-using System.Threading.Tasks;
 using System.Web;
 using IqSoft.CP.BLL.Caching;
 using IqSoft.CP.Common;
@@ -30,6 +28,7 @@ using IqSoft.CP.Common.Models.UserModels;
 using IqSoft.CP.BLL.Helpers;
 using System.Data.Entity.Validation;
 using Newtonsoft.Json.Linq;
+using TheArtOfDev.HtmlRenderer.PdfSharp;
 
 namespace IqSoft.CP.BLL.Services
 {
@@ -225,6 +224,16 @@ namespace IqSoft.CP.BLL.Services
                         document.AddPage(source_pdf.Pages[i]);
                     document.Save(filePath);
                 }
+            }
+        }
+
+        public static byte[] StringToPdfBytes(string htmlContent)
+        {
+            var document = PdfGenerator.GeneratePdf(htmlContent, PdfSharp.PageSize.A4, 40);
+            using (MemoryStream memoryStream = new MemoryStream())
+            {
+                document.Save(memoryStream, false);
+                return memoryStream.ToArray();
             }
         }
 

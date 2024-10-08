@@ -9,7 +9,6 @@ using IqSoft.CP.Common;
 using IqSoft.CP.Common.Enums;
 using IqSoft.CP.Common.Helpers;
 using IqSoft.CP.Common.Models.CacheModels;
-using IqSoft.CP.Common.Models.UserModels;
 using IqSoft.CP.DAL.Filters;
 using IqSoft.CP.DAL.Models;
 using Newtonsoft.Json;
@@ -28,13 +27,13 @@ using Language = IqSoft.CP.AdminWebApi.Models.CommonModels.Language;
 
 namespace IqSoft.CP.AdminWebApi.Controllers
 {
-    [EnableCors(origins: "*", headers: "*", methods: "GET,POST")]
+    //[EnableCors(origins: "*", headers: "*", methods: "GET,POST")]
     public class MainController : ApiController
     {
         [HttpPost]
-        public Session LoginUser([FromUri] RequestInfo requestInfo, EncryptedData inp)
+        public ApiLoginUserOutput LoginUser([FromUri] RequestInfo requestInfo, EncryptedData inp)
         {
-            var loginResult = new Session();
+            var loginResult = new ApiLoginUserOutput();
             var action = new DAL.ActionLog
             {
                 Page = string.Empty,
@@ -76,7 +75,7 @@ namespace IqSoft.CP.AdminWebApi.Controllers
                                 UserType = (int)UserTypes.AdminUser
                             };
                             var userIdentity = userBl.LoginUser(loginInput, out string imageData);
-                            loginResult = new Session(userIdentity);
+                            loginResult = new ApiLoginUserOutput(userIdentity);
                             var user = userBl.GetUserById(userIdentity.Id);
                             loginResult.UserLogin = user.UserName;
                             loginResult.UserName = string.Format("{0} {1}", user.FirstName, user.LastName);
@@ -105,13 +104,14 @@ namespace IqSoft.CP.AdminWebApi.Controllers
                             {
                                 loginResult.VipLevel = partnerBl.GetPartnerById(userIdentity.PartnerId).VipLevel;
                             }
+                            loginResult.NotificationsCount = CacheManager.GetUserNotificationsCount(loginResult.UserId).Count;
                         }
                     }
                 }
             }
             catch (FaultException<BllFnErrorType> e)
             {
-                loginResult = new Session
+                loginResult = new ApiLoginUserOutput
                 {
                     ResponseCode = e.Detail.Id,
                     Description = e.Detail.Message
@@ -121,7 +121,7 @@ namespace IqSoft.CP.AdminWebApi.Controllers
             catch (Exception e)
             {
                 WebApiApplication.DbLogger.Error(e);
-                loginResult = new Session
+                loginResult = new ApiLoginUserOutput
                 {
                     ResponseCode = Constants.Errors.GeneralException,
                     Description = e.Message

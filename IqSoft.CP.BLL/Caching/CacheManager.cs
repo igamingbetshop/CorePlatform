@@ -17,8 +17,7 @@ using IqSoft.CP.DataWarehouse;
 using ILog = log4net.ILog;
 
 namespace IqSoft.CP.BLL.Caching
-{
-    public static class CacheManager
+{    public static class CacheManager
     {
         private static readonly MemcachedClient MemcachedCache;
 
@@ -1028,43 +1027,6 @@ namespace IqSoft.CP.BLL.Caching
         {
             MemcachedCache.Remove(string.Format("{0}_{1}_{2}_{3}", Constants.CacheItems.PartnerProductCategories, partnerId, language, (int)ProductCategoryTypes.ForClient));
             MemcachedCache.Remove(string.Format("{0}_{1}_{2}_{3}", Constants.CacheItems.PartnerProductCategories, partnerId, language, (int)ProductCategoryTypes.ForPartner));
-        }
-
-        public static List<BllMenuItem> GetCasinoMenues(int partnerId)
-        {
-            var key = Constants.CacheItems.CasinoMenues + "_" + partnerId;
-            var oldValue = MemcachedCache.Get<List<BllMenuItem>>(key);
-            if (oldValue != null) return oldValue;
-            var newValue = GetCasinoMenuesFromDb(partnerId);
-            MemcachedCache.Store(StoreMode.Set, key, newValue, TimeSpan.FromDays(1d));
-            return newValue;
-        }
-
-        public static void RemoveCasinoMenues(int partnerId)
-        {
-            var key = Constants.CacheItems.CasinoMenues + "_" + partnerId;
-            MemcachedCache.Remove(key);
-        }
-
-        private static List<BllMenuItem> GetCasinoMenuesFromDb(int partnerId)
-        {
-            using (var db = new IqSoftCorePlatformEntities())
-            {
-                var resp = db.WebSiteMenuItems.Where(x => x.WebSiteMenu.PartnerId == partnerId &&
-                            x.WebSiteMenu.Type == Constants.WebSiteConfiguration.CasinoMenu).Select(x => new BllMenuItem
-                            {
-                                Id = x.Id,
-                                Icon = x.Icon,
-                                Title = x.Title,
-                                Type = x.Type,
-                                StyleType = x.StyleType,
-                                Href = x.Href,
-                                OpenInRouting = x.OpenInRouting,
-                                Orientation = x.Orientation,
-                                Order = x.Order
-                            }).OrderBy(y => y.Order).ToList();
-                return resp;
-            }
         }
 
         #endregion
@@ -2885,29 +2847,74 @@ namespace IqSoft.CP.BLL.Caching
             }
         }
 
-        public static List<BllClientProductCommission> GetClientProductCommissionTree(int clientId, int productId)
+        public static List<BllProductCommission> GetClientProductCommissionTree(int clientId, int productId)
         {
             var key = string.Format("{0}_{1}_{2}", Constants.CacheItems.ClientProductCommissionTree, clientId, productId);
-            var oldValue = MemcachedCache.Get<List<BllClientProductCommission>>(key);
+            var oldValue = MemcachedCache.Get<List<BllProductCommission>>(key);
             if (oldValue != null)
                 return oldValue;
-            var newValue = GetClientProductCommissionTreeFromDb(clientId, productId);
-            MemcachedCache.Store(StoreMode.Set, key, newValue, TimeSpan.FromDays(1));
 
-            return newValue;
+            var client = CacheManager.GetClientById(clientId);
+            var user = CacheManager.GetUserById(client.UserId.Value);
+            var parents = user.Path.Split('/');
+            var percents = new List<BllProductCommission>();
+            var productPath = new List<int>();
+            
+            var p = GetProductById(productId);
+            if (!string.IsNullOrEmpty(p.Path))
+            {
+                var pParents = p.Path.Split('/');
+                foreach (var sPId in pParents)
+                {
+                    if (int.TryParse(sPId, out int pId))
+                    {
+                        productPath.Add(pId);
+                    }
+                }
+            }
+
+            foreach (var sPId in parents)
+            {
+                if (int.TryParse(sPId, out int pId))
+                {
+                    var acmm = GetAgentProductCommissionFromDb(null, pId, productPath);
+                    percents.Add(new BllProductCommission { 
+                        AgentId = pId,
+                        ClientId = null,
+                        GGRSharePercent = acmm == null ? 0 : acmm.Percent,
+                        TurnoverSharePercent = acmm == null ? "0" : acmm.TurnoverPercent
+                    });
+                }
+            }
+            var ccmm = GetAgentProductCommissionFromDb(clientId, null, productPath);
+            if (ccmm != null)
+            {
+                percents.Add(new BllProductCommission
+                {
+                    AgentId = null,
+                    ClientId = ccmm.ClientId,
+                    GGRSharePercent = ccmm.Percent,
+                    TurnoverSharePercent = ccmm.TurnoverPercent
+                });
+            }
+
+            MemcachedCache.Store(StoreMode.Set, key, percents, TimeSpan.FromDays(1));
+            return percents;
         }
-        private static List<BllClientProductCommission> GetClientProductCommissionTreeFromDb(int clientId, int productId)
+
+        private static DAL.AgentCommission GetAgentProductCommissionFromDb(int? clientId, int? agentId, List<int> productPath)
         {
             using (var db = new IqSoftCorePlatformEntities())
             {
-                return db.fn_ClientProductCommission(productId, clientId)
-                                              .Select(x => new BllClientProductCommission
-                                              {
-                                                  Percent = x.Percent,
-                                                  TurnoverPercent = x.TurnoverPercent,
-                                                  ClientId = x.ClientId,
-                                                  AgentId = x.AgentId
-                                              }).ToList();
+                var ac = db.AgentCommissions.Where(x => x.AgentId == agentId && x.ClientId == clientId).ToList();
+                for(int i = productPath.Count - 1; i >= 0; i--)
+                {
+                    var cmm = ac.FirstOrDefault(x => x.ProductId == productPath[i]);
+                    if (cmm != null)
+                        return cmm;
+
+                }
+                return null;
             }
         }
 
@@ -3230,6 +3237,35 @@ namespace IqSoft.CP.BLL.Caching
             }
         }
 
+        public static int GetProductSessionsCount(int productId)
+        {
+            var key = string.Format("{0}_{1}", Constants.CacheItems.ProductSessionsCount, productId);
+            var oldValue = MemcachedCache.Get<int?>(key);
+            if (oldValue != null)
+                return oldValue.Value;
+
+            var count = GetProductSessionsCountFromDb(productId);
+            MemcachedCache.Store(StoreMode.Set, key, count, TimeSpan.FromHours(6));
+            return count;
+        }
+
+        public static void RemoveProductSessionsCount(int productId)
+        {
+            var key = string.Format("{0}_{1}", Constants.CacheItems.ProductSessionsCount, productId);
+            MemcachedCache.Remove(key);
+        }
+
+        private static int GetProductSessionsCountFromDb(int productId)
+        {
+            var startTime = DateTime.UtcNow.AddDays(-1); 
+            using (var db = new IqSoftCorePlatformEntities())
+            {
+                var count = db.ClientSessions.Where(x => x.StartTime > startTime && x.ClientId > 0 && 
+                    x.ProductId == productId && x.State == (int)SessionStates.Active).Count();
+                return count;
+            }
+        }
+
         #endregion
 
         #region Integration
@@ -3326,9 +3362,9 @@ namespace IqSoft.CP.BLL.Caching
             }
         }
 
-        public static void RemoveClientBonus(int clientId, int bonusId)
+        public static void RemoveClientBonus(int clientId, int bonusId, long reuseNumber)
         {
-            var key = string.Format("{0}_{1}_{2}", Constants.CacheItems.ClientBonus, clientId, bonusId);
+            var key = string.Format("{0}_{1}_{2}_{3}", Constants.CacheItems.ClientBonus, clientId, bonusId, reuseNumber);
             MemcachedCache.Remove(key);
         }
 
@@ -3499,6 +3535,7 @@ namespace IqSoft.CP.BLL.Caching
                     DayOfWeek = x.DayOfWeek,
                     ReusingMaxCountInPeriod = x.ReusingMaxCountInPeriod,
                     TranslationId = x.TranslationId ?? 0,
+                    Color = x.Color,
                     TriggerGroups = x.TriggerGroups.Select(y => new TriggerGroupInfo
                     {
                         Id = y.Id,
@@ -4025,7 +4062,7 @@ namespace IqSoft.CP.BLL.Caching
             var cacheValue = MemcachedCache.Get<BllUserConfiguration>(key);
             if (cacheValue != null)
                 return cacheValue;
-            cacheValue = GetUserConfigurationFromDb(userId);
+            cacheValue = GetUserConfigurationFromDb(userId, configName);
             if (cacheValue != null)
                 MemcachedCache.Store(StoreMode.Set, key, cacheValue, TimeSpan.FromDays(1));
             return cacheValue;
@@ -4037,22 +4074,47 @@ namespace IqSoft.CP.BLL.Caching
             MemcachedCache.Remove(key);
         }
 
-        private static BllUserConfiguration GetUserConfigurationFromDb(int userId)
+        private static BllUserConfiguration GetUserConfigurationFromDb(int userId, string configName)
         {
             using (var db = new IqSoftCorePlatformEntities())
             {
-                return db.UserConfigurations.Where(x => x.UserId == userId).Select(x => new BllUserConfiguration
+                return db.UserConfigurations.Where(x => x.UserId == userId && x.Name == configName).Select(x => new BllUserConfiguration
                 {
                     Id = x.Id,
                     UserId = x.UserId,
                     CreatedBy = x.CreatedBy,
                     Name = x.Name,
+                    BooleanValue = x.BooleanValue,
                     NumericValue = x.NumericValue,
                     StringValue = x.StringValue,
                     CreationTime = x.CreationTime,
                     LastUpdateTime = x.LastUpdateTime,
                 }).FirstOrDefault();
             }
+        }
+
+        public static BllUnreadTicketsCount GetUserNotificationsCount(int userId)
+        {
+            var key = string.Format("{0}_{1}", Constants.CacheItems.UserNotifications, userId);
+            var oldValue = MemcachedCache.Get<BllUnreadTicketsCount>(key);
+            if (oldValue != null) return oldValue;
+            var newValue = new BllUnreadTicketsCount { Count = GetUserNotificationsCountFromDb(userId) };
+            MemcachedCache.Store(StoreMode.Set, key, newValue, TimeSpan.FromHours(6));
+            return newValue;
+        }
+
+        private static int GetUserNotificationsCountFromDb(int userId)
+        {
+            using (var db = new IqSoftCorePlatformEntities())
+            {
+                return db.UserNotifications.Count(x => x.UserId == userId && x.Status == (int)NotificationStates.Pending);
+            }
+        }
+
+        public static void DeleteUserNotificationsCount(int userId)
+        {
+            var key = string.Format("{0}_{1}", Constants.CacheItems.UserNotifications, userId);
+            MemcachedCache.Remove(key);
         }
 
         #endregion
@@ -4202,14 +4264,14 @@ namespace IqSoft.CP.BLL.Caching
         {
             var bonus = GetBonusById(tournamentId);
             var fDate = (long)bonus.StartTime.Year * 1000000 + bonus.StartTime.Month * 10000 + bonus.StartTime.Day * 100 + bonus.StartTime.Hour;
-            var tDate = (long)bonus.FinishTime.Year * 1000000 + bonus.FinishTime.Month * 10000 + bonus.FinishTime.Day * 100 + bonus.FinishTime.Hour;
 
             var bonusProducts = GetBonusProducts(tournamentId);
             using (var dwh = new IqSoftDataWarehouseEntities())
             {
-                var items = dwh.Bets.Where(x => x.BetDate >= fDate && x.BetDate < tDate && x.PartnerId == bonus.PartnerId).GroupBy(x => new { x.ClientId, x.CurrencyId, x.ProductId }).Select(x => new
+                var items = dwh.Bets.Where(x => x.BetDate >= fDate && x.BetTime < bonus.FinishTime && x.PartnerId == bonus.PartnerId).
+                    GroupBy(x => new { x.ClientId, x.CurrencyId, x.ProductId }).Select(x => new
                 {
-                    ClientId = (x.Key.ClientId ?? 0),
+                    ClientId = x.Key.ClientId,
                     x.Key.CurrencyId,
                     x.Key.ProductId,
                     Amount = x.Sum(y => y.BetAmount)
@@ -4249,7 +4311,7 @@ namespace IqSoft.CP.BLL.Caching
 
                 var board = items.GroupBy(x => new { x.ClientId, x.CurrencyId }).Select(x => new BllLeaderboardItem
                 {
-                    Id = x.Key.ClientId,
+                    Id = x.Key.ClientId ?? 0,
                     CurrencyId = x.Key.CurrencyId,
                     CurrencyRate = currencies[x.Key.CurrencyId],
                     Points = x.Sum(y => y.Amount * percents[y.ProductId] / 100)

@@ -29,17 +29,18 @@ namespace IqSoft.CP.DAL
             this.UserLogs = new HashSet<UserLog>();
             this.UserRoles = new HashSet<UserRole>();
             this.UserSettings = new HashSet<UserSetting>();
-            this.AgentProfits = new HashSet<AgentProfit>();
-            this.AgentProfits1 = new HashSet<AgentProfit>();
             this.UserSessions = new HashSet<UserSession>();
             this.UserStates = new HashSet<UserState>();
             this.ClientSettings = new HashSet<ClientSetting>();
             this.BetShops = new HashSet<BetShop>();
-            this.UserConfigurations = new HashSet<UserConfiguration>();
-            this.UserConfigurations1 = new HashSet<UserConfiguration>();
             this.PaymentRequests = new HashSet<PaymentRequest>();
             this.Announcements = new HashSet<Announcement>();
             this.Clients = new HashSet<Client>();
+            this.AgentProfits = new HashSet<AgentProfit>();
+            this.AgentProfits1 = new HashSet<AgentProfit>();
+            this.UserNotifications = new HashSet<UserNotification>();
+            this.UserConfigurations = new HashSet<UserConfiguration>();
+            this.UserConfigurations1 = new HashSet<UserConfiguration>();
         }
     
         public int Id { get; set; }
@@ -98,10 +99,6 @@ namespace IqSoft.CP.DAL
         public virtual Partner Partner { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<UserSetting> UserSettings { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<AgentProfit> AgentProfits { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<AgentProfit> AgentProfits1 { get; set; }
         public virtual UserSession UserSession { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<UserSession> UserSessions { get; set; }
@@ -112,15 +109,21 @@ namespace IqSoft.CP.DAL
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<BetShop> BetShops { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<UserConfiguration> UserConfigurations { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<UserConfiguration> UserConfigurations1 { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PaymentRequest> PaymentRequests { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Announcement> Announcements { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Client> Clients { get; set; }
         public virtual Currency Currency { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<AgentProfit> AgentProfits { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<AgentProfit> AgentProfits1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<UserNotification> UserNotifications { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<UserConfiguration> UserConfigurations { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<UserConfiguration> UserConfigurations1 { get; set; }
     }
 }

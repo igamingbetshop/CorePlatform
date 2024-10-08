@@ -51,6 +51,7 @@ using AffiliatePlatform = IqSoft.CP.DAL.AffiliatePlatform;
 using AffiliateReferral = IqSoft.CP.DAL.AffiliateReferral;
 using Bonu = IqSoft.CP.DAL.Bonu;
 using IqSoft.CP.BLL.Models;
+using IqSoft.CP.Common.Models.Notification;
 
 namespace IqSoft.CP.BLL.Services
 {
@@ -73,8 +74,9 @@ namespace IqSoft.CP.BLL.Services
 
         #endregion
 
-        public Client RegisterClient(ClientRegistrationInput clientRegistrationInput)
+        public Client RegisterClient(ClientRegistrationInput clientRegistrationInput, out List<int> userIds)
         {
+            userIds = new List<int>();
             using (var regionBl = new RegionBll(Identity, Log))
             {
                 using (var notificationBl = new NotificationBll(regionBl))
@@ -195,7 +197,7 @@ namespace IqSoft.CP.BLL.Services
                                 }
                             }
                             Db.SaveChanges();
-                            UploadRegistrationDocuments(dbClient.Id, clientRegistrationInput);
+                            userIds.AddRange(UploadRegistrationDocuments(dbClient.Id, clientRegistrationInput));
                             if (clientRegistrationInput.GeneratedUsername)
                             {
                                 dbClient.UserName = "U" + dbClient.Id;
@@ -301,6 +303,8 @@ namespace IqSoft.CP.BLL.Services
                             AddNotificationTrigger(dbClient.ToBllClient(), NotificationTypes.Registration, clientRegistrationInput?.ReferralData);
 
                         AddClientJobTrigger(dbClient.Id, (int)JobTriggerTypes.ReconsiderSegments);
+                        userIds.AddRange(AddUserNotification(dbClient.PartnerId, (int)UserNotificationTypes.Registration, dbClient.Id, null, null, 0, null));
+                        userIds = userIds.Distinct().ToList();
                         CheckDuplicates(dbClient.Id, dbClient.RegistrationIp);
                         return dbClient;
                     }
@@ -356,8 +360,9 @@ namespace IqSoft.CP.BLL.Services
             target.CharacterId = source.CharacterId;
         }
 
-        public Client RegisterClient(Client client)
+        public Client RegisterClient(Client client, out List<int> userIds)
         {
+            userIds = new List<int>();
             if (client.AffiliateReferralId != null)
             {
                 var ar = Db.AffiliateReferrals.FirstOrDefault(x => x.Id == client.AffiliateReferralId);
@@ -418,15 +423,15 @@ namespace IqSoft.CP.BLL.Services
             };
             Db.Accounts.Add(account);
             Db.SaveChanges();
-
+            userIds.AddRange(AddUserNotification(client.PartnerId, (int)UserNotificationTypes.Registration, client.Id, null, null, 0, null));
             return client;
         }
 
-        public Client InsertClient(Client client)
+        public Client InsertClient(Client client, out List<int> userIds) //For IQ Wallet
         {
             var currentTime = DateTime.UtcNow;
             client.CreationTime = currentTime;
-
+            userIds = new List<int>();
             Db.Clients.Add(client);
             Db.SaveChanges();
 
@@ -451,39 +456,53 @@ namespace IqSoft.CP.BLL.Services
             };
             Db.Accounts.Add(account);
             Db.SaveChanges();
-
+            userIds.AddRange(AddUserNotification(client.PartnerId, (int)UserNotificationTypes.Registration, client.Id, null, null, 0, null));
             return client;
         }
-        private void UploadRegistrationDocuments(int clientId, ClientRegistrationInput clientRegistrationInput)
+        private List<int> UploadRegistrationDocuments(int clientId, ClientRegistrationInput clientRegistrationInput)
         {
+            var resp = new List<int>();
             if (clientRegistrationInput.IdCardDocumentByte != null)
+            {
                 SaveKYCDocument(new ClientIdentity
                 {
                     ClientId = clientId,
                     DocumentTypeId = (int)KYCDocumentTypes.IDCard,
                     Status = (int)KYCDocumentStates.InProcess
-                }, string.Format("{0}.png", nameof(KYCDocumentTypes.IDCard)), clientRegistrationInput.IdCardDocumentByte, false);
+                }, string.Format("{0}.png", nameof(KYCDocumentTypes.IDCard)), clientRegistrationInput.IdCardDocumentByte, false, out List<int> userIds);
+                resp.AddRange(userIds);
+            }
             if (clientRegistrationInput.UtilityBillDocumentByte != null)
+            {
                 SaveKYCDocument(new ClientIdentity
                 {
                     ClientId = clientId,
                     DocumentTypeId = (int)KYCDocumentTypes.UtilityBill,
                     Status = (int)KYCDocumentStates.InProcess
-                }, string.Format("{0}.png", nameof(KYCDocumentTypes.UtilityBill)), clientRegistrationInput.UtilityBillDocumentByte, false);
+                }, string.Format("{0}.png", nameof(KYCDocumentTypes.UtilityBill)), clientRegistrationInput.UtilityBillDocumentByte, false, out List<int> userIds);
+                resp.AddRange(userIds);
+            }
             if (clientRegistrationInput.PassportDocumentByte != null)
+            {
                 SaveKYCDocument(new ClientIdentity
                 {
                     ClientId = clientId,
                     DocumentTypeId = (int)KYCDocumentTypes.Passport,
                     Status = (int)KYCDocumentStates.InProcess
-                }, string.Format("{0}.png", nameof(KYCDocumentTypes.Passport)), clientRegistrationInput.PassportDocumentByte, false);
+                }, string.Format("{0}.png", nameof(KYCDocumentTypes.Passport)), clientRegistrationInput.PassportDocumentByte, false, out List<int> userIds);
+                resp.AddRange(userIds);
+            }
             if (clientRegistrationInput.DriverLicenseDocumentByte != null)
+            {
                 SaveKYCDocument(new ClientIdentity
                 {
                     ClientId = clientId,
                     DocumentTypeId = (int)KYCDocumentTypes.DriverLicense,
                     Status = (int)KYCDocumentStates.InProcess
-                }, string.Format("{0}.png", nameof(KYCDocumentTypes.DriverLicense)), clientRegistrationInput.DriverLicenseDocumentByte, false);
+                }, string.Format("{0}.png", nameof(KYCDocumentTypes.DriverLicense)), clientRegistrationInput.DriverLicenseDocumentByte, false, out List<int> userIds);
+                resp.AddRange(userIds);
+            }
+            return resp.Distinct().ToList();
         }
 
         private void SendRegistrationNotifications(Client client, NotificationBll notificationBl)
@@ -651,7 +670,8 @@ namespace IqSoft.CP.BLL.Services
         }
 
         public VerifyCodeOutput VerifyClientEmail(string code, string email, int? clientId, int partnerId, bool expire,
-                                                   List<Common.Models.WebSiteModels.SecurityQuestion> securityQuestions, int type, bool checkSecQuestions = true)
+                                                   List<Common.Models.WebSiteModels.SecurityQuestion> securityQuestions, 
+                                                   int type, bool checkSecQuestions = true)
         {
             var response = new VerifyCodeOutput();
             DAL.ClientInfo clientInfo = null;
@@ -691,6 +711,7 @@ namespace IqSoft.CP.BLL.Services
                     }
                 }
                 response.SecurityQuestions = Db.ClientSecurityAnswers.Where(x => x.ClientId == clientInfo.ObjectId).Select(x => x.SecurityQuestionId).ToList();
+                response.ClientId = client.Id;
             }
             else
             {
@@ -707,7 +728,10 @@ namespace IqSoft.CP.BLL.Services
                     clientInfo.State = (int)ClientInfoStates.Verified;
                 Db.SaveChanges();
                 if (clientInfo.ObjectId != null)
+                {
                     response.SecurityQuestions = Db.ClientSecurityAnswers.Where(x => x.ClientId == clientInfo.ObjectId).Select(x => x.SecurityQuestionId).ToList();
+                    response.ClientId = clientInfo.ObjectId.Value;
+                }
             }
             response.EmailOrMobile = clientInfo?.MobileOrEmail;
             return response;
@@ -902,7 +926,7 @@ namespace IqSoft.CP.BLL.Services
             }
             Db.SaveChanges();
             return savedSession.Token;
-        }        
+        }
 
         public BllClient GetClientByToken(string token, out ClientLoginOut clientLoginOut, string languageId)
         {
@@ -1223,6 +1247,7 @@ namespace IqSoft.CP.BLL.Services
                 CacheManager.RemoveClientProductSession(oldSession.Token, oldSession.ProductId);
             }
             Db.SaveChanges();
+            CacheManager.RemoveProductSessionsCount(session.ProductId);
             return savedSession;
         }
 
@@ -1505,7 +1530,7 @@ namespace IqSoft.CP.BLL.Services
             return newPinCode;
         }
 
-        public Client ChangeClientDataFromWebSite(ChangeClientFieldsInput clientData)
+        public Client ChangeClientDataFromWebSite(ChangeClientFieldsInput clientData, NotificationBll notificationBl)
         {
             var dbClient = Db.Clients.FirstOrDefault(x => x.Id == clientData.ClientId) ??
                 throw CreateException(LanguageId, Constants.Errors.ClientNotFound);
@@ -1634,7 +1659,7 @@ namespace IqSoft.CP.BLL.Services
                     regionId = clientData.CountryId.Value;
                 if (dbClient.RegionId != regionId)
                     updateUtilityBillStatus = true;
-                
+
                 if (clientData.CountryId.HasValue && clientData.CountryId != dbClient.CountryId)
                 {
                     dbClient.CountryId = clientData.CountryId;
@@ -1678,28 +1703,25 @@ namespace IqSoft.CP.BLL.Services
                             partnerConfig = CacheManager.GetConfigKey(dbClient.PartnerId, Constants.PartnerKeys.SendWaitingKYCDocumentEmail);
                             if (!string.IsNullOrEmpty(partnerConfig) && partnerConfig == "1")
                                 sendEmail = true;
-                            using (var notificationBl = new NotificationBll(this))
+                            var notificationModel = new NotificationModel
                             {
-                                var notificationModel = new NotificationModel
-                                {
-                                    PartnerId = dbClient.PartnerId,
-                                    ObjectId = dbClient.Id,
-                                    ObjectTypeId = (int)ObjectTypes.Client
-                                };
-                                if (sendSMS)
-                                {
-                                    notificationModel.MobileOrEmail = dbClient.MobileNumber;
-                                    notificationModel.ClientInfoType = (int)ClientInfoTypes.WaitingKYCDocumentSMS;
-                                    notificationBl.SendNotificationMessage(notificationModel, out int responseCode);
-                                }
-                                if (sendEmail)
-                                {
-                                    notificationModel.MobileOrEmail = dbClient.Email;
-                                    notificationModel.ClientInfoType = (int)ClientInfoTypes.WaitingKYCDocumentEmail;
-                                    notificationBl.SendNotificationMessage(notificationModel, out int responseCode);
-                                }
-                                notificationBl.SendInternalTicket(dbClient.Id, (int)ClientInfoTypes.WaitingKYCDocumentTicket);
+                                PartnerId = dbClient.PartnerId,
+                                ObjectId = dbClient.Id,
+                                ObjectTypeId = (int)ObjectTypes.Client
+                            };
+                            if (sendSMS)
+                            {
+                                notificationModel.MobileOrEmail = dbClient.MobileNumber;
+                                notificationModel.ClientInfoType = (int)ClientInfoTypes.WaitingKYCDocumentSMS;
+                                notificationBl.SendNotificationMessage(notificationModel, out int responseCode);
                             }
+                            if (sendEmail)
+                            {
+                                notificationModel.MobileOrEmail = dbClient.Email;
+                                notificationModel.ClientInfoType = (int)ClientInfoTypes.WaitingKYCDocumentEmail;
+                                notificationBl.SendNotificationMessage(notificationModel, out int responseCode);
+                            }
+                            notificationBl.SendInternalTicket(dbClient.Id, (int)ClientInfoTypes.WaitingKYCDocumentTicket);
                         }
                     }
                 }
@@ -1806,7 +1828,7 @@ namespace IqSoft.CP.BLL.Services
                         x.FirstName == dbClient.FirstName && x.LastName == dbClient.LastName && x.BirthDate == dbClient.BirthDate))
                         throw BaseBll.CreateException(LanguageId, Constants.Errors.ClientExist);
                 }
-                if (!string.IsNullOrWhiteSpace(clientData.ZipCode))
+                if (!string.IsNullOrWhiteSpace(clientData.ZipCode.Trim()))
                     dbClient.ZipCode = clientData.ZipCode;
                 if (!string.IsNullOrWhiteSpace(clientData.Address))
                     dbClient.Address = clientData.Address;
@@ -2009,7 +2031,7 @@ namespace IqSoft.CP.BLL.Services
             return response;
         }
 
-        public Client QuickRegisteration(QuickRegistrationInput quickRegistrationInput)
+        public Client QuickRegisteration(QuickRegistrationInput quickRegistrationInput, out List<int> userIds)
         {
             bool sendPass = false;
             if (string.IsNullOrWhiteSpace(quickRegistrationInput.Password))
@@ -2095,7 +2117,7 @@ namespace IqSoft.CP.BLL.Services
                 ReferralData = quickRegistrationInput.ReferralData
             };
 
-            client = RegisterClient(clientRegInput);
+            client = RegisterClient(clientRegInput, out userIds);
             using (var notificationBll = new NotificationBll(Identity, Log))
             {
                 try
@@ -2512,7 +2534,7 @@ namespace IqSoft.CP.BLL.Services
                     }
                 }
                 if (!string.IsNullOrEmpty(p.Regex) && value != null && !string.IsNullOrEmpty(value.ToString()) && !Regex.IsMatch((string)value, p.Regex))
-                {                   
+                {
                     switch (field.Name)
                     {
                         case nameof(client.Email):
@@ -2766,11 +2788,11 @@ namespace IqSoft.CP.BLL.Services
             Db.SaveChanges();
             return dbNote;
         }
-        public List<AccountsBalanceHistoryElement> ExportClientAccountsBalanceHistory(FilterAccountsBalanceHistory filter)
+        public List<AccountsBalanceHistoryElement> ExportClientAccountsBalanceHistory(FilterAccountsBalanceHistory filter, double timeZone)
         {
-            return GetClientAccountsBalanceHistoryPaging(filter);
+            return GetClientAccountsBalanceHistoryPaging(filter, timeZone);
         }
-        public List<AccountsBalanceHistoryElement> GetClientAccountsBalanceHistoryPaging(FilterAccountsBalanceHistory filter)
+        public List<AccountsBalanceHistoryElement> GetClientAccountsBalanceHistoryPaging(FilterAccountsBalanceHistory filter, double timeZone)
         {
             var client = CacheManager.GetClientById(filter.ClientId);
             if (client == null)
@@ -2842,7 +2864,7 @@ namespace IqSoft.CP.BLL.Services
                         OperationType = operationTypes.First(x => x.Id == operation.OperationTypeId).Name,
                         OperationAmount = operation.Amount,
                         BalanceAfter = balance.Balance + (operation.Type == (int)TransactionTypes.Credit ? -operation.Amount : operation.Amount),
-                        OperationTime = operation.CreationTime,
+                        OperationTime = operation.CreationTime.GetGMTDateFromUTC(timeZone),
                         PaymentSystemName = pId == null ? string.Empty : CacheManager.GetPaymentSystemById(pId.Value).Name,
                         RoundId = operation.Document?.RoundId == "0" ? null : operation.Document?.RoundId,
                         GameId = operation.Document?.ProductId,
@@ -2929,8 +2951,9 @@ namespace IqSoft.CP.BLL.Services
             }
         }
 
-        public ClientIdentity SaveKYCDocument(ClientIdentity input, string documentName, byte[] imageData, bool checkPermission)
+        public ClientIdentity SaveKYCDocument(ClientIdentity input, string documentName, byte[] imageData, bool checkPermission, out List<int> userIds)
         {
+            userIds = new List<int>();
             var client = CacheManager.GetClientById(input.ClientId) ??
                 throw CreateException(LanguageId, Constants.Errors.ClientNotFound);
             var docSavePath = string.Empty;
@@ -2999,12 +3022,12 @@ namespace IqSoft.CP.BLL.Services
                     SaveChangesWithHistory((int)ObjectTypes.ClientIdentity, dbClientIdentity.Id, JsonConvert.SerializeObject(oldClientIdentity), string.Empty);
                 }
                 else
-                {
+                {                 
                     if (!checkPermission && Db.ClientIdentities.FirstOrDefault(x => x.ClientId == input.ClientId &&
                                                                                  x.DocumentTypeId == input.DocumentTypeId &&
                                                                                  x.Status == (int)KYCDocumentStates.Approved) != null)
                         throw BaseBll.CreateException(LanguageId, Constants.Errors.ClientDocumentAlreadyExists);
-
+                    
                     dbClientIdentity = new ClientIdentity
                     {
                         ClientId = input.ClientId,
@@ -3063,7 +3086,7 @@ namespace IqSoft.CP.BLL.Services
                     notificationBll.SendInternalTicket(client.Id, (int)ClientInfoTypes.KYCVerificationTicket);
                 }
             }
-
+            userIds.AddRange(AddUserNotification(client.PartnerId, (int)UserNotificationTypes.KYC, client.Id, null, null, 0, null));
             return dbClientIdentity;
         }
 
@@ -3733,7 +3756,7 @@ namespace IqSoft.CP.BLL.Services
             }
         }
 
-        private void AddNotificationTrigger(BllClient client, NotificationTypes triggerType, AffiliateReferral affiliate)
+        private void AddNotificationTrigger(BllClient client, NotificationTypes triggerType,AffiliateReferral affiliate)
         {
             var currentDate = DateTime.UtcNow;
             Db.NotificationTriggers.Add(new NotificationTrigger
@@ -3747,7 +3770,8 @@ namespace IqSoft.CP.BLL.Services
                 CurrencyId = client.CurrencyId,
                 CreationDate = currentDate,
                 LastUpdateDate = currentDate,
-                State = (int)NotificationStates.Pending
+                State = (int)NotificationStates.Pending,
+
             });
             Db.SaveChanges();
         }
@@ -4006,13 +4030,16 @@ namespace IqSoft.CP.BLL.Services
                 if (bon != null)
                 {
                     var setting = CacheManager.GetTriggerSettingById(bon.TriggerGroupSettings[0].SettingId);
-                    if ((setting.Type == triggerType ||
-                        (triggerType == (int)TriggerTypes.SignUp && setting.Type == (int)TriggerTypes.SignupCode && setting.BonusSettingCodes == promoCode)) &&
+                    if (setting.StartTime <= currentTime && setting.FinishTime > currentTime &&
+
+                        (setting.Type == triggerType || 
+                        (triggerType == (int)TriggerTypes.SignUp && setting.Type == (int)TriggerTypes.SignupCode && setting.BonusSettingCodes == promoCode) ||
+                        (triggerType == (int)TriggerTypes.NthDeposit && setting.Type == (int)TriggerTypes.AnyDeposit)) &&
                         (triggerType != (int)TriggerTypes.PromotionalCode || setting.BonusSettingCodes == promoCode) &&
                         (triggerType != (int)TriggerTypes.AnyDeposit || setting.PaymentSystemIds == null || !setting.PaymentSystemIds.Any() || setting.PaymentSystemIds.Contains(paymentSystemId ?? 0)) &&
                         (triggerType != (int)TriggerTypes.NthDeposit || setting.PaymentSystemIds == null || !setting.PaymentSystemIds.Any() || setting.PaymentSystemIds.Contains(paymentSystemId ?? 0)) &&
-                        (triggerType != (int)TriggerTypes.NthDeposit || depositsCount.ToString() == setting.Condition) &&
-                        setting.StartTime <= currentTime && setting.FinishTime > currentTime)
+                        (triggerType != (int)TriggerTypes.NthDeposit || setting.Type != (int)TriggerTypes.NthDeposit || depositsCount.ToString() == setting.Condition)
+                        )
                     {
                         var input = new ClientBonusItem
                         {
@@ -4163,6 +4190,8 @@ namespace IqSoft.CP.BLL.Services
             }
             foreach (var s in updatedSessions)
                 CacheManager.RemoveClientProductSession(s.Token, s.ProductId);
+
+            CacheManager.RemoveProductSessionsCount(newSession.ProductId);
             return newSession;
         }
 
@@ -4171,56 +4200,55 @@ namespace IqSoft.CP.BLL.Services
                 bool isTwoFactorEnabled = false, int sessionType = (int)SessionTypes.Regular, string currentPage = null)
         {
             ClientSession session = null;
-            using (var db = new IqSoftCorePlatformEntities())
+            using (var transactionScope = CommonFunctions.CreateTransactionScope())
             {
-                var currentTime = DateTime.UtcNow;
-                var activeSession = CacheManager.GetClientPlatformSession(clientId, null);
-                if (sessionType != (int)SessionTypes.RefreshToken)
+                using (var db = new IqSoftCorePlatformEntities())
                 {
-                    if (activeSession != null)
+                    db.sp_GetClientLock(clientId);
+                    var currentTime = DateTime.UtcNow;
+                    var activeSession = CacheManager.GetClientPlatformSession(clientId, null);
+                    if (sessionType != (int)SessionTypes.RefreshToken)
                     {
-                        db.ClientSessions.Where(x => x.Id == activeSession.Id).UpdateFromQuery(x => new ClientSession
-                        {
-                            State = (int)SessionStates.Inactive,
-                            LogoutType = (int)LogoutTypes.MultipleDevice,
-                            EndTime = currentTime
-                        });
-                        db.Clients.Where(c => c.Id == clientId).UpdateFromQuery(x => new Client { LastSessionId = activeSession.Id });
+                        if (activeSession != null)
+                            db.Clients.Where(c => c.Id == clientId).UpdateFromQuery(x => new Client { LastSessionId = activeSession.Id });
+
+                        db.ClientSessions.Where(x => x.ClientId == clientId && x.Type != (int)SessionTypes.RefreshToken &&
+                            (x.State == (int)SessionStates.Pending || x.State == (int)SessionStates.Active))
+                            .UpdateFromQuery(x => new ClientSession { State = (int)SessionStates.Inactive, EndTime = currentTime, LogoutType = (int)LogoutTypes.MultipleDevice });
                     }
-                    db.ClientSessions.Where(x => x.ClientId == clientId && x.State == (int)SessionStates.Pending)
-                                     .UpdateFromQuery(x => new ClientSession { State = (int)SessionStates.Inactive, EndTime = currentTime, LogoutType = (int)LogoutTypes.MultipleDevice });
-                }
-                else
-                {
-                    db.ClientSessions.Where(x => x.ClientId == clientId && x.State == (int)SessionStates.Active && x.Type == (int)SessionTypes.RefreshToken)
-                                     .UpdateFromQuery(x => new ClientSession { State = (int)SessionStates.Inactive, EndTime = currentTime, LogoutType = (int)LogoutTypes.MultipleDevice });
-                }
+                    else
+                    {
+                        db.ClientSessions.Where(x => x.ClientId == clientId && x.State == (int)SessionStates.Active && x.Type == (int)SessionTypes.RefreshToken)
+                                         .UpdateFromQuery(x => new ClientSession { State = (int)SessionStates.Inactive, EndTime = currentTime, LogoutType = (int)LogoutTypes.MultipleDevice });
+                    }
 
-                session = new ClientSession
-                {
-                    ClientId = clientId,
-                    ProductId = Constants.PlatformProductId,
-                    LanguageId = languageId,
-                    Ip = ip,
-                    Country = countryCode,
-                    State = isTwoFactorEnabled ? (int)SessionStates.Pending : (int)SessionStates.Active,
-                    StartTime = currentTime,
-                    LastUpdateTime = currentTime,
-                    Token = string.IsNullOrEmpty(token) ? GetToken() : token,
-                    ExternalToken = externalToken,
-                    DeviceType = deviceType,
-                    Source = source,
-                    Type = sessionType,
-                    CurrentPage = currentPage
-                };
-                db.ClientSessions.Add(session);
-                db.SaveChanges();
+                    session = new ClientSession
+                    {
+                        ClientId = clientId,
+                        ProductId = Constants.PlatformProductId,
+                        LanguageId = languageId,
+                        Ip = ip,
+                        Country = countryCode,
+                        State = isTwoFactorEnabled ? (int)SessionStates.Pending : (int)SessionStates.Active,
+                        StartTime = currentTime,
+                        LastUpdateTime = currentTime,
+                        Token = string.IsNullOrEmpty(token) ? GetToken() : token,
+                        ExternalToken = externalToken,
+                        DeviceType = deviceType,
+                        Source = source,
+                        Type = sessionType,
+                        CurrentPage = currentPage
+                    };
+                    db.ClientSessions.Add(session);
+                    db.SaveChanges();
 
-                if (activeSession != null && sessionType != (int)SessionTypes.RefreshToken)
-                {
-                    CacheManager.RemoveClientPlatformSession(clientId);
-                    CacheManager.RemoveClientProductSession(activeSession.Token, Constants.PlatformProductId);
-                    CacheManager.RemoveClientFromCache(clientId);
+                    if (activeSession != null && sessionType != (int)SessionTypes.RefreshToken)
+                    {
+                        CacheManager.RemoveClientPlatformSession(clientId);
+                        CacheManager.RemoveClientProductSession(activeSession.Token, Constants.PlatformProductId);
+                        CacheManager.RemoveClientFromCache(clientId);
+                    }
+                    transactionScope.Complete();
                 }
             }
             return session;
@@ -4292,6 +4320,28 @@ namespace IqSoft.CP.BLL.Services
                                                ConsideredDate = x.LastUpdateTime.GetGMTDateFromUTC(Identity.TimeZone)
                                            }).ToList();
         }
+
+        public void ReconsiderClientSegments(int clientId)
+        {
+            CheckPermission(Constants.Permissions.ReconsiderClientSegments);
+            var checkClientPermission = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewClient,
+                ObjectTypeId = (int)ObjectTypes.Client
+            });
+            var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewPartner,
+                ObjectTypeId = (int)ObjectTypes.Partner
+            });
+            var client = CacheManager.GetClientById(clientId) ?? throw CreateException(LanguageId, Constants.Errors.ClientNotFound);
+            if ((!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != client.Id)) ||
+                (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId)))
+                throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
+
+            AddClientJobTrigger(clientId, (int)JobTriggerTypes.ReconsiderSegments);
+        }
+
 
         public static List<int> GetClientSegmentIds(int clientId)
         {
@@ -5029,6 +5079,70 @@ namespace IqSoft.CP.BLL.Services
                 Db.JobTriggers.Add(jobTrigger);
             Db.SaveChanges();
         }
+
+        public List<int> AddUserNotification(int partnerId, int type, int? clientId, 
+            long? paymentRequestId, int? bonusId, decimal amount, NotificationBll notificationBl)
+        {
+            var name = string.Empty;
+            switch (type)
+            {
+                case (int)UserNotificationTypes.Registration:
+                    name = UserConfigurations.RegistrationSubscription;
+                    break;
+                case (int)UserNotificationTypes.KYC:
+                    name = UserConfigurations.KYCSubscription;
+                    break;
+                case (int)UserNotificationTypes.Deposit:
+                    name = UserConfigurations.DepositSubscription;
+                    break;
+                case (int)UserNotificationTypes.Withdraw:
+                    name = UserConfigurations.WithdrawSubscription;
+                    break;
+                case (int)UserNotificationTypes.Bonus:
+                    name = UserConfigurations.BonusSubscription;
+                    break;
+            }
+            var users = Db.UserConfigurations.Include(x => x.User).Where(x => x.Name == name && x.BooleanValue == true).ToList();
+            foreach (var u in users)
+            {
+                var userPermissions = CacheManager.GetUserPermissions(u.UserId);
+                var objects = CacheManager.GetUserAccessObjects(u.UserId);
+                var partnerIds = objects.Where(x => x.ObjectTypeId == (int)ObjectTypes.Partner &&
+                        x.PermissionId == Permissions.ViewPartner && Int32.TryParse(x.ObjectId, out int r)).Select(x => Convert.ToInt32(x.ObjectId)).ToList();
+                if (userPermissions.Any(x => x.IsAdmin) || partnerIds.Contains(partnerId))
+                {
+                    var un = new UserNotification
+                    {
+                        UserId = u.UserId,
+                        TypeId = type,
+                        ClientId = clientId,
+                        PaymentRequestId = paymentRequestId,
+                        BonusId = bonusId,
+                        Status = (int)NotificationStates.Pending,
+                        CreationTime = DateTime.UtcNow
+                    };
+                    Db.UserNotifications.Add(un);
+                }
+                if(type == (int)UserNotificationTypes.Deposit && u.StringValue == "1" && (u.NumericValue == null || u.NumericValue.Value >= amount))
+                {
+                    notificationBl.SendNotificationMessage(new NotificationModel
+                    {
+                        PartnerId = partnerId,
+                        ObjectId = u.UserId,
+                        ObjectTypeId = (int)ObjectTypes.User,
+                        MobileOrEmail = u.User.Email,
+                        ClientInfoType = (int)ClientInfoTypes.DepositEmail
+                    }, out _);
+                }
+            }
+            Db.SaveChanges();
+            foreach (var u in users)
+            {
+                CacheManager.DeleteUserNotificationsCount(u.UserId);
+            }
+            return users.Select(x => x.UserId).ToList();
+        }
+
         public void SaveClientPaymentSetting(int clientId, int partnerPaymentSettingId, int state)
         {
             var client = CacheManager.GetClientById(clientId) ??
@@ -5050,7 +5164,7 @@ namespace IqSoft.CP.BLL.Services
                 Permission = Constants.Permissions.ViewAffiliateReferral,
                 ObjectTypeId = (int)ObjectTypes.AffiliateReferral
             });
-            CheckPermission(Constants.Permissions.ViewPaymentSetting);
+            CheckPermission(Constants.Permissions.EditPaymentSetting);
             if ((!checkClientPermission.HaveAccessForAllObjects && checkClientPermission.AccessibleObjects.All(x => x != clientId)) ||
                 (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != client.PartnerId)) ||
                 (!affiliateAccess.HaveAccessForAllObjects &&
@@ -5192,23 +5306,25 @@ namespace IqSoft.CP.BLL.Services
             using (var transactionScope = CommonFunctions.CreateTransactionScope(2))
             {
                 var currentDate = DateTime.UtcNow;
-                var triggerSegments = Db.TriggerSettings.Where(x => x.Status == (int)TriggerStatuses.Active && x.SegmentId.HasValue &&
-                                                                    x.StartTime <= currentDate && x.FinishTime <= currentDate)
-                                                        .Select(x => x.SegmentId).Distinct().ToList();
+                var triggerSegments = Db.TriggerSettings.Where(x => x.Status == (int)TriggerStatuses.Active && x.Type == (int)TriggerTypes.SegmentChange
+                    && x.SegmentId.HasValue && x.StartTime <= currentDate && x.FinishTime >= currentDate).Select(x => x.SegmentId).Distinct().ToList();
                 Db.JobTriggers.Where(x => x.Type == (int)JobTriggerTypes.FairSegmentTriggers && !triggerSegments.Contains(x.SegmentId)).DeleteFromQuery();
                 var dbJobTriggers = Db.JobTriggers.Where(x => x.Type == (int)JobTriggerTypes.FairSegmentTriggers).ToList();
-                dbJobTriggers.ForEach(x =>
+                if (dbJobTriggers.Any())
                 {
-                    FairClientBonusTrigger(new ClientTriggerInput
+                    dbJobTriggers.ForEach(x =>
                     {
-                        ClientId = x.ClientId,
-                        ClientBonuses = CacheManager.GetClientNotAwardedCampaigns(x.ClientId),
-                        TriggerType = (int)TriggerTypes.SegmentChange,
-                        SegmentId = x.SegmentId
-                    }, out bool alreadyAdded);
-                });
-                Db.JobTriggers.RemoveRange(dbJobTriggers);
-                Db.SaveChanges();
+                        FairClientBonusTrigger(new ClientTriggerInput
+                        {
+                            ClientId = x.ClientId,
+                            ClientBonuses = CacheManager.GetClientNotAwardedCampaigns(x.ClientId),
+                            TriggerType = (int)TriggerTypes.SegmentChange,
+                            SegmentId = x.SegmentId
+                        }, out bool alreadyAdded);
+                    });
+                    Db.JobTriggers.RemoveRange(dbJobTriggers);
+                    Db.SaveChanges();
+                }
                 transactionScope.Complete();
             }
         }
@@ -5254,7 +5370,8 @@ namespace IqSoft.CP.BLL.Services
                                     trigger.Type == (int)TriggerTypes.BetPlacementAndSettlement) && !string.IsNullOrEmpty(trigger.Condition))
                                 {
                                     var conditions = JsonConvert.DeserializeObject<Common.Models.Bonus.BonusCondition>(trigger.Condition);
-                                    var info = string.IsNullOrEmpty(triggerToFair.TicketInfo) ? new BonusTicketInfo() : JsonConvert.DeserializeObject<BonusTicketInfo>(triggerToFair.TicketInfo);
+                                    var info = string.IsNullOrEmpty(triggerToFair.TicketInfo) ? new BonusTicketInfo() : 
+                                        JsonConvert.DeserializeObject<BonusTicketInfo>(triggerToFair.TicketInfo);
                                     info.BetAmount = triggerToFair.SourceAmount != null ? triggerToFair.SourceAmount.Value : (triggerMinAmount ?? 0);
                                     if (!string.IsNullOrEmpty(triggerToFair.WinInfo))
                                     {
@@ -5321,6 +5438,7 @@ namespace IqSoft.CP.BLL.Services
                                             };
                                             if (isBetTrigger && triggerMaxAmount.HasValue && triggerMaxAmount.Value < amount)
                                                 existingTrigger.SourceAmount = triggerMaxAmount;
+
                                             Db.ClientBonusTriggers.Add(existingTrigger);
                                         }
                                         else
@@ -5690,13 +5808,10 @@ namespace IqSoft.CP.BLL.Services
 
         public ClientBonusTrigger ChangeClientBonusTriggerManually(int clientId, int triggerId, int bonusId, long reuseNumber, decimal? sourceAmount, int status)
         {
-            var client = CacheManager.GetClientById(clientId);
-            if (client == null)
+            var client = CacheManager.GetClientById(clientId) ??
                 throw CreateException(LanguageId, Constants.Errors.ClientNotFound);
-            var bonusAccess = GetPermissionsToObject(new CheckPermissionInput
-            {
-                Permission = Constants.Permissions.CreateBonus
-            });
+            CheckPermission(Constants.Permissions.CreateBonus);
+            CheckPermission(Constants.Permissions.ViewBonuses);
             var partnerAccess = GetPermissionsToObject(new CheckPermissionInput
             {
                 Permission = Constants.Permissions.ViewPartner,
@@ -5776,12 +5891,11 @@ namespace IqSoft.CP.BLL.Services
             return clientBonusTrigger;
         }
 
-        public List<TriggerSettingItem> GetClientBonusTriggers(int clientId, int bonusId, long reuseNumber, bool isForAdmin)
+        public List<TriggerSettingItem> GetClientBonusTriggers(int clientId, int bonusId, long reuseNumber, bool checkPermission)
         {
-            var client = CacheManager.GetClientById(clientId);
-            if (client == null)
+            var client = CacheManager.GetClientById(clientId) ??
                 throw CreateException(LanguageId, Constants.Errors.ClientNotFound);
-            if (isForAdmin)
+            if (checkPermission)
             {
                 var bonusAccess = GetPermissionsToObject(new CheckPermissionInput
                 {
@@ -5802,36 +5916,37 @@ namespace IqSoft.CP.BLL.Services
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             }
             var partner = CacheManager.GetPartnerById(client.PartnerId);
-            var settings = Db.TriggerGroups.Where(x => x.BonusId == bonusId).Select(x => new
-            {
-                Id = x.Id,
-                Name = x.Name,
-                Type = x.Type,
-                TriggerSettings = x.TriggerGroupSettings.Select(y => new TriggerSettingItem
-                {
-                    Id = y.TriggerSetting.Id,
-                    Name = y.TriggerSetting.Name,
-                    TranslationId = y.TriggerSetting.TranslationId,
-                    Description = y.TriggerSetting.Description,
-                    Type = y.TriggerSetting.Type,
-                    StartTime = y.TriggerSetting.StartTime,
-                    FinishTime = y.TriggerSetting.FinishTime,
-                    Percent = y.TriggerSetting.Percent,
-                    BonusSettingCodes = y.TriggerSetting.BonusSettingCodes,
-                    PartnerId = y.TriggerSetting.PartnerId,
-                    CreationTime = y.TriggerSetting.CreationTime,
-                    LastUpdateTime = y.TriggerSetting.LastUpdateTime,
-                    MinAmount = y.TriggerSetting.MinAmount,
-                    MaxAmount = y.TriggerSetting.MaxAmount,
-                    Order = y.Order,
-                    MinBetCount = y.TriggerSetting.MinBetCount
-                }).ToList()
-            });
+            var settings = Db.TriggerGroups.Where(x => x.BonusId == bonusId)
+                                           .Select(x => new
+                                           {
+                                               Id = x.Id,
+                                               Name = x.Name,
+                                               Type = x.Type,
+                                               TriggerSettings = x.TriggerGroupSettings.Select(y => new TriggerSettingItem
+                                               {
+                                                   Id = y.TriggerSetting.Id,
+                                                   Name = y.TriggerSetting.Name,
+                                                   TranslationId = y.TriggerSetting.TranslationId,
+                                                   Description = y.TriggerSetting.Description,
+                                                   Type = y.TriggerSetting.Type,
+                                                   StartTime = y.TriggerSetting.StartTime,
+                                                   FinishTime = y.TriggerSetting.FinishTime,
+                                                   Percent = y.TriggerSetting.Percent,
+                                                   BonusSettingCodes = y.TriggerSetting.BonusSettingCodes,
+                                                   PartnerId = y.TriggerSetting.PartnerId,
+                                                   CreationTime = y.TriggerSetting.CreationTime,
+                                                   LastUpdateTime = y.TriggerSetting.LastUpdateTime,
+                                                   MinAmount = y.TriggerSetting.MinAmount,
+                                                   MaxAmount = y.TriggerSetting.MaxAmount,
+                                                   Order = y.Order,
+                                                   MinBetCount = y.TriggerSetting.MinBetCount
+                                               }).ToList()
+                                           });
             var triggerSettings = new List<TriggerSettingItem>();
 
             foreach (var s in settings)
             {
-                if (!isForAdmin)
+                if (!checkPermission)
                 {
                     foreach (var ts in s.TriggerSettings)
                     {
@@ -5842,9 +5957,15 @@ namespace IqSoft.CP.BLL.Services
             }
 
             var clientBonusTriggers = Db.ClientBonusTriggers.Where(x => x.BonusId == bonusId && (x.ClientId == clientId || x.ClientId == null) &&
-                x.ReuseNumber == reuseNumber).ToList();
-            var specialTriggers = new List<int> { (int)TriggerTypes.BetPlacement, (int)TriggerTypes.BetSettlement,
-                        (int)TriggerTypes.BetPlacementAndSettlement, (int)TriggerTypes.CrossProductBetPlacement, (int)TriggerTypes.DailyDeposit };
+                                                                        x.ReuseNumber == reuseNumber).ToList();
+            var specialTriggers = new List<int>
+            {
+                (int)TriggerTypes.BetPlacement,
+                (int)TriggerTypes.BetSettlement,
+                (int)TriggerTypes.BetPlacementAndSettlement,
+                (int)TriggerTypes.CrossProductBetPlacement,
+                (int)TriggerTypes.DailyDeposit 
+            };
 
             foreach (var ts in triggerSettings)
             {
@@ -5929,21 +6050,11 @@ namespace IqSoft.CP.BLL.Services
             };
             Func<IQueryable<fnClientBonus>, IOrderedQueryable<fnClientBonus>> orderBy;
 
+
             if (filter.OrderBy.HasValue)
-            {
-                if (filter.OrderBy.Value)
-                {
-                    orderBy = QueryableUtilsHelper.OrderByFunc<fnClientBonus>(filter.FieldNameToOrderBy, true);
-                }
-                else
-                {
-                    orderBy = QueryableUtilsHelper.OrderByFunc<fnClientBonus>(filter.FieldNameToOrderBy, false);
-                }
-            }
+                orderBy = QueryableUtilsHelper.OrderByFunc<fnClientBonus>(filter.FieldNameToOrderBy, filter.OrderBy.Value);
             else
-            {
                 orderBy = clientBonuses => clientBonuses.OrderByDescending(x => x.Id);
-            }
 
             if (bonusType.HasValue)
             {
@@ -6620,8 +6731,9 @@ namespace IqSoft.CP.BLL.Services
             }
         }
 
-        public void SplitWithdrawalRequest(long paymentRequestId, List<decimal> installments)
+        public List<int> SplitWithdrawalRequest(long paymentRequestId, List<decimal> installments)
         {
+            var response = new List<int>();
             CheckPermission(Constants.Permissions.ViewPaymentRequests);
             CheckPermission(Constants.Permissions.CancelPaymentRequest);
             CheckPermission(Constants.Permissions.AllowPaymentRequest);
@@ -6658,7 +6770,7 @@ namespace IqSoft.CP.BLL.Services
                 using (var scope = CommonFunctions.CreateTransactionScope())
                 {
                     ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Splitted, "Split", paymentRequest.CashDeskId,
-                                               null, false, paymentRequest.Parameters, documentBl, notificationBl);
+                                               null, false, paymentRequest.Parameters, documentBl, notificationBl, out response);
                     var currentTime = DateTime.UtcNow;
                     var date = (long)currentTime.Year * 100000000 + (long)currentTime.Month * 1000000 +
                                (long)currentTime.Day * 10000 + (long)currentTime.Hour * 100 + currentTime.Minute;
@@ -6697,6 +6809,7 @@ namespace IqSoft.CP.BLL.Services
                     scope.Complete();
                 }
             }
+            return response;
         }
 
         public void CancelWithdrawRelatedCampaigns()
@@ -6754,13 +6867,14 @@ namespace IqSoft.CP.BLL.Services
             documentBl.CreateDocument(operation);
         }
         public ChangeWithdrawRequestStateOutput ChangeWithdrawRequestState(long requestId, PaymentRequestStates state, string comment,
-                    int? cashDeskId, int? cashierId, bool checkPermission, string parameters, DocumentBll documentBl, NotificationBll notificationBl,
-                    bool sendEmail = false, bool changeFromPaymentSystem = false)
+                    int? cashDeskId, int? cashierId, bool checkPermission, string parameters, DocumentBll documentBl, 
+                    NotificationBll notificationBl, out List<int> userIds, bool sendEmail = false, bool changeFromPaymentSystem = false)
         {
             ChangeWithdrawRequestStateOutput response;
             BllClient client;
             string requestParams;
             var currentDate = DateTime.UtcNow;
+            userIds = new List<int>();
             using (var scope = CommonFunctions.CreateTransactionScope())
             {
                 var r = Db.sp_GetPaymentRequestLock(requestId);
@@ -6881,6 +6995,12 @@ namespace IqSoft.CP.BLL.Services
                 scope.Complete();
             }
             notificationBl.SendWitdrawNotification(response.ClientId, response.Status, response.RequestAmount, comment);
+            if (state == PaymentRequestStates.Approved)
+            {
+                var partner = CacheManager.GetPartnerById(client.PartnerId);
+                userIds.AddRange(AddUserNotification(client.PartnerId, (int)UserNotificationTypes.Withdraw, null,
+                    requestId, null, ConvertCurrency(client.CurrencyId, partner.CurrencyId, response.RequestAmount), null));
+            }
             if (response.Status == (int)PaymentRequestStates.Approved ||
             response.Status == (int)PaymentRequestStates.ApprovedManually ||
             response.Status == (int)PaymentRequestStates.PayPanding ||
@@ -7140,30 +7260,34 @@ namespace IqSoft.CP.BLL.Services
                 Db.MerchantRequests.Add(mr);
                 Db.SaveChanges();
             }
-            if (client.AffiliateReferralId.HasValue)
+            var isAffiliate = client.AffiliateReferralId.HasValue;
+            if (isAffiliate || 
+                !string.IsNullOrEmpty(CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.CRMPlarforms).StringValue))
             {
                 var currentDate = DateTime.UtcNow;
-                var clientAffiliate = Db.AffiliateReferrals.Include(x => x.AffiliatePlatform).FirstOrDefault(x => x.Id == client.AffiliateReferralId);
+                AffiliateReferral clientAffiliate = null;
+
+                if (isAffiliate)
+                  clientAffiliate = Db.AffiliateReferrals.Include(x => x.AffiliatePlatform).FirstOrDefault(x => x.Id == client.AffiliateReferralId);
+
                 Db.NotificationTriggers.Add(new NotificationTrigger
                 {
                     TriggerType = (int)NotificationTypes.Withdraw,
                     PartnerId = client.PartnerId,
-                    AffiliatePlatformId = clientAffiliate.AffiliatePlatformId,
-                    AffiliateId = clientAffiliate.AffiliateId,
-                    ClickId = clientAffiliate.RefId,
+                    AffiliatePlatformId = clientAffiliate?.AffiliatePlatformId,
+                    AffiliateId = clientAffiliate?.AffiliateId,
+                    ClickId = clientAffiliate?.RefId,
                     ClientId = client.Id,
                     CurrencyId = client.CurrencyId,
                     Amount = resp.RequestAmount,
-                    TransactionId = resp.RequestId.ToString(),
+                    TransactionId = resp?.RequestId.ToString(),
                     CreationDate = currentDate,
                     LastUpdateDate = currentDate,
                     State = (int)NotificationStates.Pending
                 });
                 Db.SaveChanges();
             }
-            var partnerKey = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.CRMPlarforms).StringValue;
-            if (!string.IsNullOrEmpty(partnerKey))
-                ;// do here crm brodcast with partnerKey checking		
+
             return document;
         }
 
@@ -7205,8 +7329,9 @@ namespace IqSoft.CP.BLL.Services
 
         #region Deposit
 
-        public PaymentRequest UploadPaymentForm(PaymentRequest paymentRequest, string paymentForm, string imageName)
+        public PaymentRequest UploadPaymentForm(PaymentRequest paymentRequest, string paymentForm, string imageName, out List<int> userIds)
         {
+            userIds = new List<int>();
             var client = CacheManager.GetClientById(paymentRequest.ClientId.Value);
             CheckPermission(Constants.Permissions.CreateDepositFromPaymentSystem);
             var checkClientPermission = GetPermissionsToObject(new CheckPermissionInput
@@ -7281,7 +7406,7 @@ namespace IqSoft.CP.BLL.Services
                         if ((partnerAutoConfirmWithdrawMaxAmount > request.Amount && client.IsDocumentVerified) || client.Email == Constants.CardReaderClientEmail ||
                             paymentSystem.Name.ToLower() == Constants.PaymentSystems.IqWallet.ToLower())
                         {
-                            ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Confirmed, "", request.CashDeskId, null, false, string.Empty, documentBl, notificationBl);
+                            ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Confirmed, "", request.CashDeskId, null, false, string.Empty, documentBl, notificationBl, out userIds);
                         }
                         return request;
                     }
@@ -7311,7 +7436,10 @@ namespace IqSoft.CP.BLL.Services
                 client.State == (int)ClientStates.Suspended || client.State == (int)ClientStates.SuspendedWithWithdraw ||
                 client.State == (int)ClientStates.BlockedForDeposit)
                 throw CreateException(LanguageId, Constants.Errors.ClientBlocked);
-            var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, paymentRequestInput.PaymentSystemId, client.CurrencyId,
+            var allowMultiCurrencyAccounts = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.AllowMultiCurrencyAccounts);
+            var amca = allowMultiCurrencyAccounts != null && allowMultiCurrencyAccounts.Id > 0 && allowMultiCurrencyAccounts.NumericValue == 1;
+
+            var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, paymentRequestInput.PaymentSystemId, amca ? paymentRequestInput.CurrencyId : client.CurrencyId,
                                         (int)PaymentRequestTypes.Deposit) ?? throw CreateException(LanguageId, Constants.Errors.PartnerPaymentSettingNotFound);
             if (partnerPaymentSetting.State == (int)PartnerPaymentSettingStates.Inactive)
                 throw CreateException(LanguageId, Constants.Errors.PartnerPaymentSettingBlocked);
@@ -7350,7 +7478,7 @@ namespace IqSoft.CP.BLL.Services
                 ClientId = paymentRequestInput.ClientId,
                 Amount = paymentRequestInput.Amount,
                 CommissionAmount = commissionAmount,
-                CurrencyId = client.CurrencyId,
+                CurrencyId = amca ? paymentRequestInput.CurrencyId : client.CurrencyId,
                 Status = (int)PaymentRequestStates.Pending,
                 PartnerPaymentSettingId = partnerPaymentSetting.Id,
                 PaymentSystemId = paymentRequestInput.PaymentSystemId,
@@ -7479,135 +7607,142 @@ namespace IqSoft.CP.BLL.Services
             return request;
         }
 
-        public void ApproveDepositFromPaymentSystem(PaymentRequest request, bool fromAdmin, string comment = "",
+        public void ApproveDepositFromPaymentSystem(PaymentRequest request, bool fromAdmin, out List<int> userIds, string comment = "",
             ClientPaymentInfo info = null, MerchantRequest mr = null, long? accountId = null)
         {
+            userIds = new List<int>();
             if (fromAdmin)
                 CheckPermission(Constants.Permissions.CreateDepositFromPaymentSystem);
             using (var documentBl = new DocumentBll(this))
             {
-                var currentTime = DateTime.UtcNow;
-                var client = CacheManager.GetClientById(request.ClientId.Value);
-                if (info == null && !fromAdmin)
+                using (var notificationBl = new NotificationBll(this))
                 {
-                    var partnerSetting = CacheManager.GetConfigKey(client.PartnerId, Constants.PartnerKeys.PaymentDetailsValidation);
-                    if (!string.IsNullOrEmpty(partnerSetting) && partnerSetting == "1")
-                        throw BaseBll.CreateException(string.Empty, Constants.Errors.NotAllowed);
-                }
-                if (client.State == (int)ClientStates.FullBlocked || client.State == (int)ClientStates.Disabled)
-                    throw BaseBll.CreateException(string.Empty, Constants.Errors.ClientBlocked);
-                var paymentRequest = Db.PaymentRequests.FirstOrDefault(x => x.Id == request.Id);
-                if (paymentRequest == null || (paymentRequest.Type != (int)PaymentRequestTypes.Deposit && paymentRequest.Type != (int)PaymentRequestTypes.ManualDeposit))
-                    throw CreateException(LanguageId, Constants.Errors.PaymentRequestNotFound);
-
-                if (!paymentRequest.PartnerPaymentSettingId.HasValue)
-                    throw CreateException(LanguageId, Constants.Errors.PartnerPaymentSettingNotFound);
-                var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, paymentRequest.PaymentSystemId, paymentRequest.CurrencyId, (int)PaymentRequestTypes.Deposit);
-                if (partnerPaymentSetting == null)
-                    throw CreateException(LanguageId, Constants.Errors.PartnerPaymentSettingNotFound);
-                if (partnerPaymentSetting.State == (int)PartnerPaymentSettingStates.Inactive)
-                    throw BaseBll.CreateException(string.Empty, Constants.Errors.PartnerPaymentSettingBlocked);
-
-                if (paymentRequest.Status == (int)PaymentRequestStates.Approved || paymentRequest.Status == (int)PaymentRequestStates.ApprovedManually)
-                    throw CreateException(LanguageId, Constants.Errors.RequestAlreadyPayed, dateTimeInfo: paymentRequest.CreationTime);
-                var pureAmount = request.Amount;
-                if ((!partnerPaymentSetting.ApplyPercentAmount.HasValue || request.Amount >= partnerPaymentSetting.ApplyPercentAmount) &&
-                    partnerPaymentSetting.Commission > 0)
-                    pureAmount -= request.Amount * partnerPaymentSetting.Commission / 100;
-                if (partnerPaymentSetting.FixedFee > 0)
-                    pureAmount -= partnerPaymentSetting.FixedFee;
-                if (pureAmount < 0)
-                    throw CreateException(LanguageId, Constants.Errors.LowBalance);
-                paymentRequest.CommissionAmount = request.Amount - pureAmount;
-
-                if (paymentRequest.AccountId != null)
-                {
-                    var acc = GetAccount(paymentRequest.AccountId.Value);
-                    if (acc.TypeId == (int)AccountTypes.ClientUnusedBalance)
+                    var currentTime = DateTime.UtcNow;
+                    var client = CacheManager.GetClientById(request.ClientId.Value);
+                    if (info == null && !fromAdmin)
                     {
-                        accountId = paymentRequest.AccountId.Value;
+                        var partnerSetting = CacheManager.GetConfigKey(client.PartnerId, Constants.PartnerKeys.PaymentDetailsValidation);
+                        if (!string.IsNullOrEmpty(partnerSetting) && partnerSetting == "1")
+                            throw BaseBll.CreateException(string.Empty, Constants.Errors.NotAllowed);
                     }
-                }
+                    if (client.State == (int)ClientStates.FullBlocked || client.State == (int)ClientStates.Disabled)
+                        throw BaseBll.CreateException(string.Empty, Constants.Errors.ClientBlocked);
+                    var paymentRequest = Db.PaymentRequests.FirstOrDefault(x => x.Id == request.Id);
+                    if (paymentRequest == null || (paymentRequest.Type != (int)PaymentRequestTypes.Deposit && paymentRequest.Type != (int)PaymentRequestTypes.ManualDeposit))
+                        throw CreateException(LanguageId, Constants.Errors.PaymentRequestNotFound);
 
-                if (!Db.Documents.Any(x => x.OperationTypeId == (int)OperationTypes.Deposit &&
-                                           x.PartnerPaymentSettingId == partnerPaymentSetting.Id &&
-                                           x.ExternalTransactionId == paymentRequest.ExternalTransactionId))
-                {
-                    var operation = new Operation
+                    if (!paymentRequest.PartnerPaymentSettingId.HasValue)
+                        throw CreateException(LanguageId, Constants.Errors.PartnerPaymentSettingNotFound);
+                    var partnerPaymentSetting = CacheManager.GetPartnerPaymentSettings(client.PartnerId, paymentRequest.PaymentSystemId, paymentRequest.CurrencyId, (int)PaymentRequestTypes.Deposit);
+                    if (partnerPaymentSetting == null)
+                        throw CreateException(LanguageId, Constants.Errors.PartnerPaymentSettingNotFound);
+                    if (partnerPaymentSetting.State == (int)PartnerPaymentSettingStates.Inactive)
+                        throw BaseBll.CreateException(string.Empty, Constants.Errors.PartnerPaymentSettingBlocked);
+
+                    if (paymentRequest.Status == (int)PaymentRequestStates.Approved || paymentRequest.Status == (int)PaymentRequestStates.ApprovedManually)
+                        throw CreateException(LanguageId, Constants.Errors.RequestAlreadyPayed, dateTimeInfo: paymentRequest.CreationTime);
+                    var pureAmount = request.Amount;
+                    if ((!partnerPaymentSetting.ApplyPercentAmount.HasValue || request.Amount >= partnerPaymentSetting.ApplyPercentAmount) &&
+                        partnerPaymentSetting.Commission > 0)
+                        pureAmount -= request.Amount * partnerPaymentSetting.Commission / 100;
+                    if (partnerPaymentSetting.FixedFee > 0)
+                        pureAmount -= partnerPaymentSetting.FixedFee;
+                    if (pureAmount < 0)
+                        throw CreateException(LanguageId, Constants.Errors.LowBalance);
+                    paymentRequest.CommissionAmount = request.Amount - pureAmount;
+
+                    if (paymentRequest.AccountId != null)
                     {
-                        Amount = request.Amount,
-                        CurrencyId = request.CurrencyId,
-                        Type = (int)OperationTypes.Deposit,
-                        PaymentRequestId = request.Id,
-                        ExternalTransactionId = request.ExternalTransactionId,
-                        PartnerPaymentSettingId = request.PartnerPaymentSettingId,
-                        ClientId = request.ClientId,
-                        Info = request.Info,
-                        OperationItems = new List<OperationItem>()
-                    };
-                    var item = new OperationItem
-                    {
-                        AccountTypeId = (int)AccountTypes.ExternalClientsAccount,
-                        ObjectId = Constants.MainExternalClientId,
-                        ObjectTypeId = (int)ObjectTypes.Client,
-                        Amount = request.Amount,
-                        CurrencyId = request.CurrencyId,
-                        Type = (int)TransactionTypes.Credit,
-                        OperationTypeId = (int)OperationTypes.Deposit
-                    };
-                    operation.OperationItems.Add(item);
-                    if (paymentRequest.CommissionAmount > 0)
-                    {
-                        item = new OperationItem
+                        var acc = GetAccount(paymentRequest.AccountId.Value);
+                        if (acc.TypeId == (int)AccountTypes.ClientUnusedBalance)
                         {
-                            AccountTypeId = (int)AccountTypes.PartnerBalance,
-                            ObjectId = client.PartnerId,
-                            ObjectTypeId = (int)ObjectTypes.Partner,
-                            Amount = paymentRequest.CommissionAmount.Value,
+                            accountId = paymentRequest.AccountId.Value;
+                        }
+                    }
+
+                    if (!Db.Documents.Any(x => x.OperationTypeId == (int)OperationTypes.Deposit &&
+                                               x.PartnerPaymentSettingId == partnerPaymentSetting.Id &&
+                                               x.ExternalTransactionId == paymentRequest.ExternalTransactionId))
+                    {
+                        var operation = new Operation
+                        {
+                            Amount = request.Amount,
                             CurrencyId = request.CurrencyId,
-                            Type = (int)TransactionTypes.Debit,
+                            Type = (int)OperationTypes.Deposit,
+                            PaymentRequestId = request.Id,
+                            ExternalTransactionId = request.ExternalTransactionId,
+                            PartnerPaymentSettingId = request.PartnerPaymentSettingId,
+                            ClientId = request.ClientId,
+                            Info = request.Info,
+                            OperationItems = new List<OperationItem>()
+                        };
+                        var item = new OperationItem
+                        {
+                            AccountTypeId = (int)AccountTypes.ExternalClientsAccount,
+                            ObjectId = Constants.MainExternalClientId,
+                            ObjectTypeId = (int)ObjectTypes.Client,
+                            Amount = request.Amount,
+                            CurrencyId = request.CurrencyId,
+                            Type = (int)TransactionTypes.Credit,
                             OperationTypeId = (int)OperationTypes.Deposit
                         };
                         operation.OperationItems.Add(item);
+                        if (paymentRequest.CommissionAmount > 0)
+                        {
+                            item = new OperationItem
+                            {
+                                AccountTypeId = (int)AccountTypes.PartnerBalance,
+                                ObjectId = client.PartnerId,
+                                ObjectTypeId = (int)ObjectTypes.Partner,
+                                Amount = paymentRequest.CommissionAmount.Value,
+                                CurrencyId = request.CurrencyId,
+                                Type = (int)TransactionTypes.Debit,
+                                OperationTypeId = (int)OperationTypes.Deposit
+                            };
+                            operation.OperationItems.Add(item);
+                        }
+                        item = new OperationItem
+                        {
+                            ObjectId = client.Id,
+                            ObjectTypeId = (int)ObjectTypes.Client,
+                            AccountTypeId = (int)AccountTypes.ClientUnusedBalance,
+                            Amount = pureAmount,
+                            CurrencyId = request.CurrencyId,
+                            Type = (int)TransactionTypes.Debit,
+                            OperationTypeId = (int)OperationTypes.Deposit,
+                            AccountId = accountId
+                        };
+                        operation.OperationItems.Add(item);
+                        var document = documentBl.CreateDocument(operation);
                     }
-                    item = new OperationItem
+                    paymentRequest.Status = fromAdmin ? (int)PaymentRequestStates.ApprovedManually : (int)PaymentRequestStates.Approved;
+                    paymentRequest.LastUpdateTime = currentTime;
+                    if (fromAdmin)
                     {
-                        ObjectId = client.Id,
-                        ObjectTypeId = (int)ObjectTypes.Client,
-                        AccountTypeId = (int)AccountTypes.ClientUnusedBalance,
-                        Amount = pureAmount,
-                        CurrencyId = request.CurrencyId,
-                        Type = (int)TransactionTypes.Debit,
-                        OperationTypeId = (int)OperationTypes.Deposit,
-                        AccountId = accountId
-                    };
-                    operation.OperationItems.Add(item);
-                    var document = documentBl.CreateDocument(operation);
-                }
-                paymentRequest.Status = fromAdmin ? (int)PaymentRequestStates.ApprovedManually : (int)PaymentRequestStates.Approved;
-                paymentRequest.LastUpdateTime = currentTime;
-                if (fromAdmin)
-                {
-                    var history = new PaymentRequestHistory
-                    {
-                        Comment = comment,
-                        CreationTime = currentTime,
-                        RequestId = paymentRequest.Id,
-                        SessionId = Identity.SessionId,
-                        Status = paymentRequest.Status
-                    };
-                    Db.PaymentRequestHistories.Add(history);
-                }
-                Db.SaveChanges();
-                AddClientJobTrigger(request.ClientId.Value, (int)JobTriggerTypes.Deposit, pureAmount, paymentRequest.Id);
-                CacheManager.RemoveClientBalance(client.Id);
-                CacheManager.RemoveClientDepositCount(request.ClientId.Value);
-                CacheManager.RemoveTotalDepositAmount(request.ClientId.Value);
-                // broadcast to all memcacheds
-                if (mr != null)
-                {
-                    Db.MerchantRequests.Add(mr);
+                        var history = new PaymentRequestHistory
+                        {
+                            Comment = comment,
+                            CreationTime = currentTime,
+                            RequestId = paymentRequest.Id,
+                            SessionId = Identity.SessionId,
+                            Status = paymentRequest.Status
+                        };
+                        Db.PaymentRequestHistories.Add(history);
+                    }
                     Db.SaveChanges();
+                    AddClientJobTrigger(request.ClientId.Value, (int)JobTriggerTypes.Deposit, pureAmount, paymentRequest.Id);
+                    var partner = CacheManager.GetPartnerById(client.PartnerId);
+                    userIds.AddRange(AddUserNotification(client.PartnerId, (int)UserNotificationTypes.Deposit, null, 
+                        paymentRequest.Id, null, ConvertCurrency(client.CurrencyId, partner.CurrencyId, pureAmount), notificationBl));
+                    CacheManager.RemoveClientBalance(client.Id);
+                    CacheManager.RemoveClientDepositCount(request.ClientId.Value);
+                    CacheManager.RemoveTotalDepositAmount(request.ClientId.Value);
+                    // broadcast to all memcacheds
+                    if (mr != null)
+                    {
+                        Db.MerchantRequests.Add(mr);
+                        Db.SaveChanges();
+                    }
                 }
             }
         }
@@ -7627,8 +7762,9 @@ namespace IqSoft.CP.BLL.Services
                 }
             }
 
-            var potencialBonuses = AutoClaim(bonusService, paymentRequest.ClientId.Value, (int)TriggerTypes.NthDeposit, string.Empty, paymentRequest.Amount,
-                                       out awardedStatus, depCount, paymentRequest.PaymentSystemId);
+            var potencialBonuses = AutoClaim(bonusService, paymentRequest.ClientId.Value, (int)TriggerTypes.NthDeposit, 
+                string.Empty, paymentRequest.Amount, out awardedStatus, depCount, paymentRequest.PaymentSystemId);
+
             if (paymentRequest.ActivatedBonusType.HasValue)
             {
                 var b = CacheManager.GetBonusById(paymentRequest.ActivatedBonusType.Value);
@@ -8137,9 +8273,14 @@ namespace IqSoft.CP.BLL.Services
             if (correction.OperationTypeId == (int)OperationTypes.ChargeBack)
                 throw CreateException(LanguageId, Constants.Errors.WrongOperatorId);
             Document document = null;
+            var allowMultiCurrencyAccounts = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.AllowMultiCurrencyAccounts);
+            var amca = allowMultiCurrencyAccounts != null && allowMultiCurrencyAccounts.Id > 0 && allowMultiCurrencyAccounts.NumericValue == 1;
+
             using (var scope = CommonFunctions.CreateTransactionScope())
             {
-                correction.CurrencyId = client.CurrencyId;
+                if(!amca)
+                    correction.CurrencyId = client.CurrencyId;
+
                 var operation = new Operation
                 {
                     Type = (int)OperationTypes.DebitCorrectionOnClient,
@@ -8228,9 +8369,14 @@ namespace IqSoft.CP.BLL.Services
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             }
             Document document = null;
+            var allowMultiCurrencyAccounts = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.AllowMultiCurrencyAccounts);
+            var amca = allowMultiCurrencyAccounts != null && allowMultiCurrencyAccounts.Id > 0 && allowMultiCurrencyAccounts.NumericValue == 1;
+
             using (var scope = CommonFunctions.CreateTransactionScope())
             {
-                correction.CurrencyId = client.CurrencyId;
+                if (!amca)
+                    correction.CurrencyId = client.CurrencyId;
+
                 var operation = new Operation
                 {
                     Type = (int)OperationTypes.CreditCorrectionOnClient,
@@ -8763,8 +8909,9 @@ namespace IqSoft.CP.BLL.Services
             return document;
         }
 
-        public void ChangeWithdrawPaymentRequestState(long requestId, string comment, int? cashDeskId, int? cashierId, PaymentRequestStates state)
+        public List<int> ChangeWithdrawPaymentRequestState(long requestId, string comment, int? cashDeskId, int? cashierId, PaymentRequestStates state)
         {
+            var resp = new List<int>();
             switch (state)
             {
                 case PaymentRequestStates.InProcess:
@@ -8781,9 +8928,10 @@ namespace IqSoft.CP.BLL.Services
             {
                 using (var notificationBl = new NotificationBll(documentBl))
                 {
-                    ChangeWithdrawRequestState(requestId, state, comment, cashDeskId, cashierId, true, string.Empty, documentBl, notificationBl);
+                    ChangeWithdrawRequestState(requestId, state, comment, cashDeskId, cashierId, true, string.Empty, documentBl, notificationBl, out resp);
                 }
             }
+            return resp;
         }
 
         #endregion
@@ -10647,30 +10795,33 @@ namespace IqSoft.CP.BLL.Services
             }
 
             var index = CommonFunctions.GetRandomNumbers(1, items.Count, 1)[0];
-            clientBonus.Status = (int)ClientBonusStatuses.Closed;
-            clientBonus.LinkedBonusId = items[index - 1];
-            clientBonus.CalculationTime = DateTime.UtcNow;
-            var currentDate = (long)clientBonus.CalculationTime.Value.Year * 100000000 + (long)clientBonus.CalculationTime.Value.Month * 1000000 +
-                 clientBonus.CalculationTime.Value.Day * 10000 + clientBonus.CalculationTime.Value.Hour * 100 + clientBonus.CalculationTime.Value.Minute;
-            var newBonus = CacheManager.GetBonusById(clientBonus.LinkedBonusId.Value);
-
-            var numbers = Db.ClientBonus.Where(x => x.ClientId == clientBonus.ClientId &&
-                x.BonusId == clientBonus.LinkedBonusId.Value).Select(x => x.ReuseNumber ?? 0).ToList();
-            var maxNumber = numbers.Any() ? numbers.Max() : 0;
-
-            var newClientBonus = new ClientBonu
+            if (items[index - 1] != clientBonusId)
             {
-                BonusId = clientBonus.LinkedBonusId.Value,
-                ClientId = clientBonus.ClientId,
-                Status = (int)ClientBonusStatuses.NotAwarded,
-                CreationTime = clientBonus.CalculationTime.Value,
-                ValidUntil = newBonus.ValidForAwarding == null ? (DateTime?)null :
-                    clientBonus.CalculationTime.Value.AddHours(newBonus.ValidForAwarding.Value),
-                CreationDate = currentDate,
-                ReuseNumber = maxNumber + 1
-            };
-            Db.ClientBonus.Add(newClientBonus);
-            Db.SaveChanges();
+                clientBonus.Status = (int)ClientBonusStatuses.Closed;
+                clientBonus.LinkedBonusId = items[index - 1];
+                clientBonus.CalculationTime = DateTime.UtcNow;
+                var currentDate = (long)clientBonus.CalculationTime.Value.Year * 100000000 + (long)clientBonus.CalculationTime.Value.Month * 1000000 +
+                     clientBonus.CalculationTime.Value.Day * 10000 + clientBonus.CalculationTime.Value.Hour * 100 + clientBonus.CalculationTime.Value.Minute;
+                var newBonus = CacheManager.GetBonusById(clientBonus.LinkedBonusId.Value);
+
+                var numbers = Db.ClientBonus.Where(x => x.ClientId == clientBonus.ClientId &&
+                    x.BonusId == clientBonus.LinkedBonusId.Value).Select(x => x.ReuseNumber ?? 0).ToList();
+                var maxNumber = numbers.Any() ? numbers.Max() : 0;
+
+                var newClientBonus = new ClientBonu
+                {
+                    BonusId = clientBonus.LinkedBonusId.Value,
+                    ClientId = clientBonus.ClientId,
+                    Status = (int)ClientBonusStatuses.NotAwarded,
+                    CreationTime = clientBonus.CalculationTime.Value,
+                    ValidUntil = newBonus.ValidForAwarding == null ? (DateTime?)null :
+                        clientBonus.CalculationTime.Value.AddHours(newBonus.ValidForAwarding.Value),
+                    CreationDate = currentDate,
+                    ReuseNumber = maxNumber + 1
+                };
+                Db.ClientBonus.Add(newClientBonus);
+                Db.SaveChanges();
+            }
             return bonuses.FindIndex(x => x.BonusId == items[index - 1]);
         }
 
@@ -10774,6 +10925,26 @@ namespace IqSoft.CP.BLL.Services
             clientSetting.StringValue = JsonConvert.SerializeObject(sValue);
             SaveChangesWithHistory((int)ObjectTypes.ClientSetting, client.Id, oldSettings, string.Empty);
             return clientSetting;
+        }
+
+        public ApiClientStatistics GetClientStatisticsInfo(int clientId)
+        {
+            using (var dwh = new IqSoftDataWarehouseEntities())
+            {
+                var result = dwh.Gtd_Client_Info.Where(x => x.ClientId == clientId).GroupBy(x => 1).Select(x => new ApiClientStatistics
+                {
+                    TotalBetAmount = x.Sum(y => y.TotalBetAmount),
+                    TotalBetCount = x.Sum(y => y.TotalBetCount),
+                    TotalWinCount = x.Sum(y => y.TotalWinCount),
+                    TotalLossCount = 0,
+                    SportBetAmount = 0,
+                    SportBetCount = x.Sum(y => y.SportBetCount),
+                    SportWinCount = 0,
+                    SportLossCount = 0
+                }).FirstOrDefault();
+                result.TotalLossCount = result.TotalBetCount - result.TotalWinCount;
+                return result;
+            }
         }
     }
 }

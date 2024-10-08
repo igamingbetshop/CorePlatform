@@ -89,7 +89,7 @@ namespace IqSoft.CP.BLL.Services
                         throw CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongInputParameters);
                     bonus.TurnoverCount = 1;
                 }
-                else if (bonus.Type == (int)BonusTypes.CashBackBonus && !bonus.AutoApproveMaxAmount.HasValue)
+                else if (bonus.Type == (int)BonusTypes.CashBackBonus && (!bonus.AutoApproveMaxAmount.HasValue || bonus.Period < 24) )
                     throw CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongInputParameters);
                 else if ((bonus.Type == (int)BonusTypes.AggregatedFreeSpin &&
                     Db.Bonus.FirstOrDefault(x => x.Type == (int)BonusTypes.AggregatedFreeSpin &&
@@ -377,7 +377,11 @@ namespace IqSoft.CP.BLL.Services
                 (partnerId.HasValue && !partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != partnerId.Value)))
                 throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
 
-            return Db.Bonus.Include(x => x.BonusProducts).FirstOrDefault(x => x.Id == bonusId);
+            var resp = Db.Bonus.Include(x => x.BonusProducts).FirstOrDefault(x => x.Id == bonusId);
+            if (!partnerAccess.HaveAccessForAllObjects && partnerAccess.AccessibleIntegerObjects.All(x => x != resp.PartnerId))
+                throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
+
+            return resp;
         }
 
         public List<BonusProduct> GetBonusProducts(FilterBonusProduct filter)
@@ -447,7 +451,7 @@ namespace IqSoft.CP.BLL.Services
             {
                 if (((dbBonus.Type == (int)BonusTypes.CampaignWagerCasino || dbBonus.Type == (int)BonusTypes.CampaignWagerSport) &&
                 (!bon.ValidForAwarding.HasValue || bon.ValidForAwarding <= 0 || !bon.ValidForSpending.HasValue || bon.ValidForSpending <= 0)) ||
-                 (dbBonus.Type == (int)BonusTypes.CashBackBonus && !bon.AutoApproveMaxAmount.HasValue) ||
+                 (dbBonus.Type == (int)BonusTypes.CashBackBonus && (!bon.AutoApproveMaxAmount.HasValue || bon.Period < 24)) ||
                  (dbBonus.Type == (int)BonusTypes.CampaignFreeSpin && (!bon.ValidForSpending.HasValue || bon.ValidForSpending <= 0)))
                     throw CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongInputParameters);
                 if (string.IsNullOrEmpty(bon.Name))
@@ -456,6 +460,7 @@ namespace IqSoft.CP.BLL.Services
                 dbBonus.Status = bon.Status;
                 dbBonus.Description = bon.Description;
                 dbBonus.Priority = bon.Priority;
+                dbBonus.Period = bon.Period;
                 dbBonus.WinAccountTypeId = bon.WinAccountTypeId;
                 dbBonus.ValidForAwarding = bon.ValidForAwarding;
                 dbBonus.ValidForSpending = bon.ValidForSpending;
@@ -481,7 +486,7 @@ namespace IqSoft.CP.BLL.Services
                 dbBonus.Regularity = bon.Regularity;
                 dbBonus.DayOfWeek = bon.DayOfWeek;
                 dbBonus.ReusingMaxCountInPeriod = bon.ReusingMaxCountInPeriod;
-
+                dbBonus.Color = bon.Color;
                 if (bon.BonusLanguageSettings == null || !bon.BonusLanguageSettings.Any())
                     Db.BonusLanguageSettings.Where(x => x.BonusId == dbBonus.Id).DeleteFromQuery();
                 else
@@ -737,11 +742,11 @@ namespace IqSoft.CP.BLL.Services
                 case (int)TriggerTypes.NthDeposit:
                 case (int)TriggerTypes.AnyDeposit:
                 case (int)TriggerTypes.CompPointSpend:
-                    if (triggerSetting.Percent <= 0)
+                    if (triggerSetting.Percent != null && triggerSetting.Percent <= 0)
                         throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
                     break;
                 case (int)TriggerTypes.DailyDeposit:
-                    if (triggerSetting.Percent < 0 || triggerSetting.MinBetCount < 1)
+                    if ((triggerSetting.Percent != null && triggerSetting.Percent <= 0) || triggerSetting.MinBetCount < 1)
                         throw CreateException(LanguageId, Constants.Errors.WrongInputParameters);
                     break;
                 case (int)TriggerTypes.SignUp:
@@ -1902,8 +1907,57 @@ namespace IqSoft.CP.BLL.Services
             return new ClientBonusInfo { BonusId = clientBonusItem.BonusId, ReuseNumber = reuseNumber };
         }
 
+        public ClientBonusInfo GiveCompainToClientManually(int clientId, int bonusId)
+        {
+            var bonus = GetAvailableBonus(bonusId, true);
+            if (!Constants.ClaimingBonusTypes.Contains(bonus.Type))
+                throw BaseBll.CreateException(LanguageId, Constants.Errors.BonusNotFound);
+            var client = CacheManager.GetClientById(clientId) ??
+                throw BaseBll.CreateException(LanguageId, Constants.Errors.ClientNotFound);
+            var clientSegmentsIds = new List<int>();
+            if (bonus.BonusSegmentSettings.Any())
+            {
+                var clientClassifications = CacheManager.GetClientClassifications(client.Id);
+                if (clientClassifications.Any())
+                    clientSegmentsIds = clientClassifications.Where(x => x.SegmentId.HasValue && x.ProductId == (int)Constants.PlatformProductId)
+                                                            .Select(x => x.SegmentId.Value).ToList();
+            }
+            if ((bonus.BonusSegmentSettings.Any() &&
+                (bonus.BonusSegmentSettings.Any(x => x.Type == (int)BonusSettingConditionTypes.InSet && !clientSegmentsIds.Contains(x.SegmentId)) ||
+                 bonus.BonusSegmentSettings.Any(x => x.Type == (int)BonusSettingConditionTypes.OutOfSet && clientSegmentsIds.Contains(x.SegmentId)))) ||
+                (bonus.BonusCountrySettings.Any() &&
+                (bonus.BonusCountrySettings.Any(y => y.Type == (int)BonusSettingConditionTypes.InSet && y.CountryId != (client.CountryId ?? client.RegionId)) ||
+                 bonus.BonusCountrySettings.Any(y => y.Type == (int)BonusSettingConditionTypes.OutOfSet && y.CountryId == (client.CountryId ?? client.RegionId)))) ||
+                (bonus.BonusCurrencySettings.Any() &&
+                (bonus.BonusCurrencySettings.Any(y => y.Type == (int)BonusSettingConditionTypes.InSet && y.CurrencyId != client.CurrencyId) ||
+                 bonus.BonusCurrencySettings.Any(y => y.Type == (int)BonusSettingConditionTypes.OutOfSet && y.CurrencyId == client.CurrencyId))) ||
+                (bonus.BonusLanguageSettings.Any() &&
+                 bonus.BonusLanguageSettings.Any(y => y.Type == (int)BonusSettingConditionTypes.InSet && y.LanguageId != client.LanguageId) &&
+                 bonus.BonusLanguageSettings.Any(y => y.Type == (int)BonusSettingConditionTypes.OutOfSet && y.LanguageId == client.LanguageId)))
+                throw BaseBll.CreateException(LanguageId, Constants.Errors.NotAllowed);
+            var clientBonusItem = new Common.Models.Bonus.ClientBonusItem
+            {
+                PartnerId = client.PartnerId,
+                BonusId = bonus.Id,
+                Type = bonus.Type,
+                ClientId = client.Id,
+                ClientUserName = client.UserName,
+                ClientCurrencyId = client.CurrencyId,
+                FinalAccountTypeId = bonus.FinalAccountTypeId ?? (int)AccountTypes.BonusWin,
+                ReusingMaxCount = bonus.ReusingMaxCount,
+                WinAccountTypeId = bonus.WinAccountTypeId,
+                ValidForAwarding = bonus.ValidForAwarding == null ? (DateTime?)null : DateTime.Now.AddHours(bonus.ValidForAwarding.Value),
+                ValidForSpending = bonus.ValidForSpending == null ? (DateTime?)null : DateTime.Now.AddHours(bonus.ValidForSpending.Value)
+            };
+            var clientBonusInfo = GiveCompainToClient(clientBonusItem, out int awardedStatus);
+            if (awardedStatus > 0)
+                throw BaseBll.CreateException(LanguageId, Constants.Errors.NotAllowed);
+            return clientBonusInfo;
+        }
 
-        public List<Bonu> GetClientAvailableBonus(int clientId, int? type, bool checkPermission)
+
+
+        public List<Bonu> GetClientAvailableBonuses(int clientId, int? type, bool checkPermission)
         {
             var client = CacheManager.GetClientById(clientId) ??
                 throw CreateException(LanguageId, Constants.Errors.ClientNotFound);

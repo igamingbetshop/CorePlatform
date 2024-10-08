@@ -385,6 +385,7 @@
     <Compile Include="Filters\Reporting\ApiFilterReportByPopupStatistics.cs" />
     <Compile Include="Filters\Reporting\ApiFilterReportByUserSession.cs" />
     <Compile Include="Filters\Reporting\ApiFilterReportByUserTransaction.cs" />
+    <Compile Include="Helpers\FilterMappers.cs" />
     <Compile Include="Helpers\Helpers.cs" />
     <Compile Include="Helpers\ProductMappers.cs" />
     <Compile Include="Models\AdminModels\Api2FAInput.cs" />
@@ -415,6 +416,7 @@
     <Compile Include="Models\ContentModels\ApiPopup.cs" />
     <Compile Include="Models\ContentModels\ApiPromotion.cs" />
     <Compile Include="Models\ContentModels\ApiTranslationMenu.cs" />
+    <Compile Include="Models\NotificationModels\ApiNotification.cs" />
     <Compile Include="Models\NotificationModels\EmailModel.cs" />
     <Compile Include="Models\PartnerModels\ApiCharacter.cs" />
     <Compile Include="Models\PartnerModels\ApiCharacterRelations.cs" />
@@ -467,7 +469,6 @@
     <Compile Include="Filters\Reporting\ApiFilterReportByClientsDetails.cs" />
     <Compile Include="Filters\Reporting\ApiFilterPartnerPaymentsSummary.cs" />
     <Compile Include="Filters\Reporting\ApiFilterReportByActionLog.cs" />
-    <Compile Include="Filters\Reporting\ApiFilterReportByProvider.cs" />
     <Compile Include="Filters\Reporting\ApiFilterReportByProduct.cs" />
     <Compile Include="Filters\Reporting\ApiFilterShiftReport.cs" />
     <Compile Include="Helpers\CustomMapper.cs" />
@@ -587,11 +588,11 @@
     <Compile Include="Models\ReportModels\Internet\ApiInternetBetByClient.cs" />
     <Compile Include="Models\ReportModels\BetShop\ApiReportByBetShopPaymentsElement.cs" />
     <Compile Include="Models\ReportModels\ApiReportByProductsElement.cs" />
-    <Compile Include="Models\ReportModels\ApiReportByProvidersElement.cs" />
     <Compile Include="Models\ReportModels\Internet\ApiReportByClientDetailsElement.cs" />
     <Compile Include="Models\ReportModels\ApiReportByActionLog.cs" />
     <Compile Include="Models\ReportModels\Internet\ApiReportByClientDetailsModel.cs" />
     <Compile Include="Models\CommonModels\RequestInfo.cs" />
+    <Compile Include="Models\UserModels\ApiUserConfiguration.cs" />
     <Compile Include="Models\UserModels\ApiUserSettings.cs" />
     <Compile Include="Models\UserModels\RoleModel.cs" />
     <Compile Include="Models\UserModels\SaveUserRoleModel.cs" />
@@ -613,10 +614,10 @@
     <Compile Include="Models\CommonModels\RequestBase.cs" />
     <Compile Include="Models\CommonModels\ApiResponseBase.cs" />
     <Compile Include="Models\CommonModels\Language.cs" />
-    <Compile Include="Models\UserModels\Session.cs" />
+    <Compile Include="Models\UserModels\ApiLoginUserOutput.cs" />
     <Compile Include="Models\CommonModels\TranslationEntryModel.cs" />
     <Compile Include="Models\UserModels\UserIdentityInput.cs" />
-    <Compile Include="Models\UserModels\UserModel.cs" />
+    <Compile Include="Models\UserModels\ApiUser.cs" />
     <Compile Include="Models\UserModels\UserNameModel.cs" />
     <Compile Include="Models\UserModels\UserRoleModel.cs" />
     <Compile Include="Models\UserModels\ApiUserState.cs" />

@@ -9,6 +9,7 @@ using IqSoft.CP.PaymentGateway.Helpers;
 using IqSoft.CP.PaymentGateway.Models.Interkassa;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -69,7 +70,11 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                             paymentSystemBl.ChangePaymentRequestDetails(paymentRequest);
                             if (input.ik_inv_st == "success")
                             {
-                                clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
+                                clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out List<int> userIds);
+                                foreach (var uId in userIds)
+                                {
+                                    PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                }
                                 PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
                                 BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);
                             }

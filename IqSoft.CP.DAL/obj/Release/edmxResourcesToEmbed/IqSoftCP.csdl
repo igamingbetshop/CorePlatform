@@ -340,9 +340,6 @@
     <FunctionImport Name="fn_ProductCategory" IsComposable="true" ReturnType="Collection(IqSoftCorePlatformModel.fnProductCategory)">
       <Parameter Name="languageId" Mode="In" Type="String" />
     </FunctionImport>
-    <FunctionImport Name="fn_ProductGroup" IsComposable="true" ReturnType="Collection(IqSoftCorePlatformModel.fnProductGroup)">
-      <Parameter Name="productId" Mode="In" Type="Int32" />
-    </FunctionImport>
     <FunctionImport Name="fn_RealTimeInfo" IsComposable="true" ReturnType="Collection(IqSoftCorePlatformModel.fnRealTimeInfo)">
       <Parameter Name="Currency" Mode="In" Type="String" />
     </FunctionImport>
@@ -482,23 +479,10 @@
       <End Role="Language" EntitySet="Languages" />
       <End Role="PromotionLanguageSetting" EntitySet="PromotionLanguageSettings" />
     </AssociationSet>
-    <FunctionImport Name="fn_ClientProductCommission" IsComposable="true" ReturnType="Collection(IqSoftCorePlatformModel.fnClientProductCommission)">
-      <Parameter Name="ProductId" Mode="In" Type="Int32" />
-      <Parameter Name="ClientId" Mode="In" Type="Int32" />
-    </FunctionImport>
     <FunctionImport Name="fn_ProductCommission" IsComposable="true" ReturnType="Collection(IqSoftCorePlatformModel.fnProductCommission)">
       <Parameter Name="productId" Mode="In" Type="Int32" />
       <Parameter Name="agentId" Mode="In" Type="Int32" />
     </FunctionImport>
-    <EntitySet Name="AgentProfits" EntityType="IqSoftCorePlatformModel.AgentProfit" />
-    <AssociationSet Name="FK_AgentProfit_User" Association="IqSoftCorePlatformModel.FK_AgentProfit_User">
-      <End Role="User" EntitySet="Users" />
-      <End Role="AgentProfit" EntitySet="AgentProfits" />
-    </AssociationSet>
-    <AssociationSet Name="FK_AgentProfit_User1" Association="IqSoftCorePlatformModel.FK_AgentProfit_User1">
-      <End Role="User" EntitySet="Users" />
-      <End Role="AgentProfit" EntitySet="AgentProfits" />
-    </AssociationSet>
     <EntitySet Name="NotificationServices" EntityType="IqSoftCorePlatformModel.NotificationService" />
     <EntitySet Name="ProductCountrySettings" EntityType="IqSoftCorePlatformModel.ProductCountrySetting" />
     <AssociationSet Name="FK_ProductCountrySetting_Partner" Association="IqSoftCorePlatformModel.FK_ProductCountrySetting_Partner">
@@ -783,15 +767,6 @@
       <End Role="GameProviderCurrencySetting" EntitySet="GameProviderCurrencySettings" />
     </AssociationSet>
     <FunctionImport Name="fn_CashDesks" IsComposable="true" ReturnType="Collection(IqSoftCorePlatformModel.fnCashDesks)" />
-    <EntitySet Name="UserConfigurations" EntityType="IqSoftCorePlatformModel.UserConfiguration" />
-    <AssociationSet Name="FK_UserConfiguration_User" Association="IqSoftCorePlatformModel.FK_UserConfiguration_User">
-      <End Role="User" EntitySet="Users" />
-      <End Role="UserConfiguration" EntitySet="UserConfigurations" />
-    </AssociationSet>
-    <AssociationSet Name="FK_UserConfiguration_User1" Association="IqSoftCorePlatformModel.FK_UserConfiguration_User1">
-      <End Role="User" EntitySet="Users" />
-      <End Role="UserConfiguration" EntitySet="UserConfigurations" />
-    </AssociationSet>
     <EntitySet Name="PartnerLanguageSettings" EntityType="IqSoftCorePlatformModel.PartnerLanguageSetting" />
     <AssociationSet Name="FK_PartnerLanguageSetting_Language" Association="IqSoftCorePlatformModel.FK_PartnerLanguageSetting_Language">
       <End Role="Language" EntitySet="Languages" />
@@ -1086,79 +1061,6 @@
       <Parameter Name="languageId" Mode="In" Type="String" />
       <Parameter Name="withContent" Mode="In" Type="Boolean" />
     </FunctionImport>
-    <EntitySet Name="Products" EntityType="IqSoftCorePlatformModel.Product" />
-    <AssociationSet Name="FK_AffiliateCommission_Product" Association="IqSoftCorePlatformModel.FK_AffiliateCommission_Product">
-      <End Role="Product" EntitySet="Products" />
-      <End Role="AffiliateCommission" EntitySet="AffiliateCommissions" />
-    </AssociationSet>
-    <AssociationSet Name="FK_AgentCommission_Product" Association="IqSoftCorePlatformModel.FK_AgentCommission_Product">
-      <End Role="Product" EntitySet="Products" />
-      <End Role="AgentCommission" EntitySet="AgentCommissions" />
-    </AssociationSet>
-    <AssociationSet Name="FK_AgentProfit_Product" Association="IqSoftCorePlatformModel.FK_AgentProfit_Product">
-      <End Role="Product" EntitySet="Products" />
-      <End Role="AgentProfit" EntitySet="AgentProfits" />
-    </AssociationSet>
-    <AssociationSet Name="FK_AgentProfit_Product1" Association="IqSoftCorePlatformModel.FK_AgentProfit_Product1">
-      <End Role="Product" EntitySet="Products" />
-      <End Role="AgentProfit" EntitySet="AgentProfits" />
-    </AssociationSet>
-    <AssociationSet Name="FK_BetShopTicket_Product" Association="IqSoftCorePlatformModel.FK_BetShopTicket_Product">
-      <End Role="Product" EntitySet="Products" />
-      <End Role="BetShopTicket" EntitySet="BetShopTickets" />
-    </AssociationSet>
-    <AssociationSet Name="FK_ClientClassification_Product" Association="IqSoftCorePlatformModel.FK_ClientClassification_Product">
-      <End Role="Product" EntitySet="Products" />
-      <End Role="ClientClassification" EntitySet="ClientClassifications" />
-    </AssociationSet>
-    <AssociationSet Name="FK_ClientFavoriteProduct_Product" Association="IqSoftCorePlatformModel.FK_ClientFavoriteProduct_Product">
-      <End Role="Product" EntitySet="Products" />
-      <End Role="ClientFavoriteProduct" EntitySet="ClientFavoriteProducts" />
-    </AssociationSet>
-    <AssociationSet Name="FK_ClientSession_Product" Association="IqSoftCorePlatformModel.FK_ClientSession_Product">
-      <End Role="Product" EntitySet="Products" />
-      <End Role="ClientSession" EntitySet="ClientSessions" />
-    </AssociationSet>
-    <AssociationSet Name="FK_ComplimentaryCoinRate_Product" Association="IqSoftCorePlatformModel.FK_ComplimentaryCoinRate_Product">
-      <End Role="Product" EntitySet="Products" />
-      <End Role="ComplimentaryPointRate" EntitySet="ComplimentaryPointRates" />
-    </AssociationSet>
-    <AssociationSet Name="FK_Document_Product" Association="IqSoftCorePlatformModel.FK_Document_Product">
-      <End Role="Product" EntitySet="Products" />
-      <End Role="Document" EntitySet="Documents" />
-    </AssociationSet>
-    <AssociationSet Name="FK_Product_GameProvider" Association="IqSoftCorePlatformModel.FK_Product_GameProvider">
-      <End Role="GameProvider" EntitySet="GameProviders" />
-      <End Role="Product" EntitySet="Products" />
-    </AssociationSet>
-    <AssociationSet Name="FK_Product_GameProvider1" Association="IqSoftCorePlatformModel.FK_Product_GameProvider1">
-      <End Role="GameProvider" EntitySet="GameProviders" />
-      <End Role="Product" EntitySet="Products" />
-    </AssociationSet>
-    <AssociationSet Name="FK_PartnerProduct_Product" Association="IqSoftCorePlatformModel.FK_PartnerProduct_Product">
-      <End Role="Product" EntitySet="Products" />
-      <End Role="PartnerProductSetting" EntitySet="PartnerProductSettings" />
-    </AssociationSet>
-    <AssociationSet Name="FK_Product_Product" Association="IqSoftCorePlatformModel.FK_Product_Product">
-      <End Role="Product" EntitySet="Products" />
-      <End Role="Product1" EntitySet="Products" />
-    </AssociationSet>
-    <AssociationSet Name="FK_Product_Translation" Association="IqSoftCorePlatformModel.FK_Product_Translation">
-      <End Role="Translation" EntitySet="Translations" />
-      <End Role="Product" EntitySet="Products" />
-    </AssociationSet>
-    <AssociationSet Name="FK_ProductCountrySettings_Product" Association="IqSoftCorePlatformModel.FK_ProductCountrySettings_Product">
-      <End Role="Product" EntitySet="Products" />
-      <End Role="ProductCountrySetting" EntitySet="ProductCountrySettings" />
-    </AssociationSet>
-    <AssociationSet Name="FK_ProductLimit_Product" Association="IqSoftCorePlatformModel.FK_ProductLimit_Product">
-      <End Role="Product" EntitySet="Products" />
-      <End Role="ProductLimit" EntitySet="ProductLimits" />
-    </AssociationSet>
-    <AssociationSet Name="FK_TriggerProductSetting_Product" Association="IqSoftCorePlatformModel.FK_TriggerProductSetting_Product">
-      <End Role="Product" EntitySet="Products" />
-      <End Role="TriggerProductSetting" EntitySet="TriggerProductSettings" />
-    </AssociationSet>
     <EntitySet Name="ClientMessageStates" EntityType="IqSoftCorePlatformModel.ClientMessageState" />
     <EntitySet Name="Clients" EntityType="IqSoftCorePlatformModel.Client" />
     <AssociationSet Name="FK_Client_AffiliateReferral" Association="IqSoftCorePlatformModel.FK_Client_AffiliateReferral">
@@ -1168,10 +1070,6 @@
     <AssociationSet Name="FK_AgentCommission_Client" Association="IqSoftCorePlatformModel.FK_AgentCommission_Client">
       <End Role="Client" EntitySet="Clients" />
       <End Role="AgentCommission" EntitySet="AgentCommissions" />
-    </AssociationSet>
-    <AssociationSet Name="FK_AgentProfit_Client" Association="IqSoftCorePlatformModel.FK_AgentProfit_Client">
-      <End Role="Client" EntitySet="Clients" />
-      <End Role="AgentProfit" EntitySet="AgentProfits" />
     </AssociationSet>
     <AssociationSet Name="FK_Client_Character" Association="IqSoftCorePlatformModel.FK_Client_Character">
       <End Role="Character" EntitySet="Characters" />
@@ -1313,35 +1211,6 @@
       <End Role="ClientMessage" EntitySet="ClientMessages" />
       <End Role="ClientMessageState" EntitySet="ClientMessageStates" />
     </AssociationSet>
-    <EntitySet Name="TriggerSettings" EntityType="IqSoftCorePlatformModel.TriggerSetting" />
-    <AssociationSet Name="FK_AmountCurrencySetting_TriggerSetting" Association="IqSoftCorePlatformModel.FK_AmountCurrencySetting_TriggerSetting">
-      <End Role="TriggerSetting" EntitySet="TriggerSettings" />
-      <End Role="AmountCurrencySetting" EntitySet="AmountCurrencySettings" />
-    </AssociationSet>
-    <AssociationSet Name="FK_BonusPaymentSystemSetting_TriggerSetting" Association="IqSoftCorePlatformModel.FK_BonusPaymentSystemSetting_TriggerSetting">
-      <End Role="TriggerSetting" EntitySet="TriggerSettings" />
-      <End Role="BonusPaymentSystemSetting" EntitySet="BonusPaymentSystemSettings" />
-    </AssociationSet>
-    <AssociationSet Name="FK_ClientBonusTrigger_TriggerSetting" Association="IqSoftCorePlatformModel.FK_ClientBonusTrigger_TriggerSetting">
-      <End Role="TriggerSetting" EntitySet="TriggerSettings" />
-      <End Role="ClientBonusTrigger" EntitySet="ClientBonusTriggers" />
-    </AssociationSet>
-    <AssociationSet Name="FK_TriggerSetting_Partner" Association="IqSoftCorePlatformModel.FK_TriggerSetting_Partner">
-      <End Role="Partner" EntitySet="Partners" />
-      <End Role="TriggerSetting" EntitySet="TriggerSettings" />
-    </AssociationSet>
-    <AssociationSet Name="FK_TriggerSetting_Translation" Association="IqSoftCorePlatformModel.FK_TriggerSetting_Translation">
-      <End Role="Translation" EntitySet="Translations" />
-      <End Role="TriggerSetting" EntitySet="TriggerSettings" />
-    </AssociationSet>
-    <AssociationSet Name="FK_TriggerGroupSetting_TriggerSetting" Association="IqSoftCorePlatformModel.FK_TriggerGroupSetting_TriggerSetting">
-      <End Role="TriggerSetting" EntitySet="TriggerSettings" />
-      <End Role="TriggerGroupSetting" EntitySet="TriggerGroupSettings" />
-    </AssociationSet>
-    <AssociationSet Name="FK_TriggerProductSetting_TriggerSetting" Association="IqSoftCorePlatformModel.FK_TriggerProductSetting_TriggerSetting">
-      <End Role="TriggerSetting" EntitySet="TriggerSettings" />
-      <End Role="TriggerProductSetting" EntitySet="TriggerProductSettings" />
-    </AssociationSet>
     <EntitySet Name="AdminMenus" EntityType="IqSoftCorePlatformModel.AdminMenu" />
     <AssociationSet Name="FK_AdminMenu_AdminMenu" Association="IqSoftCorePlatformModel.FK_AdminMenu_AdminMenu">
       <End Role="AdminMenu" EntitySet="AdminMenus" />
@@ -1389,10 +1258,6 @@
       <End Role="Affiliate" EntitySet="Affiliates" />
     </AssociationSet>
     <FunctionImport Name="fn_Affiliate" IsComposable="true" ReturnType="Collection(IqSoftCorePlatformModel.fnAffiliate)" />
-    <AssociationSet Name="FK_Product_ProductCategory" Association="IqSoftCorePlatformModel.FK_Product_ProductCategory">
-      <End Role="ProductCategory" EntitySet="ProductCategories" />
-      <End Role="Product" EntitySet="Products" />
-    </AssociationSet>
     <FunctionImport Name="fn_Product" IsComposable="true" ReturnType="Collection(IqSoftCorePlatformModel.fnProduct)">
       <Parameter Name="LanguageId" Mode="In" Type="String" />
     </FunctionImport>
@@ -1442,10 +1307,6 @@
     <EntitySet Name="BonusProducts" EntityType="IqSoftCorePlatformModel.BonusProduct" />
     <AssociationSet Name="FK_BonusProduct_Bonus" Association="IqSoftCorePlatformModel.FK_BonusProduct_Bonus">
       <End Role="Bonu" EntitySet="Bonus" />
-      <End Role="BonusProduct" EntitySet="BonusProducts" />
-    </AssociationSet>
-    <AssociationSet Name="FK_BonusProduct_Product" Association="IqSoftCorePlatformModel.FK_BonusProduct_Product">
-      <End Role="Product" EntitySet="Products" />
       <End Role="BonusProduct" EntitySet="BonusProducts" />
     </AssociationSet>
     <EntitySet Name="Popups" EntityType="IqSoftCorePlatformModel.Popup" />
@@ -1583,10 +1444,6 @@
       <End Role="Jackpot" EntitySet="Jackpots" />
       <End Role="JackpotSetting" EntitySet="JackpotSettings" />
     </AssociationSet>
-    <AssociationSet Name="FK_JackpotSetting_Product" Association="IqSoftCorePlatformModel.FK_JackpotSetting_Product">
-      <End Role="Product" EntitySet="Products" />
-      <End Role="JackpotSetting" EntitySet="JackpotSettings" />
-    </AssociationSet>
     <EntitySet Name="Promotions" EntityType="IqSoftCorePlatformModel.Promotion" />
     <AssociationSet Name="FK_Promotion_Partner" Association="IqSoftCorePlatformModel.FK_Promotion_Partner">
       <End Role="Partner" EntitySet="Partners" />
@@ -1657,9 +1514,158 @@
       <End Role="Segment" EntitySet="Segments" />
       <End Role="SegmentSetting" EntitySet="SegmentSettings" />
     </AssociationSet>
+    <EntitySet Name="TriggerSettings" EntityType="IqSoftCorePlatformModel.TriggerSetting" />
+    <AssociationSet Name="FK_AmountCurrencySetting_TriggerSetting" Association="IqSoftCorePlatformModel.FK_AmountCurrencySetting_TriggerSetting">
+      <End Role="TriggerSetting" EntitySet="TriggerSettings" />
+      <End Role="AmountCurrencySetting" EntitySet="AmountCurrencySettings" />
+    </AssociationSet>
+    <AssociationSet Name="FK_BonusPaymentSystemSetting_TriggerSetting" Association="IqSoftCorePlatformModel.FK_BonusPaymentSystemSetting_TriggerSetting">
+      <End Role="TriggerSetting" EntitySet="TriggerSettings" />
+      <End Role="BonusPaymentSystemSetting" EntitySet="BonusPaymentSystemSettings" />
+    </AssociationSet>
+    <AssociationSet Name="FK_ClientBonusTrigger_TriggerSetting" Association="IqSoftCorePlatformModel.FK_ClientBonusTrigger_TriggerSetting">
+      <End Role="TriggerSetting" EntitySet="TriggerSettings" />
+      <End Role="ClientBonusTrigger" EntitySet="ClientBonusTriggers" />
+    </AssociationSet>
+    <AssociationSet Name="FK_TriggerSetting_Partner" Association="IqSoftCorePlatformModel.FK_TriggerSetting_Partner">
+      <End Role="Partner" EntitySet="Partners" />
+      <End Role="TriggerSetting" EntitySet="TriggerSettings" />
+    </AssociationSet>
     <AssociationSet Name="FK_TriggerSetting_Segment" Association="IqSoftCorePlatformModel.FK_TriggerSetting_Segment">
       <End Role="Segment" EntitySet="Segments" />
       <End Role="TriggerSetting" EntitySet="TriggerSettings" />
+    </AssociationSet>
+    <AssociationSet Name="FK_TriggerSetting_Translation" Association="IqSoftCorePlatformModel.FK_TriggerSetting_Translation">
+      <End Role="Translation" EntitySet="Translations" />
+      <End Role="TriggerSetting" EntitySet="TriggerSettings" />
+    </AssociationSet>
+    <AssociationSet Name="FK_TriggerGroupSetting_TriggerSetting" Association="IqSoftCorePlatformModel.FK_TriggerGroupSetting_TriggerSetting">
+      <End Role="TriggerSetting" EntitySet="TriggerSettings" />
+      <End Role="TriggerGroupSetting" EntitySet="TriggerGroupSettings" />
+    </AssociationSet>
+    <AssociationSet Name="FK_TriggerProductSetting_TriggerSetting" Association="IqSoftCorePlatformModel.FK_TriggerProductSetting_TriggerSetting">
+      <End Role="TriggerSetting" EntitySet="TriggerSettings" />
+      <End Role="TriggerProductSetting" EntitySet="TriggerProductSettings" />
+    </AssociationSet>
+    <EntitySet Name="Products" EntityType="IqSoftCorePlatformModel.Product" />
+    <AssociationSet Name="FK_AffiliateCommission_Product" Association="IqSoftCorePlatformModel.FK_AffiliateCommission_Product">
+      <End Role="Product" EntitySet="Products" />
+      <End Role="AffiliateCommission" EntitySet="AffiliateCommissions" />
+    </AssociationSet>
+    <AssociationSet Name="FK_AgentCommission_Product" Association="IqSoftCorePlatformModel.FK_AgentCommission_Product">
+      <End Role="Product" EntitySet="Products" />
+      <End Role="AgentCommission" EntitySet="AgentCommissions" />
+    </AssociationSet>
+    <AssociationSet Name="FK_BetShopTicket_Product" Association="IqSoftCorePlatformModel.FK_BetShopTicket_Product">
+      <End Role="Product" EntitySet="Products" />
+      <End Role="BetShopTicket" EntitySet="BetShopTickets" />
+    </AssociationSet>
+    <AssociationSet Name="FK_BonusProduct_Product" Association="IqSoftCorePlatformModel.FK_BonusProduct_Product">
+      <End Role="Product" EntitySet="Products" />
+      <End Role="BonusProduct" EntitySet="BonusProducts" />
+    </AssociationSet>
+    <AssociationSet Name="FK_ClientClassification_Product" Association="IqSoftCorePlatformModel.FK_ClientClassification_Product">
+      <End Role="Product" EntitySet="Products" />
+      <End Role="ClientClassification" EntitySet="ClientClassifications" />
+    </AssociationSet>
+    <AssociationSet Name="FK_ClientFavoriteProduct_Product" Association="IqSoftCorePlatformModel.FK_ClientFavoriteProduct_Product">
+      <End Role="Product" EntitySet="Products" />
+      <End Role="ClientFavoriteProduct" EntitySet="ClientFavoriteProducts" />
+    </AssociationSet>
+    <AssociationSet Name="FK_ClientSession_Product" Association="IqSoftCorePlatformModel.FK_ClientSession_Product">
+      <End Role="Product" EntitySet="Products" />
+      <End Role="ClientSession" EntitySet="ClientSessions" />
+    </AssociationSet>
+    <AssociationSet Name="FK_ComplimentaryCoinRate_Product" Association="IqSoftCorePlatformModel.FK_ComplimentaryCoinRate_Product">
+      <End Role="Product" EntitySet="Products" />
+      <End Role="ComplimentaryPointRate" EntitySet="ComplimentaryPointRates" />
+    </AssociationSet>
+    <AssociationSet Name="FK_Document_Product" Association="IqSoftCorePlatformModel.FK_Document_Product">
+      <End Role="Product" EntitySet="Products" />
+      <End Role="Document" EntitySet="Documents" />
+    </AssociationSet>
+    <AssociationSet Name="FK_Product_GameProvider" Association="IqSoftCorePlatformModel.FK_Product_GameProvider">
+      <End Role="GameProvider" EntitySet="GameProviders" />
+      <End Role="Product" EntitySet="Products" />
+    </AssociationSet>
+    <AssociationSet Name="FK_Product_GameProvider1" Association="IqSoftCorePlatformModel.FK_Product_GameProvider1">
+      <End Role="GameProvider" EntitySet="GameProviders" />
+      <End Role="Product" EntitySet="Products" />
+    </AssociationSet>
+    <AssociationSet Name="FK_JackpotSetting_Product" Association="IqSoftCorePlatformModel.FK_JackpotSetting_Product">
+      <End Role="Product" EntitySet="Products" />
+      <End Role="JackpotSetting" EntitySet="JackpotSettings" />
+    </AssociationSet>
+    <AssociationSet Name="FK_PartnerProduct_Product" Association="IqSoftCorePlatformModel.FK_PartnerProduct_Product">
+      <End Role="Product" EntitySet="Products" />
+      <End Role="PartnerProductSetting" EntitySet="PartnerProductSettings" />
+    </AssociationSet>
+    <AssociationSet Name="FK_Product_Product" Association="IqSoftCorePlatformModel.FK_Product_Product">
+      <End Role="Product" EntitySet="Products" />
+      <End Role="Product1" EntitySet="Products" />
+    </AssociationSet>
+    <AssociationSet Name="FK_Product_ProductCategory" Association="IqSoftCorePlatformModel.FK_Product_ProductCategory">
+      <End Role="ProductCategory" EntitySet="ProductCategories" />
+      <End Role="Product" EntitySet="Products" />
+    </AssociationSet>
+    <AssociationSet Name="FK_Product_Translation" Association="IqSoftCorePlatformModel.FK_Product_Translation">
+      <End Role="Translation" EntitySet="Translations" />
+      <End Role="Product" EntitySet="Products" />
+    </AssociationSet>
+    <AssociationSet Name="FK_ProductCountrySettings_Product" Association="IqSoftCorePlatformModel.FK_ProductCountrySettings_Product">
+      <End Role="Product" EntitySet="Products" />
+      <End Role="ProductCountrySetting" EntitySet="ProductCountrySettings" />
+    </AssociationSet>
+    <AssociationSet Name="FK_ProductLimit_Product" Association="IqSoftCorePlatformModel.FK_ProductLimit_Product">
+      <End Role="Product" EntitySet="Products" />
+      <End Role="ProductLimit" EntitySet="ProductLimits" />
+    </AssociationSet>
+    <AssociationSet Name="FK_TriggerProductSetting_Product" Association="IqSoftCorePlatformModel.FK_TriggerProductSetting_Product">
+      <End Role="Product" EntitySet="Products" />
+      <End Role="TriggerProductSetting" EntitySet="TriggerProductSettings" />
+    </AssociationSet>
+    <EntitySet Name="AgentProfits" EntityType="IqSoftCorePlatformModel.AgentProfit" />
+    <AssociationSet Name="FK_AgentProfit_Client" Association="IqSoftCorePlatformModel.FK_AgentProfit_Client">
+      <End Role="Client" EntitySet="Clients" />
+      <End Role="AgentProfit" EntitySet="AgentProfits" />
+    </AssociationSet>
+    <AssociationSet Name="FK_AgentProfit_Product1" Association="IqSoftCorePlatformModel.FK_AgentProfit_Product1">
+      <End Role="Product" EntitySet="Products" />
+      <End Role="AgentProfit" EntitySet="AgentProfits" />
+    </AssociationSet>
+    <AssociationSet Name="FK_AgentProfit_User" Association="IqSoftCorePlatformModel.FK_AgentProfit_User">
+      <End Role="User" EntitySet="Users" />
+      <End Role="AgentProfit" EntitySet="AgentProfits" />
+    </AssociationSet>
+    <AssociationSet Name="FK_AgentProfit_User1" Association="IqSoftCorePlatformModel.FK_AgentProfit_User1">
+      <End Role="User" EntitySet="Users" />
+      <End Role="AgentProfit" EntitySet="AgentProfits" />
+    </AssociationSet>
+    <EntitySet Name="UserNotifications" EntityType="IqSoftCorePlatformModel.UserNotification" />
+    <AssociationSet Name="FK_UserNotification_Bonus" Association="IqSoftCorePlatformModel.FK_UserNotification_Bonus">
+      <End Role="Bonu" EntitySet="Bonus" />
+      <End Role="UserNotification" EntitySet="UserNotifications" />
+    </AssociationSet>
+    <AssociationSet Name="FK_UserNotification_Client" Association="IqSoftCorePlatformModel.FK_UserNotification_Client">
+      <End Role="Client" EntitySet="Clients" />
+      <End Role="UserNotification" EntitySet="UserNotifications" />
+    </AssociationSet>
+    <AssociationSet Name="FK_UserNotification_PaymentRequest" Association="IqSoftCorePlatformModel.FK_UserNotification_PaymentRequest">
+      <End Role="PaymentRequest" EntitySet="PaymentRequests" />
+      <End Role="UserNotification" EntitySet="UserNotifications" />
+    </AssociationSet>
+    <AssociationSet Name="FK_UserNotification_User" Association="IqSoftCorePlatformModel.FK_UserNotification_User">
+      <End Role="User" EntitySet="Users" />
+      <End Role="UserNotification" EntitySet="UserNotifications" />
+    </AssociationSet>
+    <EntitySet Name="UserConfigurations" EntityType="IqSoftCorePlatformModel.UserConfiguration" />
+    <AssociationSet Name="FK_UserConfiguration_User" Association="IqSoftCorePlatformModel.FK_UserConfiguration_User">
+      <End Role="User" EntitySet="Users" />
+      <End Role="UserConfiguration" EntitySet="UserConfigurations" />
+    </AssociationSet>
+    <AssociationSet Name="FK_UserConfiguration_User1" Association="IqSoftCorePlatformModel.FK_UserConfiguration_User1">
+      <End Role="User" EntitySet="Users" />
+      <End Role="UserConfiguration" EntitySet="UserConfigurations" />
     </AssociationSet>
   </EntityContainer>
   <ComplexType Name="spObjectChangeHistory">
@@ -1775,8 +1781,8 @@
     <Property Name="TurnoverPercent" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
     <Property Name="ClientId" Type="Int32" />
     <NavigationProperty Name="User" Relationship="IqSoftCorePlatformModel.FK_AgentCommission_User" FromRole="AgentCommission" ToRole="User" />
-    <NavigationProperty Name="Product" Relationship="IqSoftCorePlatformModel.FK_AgentCommission_Product" FromRole="AgentCommission" ToRole="Product" />
     <NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_AgentCommission_Client" FromRole="AgentCommission" ToRole="Client" />
+    <NavigationProperty Name="Product" Relationship="IqSoftCorePlatformModel.FK_AgentCommission_Product" FromRole="AgentCommission" ToRole="Product" />
   </EntityType>
   <EntityType Name="BannerSegmentSetting">
     <Key>
@@ -1971,9 +1977,9 @@
     <Property Name="LastUpdateTime" Type="DateTime" Nullable="false" Precision="7" />
     <Property Name="SegmentId" Type="Int32" />
     <NavigationProperty Name="ClientCategory" Relationship="IqSoftCorePlatformModel.FK_ClientClassification_ClientCategory" FromRole="ClientClassification" ToRole="ClientCategory" />
-    <NavigationProperty Name="Product" Relationship="IqSoftCorePlatformModel.FK_ClientClassification_Product" FromRole="ClientClassification" ToRole="Product" />
     <NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_ClientClassification_Client" FromRole="ClientClassification" ToRole="Client" />
     <NavigationProperty Name="Segment" Relationship="IqSoftCorePlatformModel.FK_ClientClassification_Segment" FromRole="ClientClassification" ToRole="Segment" />
+    <NavigationProperty Name="Product" Relationship="IqSoftCorePlatformModel.FK_ClientClassification_Product" FromRole="ClientClassification" ToRole="Product" />
   </EntityType>
   <EntityType Name="ClientClosedPeriod">
     <Key>
@@ -1999,8 +2005,8 @@
     <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
     <Property Name="ClientId" Type="Int32" Nullable="false" />
     <Property Name="ProductId" Type="Int32" Nullable="false" />
-    <NavigationProperty Name="Product" Relationship="IqSoftCorePlatformModel.FK_ClientFavoriteProduct_Product" FromRole="ClientFavoriteProduct" ToRole="Product" />
     <NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_ClientFavoriteProduct_Client" FromRole="ClientFavoriteProduct" ToRole="Client" />
+    <NavigationProperty Name="Product" Relationship="IqSoftCorePlatformModel.FK_ClientFavoriteProduct_Product" FromRole="ClientFavoriteProduct" ToRole="Product" />
   </EntityType>
   <EntityType Name="ClientIdentity">
     <Key>
@@ -2062,9 +2068,9 @@
     <Property Name="Type" Type="Int32" />
     <Property Name="AccountId" Type="Int64" />
     <NavigationProperty Name="Account" Relationship="IqSoftCorePlatformModel.FK_ClientSession_Account" FromRole="ClientSession" ToRole="Account" />
-    <NavigationProperty Name="Product" Relationship="IqSoftCorePlatformModel.FK_ClientSession_Product" FromRole="ClientSession" ToRole="Product" />
     <NavigationProperty Name="Clients" Relationship="IqSoftCorePlatformModel.FK_Client_ClientSession" FromRole="ClientSession" ToRole="Client" />
     <NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_ClientSession_Client" FromRole="ClientSession" ToRole="Client" />
+    <NavigationProperty Name="Product" Relationship="IqSoftCorePlatformModel.FK_ClientSession_Product" FromRole="ClientSession" ToRole="Product" />
   </EntityType>
   <EntityType Name="ComplimentaryPointRate">
     <Key>
@@ -2078,8 +2084,8 @@
     <Property Name="CreationDate" Type="DateTime" Nullable="false" Precision="3" />
     <Property Name="LastUpdateDate" Type="DateTime" Nullable="false" Precision="3" />
     <NavigationProperty Name="Partner" Relationship="IqSoftCorePlatformModel.FK_ComplimentaryCoinRate_Partner" FromRole="ComplimentaryPointRate" ToRole="Partner" />
-    <NavigationProperty Name="Product" Relationship="IqSoftCorePlatformModel.FK_ComplimentaryCoinRate_Product" FromRole="ComplimentaryPointRate" ToRole="Product" />
     <NavigationProperty Name="Currency" Relationship="IqSoftCorePlatformModel.FK_ComplimentaryCoinRate_Currency" FromRole="ComplimentaryPointRate" ToRole="Currency" />
+    <NavigationProperty Name="Product" Relationship="IqSoftCorePlatformModel.FK_ComplimentaryCoinRate_Product" FromRole="ComplimentaryPointRate" ToRole="Product" />
   </EntityType>
   <EntityType Name="CRMSetting">
     <Key>
@@ -2623,8 +2629,8 @@
     <Property Name="TriggerSettingId" Type="Int32" Nullable="false" />
     <Property Name="ProductId" Type="Int32" Nullable="false" />
     <Property Name="Percent" Type="Decimal" Nullable="false" Precision="5" Scale="2" />
-    <NavigationProperty Name="Product" Relationship="IqSoftCorePlatformModel.FK_TriggerProductSetting_Product" FromRole="TriggerProductSetting" ToRole="Product" />
     <NavigationProperty Name="TriggerSetting" Relationship="IqSoftCorePlatformModel.FK_TriggerProductSetting_TriggerSetting" FromRole="TriggerProductSetting" ToRole="TriggerSetting" />
+    <NavigationProperty Name="Product" Relationship="IqSoftCorePlatformModel.FK_TriggerProductSetting_Product" FromRole="TriggerProductSetting" ToRole="Product" />
   </EntityType>
   <EntityType Name="User">
     <Key>
@@ -2673,19 +2679,20 @@
     <NavigationProperty Name="UserRoles" Relationship="IqSoftCorePlatformModel.FK_UserRole_User" FromRole="User" ToRole="UserRole" />
     <NavigationProperty Name="Partner" Relationship="IqSoftCorePlatformModel.FK_User_Partner" FromRole="User" ToRole="Partner" />
     <NavigationProperty Name="UserSettings" Relationship="IqSoftCorePlatformModel.FK_UserSetting_User" FromRole="User" ToRole="UserSetting" />
-    <NavigationProperty Name="AgentProfits" Relationship="IqSoftCorePlatformModel.FK_AgentProfit_User" FromRole="User" ToRole="AgentProfit" />
-    <NavigationProperty Name="AgentProfits1" Relationship="IqSoftCorePlatformModel.FK_AgentProfit_User1" FromRole="User" ToRole="AgentProfit" />
     <NavigationProperty Name="UserSession" Relationship="IqSoftCorePlatformModel.FK_User_UserSession" FromRole="User" ToRole="UserSession" />
     <NavigationProperty Name="UserSessions" Relationship="IqSoftCorePlatformModel.FK_UserSession_User" FromRole="User" ToRole="UserSession" />
     <NavigationProperty Name="UserStates" Relationship="IqSoftCorePlatformModel.FK_UserState_User" FromRole="User" ToRole="UserState" />
     <NavigationProperty Name="ClientSettings" Relationship="IqSoftCorePlatformModel.FK_ClientSetting_User" FromRole="User" ToRole="ClientSetting" />
     <NavigationProperty Name="BetShops" Relationship="IqSoftCorePlatformModel.FK_BetShop_User" FromRole="User" ToRole="BetShop" />
-    <NavigationProperty Name="UserConfigurations" Relationship="IqSoftCorePlatformModel.FK_UserConfiguration_User" FromRole="User" ToRole="UserConfiguration" />
-    <NavigationProperty Name="UserConfigurations1" Relationship="IqSoftCorePlatformModel.FK_UserConfiguration_User1" FromRole="User" ToRole="UserConfiguration" />
     <NavigationProperty Name="PaymentRequests" Relationship="IqSoftCorePlatformModel.FK_PaymentRequest_User" FromRole="User" ToRole="PaymentRequest" />
     <NavigationProperty Name="Announcements" Relationship="IqSoftCorePlatformModel.FK_Announcement_User" FromRole="User" ToRole="Announcement" />
     <NavigationProperty Name="Clients" Relationship="IqSoftCorePlatformModel.FK_Client_User" FromRole="User" ToRole="Client" />
     <NavigationProperty Name="Currency" Relationship="IqSoftCorePlatformModel.FK_User_Currency" FromRole="User" ToRole="Currency" />
+    <NavigationProperty Name="AgentProfits" Relationship="IqSoftCorePlatformModel.FK_AgentProfit_User" FromRole="User" ToRole="AgentProfit" />
+    <NavigationProperty Name="AgentProfits1" Relationship="IqSoftCorePlatformModel.FK_AgentProfit_User1" FromRole="User" ToRole="AgentProfit" />
+    <NavigationProperty Name="UserNotifications" Relationship="IqSoftCorePlatformModel.FK_UserNotification_User" FromRole="User" ToRole="UserNotification" />
+    <NavigationProperty Name="UserConfigurations" Relationship="IqSoftCorePlatformModel.FK_UserConfiguration_User" FromRole="User" ToRole="UserConfiguration" />
+    <NavigationProperty Name="UserConfigurations1" Relationship="IqSoftCorePlatformModel.FK_UserConfiguration_User1" FromRole="User" ToRole="UserConfiguration" />
   </EntityType>
   <EntityType Name="UserLog">
     <Key>
@@ -3484,10 +3491,6 @@
     <Property Type="Int64" Name="TranslationId" Nullable="false" />
     <Property Type="String" Name="Name" Nullable="false" />
   </ComplexType>
-  <ComplexType Name="fnProductGroup">
-    <Property Type="Int32" Name="Id" Nullable="true" />
-    <Property Type="String" Name="NickName" Nullable="true" MaxLength="50" />
-  </ComplexType>
   <ComplexType Name="fnRealTimeInfo">
     <Property Type="Int32" Name="PartnerId" Nullable="true" />
     <Property Type="Int32" Name="LoginCount" Nullable="true" />
@@ -3763,10 +3766,10 @@
     <NavigationProperty Name="OperationType" Relationship="IqSoftCorePlatformModel.FK_Document_OperationType" FromRole="Document" ToRole="OperationType" />
     <NavigationProperty Name="Transactions" Relationship="IqSoftCorePlatformModel.FK_Transaction_Document" FromRole="Document" ToRole="Transaction" />
     <NavigationProperty Name="GameProvider" Relationship="IqSoftCorePlatformModel.FK_Document_GameProvider" FromRole="Document" ToRole="GameProvider" />
-    <NavigationProperty Name="Product" Relationship="IqSoftCorePlatformModel.FK_Document_Product" FromRole="Document" ToRole="Product" />
     <NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_Document_Client" FromRole="Document" ToRole="Client" />
     <NavigationProperty Name="PartnerPaymentSetting" Relationship="IqSoftCorePlatformModel.FK_Document_PartnerPaymentSetting" FromRole="Document" ToRole="PartnerPaymentSetting" />
     <NavigationProperty Name="Currency" Relationship="IqSoftCorePlatformModel.FK_Document_Currency" FromRole="Document" ToRole="Currency" />
+    <NavigationProperty Name="Product" Relationship="IqSoftCorePlatformModel.FK_Document_Product" FromRole="Document" ToRole="Product" />
   </EntityType>
   <Association Name="FK_Document_CashDesk">
     <End Type="IqSoftCorePlatformModel.CashDesk" Role="CashDesk" Multiplicity="0..1" />
@@ -3876,12 +3879,12 @@
     <NavigationProperty Name="News" Relationship="IqSoftCorePlatformModel.FK_News_Partner" FromRole="Partner" ToRole="News" />
     <NavigationProperty Name="Clients" Relationship="IqSoftCorePlatformModel.FK_Client_Partner" FromRole="Partner" ToRole="Client" />
     <NavigationProperty Name="ClientInfoes" Relationship="IqSoftCorePlatformModel.FK_ClientInfo_Partner" FromRole="Partner" ToRole="ClientInfo" />
-    <NavigationProperty Name="TriggerSettings" Relationship="IqSoftCorePlatformModel.FK_TriggerSetting_Partner" FromRole="Partner" ToRole="TriggerSetting" />
     <Property Name="VipLevel" Type="Int32" Nullable="false" />
     <NavigationProperty Name="Popups" Relationship="IqSoftCorePlatformModel.FK_Popup_Partner" FromRole="Partner" ToRole="Popup" />
     <NavigationProperty Name="Currency" Relationship="IqSoftCorePlatformModel.FK_Partner_Currency" FromRole="Partner" ToRole="Currency" />
     <NavigationProperty Name="Promotions" Relationship="IqSoftCorePlatformModel.FK_Promotion_Partner" FromRole="Partner" ToRole="Promotion" />
     <NavigationProperty Name="Segments" Relationship="IqSoftCorePlatformModel.FK_Segment_Partner" FromRole="Partner" ToRole="Segment" />
+    <NavigationProperty Name="TriggerSettings" Relationship="IqSoftCorePlatformModel.FK_TriggerSetting_Partner" FromRole="Partner" ToRole="TriggerSetting" />
   </EntityType>
   <Association Name="FK_Category_Partner">
     <End Type="IqSoftCorePlatformModel.Partner" Role="Partner" Multiplicity="0..1" />
@@ -4130,65 +4133,10 @@
       </Dependent>
     </ReferentialConstraint>
   </Association>
-  <ComplexType Name="fnClientProductCommission">
-    <Property Type="Decimal" Name="Percent" Nullable="true" Precision="5" Scale="2" />
-    <Property Type="String" Name="TurnoverPercent" Nullable="true" />
-    <Property Type="Int32" Name="ClientId" Nullable="true" />
-    <Property Type="Int32" Name="AgentId" Nullable="true" />
-  </ComplexType>
   <ComplexType Name="fnProductCommission">
     <Property Type="Decimal" Name="Percent" Nullable="true" Precision="5" Scale="2" />
     <Property Type="String" Name="TurnoverPercent" Nullable="true" />
   </ComplexType>
-  <EntityType Name="AgentProfit">
-    <Key>
-      <PropertyRef Name="Id" />
-    </Key>
-    <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-    <Property Name="AgentId" Type="Int32" />
-    <Property Name="ClientId" Type="Int32" />
-    <Property Name="FromAgentId" Type="Int32" />
-    <Property Name="TotalBetAmount" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
-    <Property Name="TotalWinAmount" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
-    <Property Name="GGR" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
-    <Property Name="Profit" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
-    <Property Name="Type" Type="Int32" Nullable="false" />
-    <Property Name="ProductGroupId" Type="Int32" Nullable="false" />
-    <Property Name="CreationTime" Type="DateTime" Nullable="false" Precision="3" />
-    <Property Name="CalculationStartingTime" Type="DateTime" Nullable="false" Precision="3" />
-    <Property Name="CreationDate" Type="Int64" Nullable="false" />
-    <Property Name="CalculationStartingDate" Type="Int64" Nullable="false" />
-    <Property Name="ProductId" Type="Int32" Nullable="false" />
-    <NavigationProperty Name="User" Relationship="IqSoftCorePlatformModel.FK_AgentProfit_User" FromRole="AgentProfit" ToRole="User" />
-    <NavigationProperty Name="User1" Relationship="IqSoftCorePlatformModel.FK_AgentProfit_User1" FromRole="AgentProfit" ToRole="User" />
-    <NavigationProperty Name="Product" Relationship="IqSoftCorePlatformModel.FK_AgentProfit_Product" FromRole="AgentProfit" ToRole="Product" />
-    <NavigationProperty Name="Product1" Relationship="IqSoftCorePlatformModel.FK_AgentProfit_Product1" FromRole="AgentProfit" ToRole="Product" />
-    <NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_AgentProfit_Client" FromRole="AgentProfit" ToRole="Client" />
-  </EntityType>
-  <Association Name="FK_AgentProfit_User">
-    <End Type="IqSoftCorePlatformModel.User" Role="User" Multiplicity="0..1" />
-    <End Type="IqSoftCorePlatformModel.AgentProfit" Role="AgentProfit" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="User">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="AgentProfit">
-        <PropertyRef Name="AgentId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-  <Association Name="FK_AgentProfit_User1">
-    <End Type="IqSoftCorePlatformModel.User" Role="User" Multiplicity="0..1" />
-    <End Type="IqSoftCorePlatformModel.AgentProfit" Role="AgentProfit" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="User">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="AgentProfit">
-        <PropertyRef Name="FromAgentId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
   <EntityType Name="NotificationService">
     <Key>
       <PropertyRef Name="Id" />
@@ -4327,8 +4275,8 @@
     <Property Name="RequireVerification" Type="Boolean" />
     <Property Name="UpToAmount" Type="Decimal" Precision="18" Scale="4" />
     <Property Name="DepositCount" Type="Int32" />
-    <NavigationProperty Name="Product" Relationship="IqSoftCorePlatformModel.FK_AffiliateCommission_Product" FromRole="AffiliateCommission" ToRole="Product" />
     <NavigationProperty Name="Currency" Relationship="IqSoftCorePlatformModel.FK_AffiliateCommission_Currency" FromRole="AffiliateCommission" ToRole="Currency" />
+    <NavigationProperty Name="Product" Relationship="IqSoftCorePlatformModel.FK_AffiliateCommission_Product" FromRole="AffiliateCommission" ToRole="Product" />
   </EntityType>
   <Association Name="FK_AffiliateCommission_Affiliate">
     <End Type="IqSoftCorePlatformModel.Affiliate" Role="Affiliate" Multiplicity="1" />
@@ -4910,6 +4858,8 @@
     <NavigationProperty Name="ClientBonus" Relationship="IqSoftCorePlatformModel.FK_ClientBonus_Bonus" FromRole="Bonu" ToRole="ClientBonu" />
     <NavigationProperty Name="ClientBonus1" Relationship="IqSoftCorePlatformModel.FK_ClientBonus_Bonus1" FromRole="Bonu" ToRole="ClientBonu" />
     <NavigationProperty Name="BonusProducts" Relationship="IqSoftCorePlatformModel.FK_BonusProduct_Bonus" FromRole="Bonu" ToRole="BonusProduct" />
+    <NavigationProperty Name="UserNotifications" Relationship="IqSoftCorePlatformModel.FK_UserNotification_Bonus" FromRole="Bonu" ToRole="UserNotification" />
+    <Property Name="Color" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
   </EntityType>
   <Association Name="FK_Bonus_AccountType">
     <End Type="IqSoftCorePlatformModel.AccountType" Role="AccountType" Multiplicity="0..1" />
@@ -5602,9 +5552,9 @@
     <Property Name="MaxAmount" Type="Decimal" Precision="18" Scale="4" />
     <Property Name="UpToAmount" Type="Decimal" Precision="18" Scale="4" />
     <NavigationProperty Name="Bonu" Relationship="IqSoftCorePlatformModel.FK_AmountCurrencySetting_Bonus" FromRole="AmountCurrencySetting" ToRole="Bonu" />
-    <NavigationProperty Name="TriggerSetting" Relationship="IqSoftCorePlatformModel.FK_AmountCurrencySetting_TriggerSetting" FromRole="AmountCurrencySetting" ToRole="TriggerSetting" />
     <Property Name="Amount" Type="Decimal" Precision="18" Scale="4" />
     <NavigationProperty Name="Currency" Relationship="IqSoftCorePlatformModel.FK_AmountCurrencySetting_Currency" FromRole="AmountCurrencySetting" ToRole="Currency" />
+    <NavigationProperty Name="TriggerSetting" Relationship="IqSoftCorePlatformModel.FK_AmountCurrencySetting_TriggerSetting" FromRole="AmountCurrencySetting" ToRole="TriggerSetting" />
   </EntityType>
   <Association Name="FK_AmountCurrencySetting_Bonus">
     <End Type="IqSoftCorePlatformModel.Bonu" Role="Bonu" Multiplicity="0..1" />
@@ -5658,45 +5608,6 @@
     <Property Type="Decimal" Name="Balance" Nullable="false" Precision="38" Scale="4" />
     <Property Type="Int32" Name="AccountTypeId" Nullable="true" />
   </ComplexType>
-  <EntityType Name="UserConfiguration">
-    <Key>
-      <PropertyRef Name="Id" />
-    </Key>
-    <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-    <Property Name="UserId" Type="Int32" Nullable="false" />
-    <Property Name="CreatedBy" Type="Int32" />
-    <Property Name="Name" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="false" />
-    <Property Name="NumericValue" Type="Decimal" Precision="18" Scale="4" />
-    <Property Name="StringValue" Type="String" MaxLength="250" FixedLength="false" Unicode="true" />
-    <Property Name="CreationTime" Type="DateTime" Nullable="false" Precision="3" />
-    <Property Name="LastUpdateTime" Type="DateTime" Nullable="false" Precision="3" />
-    <NavigationProperty Name="User" Relationship="IqSoftCorePlatformModel.FK_UserConfiguration_User" FromRole="UserConfiguration" ToRole="User" />
-    <NavigationProperty Name="User1" Relationship="IqSoftCorePlatformModel.FK_UserConfiguration_User1" FromRole="UserConfiguration" ToRole="User" />
-  </EntityType>
-  <Association Name="FK_UserConfiguration_User">
-    <End Type="IqSoftCorePlatformModel.User" Role="User" Multiplicity="1" />
-    <End Type="IqSoftCorePlatformModel.UserConfiguration" Role="UserConfiguration" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="User">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="UserConfiguration">
-        <PropertyRef Name="UserId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-  <Association Name="FK_UserConfiguration_User1">
-    <End Type="IqSoftCorePlatformModel.User" Role="User" Multiplicity="0..1" />
-    <End Type="IqSoftCorePlatformModel.UserConfiguration" Role="UserConfiguration" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="User">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="UserConfiguration">
-        <PropertyRef Name="CreatedBy" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
   <EntityType Name="PartnerLanguageSetting">
     <Key>
       <PropertyRef Name="Id" />
@@ -5916,13 +5827,13 @@
     <NavigationProperty Name="News1" Relationship="IqSoftCorePlatformModel.FK_News_DescriptionTranslation" FromRole="Translation" ToRole="News" />
     <NavigationProperty Name="News2" Relationship="IqSoftCorePlatformModel.FK_News_TitleTranslation" FromRole="Translation" ToRole="News" />
     <NavigationProperty Name="PaymentSystems" Relationship="IqSoftCorePlatformModel.FK_PaymentSystem_Translation" FromRole="Translation" ToRole="PaymentSystem" />
-    <NavigationProperty Name="Products" Relationship="IqSoftCorePlatformModel.FK_Product_Translation" FromRole="Translation" ToRole="Product" />
-    <NavigationProperty Name="TriggerSettings" Relationship="IqSoftCorePlatformModel.FK_TriggerSetting_Translation" FromRole="Translation" ToRole="TriggerSetting" />
     <NavigationProperty Name="WebSiteSubMenuItems" Relationship="IqSoftCorePlatformModel.FK_WebSiteSubMenuItem_Translation" FromRole="Translation" ToRole="WebSiteSubMenuItem" />
     <NavigationProperty Name="Popups" Relationship="IqSoftCorePlatformModel.FK_Popup_Translation" FromRole="Translation" ToRole="Popup" />
     <NavigationProperty Name="Promotions" Relationship="IqSoftCorePlatformModel.FK_Promotion_ContentTranslation" FromRole="Translation" ToRole="Promotion" />
     <NavigationProperty Name="Promotions1" Relationship="IqSoftCorePlatformModel.FK_Promotion_DescriptionTranslation" FromRole="Translation" ToRole="Promotion" />
     <NavigationProperty Name="Promotions2" Relationship="IqSoftCorePlatformModel.FK_Promotion_TitleTranslation" FromRole="Translation" ToRole="Promotion" />
+    <NavigationProperty Name="TriggerSettings" Relationship="IqSoftCorePlatformModel.FK_TriggerSetting_Translation" FromRole="Translation" ToRole="TriggerSetting" />
+    <NavigationProperty Name="Products" Relationship="IqSoftCorePlatformModel.FK_Product_Translation" FromRole="Translation" ToRole="Product" />
   </EntityType>
   <EntityType Name="TranslationEntry">
     <Key>
@@ -6230,6 +6141,7 @@
     <NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_PaymentRequest_Client" FromRole="PaymentRequest" ToRole="Client" />
     <NavigationProperty Name="PartnerPaymentSetting" Relationship="IqSoftCorePlatformModel.FK_PaymentRequest_PartnerPaymentSetting" FromRole="PaymentRequest" ToRole="PartnerPaymentSetting" />
     <NavigationProperty Name="Currency" Relationship="IqSoftCorePlatformModel.FK_PaymentRequest_Currency" FromRole="PaymentRequest" ToRole="Currency" />
+    <NavigationProperty Name="UserNotifications" Relationship="IqSoftCorePlatformModel.FK_UserNotification_PaymentRequest" FromRole="PaymentRequest" ToRole="UserNotification" />
   </EntityType>
   <Association Name="FK_PaymentRequest_Account">
     <End Type="IqSoftCorePlatformModel.Account" Role="Account" Multiplicity="0..1" />
@@ -6913,275 +6825,6 @@
     <Property Type="String" Name="Description" Nullable="false" />
     <Property Type="String" Name="Content" Nullable="true" />
   </ComplexType>
-  <EntityType Name="Product">
-    <Key>
-      <PropertyRef Name="Id" />
-    </Key>
-    <Property Name="Id" Type="Int32" Nullable="false" />
-    <Property Name="TranslationId" Type="Int64" Nullable="false" />
-    <Property Name="GameProviderId" Type="Int32" />
-    <Property Name="PaymentSystemId" Type="Int32" />
-    <Property Name="Level" Type="Int32" Nullable="false" />
-    <Property Name="NickName" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
-    <Property Name="ParentId" Type="Int32" />
-    <Property Name="ExternalId" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
-    <Property Name="State" Type="Int32" Nullable="false" />
-    <Property Name="IsForDesktop" Type="Boolean" Nullable="false" />
-    <Property Name="IsForMobile" Type="Boolean" Nullable="false" />
-    <Property Name="WebImageUrl" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
-    <Property Name="MobileImageUrl" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
-    <Property Name="SubproviderId" Type="Int32" />
-    <Property Name="HasDemo" Type="Boolean" Nullable="false" />
-    <Property Name="CategoryId" Type="Int32" />
-    <Property Name="Jackpot" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
-    <Property Name="FreeSpinSupport" Type="Boolean" />
-    <Property Name="BackgroundImageUrl" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
-    <Property Name="RTP" Type="Decimal" Precision="5" Scale="2" />
-    <Property Name="CreationTime" Type="DateTime" Nullable="false" Precision="3" />
-    <Property Name="LastUpdateTime" Type="DateTime" Nullable="false" Precision="3" />
-    <Property Name="Lines" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
-    <Property Name="BetValues" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
-    <Property Name="Path" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
-    <Property Name="Volatility" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
-    <NavigationProperty Name="AffiliateCommissions" Relationship="IqSoftCorePlatformModel.FK_AffiliateCommission_Product" FromRole="Product" ToRole="AffiliateCommission" />
-    <NavigationProperty Name="AgentCommissions" Relationship="IqSoftCorePlatformModel.FK_AgentCommission_Product" FromRole="Product" ToRole="AgentCommission" />
-    <NavigationProperty Name="AgentProfits" Relationship="IqSoftCorePlatformModel.FK_AgentProfit_Product" FromRole="Product" ToRole="AgentProfit" />
-    <NavigationProperty Name="AgentProfits1" Relationship="IqSoftCorePlatformModel.FK_AgentProfit_Product1" FromRole="Product" ToRole="AgentProfit" />
-    <NavigationProperty Name="BetShopTickets" Relationship="IqSoftCorePlatformModel.FK_BetShopTicket_Product" FromRole="Product" ToRole="BetShopTicket" />
-    <NavigationProperty Name="ClientClassifications" Relationship="IqSoftCorePlatformModel.FK_ClientClassification_Product" FromRole="Product" ToRole="ClientClassification" />
-    <NavigationProperty Name="ClientFavoriteProducts" Relationship="IqSoftCorePlatformModel.FK_ClientFavoriteProduct_Product" FromRole="Product" ToRole="ClientFavoriteProduct" />
-    <NavigationProperty Name="ClientSessions" Relationship="IqSoftCorePlatformModel.FK_ClientSession_Product" FromRole="Product" ToRole="ClientSession" />
-    <NavigationProperty Name="ComplimentaryPointRates" Relationship="IqSoftCorePlatformModel.FK_ComplimentaryCoinRate_Product" FromRole="Product" ToRole="ComplimentaryPointRate" />
-    <NavigationProperty Name="Documents" Relationship="IqSoftCorePlatformModel.FK_Document_Product" FromRole="Product" ToRole="Document" />
-    <NavigationProperty Name="GameProvider" Relationship="IqSoftCorePlatformModel.FK_Product_GameProvider" FromRole="Product" ToRole="GameProvider" />
-    <NavigationProperty Name="GameProvider1" Relationship="IqSoftCorePlatformModel.FK_Product_GameProvider1" FromRole="Product" ToRole="GameProvider" />
-    <NavigationProperty Name="PartnerProductSettings" Relationship="IqSoftCorePlatformModel.FK_PartnerProduct_Product" FromRole="Product" ToRole="PartnerProductSetting" />
-    <NavigationProperty Name="Product1" Relationship="IqSoftCorePlatformModel.FK_Product_Product" FromRole="Product" ToRole="Product1" />
-    <NavigationProperty Name="Product2" Relationship="IqSoftCorePlatformModel.FK_Product_Product" FromRole="Product1" ToRole="Product" />
-    <NavigationProperty Name="Translation" Relationship="IqSoftCorePlatformModel.FK_Product_Translation" FromRole="Product" ToRole="Translation" />
-    <NavigationProperty Name="ProductCountrySettings" Relationship="IqSoftCorePlatformModel.FK_ProductCountrySettings_Product" FromRole="Product" ToRole="ProductCountrySetting" />
-    <NavigationProperty Name="ProductLimits" Relationship="IqSoftCorePlatformModel.FK_ProductLimit_Product" FromRole="Product" ToRole="ProductLimit" />
-    <NavigationProperty Name="TriggerProductSettings" Relationship="IqSoftCorePlatformModel.FK_TriggerProductSetting_Product" FromRole="Product" ToRole="TriggerProductSetting" />
-    <NavigationProperty Name="ProductCategory" Relationship="IqSoftCorePlatformModel.FK_Product_ProductCategory" FromRole="Product" ToRole="ProductCategory" />
-    <NavigationProperty Name="BonusProducts" Relationship="IqSoftCorePlatformModel.FK_BonusProduct_Product" FromRole="Product" ToRole="BonusProduct" />
-    <NavigationProperty Name="JackpotSettings" Relationship="IqSoftCorePlatformModel.FK_JackpotSetting_Product" FromRole="Product" ToRole="JackpotSetting" />
-  </EntityType>
-  <Association Name="FK_AffiliateCommission_Product">
-    <End Type="IqSoftCorePlatformModel.Product" Role="Product" Multiplicity="0..1" />
-    <End Type="IqSoftCorePlatformModel.AffiliateCommission" Role="AffiliateCommission" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="Product">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="AffiliateCommission">
-        <PropertyRef Name="ProductId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-  <Association Name="FK_AgentCommission_Product">
-    <End Type="IqSoftCorePlatformModel.Product" Role="Product" Multiplicity="1" />
-    <End Type="IqSoftCorePlatformModel.AgentCommission" Role="AgentCommission" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="Product">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="AgentCommission">
-        <PropertyRef Name="ProductId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-  <Association Name="FK_AgentProfit_Product">
-    <End Type="IqSoftCorePlatformModel.Product" Role="Product" Multiplicity="1" />
-    <End Type="IqSoftCorePlatformModel.AgentProfit" Role="AgentProfit" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="Product">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="AgentProfit">
-        <PropertyRef Name="ProductGroupId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-  <Association Name="FK_AgentProfit_Product1">
-    <End Type="IqSoftCorePlatformModel.Product" Role="Product" Multiplicity="1" />
-    <End Type="IqSoftCorePlatformModel.AgentProfit" Role="AgentProfit" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="Product">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="AgentProfit">
-        <PropertyRef Name="ProductId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-  <Association Name="FK_BetShopTicket_Product">
-    <End Type="IqSoftCorePlatformModel.Product" Role="Product" Multiplicity="1" />
-    <End Type="IqSoftCorePlatformModel.BetShopTicket" Role="BetShopTicket" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="Product">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="BetShopTicket">
-        <PropertyRef Name="GameId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-  <Association Name="FK_ClientClassification_Product">
-    <End Type="IqSoftCorePlatformModel.Product" Role="Product" Multiplicity="1" />
-    <End Type="IqSoftCorePlatformModel.ClientClassification" Role="ClientClassification" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="Product">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="ClientClassification">
-        <PropertyRef Name="ProductId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-  <Association Name="FK_ClientFavoriteProduct_Product">
-    <End Type="IqSoftCorePlatformModel.Product" Role="Product" Multiplicity="1" />
-    <End Type="IqSoftCorePlatformModel.ClientFavoriteProduct" Role="ClientFavoriteProduct" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="Product">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="ClientFavoriteProduct">
-        <PropertyRef Name="ProductId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-  <Association Name="FK_ClientSession_Product">
-    <End Type="IqSoftCorePlatformModel.Product" Role="Product" Multiplicity="1" />
-    <End Type="IqSoftCorePlatformModel.ClientSession" Role="ClientSession" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="Product">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="ClientSession">
-        <PropertyRef Name="ProductId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-  <Association Name="FK_ComplimentaryCoinRate_Product">
-    <End Type="IqSoftCorePlatformModel.Product" Role="Product" Multiplicity="1" />
-    <End Type="IqSoftCorePlatformModel.ComplimentaryPointRate" Role="ComplimentaryPointRate" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="Product">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="ComplimentaryPointRate">
-        <PropertyRef Name="ProductId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-  <Association Name="FK_Document_Product">
-    <End Type="IqSoftCorePlatformModel.Product" Role="Product" Multiplicity="0..1" />
-    <End Type="IqSoftCorePlatformModel.Document" Role="Document" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="Product">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="Document">
-        <PropertyRef Name="ProductId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-  <Association Name="FK_Product_GameProvider">
-    <End Type="IqSoftCorePlatformModel.GameProvider" Role="GameProvider" Multiplicity="0..1" />
-    <End Type="IqSoftCorePlatformModel.Product" Role="Product" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="GameProvider">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="Product">
-        <PropertyRef Name="GameProviderId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-  <Association Name="FK_Product_GameProvider1">
-    <End Type="IqSoftCorePlatformModel.GameProvider" Role="GameProvider" Multiplicity="0..1" />
-    <End Type="IqSoftCorePlatformModel.Product" Role="Product" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="GameProvider">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="Product">
-        <PropertyRef Name="SubproviderId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-  <Association Name="FK_PartnerProduct_Product">
-    <End Type="IqSoftCorePlatformModel.Product" Role="Product" Multiplicity="1" />
-    <End Type="IqSoftCorePlatformModel.PartnerProductSetting" Role="PartnerProductSetting" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="Product">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="PartnerProductSetting">
-        <PropertyRef Name="ProductId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-  <Association Name="FK_Product_Product">
-    <End Type="IqSoftCorePlatformModel.Product" Role="Product" Multiplicity="0..1" />
-    <End Type="IqSoftCorePlatformModel.Product" Role="Product1" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="Product">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="Product1">
-        <PropertyRef Name="ParentId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-  <Association Name="FK_Product_Translation">
-    <End Type="IqSoftCorePlatformModel.Translation" Role="Translation" Multiplicity="1" />
-    <End Type="IqSoftCorePlatformModel.Product" Role="Product" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="Translation">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="Product">
-        <PropertyRef Name="TranslationId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-  <Association Name="FK_ProductCountrySettings_Product">
-    <End Type="IqSoftCorePlatformModel.Product" Role="Product" Multiplicity="1" />
-    <End Type="IqSoftCorePlatformModel.ProductCountrySetting" Role="ProductCountrySetting" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="Product">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="ProductCountrySetting">
-        <PropertyRef Name="ProductId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-  <Association Name="FK_ProductLimit_Product">
-    <End Type="IqSoftCorePlatformModel.Product" Role="Product" Multiplicity="0..1" />
-    <End Type="IqSoftCorePlatformModel.ProductLimit" Role="ProductLimit" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="Product">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="ProductLimit">
-        <PropertyRef Name="ProductId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-  <Association Name="FK_TriggerProductSetting_Product">
-    <End Type="IqSoftCorePlatformModel.Product" Role="Product" Multiplicity="1" />
-    <End Type="IqSoftCorePlatformModel.TriggerProductSetting" Role="TriggerProductSetting" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="Product">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="TriggerProductSetting">
-        <PropertyRef Name="ProductId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
   <EntityType Name="ClientMessageState">
     <Key>
       <PropertyRef Name="Id" />
@@ -7257,7 +6900,6 @@
     <Property Name="CharacterId" Type="Int32" />
     <NavigationProperty Name="AffiliateReferral" Relationship="IqSoftCorePlatformModel.FK_Client_AffiliateReferral" FromRole="Client" ToRole="AffiliateReferral" />
     <NavigationProperty Name="AgentCommissions" Relationship="IqSoftCorePlatformModel.FK_AgentCommission_Client" FromRole="Client" ToRole="AgentCommission" />
-    <NavigationProperty Name="AgentProfits" Relationship="IqSoftCorePlatformModel.FK_AgentProfit_Client" FromRole="Client" ToRole="AgentProfit" />
     <NavigationProperty Name="Character" Relationship="IqSoftCorePlatformModel.FK_Client_Character" FromRole="Client" ToRole="Character" />
     <NavigationProperty Name="ClientSession" Relationship="IqSoftCorePlatformModel.FK_Client_ClientSession" FromRole="Client" ToRole="ClientSession" />
     <NavigationProperty Name="JobArea1" Relationship="IqSoftCorePlatformModel.FK_Client_JobArea" FromRole="Client" ToRole="JobArea" />
@@ -7288,6 +6930,8 @@
     <NavigationProperty Name="Affiliates" Relationship="IqSoftCorePlatformModel.FK_Affiliate_Client" FromRole="Client" ToRole="Affiliate" />
     <NavigationProperty Name="ClientBonus" Relationship="IqSoftCorePlatformModel.FK_ClientBonus_Client" FromRole="Client" ToRole="ClientBonu" />
     <NavigationProperty Name="Currency" Relationship="IqSoftCorePlatformModel.FK_Client_Currency" FromRole="Client" ToRole="Currency" />
+    <NavigationProperty Name="AgentProfits" Relationship="IqSoftCorePlatformModel.FK_AgentProfit_Client" FromRole="Client" ToRole="AgentProfit" />
+    <NavigationProperty Name="UserNotifications" Relationship="IqSoftCorePlatformModel.FK_UserNotification_Client" FromRole="Client" ToRole="UserNotification" />
   </EntityType>
   <Association Name="FK_Client_AffiliateReferral">
     <End Type="IqSoftCorePlatformModel.AffiliateReferral" Role="AffiliateReferral" Multiplicity="0..1" />
@@ -7309,18 +6953,6 @@
         <PropertyRef Name="Id" />
       </Principal>
       <Dependent Role="AgentCommission">
-        <PropertyRef Name="ClientId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-  <Association Name="FK_AgentProfit_Client">
-    <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="0..1" />
-    <End Type="IqSoftCorePlatformModel.AgentProfit" Role="AgentProfit" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="Client">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="AgentProfit">
         <PropertyRef Name="ClientId" />
       </Dependent>
     </ReferentialConstraint>
@@ -7835,125 +7467,6 @@
       </Dependent>
     </ReferentialConstraint>
   </Association>
-  <EntityType Name="TriggerSetting">
-    <Key>
-      <PropertyRef Name="Id" />
-    </Key>
-    <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-    <Property Name="Name" Type="String" Nullable="false" MaxLength="255" FixedLength="false" Unicode="false" />
-    <Property Name="Description" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
-    <Property Name="TranslationId" Type="Int64" Nullable="false" />
-    <Property Name="Type" Type="Int32" Nullable="false" />
-    <Property Name="StartTime" Type="DateTime" Nullable="false" Precision="3" />
-    <Property Name="FinishTime" Type="DateTime" Nullable="false" Precision="3" />
-    <Property Name="Percent" Type="Int32" Nullable="false" />
-    <Property Name="BonusSettingCodes" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
-    <Property Name="PartnerId" Type="Int32" Nullable="false" />
-    <Property Name="CreationTime" Type="DateTime" Nullable="false" Precision="3" />
-    <Property Name="LastUpdateTime" Type="DateTime" Nullable="false" Precision="3" />
-    <Property Name="MinAmount" Type="Decimal" Precision="18" Scale="4" />
-    <Property Name="MaxAmount" Type="Decimal" Precision="18" Scale="4" />
-    <Property Name="Condition" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
-    <Property Name="MinBetCount" Type="Int32" />
-    <Property Name="SegmentId" Type="Int32" />
-    <Property Name="DayOfWeek" Type="Int32" />
-    <Property Name="UpToAmount" Type="Decimal" Precision="18" Scale="4" />
-    <Property Name="Status" Type="Int32" />
-    <Property Name="ConsiderBonusBets" Type="Boolean" />
-    <NavigationProperty Name="AmountCurrencySettings" Relationship="IqSoftCorePlatformModel.FK_AmountCurrencySetting_TriggerSetting" FromRole="TriggerSetting" ToRole="AmountCurrencySetting" />
-    <NavigationProperty Name="BonusPaymentSystemSettings" Relationship="IqSoftCorePlatformModel.FK_BonusPaymentSystemSetting_TriggerSetting" FromRole="TriggerSetting" ToRole="BonusPaymentSystemSetting" />
-    <NavigationProperty Name="ClientBonusTriggers" Relationship="IqSoftCorePlatformModel.FK_ClientBonusTrigger_TriggerSetting" FromRole="TriggerSetting" ToRole="ClientBonusTrigger" />
-    <NavigationProperty Name="Partner" Relationship="IqSoftCorePlatformModel.FK_TriggerSetting_Partner" FromRole="TriggerSetting" ToRole="Partner" />
-    <NavigationProperty Name="Translation" Relationship="IqSoftCorePlatformModel.FK_TriggerSetting_Translation" FromRole="TriggerSetting" ToRole="Translation" />
-    <NavigationProperty Name="TriggerGroupSettings" Relationship="IqSoftCorePlatformModel.FK_TriggerGroupSetting_TriggerSetting" FromRole="TriggerSetting" ToRole="TriggerGroupSetting" />
-    <NavigationProperty Name="TriggerProductSettings" Relationship="IqSoftCorePlatformModel.FK_TriggerProductSetting_TriggerSetting" FromRole="TriggerSetting" ToRole="TriggerProductSetting" />
-    <Property Name="Amount" Type="Decimal" Precision="18" Scale="4" />
-    <NavigationProperty Name="Segment" Relationship="IqSoftCorePlatformModel.FK_TriggerSetting_Segment" FromRole="TriggerSetting" ToRole="Segment" />
-  </EntityType>
-  <Association Name="FK_AmountCurrencySetting_TriggerSetting">
-    <End Type="IqSoftCorePlatformModel.TriggerSetting" Role="TriggerSetting" Multiplicity="0..1" />
-    <End Type="IqSoftCorePlatformModel.AmountCurrencySetting" Role="AmountCurrencySetting" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="TriggerSetting">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="AmountCurrencySetting">
-        <PropertyRef Name="TriggerId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-  <Association Name="FK_BonusPaymentSystemSetting_TriggerSetting">
-    <End Type="IqSoftCorePlatformModel.TriggerSetting" Role="TriggerSetting" Multiplicity="0..1" />
-    <End Type="IqSoftCorePlatformModel.BonusPaymentSystemSetting" Role="BonusPaymentSystemSetting" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="TriggerSetting">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="BonusPaymentSystemSetting">
-        <PropertyRef Name="TriggerId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-  <Association Name="FK_ClientBonusTrigger_TriggerSetting">
-    <End Type="IqSoftCorePlatformModel.TriggerSetting" Role="TriggerSetting" Multiplicity="1" />
-    <End Type="IqSoftCorePlatformModel.ClientBonusTrigger" Role="ClientBonusTrigger" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="TriggerSetting">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="ClientBonusTrigger">
-        <PropertyRef Name="TriggerId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-  <Association Name="FK_TriggerSetting_Partner">
-    <End Type="IqSoftCorePlatformModel.Partner" Role="Partner" Multiplicity="1" />
-    <End Type="IqSoftCorePlatformModel.TriggerSetting" Role="TriggerSetting" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="Partner">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="TriggerSetting">
-        <PropertyRef Name="PartnerId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-  <Association Name="FK_TriggerSetting_Translation">
-    <End Type="IqSoftCorePlatformModel.Translation" Role="Translation" Multiplicity="1" />
-    <End Type="IqSoftCorePlatformModel.TriggerSetting" Role="TriggerSetting" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="Translation">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="TriggerSetting">
-        <PropertyRef Name="TranslationId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-  <Association Name="FK_TriggerGroupSetting_TriggerSetting">
-    <End Type="IqSoftCorePlatformModel.TriggerSetting" Role="TriggerSetting" Multiplicity="1" />
-    <End Type="IqSoftCorePlatformModel.TriggerGroupSetting" Role="TriggerGroupSetting" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="TriggerSetting">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="TriggerGroupSetting">
-        <PropertyRef Name="SettingId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-  <Association Name="FK_TriggerProductSetting_TriggerSetting">
-    <End Type="IqSoftCorePlatformModel.TriggerSetting" Role="TriggerSetting" Multiplicity="1" />
-    <End Type="IqSoftCorePlatformModel.TriggerProductSetting" Role="TriggerProductSetting" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="TriggerSetting">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="TriggerProductSetting">
-        <PropertyRef Name="TriggerSettingId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
   <EntityType Name="AdminMenu">
     <Key>
       <PropertyRef Name="Id" />
@@ -8224,18 +7737,6 @@
     <Property Type="String" Name="CommunicationTypeValue" Nullable="false" MaxLength="50" />
     <Property Type="Int32" Name="ClientId" Nullable="true" />
   </ComplexType>
-  <Association Name="FK_Product_ProductCategory">
-    <End Type="IqSoftCorePlatformModel.ProductCategory" Role="ProductCategory" Multiplicity="0..1" />
-    <End Type="IqSoftCorePlatformModel.Product" Role="Product" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="ProductCategory">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="Product">
-        <PropertyRef Name="CategoryId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
   <ComplexType Name="fnProduct">
     <Property Type="Int32" Name="Id" Nullable="false" />
     <Property Type="Int64" Name="TranslationId" Nullable="false" />
@@ -8533,18 +8034,6 @@
       </Principal>
       <Dependent Role="BonusProduct">
         <PropertyRef Name="BonusId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-  <Association Name="FK_BonusProduct_Product">
-    <End Type="IqSoftCorePlatformModel.Product" Role="Product" Multiplicity="1" />
-    <End Type="IqSoftCorePlatformModel.BonusProduct" Role="BonusProduct" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="Product">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="BonusProduct">
-        <PropertyRef Name="ProductId" />
       </Dependent>
     </ReferentialConstraint>
   </Association>
@@ -9225,18 +8714,6 @@
       </Dependent>
     </ReferentialConstraint>
   </Association>
-  <Association Name="FK_JackpotSetting_Product">
-    <End Type="IqSoftCorePlatformModel.Product" Role="Product" Multiplicity="1" />
-    <End Type="IqSoftCorePlatformModel.JackpotSetting" Role="JackpotSetting" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="Product">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="JackpotSetting">
-        <PropertyRef Name="ProductId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
   <EntityType Name="Promotion">
     <Key>
       <PropertyRef Name="Id" />
@@ -9531,6 +9008,89 @@
       </Dependent>
     </ReferentialConstraint>
   </Association>
+  <EntityType Name="TriggerSetting">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+    <Property Name="Name" Type="String" Nullable="false" MaxLength="255" FixedLength="false" Unicode="false" />
+    <Property Name="Description" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+    <Property Name="TranslationId" Type="Int64" Nullable="false" />
+    <Property Name="Type" Type="Int32" Nullable="false" />
+    <Property Name="StartTime" Type="DateTime" Nullable="false" Precision="3" />
+    <Property Name="FinishTime" Type="DateTime" Nullable="false" Precision="3" />
+    <Property Name="Percent" Type="Int32" Nullable="true" />
+    <Property Name="BonusSettingCodes" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+    <Property Name="PartnerId" Type="Int32" Nullable="false" />
+    <Property Name="CreationTime" Type="DateTime" Nullable="false" Precision="3" />
+    <Property Name="LastUpdateTime" Type="DateTime" Nullable="false" Precision="3" />
+    <Property Name="MinAmount" Type="Decimal" Precision="18" Scale="4" />
+    <Property Name="MaxAmount" Type="Decimal" Precision="18" Scale="4" />
+    <Property Name="Condition" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+    <Property Name="MinBetCount" Type="Int32" />
+    <Property Name="SegmentId" Type="Int32" />
+    <Property Name="DayOfWeek" Type="Int32" />
+    <Property Name="UpToAmount" Type="Decimal" Precision="18" Scale="4" />
+    <Property Name="Status" Type="Int32" />
+    <Property Name="ConsiderBonusBets" Type="Boolean" />
+    <Property Name="Amount" Type="Decimal" Precision="18" Scale="4" />
+    <NavigationProperty Name="AmountCurrencySettings" Relationship="IqSoftCorePlatformModel.FK_AmountCurrencySetting_TriggerSetting" FromRole="TriggerSetting" ToRole="AmountCurrencySetting" />
+    <NavigationProperty Name="BonusPaymentSystemSettings" Relationship="IqSoftCorePlatformModel.FK_BonusPaymentSystemSetting_TriggerSetting" FromRole="TriggerSetting" ToRole="BonusPaymentSystemSetting" />
+    <NavigationProperty Name="ClientBonusTriggers" Relationship="IqSoftCorePlatformModel.FK_ClientBonusTrigger_TriggerSetting" FromRole="TriggerSetting" ToRole="ClientBonusTrigger" />
+    <NavigationProperty Name="Partner" Relationship="IqSoftCorePlatformModel.FK_TriggerSetting_Partner" FromRole="TriggerSetting" ToRole="Partner" />
+    <NavigationProperty Name="Segment" Relationship="IqSoftCorePlatformModel.FK_TriggerSetting_Segment" FromRole="TriggerSetting" ToRole="Segment" />
+    <NavigationProperty Name="Translation" Relationship="IqSoftCorePlatformModel.FK_TriggerSetting_Translation" FromRole="TriggerSetting" ToRole="Translation" />
+    <NavigationProperty Name="TriggerGroupSettings" Relationship="IqSoftCorePlatformModel.FK_TriggerGroupSetting_TriggerSetting" FromRole="TriggerSetting" ToRole="TriggerGroupSetting" />
+    <NavigationProperty Name="TriggerProductSettings" Relationship="IqSoftCorePlatformModel.FK_TriggerProductSetting_TriggerSetting" FromRole="TriggerSetting" ToRole="TriggerProductSetting" />
+  </EntityType>
+  <Association Name="FK_AmountCurrencySetting_TriggerSetting">
+    <End Type="IqSoftCorePlatformModel.TriggerSetting" Role="TriggerSetting" Multiplicity="0..1" />
+    <End Type="IqSoftCorePlatformModel.AmountCurrencySetting" Role="AmountCurrencySetting" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="TriggerSetting">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="AmountCurrencySetting">
+        <PropertyRef Name="TriggerId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_BonusPaymentSystemSetting_TriggerSetting">
+    <End Type="IqSoftCorePlatformModel.TriggerSetting" Role="TriggerSetting" Multiplicity="0..1" />
+    <End Type="IqSoftCorePlatformModel.BonusPaymentSystemSetting" Role="BonusPaymentSystemSetting" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="TriggerSetting">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="BonusPaymentSystemSetting">
+        <PropertyRef Name="TriggerId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_ClientBonusTrigger_TriggerSetting">
+    <End Type="IqSoftCorePlatformModel.TriggerSetting" Role="TriggerSetting" Multiplicity="1" />
+    <End Type="IqSoftCorePlatformModel.ClientBonusTrigger" Role="ClientBonusTrigger" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="TriggerSetting">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="ClientBonusTrigger">
+        <PropertyRef Name="TriggerId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_TriggerSetting_Partner">
+    <End Type="IqSoftCorePlatformModel.Partner" Role="Partner" Multiplicity="1" />
+    <End Type="IqSoftCorePlatformModel.TriggerSetting" Role="TriggerSetting" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Partner">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="TriggerSetting">
+        <PropertyRef Name="PartnerId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
   <Association Name="FK_TriggerSetting_Segment">
     <End Type="IqSoftCorePlatformModel.Segment" Role="Segment" Multiplicity="0..1" />
     <End Type="IqSoftCorePlatformModel.TriggerSetting" Role="TriggerSetting" Multiplicity="*" />
@@ -9540,6 +9100,498 @@
       </Principal>
       <Dependent Role="TriggerSetting">
         <PropertyRef Name="SegmentId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_TriggerSetting_Translation">
+    <End Type="IqSoftCorePlatformModel.Translation" Role="Translation" Multiplicity="1" />
+    <End Type="IqSoftCorePlatformModel.TriggerSetting" Role="TriggerSetting" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Translation">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="TriggerSetting">
+        <PropertyRef Name="TranslationId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_TriggerGroupSetting_TriggerSetting">
+    <End Type="IqSoftCorePlatformModel.TriggerSetting" Role="TriggerSetting" Multiplicity="1" />
+    <End Type="IqSoftCorePlatformModel.TriggerGroupSetting" Role="TriggerGroupSetting" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="TriggerSetting">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="TriggerGroupSetting">
+        <PropertyRef Name="SettingId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_TriggerProductSetting_TriggerSetting">
+    <End Type="IqSoftCorePlatformModel.TriggerSetting" Role="TriggerSetting" Multiplicity="1" />
+    <End Type="IqSoftCorePlatformModel.TriggerProductSetting" Role="TriggerProductSetting" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="TriggerSetting">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="TriggerProductSetting">
+        <PropertyRef Name="TriggerSettingId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <EntityType Name="Product">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+    <Property Name="TranslationId" Type="Int64" Nullable="false" />
+    <Property Name="GameProviderId" Type="Int32" />
+    <Property Name="PaymentSystemId" Type="Int32" />
+    <Property Name="Level" Type="Int32" Nullable="false" />
+    <Property Name="NickName" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
+    <Property Name="ParentId" Type="Int32" />
+    <Property Name="ExternalId" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+    <Property Name="State" Type="Int32" Nullable="false" />
+    <Property Name="IsForDesktop" Type="Boolean" Nullable="false" />
+    <Property Name="IsForMobile" Type="Boolean" Nullable="false" />
+    <Property Name="WebImageUrl" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
+    <Property Name="MobileImageUrl" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
+    <Property Name="SubproviderId" Type="Int32" />
+    <Property Name="HasDemo" Type="Boolean" Nullable="false" />
+    <Property Name="CategoryId" Type="Int32" />
+    <Property Name="Jackpot" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
+    <Property Name="FreeSpinSupport" Type="Boolean" />
+    <Property Name="BackgroundImageUrl" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
+    <Property Name="RTP" Type="Decimal" Precision="5" Scale="2" />
+    <Property Name="CreationTime" Type="DateTime" Nullable="false" Precision="3" />
+    <Property Name="LastUpdateTime" Type="DateTime" Nullable="false" Precision="3" />
+    <Property Name="Lines" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
+    <Property Name="BetValues" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+    <Property Name="Path" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+    <Property Name="Volatility" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
+    <NavigationProperty Name="AffiliateCommissions" Relationship="IqSoftCorePlatformModel.FK_AffiliateCommission_Product" FromRole="Product" ToRole="AffiliateCommission" />
+    <NavigationProperty Name="AgentCommissions" Relationship="IqSoftCorePlatformModel.FK_AgentCommission_Product" FromRole="Product" ToRole="AgentCommission" />
+    <NavigationProperty Name="BetShopTickets" Relationship="IqSoftCorePlatformModel.FK_BetShopTicket_Product" FromRole="Product" ToRole="BetShopTicket" />
+    <NavigationProperty Name="BonusProducts" Relationship="IqSoftCorePlatformModel.FK_BonusProduct_Product" FromRole="Product" ToRole="BonusProduct" />
+    <NavigationProperty Name="ClientClassifications" Relationship="IqSoftCorePlatformModel.FK_ClientClassification_Product" FromRole="Product" ToRole="ClientClassification" />
+    <NavigationProperty Name="ClientFavoriteProducts" Relationship="IqSoftCorePlatformModel.FK_ClientFavoriteProduct_Product" FromRole="Product" ToRole="ClientFavoriteProduct" />
+    <NavigationProperty Name="ClientSessions" Relationship="IqSoftCorePlatformModel.FK_ClientSession_Product" FromRole="Product" ToRole="ClientSession" />
+    <NavigationProperty Name="ComplimentaryPointRates" Relationship="IqSoftCorePlatformModel.FK_ComplimentaryCoinRate_Product" FromRole="Product" ToRole="ComplimentaryPointRate" />
+    <NavigationProperty Name="Documents" Relationship="IqSoftCorePlatformModel.FK_Document_Product" FromRole="Product" ToRole="Document" />
+    <NavigationProperty Name="GameProvider" Relationship="IqSoftCorePlatformModel.FK_Product_GameProvider" FromRole="Product" ToRole="GameProvider" />
+    <NavigationProperty Name="GameProvider1" Relationship="IqSoftCorePlatformModel.FK_Product_GameProvider1" FromRole="Product" ToRole="GameProvider" />
+    <NavigationProperty Name="JackpotSettings" Relationship="IqSoftCorePlatformModel.FK_JackpotSetting_Product" FromRole="Product" ToRole="JackpotSetting" />
+    <NavigationProperty Name="PartnerProductSettings" Relationship="IqSoftCorePlatformModel.FK_PartnerProduct_Product" FromRole="Product" ToRole="PartnerProductSetting" />
+    <NavigationProperty Name="Product1" Relationship="IqSoftCorePlatformModel.FK_Product_Product" FromRole="Product" ToRole="Product1" />
+    <NavigationProperty Name="Product2" Relationship="IqSoftCorePlatformModel.FK_Product_Product" FromRole="Product1" ToRole="Product" />
+    <NavigationProperty Name="ProductCategory" Relationship="IqSoftCorePlatformModel.FK_Product_ProductCategory" FromRole="Product" ToRole="ProductCategory" />
+    <NavigationProperty Name="Translation" Relationship="IqSoftCorePlatformModel.FK_Product_Translation" FromRole="Product" ToRole="Translation" />
+    <NavigationProperty Name="ProductCountrySettings" Relationship="IqSoftCorePlatformModel.FK_ProductCountrySettings_Product" FromRole="Product" ToRole="ProductCountrySetting" />
+    <NavigationProperty Name="ProductLimits" Relationship="IqSoftCorePlatformModel.FK_ProductLimit_Product" FromRole="Product" ToRole="ProductLimit" />
+    <NavigationProperty Name="TriggerProductSettings" Relationship="IqSoftCorePlatformModel.FK_TriggerProductSetting_Product" FromRole="Product" ToRole="TriggerProductSetting" />
+    <NavigationProperty Name="AgentProfits" Relationship="IqSoftCorePlatformModel.FK_AgentProfit_Product1" FromRole="Product" ToRole="AgentProfit" />
+  </EntityType>
+  <Association Name="FK_AffiliateCommission_Product">
+    <End Type="IqSoftCorePlatformModel.Product" Role="Product" Multiplicity="0..1" />
+    <End Type="IqSoftCorePlatformModel.AffiliateCommission" Role="AffiliateCommission" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Product">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="AffiliateCommission">
+        <PropertyRef Name="ProductId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_AgentCommission_Product">
+    <End Type="IqSoftCorePlatformModel.Product" Role="Product" Multiplicity="1" />
+    <End Type="IqSoftCorePlatformModel.AgentCommission" Role="AgentCommission" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Product">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="AgentCommission">
+        <PropertyRef Name="ProductId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_BetShopTicket_Product">
+    <End Type="IqSoftCorePlatformModel.Product" Role="Product" Multiplicity="1" />
+    <End Type="IqSoftCorePlatformModel.BetShopTicket" Role="BetShopTicket" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Product">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="BetShopTicket">
+        <PropertyRef Name="GameId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_BonusProduct_Product">
+    <End Type="IqSoftCorePlatformModel.Product" Role="Product" Multiplicity="1" />
+    <End Type="IqSoftCorePlatformModel.BonusProduct" Role="BonusProduct" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Product">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="BonusProduct">
+        <PropertyRef Name="ProductId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_ClientClassification_Product">
+    <End Type="IqSoftCorePlatformModel.Product" Role="Product" Multiplicity="1" />
+    <End Type="IqSoftCorePlatformModel.ClientClassification" Role="ClientClassification" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Product">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="ClientClassification">
+        <PropertyRef Name="ProductId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_ClientFavoriteProduct_Product">
+    <End Type="IqSoftCorePlatformModel.Product" Role="Product" Multiplicity="1" />
+    <End Type="IqSoftCorePlatformModel.ClientFavoriteProduct" Role="ClientFavoriteProduct" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Product">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="ClientFavoriteProduct">
+        <PropertyRef Name="ProductId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_ClientSession_Product">
+    <End Type="IqSoftCorePlatformModel.Product" Role="Product" Multiplicity="1" />
+    <End Type="IqSoftCorePlatformModel.ClientSession" Role="ClientSession" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Product">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="ClientSession">
+        <PropertyRef Name="ProductId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_ComplimentaryCoinRate_Product">
+    <End Type="IqSoftCorePlatformModel.Product" Role="Product" Multiplicity="1" />
+    <End Type="IqSoftCorePlatformModel.ComplimentaryPointRate" Role="ComplimentaryPointRate" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Product">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="ComplimentaryPointRate">
+        <PropertyRef Name="ProductId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_Document_Product">
+    <End Type="IqSoftCorePlatformModel.Product" Role="Product" Multiplicity="0..1" />
+    <End Type="IqSoftCorePlatformModel.Document" Role="Document" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Product">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="Document">
+        <PropertyRef Name="ProductId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_Product_GameProvider">
+    <End Type="IqSoftCorePlatformModel.GameProvider" Role="GameProvider" Multiplicity="0..1" />
+    <End Type="IqSoftCorePlatformModel.Product" Role="Product" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="GameProvider">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="Product">
+        <PropertyRef Name="GameProviderId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_Product_GameProvider1">
+    <End Type="IqSoftCorePlatformModel.GameProvider" Role="GameProvider" Multiplicity="0..1" />
+    <End Type="IqSoftCorePlatformModel.Product" Role="Product" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="GameProvider">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="Product">
+        <PropertyRef Name="SubproviderId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_JackpotSetting_Product">
+    <End Type="IqSoftCorePlatformModel.Product" Role="Product" Multiplicity="1" />
+    <End Type="IqSoftCorePlatformModel.JackpotSetting" Role="JackpotSetting" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Product">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="JackpotSetting">
+        <PropertyRef Name="ProductId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_PartnerProduct_Product">
+    <End Type="IqSoftCorePlatformModel.Product" Role="Product" Multiplicity="1" />
+    <End Type="IqSoftCorePlatformModel.PartnerProductSetting" Role="PartnerProductSetting" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Product">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="PartnerProductSetting">
+        <PropertyRef Name="ProductId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_Product_Product">
+    <End Type="IqSoftCorePlatformModel.Product" Role="Product" Multiplicity="0..1" />
+    <End Type="IqSoftCorePlatformModel.Product" Role="Product1" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Product">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="Product1">
+        <PropertyRef Name="ParentId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_Product_ProductCategory">
+    <End Type="IqSoftCorePlatformModel.ProductCategory" Role="ProductCategory" Multiplicity="0..1" />
+    <End Type="IqSoftCorePlatformModel.Product" Role="Product" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="ProductCategory">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="Product">
+        <PropertyRef Name="CategoryId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_Product_Translation">
+    <End Type="IqSoftCorePlatformModel.Translation" Role="Translation" Multiplicity="1" />
+    <End Type="IqSoftCorePlatformModel.Product" Role="Product" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Translation">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="Product">
+        <PropertyRef Name="TranslationId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_ProductCountrySettings_Product">
+    <End Type="IqSoftCorePlatformModel.Product" Role="Product" Multiplicity="1" />
+    <End Type="IqSoftCorePlatformModel.ProductCountrySetting" Role="ProductCountrySetting" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Product">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="ProductCountrySetting">
+        <PropertyRef Name="ProductId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_ProductLimit_Product">
+    <End Type="IqSoftCorePlatformModel.Product" Role="Product" Multiplicity="0..1" />
+    <End Type="IqSoftCorePlatformModel.ProductLimit" Role="ProductLimit" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Product">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="ProductLimit">
+        <PropertyRef Name="ProductId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_TriggerProductSetting_Product">
+    <End Type="IqSoftCorePlatformModel.Product" Role="Product" Multiplicity="1" />
+    <End Type="IqSoftCorePlatformModel.TriggerProductSetting" Role="TriggerProductSetting" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Product">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="TriggerProductSetting">
+        <PropertyRef Name="ProductId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <EntityType Name="AgentProfit">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+    <Property Name="AgentId" Type="Int32" />
+    <Property Name="ClientId" Type="Int32" />
+    <Property Name="FromAgentId" Type="Int32" />
+    <Property Name="TotalBetAmount" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
+    <Property Name="TotalWinAmount" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
+    <Property Name="GGR" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
+    <Property Name="Profit" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
+    <Property Name="Type" Type="Int32" Nullable="false" />
+    <Property Name="CreationTime" Type="DateTime" Nullable="false" Precision="3" />
+    <Property Name="CalculationStartingTime" Type="DateTime" Nullable="false" Precision="3" />
+    <Property Name="CreationDate" Type="Int64" Nullable="false" />
+    <Property Name="CalculationStartingDate" Type="Int64" Nullable="false" />
+    <Property Name="ProductId" Type="Int32" Nullable="false" />
+    <NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_AgentProfit_Client" FromRole="AgentProfit" ToRole="Client" />
+    <NavigationProperty Name="Product" Relationship="IqSoftCorePlatformModel.FK_AgentProfit_Product1" FromRole="AgentProfit" ToRole="Product" />
+    <NavigationProperty Name="User" Relationship="IqSoftCorePlatformModel.FK_AgentProfit_User" FromRole="AgentProfit" ToRole="User" />
+    <NavigationProperty Name="User1" Relationship="IqSoftCorePlatformModel.FK_AgentProfit_User1" FromRole="AgentProfit" ToRole="User" />
+  </EntityType>
+  <Association Name="FK_AgentProfit_Client">
+    <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="0..1" />
+    <End Type="IqSoftCorePlatformModel.AgentProfit" Role="AgentProfit" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Client">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="AgentProfit">
+        <PropertyRef Name="ClientId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_AgentProfit_Product1">
+    <End Type="IqSoftCorePlatformModel.Product" Role="Product" Multiplicity="1" />
+    <End Type="IqSoftCorePlatformModel.AgentProfit" Role="AgentProfit" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Product">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="AgentProfit">
+        <PropertyRef Name="ProductId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_AgentProfit_User">
+    <End Type="IqSoftCorePlatformModel.User" Role="User" Multiplicity="0..1" />
+    <End Type="IqSoftCorePlatformModel.AgentProfit" Role="AgentProfit" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="User">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="AgentProfit">
+        <PropertyRef Name="AgentId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_AgentProfit_User1">
+    <End Type="IqSoftCorePlatformModel.User" Role="User" Multiplicity="0..1" />
+    <End Type="IqSoftCorePlatformModel.AgentProfit" Role="AgentProfit" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="User">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="AgentProfit">
+        <PropertyRef Name="FromAgentId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <EntityType Name="UserNotification">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+    <Property Name="UserId" Type="Int32" Nullable="false" />
+    <Property Name="TypeId" Type="Int32" Nullable="false" />
+    <Property Name="ClientId" Type="Int32" />
+    <Property Name="PaymentRequestId" Type="Int64" />
+    <Property Name="BonusId" Type="Int32" />
+    <Property Name="Status" Type="Int32" Nullable="false" />
+    <NavigationProperty Name="Bonu" Relationship="IqSoftCorePlatformModel.FK_UserNotification_Bonus" FromRole="UserNotification" ToRole="Bonu" />
+    <NavigationProperty Name="Client" Relationship="IqSoftCorePlatformModel.FK_UserNotification_Client" FromRole="UserNotification" ToRole="Client" />
+    <NavigationProperty Name="PaymentRequest" Relationship="IqSoftCorePlatformModel.FK_UserNotification_PaymentRequest" FromRole="UserNotification" ToRole="PaymentRequest" />
+    <NavigationProperty Name="User" Relationship="IqSoftCorePlatformModel.FK_UserNotification_User" FromRole="UserNotification" ToRole="User" />
+    <Property Name="CreationTime" Type="DateTime" Nullable="false" Precision="3" />
+  </EntityType>
+  <Association Name="FK_UserNotification_Bonus">
+    <End Type="IqSoftCorePlatformModel.Bonu" Role="Bonu" Multiplicity="0..1" />
+    <End Type="IqSoftCorePlatformModel.UserNotification" Role="UserNotification" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Bonu">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="UserNotification">
+        <PropertyRef Name="BonusId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_UserNotification_Client">
+    <End Type="IqSoftCorePlatformModel.Client" Role="Client" Multiplicity="0..1" />
+    <End Type="IqSoftCorePlatformModel.UserNotification" Role="UserNotification" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Client">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="UserNotification">
+        <PropertyRef Name="ClientId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_UserNotification_PaymentRequest">
+    <End Type="IqSoftCorePlatformModel.PaymentRequest" Role="PaymentRequest" Multiplicity="0..1" />
+    <End Type="IqSoftCorePlatformModel.UserNotification" Role="UserNotification" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="PaymentRequest">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="UserNotification">
+        <PropertyRef Name="PaymentRequestId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_UserNotification_User">
+    <End Type="IqSoftCorePlatformModel.User" Role="User" Multiplicity="1" />
+    <End Type="IqSoftCorePlatformModel.UserNotification" Role="UserNotification" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="User">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="UserNotification">
+        <PropertyRef Name="UserId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <EntityType Name="UserConfiguration">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+    <Property Name="UserId" Type="Int32" Nullable="false" />
+    <Property Name="CreatedBy" Type="Int32" />
+    <Property Name="Name" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="false" />
+    <Property Name="BooleanValue" Type="Boolean" />
+    <Property Name="NumericValue" Type="Decimal" Precision="18" Scale="4" />
+    <Property Name="StringValue" Type="String" MaxLength="250" FixedLength="false" Unicode="true" />
+    <Property Name="CreationTime" Type="DateTime" Nullable="false" Precision="3" />
+    <Property Name="LastUpdateTime" Type="DateTime" Nullable="false" Precision="3" />
+    <NavigationProperty Name="User" Relationship="IqSoftCorePlatformModel.FK_UserConfiguration_User" FromRole="UserConfiguration" ToRole="User" />
+    <NavigationProperty Name="User1" Relationship="IqSoftCorePlatformModel.FK_UserConfiguration_User1" FromRole="UserConfiguration" ToRole="User" />
+  </EntityType>
+  <Association Name="FK_UserConfiguration_User">
+    <End Type="IqSoftCorePlatformModel.User" Role="User" Multiplicity="1" />
+    <End Type="IqSoftCorePlatformModel.UserConfiguration" Role="UserConfiguration" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="User">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="UserConfiguration">
+        <PropertyRef Name="UserId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_UserConfiguration_User1">
+    <End Type="IqSoftCorePlatformModel.User" Role="User" Multiplicity="0..1" />
+    <End Type="IqSoftCorePlatformModel.UserConfiguration" Role="UserConfiguration" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="User">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="UserConfiguration">
+        <PropertyRef Name="CreatedBy" />
       </Dependent>
     </ReferentialConstraint>
   </Association>

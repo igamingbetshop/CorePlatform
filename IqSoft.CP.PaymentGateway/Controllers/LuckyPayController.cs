@@ -96,8 +96,12 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 								Info = input.transactionId.ToString()
 							}, out LimitInfo info);
 							PaymentHelpers.InvokeMessage("PaymentRequst", paymentRequest.ClientId.Value);
-							clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
-							scope.Complete();
+							clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out List<int> userIds);
+                            foreach (var uId in userIds)
+                            {
+                                PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                            }
+                            scope.Complete();
                             PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);
                             BaseHelpers.BroadcastBalance(paymentRequest.ClientId.Value);
                             BaseHelpers.BroadcastDepositLimit(info);

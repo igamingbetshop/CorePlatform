@@ -16,6 +16,7 @@ using IqSoft.CP.Common.Helpers;
 using IqSoft.CP.DAL.Models;
 using IqSoft.CP.PaymentGateway.Helpers;
 using IqSoft.CP.Common.Models.CacheModels;
+using System.Collections.Generic;
 
 namespace IqSoft.CP.PaymentGateway.Controllers
 {
@@ -63,7 +64,11 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                             paymentSystemBl.ChangePaymentRequestDetails(request);
 
                             response = "WMI_RESULT=OK";
-							clientBl.ApproveDepositFromPaymentSystem(request, false);
+							clientBl.ApproveDepositFromPaymentSystem(request, false, out List<int> userIds);
+                            foreach (var uId in userIds)
+                            {
+                                PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                            }
                             PaymentHelpers.RemoveClientBalanceFromCache(request.ClientId.Value);
                             BaseHelpers.BroadcastBalance(request.ClientId.Value);
                             return new HttpResponseMessage { Content = new StringContent(response, Encoding.UTF8) };

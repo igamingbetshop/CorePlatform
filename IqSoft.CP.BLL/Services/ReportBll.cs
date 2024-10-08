@@ -845,21 +845,21 @@ namespace IqSoft.CP.BLL.Services
                     AffiliatePlatformId = x.AffiliatePlatformId,
                     AffiliateId = x.AffiliateId,
                     AffiliateReferralId = x.AffiliateReferralId,
-                    TotalDepositAmount = x.TotalDepositAmount ?? 0,
+                    TotalDepositAmount = Math.Round(ConvertCurrency(x.CurrencyId, Identity.CurrencyId, x.TotalDepositAmount ?? 0), 2),
                     DepositsCount = x.DepositsCount ?? 0,
-                    TotalWithdrawalAmount = x.TotalWithdrawalAmount ?? 0,
+                    TotalWithdrawalAmount = Math.Round(ConvertCurrency(x.CurrencyId, Identity.CurrencyId, x.TotalWithdrawalAmount ?? 0), 2),
                     WithdrawalsCount = x.WithdrawalsCount ?? 0,
-                    TotalBetAmount = x.TotalBetAmount ?? 0,
+                    TotalBetAmount = Math.Round(ConvertCurrency(x.CurrencyId, Identity.CurrencyId, x.TotalBetAmount ?? 0), 2),
                     TotalBetsCount = x.TotalBetsCount ?? 0,
                     SportBetsCount = x.SportBetsCount ?? 0,
-                    TotalWinAmount = x.TotalWinAmount ?? 0,
+                    TotalWinAmount = Math.Round(ConvertCurrency(x.CurrencyId, Identity.CurrencyId, x.TotalWinAmount ?? 0), 2),
                     WinsCount = x.WinsCount ?? 0,
-                    TotalCreditCorrection = x.TotalCreditCorrection ?? 0,
+                    TotalCreditCorrection = Math.Round(ConvertCurrency(x.CurrencyId, Identity.CurrencyId, x.TotalCreditCorrection ?? 0), 2),
                     CreditCorrectionsCount = x.CreditCorrectionsCount ?? 0,
-                    TotalDebitCorrection = x.TotalDebitCorrection ?? 0,
+                    TotalDebitCorrection = Math.Round(ConvertCurrency(x.CurrencyId, Identity.CurrencyId, x.TotalDebitCorrection ?? 0), 2),
                     DebitCorrectionsCount = x.DebitCorrectionsCount ?? 0,
-                    GGR = x.GGR ?? 0,
-                    NGR = x.NGR ?? 0,
+                    GGR = Math.Round(ConvertCurrency(x.CurrencyId, Identity.CurrencyId, x.GGR ?? 0), 2),
+                    NGR = Math.Round(ConvertCurrency(x.CurrencyId, Identity.CurrencyId, x.NGR ?? 0), 2),
                     RealBalance = Math.Floor(balance.Balances.Where(y => y.TypeId != (int)AccountTypes.ClientCompBalance &&
                                                                     y.TypeId != (int)AccountTypes.ClientCoinBalance &&
                                                                     y.TypeId != (int)AccountTypes.ClientBonusBalance).Sum(y => y.Balance) * 100) / 100,
@@ -2800,7 +2800,7 @@ namespace IqSoft.CP.BLL.Services
             return new PagedModel<ClientSession>
             {
                 Entities = filter.FilterObjects(Dwh.ClientSessions, true).ToList(),
-                Count = filter.SelectedObjectsCount(Dwh.ClientSessions, true)
+                Count = filter.SelectedObjectsCount(Dwh.ClientSessions)
             };
         }
 
@@ -3319,7 +3319,7 @@ namespace IqSoft.CP.BLL.Services
             if (id.HasValue)
                 query = query.Where(x => x.Id >= id);
             if (jobId.HasValue)
-                query = query.Where(x => x.JobId >= jobId);
+                query = query.Where(x => x.JobId == jobId);
             return new PagedModel<JobLog>
             {
                 Count = query.Count(),
@@ -4230,43 +4230,6 @@ namespace IqSoft.CP.BLL.Services
             return agents;
         }
 
-        public List<fnAgent> GetAgentsReportByProductGroup(DateTime fromDate, DateTime toDate, int agentId, string productGroupName)
-        {
-            var productGroupId = CacheManager.GetProductGroupByName(Constants.SportGroupName).Id;
-            var user = CacheManager.GetUserById(agentId);
-            if (user.Type == (int)UserTypes.AgentEmployee)
-                CheckPermission(Constants.Permissions.ViewUserReport);
-
-            var fDate = fromDate.Year * (long)1000000 + fromDate.Month * 10000 + fromDate.Day * 100 + fromDate.Hour;
-            var tDate = toDate.Year * (long)1000000 + toDate.Month * 10000 + toDate.Day * 100 + toDate.Hour;
-            var profitTransactions = Db.AgentProfits.Include(x => x.User).Where(x => x.User.Path.Contains("/" + agentId + "/") &&
-                                      ((productGroupName == Constants.SportGroupName && x.ProductGroupId == productGroupId) ||
-                                      (productGroupName != Constants.SportGroupName && x.ProductGroupId != productGroupId)) &&
-                                      x.CreationDate > fDate && x.CalculationStartingDate <= tDate);
-
-            var agents = Db.fn_Agent(agentId).ToList();
-
-            foreach (var subAgent in agents)
-            {
-                var agentTransactions = profitTransactions.Where(x => x.AgentId == subAgent.Id).ToList();
-                subAgent.TotalTurnoverProfit = agentTransactions.Where(x => x.Type == (int)AgentProfitTypes.Turnover).Sum(x => x.Profit);
-                subAgent.DirectTurnoverProfit = agentTransactions.Where(x => x.Type == (int)AgentProfitTypes.Turnover && x.FromAgentId == null).Sum(x => x.Profit);
-
-                subAgent.TotalGGRProfit = agentTransactions.Where(x => x.Type == (int)AgentProfitTypes.GGR).Sum(x => x.Profit);
-                subAgent.DirectGGRProfit = agentTransactions.Where(x => x.Type == (int)AgentProfitTypes.GGR && x.FromAgentId == null).Sum(x => x.Profit);
-
-                subAgent.TotalBetAmount = agentTransactions.Where(x => x.Type == (int)AgentProfitTypes.Turnover).Sum(x => x.TotalBetAmount);
-                subAgent.DirectBetAmount = agentTransactions.Where(x => x.Type == (int)AgentProfitTypes.Turnover && x.FromAgentId == null).Sum(x => x.TotalBetAmount);
-
-                subAgent.TotalWinAmount = agentTransactions.Where(x => x.Type == (int)AgentProfitTypes.Turnover).Sum(x => x.TotalWinAmount);
-                subAgent.DirectWinAmount = agentTransactions.Where(x => x.Type == (int)AgentProfitTypes.Turnover && x.FromAgentId == null).Sum(x => x.TotalWinAmount);
-
-                subAgent.TotalGGR = agentTransactions.Where(x => x.Type == (int)AgentProfitTypes.GGR).Sum(x => x.GGR);
-            }
-
-            return agents;
-        }
-
         public PagedModel<fnAgentTransaction> GetAgentTransactions(FilterfnAgentTransaction filter, int agentId, bool checkPermission)
         {
             if (checkPermission)
@@ -4302,7 +4265,6 @@ namespace IqSoft.CP.BLL.Services
                 {
                     filter.IdentityId = Identity.Id;
                     filter.Types = new List<int> { (int)UserTypes.CompanyAgent };
-                    Log.Info(JsonConvert.SerializeObject(filter));
                     var users = userBl.GetUsersPagedModel(filter, checkPermission);
                     agents.Count = users.Count;
                     agents.Entities = users.Entities.Select(x => x.ToAgentReportItem()).ToList();
@@ -4315,7 +4277,7 @@ namespace IqSoft.CP.BLL.Services
                 }
                 var agentsGGRProfit = userBl.GetAgentProfit(fDate, tDate).Where(x => x.TotalProfit > 0).ToList();
                 var agentsTurnoverProfit = userBl.GetAgentTurnoverProfit(fDate, tDate).ToList();
-                var corrections = userBl.GetAgentTransfers(fDate, tDate);
+                var corrections = userBl.GetAgentTransfers(fDate, tDate, filter.ToDate);
 
                 foreach (var agent in agents.Entities)
                 {
@@ -4341,8 +4303,8 @@ namespace IqSoft.CP.BLL.Services
                     agent.TotalUnsettledBetsCount = turnoverItems.Select(x => x.TotalUnsettledBetsCount).DefaultIfEmpty(0).Sum();
                     agent.TotalDeletedBetsCount = turnoverItems.Select(x => x.TotalDeletedBetsCount).DefaultIfEmpty(0).Sum();
 
-                    agent.TotalBetAmount = ggrItems.Select(x => x.TotalBetAmount ?? 0).DefaultIfEmpty(0).Sum();
-                    agent.TotalWinAmount = ggrItems.Select(x => x.TotalWinAmount ?? 0).DefaultIfEmpty(0).Sum();
+                    agent.TotalBetAmount = turnoverItems.Select(x => x.TotalBetAmount).DefaultIfEmpty(0).Sum();
+                    agent.TotalWinAmount = turnoverItems.Select(x => x.TotalWinAmount).DefaultIfEmpty(0).Sum();
                     agent.TotalProfit = agent.TotalBetAmount - agent.TotalWinAmount;
                     agent.TotalProfitPercent = Math.Round(agent.TotalBetAmount == 0 ? 0 : agent.TotalProfit * 100 / agent.TotalBetAmount, 2);
 
@@ -4364,8 +4326,8 @@ namespace IqSoft.CP.BLL.Services
                 orderBy = transaction => transaction.OrderByDescending(x => x.Id);
             return new PagedModel<fnAffiliateTransaction>
             {
-                Entities = filter.FilterObjects(Dwh.fn_AffiliateTransaction(fDate, tDate, affiliateId), false).ToList(),
-                Count = filter.SelectedObjectsCount(Dwh.fn_AffiliateTransaction(fDate, tDate, affiliateId), false)
+                Entities = filter.FilterObjects(Dwh.fn_AffiliateTransaction(fDate, tDate, affiliateId), true).ToList(),
+                Count = filter.SelectedObjectsCount(Dwh.fn_AffiliateTransaction(fDate, tDate, affiliateId))
             };
         }
 
@@ -4396,8 +4358,8 @@ namespace IqSoft.CP.BLL.Services
 
             return new PagedModel<fnAffiliateCorrection>
             {
-                Entities = filter.FilterObjects(Dwh.fn_AffiliateCorrection(), false).ToList(),
-                Count = filter.SelectedObjectsCount(Dwh.fn_AffiliateCorrection(), false)
+                Entities = filter.FilterObjects(Dwh.fn_AffiliateCorrection(), true).ToList(),
+                Count = filter.SelectedObjectsCount(Dwh.fn_AffiliateCorrection())
             };
         }
 
@@ -5015,7 +4977,7 @@ namespace IqSoft.CP.BLL.Services
                     return new PagedModel<ObjectMessageModel>
                     {
                         Entities = filter.FilterObjects(Db.fn_ClientMessage().AsQueryable(),
-                                                                               clientMessage => clientMessage.OrderByDescending(y => y.Id)).ToList()
+                                                                               clientMessage => clientMessage.OrderByDescending(y => y.MessageId)).ToList()
                                                                                 .Select(x => x.MapToObjectMessageModel(Identity.TimeZone)).ToList(),
                         Count = filter.SelectedObjectsCount(Db.fn_ClientMessage().AsQueryable())
                     };
@@ -5033,7 +4995,7 @@ namespace IqSoft.CP.BLL.Services
                     return new PagedModel<ObjectMessageModel>
                     {
                         Entities = partnerFilter.FilterObjects(Db.fn_PartnerMessage().AsQueryable(),
-                                                                                partnerMessage => partnerMessage.OrderByDescending(y => y.Id)).ToList()
+                                                                                partnerMessage => partnerMessage.OrderByDescending(y => y.MessageId)).ToList()
                                                                                  .Select(x => x.MapToObjectMessageModel(Identity.TimeZone)).ToList(),
                         Count = partnerFilter.SelectedObjectsCount(Db.fn_PartnerMessage().AsQueryable())
                     };
@@ -5062,7 +5024,7 @@ namespace IqSoft.CP.BLL.Services
                     return new PagedModel<ObjectMessageModel>
                     {
                         Entities = agentFilter.FilterObjects(Db.fn_AgentMessage().AsQueryable(),
-                                                                              userMessage => userMessage.OrderByDescending(y => y.Id)).ToList()
+                                                                              userMessage => userMessage.OrderByDescending(y => y.MessageId)).ToList()
                                                                                .Select(x => x.MapToObjectMessageModel(Identity.TimeZone)).ToList(),
                         Count = agentFilter.SelectedObjectsCount(Db.fn_AgentMessage().AsQueryable())
                     };
@@ -5092,7 +5054,7 @@ namespace IqSoft.CP.BLL.Services
                     return new PagedModel<ObjectMessageModel>
                     {
                         Entities = affiliateFilter.FilterObjects(Db.fn_AffiliateMessage().AsQueryable(),
-                                                                                  affiliateMessage => affiliateMessage.OrderByDescending(y => y.Id)).ToList()
+                                                                                  affiliateMessage => affiliateMessage.OrderByDescending(y => y.MessageId)).ToList()
                                                                                    .Select(x => x.MapToObjectMessageModel(Identity.TimeZone)).ToList(),
                         Count = affiliateFilter.SelectedObjectsCount(Db.fn_AffiliateMessage().AsQueryable())
                     };

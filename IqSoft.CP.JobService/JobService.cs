@@ -17,8 +17,7 @@ using Microsoft.Owin.Hosting;
 using IqSoft.CP.JobService;
 using IqSoft.CP.Common.Models.CacheModels;
 using IqSoft.CP.BLL.Caching;
-using IqSoft.CP.Common.Models.Bonus;
-using System.Threading.Tasks;
+using IqSoft.CP.JobService.Hubs;
 
 namespace IqSoft.CP.WindowsServices.JobService
 {
@@ -805,12 +804,16 @@ namespace IqSoft.CP.WindowsServices.JobService
                                 {
                                     try
                                     {
-                                        var response = PaymentHelpers.SendPaymentWithdrawalsRequest(r, clientBl.Identity, Program.DbLogger);
-
+                                        var userIds = new List<int>();
+                                        var response = PaymentHelpers.SendPaymentWithdrawalsRequest(r, clientBl.Identity, Program.DbLogger, out userIds);
                                         if (response.Status == PaymentRequestStates.PayPanding)
                                         {
                                             clientBl.ChangeWithdrawRequestState(r.Id, PaymentRequestStates.PayPanding,
-                                                "AutoApprove", null, null, true, r.Parameters, documentBl, notificationBl);
+                                                "AutoApprove", null, null, true, r.Parameters, documentBl, notificationBl, out userIds);
+                                        }
+                                        foreach (var uId in userIds)
+                                        {
+                                            BaseHub.BroadcastNotificationsCount(uId);
                                         }
                                     }
                                     catch (FaultException<BllFnErrorType> ex)
@@ -856,14 +859,15 @@ namespace IqSoft.CP.WindowsServices.JobService
             {
                 try
                 {
+                    var userIds = new List<int>();
                     switch (paymentRequest.PaymentSystem.Name)
                     {
                         case Constants.PaymentSystems.WalletOne:
                         case Constants.PaymentSystems.CreditCards:
-                            WalletOneHelpers.GetPayoutRequestStatus(paymentRequest, session, log);
+                            userIds = WalletOneHelpers.GetPayoutRequestStatus(paymentRequest, session, log);
                             break;
                         case Constants.PaymentSystems.PayBoxATM:
-                            PayBoxHelpers.GetPayoutRequestStatus(paymentRequest, session, log);
+                            userIds = PayBoxHelpers.GetPayoutRequestStatus(paymentRequest, session, log);
                             break;
                         case Constants.PaymentSystems.PiastrixVisaMaster:
                         case Constants.PaymentSystems.PiastrixAlfaclick:
@@ -875,10 +879,10 @@ namespace IqSoft.CP.WindowsServices.JobService
                         case Constants.PaymentSystems.PiastrixMegafon:
                         case Constants.PaymentSystems.PiastrixTele2:
                         case Constants.PaymentSystems.PiastrixWallet:
-                            PiastrixHelpers.GetPayoutRequestStatus(paymentRequest, session, log);
+                            userIds = PiastrixHelpers.GetPayoutRequestStatus(paymentRequest, session, log);
                             break;
                         case Constants.PaymentSystems.CardToCard:
-                            CardToCardHelpers.GetPayoutRequestStatus(paymentRequest, session, log);
+                            userIds = CardToCardHelpers.GetPayoutRequestStatus(paymentRequest, session, log);
                             break;
                         case Constants.PaymentSystems.FreeKassaWallet:
                         case Constants.PaymentSystems.FreeKassaPayeer:
@@ -891,25 +895,25 @@ namespace IqSoft.CP.WindowsServices.JobService
                         case Constants.PaymentSystems.FreeKassaAlfaBank:
                         case Constants.PaymentSystems.FreeKassaSberBank:
                         case Constants.PaymentSystems.FreeKassaCard:
-                            FreeKassaHelpers.GetPayoutRequestStatus(paymentRequest, session, log);
+                            userIds = FreeKassaHelpers.GetPayoutRequestStatus(paymentRequest, session, log);
                             break;
                         case Constants.PaymentSystems.Freelanceme:
-                            FreeKassaHelpers.GetPayoutRequestStatus(paymentRequest, session, log);
+                            userIds = FreeKassaHelpers.GetPayoutRequestStatus(paymentRequest, session, log);
                             break;
                         case Constants.PaymentSystems.Neteller:
-                            NetellerHelpers.GetPayoutRequestStatus(paymentRequest, session, log);
+                            userIds = NetellerHelpers.GetPayoutRequestStatus(paymentRequest, session, log);
                             break;
                         case Constants.PaymentSystems.Pay4Fun:
-                            Pay4FunHelpers.GetPayoutRequestStatus(paymentRequest, session, log);
+                            userIds = Pay4FunHelpers.GetPayoutRequestStatus(paymentRequest, session, log);
                             break;
                         case Constants.PaymentSystems.Paylado:
-                            PayladoHelpers.GetTransactionDetails(paymentRequest, session, log);
+                            userIds = PayladoHelpers.GetTransactionDetails(paymentRequest, session, log);
                             break;
 						case Constants.PaymentSystems.InterkassaVisa:
 						case Constants.PaymentSystems.InterkassaMC:
 						case Constants.PaymentSystems.InterkassaDeVisa:
 						case Constants.PaymentSystems.InterkassaDeMC:
-							InterkassaHelpers.GetTransactionDetails(paymentRequest, session, log);
+                            userIds = InterkassaHelpers.GetTransactionDetails(paymentRequest, session, log);
 							break;
                         case Constants.PaymentSystems.BankTransferSwift:
                         case Constants.PaymentSystems.BankTransferSepa:
@@ -917,24 +921,28 @@ namespace IqSoft.CP.WindowsServices.JobService
                         case Constants.PaymentSystems.CepBank:
                         case Constants.PaymentSystems.ShebaTransfer:
                         case Constants.PaymentSystems.CryptoTransfer:
-                            BankTransferHelpers.ApprovePayoutRequest(paymentRequest, session, log);
+                            userIds = BankTransferHelpers.ApprovePayoutRequest(paymentRequest, session, log);
                             break;
                         case Constants.PaymentSystems.Praxis:
                         case Constants.PaymentSystems.PraxisFiat:
-                            PraxisHelpers.GetPayoutRequestStatus(paymentRequest, session, log);
+                            userIds = PraxisHelpers.GetPayoutRequestStatus(paymentRequest, session, log);
                             break;
                         case Constants.PaymentSystems.OktoPay:
-                            OktoPayHelpers.CancelPaymentRequest(paymentRequest, session, log);
+                            userIds = OktoPayHelpers.CancelPaymentRequest(paymentRequest, session, log);
                             break;
                         case Constants.PaymentSystems.Chapa:
-                            ChapaHelpers.CheckTransactionStatus(paymentRequest, session, log);
+                            userIds = ChapaHelpers.CheckTransactionStatus(paymentRequest, session, log);
                             break;
                         case Constants.PaymentSystems.IqWallet:
-                            IqWalletHelpers.ApprovePayoutRequest(paymentRequest, session, log, out int toClientId);
+                            userIds = IqWalletHelpers.ApprovePayoutRequest(paymentRequest, session, log, out int toClientId);
                             JobBll.BroadcastRemoveCache(string.Format("{0}_{1}", Constants.CacheItems.ClientBalance, toClientId));
                             break;
                         default:
                             break;
+                    }
+                    foreach (var uId in userIds)
+                    {
+                        BaseHub.BroadcastNotificationsCount(uId);
                     }
                     JobBll.BroadcastRemoveCache(string.Format("{0}_{1}", Constants.CacheItems.ClientBalance, paymentRequest.ClientId));
                     // should be added broadcast to WebSiteWebApi
@@ -969,16 +977,21 @@ namespace IqSoft.CP.WindowsServices.JobService
                                             var partnerAutoApproveWithdrawMaxAmount = BaseBll.ConvertCurrency(partner.CurrencyId, pr.CurrencyId, partner.AutoApproveWithdrawMaxAmount);
                                             if (partnerAutoApproveWithdrawMaxAmount > pr.Amount)
 											{
-												var response = PaymentHelpers.SendPaymentWithdrawalsRequest(pr, session, log);
+                                                var userIds = new List<int>();
+												var response = PaymentHelpers.SendPaymentWithdrawalsRequest(pr, session, log, out userIds);
 												if (response.Status == PaymentRequestStates.Approved || 
                                                     response.Status == PaymentRequestStates.ApprovedManually || 
                                                     response.Status == PaymentRequestStates.PayPanding)
                                                 {
                                                     var resp = clientBl.ChangeWithdrawRequestState(pr.Id, response.Status, response.Description, null, null, false,
-                                                                                                   pr.Parameters, documentBl, notificationBl, false, true);
+                                                                                                   pr.Parameters, documentBl, notificationBl, out userIds, false, true);
                                                     if (response.Status != PaymentRequestStates.PayPanding)
                                                         clientBl.PayWithdrawFromPaymentSystem(resp, documentBl, notificationBl);
                                                     JobBll.BroadcastRemoveCache(string.Format("{0}_{1}", Constants.CacheItems.ClientBalance, pr.ClientId));
+                                                }
+                                                foreach (var uId in userIds)
+                                                {
+                                                    BaseHub.BroadcastNotificationsCount(uId);
                                                 }
                                             }
                                         }
@@ -1024,6 +1037,7 @@ namespace IqSoft.CP.WindowsServices.JobService
             {
                 try
                 {
+                    var userIds = new List<int>();
                     switch (paymentRequest.PaymentSystem.Name)
                     {
                         case Constants.PaymentSystems.MoneyPayVisaMaster:
@@ -1031,23 +1045,23 @@ namespace IqSoft.CP.WindowsServices.JobService
                             MoneyPayHelpers.GetPayinRequestStatus(paymentRequest, session, log);
                             break;
                         case Constants.PaymentSystems.DPOPay:
-                            DPOPayHelpers.GetPaymentRequestStatus(paymentRequest, session, log);
+                            userIds = DPOPayHelpers.GetPaymentRequestStatus(paymentRequest, session, log);
                             break;
                         case Constants.PaymentSystems.BankTransferSwift:
                         case Constants.PaymentSystems.BankTransferSepa:
                         case Constants.PaymentSystems.BankWire:
                         case Constants.PaymentSystems.CepBank:
                         case Constants.PaymentSystems.ShebaTransfer:
-                            BankTransferHelpers.PayPaymentRequest(paymentRequest, session, log);
+                            userIds = BankTransferHelpers.PayPaymentRequest(paymentRequest, session, log);
                             break;
 						case Constants.PaymentSystems.OktoPay:
-							OktoPayHelpers.CancelPaymentRequest(paymentRequest, session, log);
+                            userIds = OktoPayHelpers.CancelPaymentRequest(paymentRequest, session, log);
 							break;
                         case Constants.PaymentSystems.Chapa:
-                            ChapaHelpers.CheckTransactionStatus(paymentRequest, session, log);
+                            userIds = ChapaHelpers.CheckTransactionStatus(paymentRequest, session, log);
                             break;
                         case Constants.PaymentSystems.InternationalPSP:
-                            InternationalPSPHelpers.CheckPaymentRequestStatus(paymentRequest, session, log);
+                            userIds = InternationalPSPHelpers.CheckPaymentRequestStatus(paymentRequest, session, log);
                             break;
                         //doesn't work 'The GET method is not supported '
                         //case Constants.PaymentSystems.Huch: 
@@ -1055,6 +1069,10 @@ namespace IqSoft.CP.WindowsServices.JobService
                         //    break;
                         default:
                             break;
+                    }
+                    foreach (var uId in userIds)
+                    {
+                        BaseHub.BroadcastNotificationsCount(uId);
                     }
                     JobBll.BroadcastRemoveCache(string.Format("{0}_{1}", Constants.CacheItems.ClientBalance, paymentRequest.ClientId));
                 }

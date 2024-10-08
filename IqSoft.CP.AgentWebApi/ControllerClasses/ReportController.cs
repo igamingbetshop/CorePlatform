@@ -41,6 +41,10 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                     return
                         GetBetShopBetsReportPaging(
                             JsonConvert.DeserializeObject<ApiFilterBetShopBet>(request.RequestData), identity, log);
+                case "GetReportByProviders":
+                    return
+                        GetReportByProviders(
+                            JsonConvert.DeserializeObject<ApiFilterReportByProvider>(request.RequestData), identity, log);
             }
             throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.MethodNotFound);
         }
@@ -304,6 +308,19 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                         ResponseObject = result.MapToBetshopBetsReportModel(reportBl.GetUserIdentity().TimeZone)
                     };
                 }
+            }
+        }
+
+        private static ApiResponseBase GetReportByProviders(ApiFilterReportByProvider filter, SessionIdentity identity, ILog log)
+        {
+            using (var reportBl = new ReportBll(identity, log))
+            {
+                var result = reportBl.GetReportByProviders(filter.MapToFilterReportByProvider());
+
+                return new ApiResponseBase
+                {
+                    ResponseObject = result.Select(x => x.MapToApiReportByProvidersElement()).ToList()
+                };
             }
         }
     }

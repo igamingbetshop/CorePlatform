@@ -17,6 +17,7 @@ using System.Text;
 using System.Web;
 using System.Web.Http;
 using System.Web.Http.Cors;
+using System.Collections.Generic;
 
 namespace IqSoft.CP.PaymentGateway.Controllers
 {
@@ -29,6 +30,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
         public HttpResponseMessage ApiRequest(HttpRequestMessage httpRequestMessage)
         {
             var response = string.Empty;
+            var userIds = new List<int>();
             try
             {
                 var inputString = httpRequestMessage.Content.ReadAsStringAsync().Result;
@@ -63,7 +65,9 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                         if (sign.ToLower() != signature.ToLower())
                             throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongHash);
                         if (depositeInput.Status == "PAYED")
-                            clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
+                        {
+                            clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out userIds);
+                        }
                         else if (withdrawInput.Status == "DONE")
                         {
                             using (var documentBll = new DocumentBll(paymentSystemBl))
@@ -71,7 +75,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                 using (var notificationBl = new NotificationBll(paymentSystemBl))
                                 {
                                     var resp = clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Approved, string.Empty,
-                                               null, null, false, string.Empty, documentBll, notificationBl);
+                                               null, null, false, string.Empty, documentBll, notificationBl, out userIds);
                                     clientBl.PayWithdrawFromPaymentSystem(resp, documentBll, notificationBl);
                                 }
                             }
@@ -82,10 +86,14 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                             {
                                 using (var notificationBl = new NotificationBll(paymentSystemBl))
                                 {
-                                    clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed, 
-                                        withdrawInput.Status, null, null, false, string.Empty, documentBll, notificationBl);
+                                    clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed,
+                                        withdrawInput.Status, null, null, false, string.Empty, documentBll, notificationBl, out userIds);
                                 }
                             }
+                        }
+                        foreach (var uId in userIds)
+                        {
+                            PaymentHelpers.InvokeMessage("NotificationsCount", uId);
                         }
                         response = "OK";
                         PaymentHelpers.RemoveClientBalanceFromCache(paymentRequest.ClientId.Value);

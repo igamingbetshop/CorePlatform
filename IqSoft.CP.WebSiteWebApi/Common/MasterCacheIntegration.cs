@@ -50,8 +50,7 @@ namespace IqSoft.CP.WebSiteWebApi.Common
                 Url = string.Format("{0}/{1}/api/main/{2}",
                 Program.AppSetting.MasterCacheConnectionUrl[new Random().Next(0, Program.AppSetting.MasterCacheConnectionUrl.Count - 1)], partnerId, functionName)
             };
-            var resp = JsonConvert.DeserializeObject<T>(SendHttpRequest(input));
-            return resp;
+            return JsonConvert.DeserializeObject<T>(SendHttpRequest(input));
         }
 
         #endregion

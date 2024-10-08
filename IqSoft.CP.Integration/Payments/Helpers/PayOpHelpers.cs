@@ -21,6 +21,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             { Constants.PaymentSystems.PayOpNeosurf, "214008" }, //Europeans
             { Constants.PaymentSystems.PayOpNeosurfAU, "200009" }, //Australia
             { Constants.PaymentSystems.PayOpNeosurfUK, "214028" }, //United Kingdom
+            { Constants.PaymentSystems.PayOpNeosurfNZ, "200026" }, //New Zealand
             { Constants.PaymentSystems.PayOpRevolut, "203822" },//Europeans
             { Constants.PaymentSystems.PayOpRevolutUK, "203821" },//UK
             { Constants.PaymentSystems.PayOpLocalBankTransfer, "704" },//for Latam via Safetypay

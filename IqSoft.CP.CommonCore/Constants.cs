@@ -648,17 +648,21 @@ namespace IqSoft.CP.Common
             public const int Sportsbook = 6;
             public const int IqSoftSportsbook = 1000;
             public const int Keno = 1004;
+            public const int KenoPlus = 1025;
+            public const int NewKeno = 1026;
             public const int BetOnPoker = 1005;
             public const int BetOnRacing = 1006;
             public const int Bingo37 = 1001;
             public const int Colors = 1002;
             public const int Bingo48 = 1003;
-            public const int SpinAndWin = 1022; 
+            public const int SpinAndWin = 1022;
         }
 
         public static Dictionary<int, string> GamesExternalIds = new Dictionary<int, string>
         {
             {Games.Keno, "101"},
+            {Games.KenoPlus, "116"},
+            {Games.NewKeno, "83101"},
             {Games.BetOnPoker, "102"},
             {Games.BetOnRacing, "103"},
             {Games.Sportsbook, "1000"},

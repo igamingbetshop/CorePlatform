@@ -1,6 +1,5 @@
 ﻿using IqSoft.CP.BLL.Caching;
 using IqSoft.CP.Common.Enums;
-using IqSoft.CP.Common.Models.AdminModels;
 using IqSoft.CP.DAL;
 using Newtonsoft.Json;
 using System;
@@ -18,7 +17,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
             string providerName = null;
             if (input.SubproviderId.HasValue)
                 providerName = CacheManager.GetGameProviderById(input.SubproviderId.Value)?.Name;
-            if(string.IsNullOrEmpty( providerName))
+            if (string.IsNullOrEmpty(providerName))
                 providerName = input.GameProviderName;
             var subProvider = providers.FirstOrDefault(x => x.Name ==providerName);
             var parent = dbCategories.FirstOrDefault(y => y.Value == category.Value);
@@ -85,7 +84,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
             var subProvider = providerSubCategories.FirstOrDefault(x => x.ID == input.SubMerchantID || x.ID == input.MerchantID);
             int? subProviderId = subProvider != null ? providers.FirstOrDefault(p => p.Name.ToLower() == subProvider.Name.ToLower() ||
                                                                                      p.Name.ToLower().Replace(".", string.Empty).Replace(" ", string.Empty).Replace("gaming", string.Empty) ==
-                                                                                     subProvider.Name.ToLower().Replace("gaming", string.Empty) ||
+                                                                                     subProvider.Name.ToLower().Replace("gaming", string.Empty).Replace("games", string.Empty) ||
                                                                                      p.Name.ToLower().Replace("gaming", string.Empty) == subProvider.Name.ToLower()
                                                                                      )?.Id : null;
             var nickName = input.Name.en.Replace("\n", string.Empty);
@@ -231,7 +230,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
         public static fnProduct ToFnProduct(this Integration.Products.Models.BetSolutions.GameItem input,
               int gameProviderId, List<KeyValuePair<int, int?>> dbCategories, Dictionary<int, int> categoryList)
         {
-            var categ = categoryList.FirstOrDefault(x =>x.Key == input.ProductId);
+            var categ = categoryList.FirstOrDefault(x => x.Key == input.ProductId);
             var parent = dbCategories.FirstOrDefault(y => y.Value == categ.Value);
 
             return new fnProduct
@@ -246,7 +245,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 IsForMobile =input.HasMobileDeviceSupport,
                 HasDemo = true,
                 FreeSpinSupport = input.HasFreeplay,
-                WebImageUrl = input.Thumbnails.FirstOrDefault(x=>x.Lang== "en-US" && x.Width == 400)?.Url,
+                WebImageUrl = input.Thumbnails.FirstOrDefault(x => x.Lang== "en-US" && x.Width == 400)?.Url,
                 MobileImageUrl = input.Thumbnails.FirstOrDefault(x => x.Lang == "en-US" && x.Width == 400)?.Url
             };
         }
@@ -272,7 +271,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 nickName = nickName.Substring(0, 48);
             decimal rtp = 0m;
             if (!string.IsNullOrEmpty(input.DefaultRtp))
-                decimal.TryParse(input.DefaultRtp.EndsWith("%") ? input.DefaultRtp.Replace("%", string.Empty) : input.DefaultRtp , out rtp);
+                decimal.TryParse(input.DefaultRtp.EndsWith("%") ? input.DefaultRtp.Replace("%", string.Empty) : input.DefaultRtp, out rtp);
             if (rtp > 100)
                 rtp = 0m;
             return new fnProduct
@@ -338,7 +337,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 externalId = string.Format("{0},{1},{2}", input.Data.Slug, input.Data.Id, input.Data.GameCode);
             else
                 externalId = string.Format("{0},{1}", input.Data.Slug, input.Data.GameCode);
-            List<ProductCountrySetting> productCountrySettings = null; 
+            List<ProductCountrySetting> productCountrySettings = null;
             if (input.Data.RestrictedTerritories != null && input.Data.RestrictedTerritories.Any())
             {
                 var countryIds = countryCodes.Where(x => input.Data.RestrictedTerritories.Contains(x.Value)).Select(x => x.Key).ToList();
@@ -363,7 +362,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 IsForMobile = input.Data.Property.Terminal.Contains("iPhone")  || input.Data.Property.Terminal.Contains("Android"),
                 HasDemo = externalId.Contains("sport") || input.Data.PlayMode.Fun,
                 FreeSpinSupport = input.Data.Property.FreeSpin?.Support,
-                Lines = input.Data.Property.FreeSpin?.Lines?.Selections != null ?  
+                Lines = input.Data.Property.FreeSpin?.Lines?.Selections != null ?
                         JsonConvert.SerializeObject(input.Data.Property.FreeSpin?.Lines?.Selections) : null,
                 BetValues = input.Data.Property.FreeSpin?.BetValues?.Selections != null ?
                             JsonConvert.SerializeObject(input.Data.Property.FreeSpin?.BetValues?.Selections) : null,
@@ -376,7 +375,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
             };
         }
 
-        public static fnProduct ToFnProduct(this Integration.Products.Models.Mancala.GameItem input, int gameProviderId,  int categoryId)
+        public static fnProduct ToFnProduct(this Integration.Products.Models.Mancala.GameItem input, int gameProviderId, int categoryId)
         {
             var nickName = input.Title.Replace("\n", string.Empty);
             if (nickName.Length > 50)
@@ -437,7 +436,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                                                                                                                    .Replace("gaming", string.Empty))?.Id;
 
 
-           var nickName = input.GameTitle.Replace("\n", string.Empty);
+            var nickName = input.GameTitle.Replace("\n", string.Empty);
             if (nickName.Length > 50)
                 nickName = nickName.Substring(0, 48);
             return new fnProduct
@@ -451,7 +450,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 State = (int)ProductStates.Active,
                 IsForDesktop = input.Platforms.Contains("desktop"),
                 IsForMobile = input.Platforms.Contains("mobile"),
-                HasDemo = true, 
+                HasDemo = true,
                 FreeSpinSupport = true,
                 WebImageUrl = input.Thumbnail,
                 MobileImageUrl = input.Thumbnail,
@@ -603,19 +602,19 @@ namespace IqSoft.CP.AdminWebApi.Helpers
             };
         }
 
-        public static fnProduct ToFnProduct(this Integration.Products.Models.SoftSwiss.YamlItem input, int gameProviderId,List<KeyValuePair<int, int?>> dbCategories,
+        public static fnProduct ToFnProduct(this Integration.Products.Models.SoftSwiss.YamlItem input, int gameProviderId, List<KeyValuePair<int, int?>> dbCategories,
                                             Dictionary<string, int> categoryList, List<GameProvider> gameProviders)
         {
             var category = categoryList.FirstOrDefault(x => x.Key == input.Category);
             var parent = dbCategories.FirstOrDefault(y => y.Value == category.Value);
-            var subProvider = gameProviders.FirstOrDefault(y => y.Name.ToLower() == input.Producer || 
+            var subProvider = gameProviders.FirstOrDefault(y => y.Name.ToLower() == input.Producer ||
             y.Name.ToLower().Replace("gaming", string.Empty).Replace("direct", string.Empty).Replace("new", string.Empty)
                             .Replace(".", string.Empty).Replace("games", string.Empty).Replace("studios", string.Empty)
                             .Replace("atmosphera", "atmosfera").Replace("eagames", "eagaming")
                             .Replace("pragmaticplay", "pragmatic").Replace("absolutelivegaming", "alg")
                             .Replace("spearheadstudios", "spearhead").Replace("nolimitcity", "nolimit")
                             .Replace("rtcbingo", "bingo") == input.Producer.Replace("games", string.Empty).Replace("irondogstudio", "irondog")
-                            .Replace("bsg", "betsoft").Replace("gaming", string.Empty).Replace(" ", string.Empty).Replace("pragmaticplaylive", "pragmatic")) ?? 
+                            .Replace("bsg", "betsoft").Replace("gaming", string.Empty).Replace(" ", string.Empty).Replace("pragmaticplaylive", "pragmatic")) ??
                             gameProviders.FirstOrDefault(y => y.Name.ToLower()==input.Provider ||  y.Name.ToLower().Replace("gaming", string.Empty)
                             .Replace("direct", string.Empty).Replace("new", string.Empty)
                             .Replace(".", string.Empty).Replace("games", string.Empty).Replace("studios", string.Empty)
@@ -658,9 +657,38 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 IsForDesktop = true,
                 IsForMobile = true,
                 HasDemo = true,
-                FreeSpinSupport = input.Bonuses!= null && input.Bonuses.Contains("SPINS"),                
-                WebImageUrl = $"endorphina/web/{input.Description.Replace(" ",string.Empty)}.png",
+                FreeSpinSupport = input.Bonuses!= null && input.Bonuses.Contains("SPINS"),
+                WebImageUrl = $"endorphina/web/{input.Description.Replace(" ", string.Empty)}.png",
                 MobileImageUrl = $"endorphina/mob/{input.Description.Replace(" ", string.Empty)}.png"
+            };
+        }
+
+        public static fnProduct ToFnProduct(this Integration.Products.Models.RelaxGaming.GameItem input, int gameProviderId, List<KeyValuePair<int, int?>> dbCategories,
+                                    Dictionary<string, int> categoryList, List<GameProvider> gameProviders)
+        {
+            var category = categoryList.FirstOrDefault(x => x.Key == (input.Category ?? "slots"));
+            var parent = dbCategories.FirstOrDefault(y => y.Value == category.Value);
+            var subProvider = gameProviders.FirstOrDefault(y => y.Name.Replace(" ", string.Empty).ToLower() == input.Studio.Replace(" ", string.Empty).ToLower());
+            var nickName = input.Name;
+            if (nickName.Length > 50)
+                nickName = nickName.Substring(0, 48);
+            return new fnProduct
+            {
+                GameProviderId = gameProviderId,
+                SubproviderId = subProvider?.Id,
+                ParentId = parent.Equals(new KeyValuePair<int, int?>()) ? (int?)null : parent.Key,
+                NickName = nickName,
+                Name = nickName,
+                ExternalId = input.GameId,
+                State = (int)ProductStates.Active,
+                IsForDesktop = input.Channels.Contains("web"),
+                IsForMobile = input.Channels.Contains("mobile"),
+                HasDemo = true,
+                FreeSpinSupport = input.Freespins != null,
+                BetValues = input.Freespins == null || input.LegalBetSizes == null ? null :
+                            JsonConvert.SerializeObject(new Dictionary<string, List<int>> { { input.Currency, input.LegalBetSizes.ToList() } }),
+                WebImageUrl = $"relaxgaming/web/{input.Name.Replace(" ", string.Empty)}.png",
+                MobileImageUrl = $"relaxgaming/mob/{input.Name.Replace(" ", string.Empty)}.png"
             };
         }
 

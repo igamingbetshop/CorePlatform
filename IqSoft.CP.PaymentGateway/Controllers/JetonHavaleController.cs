@@ -16,6 +16,7 @@ using IqSoft.CP.Common.Enums;
 using System.ServiceModel;
 using IqSoft.CP.Common.Models.CacheModels;
 using System.Collections.Generic;
+using IqSoft.CP.PaymentGateway.Helpers;
 
 namespace IqSoft.CP.PaymentGateway.Controllers
 {
@@ -28,6 +29,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 		public HttpResponseMessage ApiRequest(PaymentInput input)
 		{
 			var response = string.Empty;
+			var userIds = new List<int>();
 			var httpResponseMessage = new HttpResponseMessage
 			{
 				StatusCode = HttpStatusCode.OK
@@ -55,9 +57,8 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 								{
 									if(input.Amount != paymentRequest.Amount)
 										paymentRequest.Amount = input.Amount;
-									clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false);
-
-								}
+									clientBl.ApproveDepositFromPaymentSystem(paymentRequest, false, out userIds);
+                                }
 								else if (input.Status == "REJECTED" || input.Status == "FAILED")
 									clientBl.ChangeDepositRequestState(paymentRequest.Id, PaymentRequestStates.Failed, null, notificationBl);
 							}
@@ -69,17 +70,21 @@ namespace IqSoft.CP.PaymentGateway.Controllers
 									if (input.Status == "CONFIRMED")
 									{
 										var resp = clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Approved, string.Empty,
-										 null, null, false, string.Empty, documentBll, notificationBl);
+										 null, null, false, string.Empty, documentBll, notificationBl, out userIds);
 										clientBl.PayWithdrawFromPaymentSystem(resp, documentBll, notificationBl);
 									}
 									else if (input.Status == "REJECTED" || input.Status == "FAILED")
 									{
 										clientBl.ChangeWithdrawRequestState(paymentRequest.Id, PaymentRequestStates.Failed,
-											string.Empty, null, null, false, string.Empty, documentBll, notificationBl);
+											string.Empty, null, null, false, string.Empty, documentBll, notificationBl, out userIds);
 									}
 								}
 							}
-							response = "OK";
+                            foreach (var uId in userIds)
+                            {
+                                PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                            }
+                            response = "OK";
 						}
 					}
 				}

@@ -146,7 +146,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             using (var paymentSystemBl = new PaymentSystemBll(identity, log))
             {
                 var paymentSettings =
-                    paymentSystemBl.GetfnPartnerPaymentSettings(filter.MapToFilterfnPartnerPaymentSetting(), true, identity.PartnerId);
+                    paymentSystemBl.GetfnPartnerPaymentSettings(filter.MapToFilterfnPartnerPaymentSetting(identity.TimeZone), true, identity.PartnerId);
                 return new ApiResponseBase
                 {
                     ResponseObject = paymentSettings.Select(x => x.MapTofnPartnerPaymentSettingModel(identity.TimeZone)).
@@ -331,7 +331,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var paymentSystemBl = new PaymentSystemBll(identity, log))
             {
-                var filter = request.MapToFilterfnPaymentRequest();
+                var filter = request.MapToFilterfnPaymentRequest(identity.TimeZone);
                 filter.WithPendings = null;
                 return new ApiResponseBase
                 {
@@ -366,6 +366,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         public static ApiResponseBase RejectPaymentRequest(ChangePaymentRequestState request, SessionIdentity identity, ILog log)
         {
             //checkPermission
+            var userIds = new List<int>();
             using (var paymentSystemBl = new PaymentSystemBll(identity, log))
             {
                 using (var clientBl = new ClientBll(paymentSystemBl))
@@ -389,13 +390,17 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                                     {
                                         case PayoutCancelationTypes.ExternallyWithCallback:
                                             clientBl.ChangeWithdrawRequestState(request.PaymentRequestId, PaymentRequestStates.CancelPending, request.Comment, request.CashDeskId,
-                                            null, true, r.Parameters, documentBl, notificationBl, request.SendEmail);
-                                            PaymentHelpers.CancelPayoutRequest(paymentSystem, r, identity, log);
+                                            null, true, r.Parameters, documentBl, notificationBl, out userIds, request.SendEmail);
+                                            userIds = PaymentHelpers.CancelPayoutRequest(paymentSystem, r, identity, log);
                                             break;
                                         default:
                                             clientBl.ChangeWithdrawRequestState(request.PaymentRequestId, PaymentRequestStates.CanceledByUser, request.Comment, request.CashDeskId,
-                                                                        null, true, r.Parameters, documentBl, notificationBl, request.SendEmail);
+                                                                        null, true, r.Parameters, documentBl, notificationBl, out userIds, request.SendEmail);
                                             break;
+                                    }
+                                    foreach (var uId in userIds)
+                                    {
+                                        Helpers.Helpers.InvokeMessage("NotificationsCount", uId);
                                     }
                                 }
                             }
@@ -425,11 +430,17 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     using (var notificationBl = new NotificationBll(paymentSystemBl))
                     {
                         var r = paymentSystemBl.GetPaymentRequestById(request.PaymentRequestId);
-                        if (r.Type ==(int)PaymentRequestTypes.Deposit || r.Type ==(int)PaymentRequestTypes.ManualDeposit)
+                        if (r.Type == (int)PaymentRequestTypes.Deposit || r.Type == (int)PaymentRequestTypes.ManualDeposit)
                             clientBl.ChangeDepositRequestState(request.PaymentRequestId,
                             PaymentRequestStates.InProcess, request.Comment, notificationBl);
                         else
-                            clientBl.ChangeWithdrawPaymentRequestState(request.PaymentRequestId, request.Comment, request.CashDeskId, null, PaymentRequestStates.InProcess);
+                        {
+                            var userIds = clientBl.ChangeWithdrawPaymentRequestState(request.PaymentRequestId, request.Comment, request.CashDeskId, null, PaymentRequestStates.InProcess);
+                            foreach (var uId in userIds)
+                            {
+                                Helpers.Helpers.InvokeMessage("NotificationsCount", uId);
+                            }
+                        }
                         return new ApiResponseBase();
                     }
                 }
@@ -445,11 +456,17 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     using (var notificationBl = new NotificationBll(paymentSystemBl))
                     {
                         var r = paymentSystemBl.GetPaymentRequestById(request.PaymentRequestId);
-                        if (r.Type ==(int)PaymentRequestTypes.Deposit || r.Type ==(int)PaymentRequestTypes.ManualDeposit)
+                        if (r.Type == (int)PaymentRequestTypes.Deposit || r.Type == (int)PaymentRequestTypes.ManualDeposit)
                             clientBl.ChangeDepositRequestState(request.PaymentRequestId,
                             PaymentRequestStates.Frozen, request.Comment, notificationBl);
                         else
-                            clientBl.ChangeWithdrawPaymentRequestState(request.PaymentRequestId, request.Comment, request.CashDeskId, null, PaymentRequestStates.Frozen);
+                        {
+                            var userIds = clientBl.ChangeWithdrawPaymentRequestState(request.PaymentRequestId, request.Comment, request.CashDeskId, null, PaymentRequestStates.Frozen);
+                            foreach (var uId in userIds)
+                            {
+                                Helpers.Helpers.InvokeMessage("NotificationsCount", uId);
+                            }
+                        }
                         return new ApiResponseBase();
                     }
                 }
@@ -465,11 +482,17 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     using (var notificationBl = new NotificationBll(paymentSystemBl))
                     {
                         var r = paymentSystemBl.GetPaymentRequestById(request.PaymentRequestId);
-                        if (r.Type ==(int)PaymentRequestTypes.Deposit || r.Type ==(int)PaymentRequestTypes.ManualDeposit)
+                        if (r.Type == (int)PaymentRequestTypes.Deposit || r.Type == (int)PaymentRequestTypes.ManualDeposit)
                             clientBl.ChangeDepositRequestState(request.PaymentRequestId,
                             PaymentRequestStates.WaitingForKYC, request.Comment, notificationBl);
                         else
-                            clientBl.ChangeWithdrawPaymentRequestState(request.PaymentRequestId, request.Comment, request.CashDeskId, null, PaymentRequestStates.WaitingForKYC);
+                        {
+                            var userIds = clientBl.ChangeWithdrawPaymentRequestState(request.PaymentRequestId, request.Comment, request.CashDeskId, null, PaymentRequestStates.WaitingForKYC);
+                            foreach (var uId in userIds)
+                            {
+                                Helpers.Helpers.InvokeMessage("NotificationsCount", uId);
+                            }
+                        }
                         return new ApiResponseBase();
                     }
                 }
@@ -493,7 +516,11 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                             else
                             {
                                 var resp = clientBl.ChangeWithdrawRequestState(request.PaymentRequestId, PaymentRequestStates.Confirmed,
-                                    request.Comment, request.CashDeskId, null, true, r.Parameters, documentBl, notificationBl, request.SendEmail);
+                                    request.Comment, request.CashDeskId, null, true, r.Parameters, documentBl, notificationBl, out List<int> userIds, request.SendEmail);
+                                foreach (var uId in userIds)
+                                {
+                                    Helpers.Helpers.InvokeMessage("NotificationsCount", uId);
+                                }
                                 var client = CacheManager.GetClientById(r.ClientId.Value);
                                 if (r.PaymentSystemId == Constants.BetShopPaymentSystemId && client.IsMobileNumberVerified)
                                 {
@@ -566,13 +593,18 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var clientBl = new ClientBll(identity, log))
             {
-                clientBl.SplitWithdrawalRequest(input.PaymentRequestId, input.Installments);
+                var userIds = clientBl.SplitWithdrawalRequest(input.PaymentRequestId, input.Installments);
+                foreach (var uId in userIds)
+                {
+                    Helpers.Helpers.InvokeMessage("NotificationsCount", uId);
+                }
                 return new ApiResponseBase();
             }
         }           
 
         private static ApiResponseBase PayPaymentRequest(ChangePaymentRequestState request, SessionIdentity identity, ILog log)
         {
+            var userIds = new List<int>();
             using (var paymentSystemBl = new PaymentSystemBll(identity, log))
             {
                 using (var clientBl = new ClientBll(paymentSystemBl))
@@ -594,12 +626,16 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                                 {
                                     r.ExternalTransactionId = r.Id.ToString();
                                     paymentSystemBl.ChangePaymentRequestDetails(r);
-                                    clientBl.ApproveDepositFromPaymentSystem(r, true, request.Comment);
+                                    clientBl.ApproveDepositFromPaymentSystem(r, true, out userIds, request.Comment);
                                 }
-                                else if(r.Type ==(int)PaymentRequestTypes.ManualDeposit)
-                                    clientBl.ApproveDepositFromPaymentSystem(r, true, request.Comment);
+                                else if (r.Type == (int)PaymentRequestTypes.ManualDeposit)
+                                {
+                                    clientBl.ApproveDepositFromPaymentSystem(r, true, out userIds, request.Comment);
+                                }
                                 else
-                                    clientBl.ApproveDepositFromPaymentSystem(r, true, !string.IsNullOrEmpty(request.Comment) ? request.Comment : "Manually Approved");
+                                {
+                                    clientBl.ApproveDepositFromPaymentSystem(r, true, out userIds, !string.IsNullOrEmpty(request.Comment) ? request.Comment : "Manually Approved");
+                                }
                                 //clientBl.ChangeDepositRequestState(r.Id, PaymentRequestStates.PayPanding, request.Comment, notificationBl, true);
                                 Helpers.Helpers.InvokeMessage("ClientDepositWithBonus", r.ClientId);
                                 return new ApiResponseBase();
@@ -616,7 +652,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                                 if (r.Status != (int)PaymentRequestStates.Confirmed)
                                     throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.CanNotChangePaymentRequestStatus);
 
-                                response = PaymentHelpers.SendPaymentWithdrawalsRequest(r, identity, log);
+                                response = PaymentHelpers.SendPaymentWithdrawalsRequest(r, identity, log, out userIds);
                                 if (response.Status == PaymentRequestStates.Approved)
                                     changeFromPaymentSystem = true;
                             }
@@ -628,19 +664,19 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                                 response.Status = PaymentRequestStates.ApprovedManually;
                             }
 
+                            var output = new ApiResponseBase();
                             if (response.Status == PaymentRequestStates.Approved || response.Status == PaymentRequestStates.ApprovedManually)
                             {
                                 var resp = clientBl.ChangeWithdrawRequestState(request.PaymentRequestId, response.Status, request.Comment, null, null, true, 
-                                                                               r.Parameters, documentBl, notificationBl, request.SendEmail, changeFromPaymentSystem);
+                                                                               r.Parameters, documentBl, notificationBl, out userIds, request.SendEmail, changeFromPaymentSystem);
                                 clientBl.PayWithdrawFromPaymentSystem(resp, documentBl, notificationBl);
                                 Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}", Constants.CacheItems.ClientBalance, resp.ClientId));
-                                return new ApiResponseBase();
                             }
                             else if (response.Status == PaymentRequestStates.PayPanding)
                             {
                                 clientBl.ChangeWithdrawRequestState(request.PaymentRequestId, PaymentRequestStates.PayPanding, request.Comment, null, null,  
-                                                                    true, r.Parameters, documentBl, notificationBl, request.SendEmail);
-                                return new ApiResponseBase
+                                                                    true, r.Parameters, documentBl, notificationBl, out userIds, request.SendEmail);
+                                output = new ApiResponseBase
                                 {
                                     ResponseCode = Constants.SuccessResponseCode,
                                     Description = response.Description
@@ -648,12 +684,17 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                             }
                             else
                             {
-                                return new ApiResponseBase
+                                output = new ApiResponseBase
                                 {
                                     ResponseCode = Constants.Errors.GeneralException,
                                     Description = response.Description
                                 };
                             }
+                            foreach (var uId in userIds)
+                            {
+                                Helpers.Helpers.InvokeMessage("NotificationsCount", uId);
+                            }
+                            return output;
                         }
                     }
                 }
@@ -675,11 +716,10 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var paymentSystemBl = new PaymentSystemBll(identity, log))
             {
-                var timeZone = paymentSystemBl.GetUserIdentity().TimeZone;
-                var filter = request.MapToFilterfnPaymentRequest();
-                var result = paymentSystemBl.ExportDepositPaymentRequests(filter).Select(x => x.MapToApiPaymentRequest(timeZone)).ToList();
+                var filter = request.MapToFilterfnPaymentRequest(identity.TimeZone);
+                var result = paymentSystemBl.ExportDepositPaymentRequests(filter).Select(x => x.MapToApiPaymentRequest(identity.TimeZone)).ToList();
                 string fileName = "ExportDepositPaymentRequests.csv";
-                string fileAbsPath = paymentSystemBl.ExportToCSV<ApiPaymentRequest>(fileName, result, request.FromDate, request.ToDate, timeZone, request.AdminMenuId);
+                string fileAbsPath = paymentSystemBl.ExportToCSV<ApiPaymentRequest>(fileName, result, request.FromDate, request.ToDate, identity.TimeZone, request.AdminMenuId);
 
                 return new ApiResponseBase
                 {
@@ -707,7 +747,12 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                             try
                             {
                                 clientBl.ChangeWithdrawRequestState(request.PaymentRequestId, PaymentRequestStates.CanceledByClient, request.Comment,
-                                     request.CashDeskId, null, true, request.Parameters, documentBl, notificationBl, request.SendEmail);
+                                     request.CashDeskId, null, true, request.Parameters, documentBl, notificationBl, out List<int> userIds, request.SendEmail);
+
+                                foreach (var uId in userIds)
+                                {
+                                    Helpers.Helpers.InvokeMessage("NotificationsCount", uId);
+                                }
                                 //PaymentHelpers.CancelWithdrawalRequest(r, identity, log);
                             }
                             catch { throw; }
@@ -728,11 +773,10 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var paymentSystemBl = new PaymentSystemBll(identity, log))
             {
-                var timeZone = paymentSystemBl.GetUserIdentity().TimeZone;
-                var filter = request.MapToFilterfnPaymentRequest();
-                var result = paymentSystemBl.ExportWithdrawalPaymentRequests(filter).Select(x => x.MapToApiPaymentRequest(timeZone)).ToList();
+                var filter = request.MapToFilterfnPaymentRequest(identity.TimeZone);
+                var result = paymentSystemBl.ExportWithdrawalPaymentRequests(filter).Select(x => x.MapToApiPaymentRequest(identity.TimeZone)).ToList();
                 string fileName = "ExportWithdrawalPaymentRequests.csv";
-                string fileAbsPath = paymentSystemBl.ExportToCSV<ApiPaymentRequest>(fileName, result, request.FromDate, request.ToDate, timeZone, request.AdminMenuId);
+                string fileAbsPath = paymentSystemBl.ExportToCSV<ApiPaymentRequest>(fileName, result, request.FromDate, request.ToDate, identity.TimeZone, request.AdminMenuId);
 
                 var response = new ApiResponseBase
                 {
@@ -790,7 +834,11 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 paymentSystemBl.ChangePaymentRequestDetails(request);
                 using (var clientBl = new ClientBll(identity, log))
                 {
-                    clientBl.ApproveDepositFromPaymentSystem(request, false);
+                    clientBl.ApproveDepositFromPaymentSystem(request, false, out List<int> userIds);
+                    foreach (var uId in userIds)
+                    {
+                        Helpers.Helpers.InvokeMessage("NotificationsCount", uId);
+                    }
                     Helpers.Helpers.InvokeMessage("ClientDepositWithBonus", request.ClientId);
                 }
                 var response = new ApiResponseBase();
@@ -826,11 +874,15 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     Type = paymentFormRequest.Type
                 };
                 var result = new PaymentRequest();
-
+                var userIds = new List<int>();
                 if (paymentFormRequest.Type == (int)PaymentRequestTypes.Deposit)
-                    result = clientBl.UploadPaymentForm(paymentRequest, paymentFormRequest.PaymentForm, paymentFormRequest.ImageName);
+                    result = clientBl.UploadPaymentForm(paymentRequest, paymentFormRequest.PaymentForm, paymentFormRequest.ImageName, out userIds);
                 else if (paymentFormRequest.Type == (int)PaymentRequestTypes.Withdraw)
-                    result = clientBl.UploadPaymentForm(paymentRequest, string.Empty, string.Empty);
+                    result = clientBl.UploadPaymentForm(paymentRequest, string.Empty, string.Empty, out userIds);
+                foreach (var uId in userIds)
+                {
+                    Helpers.Helpers.InvokeMessage("NotificationsCount", uId);
+                }
                 Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}", Constants.CacheItems.ClientBalance, client.Id));
                 Helpers.Helpers.InvokeMessage("PaymentRequst", result.Id);
                 using (var paymentSystemBl = new PaymentSystemBll(identity, log))

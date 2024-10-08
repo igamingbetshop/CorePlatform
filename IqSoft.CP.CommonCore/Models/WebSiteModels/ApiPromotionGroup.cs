@@ -13,6 +13,7 @@ namespace IqSoft.CP.CommonCore.Models.WebSiteModels
         public string Title { get; set; }
         public string ImageName { get; set; }
         public int Order { get; set; }
+        public string Type { get; set; }
         public string StyleType { get; set; }
         public List<ApiPromotion> Promotions { get; set; }
     }

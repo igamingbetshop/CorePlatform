@@ -66,7 +66,11 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                     ClientId = request.ClientId.Value,
                                     AccountNickName = Constants.PaymentSystems.EasyPayCard
                                 });
-                                clientBl.ApproveDepositFromPaymentSystem(request, false, string.Empty, pInfo);
+                                clientBl.ApproveDepositFromPaymentSystem(request, false, out List<int> userIds, string.Empty, pInfo);
+                                foreach (var uId in userIds)
+                                {
+                                    PaymentHelpers.InvokeMessage("NotificationsCount", uId);
+                                }
                                 PaymentHelpers.RemoveClientBalanceFromCache(request.ClientId.Value);
                                 BaseHelpers.BroadcastBalance(request.ClientId.Value);
                             }
@@ -116,6 +120,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                             try
                             {
                                 BaseBll.CheckIp(WhitelistedIps);
+                                var userIds = new List<int>();
                                 var inputString = input.Content.ReadAsStringAsync();
                                 var serializer = new XmlSerializer(typeof(payfrexresponse), new XmlRootAttribute("payfrex-response"));
                                 var inputObjcet = (payfrexresponse)serializer.Deserialize(new StringReader(inputString.Result));
@@ -133,7 +138,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                     (!string.IsNullOrEmpty(inputObjcet.operations.operation.status) && inputObjcet.operations.operation.status.ToUpper() == "SUCCESS"))
                                 {
                                     var resp = clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Approved, string.Empty,
-                                               null, null, false, string.Empty, documentBl, notificationBl);
+                                               null, null, false, string.Empty, documentBl, notificationBl, out userIds);
                                     clientBl.PayWithdrawFromPaymentSystem(resp, documentBl, notificationBl);
                                 }
                                 else if ((!string.IsNullOrEmpty(inputObjcet.status) && (inputObjcet.status.ToUpper() == "FAIL" || inputObjcet.status.ToUpper() == "ERROR")) ||
@@ -141,7 +146,11 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                                          (inputObjcet.operations.operation.status.ToUpper() == "FAIL" || inputObjcet.operations.operation.status.ToUpper() == "ERROR")))
                                 {
                                     clientBl.ChangeWithdrawRequestState(request.Id, PaymentRequestStates.Failed, 
-                                        inputObjcet.operations.operation.message, null, null, false, string.Empty, documentBl, notificationBl);
+                                        inputObjcet.operations.operation.message, null, null, false, string.Empty, documentBl, notificationBl, out userIds);
+                                }
+                                foreach (var uId in userIds)
+                                {
+                                    PaymentHelpers.InvokeMessage("NotificationsCount", uId);
                                 }
                                 PaymentHelpers.RemoveClientBalanceFromCache(request.ClientId.Value);
                                 BaseHelpers.BroadcastBalance(request.ClientId.Value);
