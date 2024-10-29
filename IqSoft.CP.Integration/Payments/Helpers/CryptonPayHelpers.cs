@@ -19,7 +19,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 throw BaseBll.CreateException(session.LanguageId, Constants.Errors.EmailOrMobileMustBeFilled);
 
             var paymentGatewayUrl = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.PaymentGateway).StringValue;
-            var resourcesUrlKey = "http://10.50.17.10:10000/"; // CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.ResourcesUrl);
+            var resourcesUrlKey = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.ResourcesUrl);
             var paymentInfo = JsonConvert.DeserializeObject<PaymentInfo>(!string.IsNullOrEmpty(input.Info) ? input.Info : "{}");
             if (string.IsNullOrEmpty(paymentInfo.Country) || string.IsNullOrEmpty(paymentInfo.City))
                 throw BaseBll.CreateException(session.LanguageId, Constants.Errors.RegionNotFound);
@@ -33,9 +33,9 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 input.Amount,
                 Currency = input.CurrencyId,
                 BillingAddress = client.Address?.Trim(),
-                HolderName = string.Format("{0} {1}", client.FirstName, client.LastName),
-                PartnerDomain = "10.50.17.10:10000", // session.Domain,
-                ResourcesUrl = resourcesUrlKey, //(resourcesUrlKey == null || resourcesUrlKey.Id == 0 ? ("https://resources." + session.Domain) : resourcesUrlKey.StringValue),
+                HolderName = $"{client.FirstName} {client.LastName}",
+                PartnerDomain =  session.Domain,
+                ResourcesUrl = (resourcesUrlKey == null || resourcesUrlKey.Id == 0 ? ("https://resources." + session.Domain) : resourcesUrlKey.StringValue),
                 session.LanguageId,
                 CountryCode = paymentInfo.Country,
                 ZipCode = client.ZipCode?.Trim(),

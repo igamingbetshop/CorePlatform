@@ -6,7 +6,7 @@ by editing this MSBuild file. In order to learn more about this please visit htt
 <Project>
   <PropertyGroup>
     <_PublishTargetUrl>C:\inetpub\wwwroot\CP\PaymentGateway</_PublishTargetUrl>
-    <History>True|2024-10-04T09:47:38.9919012Z||;True|2024-10-03T14:31:44.6431774+04:00||;True|2024-10-02T17:12:24.9947745+04:00||;True|2024-10-01T17:07:36.0066885+04:00||;True|2024-09-29T00:57:05.9237739+04:00||;True|2024-09-19T13:12:33.1143624+04:00||;True|2024-09-04T16:26:55.2447470+04:00||;True|2024-08-30T15:21:55.7803346+04:00||;True|2024-08-29T18:34:48.0111189+04:00||;True|2024-08-26T14:06:52.9539651+04:00||;True|2024-08-21T20:02:26.1298511+04:00||;True|2024-08-19T10:54:53.1114438+04:00||;True|2024-08-19T10:54:35.9062256+04:00||;True|2024-08-14T17:31:17.2168899+04:00||;True|2024-08-01T14:27:04.8078202+04:00||;True|2024-07-26T12:31:34.7432076+04:00||;True|2024-07-22T14:31:48.0067374+04:00||;True|2024-07-09T16:37:19.4019500+04:00||;True|2024-07-09T16:36:10.1517916+04:00||;True|2024-07-05T12:11:31.4269504+04:00||;True|2024-07-04T20:35:50.9372874+04:00||;True|2024-07-04T20:35:18.4050622+04:00||;True|2024-07-04T20:34:39.1634784+04:00||;True|2024-07-04T15:01:56.5079412+04:00||;True|2024-07-04T15:00:57.2916956+04:00||;True|2024-06-28T12:56:35.5216574+04:00||;True|2024-06-24T13:23:30.1573609+04:00||;True|2024-06-17T18:12:15.6332747+04:00||;True|2024-06-17T18:10:08.4904063+04:00||;True|2024-06-17T18:05:15.8939584+04:00||;True|2024-06-17T18:02:36.0002336+04:00||;True|2024-06-17T17:58:39.1078078+04:00||;True|2024-06-17T17:32:45.1628459+04:00||;True|2024-06-17T17:27:19.0373460+04:00||;True|2024-06-17T17:26:41.9491542+04:00||;True|2024-06-16T19:59:08.2525872+04:00||;True|2024-06-14T18:28:34.5909575+04:00||;True|2024-06-10T13:39:29.8631994+04:00||;True|2024-06-07T18:32:27.3992195+04:00||;True|2024-06-07T14:52:52.1299818+04:00||;True|2024-05-31T15:35:18.9828163+04:00||;True|2024-05-31T15:35:06.1201825+04:00||;True|2024-05-23T14:38:47.7257395+04:00||;True|2024-05-17T17:35:33.1446997+04:00||;True|2024-05-17T17:34:51.8029232+04:00||;True|2024-05-13T11:09:52.1492076+04:00||;True|2024-04-24T17:40:41.5745184+04:00||;True|2024-04-12T13:29:30.8093754+04:00||;True|2024-04-08T14:04:40.9777351+04:00||;True|2024-04-08T13:18:12.9067722+04:00||;True|2024-04-04T18:12:47.4824482+04:00||;True|2024-01-27T15:37:17.4140380+04:00||;True|2024-01-25T15:19:35.9178954+04:00||;True|2024-01-23T19:40:24.9203149+04:00||;</History>
+    <History>True|2024-10-25T09:35:45.9236002Z||;True|2024-10-23T17:10:03.4535593+04:00||;True|2024-10-22T20:47:56.4643474+04:00||;True|2024-10-11T20:47:58.8241327+04:00||;True|2024-10-11T12:02:10.7032911+04:00||;True|2024-10-08T16:53:48.7423172+04:00||;True|2024-10-04T13:47:38.9919012+04:00||;True|2024-10-03T14:31:44.6431774+04:00||;True|2024-10-02T17:12:24.9947745+04:00||;True|2024-10-01T17:07:36.0066885+04:00||;True|2024-09-29T00:57:05.9237739+04:00||;True|2024-09-19T13:12:33.1143624+04:00||;True|2024-09-04T16:26:55.2447470+04:00||;True|2024-08-30T15:21:55.7803346+04:00||;True|2024-08-29T18:34:48.0111189+04:00||;True|2024-08-26T14:06:52.9539651+04:00||;True|2024-08-21T20:02:26.1298511+04:00||;True|2024-08-19T10:54:53.1114438+04:00||;True|2024-08-19T10:54:35.9062256+04:00||;True|2024-08-14T17:31:17.2168899+04:00||;True|2024-08-01T14:27:04.8078202+04:00||;True|2024-07-26T12:31:34.7432076+04:00||;True|2024-07-22T14:31:48.0067374+04:00||;True|2024-07-09T16:37:19.4019500+04:00||;True|2024-07-09T16:36:10.1517916+04:00||;True|2024-07-05T12:11:31.4269504+04:00||;True|2024-07-04T20:35:50.9372874+04:00||;True|2024-07-04T20:35:18.4050622+04:00||;True|2024-07-04T20:34:39.1634784+04:00||;True|2024-07-04T15:01:56.5079412+04:00||;True|2024-07-04T15:00:57.2916956+04:00||;True|2024-06-28T12:56:35.5216574+04:00||;True|2024-06-24T13:23:30.1573609+04:00||;True|2024-06-17T18:12:15.6332747+04:00||;True|2024-06-17T18:10:08.4904063+04:00||;True|2024-06-17T18:05:15.8939584+04:00||;True|2024-06-17T18:02:36.0002336+04:00||;True|2024-06-17T17:58:39.1078078+04:00||;True|2024-06-17T17:32:45.1628459+04:00||;True|2024-06-17T17:27:19.0373460+04:00||;True|2024-06-17T17:26:41.9491542+04:00||;True|2024-06-16T19:59:08.2525872+04:00||;True|2024-06-14T18:28:34.5909575+04:00||;True|2024-06-10T13:39:29.8631994+04:00||;True|2024-06-07T18:32:27.3992195+04:00||;True|2024-06-07T14:52:52.1299818+04:00||;True|2024-05-31T15:35:18.9828163+04:00||;True|2024-05-31T15:35:06.1201825+04:00||;True|2024-05-23T14:38:47.7257395+04:00||;True|2024-05-17T17:35:33.1446997+04:00||;True|2024-05-17T17:34:51.8029232+04:00||;True|2024-05-13T11:09:52.1492076+04:00||;True|2024-04-24T17:40:41.5745184+04:00||;True|2024-04-12T13:29:30.8093754+04:00||;True|2024-04-08T14:04:40.9777351+04:00||;True|2024-04-08T13:18:12.9067722+04:00||;True|2024-04-04T18:12:47.4824482+04:00||;True|2024-01-27T15:37:17.4140380+04:00||;True|2024-01-25T15:19:35.9178954+04:00||;True|2024-01-23T19:40:24.9203149+04:00||;</History>
     <LastFailureDetails />
   </PropertyGroup>
   <ItemGroup>
@@ -52,6 +52,12 @@ by editing this MSBuild file. In order to learn more about this please visit htt
     <File Include="bin/GraphQLParser.dll">
       <publishTime>06/09/2024 16:38:27</publishTime>
     </File>
+    <File Include="bin/HtmlRenderer.dll">
+      <publishTime>10/23/2024 16:31:43</publishTime>
+    </File>
+    <File Include="bin/HtmlRenderer.pdb">
+      <publishTime>10/23/2024 16:31:43</publishTime>
+    </File>
     <File Include="bin/HtmlRenderer.PdfSharp.dll">
       <publishTime>09/17/2024 17:18:50</publishTime>
     </File>
@@ -59,55 +65,55 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>09/17/2024 17:18:50</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.BLL.dll">
-      <publishTime>10/04/2024 13:43:22</publishTime>
+      <publishTime>10/25/2024 13:32:53</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.BLL.dll.config">
       <publishTime>06/09/2024 16:37:08</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.BLL.pdb">
-      <publishTime>10/04/2024 13:43:22</publishTime>
+      <publishTime>10/25/2024 13:32:53</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Common.dll">
-      <publishTime>10/04/2024 13:43:04</publishTime>
+      <publishTime>10/24/2024 20:12:32</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Common.dll.config">
       <publishTime>06/09/2024 16:37:09</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Common.pdb">
-      <publishTime>10/04/2024 13:43:04</publishTime>
+      <publishTime>10/24/2024 20:12:32</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DAL.dll">
-      <publishTime>10/04/2024 13:43:14</publishTime>
+      <publishTime>10/24/2024 20:12:40</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DAL.dll.config">
-      <publishTime>08/14/2024 16:31:54</publishTime>
+      <publishTime>10/16/2024 19:26:17</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DAL.pdb">
-      <publishTime>10/04/2024 13:43:14</publishTime>
+      <publishTime>10/24/2024 20:12:40</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DataWarehouse.dll">
-      <publishTime>10/04/2024 13:43:06</publishTime>
+      <publishTime>10/24/2024 20:12:36</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DataWarehouse.dll.config">
-      <publishTime>09/12/2024 19:17:47</publishTime>
+      <publishTime>10/24/2024 19:06:32</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DataWarehouse.pdb">
-      <publishTime>10/04/2024 13:43:06</publishTime>
+      <publishTime>10/24/2024 20:12:36</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Integration.dll">
-      <publishTime>10/04/2024 13:43:33</publishTime>
+      <publishTime>10/25/2024 13:32:57</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Integration.dll.config">
       <publishTime>06/09/2024 16:37:37</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Integration.pdb">
-      <publishTime>10/04/2024 13:43:33</publishTime>
+      <publishTime>10/25/2024 13:32:57</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.PaymentGateway.dll">
-      <publishTime>10/04/2024 13:43:44</publishTime>
+      <publishTime>10/25/2024 13:35:45</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.PaymentGateway.pdb">
-      <publishTime>10/04/2024 13:43:44</publishTime>
+      <publishTime>10/25/2024 13:35:45</publishTime>
     </File>
     <File Include="bin/jose-jwt.dll">
       <publishTime>06/09/2024 16:38:27</publishTime>
@@ -281,7 +287,7 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>06/09/2024 16:37:58</publishTime>
     </File>
     <File Include="Web.config">
-      <publishTime>10/04/2024 13:47:38</publishTime>
+      <publishTime>10/25/2024 13:35:45</publishTime>
     </File>
   </ItemGroup>
 </Project>

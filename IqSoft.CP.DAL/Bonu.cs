@@ -72,6 +72,7 @@ namespace IqSoft.CP.DAL
         public Nullable<int> DayOfWeek { get; set; }
         public Nullable<int> ReusingMaxCountInPeriod { get; set; }
         public string Color { get; set; }
+        public Nullable<int> WageringSource { get; set; }
     
         public virtual AccountType AccountType { get; set; }
         public virtual AccountType AccountType1 { get; set; }

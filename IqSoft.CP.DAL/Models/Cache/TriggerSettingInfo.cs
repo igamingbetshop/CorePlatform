@@ -1,4 +1,5 @@
-﻿using System;
+﻿using IqSoft.CP.Common.Models.CacheModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -30,7 +31,7 @@ namespace IqSoft.CP.DAL.Models.Cache
         public int? DayOfWeek { get; set; }
         public decimal? UpToAmount { get; set; }
         public bool? ConsiderBonusBets { get; set; }
-        public List<int> PaymentSystemIds { get; set; }
+        public BllSetting PaymentSystems { get; set; }
         public List<TriggerProductInfo> ProductSettings { get; set; }
     }
 }

@@ -2028,12 +2028,10 @@ namespace IqSoft.CP.JobService
                                 if (!parameters.ContainsKey(nameof(trigger.PaymentRequest.BonusRefused)) ||
                                     !Convert.ToBoolean(parameters[nameof(trigger.PaymentRequest.BonusRefused)]))
                                 {
-                                    log.Info("CheckDepositBonus");
                                     clientBl.CheckDepositBonus(trigger.PaymentRequest, bonusService);
                                 }
                                 clientBl.ChangeClientDepositInfo(trigger.ClientId, depCount, trigger.PaymentRequest.Amount, trigger.PaymentRequest.LastUpdateTime);
                                 clientBl.AddClientJobTrigger(trigger.ClientId, (int)JobTriggerTypes.ReconsiderSegments);
-
 
                                 notificationBl.SendDepositNotification(client.Id, trigger.PaymentRequest.Status, trigger.Amount ?? 0, string.Empty);
 

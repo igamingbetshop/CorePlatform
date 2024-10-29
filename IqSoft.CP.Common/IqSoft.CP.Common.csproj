@@ -130,6 +130,7 @@
     <Compile Include="Enums\PayoutCancelationTypes.cs" />
     <Compile Include="Enums\PopupTypes.cs" />
     <Compile Include="Enums\ProductCountrySettingTypes.cs" />
+    <Compile Include="Enums\ProviderTypes.cs" />
     <Compile Include="Enums\ReferralTypes.cs" />
     <Compile Include="Enums\RegistrationMessageTypes.cs" />
     <Compile Include="Enums\SegmentStates.cs" />
@@ -143,6 +144,7 @@
     <Compile Include="Enums\VerificationStates.cs" />
     <Compile Include="Enums\VerificationStatuses.cs" />
     <Compile Include="Enums\VolatilityTypes.cs" />
+    <Compile Include="Enums\WageringSources.cs" />
     <Compile Include="Enums\WinDisplayTypes.cs" />
     <Compile Include="Enums\MessageTemplateStates.cs" />
     <Compile Include="Models\AdminModels\ApiAdminClientSetting.cs" />

@@ -692,6 +692,31 @@ namespace IqSoft.CP.AdminWebApi.Helpers
             };
         }
 
+        public static fnProduct ToFnProduct(this Integration.Products.Models.Pixmove.GameItem input, int gameProviderId, List<KeyValuePair<int, int?>> dbCategories,
+                                    Dictionary<string, int> categoryList)
+        {
+            var category = categoryList.FirstOrDefault(x => x.Key == input.Category);
+            var parent = dbCategories.FirstOrDefault(y => y.Value == category.Value);
+            var nickName = input.Title;
+            if (nickName.Length > 50)
+                nickName = nickName.Substring(0, 48);
+            return new fnProduct
+            {
+                GameProviderId = gameProviderId,
+                SubproviderId = gameProviderId,
+                ParentId = parent.Equals(new KeyValuePair<int, int?>()) ? (int?)null : parent.Key,
+                NickName = nickName,
+                Name = nickName,
+                ExternalId = input.Id,
+                State = (int)ProductStates.Active,
+                IsForDesktop = true,
+                IsForMobile = true,
+                HasDemo = true,
+                WebImageUrl = input.Icon,
+                MobileImageUrl = input.Icon
+            };
+        }
+
         public static fnProduct ToFnProduct(this Integration.Products.Models.Elite.Game input, int gameProviderId,
                                          List<KeyValuePair<int, int?>> dbCategories, Dictionary<string, int> categoryList, List<GameProvider> providers)
         {

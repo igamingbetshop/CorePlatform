@@ -63,6 +63,7 @@ namespace IqSoft.CP.AdminWebApi.ClientModels.Models
         public string AffiliateReferralId { get; set; }
         public string AffiliateId { get; set; }
         public int? AffiliatePlatformId { get; set; }
+        public int? CharacterLevel { get; set; }
         public DateTime? LastDepositDate { get; set; }
         public DateTime LastUpdateTime { get; set; }
         public DateTime CreationTime { get; set; }

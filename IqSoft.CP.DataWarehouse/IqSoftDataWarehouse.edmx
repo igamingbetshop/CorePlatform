@@ -333,9 +333,11 @@
           <Property Name="TotalWithdrawalCount" Type="int" Nullable="false" />
           <Property Name="TotalBetAmount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
           <Property Name="TotalBetCount" Type="int" Nullable="false" />
+          <Property Name="SportBetAmount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
           <Property Name="SportBetCount" Type="int" Nullable="false" />
           <Property Name="TotalWinAmount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
           <Property Name="TotalWinCount" Type="int" Nullable="false" />
+          <Property Name="SportWinCount" Type="int" Nullable="false" />
           <Property Name="GGR" Type="decimal" Precision="18" Scale="4" Nullable="false" />
           <Property Name="TotalDebitCorrectionAmount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
           <Property Name="TotalDebitCorrectionCount" Type="int" Nullable="false" />
@@ -738,10 +740,12 @@
                 <Property Name="BetAmount" Type="decimal" Precision="38" Scale="4" />
                 <Property Name="BonusBetAmount" Type="decimal" Precision="38" Scale="4" />
                 <Property Name="TotalBetsCount" Type="int" />
+                <Property Name="SportBetAmount" Type="decimal" Precision="38" Scale="4" />
                 <Property Name="SportBetsCount" Type="int" />
                 <Property Name="WinAmount" Type="decimal" Precision="38" Scale="4" />
                 <Property Name="BonusWinAmount" Type="decimal" Precision="38" Scale="4" />
                 <Property Name="WinCount" Type="int" />
+                <Property Name="SportWinCount" Type="int" />
               </RowType>
             </CollectionType>
           </ReturnType>
@@ -749,36 +753,36 @@
         <Function Name="fn_ClientReport" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
           <Parameter Name="FromDate" Type="bigint" Mode="In" />
           <Parameter Name="ToDate" Type="bigint" Mode="In" />
+          <Parameter Name="CurrencyId" Type="varchar" Mode="In" />
           <ReturnType>
             <CollectionType>
               <RowType>
+                <Property Name="PartnerId" Type="int" Nullable="false" />
                 <Property Name="ClientId" Type="int" Nullable="false" />
                 <Property Name="UserName" Type="varchar" MaxLength="50" Nullable="false" />
-                <Property Name="PartnerId" Type="int" Nullable="false" />
-                <Property Name="CurrencyId" Type="varchar" MaxLength="5" Nullable="false" />
-                <Property Name="CurrentRate" Type="decimal" Precision="18" Scale="12" Nullable="false" />
                 <Property Name="FirstName" Type="nvarchar" MaxLength="255" />
                 <Property Name="LastName" Type="nvarchar" MaxLength="255" />
                 <Property Name="Email" Type="nvarchar" MaxLength="50" Nullable="false" />
+                <Property Name="CurrencyId" Type="varchar" MaxLength="5" Nullable="false" />
                 <Property Name="AffiliatePlatformId" Type="int" />
                 <Property Name="AffiliateId" Type="varchar" MaxLength="50" />
                 <Property Name="AffiliateReferralId" Type="varchar" MaxLength="50" />
-                <Property Name="TotalWithdrawalAmount" Type="decimal" Precision="38" Scale="4" />
+                <Property Name="TotalWithdrawalAmount" Type="decimal" Precision="38" Scale="6" />
                 <Property Name="WithdrawalsCount" Type="int" />
-                <Property Name="TotalDepositAmount" Type="decimal" Precision="38" Scale="4" />
+                <Property Name="TotalDepositAmount" Type="decimal" Precision="38" Scale="6" />
                 <Property Name="DepositsCount" Type="int" />
-                <Property Name="TotalBetAmount" Type="decimal" Precision="38" Scale="4" />
+                <Property Name="TotalBetAmount" Type="decimal" Precision="38" Scale="6" />
                 <Property Name="TotalBetsCount" Type="int" />
                 <Property Name="SportBetsCount" Type="int" />
-                <Property Name="TotalWinAmount" Type="decimal" Precision="38" Scale="4" />
+                <Property Name="TotalWinAmount" Type="decimal" Precision="38" Scale="6" />
                 <Property Name="WinsCount" Type="int" />
-                <Property Name="GGR" Type="decimal" Precision="38" Scale="4" />
-                <Property Name="NGR" Type="decimal" Precision="38" Scale="4" />
-                <Property Name="TotalDebitCorrection" Type="decimal" Precision="38" Scale="4" />
+                <Property Name="GGR" Type="decimal" Precision="38" Scale="6" />
+                <Property Name="NGR" Type="decimal" Precision="38" Scale="6" />
+                <Property Name="TotalDebitCorrection" Type="decimal" Precision="38" Scale="6" />
                 <Property Name="DebitCorrectionsCount" Type="int" />
-                <Property Name="TotalCreditCorrection" Type="decimal" Precision="38" Scale="4" />
+                <Property Name="TotalCreditCorrection" Type="decimal" Precision="38" Scale="6" />
                 <Property Name="CreditCorrectionsCount" Type="int" />
-                <Property Name="TotalBonusAmount" Type="decimal" Precision="38" Scale="4" />
+                <Property Name="TotalBonusAmount" Type="decimal" Precision="38" Scale="6" />
                 <Property Name="ComplementaryBalance" Type="decimal" Precision="18" Scale="4" />
               </RowType>
             </CollectionType>
@@ -1092,6 +1096,25 @@
             </CollectionType>
           </ReturnType>
         </Function>
+        <Function Name="fn_ReportByUserCorrection" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+          <Parameter Name="UserType" Type="int" Mode="In" />
+          <Parameter Name="CurrencyId" Type="char" Mode="In" />
+          <Parameter Name="FromDate" Type="bigint" Mode="In" />
+          <Parameter Name="ToDate" Type="bigint" Mode="In" />
+          <Parameter Name="ParentId" Type="int" Mode="In" />
+          <ReturnType>
+            <CollectionType>
+              <RowType>
+                <Property Name="UserId" Type="int" Nullable="false" />
+                <Property Name="UserName" Type="varchar" MaxLength="50" Nullable="false" />
+                <Property Name="PartnerId" Type="int" Nullable="false" />
+                <Property Name="TotalDebit" Type="decimal" Precision="38" Scale="6" />
+                <Property Name="TotalCredit" Type="decimal" Precision="38" Scale="6" />
+                <Property Name="Balance" Type="numeric" Precision="38" Scale="6" />
+              </RowType>
+            </CollectionType>
+          </ReturnType>
+        </Function>
         <Function Name="sp_InsertDocuments" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
           <Parameter Name="minDate" Type="datetime2" Mode="In" />
           <Parameter Name="existings" Type="varchar(max)" Mode="In" />
@@ -1261,15 +1284,6 @@
             <End Role="DuplicatedClientHistory" EntitySet="DuplicatedClientHistories" />
           </AssociationSet>
           <EntitySet Name="Opt_Document_Considered" EntityType="DataWarehouseModel.Opt_Document_Considered" />
-          <FunctionImport Name="fn_ClientBets" IsComposable="true" ReturnType="Collection(DataWarehouseModel.fnClientBets)">
-            <Parameter Name="FromDate" Mode="In" Type="Int64" />
-            <Parameter Name="ToDate" Mode="In" Type="Int64" />
-          </FunctionImport>
-          <EntitySet Name="Gtd_Client_Info" EntityType="DataWarehouseModel.Gtd_Client_Info" />
-          <FunctionImport Name="fn_ClientReport" IsComposable="true" ReturnType="Collection(DataWarehouseModel.fnClientReport)">
-            <Parameter Name="FromDate" Mode="In" Type="Int64" />
-            <Parameter Name="ToDate" Mode="In" Type="Int64" />
-          </FunctionImport>
           <FunctionImport Name="fn_DuplicateClient" IsComposable="true" ReturnType="Collection(DataWarehouseModel.fnDuplicateClient)">
           <Parameter Name="ClientId" Mode="In" Type="Int32" />
           </FunctionImport>
@@ -1292,6 +1306,23 @@
           <FunctionImport Name="sp_InsertDocuments">
             <Parameter Name="minDate" Mode="In" Type="DateTime" />
             <Parameter Name="existings" Mode="In" Type="String" />
+          </FunctionImport>
+          <EntitySet Name="Gtd_Client_Info" EntityType="DataWarehouseModel.Gtd_Client_Info" />
+          <FunctionImport Name="fn_ClientBets" IsComposable="true" ReturnType="Collection(DataWarehouseModel.fnClientBets)">
+            <Parameter Name="FromDate" Mode="In" Type="Int64" />
+            <Parameter Name="ToDate" Mode="In" Type="Int64" />
+          </FunctionImport>
+          <FunctionImport Name="fn_ClientReport" IsComposable="true" ReturnType="Collection(DataWarehouseModel.fnClientReport)">
+            <Parameter Name="FromDate" Mode="In" Type="Int64" />
+            <Parameter Name="ToDate" Mode="In" Type="Int64" />
+            <Parameter Name="CurrencyId" Mode="In" Type="String" />
+          </FunctionImport>
+          <FunctionImport Name="fn_ReportByUserCorrection" IsComposable="true" ReturnType="Collection(DataWarehouseModel.fnReportByUserCorrection)">
+            <Parameter Name="UserType" Mode="In" Type="Int32" />
+            <Parameter Name="CurrencyId" Mode="In" Type="String" />
+            <Parameter Name="FromDate" Mode="In" Type="Int64" />
+            <Parameter Name="ToDate" Mode="In" Type="Int64" />
+            <Parameter Name="ParentId" Mode="In" Type="Int32" />
           </FunctionImport>
 				</EntityContainer>
 				<EntityType Name="Product">
@@ -2022,71 +2053,6 @@
           <Property Name="DocumentId" Type="Int64" Nullable="false" />
           <Property Name="Date" Type="Int64" Nullable="false" />
         </EntityType>
-        <ComplexType Name="fnClientBets">
-          <Property Type="Int32" Name="ClientId" Nullable="true" />
-          <Property Type="Decimal" Name="BetAmount" Nullable="true" Precision="38" Scale="4" />
-          <Property Type="Decimal" Name="BonusBetAmount" Nullable="true" Precision="38" Scale="4" />
-          <Property Type="Int32" Name="TotalBetsCount" Nullable="true" />
-          <Property Type="Int32" Name="SportBetsCount" Nullable="true" />
-          <Property Type="Decimal" Name="WinAmount" Nullable="true" Precision="38" Scale="4" />
-          <Property Type="Decimal" Name="BonusWinAmount" Nullable="true" Precision="38" Scale="4" />
-          <Property Type="Int32" Name="WinCount" Nullable="true" />
-        </ComplexType>
-        <EntityType Name="Gtd_Client_Info">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="Date" Type="Int64" Nullable="false" />
-          <Property Name="ClientId" Type="Int32" Nullable="false" />
-          <Property Name="TotalDepositAmount" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
-          <Property Name="TotalDepositCount" Type="Int32" Nullable="false" />
-          <Property Name="TotalWithdrawalAmount" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
-          <Property Name="TotalWithdrawalCount" Type="Int32" Nullable="false" />
-          <Property Name="TotalBetAmount" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
-          <Property Name="TotalBetCount" Type="Int32" Nullable="false" />
-          <Property Name="SportBetCount" Type="Int32" Nullable="false" />
-          <Property Name="TotalWinAmount" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
-          <Property Name="TotalWinCount" Type="Int32" Nullable="false" />
-          <Property Name="GGR" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
-          <Property Name="TotalDebitCorrectionAmount" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
-          <Property Name="TotalDebitCorrectionCount" Type="Int32" Nullable="false" />
-          <Property Name="TotalCreditCorrectionAmount" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
-          <Property Name="TotalCreditCorrectionCount" Type="Int32" Nullable="false" />
-          <Property Name="ComplementaryBalance" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
-          <Property Name="TotalBonusAmount" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
-          <Property Name="NGR" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
-        </EntityType>
-        <ComplexType Name="fnClientReport">
-          <Property Type="Int32" Name="ClientId" Nullable="false" />
-          <Property Type="String" Name="UserName" Nullable="false" MaxLength="50" />
-          <Property Type="Int32" Name="PartnerId" Nullable="false" />
-          <Property Type="String" Name="CurrencyId" Nullable="false" MaxLength="5" />
-          <Property Type="Decimal" Name="CurrentRate" Nullable="false" Precision="18" Scale="12" />
-          <Property Type="String" Name="FirstName" Nullable="true" MaxLength="255" />
-          <Property Type="String" Name="LastName" Nullable="true" MaxLength="255" />
-          <Property Type="String" Name="Email" Nullable="false" MaxLength="50" />
-          <Property Type="Int32" Name="AffiliatePlatformId" Nullable="true" />
-          <Property Type="String" Name="AffiliateId" Nullable="true" MaxLength="50" />
-          <Property Type="String" Name="AffiliateReferralId" Nullable="true" MaxLength="50" />
-          <Property Type="Decimal" Name="TotalWithdrawalAmount" Nullable="true" Precision="38" Scale="4" />
-          <Property Type="Int32" Name="WithdrawalsCount" Nullable="true" />
-          <Property Type="Decimal" Name="TotalDepositAmount" Nullable="true" Precision="38" Scale="4" />
-          <Property Type="Int32" Name="DepositsCount" Nullable="true" />
-          <Property Type="Decimal" Name="TotalBetAmount" Nullable="true" Precision="38" Scale="4" />
-          <Property Type="Int32" Name="TotalBetsCount" Nullable="true" />
-          <Property Type="Int32" Name="SportBetsCount" Nullable="true" />
-          <Property Type="Decimal" Name="TotalWinAmount" Nullable="true" Precision="38" Scale="4" />
-          <Property Type="Int32" Name="WinsCount" Nullable="true" />
-          <Property Type="Decimal" Name="GGR" Nullable="true" Precision="38" Scale="4" />
-          <Property Type="Decimal" Name="NGR" Nullable="true" Precision="38" Scale="4" />
-          <Property Type="Decimal" Name="TotalDebitCorrection" Nullable="true" Precision="38" Scale="4" />
-          <Property Type="Int32" Name="DebitCorrectionsCount" Nullable="true" />
-          <Property Type="Decimal" Name="TotalCreditCorrection" Nullable="true" Precision="38" Scale="4" />
-          <Property Type="Int32" Name="CreditCorrectionsCount" Nullable="true" />
-          <Property Type="Decimal" Name="TotalBonusAmount" Nullable="true" Precision="38" Scale="4" />
-          <Property Type="Decimal" Name="ComplementaryBalance" Nullable="true" Precision="18" Scale="4" />
-        </ComplexType>
         <ComplexType Name="fnDuplicateClient">
           <Property Type="Int32" Name="DuplicatedClientId" Nullable="false" />
           <Property Type="String" Name="DuplicatedData" Nullable="false" MaxLength="500" />
@@ -2162,6 +2128,82 @@
           <Property Type="Decimal" Name="TotalProfit" Nullable="true" Precision="38" Scale="6" />
           <Property Type="Decimal" Name="TotalBetAmount" Nullable="true" Precision="38" Scale="4" />
           <Property Type="Decimal" Name="TotalWinAmount" Nullable="true" Precision="38" Scale="4" />
+        </ComplexType>
+        <EntityType Name="Gtd_Client_Info">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Date" Type="Int64" Nullable="false" />
+          <Property Name="ClientId" Type="Int32" Nullable="false" />
+          <Property Name="TotalDepositAmount" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
+          <Property Name="TotalDepositCount" Type="Int32" Nullable="false" />
+          <Property Name="TotalWithdrawalAmount" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
+          <Property Name="TotalWithdrawalCount" Type="Int32" Nullable="false" />
+          <Property Name="TotalBetAmount" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
+          <Property Name="TotalBetCount" Type="Int32" Nullable="false" />
+          <Property Name="SportBetAmount" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
+          <Property Name="SportBetCount" Type="Int32" Nullable="false" />
+          <Property Name="TotalWinAmount" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
+          <Property Name="TotalWinCount" Type="Int32" Nullable="false" />
+          <Property Name="SportWinCount" Type="Int32" Nullable="false" />
+          <Property Name="GGR" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
+          <Property Name="TotalDebitCorrectionAmount" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
+          <Property Name="TotalDebitCorrectionCount" Type="Int32" Nullable="false" />
+          <Property Name="TotalCreditCorrectionAmount" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
+          <Property Name="TotalCreditCorrectionCount" Type="Int32" Nullable="false" />
+          <Property Name="ComplementaryBalance" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
+          <Property Name="TotalBonusAmount" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
+          <Property Name="NGR" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
+        </EntityType>
+        <ComplexType Name="fnClientBets">
+          <Property Type="Int32" Name="ClientId" Nullable="true" />
+          <Property Type="Decimal" Name="BetAmount" Nullable="true" Precision="38" Scale="4" />
+          <Property Type="Decimal" Name="BonusBetAmount" Nullable="true" Precision="38" Scale="4" />
+          <Property Type="Int32" Name="TotalBetsCount" Nullable="true" />
+          <Property Type="Decimal" Name="SportBetAmount" Nullable="true" Precision="38" Scale="4" />
+          <Property Type="Int32" Name="SportBetsCount" Nullable="true" />
+          <Property Type="Decimal" Name="WinAmount" Nullable="true" Precision="38" Scale="4" />
+          <Property Type="Decimal" Name="BonusWinAmount" Nullable="true" Precision="38" Scale="4" />
+          <Property Type="Int32" Name="WinCount" Nullable="true" />
+          <Property Type="Int32" Name="SportWinCount" Nullable="true" />
+        </ComplexType>
+        <ComplexType Name="fnClientReport">
+          <Property Type="Int32" Name="PartnerId" Nullable="false" />
+          <Property Type="Int32" Name="ClientId" Nullable="false" />
+          <Property Type="String" Name="UserName" Nullable="false" MaxLength="50" />
+          <Property Type="String" Name="FirstName" Nullable="true" MaxLength="255" />
+          <Property Type="String" Name="LastName" Nullable="true" MaxLength="255" />
+          <Property Type="String" Name="Email" Nullable="false" MaxLength="50" />
+          <Property Type="String" Name="CurrencyId" Nullable="false" MaxLength="5" />
+          <Property Type="Int32" Name="AffiliatePlatformId" Nullable="true" />
+          <Property Type="String" Name="AffiliateId" Nullable="true" MaxLength="50" />
+          <Property Type="String" Name="AffiliateReferralId" Nullable="true" MaxLength="50" />
+          <Property Type="Decimal" Name="TotalWithdrawalAmount" Nullable="true" Precision="38" Scale="6" />
+          <Property Type="Int32" Name="WithdrawalsCount" Nullable="true" />
+          <Property Type="Decimal" Name="TotalDepositAmount" Nullable="true" Precision="38" Scale="6" />
+          <Property Type="Int32" Name="DepositsCount" Nullable="true" />
+          <Property Type="Decimal" Name="TotalBetAmount" Nullable="true" Precision="38" Scale="6" />
+          <Property Type="Int32" Name="TotalBetsCount" Nullable="true" />
+          <Property Type="Int32" Name="SportBetsCount" Nullable="true" />
+          <Property Type="Decimal" Name="TotalWinAmount" Nullable="true" Precision="38" Scale="6" />
+          <Property Type="Int32" Name="WinsCount" Nullable="true" />
+          <Property Type="Decimal" Name="GGR" Nullable="true" Precision="38" Scale="6" />
+          <Property Type="Decimal" Name="NGR" Nullable="true" Precision="38" Scale="6" />
+          <Property Type="Decimal" Name="TotalDebitCorrection" Nullable="true" Precision="38" Scale="6" />
+          <Property Type="Int32" Name="DebitCorrectionsCount" Nullable="true" />
+          <Property Type="Decimal" Name="TotalCreditCorrection" Nullable="true" Precision="38" Scale="6" />
+          <Property Type="Int32" Name="CreditCorrectionsCount" Nullable="true" />
+          <Property Type="Decimal" Name="TotalBonusAmount" Nullable="true" Precision="38" Scale="6" />
+          <Property Type="Decimal" Name="ComplementaryBalance" Nullable="true" Precision="18" Scale="4" />
+        </ComplexType>
+        <ComplexType Name="fnReportByUserCorrection">
+          <Property Type="Int32" Name="UserId" Nullable="false" />
+          <Property Type="String" Name="UserName" Nullable="false" MaxLength="50" />
+          <Property Type="Int32" Name="PartnerId" Nullable="false" />
+          <Property Type="Decimal" Name="TotalDebit" Nullable="true" Precision="38" Scale="6" />
+          <Property Type="Decimal" Name="TotalCredit" Nullable="true" Precision="38" Scale="6" />
+          <Property Type="Decimal" Name="Balance" Nullable="true" Precision="38" Scale="6" />
         </ComplexType>
 			</Schema>
 		</edmx:ConceptualModels>
@@ -3018,80 +3060,6 @@
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <FunctionImportMapping FunctionImportName="fn_ClientBets" FunctionName="DataWarehouseModel.Store.fn_ClientBets">
-            <ResultMapping>
-              <ComplexTypeMapping TypeName="DataWarehouseModel.fnClientBets">
-                <ScalarProperty Name="ClientId" ColumnName="ClientId" />
-                <ScalarProperty Name="BetAmount" ColumnName="BetAmount" />
-                <ScalarProperty Name="BonusBetAmount" ColumnName="BonusBetAmount" />
-                <ScalarProperty Name="TotalBetsCount" ColumnName="TotalBetsCount" />
-                <ScalarProperty Name="SportBetsCount" ColumnName="SportBetsCount" />
-                <ScalarProperty Name="WinAmount" ColumnName="WinAmount" />
-                <ScalarProperty Name="BonusWinAmount" ColumnName="BonusWinAmount" />
-                <ScalarProperty Name="WinCount" ColumnName="WinCount" />
-              </ComplexTypeMapping>
-            </ResultMapping>
-          </FunctionImportMapping>
-          <EntitySetMapping Name="Gtd_Client_Info">
-            <EntityTypeMapping TypeName="DataWarehouseModel.Gtd_Client_Info">
-              <MappingFragment StoreEntitySet="Gtd_Client_Info">
-                <ScalarProperty Name="NGR" ColumnName="NGR" />
-                <ScalarProperty Name="TotalBonusAmount" ColumnName="TotalBonusAmount" />
-                <ScalarProperty Name="ComplementaryBalance" ColumnName="ComplementaryBalance" />
-                <ScalarProperty Name="TotalCreditCorrectionCount" ColumnName="TotalCreditCorrectionCount" />
-                <ScalarProperty Name="TotalCreditCorrectionAmount" ColumnName="TotalCreditCorrectionAmount" />
-                <ScalarProperty Name="TotalDebitCorrectionCount" ColumnName="TotalDebitCorrectionCount" />
-                <ScalarProperty Name="TotalDebitCorrectionAmount" ColumnName="TotalDebitCorrectionAmount" />
-                <ScalarProperty Name="GGR" ColumnName="GGR" />
-                <ScalarProperty Name="TotalWinCount" ColumnName="TotalWinCount" />
-                <ScalarProperty Name="TotalWinAmount" ColumnName="TotalWinAmount" />
-                <ScalarProperty Name="SportBetCount" ColumnName="SportBetCount" />
-                <ScalarProperty Name="TotalBetCount" ColumnName="TotalBetCount" />
-                <ScalarProperty Name="TotalBetAmount" ColumnName="TotalBetAmount" />
-                <ScalarProperty Name="TotalWithdrawalCount" ColumnName="TotalWithdrawalCount" />
-                <ScalarProperty Name="TotalWithdrawalAmount" ColumnName="TotalWithdrawalAmount" />
-                <ScalarProperty Name="TotalDepositCount" ColumnName="TotalDepositCount" />
-                <ScalarProperty Name="TotalDepositAmount" ColumnName="TotalDepositAmount" />
-                <ScalarProperty Name="ClientId" ColumnName="ClientId" />
-                <ScalarProperty Name="Date" ColumnName="Date" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <FunctionImportMapping FunctionImportName="fn_ClientReport" FunctionName="DataWarehouseModel.Store.fn_ClientReport">
-            <ResultMapping>
-              <ComplexTypeMapping TypeName="DataWarehouseModel.fnClientReport">
-                <ScalarProperty Name="ClientId" ColumnName="ClientId" />
-                <ScalarProperty Name="UserName" ColumnName="UserName" />
-                <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
-                <ScalarProperty Name="CurrencyId" ColumnName="CurrencyId" />
-                <ScalarProperty Name="CurrentRate" ColumnName="CurrentRate" />
-                <ScalarProperty Name="FirstName" ColumnName="FirstName" />
-                <ScalarProperty Name="LastName" ColumnName="LastName" />
-                <ScalarProperty Name="Email" ColumnName="Email" />
-                <ScalarProperty Name="AffiliatePlatformId" ColumnName="AffiliatePlatformId" />
-                <ScalarProperty Name="AffiliateId" ColumnName="AffiliateId" />
-                <ScalarProperty Name="AffiliateReferralId" ColumnName="AffiliateReferralId" />
-                <ScalarProperty Name="TotalWithdrawalAmount" ColumnName="TotalWithdrawalAmount" />
-                <ScalarProperty Name="WithdrawalsCount" ColumnName="WithdrawalsCount" />
-                <ScalarProperty Name="TotalDepositAmount" ColumnName="TotalDepositAmount" />
-                <ScalarProperty Name="DepositsCount" ColumnName="DepositsCount" />
-                <ScalarProperty Name="TotalBetAmount" ColumnName="TotalBetAmount" />
-                <ScalarProperty Name="TotalBetsCount" ColumnName="TotalBetsCount" />
-                <ScalarProperty Name="SportBetsCount" ColumnName="SportBetsCount" />
-                <ScalarProperty Name="TotalWinAmount" ColumnName="TotalWinAmount" />
-                <ScalarProperty Name="WinsCount" ColumnName="WinsCount" />
-                <ScalarProperty Name="GGR" ColumnName="GGR" />
-                <ScalarProperty Name="NGR" ColumnName="NGR" />
-                <ScalarProperty Name="TotalDebitCorrection" ColumnName="TotalDebitCorrection" />
-                <ScalarProperty Name="DebitCorrectionsCount" ColumnName="DebitCorrectionsCount" />
-                <ScalarProperty Name="TotalCreditCorrection" ColumnName="TotalCreditCorrection" />
-                <ScalarProperty Name="CreditCorrectionsCount" ColumnName="CreditCorrectionsCount" />
-                <ScalarProperty Name="TotalBonusAmount" ColumnName="TotalBonusAmount" />
-                <ScalarProperty Name="ComplementaryBalance" ColumnName="ComplementaryBalance" />
-              </ComplexTypeMapping>
-            </ResultMapping>
-          </FunctionImportMapping>
           <FunctionImportMapping FunctionImportName="fn_DuplicateClient" FunctionName="DataWarehouseModel.Store.fn_DuplicateClient">
             <ResultMapping>
               <ComplexTypeMapping TypeName="DataWarehouseModel.fnDuplicateClient">
@@ -3190,6 +3158,95 @@
             </ResultMapping>
           </FunctionImportMapping>
           <FunctionImportMapping FunctionImportName="sp_InsertDocuments" FunctionName="DataWarehouseModel.Store.sp_InsertDocuments" />
+          <EntitySetMapping Name="Gtd_Client_Info">
+            <EntityTypeMapping TypeName="DataWarehouseModel.Gtd_Client_Info">
+              <MappingFragment StoreEntitySet="Gtd_Client_Info">
+                <ScalarProperty Name="NGR" ColumnName="NGR" />
+                <ScalarProperty Name="TotalBonusAmount" ColumnName="TotalBonusAmount" />
+                <ScalarProperty Name="ComplementaryBalance" ColumnName="ComplementaryBalance" />
+                <ScalarProperty Name="TotalCreditCorrectionCount" ColumnName="TotalCreditCorrectionCount" />
+                <ScalarProperty Name="TotalCreditCorrectionAmount" ColumnName="TotalCreditCorrectionAmount" />
+                <ScalarProperty Name="TotalDebitCorrectionCount" ColumnName="TotalDebitCorrectionCount" />
+                <ScalarProperty Name="TotalDebitCorrectionAmount" ColumnName="TotalDebitCorrectionAmount" />
+                <ScalarProperty Name="GGR" ColumnName="GGR" />
+                <ScalarProperty Name="SportWinCount" ColumnName="SportWinCount" />
+                <ScalarProperty Name="TotalWinCount" ColumnName="TotalWinCount" />
+                <ScalarProperty Name="TotalWinAmount" ColumnName="TotalWinAmount" />
+                <ScalarProperty Name="SportBetCount" ColumnName="SportBetCount" />
+                <ScalarProperty Name="SportBetAmount" ColumnName="SportBetAmount" />
+                <ScalarProperty Name="TotalBetCount" ColumnName="TotalBetCount" />
+                <ScalarProperty Name="TotalBetAmount" ColumnName="TotalBetAmount" />
+                <ScalarProperty Name="TotalWithdrawalCount" ColumnName="TotalWithdrawalCount" />
+                <ScalarProperty Name="TotalWithdrawalAmount" ColumnName="TotalWithdrawalAmount" />
+                <ScalarProperty Name="TotalDepositCount" ColumnName="TotalDepositCount" />
+                <ScalarProperty Name="TotalDepositAmount" ColumnName="TotalDepositAmount" />
+                <ScalarProperty Name="ClientId" ColumnName="ClientId" />
+                <ScalarProperty Name="Date" ColumnName="Date" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <FunctionImportMapping FunctionImportName="fn_ClientBets" FunctionName="DataWarehouseModel.Store.fn_ClientBets">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="DataWarehouseModel.fnClientBets">
+                <ScalarProperty Name="ClientId" ColumnName="ClientId" />
+                <ScalarProperty Name="BetAmount" ColumnName="BetAmount" />
+                <ScalarProperty Name="BonusBetAmount" ColumnName="BonusBetAmount" />
+                <ScalarProperty Name="TotalBetsCount" ColumnName="TotalBetsCount" />
+                <ScalarProperty Name="SportBetAmount" ColumnName="SportBetAmount" />
+                <ScalarProperty Name="SportBetsCount" ColumnName="SportBetsCount" />
+                <ScalarProperty Name="WinAmount" ColumnName="WinAmount" />
+                <ScalarProperty Name="BonusWinAmount" ColumnName="BonusWinAmount" />
+                <ScalarProperty Name="WinCount" ColumnName="WinCount" />
+                <ScalarProperty Name="SportWinCount" ColumnName="SportWinCount" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <FunctionImportMapping FunctionImportName="fn_ClientReport" FunctionName="DataWarehouseModel.Store.fn_ClientReport">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="DataWarehouseModel.fnClientReport">
+                <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+                <ScalarProperty Name="ClientId" ColumnName="ClientId" />
+                <ScalarProperty Name="UserName" ColumnName="UserName" />
+                <ScalarProperty Name="FirstName" ColumnName="FirstName" />
+                <ScalarProperty Name="LastName" ColumnName="LastName" />
+                <ScalarProperty Name="Email" ColumnName="Email" />
+                <ScalarProperty Name="CurrencyId" ColumnName="CurrencyId" />
+                <ScalarProperty Name="AffiliatePlatformId" ColumnName="AffiliatePlatformId" />
+                <ScalarProperty Name="AffiliateId" ColumnName="AffiliateId" />
+                <ScalarProperty Name="AffiliateReferralId" ColumnName="AffiliateReferralId" />
+                <ScalarProperty Name="TotalWithdrawalAmount" ColumnName="TotalWithdrawalAmount" />
+                <ScalarProperty Name="WithdrawalsCount" ColumnName="WithdrawalsCount" />
+                <ScalarProperty Name="TotalDepositAmount" ColumnName="TotalDepositAmount" />
+                <ScalarProperty Name="DepositsCount" ColumnName="DepositsCount" />
+                <ScalarProperty Name="TotalBetAmount" ColumnName="TotalBetAmount" />
+                <ScalarProperty Name="TotalBetsCount" ColumnName="TotalBetsCount" />
+                <ScalarProperty Name="SportBetsCount" ColumnName="SportBetsCount" />
+                <ScalarProperty Name="TotalWinAmount" ColumnName="TotalWinAmount" />
+                <ScalarProperty Name="WinsCount" ColumnName="WinsCount" />
+                <ScalarProperty Name="GGR" ColumnName="GGR" />
+                <ScalarProperty Name="NGR" ColumnName="NGR" />
+                <ScalarProperty Name="TotalDebitCorrection" ColumnName="TotalDebitCorrection" />
+                <ScalarProperty Name="DebitCorrectionsCount" ColumnName="DebitCorrectionsCount" />
+                <ScalarProperty Name="TotalCreditCorrection" ColumnName="TotalCreditCorrection" />
+                <ScalarProperty Name="CreditCorrectionsCount" ColumnName="CreditCorrectionsCount" />
+                <ScalarProperty Name="TotalBonusAmount" ColumnName="TotalBonusAmount" />
+                <ScalarProperty Name="ComplementaryBalance" ColumnName="ComplementaryBalance" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <FunctionImportMapping FunctionImportName="fn_ReportByUserCorrection" FunctionName="DataWarehouseModel.Store.fn_ReportByUserCorrection">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="DataWarehouseModel.fnReportByUserCorrection">
+                <ScalarProperty Name="UserId" ColumnName="UserId" />
+                <ScalarProperty Name="UserName" ColumnName="UserName" />
+                <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+                <ScalarProperty Name="TotalDebit" ColumnName="TotalDebit" />
+                <ScalarProperty Name="TotalCredit" ColumnName="TotalCredit" />
+                <ScalarProperty Name="Balance" ColumnName="Balance" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
 				</EntityContainerMapping>
 			</Mapping>
 		</edmx:Mappings>

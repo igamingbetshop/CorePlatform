@@ -243,7 +243,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     }
                     else
                     {
-                        var resp = userBl.GetSubAgents(input.ParentId ?? identity.Id, input?.Level, input?.Type, !input.WithDownlines, 
+                        var resp = userBl.GetSubAgents(input.ParentId ?? identity.Id, input?.Level, input?.Type, !input.WithDownlines,
                             input.AgentIdentifier, input.Id, input.IsFromSuspend);
                         if (input.State.HasValue)
                         {
@@ -330,28 +330,31 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                (request.NickName != null && string.IsNullOrWhiteSpace(request.NickName)))
                 throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.WrongInputParameters);
             using (var userBl = new UserBll(identity, log))
+            using (var clientBl = new ClientBll(userBl))
+            using (var documentBl = new DocumentBll(userBl))
+            using (var transactionScope = CommonFunctions.CreateTransactionScope())
             {
                 var input = request.ToUser(identity.TimeZone);
                 input.IsTwoFactorEnabled = false;
-                
+
                 if (input.Type == (int)UserTypes.CompanyAgent)
                     input.Level = (int)AgentLevels.Company;
-                else 
+                else
                     input.Level = 0;
-                
+
                 ApiUser user;
                 if (input.Id == 0)
                     user = userBl.AddUser(input).MapToUserModel(identity.TimeZone);
                 else
                 {
-                    user = userBl.EditUser(input, true).MapToUserModel(identity.TimeZone);
+                    user = userBl.EditUser(input, true, clientBl, documentBl).MapToUserModel(identity.TimeZone);
                     user.Configurations = userBl.GetUserConfigurations(user.Id).Select(x => x.ToApiUserConfiguration(identity.TimeZone)).ToList();
                     CacheManager.RemoveUserFromCache(user.Id);
                     Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}", Constants.CacheItems.User, user.Id));
-                    Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}", Constants.CacheItems.UserConfiguration, user.Id, 
+                    Helpers.Helpers.InvokeMessage("RemoveKeyFromCache", string.Format("{0}_{1}", Constants.CacheItems.UserConfiguration, user.Id,
                         Constants.UserConfigurations.CorrectonMaxAmount));
                 }
-                
+                transactionScope.Complete();
                 return new ApiResponseBase
                 {
                     ResponseObject = user

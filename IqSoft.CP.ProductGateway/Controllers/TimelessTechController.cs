@@ -44,8 +44,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
 		[Route("{partnerId}/api/tlt/{providerName}/cancel")]
 		[Route("{partnerId}/api/tlt/{providerName}/finishround")]
 		public HttpResponseMessage ApiRequest([FromUri]int partnerId, [FromUri]string providerName, BaseInput input)
-		{
-			WebApiApplication.DbLogger.Info(JsonConvert.SerializeObject(input));			
+		{		
             var response = string.Empty;
 			var secretKey = string.Empty;
 			var request = new Request
@@ -200,7 +199,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
 				user_name = client.UserName,
 				user_country = isoCode ?? "AU",
 				currency_code = currency,
-				balance
+				balance = Math.Round(balance, 2)
 			};
 		}
 
@@ -217,7 +216,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
 			}
 			return new
 			{
-				balance,
+				balance = Math.Round(balance, 2),
 				currency_code = currency
 			};
 		}
@@ -236,9 +235,11 @@ namespace IqSoft.CP.ProductGateway.Controllers
 			{
 				using (var documentBl = new DocumentBll(new SessionIdentity(), WebApiApplication.DbLogger))
 				{
-					var document = documentBl.GetDocumentByRoundId((int)OperationTypes.Bet, input.RoundId.ToString(), providerId, client.Id) ??
-                        throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.DocumentNotFound);
-                    Rolleback(document.ExternalTransactionId, input.GameId.ToString(), client, providerId);
+					var documents = documentBl.GetDocumentsByRoundId((int)OperationTypes.Bet, input.RoundId.ToString(), providerId, client.Id, null);
+						if (!documents.Any())
+						throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.DocumentNotFound);
+					foreach (var doc in documents)
+						Rolleback(doc.ExternalTransactionId, input.GameId.ToString(), client, providerId);
 				}
 			}
 			var isExternalPlatformClient = ExternalPlatformHelpers.IsExternalPlatformClient(client, out PartnerKey externalPlatformType);
@@ -252,7 +253,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
             }
             return new
 			{
-				balance,
+				balance = Math.Round(balance, 2),
 				currency_code = currency
 			};
 		}
@@ -423,14 +424,17 @@ namespace IqSoft.CP.ProductGateway.Controllers
 			{
 				using (var clientBl = new ClientBll(documentBl))
 				{
-					var betDocument = documentBl.GetDocumentByRoundId((int)OperationTypes.Bet, input.RoundId.ToString(), providerId, client.Id) ??
-							throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.CanNotConnectCreditAndDebit);
+					var roundBets = documentBl.GetDocumentsByRoundId((int)OperationTypes.Bet, input.RoundId.ToString(), providerId, client.Id, null);
+					if (roundBets == null || !roundBets.Any())
+						throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.CanNotConnectCreditAndDebit);
+					var betDocument = roundBets.FirstOrDefault(x => x.State == (int)BetDocumentStates.Uncalculated) ?? roundBets.First();
                     var transactionId = input.TransactionId.ToString();
                     if (input.Reason.ToLower().Contains("freespin"))
                         transactionId = $"{Constants.FreeSpinPrefix}{input.TransactionId}";
 
                     var winDocument = documentBl.GetDocumentByExternalId(input.RoundId.ToString(), client.Id, providerId,
 																		 partnerProductSettingId, (int)OperationTypes.Win);
+
 					if (winDocument == null)
 					{
                         if (NotSupportedCurrencies.Contains(client.CurrencyId))

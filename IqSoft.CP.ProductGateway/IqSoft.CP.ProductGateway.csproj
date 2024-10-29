@@ -409,6 +409,7 @@
     <Compile Include="Controllers\MicroGamingController.cs" />
     <Compile Include="Controllers\DriveMediaController.cs" />
     <Compile Include="Controllers\OutcomeBetController.cs" />
+    <Compile Include="Controllers\PixmoveController.cs" />
     <Compile Include="Controllers\PlaynGoController.cs" />
     <Compile Include="Controllers\PragmaticPlayController.cs" />
     <Compile Include="Controllers\PropsBuilderController.cs" />
@@ -473,6 +474,7 @@
     <Compile Include="Helpers\MicroGamingHelpers.cs" />
     <Compile Include="Helpers\NucleusHelpers.cs" />
     <Compile Include="Helpers\OutcomeBetHelpers.cs" />
+    <Compile Include="Helpers\PixmoveHelpers.cs" />
     <Compile Include="Helpers\PlaynGoHelpers.cs" />
     <Compile Include="Helpers\PragmaticPlayHelpers.cs" />
     <Compile Include="Helpers\RelaxGamingHelpers.cs" />
@@ -512,6 +514,9 @@
     <Compile Include="Models\LuckyStreak\TransactionInput.cs" />
     <Compile Include="Models\LuckyStreak\ValidateInput.cs" />
     <Compile Include="Models\LuckyStreak\BaseOutput.cs" />
+    <Compile Include="Models\Pixmove\BaseInput.cs" />
+    <Compile Include="Models\Pixmove\BaseOutput.cs" />
+    <Compile Include="Models\Pixmove\TransactionInput.cs" />
     <Compile Include="Models\RelaxGaming\AuthenticationInput.cs" />
     <Compile Include="Models\RelaxGaming\BaseInput.cs" />
     <Compile Include="Models\RelaxGaming\RollbackInput.cs" />

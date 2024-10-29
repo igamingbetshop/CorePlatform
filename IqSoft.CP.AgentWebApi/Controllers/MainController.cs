@@ -20,6 +20,8 @@ using System.Web.Http.Cors;
 using IqSoft.CP.Common.Helpers;
 using IqSoft.CP.Common.Models.CacheModels;
 using IqSoft.CP.AgentWebApi.Models.Affiliate;
+using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace IqSoft.CP.AgentWebApi.Controllers
 {
@@ -744,6 +746,22 @@ namespace IqSoft.CP.AgentWebApi.Controllers
                     }
                 }
                 return userIdentity;
+            }
+        }
+
+        [HttpGet]
+        [Route("Statement/{directory}/{fileName}/")]
+        public async Task<HttpResponseMessage> Statement([FromUri] string token, [FromUri] string directory, [FromUri] string fileName)
+        {
+            CheckToken(new RequestInfo { LanguageId = Constants.DefaultLanguageId }, token);
+            var statementPath = CacheManager.GetPartnerSettingByKey(Constants.MainPartnerId, Constants.PartnerKeys.StatementPath).StringValue;
+            WebApiApplication.DbLogger.Info($"{statementPath}/{directory}/{fileName}");
+            using (var httpClient = new HttpClient())
+            {
+                httpClient.BaseAddress = new Uri(statementPath);
+                httpClient.DefaultRequestHeaders.Clear();
+                HttpContext.Current.Response.Headers.Add("Content-Disposition", $"attachment; filename={fileName}");
+                return await httpClient.GetAsync($"{statementPath}/{directory}/{fileName}");
             }
         }
     }

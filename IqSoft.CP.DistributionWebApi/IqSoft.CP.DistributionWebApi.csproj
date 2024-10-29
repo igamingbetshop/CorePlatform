@@ -148,6 +148,7 @@
     <Compile Include="Controllers\PerfectMoneyController.cs" />
     <Compile Include="Controllers\RedirectController.cs" />
     <Compile Include="Controllers\SoftGamingController.cs" />
+    <Compile Include="Controllers\SpayzController.cs" />
     <Compile Include="Controllers\TomHornController.cs" />
     <Compile Include="Controllers\TotalProcessingController.cs" />
     <Compile Include="Controllers\TVBetController.cs" />
@@ -169,6 +170,7 @@
     <Compile Include="Models\PaymentProcessing\RedirectDataModel.cs" />
     <Compile Include="Models\PerfectMoney\PaymentRequestInput.cs" />
     <Compile Include="Models\RequestInput.cs" />
+    <Compile Include="Models\Spayz\PaymentInput.cs" />
     <Compile Include="Models\TomHorn\ModuleInfo.cs" />
     <Compile Include="Models\TotalProcessing\RequestResult.cs" />
     <Compile Include="Models\TotalProcessing\StatusResponse.cs" />

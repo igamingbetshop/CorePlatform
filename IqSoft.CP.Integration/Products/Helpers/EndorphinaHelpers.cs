@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using IqSoft.CP.Integration.Products.Models.Endorphina;
+using IqSoft.CP.BLL.Services;
 
 namespace IqSoft.CP.Integration.Products.Helpers
 {
@@ -19,11 +20,7 @@ namespace IqSoft.CP.Integration.Products.Helpers
 
         public static string GetLaunchUrl(int partnerId, string token, int productId, bool isForDemo, SessionIdentity session, ILog log)
         {
-            var casinoPageUrl = CacheManager.GetPartnerSettingByKey(partnerId, Constants.PartnerKeys.CasinoPageUrl).StringValue;
-            if (string.IsNullOrEmpty(casinoPageUrl))
-                casinoPageUrl = string.Format("https://{0}/casino/all-games", session.Domain);
-            else
-                casinoPageUrl = string.Format(casinoPageUrl, session.Domain);
+            var casinoPageUrl = PartnerBll.GetCasinoPageUrl(partnerId, session.Domain);
             var product = CacheManager.GetProductById(productId);
             if (isForDemo)
             {

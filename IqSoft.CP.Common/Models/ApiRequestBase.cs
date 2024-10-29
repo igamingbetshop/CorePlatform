@@ -12,5 +12,6 @@
 		public string Source { get; set; }
         public string Token { get; set; }
         public bool IsAgent { get; set; }
+        public bool IsForMobile { get; set; }
     }
 }

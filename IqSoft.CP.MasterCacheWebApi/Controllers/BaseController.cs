@@ -32,7 +32,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
             return product;
         }
 
-        protected static object CreateUrl(GetProductUrlInput input, BllProduct product, BllGameProvider provider, SessionIdentity clientSession, string token)
+        protected static string CreateUrl(GetProductUrlInput input, BllProduct product, BllGameProvider provider, SessionIdentity clientSession, string token)
         {
             var partner = CacheManager.GetPartnerById(input.PartnerId);
             var providerName = provider.Name.ToLower();
@@ -172,6 +172,8 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                 return PlaynGoHelpers.GetUrl(token, input.PartnerId, input.ProductId, input.IsForDemo, input.IsForMobile ?? false, clientSession);
             else if (providerName == Constants.GameProviders.RelaxGaming.ToLower())
                 return Integration.Products.Helpers.RelaxGamingHelpers.GetUrl(input.ClientId, token, input.PartnerId, input.ProductId, input.IsForDemo, input.IsForMobile ?? false, clientSession);
+            else if (providerName == Constants.GameProviders.Pixmove.ToLower())
+                return Integration.Products.Helpers.PixmoveHelpers.GetLaunchUrl(input.PartnerId, token, input.ClientId, input.ProductId, input.IsForDemo, clientSession);
             else if (providerName == Constants.GameProviders.Elite.ToLower())
                 return Integration.Products.Helpers.EliteHelpers.GetUrl(token, input.ClientId, input.PartnerId, input.ProductId, input.IsForDemo, clientSession, WebApiApplication.DbLogger);
             else if (providerName == Constants.GameProviders.SoftLand.ToLower())

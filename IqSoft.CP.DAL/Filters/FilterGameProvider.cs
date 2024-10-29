@@ -1,4 +1,5 @@
-﻿using System;
+﻿using IqSoft.CP.Common.Enums;
+using System;
 using System.Linq;
 
 namespace IqSoft.CP.DAL.Filters
@@ -11,6 +12,7 @@ namespace IqSoft.CP.DAL.Filters
         public int? SettingPartnerId { get; set; }        
         public string Name { get; set; }
         public bool? IsActive { get; set; }
+        public bool? HideAggregatorInfo { get; set; }
 
         protected override IQueryable<GameProvider> CreateQuery(IQueryable<GameProvider> objects, Func<IQueryable<GameProvider>, IOrderedQueryable<GameProvider>> orderBy = null)
         {
@@ -20,6 +22,8 @@ namespace IqSoft.CP.DAL.Filters
                 objects = objects.Where(x => x.Name.Contains(Name));
             if (IsActive.HasValue)
                 objects = objects.Where(x => x.IsActive == IsActive);
+            if (HideAggregatorInfo.HasValue && HideAggregatorInfo.Value)
+                objects = objects.Where(x => x.Type != (int)ProviderTypes.Aggregator);
             return base.FilteredObjects(objects);
         }
 

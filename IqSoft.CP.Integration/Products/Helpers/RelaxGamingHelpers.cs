@@ -45,8 +45,7 @@ namespace IqSoft.CP.Integration.Products.Helpers
                 partner = operatorName,
                 moneymode = isForDemo ? "fun" : "real",
                 currency,
-                homeurl = PartnerBll.GetCasinoPageUrl(partnerId, session.Domain),
-
+                homeurl = PartnerBll.GetCasinoPageUrl(partnerId, session.Domain)
             };
             return $"{Provider.GameLaunchUrl}?{CommonFunctions.GetUriEndocingFromObject(input)}";
         }

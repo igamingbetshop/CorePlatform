@@ -13,14 +13,13 @@ namespace IqSoft.CP.DataWarehouse
     
     public partial class fnClientReport
     {
+        public int PartnerId { get; set; }
         public int ClientId { get; set; }
         public string UserName { get; set; }
-        public int PartnerId { get; set; }
-        public string CurrencyId { get; set; }
-        public decimal CurrentRate { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string Email { get; set; }
+        public string CurrencyId { get; set; }
         public Nullable<int> AffiliatePlatformId { get; set; }
         public string AffiliateId { get; set; }
         public string AffiliateReferralId { get; set; }

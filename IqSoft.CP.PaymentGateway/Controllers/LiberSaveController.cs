@@ -55,10 +55,11 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                     var sign = GetHash(encryptedInput.Data, partnerPaymentSetting.Password);
                     if (sign.ToLower() != encryptedInput.Sign.ToLower())
                         throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongHash);
-                    if (input.Amount != paymentRequest.Amount)
-                        throw BaseBll.CreateException(string.Empty, Constants.Errors.PaymentRequestInValidAmount);
-                    if (input.Currency != paymentRequest.CurrencyId)
-                        throw BaseBll.CreateException(string.Empty, Constants.Errors.WrongCurrencyId);
+                    //if (input.Amount != paymentRequest.Amount)
+                    //    throw BaseBll.CreateException(string.Empty, Constants.Errors.PaymentRequestInValidAmount);
+                    //if (input.Currency != paymentRequest.CurrencyId)
+                    //    throw BaseBll.CreateException(string.Empty, Constants.Errors.WrongCurrencyId);
+
                     var paymentInfo = JsonConvert.DeserializeObject<PaymentInfo>(!string.IsNullOrEmpty(paymentRequest.Info) ? paymentRequest.Info : "{}");
                     paymentInfo.WalletNumber = input.Email;
                     paymentRequest.Info = JsonConvert.SerializeObject(paymentInfo);

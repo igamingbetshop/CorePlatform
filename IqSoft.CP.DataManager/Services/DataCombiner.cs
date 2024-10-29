@@ -612,9 +612,11 @@ namespace IqSoft.CP.DataManager.Services
                         }
                         dayInfo.TotalBetAmount = clientBet.BetAmount ?? 0;
                         dayInfo.TotalBetCount = clientBet.TotalBetsCount ?? 0;
+                        dayInfo.SportBetAmount = clientBet.SportBetAmount ?? 0;
                         dayInfo.SportBetCount = clientBet.SportBetsCount ?? 0;
                         dayInfo.TotalWinAmount = clientBet.WinAmount ?? 0;
                         dayInfo.TotalWinCount = clientBet.WinCount ?? 0;
+                        dayInfo.SportWinCount = clientBet.SportWinCount ?? 0;
                         dayInfo.ComplementaryBalance = balance == null ? 0 : balance.Balance;
                         dayInfo.GGR = dayInfo.TotalBetAmount - dayInfo.TotalWinAmount;
                         dayInfo.NGR = dayInfo.GGR + ((clientBet.BonusWinAmount - clientBet.BonusBetAmount) ?? 0) - 

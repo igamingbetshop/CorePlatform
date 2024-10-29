@@ -80,6 +80,7 @@ namespace IqSoft.CP.DAL.Filters
         public FiltersOperation AffiliateIds { get; set; }
         
         public FiltersOperation AffiliateReferralIds { get; set; }
+        public FiltersOperation CharacterLevels { get; set; }
 
         public FiltersOperation UserIds { get; set; }
 
@@ -143,6 +144,7 @@ namespace IqSoft.CP.DAL.Filters
             FilterByValue(ref objects, AffiliatePlatformIds, "AffiliatePlatformId");
             FilterByValue(ref objects, AffiliateIds, "AffiliateId");
             FilterByValue(ref objects, AffiliateReferralIds, "AffiliateReferralId");
+            FilterByValue(ref objects, CharacterLevels, "CharacterLevel");
             FilterByValue(ref objects, UserIds, "UserId");
             FilterByValue(ref objects, LastDepositDates, "LastDepositDate");
             FilterByValue(ref objects, CreationTimes, "CreationTime");

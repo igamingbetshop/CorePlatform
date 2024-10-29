@@ -833,6 +833,27 @@ namespace IqSoft.CP.MasterCacheWebApi.Helpers
             };
         }
 
+        public static AccountModel ToAccountModel(this Account account)
+        {
+            var currency = CacheManager.GetCurrencyById(account.CurrencyId);
+            return new AccountModel
+            {
+                Id = account.Id,
+                TypeId = account.TypeId,
+                Balance = (account.TypeId == (int)AccountTypes.ClientCoinBalance || account.TypeId == (int)AccountTypes.ClientCompBalance) ?
+                           Math.Truncate(account.Balance) : Math.Floor(account.Balance * 100) / 100,
+                WithdrawableBalance = Math.Floor(account.TypeId == (int)AccountTypes.ClientUnusedBalance ? account.Balance * 100 :
+                    ((account.TypeId == (int)AccountTypes.ClientBonusBalance || account.TypeId == (int)AccountTypes.ClientBooking ||
+                      account.TypeId == (int)AccountTypes.ClientCompBalance || account.TypeId == (int)AccountTypes.ClientCoinBalance) ? 0 : account.Balance * 100)) / 100,
+                CurrencyId = (account.TypeId == (int)AccountTypes.ClientCoinBalance || account.TypeId == (int)AccountTypes.ClientCompBalance) ?
+                             string.Empty : account.CurrencyId,
+                CurrencySymbol = currency.Symbol,
+                BetShopId = account.BetShopId,
+                PaymentSystemId = account.PaymentSystemId,
+                CreationTime = account.CreationTime
+            };
+        }
+
         #endregion
 
         #region Region
@@ -1044,6 +1065,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Helpers
                 CalculationTime = (bonus.CalculationTime ?? (bonus.AwardingTime == null ? (DateTime?)null : 
                     awardingTime.AddHours(bonus.ValidForSpending ?? 0))).GetGMTDateFromUTC(timeZone),
                 ReuseNumber = bonus.ReuseNumber,
+                LinkedBonusId = bonus.LinkedBonusId,
                 ConnectedBonuses = connectedBonuses
             };
 		}

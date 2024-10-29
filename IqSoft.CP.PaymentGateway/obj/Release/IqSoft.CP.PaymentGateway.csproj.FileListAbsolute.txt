@@ -146,6 +146,8 @@ D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.PaymentGateway\obj\Releas
 D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.PaymentGateway\obj\Release\IqSoft.CP.PaymentGateway.pdb
 D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.PaymentGateway\bin\HtmlRenderer.PdfSharp.dll
 D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.PaymentGateway\bin\HtmlRenderer.PdfSharp.pdb
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.PaymentGateway\bin\HtmlRenderer.dll
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.PaymentGateway\bin\HtmlRenderer.pdb
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.PaymentGateway\bin\IqSoft.CP.PaymentGateway.dll.config
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.PaymentGateway\bin\IqSoft.CP.PaymentGateway.dll
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.PaymentGateway\bin\IqSoft.CP.PaymentGateway.pdb
@@ -199,6 +201,7 @@ D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.PaymentGateway\bin\
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.PaymentGateway\bin\PdfSharp.dll
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.PaymentGateway\bin\Z.EntityFramework.Extensions.dll
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.PaymentGateway\bin\HtmlRenderer.PdfSharp.dll
+D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.PaymentGateway\bin\HtmlRenderer.dll
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.PaymentGateway\bin\GraphQL.dll
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.PaymentGateway\bin\GraphQL.Client.dll
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.PaymentGateway\bin\GraphQL.Primitives.dll
@@ -271,6 +274,7 @@ D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.PaymentGateway\bin\
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.PaymentGateway\bin\PdfSharp.xml
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.PaymentGateway\bin\Z.EntityFramework.Extensions.xml
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.PaymentGateway\bin\HtmlRenderer.PdfSharp.pdb
+D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.PaymentGateway\bin\HtmlRenderer.pdb
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.PaymentGateway\bin\GraphQL.xml
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.PaymentGateway\bin\GraphQL.Client.xml
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.PaymentGateway\bin\GraphQL.Primitives.xml

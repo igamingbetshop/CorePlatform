@@ -149,6 +149,8 @@ D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.Integration\obj\Release\I
 D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.Integration\obj\Release\IqSoft.CP.Integration.pdb
 D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.Integration\bin\Release\HtmlRenderer.PdfSharp.dll
 D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.Integration\bin\Release\HtmlRenderer.PdfSharp.pdb
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.Integration\bin\Release\HtmlRenderer.dll
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.Integration\bin\Release\HtmlRenderer.pdb
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.Integration\bin\Release\IqSoft.CP.Integration.dll.config
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.Integration\bin\Release\IqSoft.CP.Integration.dll
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.Integration\bin\Release\IqSoft.CP.Integration.pdb
@@ -220,6 +222,7 @@ D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.Integration\bin\Rel
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.Integration\bin\Release\PdfSharp.dll
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.Integration\bin\Release\Z.EntityFramework.Extensions.dll
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.Integration\bin\Release\HtmlRenderer.PdfSharp.dll
+D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.Integration\bin\Release\HtmlRenderer.dll
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.Integration\bin\Release\LinqKit.Core.dll
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.Integration\bin\Release\LinqKit.dll
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.Integration\bin\Release\IqSoft.CP.BLL.pdb
@@ -292,6 +295,7 @@ D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.Integration\bin\Rel
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.Integration\bin\Release\PdfSharp.xml
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.Integration\bin\Release\Z.EntityFramework.Extensions.xml
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.Integration\bin\Release\HtmlRenderer.PdfSharp.pdb
+D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.Integration\bin\Release\HtmlRenderer.pdb
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.Integration\bin\Release\LinqKit.Core.xml
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.Integration\bin\Release\LinqKit.xml
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.Integration\bin\Release\de\PdfSharp.resources.dll

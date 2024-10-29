@@ -104,7 +104,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 var roles = permissionBl.GetRolesPagedModel(filter);
                 var response = new ApiResponseBase
                 {
-                    ResponseObject = new {roles.Count, Entities = roles.Entities.MapToRoleModels()}
+                    ResponseObject = new {roles.Count, Entities = roles.Entities.Select(x => x.MapToRoleModel()).ToList()}
                 };
                 return response;
             }
@@ -150,7 +150,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
 
         private static ApiResponseBase GetPermissions()
         {
-            var permissions = CacheManager.GetPermissions().MapToPermissionModels();
+            var permissions = CacheManager.GetPermissions().Select(x => x.MapToPermissionModel()).ToList();
             var response = new ApiResponseBase {ResponseObject = permissions};
             return response;
         }
@@ -160,21 +160,21 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             using (var permissionBl = new PermissionBll(identity, log))
             {
                 var user = CacheManager.GetUserById(userId);
-                var allRoles = permissionBl.GetRoles(new FilterRole { PartnerId = user.PartnerId }).MapToRoleModels();
+                var allRoles = permissionBl.GetRoles(user.PartnerId);
+                var mappedRoles = allRoles.Select(x => x.MapToRoleModel()).ToList();
                 var isAdmin = CacheManager.GetUserPermissions(identity.Id).FirstOrDefault(x => x.IsAdmin);
                 if (isAdmin == null)
-                    allRoles = allRoles.Where(x => x.PartnerId == user.PartnerId).ToList();
+                    mappedRoles = mappedRoles.Where(x => x.PartnerId == user.PartnerId).ToList();
 
-                var userRoles = permissionBl.GetUserRoles(userId).MapToRoleModels();
-
-                foreach (var allRole in allRoles)
+                var userRoles = permissionBl.GetUserRoles(userId).Select(x => x.MapToRoleModel()).ToList();
+                foreach (var role in mappedRoles)
                 {
-                    allRole.HasRole = userRoles.Any(x => x.Id == allRole.Id);
+                    role.HasRole = userRoles.Any(x => x.Id == role.Id);
                 }
 
                 return new ApiResponseBase
                 {
-                    ResponseObject = allRoles.OrderByDescending(x => x.HasRole)
+                    ResponseObject = mappedRoles.OrderByDescending(x => x.HasRole)
                 };
             }
         }
@@ -186,7 +186,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 var rolePermissions = permissionBl.GetRolePermissions(input.RoleId, input.UserId).OrderByDescending(p => p.IsForAll);
                 return new ApiResponseBase
                 {
-                    ResponseObject = rolePermissions.MapToRolePermissionModels()
+                    ResponseObject = rolePermissions.Select(x => x.MapToRolePermissionModel()).ToList()
                 };
             }
         }

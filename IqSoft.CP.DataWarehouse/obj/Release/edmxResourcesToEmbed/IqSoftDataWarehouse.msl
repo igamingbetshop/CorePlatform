@@ -850,80 +850,6 @@
         </MappingFragment>
       </EntityTypeMapping>
     </EntitySetMapping>
-    <FunctionImportMapping FunctionImportName="fn_ClientBets" FunctionName="DataWarehouseModel.Store.fn_ClientBets">
-      <ResultMapping>
-        <ComplexTypeMapping TypeName="DataWarehouseModel.fnClientBets">
-          <ScalarProperty Name="ClientId" ColumnName="ClientId" />
-          <ScalarProperty Name="BetAmount" ColumnName="BetAmount" />
-          <ScalarProperty Name="BonusBetAmount" ColumnName="BonusBetAmount" />
-          <ScalarProperty Name="TotalBetsCount" ColumnName="TotalBetsCount" />
-          <ScalarProperty Name="SportBetsCount" ColumnName="SportBetsCount" />
-          <ScalarProperty Name="WinAmount" ColumnName="WinAmount" />
-          <ScalarProperty Name="BonusWinAmount" ColumnName="BonusWinAmount" />
-          <ScalarProperty Name="WinCount" ColumnName="WinCount" />
-        </ComplexTypeMapping>
-      </ResultMapping>
-    </FunctionImportMapping>
-    <EntitySetMapping Name="Gtd_Client_Info">
-      <EntityTypeMapping TypeName="DataWarehouseModel.Gtd_Client_Info">
-        <MappingFragment StoreEntitySet="Gtd_Client_Info">
-          <ScalarProperty Name="NGR" ColumnName="NGR" />
-          <ScalarProperty Name="TotalBonusAmount" ColumnName="TotalBonusAmount" />
-          <ScalarProperty Name="ComplementaryBalance" ColumnName="ComplementaryBalance" />
-          <ScalarProperty Name="TotalCreditCorrectionCount" ColumnName="TotalCreditCorrectionCount" />
-          <ScalarProperty Name="TotalCreditCorrectionAmount" ColumnName="TotalCreditCorrectionAmount" />
-          <ScalarProperty Name="TotalDebitCorrectionCount" ColumnName="TotalDebitCorrectionCount" />
-          <ScalarProperty Name="TotalDebitCorrectionAmount" ColumnName="TotalDebitCorrectionAmount" />
-          <ScalarProperty Name="GGR" ColumnName="GGR" />
-          <ScalarProperty Name="TotalWinCount" ColumnName="TotalWinCount" />
-          <ScalarProperty Name="TotalWinAmount" ColumnName="TotalWinAmount" />
-          <ScalarProperty Name="SportBetCount" ColumnName="SportBetCount" />
-          <ScalarProperty Name="TotalBetCount" ColumnName="TotalBetCount" />
-          <ScalarProperty Name="TotalBetAmount" ColumnName="TotalBetAmount" />
-          <ScalarProperty Name="TotalWithdrawalCount" ColumnName="TotalWithdrawalCount" />
-          <ScalarProperty Name="TotalWithdrawalAmount" ColumnName="TotalWithdrawalAmount" />
-          <ScalarProperty Name="TotalDepositCount" ColumnName="TotalDepositCount" />
-          <ScalarProperty Name="TotalDepositAmount" ColumnName="TotalDepositAmount" />
-          <ScalarProperty Name="ClientId" ColumnName="ClientId" />
-          <ScalarProperty Name="Date" ColumnName="Date" />
-          <ScalarProperty Name="Id" ColumnName="Id" />
-        </MappingFragment>
-      </EntityTypeMapping>
-    </EntitySetMapping>
-    <FunctionImportMapping FunctionImportName="fn_ClientReport" FunctionName="DataWarehouseModel.Store.fn_ClientReport">
-      <ResultMapping>
-        <ComplexTypeMapping TypeName="DataWarehouseModel.fnClientReport">
-          <ScalarProperty Name="ClientId" ColumnName="ClientId" />
-          <ScalarProperty Name="UserName" ColumnName="UserName" />
-          <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
-          <ScalarProperty Name="CurrencyId" ColumnName="CurrencyId" />
-          <ScalarProperty Name="CurrentRate" ColumnName="CurrentRate" />
-          <ScalarProperty Name="FirstName" ColumnName="FirstName" />
-          <ScalarProperty Name="LastName" ColumnName="LastName" />
-          <ScalarProperty Name="Email" ColumnName="Email" />
-          <ScalarProperty Name="AffiliatePlatformId" ColumnName="AffiliatePlatformId" />
-          <ScalarProperty Name="AffiliateId" ColumnName="AffiliateId" />
-          <ScalarProperty Name="AffiliateReferralId" ColumnName="AffiliateReferralId" />
-          <ScalarProperty Name="TotalWithdrawalAmount" ColumnName="TotalWithdrawalAmount" />
-          <ScalarProperty Name="WithdrawalsCount" ColumnName="WithdrawalsCount" />
-          <ScalarProperty Name="TotalDepositAmount" ColumnName="TotalDepositAmount" />
-          <ScalarProperty Name="DepositsCount" ColumnName="DepositsCount" />
-          <ScalarProperty Name="TotalBetAmount" ColumnName="TotalBetAmount" />
-          <ScalarProperty Name="TotalBetsCount" ColumnName="TotalBetsCount" />
-          <ScalarProperty Name="SportBetsCount" ColumnName="SportBetsCount" />
-          <ScalarProperty Name="TotalWinAmount" ColumnName="TotalWinAmount" />
-          <ScalarProperty Name="WinsCount" ColumnName="WinsCount" />
-          <ScalarProperty Name="GGR" ColumnName="GGR" />
-          <ScalarProperty Name="NGR" ColumnName="NGR" />
-          <ScalarProperty Name="TotalDebitCorrection" ColumnName="TotalDebitCorrection" />
-          <ScalarProperty Name="DebitCorrectionsCount" ColumnName="DebitCorrectionsCount" />
-          <ScalarProperty Name="TotalCreditCorrection" ColumnName="TotalCreditCorrection" />
-          <ScalarProperty Name="CreditCorrectionsCount" ColumnName="CreditCorrectionsCount" />
-          <ScalarProperty Name="TotalBonusAmount" ColumnName="TotalBonusAmount" />
-          <ScalarProperty Name="ComplementaryBalance" ColumnName="ComplementaryBalance" />
-        </ComplexTypeMapping>
-      </ResultMapping>
-    </FunctionImportMapping>
     <FunctionImportMapping FunctionImportName="fn_DuplicateClient" FunctionName="DataWarehouseModel.Store.fn_DuplicateClient">
       <ResultMapping>
         <ComplexTypeMapping TypeName="DataWarehouseModel.fnDuplicateClient">
@@ -1022,5 +948,94 @@
       </ResultMapping>
     </FunctionImportMapping>
     <FunctionImportMapping FunctionImportName="sp_InsertDocuments" FunctionName="DataWarehouseModel.Store.sp_InsertDocuments" />
+    <EntitySetMapping Name="Gtd_Client_Info">
+      <EntityTypeMapping TypeName="DataWarehouseModel.Gtd_Client_Info">
+        <MappingFragment StoreEntitySet="Gtd_Client_Info">
+          <ScalarProperty Name="NGR" ColumnName="NGR" />
+          <ScalarProperty Name="TotalBonusAmount" ColumnName="TotalBonusAmount" />
+          <ScalarProperty Name="ComplementaryBalance" ColumnName="ComplementaryBalance" />
+          <ScalarProperty Name="TotalCreditCorrectionCount" ColumnName="TotalCreditCorrectionCount" />
+          <ScalarProperty Name="TotalCreditCorrectionAmount" ColumnName="TotalCreditCorrectionAmount" />
+          <ScalarProperty Name="TotalDebitCorrectionCount" ColumnName="TotalDebitCorrectionCount" />
+          <ScalarProperty Name="TotalDebitCorrectionAmount" ColumnName="TotalDebitCorrectionAmount" />
+          <ScalarProperty Name="GGR" ColumnName="GGR" />
+          <ScalarProperty Name="SportWinCount" ColumnName="SportWinCount" />
+          <ScalarProperty Name="TotalWinCount" ColumnName="TotalWinCount" />
+          <ScalarProperty Name="TotalWinAmount" ColumnName="TotalWinAmount" />
+          <ScalarProperty Name="SportBetCount" ColumnName="SportBetCount" />
+          <ScalarProperty Name="SportBetAmount" ColumnName="SportBetAmount" />
+          <ScalarProperty Name="TotalBetCount" ColumnName="TotalBetCount" />
+          <ScalarProperty Name="TotalBetAmount" ColumnName="TotalBetAmount" />
+          <ScalarProperty Name="TotalWithdrawalCount" ColumnName="TotalWithdrawalCount" />
+          <ScalarProperty Name="TotalWithdrawalAmount" ColumnName="TotalWithdrawalAmount" />
+          <ScalarProperty Name="TotalDepositCount" ColumnName="TotalDepositCount" />
+          <ScalarProperty Name="TotalDepositAmount" ColumnName="TotalDepositAmount" />
+          <ScalarProperty Name="ClientId" ColumnName="ClientId" />
+          <ScalarProperty Name="Date" ColumnName="Date" />
+          <ScalarProperty Name="Id" ColumnName="Id" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <FunctionImportMapping FunctionImportName="fn_ClientBets" FunctionName="DataWarehouseModel.Store.fn_ClientBets">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="DataWarehouseModel.fnClientBets">
+          <ScalarProperty Name="ClientId" ColumnName="ClientId" />
+          <ScalarProperty Name="BetAmount" ColumnName="BetAmount" />
+          <ScalarProperty Name="BonusBetAmount" ColumnName="BonusBetAmount" />
+          <ScalarProperty Name="TotalBetsCount" ColumnName="TotalBetsCount" />
+          <ScalarProperty Name="SportBetAmount" ColumnName="SportBetAmount" />
+          <ScalarProperty Name="SportBetsCount" ColumnName="SportBetsCount" />
+          <ScalarProperty Name="WinAmount" ColumnName="WinAmount" />
+          <ScalarProperty Name="BonusWinAmount" ColumnName="BonusWinAmount" />
+          <ScalarProperty Name="WinCount" ColumnName="WinCount" />
+          <ScalarProperty Name="SportWinCount" ColumnName="SportWinCount" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="fn_ClientReport" FunctionName="DataWarehouseModel.Store.fn_ClientReport">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="DataWarehouseModel.fnClientReport">
+          <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+          <ScalarProperty Name="ClientId" ColumnName="ClientId" />
+          <ScalarProperty Name="UserName" ColumnName="UserName" />
+          <ScalarProperty Name="FirstName" ColumnName="FirstName" />
+          <ScalarProperty Name="LastName" ColumnName="LastName" />
+          <ScalarProperty Name="Email" ColumnName="Email" />
+          <ScalarProperty Name="CurrencyId" ColumnName="CurrencyId" />
+          <ScalarProperty Name="AffiliatePlatformId" ColumnName="AffiliatePlatformId" />
+          <ScalarProperty Name="AffiliateId" ColumnName="AffiliateId" />
+          <ScalarProperty Name="AffiliateReferralId" ColumnName="AffiliateReferralId" />
+          <ScalarProperty Name="TotalWithdrawalAmount" ColumnName="TotalWithdrawalAmount" />
+          <ScalarProperty Name="WithdrawalsCount" ColumnName="WithdrawalsCount" />
+          <ScalarProperty Name="TotalDepositAmount" ColumnName="TotalDepositAmount" />
+          <ScalarProperty Name="DepositsCount" ColumnName="DepositsCount" />
+          <ScalarProperty Name="TotalBetAmount" ColumnName="TotalBetAmount" />
+          <ScalarProperty Name="TotalBetsCount" ColumnName="TotalBetsCount" />
+          <ScalarProperty Name="SportBetsCount" ColumnName="SportBetsCount" />
+          <ScalarProperty Name="TotalWinAmount" ColumnName="TotalWinAmount" />
+          <ScalarProperty Name="WinsCount" ColumnName="WinsCount" />
+          <ScalarProperty Name="GGR" ColumnName="GGR" />
+          <ScalarProperty Name="NGR" ColumnName="NGR" />
+          <ScalarProperty Name="TotalDebitCorrection" ColumnName="TotalDebitCorrection" />
+          <ScalarProperty Name="DebitCorrectionsCount" ColumnName="DebitCorrectionsCount" />
+          <ScalarProperty Name="TotalCreditCorrection" ColumnName="TotalCreditCorrection" />
+          <ScalarProperty Name="CreditCorrectionsCount" ColumnName="CreditCorrectionsCount" />
+          <ScalarProperty Name="TotalBonusAmount" ColumnName="TotalBonusAmount" />
+          <ScalarProperty Name="ComplementaryBalance" ColumnName="ComplementaryBalance" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="fn_ReportByUserCorrection" FunctionName="DataWarehouseModel.Store.fn_ReportByUserCorrection">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="DataWarehouseModel.fnReportByUserCorrection">
+          <ScalarProperty Name="UserId" ColumnName="UserId" />
+          <ScalarProperty Name="UserName" ColumnName="UserName" />
+          <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+          <ScalarProperty Name="TotalDebit" ColumnName="TotalDebit" />
+          <ScalarProperty Name="TotalCredit" ColumnName="TotalCredit" />
+          <ScalarProperty Name="Balance" ColumnName="Balance" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
   </EntityContainerMapping>
 </Mapping>

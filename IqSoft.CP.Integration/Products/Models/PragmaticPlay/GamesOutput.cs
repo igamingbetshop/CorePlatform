@@ -25,7 +25,7 @@ namespace IqSoft.CP.Integration.Products.Models.PragmaticPlay
         public string TypeDescription { get; set; }
 
         [JsonProperty(PropertyName = "technology")]
-        public string technology { get; set; }
+        public string Technology { get; set; }
 
         [JsonProperty(PropertyName = "platform")]
         public string Platform { get; set; }

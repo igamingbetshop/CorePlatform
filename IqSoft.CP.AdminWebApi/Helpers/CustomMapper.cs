@@ -46,18 +46,15 @@ using IqSoft.CP.DataWarehouse.Models;
 using IqSoft.CP.Common.Models.Report;
 using IqSoft.CP.Common.Models.AgentModels;
 using IqSoft.CP.DAL.Models.Agents;
-
 using Client = IqSoft.CP.DAL.Client;
 using Document = IqSoft.CP.DAL.Document;
 using User = IqSoft.CP.DAL.User;
-using ClientSession = IqSoft.CP.DAL.ClientSession;
 using AffiliatePlatform = IqSoft.CP.DAL.AffiliatePlatform;
 using Partner = IqSoft.CP.DAL.Partner;
 using Bonu = IqSoft.CP.DAL.Bonu;
 using AgentCommission = IqSoft.CP.DAL.AgentCommission;
 using PermissionModel = IqSoft.CP.AdminWebApi.Models.RoleModels.PermissionModel;
 using IqSoft.CP.BLL.Services;
-using IqSoft.CP.Integration.Products.Models.BGGames;
 
 namespace IqSoft.CP.AdminWebApi.Helpers
 {
@@ -444,6 +441,21 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 CreationTime = input.CreationTime.GetGMTDateFromUTC(timeZone)
             };
         }
+
+        public static ApiCorrectionsReportByUser MapToApiCorrectionsReportByUser(this fnReportByUserCorrection input)
+        {
+            return new ApiCorrectionsReportByUser
+            {
+                PartnerId = input.PartnerId,
+                UserId = input.UserId,
+                UserName = input.UserName,
+                TotalDebit = input.TotalDebit ?? 0,
+                TotalCredit = input.TotalCredit ?? 0,
+                TotalCost = (input.TotalCredit ?? 0) - (input.TotalDebit ?? 0),
+                CurrentBalance = input.Balance ?? 0
+            };
+        }
+
 
         public static List<ApiReportByProductsElement> MapToApiReportByProductsElements(this List<fnReportByProduct> elements)
         {
@@ -1868,6 +1880,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 AffiliatePlatformId = arg.AffiliatePlatformId,
                 AffiliateId = arg.AffiliateId,
                 AffiliateReferralId = arg.AffiliateReferralId,
+                CharacterLevel = arg.CharacterLevel,
                 UserId = arg.UserId,
                 LastDepositDate = arg.LastDepositDate?.GetGMTDateFromUTC(timeZone),
                 Title = arg.Title,
@@ -2239,11 +2252,6 @@ namespace IqSoft.CP.AdminWebApi.Helpers
             };
         }
 
-        public static List<RoleModel> MapToRoleModels(this IEnumerable<Role> roles)
-        {
-            return roles.Select(MapToRoleModel).ToList();
-        }
-
         public static Role MapToRole(this RoleModel roleModel)
         {
             return new Role
@@ -2269,11 +2277,6 @@ namespace IqSoft.CP.AdminWebApi.Helpers
             };
         }
 
-        public static List<ApiPermissionModel> MapToRolePermissionModels(this IEnumerable<RolePermissionModel> rolePermissions)
-        {
-            return rolePermissions.Select(MapToRolePermissionModel).ToList();
-        }
-
         public static ApiPermissionModel MapToRolePermissionModel(this RolePermissionModel rolePermission)
         {
             return new ApiPermissionModel
@@ -2295,11 +2298,6 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 RoleId = rolePermission.RoleId,
                 PermissionId = rolePermission.Permissionid
             };
-        }
-
-        public static List<PermissionModel> MapToPermissionModels(this List<BllPermission> permissions)
-        {
-            return permissions.Select(MapToPermissionModel).ToList();
         }
 
         public static PermissionModel MapToPermissionModel(this BllPermission permission)
@@ -2384,13 +2382,13 @@ namespace IqSoft.CP.AdminWebApi.Helpers
             };
         }
 
-        public static FnProductModel MapTofnProductModel(this fnProduct product, double timeZone)
+        public static FnProductModel MapTofnProductModel(this fnProduct product, double timeZone, bool hideAggregatorInfo)
         {
             return new FnProductModel
             {
                 Id = product.Id,
-                GameProviderId = product.GameProviderId,
-                GameProviderName = product.GameProviderName,
+                GameProviderId =!hideAggregatorInfo ? product.GameProviderId : null,
+                GameProviderName =!hideAggregatorInfo ? product.GameProviderName : "***",
                 PaymentSystemId = product.PaymentSystemId,
                 Description = product.NickName,
                 ParentId = product.ParentId,
@@ -2645,7 +2643,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
 
         #region fnPartnerProductSettings
 
-        public static FnPartnerProductSettingModel MapTofnPartnerProductSettingModel(this fnPartnerProductSetting setting, double timeZone)
+        public static FnPartnerProductSettingModel MapTofnPartnerProductSettingModel(this fnPartnerProductSetting setting, double timeZone, bool hideAggregatorInfo)
         {
             return new FnPartnerProductSettingModel
             {
@@ -2653,8 +2651,8 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 ProductId = setting.ProductId,
                 ProductName = setting.ProductName,
                 ProductDescription = setting.ProductNickName,
-                ProductGameProviderId = setting.ProductGameProviderId,
-                GameProviderName = setting.GameProviderName,
+                ProductGameProviderId = !hideAggregatorInfo ? setting.ProductGameProviderId : null,
+                GameProviderName = !hideAggregatorInfo ? setting.GameProviderName : "***",
                 PartnerId = setting.PartnerId,
                 Percent = setting.Percent,
                 State = setting.State,
@@ -3191,6 +3189,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 DayOfWeek = bonus.DayOfWeek,
                 ReusingMaxCountInPeriod = bonus.ReusingMaxCountInPeriod,
                 Color = bonus.Color,
+                WageringSource = bonus.WageringSource,
                 AmountCurrencySettings = bonus.AmountSettings?.Select(x => new AmountCurrencySetting
                 {
                     CurrencyId = x.CurrencyId,
@@ -3365,6 +3364,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 DayOfWeek = bonus.DayOfWeek,
                 ReusingMaxCountInPeriod = bonus.ReusingMaxCountInPeriod,
                 Color = bonus.Color,
+                WageringSource = bonus.WageringSource,
                 AmountSettings = bonus.AmountCurrencySettings == null ? null : bonus.AmountCurrencySettings.Select(x => new ApiAmountSetting
                 {
                     CurrencyId = x.CurrencyId,

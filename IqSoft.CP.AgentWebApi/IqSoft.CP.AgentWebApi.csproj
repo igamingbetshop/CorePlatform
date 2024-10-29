@@ -193,6 +193,7 @@
     <Compile Include="ControllerClasses\AffiliateController.cs" />
     <Compile Include="ControllerClasses\BetShopController.cs" />
     <Compile Include="Filter\ApiFilterBetShopGroup.cs" />
+    <Compile Include="Filter\ApiFilterReportByUserCorrection.cs" />
     <Compile Include="Models\ApiBonusInput.cs" />
     <Compile Include="Models\PasswordRecovery.cs" />
     <Compile Include="Models\Affiliate\ApiFilterfnAffiliateClientInfo.cs" />
@@ -211,6 +212,7 @@
     <Compile Include="Models\BetShop\CashDeskModel.cs" />
     <Compile Include="Models\ClientModels\ApiAffiliateClient.cs" />
     <Compile Include="Models\User\Api2FAInput.cs" />
+    <Compile Include="Models\User\ApiCorrectionsReportByUser.cs" />
     <Compile Include="Models\User\ApiUserState.cs" />
     <Compile Include="Startup.cs" />
     <Content Include="Global.asax" />

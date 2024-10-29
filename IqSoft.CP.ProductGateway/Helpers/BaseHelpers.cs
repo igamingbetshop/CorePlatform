@@ -225,8 +225,13 @@ namespace IqSoft.CP.ProductGateway.Helpers
                         betDocument =   documentBl.GetDocumentByExternalId(transactionInput.CreditTransactionId, transactionInput.Client.Id,
                                                                            product.GameProviderId.Value, partnerProductSetting.Id, (int)OperationTypes.Bet);
                     else
-                        betDocument = documentBl.GetDocumentByRoundId((int)OperationTypes.Bet, transactionInput.RoundId,
-                                                                      product.GameProviderId.Value, transactionInput.Client.Id);
+                    {
+                        var roundBets = documentBl.GetDocumentsByRoundId((int)OperationTypes.Bet, transactionInput.RoundId.ToString(), 
+                                                                         product.GameProviderId.Value, transactionInput.Client.Id, null);
+                        if (roundBets == null || !roundBets.Any())
+                            throw BaseBll.CreateException(Constants.DefaultLanguageId, Constants.Errors.CanNotConnectCreditAndDebit);
+                        betDocument = roundBets.FirstOrDefault(x => x.State == (int)BetDocumentStates.Uncalculated) ?? roundBets.First();
+                    }
                     if (betDocument == null)
                         throw BaseBll.CreateException(string.Empty, Constants.Errors.CanNotConnectCreditAndDebit);
 

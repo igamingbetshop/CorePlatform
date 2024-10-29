@@ -14,6 +14,7 @@ using Newtonsoft.Json;
 using System.Linq;
 using static IqSoft.CP.Common.Constants;
 using IqSoft.CP.Common.Models.Filters;
+using IqSoft.CP.AgentWebApi.Filter;
 
 namespace IqSoft.CP.AgentWebApi.ControllerClasses
 {
@@ -45,6 +46,11 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                     return
                         GetReportByProviders(
                             JsonConvert.DeserializeObject<ApiFilterReportByProvider>(request.RequestData), identity, log);
+                case "GetReportByAgentCorrections":
+                    return GetReportByCorrections(JsonConvert.DeserializeObject<ApiFilterReportByUserCorrection>(request.RequestData), identity, log);
+                case "ExportReportByAgentCorrections":
+                    return ExportReportByAgentCorrections(JsonConvert.DeserializeObject<ApiFilterReportByUserCorrection>(request.RequestData), identity, log);
+
             }
             throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.MethodNotFound);
         }
@@ -320,6 +326,48 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                 return new ApiResponseBase
                 {
                     ResponseObject = result.Select(x => x.MapToApiReportByProvidersElement()).ToList()
+                };
+            }
+        }
+
+        private static ApiResponseBase GetReportByCorrections(ApiFilterReportByUserCorrection filter, SessionIdentity identity, ILog log)
+        {
+            var user = CacheManager.GetUserById(identity.Id);
+            if (user.Type == (int)UserTypes.AgentEmployee)
+                user = CacheManager.GetUserById(user.ParentId.Value);
+            using (var reportBl = new ReportBll(identity, log))
+            {
+                var result = reportBl.GetCorrectionsReportByUser((int)UserTypes.CompanyAgent, filter.MapToFilterUserCorrection(), false, user.Id);
+
+                return new ApiResponseBase
+                {
+                    ResponseObject = new
+                    {
+                        result.Count,
+                        Entities = result.Entities.Select(x => x.MapToApiCorrectionsReportByUser()).ToList()
+                    }
+                };
+            }
+        }
+
+        private static ApiResponseBase ExportReportByAgentCorrections(ApiFilterReportByUserCorrection filter, SessionIdentity identity, ILog log)
+        {
+            var user = CacheManager.GetUserById(identity.Id);
+            if (user.Type == (int)UserTypes.AgentEmployee)
+                user = CacheManager.GetUserById(user.ParentId.Value);
+            using (var reportBl = new ReportBll(identity, log))
+            {
+                var result = reportBl.ExportCorrectionsReportByUser((int)UserTypes.CompanyAgent, filter.MapToFilterUserCorrection(), false, user.Id);
+                var fileName = "ExportReportByAgentCorrections.csv";
+                var fileAbsPath = reportBl.ExportToCSV(fileName, result.Select(x => x.MapToApiCorrectionsReportByUser()).ToList(),
+                                                       filter.FromDate, filter.ToDate, identity.TimeZone, null);
+
+                return new ApiResponseBase
+                {
+                    ResponseObject = new
+                    {
+                        ExportedFilePath = fileAbsPath
+                    }
                 };
             }
         }

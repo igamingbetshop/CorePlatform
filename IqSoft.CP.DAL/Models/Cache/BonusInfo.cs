@@ -34,6 +34,7 @@ namespace IqSoft.CP.DAL.Models.Cache
 		public int? ReusingMaxCountInPeriod { get; set; }
 		public long TranslationId { get; set; }
         public string Color { get; set; }
+        public int? WageringSource { get; set; }
 
         public List<TriggerGroupInfo> TriggerGroups { get; set; }
 

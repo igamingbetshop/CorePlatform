@@ -14,7 +14,7 @@ namespace IqSoft.CP.AutomationTest.UTests
         {
 
             var connection = new HubConnectionBuilder()
-                .WithUrl("http://localhost:9011/api/signalr/basehub")
+                .WithUrl("http://localhost:57460/apisignalr/basehub")
                 .Build();
             connection.StartAsync().Wait();
 

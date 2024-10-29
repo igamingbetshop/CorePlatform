@@ -21,6 +21,7 @@ namespace IqSoft.CP.Common.Models.WebSiteModels
         public int StatusId { get; set; }
         public int TypeId { get; set; }
         public int? TurnoverCount { get; set; }
+        public int? LinkedBonusId { get; set; }
         public List<ApiConnectedBonusItem> ConnectedBonuses { get; set; }
 
         //

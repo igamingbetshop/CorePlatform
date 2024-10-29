@@ -178,6 +178,18 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                     return GetReportByUserTransactions(JsonConvert.DeserializeObject<ApiFilterReportByUserTransaction>(request.RequestData), identity, log);
                 case "ExportReportByUserTransactions":
                     return ExportReportByUserTransactions(JsonConvert.DeserializeObject<ApiFilterReportByUserTransaction>(request.RequestData), identity, log);
+                case "GetReportByUserCorrections":
+                    return GetCorrectionsReportByUser(JsonConvert.DeserializeObject<Filters.Reporting.ApiFilterUserCorrection>(request.RequestData),
+                                                      (int)UserTypes.AdminUser, identity, log);
+                case "ExportReportByUserCorrections":
+                    return ExportCorrectionsReportByUser(JsonConvert.DeserializeObject<Filters.Reporting.ApiFilterUserCorrection>(request.RequestData),
+                                                      (int)UserTypes.AdminUser, identity, log);
+                case "GetReportByAgentCorrections":
+                    return GetCorrectionsReportByUser(JsonConvert.DeserializeObject<Filters.Reporting.ApiFilterUserCorrection>(request.RequestData),
+                                                      (int)UserTypes.CompanyAgent, identity, log);
+                case "ExportReportByAgentCorrections":
+                    return ExportCorrectionsReportByUser(JsonConvert.DeserializeObject<Filters.Reporting.ApiFilterUserCorrection>(request.RequestData),
+                                                        (int)UserTypes.CompanyAgent, identity, log);
                 case "GetReportByClientSessions":
                     return GetReportByClientSessions(JsonConvert.DeserializeObject<ApiFilterReportByClientSession>(request.RequestData), identity, log);
                 case "GetReportByUserSessions":
@@ -577,6 +589,41 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
             }
         }
 
+        private static ApiResponseBase GetCorrectionsReportByUser(Filters.Reporting.ApiFilterUserCorrection filter, int userType, SessionIdentity identity, ILog log)
+        {
+            using (var reportBl = new ReportBll(identity, log))
+            {
+                var result = reportBl.GetCorrectionsReportByUser(userType, filter.MapToFilterReportByUserCorrection(identity.TimeZone), true, 0);
+
+                return new ApiResponseBase
+                {
+                    ResponseObject = new
+                    {
+                        result.Count,
+                        Entities = result.Entities.Select(x => x.MapToApiCorrectionsReportByUser()).ToList()
+                    }
+                };
+            }
+        }
+
+        private static ApiResponseBase ExportCorrectionsReportByUser( Filters.Reporting.ApiFilterUserCorrection filter, int userType, SessionIdentity identity, ILog log)
+        {
+            using (var reportBl = new ReportBll(identity, log))
+            {
+                var result = reportBl.ExportCorrectionsReportByUser(userType, filter.MapToFilterReportByUserCorrection(identity.TimeZone), true, 0);
+                var fileName = "ExportCorrectionsReportByUser.csv";
+                var fileAbsPath = reportBl.ExportToCSV(fileName, result.Select(x=>x.MapToApiCorrectionsReportByUser()).ToList(),
+                                                       filter.FromDate, filter.ToDate, identity.TimeZone, filter.AdminMenuId);
+
+                return new ApiResponseBase
+                {
+                    ResponseObject = new
+                    {
+                        ExportedFilePath = fileAbsPath
+                    }
+                };
+            }
+        }
 
         private static ApiResponseBase GetReportByProducts(ApiFilterReportByProduct filter, SessionIdentity identity, ILog log)
         {

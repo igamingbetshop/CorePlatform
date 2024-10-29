@@ -20,6 +20,7 @@ using IqSoft.CP.AdminWebApi.Models.ContentModels;
 using System.Threading.Tasks;
 using IqSoft.CP.Common.Models.AdminModels;
 using IqSoft.CP.Common.Models;
+using IqSoft.CP.AdminWebApi.Models.PartnerModels;
 
 namespace IqSoft.CP.AdminWebApi.ControllerClasses
 {
@@ -34,8 +35,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 case "GetProductById":
                     return GetProductById(Convert.ToInt32(request.RequestData), identity, log);
                 case "GetGameProviders":
-                    return GetGameProviders(JsonConvert.DeserializeObject<ApiFilterGameProvider>(request.RequestData),
-                        identity, log);
+                    return GetGameProviders(JsonConvert.DeserializeObject<ApiFilterGameProvider>(request.RequestData), identity, log);
                 case "GetGameProviderById":
                     return GetGameProviderById(Convert.ToInt32(request.RequestData), identity, log);
                 case "SaveGameProvider":
@@ -92,11 +92,9 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var productsBl = new ProductBll(identity, log))
             {
-                using (var userBl = new UserBll(productsBl))
                 using (var bonusService = new BonusService(productsBl))
                 {
-                    var user = userBl.GetUserById(identity.Id);
-                    if (user == null)
+                    var user = CacheManager.GetUserById(identity.Id) ??
                         throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.UserNotFound);
 
                     var result = new List<fnProduct>();
@@ -115,6 +113,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                         productFilter.IsProviderActive = true;
                         productFilter.Pattern = null;
                         List<int> productIds = null;
+                        List<int> groupIds = new List<int>();
 
                         if (apiFilter.BonusId.HasValue)
                         {
@@ -154,25 +153,25 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                                     } }
                                 };
                             filter.Path = "/" + productFilter.ParentId.Value + "/";
-
                             if (productIds == null || productIds.Count > 0)
                             {
                                 var games = productsBl.GetfnPartnerProductSettings(filter, !(user.Type == (int)UserTypes.CompanyAgent ||
                                     user.Type == (int)UserTypes.DownlineAgent || user.Type == (int)UserTypes.AgentEmployee)).Entities.ToList();
-                                productIds = games.Select(x => x.Id).ToList();
 
                                 foreach (var g in games)
                                 {
                                     var items = g.Path.Split('/').ToList();
                                     foreach (var item in items)
-                                        if (!string.IsNullOrEmpty(item))
-                                            productIds.Add(Convert.ToInt32(item));
+                                    {
+                                        if (!string.IsNullOrEmpty(item) && Int32.TryParse(item, out int groupId) && groupId != g.ProductId)
+                                            groupIds.Add(groupId);
+                                    }
                                 }
-                                productIds = productIds.Distinct().ToList();
+                                groupIds = groupIds.Distinct().ToList();
+                                productFilter.GroupIds = groupIds;
                             }
-                            
-                            if (productIds.Count == 0)
-                                productIds.Add(Constants.PlatformProductId);
+
+                            productFilter.PartnerId = bonus.PartnerId;
                         }
                         else if (!string.IsNullOrEmpty(apiFilter.Pattern))
                         {
@@ -196,7 +195,6 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                             if (productIds.Count == 0)
                                 productIds.Add(Constants.PlatformProductId);
                         }
-
                         if (productIds != null)
                         {
                             var filtersOperationType = new FiltersOperationType
@@ -213,6 +211,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                                     OperationTypeList = new List<FiltersOperationType> { filtersOperationType }
                                 };
                         }
+                        
                         var products = productsBl.GetFnProducts(productFilter, !(user.Type == (int)UserTypes.CompanyAgent ||
                         user.Type == (int)UserTypes.DownlineAgent || user.Type == (int)UserTypes.AgentEmployee));
 
@@ -227,7 +226,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                         ResponseObject = new
                         {
                             Count = totalCount,
-                            Entities = result
+                            Entities = result.Select(x=>x.MapTofnProductModel(identity.TimeZone, productsBl.HideAggregatorInfo()))
                         }
                     };
                 }
@@ -241,16 +240,16 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 var resp = productsBl.GetfnProductById(productId, true, identity.LanguageId);
                 return new ApiResponseBase
                 {
-                    ResponseObject = resp.MapTofnProductModel(identity.TimeZone)
+                    ResponseObject = resp.MapTofnProductModel(identity.TimeZone, productsBl.HideAggregatorInfo())
                 };
             }
         }
 
         private static ApiResponseBase GetGameProviders(ApiFilterGameProvider filter, SessionIdentity identity, ILog log)
         {
-            using (var productsBl = new ProductBll(identity, log))
+            using (var productBl = new ProductBll(identity, log))
             {
-                var providers = productsBl.GetGameProviders(filter.MapToFilterGameProvider());
+                var providers = productBl.GetGameProviders(filter.MapToFilterGameProvider());
                 return new ApiResponseBase
                 {
                     ResponseObject = providers.Select(x => new ApiGameProvider
@@ -268,20 +267,25 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
 
         private static ApiResponseBase GetGameProviderById(int gameProviderId, SessionIdentity identity, ILog log)
         {
-            var provider = CacheManager.GetGameProviderById(gameProviderId);
-            return new ApiResponseBase
+            using (var productBl = new ProductBll(identity, log))
             {
-                ResponseObject = new
+                var provider = CacheManager.GetGameProviderById(gameProviderId);
+                if (productBl.HideAggregatorInfo() && provider.Type == (int)ProviderTypes.Aggregator)
+                    throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.DontHavePermission);
+                return new ApiResponseBase
                 {
-                    provider.Id,
-                    provider.Name,
-                    provider.Type,
-                    provider.IsActive,
-                    provider.SessionExpireTime,
-                    provider.GameLaunchUrl,
-                    CurrencySetting = provider.CurrencySetting.Select(x => new { x.Id, x.Type, x.CurrencyIds }).ToList()
-                }
-            };
+                    ResponseObject = new
+                    {
+                        provider.Id,
+                        provider.Name,
+                        provider.Type,
+                        provider.IsActive,
+                        provider.SessionExpireTime,
+                        provider.GameLaunchUrl,
+                        CurrencySetting = provider.CurrencySetting.Select(x => new { x.Id, x.Type, x.CurrencyIds }).ToList()
+                    }
+                };
+            }
         }
 
         private static ApiResponseBase SaveGameProvider(ApiGameProvider input, SessionIdentity identity, ILog log)
@@ -331,11 +335,11 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
 
         private static ApiResponseBase GetProductDetails(int productId, SessionIdentity identity, ILog log)
         {
-            using (var productsBl = new ProductBll(identity, log))
+            using (var productBl = new ProductBll(identity, log))
             {
                 return new ApiResponseBase
                 {
-                    ResponseObject = productsBl.GetfnProductById(productId, true).MapTofnProductModel(identity.TimeZone)
+                    ResponseObject = productBl.GetfnProductById(productId, true).MapTofnProductModel(identity.TimeZone, productBl.HideAggregatorInfo())
                 };
             }
         }
@@ -344,16 +348,16 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var partnerBl = new PartnerBll(identity, log))
             {
-                using (var productsBl = new ProductBll(identity, log))
+                using (var productBl = new ProductBll(identity, log))
                 {
                     var input = product.MapTofnProduct();
                     input.IsNewObject = true;
                     var ftpModel = partnerBl.GetPartnerEnvironments(Constants.MainPartnerId).FirstOrDefault();
-                    var res = productsBl.SaveProduct(input, string.Empty, ftpModel.Value);
+                    var res = productBl.SaveProduct(input, string.Empty, ftpModel.Value);
                     Helpers.Helpers.InvokeMessage("UpdateProduct", res.Id);
                     return new ApiResponseBase
                     {
-                        ResponseObject = productsBl.GetfnProductById(res.Id, true).MapTofnProductModel(identity.TimeZone)
+                        ResponseObject = productBl.GetfnProductById(res.Id, true).MapTofnProductModel(identity.TimeZone, productBl.HideAggregatorInfo())
                     };
                 }
             }
@@ -384,16 +388,16 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.WrongInputParameters);
             using (var partnerBl = new PartnerBll(identity, log))
             {
-                using (var productsBl = new ProductBll(identity, log))
+                using (var productBl = new ProductBll(identity, log))
                 {
                     var input = product.MapTofnProduct();
                     input.IsNewObject = false;
                     var ftpModel = partnerBl.GetPartnerEnvironments(Constants.MainPartnerId).FirstOrDefault();
-                    var res = productsBl.SaveProduct(input, string.Empty, ftpModel.Value);
+                    var res = productBl.SaveProduct(input, string.Empty, ftpModel.Value);
                     Helpers.Helpers.InvokeMessage("UpdateProduct", res.Id);
                     return new ApiResponseBase
                     {
-                        ResponseObject = productsBl.GetfnProductById(res.Id, true).MapTofnProductModel(identity.TimeZone)
+                        ResponseObject = productBl.GetfnProductById(res.Id, true).MapTofnProductModel(identity.TimeZone, productBl.HideAggregatorInfo())
                     };
                 }
             }
@@ -409,7 +413,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 {
                     ResponseObject = new
                     {
-                        Entities = products.Entities.Select(x=>x.MapTofnProductModel(identity.TimeZone)).ToList(),
+                        Entities = products.Entities.Select(x=>x.MapTofnProductModel(identity.TimeZone, productBl.HideAggregatorInfo())).ToList(),
                         products.Count
                     }
                 };
@@ -426,7 +430,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 {
                     ResponseObject = new
                     {
-                        Entities = partnerProducts.Entities.Select(x => x.MapTofnPartnerProductSettingModel(identity.TimeZone)).ToList(),
+                        Entities = partnerProducts.Entities.Select(x => x.MapTofnPartnerProductSettingModel(identity.TimeZone, productBl.HideAggregatorInfo())).ToList(),
                         partnerProducts.Count
                     }
                 };
@@ -437,9 +441,10 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var productBl = new ProductBll(identity, log))
             {
-                var partnerSettings = productBl.ExportfnPartnerProductSettings(filter.MapTofnPartnerProductSettings(identity.TimeZone)).Entities.ToList();
+                var partnerSettings = productBl.ExportfnPartnerProductSettings(filter.MapTofnPartnerProductSettings(identity.TimeZone))
+                                               .Entities.Select(x=>x.MapTofnPartnerProductSettingModel(identity.TimeZone, productBl.HideAggregatorInfo())).ToList();
                 string fileName = "ExportPartnerProductSettings.csv";
-                string fileAbsPath = productBl.ExportToCSV<fnPartnerProductSetting>(fileName, partnerSettings, null, null, identity.TimeZone, filter.AdminMenuId);
+                string fileAbsPath = productBl.ExportToCSV<FnPartnerProductSettingModel>(fileName, partnerSettings, null, null, identity.TimeZone, filter.AdminMenuId);
 
                 return new ApiResponseBase
                 {
@@ -455,9 +460,10 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var productBl = new ProductBll(identity, log))
             {
-                var partnerProducts = productBl.ExportPartnerProducts(filter.PartnerId, filter.MapTofnProductSettings()).Entities.ToList();
+                var partnerProducts = productBl.ExportPartnerProducts(filter.PartnerId, filter.MapTofnProductSettings())
+                                               .Entities.Select(x=>x.MapTofnProductModel(identity.TimeZone, productBl.HideAggregatorInfo())).ToList();
                 string fileName = "ExportPartnerProducts.csv";
-                string fileAbsPath = productBl.ExportToCSV<fnProduct>(fileName, partnerProducts, null, null, identity.TimeZone, filter.AdminMenuId);
+                string fileAbsPath = productBl.ExportToCSV<FnProductModel>(fileName, partnerProducts, null, null, identity.TimeZone, filter.AdminMenuId);
 
                 return new ApiResponseBase
                 {
@@ -479,7 +485,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 {
                     ResponseObject = new
                     {
-                        Entities = partnerProducs.Entities.Select(x => x.MapTofnPartnerProductSettingModel(identity.TimeZone)).ToList(),
+                        Entities = partnerProducs.Entities.Select(x => x.MapTofnPartnerProductSettingModel(identity.TimeZone, productBl.HideAggregatorInfo())).ToList(),
                         partnerProducs.Count
                     }
                 };
@@ -523,7 +529,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                 {
                     ResponseObject = new
                     {
-                        Entities = res.Entities.Select(x => x.MapTofnPartnerProductSettingModel(identity.TimeZone)).ToList(),
+                        Entities = res.Entities.Select(x => x.MapTofnPartnerProductSettingModel(identity.TimeZone, productBl.HideAggregatorInfo())).ToList(),
                         res.Count
                     }
                 };
@@ -554,7 +560,8 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var productsBl = new ProductBll(identity, log))
             {
-                var products = productsBl.ExportFnProducts(filter.MapToFilterfnProduct()).Select(x => x.MapTofnProductModel(identity.TimeZone)).ToList();
+                var products = productsBl.ExportFnProducts(filter.MapToFilterfnProduct())
+                                         .Select(x => x.MapTofnProductModel(identity.TimeZone, productsBl.HideAggregatorInfo())).ToList();
                 string fileName = "ExportProducts.csv";
                 string fileAbsPath = productsBl.ExportToCSV<FnProductModel>(fileName, products, null, null, 0, filter.AdminMenuId);
 
@@ -751,17 +758,18 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                                 break;
                             case Constants.GameProviders.PragmaticPlay:
                                 var pragmaticPlayCategoryList = new Dictionary<string, int>
-                            {
-                                { "Video Slots", productCategories.First(x => x.NickName.ToLower() == "slots").Id },
-                                { "Classic Slots", productCategories.First(x => x.NickName.ToLower() == "slots").Id },
-                                { "Blackjack", productCategories.First(x => x.NickName.Replace(" ", string.Empty).ToLower() == "livegames").Id },
-                                { "Baccarat New", productCategories.First(x => x.NickName.Replace(" ", string.Empty).ToLower() == "livegames").Id },
-                                { "Baccarat", productCategories.First(x => x.NickName.Replace(" ", string.Empty).ToLower() == "livegames").Id },
-                                { "Roulette", productCategories.First(x => x.NickName.Replace(" ", string.Empty).ToLower() == "livegames").Id },
-                                { "Video Poker", productCategories.First(x => x.NickName.Replace(" ", string.Empty).ToLower() == "tablegames").Id },
-                                { "Scratch card", productCategories.First(x => x.NickName.Replace(" ", string.Empty).ToLower() == "scratchgames").Id },
-                                { "RGS - VSB", productCategories.First(x => x.NickName.ToLower() == "slots").Id } // ??
-                            };
+                                {
+                                    { "Video Slots", productCategories.First(x => x.NickName.ToLower() == "slots").Id },
+                                    { "Classic Slots", productCategories.First(x => x.NickName.ToLower() == "slots").Id },
+                                    { "Blackjack", productCategories.First(x => x.NickName.Replace(" ", string.Empty).ToLower() == "livegames").Id },
+                                    { "Baccarat New", productCategories.First(x => x.NickName.Replace(" ", string.Empty).ToLower() == "livegames").Id },
+                                    { "Baccarat", productCategories.First(x => x.NickName.Replace(" ", string.Empty).ToLower() == "livegames").Id },
+                                    { "Roulette", productCategories.First(x => x.NickName.Replace(" ", string.Empty).ToLower() == "livegames").Id },
+                                    { "Live games", productCategories.First(x => x.NickName.Replace(" ", string.Empty).ToLower() == "livegames").Id },
+                                    { "Video Poker", productCategories.First(x => x.NickName.Replace(" ", string.Empty).ToLower() == "tablegames").Id },
+                                    { "Scratch card", productCategories.First(x => x.NickName.Replace(" ", string.Empty).ToLower() == "scratchgames").Id },
+                                    { "RGS - VSB", productCategories.First(x => x.NickName.ToLower() == "slots").Id } // ??
+                                };
                                 providerGames = Integration.Products.Helpers.PragmaticPlayHelpers.GetProductsList(Constants.MainPartnerId).AsParallel()
                                    .Select(x => x.ToFnProduct(gameProviderId, dbCategories, pragmaticPlayCategoryList)).ToList();
                                 break;
@@ -951,19 +959,19 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                                 break;
                             case Constants.GameProviders.SoftSwiss:
                                 gamesList = new Dictionary<string, int>
-                            {
-                                { "slots", productCategories.FirstOrDefault(x => x.NickName.ToLower() == "slots").Id },
-                                { "roulette", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "tablegames").Id },
-                                { "card", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "tablegames").Id },
-                                { "craps", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "tablegames").Id },
-                                { "poker", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "tablegames").Id },
-                                { "casual", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
-                                { "lottery", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "lottery").Id },
-                                { "video_poker", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "videopoker").Id },
-                                { "virtual_sports", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualsports").Id },
-                                { "fishing", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "fishgames").Id },
-                                { "crash", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id }
-                            };
+                                {
+                                    { "slots", productCategories.FirstOrDefault(x => x.NickName.ToLower() == "slots").Id },
+                                    { "roulette", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "tablegames").Id },
+                                    { "card", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "tablegames").Id },
+                                    { "craps", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "tablegames").Id },
+                                    { "poker", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "tablegames").Id },
+                                    { "casual", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
+                                    { "lottery", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "lottery").Id },
+                                    { "video_poker", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "videopoker").Id },
+                                    { "virtual_sports", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualsports").Id },
+                                    { "fishing", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "fishgames").Id },
+                                    { "crash", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id }
+                                };
                                 providerGames = Integration.Products.Helpers.SoftSwissHelpers.GetGames(Constants.MainPartnerId, log).AsParallel()
                                                 .Select(x => x.ToFnProduct(gameProviderId, dbCategories, gamesList, providers)).ToList();
                                 break;
@@ -981,18 +989,28 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
                                 providerGames = Integration.Products.Helpers.RelaxGamingHelpers.GetGames(Constants.MainPartnerId).AsParallel()
                                                 .Select(x => x.ToFnProduct(gameProviderId, dbCategories, gamesList, providers)).ToList();
                                 break;
+                            case Constants.GameProviders.Pixmove:
+                                gamesList = new Dictionary<string, int>
+                                {
+                                    { "slot", productCategories.FirstOrDefault(x => x.NickName.ToLower() == "slots").Id },
+                                    { "instant", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "tablegames").Id },
+                                    { "table", productCategories.FirstOrDefault(x => x.NickName.ToLower().Replace(" ", string.Empty) == "tablegames").Id }
+                                };
+                                providerGames = Integration.Products.Helpers.PixmoveHelpers.GetGames(Constants.MainPartnerId, identity, log).AsParallel()
+                                                .Select(x => x.ToFnProduct(gameProviderId, dbCategories, gamesList)).ToList();
+                                break;
                             case Constants.GameProviders.Elite:
                                 var eliteGameList = new Dictionary<string, int>
-                            {
-                                { "Bingo", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
-                                { "Table Games", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "tablegames").Id },
-                                { "Slots", productCategories.First(x => x.NickName.ToLower() == "slots").Id },
-                                { "Fishing Games", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
-                                { "Keno", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
-                                { "Instant Win", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
-                                { "Wheel", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
-                                { "Provably Fair", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
-                            };
+                                {
+                                    { "Bingo", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
+                                    { "Table Games", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "tablegames").Id },
+                                    { "Slots", productCategories.First(x => x.NickName.ToLower() == "slots").Id },
+                                    { "Fishing Games", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
+                                    { "Keno", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
+                                    { "Instant Win", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
+                                    { "Wheel", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
+                                    { "Provably Fair", productCategories.First(x => x.NickName.ToLower().Replace(" ", string.Empty) == "virtualgames").Id },
+                                };
                                 providerGames = new List<fnProduct>();
                                 providerGames = Integration.Products.Helpers.EliteHelpers.GetGames(Constants.MainPartnerId).AsParallel()
                                     .Select(x => x.ToFnProduct(gameProviderId, dbCategories, eliteGameList, providers)).ToList();

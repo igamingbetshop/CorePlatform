@@ -250,6 +250,7 @@
     <Compile Include="Controllers\CapitalController.cs" />
     <Compile Include="Controllers\CardToCardController.cs" />
     <Compile Include="Controllers\CartipalController.cs" />
+    <Compile Include="Controllers\CashBullsController.cs" />
     <Compile Include="Controllers\CashLibController.cs" />
     <Compile Include="Controllers\ChapaController.cs" />
     <Compile Include="Controllers\CoinsPaidController.cs" />
@@ -310,6 +311,7 @@
     <Compile Include="Controllers\QuikiPayController.cs" />
     <Compile Include="Controllers\SantimaPayController.cs" />
     <Compile Include="Controllers\FreedomPayController.cs" />
+    <Compile Include="Controllers\SpayzController.cs" />
     <Compile Include="Controllers\StripeController.cs" />
     <Compile Include="Controllers\TelebirrController.cs" />
     <Compile Include="Controllers\VevoPayController.cs" />
@@ -382,6 +384,7 @@
     <Compile Include="Models\Cartipal\PaymentOutput.cs" />
     <Compile Include="Models\Cartipal\PayoutInput.cs" />
     <Compile Include="Models\CartToCard\PaymentRequestOutput.cs" />
+    <Compile Include="Models\CashBulls\PaymentInput.cs" />
     <Compile Include="Models\CashLib\PaymentInput.cs" />
     <Compile Include="Models\Changelly\PaymentInput.cs" />
     <Compile Include="Models\Chapa\PaymentInput.cs" />
@@ -558,6 +561,8 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Models\FreedomPay\PaymentInput.cs" />
+    <Compile Include="Models\Spayz\PaymentInput.cs" />
+    <Compile Include="Models\Spayz\PaymentOutput.cs" />
     <Compile Include="Models\Stripe\PaymentInput.cs" />
     <Compile Include="Models\Telebirr\PaymentInput.cs" />
     <Compile Include="Models\TotalProcessing\CheckPaymentStateOutput.cs" />

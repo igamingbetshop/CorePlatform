@@ -251,3 +251,5 @@ D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.AdminWebApi\bin\de\PdfSha
 D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.AdminWebApi\obj\Debug\IqSoft.C.EF339A48.Up2Date
 D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.AdminWebApi\obj\Debug\IqSoft.CP.AdminWebApi.dll
 D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.AdminWebApi\obj\Debug\IqSoft.CP.AdminWebApi.pdb
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.AdminWebApi\bin\HtmlRenderer.PdfSharp.dll
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.AdminWebApi\bin\HtmlRenderer.PdfSharp.pdb

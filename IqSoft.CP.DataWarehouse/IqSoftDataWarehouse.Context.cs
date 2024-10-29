@@ -51,8 +51,8 @@ namespace IqSoft.CP.DataWarehouse
         public DbSet<DuplicatedClient> DuplicatedClients { get; set; }
         public DbSet<DuplicatedClientHistory> DuplicatedClientHistories { get; set; }
         public DbSet<Opt_Document_Considered> Opt_Document_Considered { get; set; }
-        public DbSet<Gtd_Client_Info> Gtd_Client_Info { get; set; }
         public DbSet<Currency> Currencies { get; set; }
+        public DbSet<Gtd_Client_Info> Gtd_Client_Info { get; set; }
     
         [DbFunction("IqSoftDataWarehouseEntities", "fn_AffiliateClient")]
         public virtual IQueryable<fnAffiliateClient> fn_AffiliateClient(Nullable<long> fromDate, Nullable<long> toDate, Nullable<int> partnerId)
@@ -236,34 +236,6 @@ namespace IqSoft.CP.DataWarehouse
             return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnClientSession>("[IqSoftDataWarehouseEntities].[fn_ClientSession]()");
         }
     
-        [DbFunction("IqSoftDataWarehouseEntities", "fn_ClientBets")]
-        public virtual IQueryable<fnClientBets> fn_ClientBets(Nullable<long> fromDate, Nullable<long> toDate)
-        {
-            var fromDateParameter = fromDate.HasValue ?
-                new ObjectParameter("FromDate", fromDate) :
-                new ObjectParameter("FromDate", typeof(long));
-    
-            var toDateParameter = toDate.HasValue ?
-                new ObjectParameter("ToDate", toDate) :
-                new ObjectParameter("ToDate", typeof(long));
-    
-            return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnClientBets>("[IqSoftDataWarehouseEntities].[fn_ClientBets](@FromDate, @ToDate)", fromDateParameter, toDateParameter);
-        }
-    
-        [DbFunction("IqSoftDataWarehouseEntities", "fn_ClientReport")]
-        public virtual IQueryable<fnClientReport> fn_ClientReport(Nullable<long> fromDate, Nullable<long> toDate)
-        {
-            var fromDateParameter = fromDate.HasValue ?
-                new ObjectParameter("FromDate", fromDate) :
-                new ObjectParameter("FromDate", typeof(long));
-    
-            var toDateParameter = toDate.HasValue ?
-                new ObjectParameter("ToDate", toDate) :
-                new ObjectParameter("ToDate", typeof(long));
-    
-            return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnClientReport>("[IqSoftDataWarehouseEntities].[fn_ClientReport](@FromDate, @ToDate)", fromDateParameter, toDateParameter);
-        }
-    
         [DbFunction("IqSoftDataWarehouseEntities", "fn_DuplicateClient")]
         public virtual IQueryable<fnDuplicateClient> fn_DuplicateClient(Nullable<int> clientId)
         {
@@ -341,6 +313,64 @@ namespace IqSoft.CP.DataWarehouse
                 new ObjectParameter("existings", typeof(string));
     
             return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("sp_InsertDocuments", minDateParameter, existingsParameter);
+        }
+    
+        [DbFunction("IqSoftDataWarehouseEntities", "fn_ClientBets")]
+        public virtual IQueryable<fnClientBets> fn_ClientBets(Nullable<long> fromDate, Nullable<long> toDate)
+        {
+            var fromDateParameter = fromDate.HasValue ?
+                new ObjectParameter("FromDate", fromDate) :
+                new ObjectParameter("FromDate", typeof(long));
+    
+            var toDateParameter = toDate.HasValue ?
+                new ObjectParameter("ToDate", toDate) :
+                new ObjectParameter("ToDate", typeof(long));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnClientBets>("[IqSoftDataWarehouseEntities].[fn_ClientBets](@FromDate, @ToDate)", fromDateParameter, toDateParameter);
+        }
+    
+        [DbFunction("IqSoftDataWarehouseEntities", "fn_ClientReport")]
+        public virtual IQueryable<fnClientReport> fn_ClientReport(Nullable<long> fromDate, Nullable<long> toDate, string currencyId)
+        {
+            var fromDateParameter = fromDate.HasValue ?
+                new ObjectParameter("FromDate", fromDate) :
+                new ObjectParameter("FromDate", typeof(long));
+    
+            var toDateParameter = toDate.HasValue ?
+                new ObjectParameter("ToDate", toDate) :
+                new ObjectParameter("ToDate", typeof(long));
+    
+            var currencyIdParameter = currencyId != null ?
+                new ObjectParameter("CurrencyId", currencyId) :
+                new ObjectParameter("CurrencyId", typeof(string));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnClientReport>("[IqSoftDataWarehouseEntities].[fn_ClientReport](@FromDate, @ToDate, @CurrencyId)", fromDateParameter, toDateParameter, currencyIdParameter);
+        }
+    
+        [DbFunction("IqSoftDataWarehouseEntities", "fn_ReportByUserCorrection")]
+        public virtual IQueryable<fnReportByUserCorrection> fn_ReportByUserCorrection(Nullable<int> userType, string currencyId, Nullable<long> fromDate, Nullable<long> toDate, Nullable<int> parentId)
+        {
+            var userTypeParameter = userType.HasValue ?
+                new ObjectParameter("UserType", userType) :
+                new ObjectParameter("UserType", typeof(int));
+    
+            var currencyIdParameter = currencyId != null ?
+                new ObjectParameter("CurrencyId", currencyId) :
+                new ObjectParameter("CurrencyId", typeof(string));
+    
+            var fromDateParameter = fromDate.HasValue ?
+                new ObjectParameter("FromDate", fromDate) :
+                new ObjectParameter("FromDate", typeof(long));
+    
+            var toDateParameter = toDate.HasValue ?
+                new ObjectParameter("ToDate", toDate) :
+                new ObjectParameter("ToDate", typeof(long));
+    
+            var parentIdParameter = parentId.HasValue ?
+                new ObjectParameter("ParentId", parentId) :
+                new ObjectParameter("ParentId", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<fnReportByUserCorrection>("[IqSoftDataWarehouseEntities].[fn_ReportByUserCorrection](@UserType, @CurrencyId, @FromDate, @ToDate, @ParentId)", userTypeParameter, currencyIdParameter, fromDateParameter, toDateParameter, parentIdParameter);
         }
     }
 }

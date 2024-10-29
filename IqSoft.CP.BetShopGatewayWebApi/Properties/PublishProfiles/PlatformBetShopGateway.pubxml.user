@@ -6,7 +6,7 @@ by editing this MSBuild file. In order to learn more about this please visit htt
 <Project>
   <PropertyGroup>
     <_PublishTargetUrl>D:\Publish\PlatformBetShopGateway</_PublishTargetUrl>
-    <History>True|2024-10-02T13:09:04.8022849Z||;True|2024-09-04T16:18:58.6174751+04:00||;True|2024-08-29T18:32:09.2278292+04:00||;True|2024-08-14T17:26:09.2533215+04:00||;True|2024-08-01T14:18:57.6347789+04:00||;True|2024-07-26T13:42:47.2870985+04:00||;True|2024-07-22T14:28:53.1656370+04:00||;True|2024-07-09T14:21:35.7372690+04:00||;True|2024-06-29T11:39:38.5584731+04:00||;True|2024-06-28T12:52:41.9480893+04:00||;True|2024-06-28T12:52:26.1478487+04:00||;True|2024-06-24T13:19:47.9017715+04:00||;True|2024-06-07T18:29:17.6926431+04:00||;True|2024-04-22T19:44:14.6920093+04:00||;True|2024-04-08T14:03:09.4068887+04:00||;</History>
+    <History>True|2024-10-23T13:05:21.1040915Z||;True|2024-10-02T17:09:04.8022849+04:00||;True|2024-09-04T16:18:58.6174751+04:00||;True|2024-08-29T18:32:09.2278292+04:00||;True|2024-08-14T17:26:09.2533215+04:00||;True|2024-08-01T14:18:57.6347789+04:00||;True|2024-07-26T13:42:47.2870985+04:00||;True|2024-07-22T14:28:53.1656370+04:00||;True|2024-07-09T14:21:35.7372690+04:00||;True|2024-06-29T11:39:38.5584731+04:00||;True|2024-06-28T12:52:41.9480893+04:00||;True|2024-06-28T12:52:26.1478487+04:00||;True|2024-06-24T13:19:47.9017715+04:00||;True|2024-06-07T18:29:17.6926431+04:00||;True|2024-04-22T19:44:14.6920093+04:00||;True|2024-04-08T14:03:09.4068887+04:00||;</History>
     <LastFailureDetails />
   </PropertyGroup>
   <ItemGroup>
@@ -49,6 +49,12 @@ by editing this MSBuild file. In order to learn more about this please visit htt
     <File Include="bin/GraphQLParser.dll">
       <publishTime>06/09/2024 16:38:27</publishTime>
     </File>
+    <File Include="bin/HtmlRenderer.dll">
+      <publishTime>10/23/2024 16:31:43</publishTime>
+    </File>
+    <File Include="bin/HtmlRenderer.pdb">
+      <publishTime>10/23/2024 16:31:43</publishTime>
+    </File>
     <File Include="bin/HtmlRenderer.PdfSharp.dll">
       <publishTime>09/17/2024 17:18:50</publishTime>
     </File>
@@ -56,55 +62,55 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>09/17/2024 17:18:50</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.BetShopGatewayWebApi.dll">
-      <publishTime>10/02/2024 17:08:59</publishTime>
+      <publishTime>10/23/2024 17:05:20</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.BetShopGatewayWebApi.pdb">
-      <publishTime>10/02/2024 17:08:59</publishTime>
+      <publishTime>10/23/2024 17:05:20</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.BLL.dll">
-      <publishTime>10/01/2024 17:04:08</publishTime>
+      <publishTime>10/23/2024 17:03:54</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.BLL.dll.config">
       <publishTime>06/09/2024 16:37:08</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.BLL.pdb">
-      <publishTime>10/01/2024 17:04:08</publishTime>
+      <publishTime>10/23/2024 17:03:54</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Common.dll">
-      <publishTime>10/01/2024 17:04:00</publishTime>
+      <publishTime>10/23/2024 17:03:47</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Common.dll.config">
       <publishTime>06/09/2024 16:37:09</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Common.pdb">
-      <publishTime>10/01/2024 17:04:00</publishTime>
+      <publishTime>10/23/2024 17:03:47</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DAL.dll">
-      <publishTime>10/01/2024 17:04:03</publishTime>
+      <publishTime>10/23/2024 17:03:49</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DAL.dll.config">
-      <publishTime>08/14/2024 16:31:54</publishTime>
+      <publishTime>10/16/2024 19:26:17</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DAL.pdb">
-      <publishTime>10/01/2024 17:04:03</publishTime>
+      <publishTime>10/23/2024 17:03:49</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DataWarehouse.dll">
-      <publishTime>10/01/2024 17:04:01</publishTime>
+      <publishTime>10/23/2024 17:03:47</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DataWarehouse.dll.config">
-      <publishTime>09/12/2024 19:17:47</publishTime>
+      <publishTime>10/23/2024 16:31:42</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DataWarehouse.pdb">
-      <publishTime>10/01/2024 17:04:01</publishTime>
+      <publishTime>10/23/2024 17:03:47</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Integration.dll">
-      <publishTime>10/01/2024 17:04:13</publishTime>
+      <publishTime>10/23/2024 17:03:58</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Integration.dll.config">
       <publishTime>06/09/2024 16:37:37</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Integration.pdb">
-      <publishTime>10/01/2024 17:04:13</publishTime>
+      <publishTime>10/23/2024 17:03:58</publishTime>
     </File>
     <File Include="bin/jose-jwt.dll">
       <publishTime>06/09/2024 16:38:27</publishTime>
@@ -332,7 +338,7 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>06/09/2024 16:37:05</publishTime>
     </File>
     <File Include="Web.config">
-      <publishTime>10/02/2024 17:09:01</publishTime>
+      <publishTime>10/23/2024 17:05:20</publishTime>
     </File>
   </ItemGroup>
 </Project>

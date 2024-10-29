@@ -54,6 +54,7 @@ namespace IqSoft.CP.AdminWebApi.Models.BonusModels
         public int? DayOfWeek { get; set; }
         public int? ReusingMaxCountInPeriod { get; set; }
         public string Color { get; set; }
+        public int? WageringSource { get; set; }
         public List<ApiAmountSetting> AmountSettings { get; set; }
     }
 }

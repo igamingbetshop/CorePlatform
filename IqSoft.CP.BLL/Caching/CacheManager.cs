@@ -587,26 +587,23 @@ namespace IqSoft.CP.BLL.Caching
 
 		private static List<BllCharacter> GetCharactersFromDb(int partnerId, string languageId)
 		{
-			var currentDate = DateTime.UtcNow;
-			using (var db = new IqSoftCorePlatformEntities())
-			{
-				var resp = db.fn_Character(languageId).Where(x => x.PartnerId == partnerId && x.Status == (int)CharacterStatuses.Active).Select(x => new BllCharacter
-					{
-						Id = x.Id,
-						PartnerId = x.PartnerId,
-                        ParentId = x.ParentId,
-						NickName = x.NickName,
-						Title = x.Title,
-						Description = x.Description,
-						Status = x.Status,
-						Order = x.Order,
-						ImageData = x.ImageUrl,
-					    BackgroundImageData = x.BackgroundImageUrl,
-						CompPoints = x.CompPoints 
-					}).ToList();
-
-				return resp;
-			}
+            using (var db = new IqSoftCorePlatformEntities())
+            {
+                return db.fn_Character(languageId).Where(x => x.PartnerId == partnerId && x.Status == (int)CharacterStatuses.Active).Select(x => new BllCharacter
+                {
+                    Id = x.Id,
+                    PartnerId = x.PartnerId,
+                    ParentId = x.ParentId,
+                    NickName = x.NickName,
+                    Title = x.Title,
+                    Description = x.Description,
+                    Status = x.Status,
+                    Order = x.Order,
+                    ImageData = x.ImageUrl,
+                    BackgroundImageData = x.BackgroundImageUrl,
+                    CompPoints = x.CompPoints
+                }).ToList();
+            }
 		}
 
 		public static void RemoveCharacters(int partnerId)
@@ -886,7 +883,8 @@ namespace IqSoft.CP.BLL.Caching
 
         public static BllProduct GetProductByExternalId(int providerId, string externalProductId, string languageId = Constants.DefaultLanguageId)
         {
-            var key = string.Format("{0}_{1}_{2}_{3}", Constants.CacheItems.Products, providerId, externalProductId, languageId);
+            var eId = string.IsNullOrEmpty(externalProductId) ? string.Empty : externalProductId.Replace(" ", string.Empty);
+            var key = string.Format("{0}_{1}_{2}_{3}", Constants.CacheItems.Products, providerId, eId, languageId);
             var oldValue = MemcachedCache.Get<BllProduct>(key);
             if (oldValue != null) return oldValue;
             var newValue = GetProductFromDb(languageId, providerId: providerId, externalProductId: externalProductId);
@@ -898,11 +896,12 @@ namespace IqSoft.CP.BLL.Caching
         {
             var languages = GetAvailableLanguages();
             var product = GetProductById(id);
+            var eId = string.IsNullOrEmpty(product.ExternalId) ? string.Empty : product.ExternalId.Replace(" ", string.Empty);
+
             foreach (var l in languages)
             {
                 MemcachedCache.Remove(string.Format("{0}_{1}_{2}", Constants.CacheItems.Products, id, l.Id));
-                MemcachedCache.Remove(string.Format("{0}_{1}_{2}_{3}", Constants.CacheItems.Products, product.GameProviderId, 
-                    product.ExternalId, l.Id));
+                MemcachedCache.Remove(string.Format("{0}_{1}_{2}_{3}", Constants.CacheItems.Products, product.GameProviderId, eId, l.Id));
             }
         }
 
@@ -939,7 +938,7 @@ namespace IqSoft.CP.BLL.Caching
                     }).FirstOrDefault();
                 if(resp != null)
                 {
-                    resp.Name = db.fn_Product(langageId).First(x => x.Id == resp.Id).Name;
+                    resp.Name = db.fn_Product(langageId, 0).First(x => x.Id == resp.Id).Name;
                 }
                 return resp;
             }
@@ -3098,7 +3097,7 @@ namespace IqSoft.CP.BLL.Caching
             }
         }
 
-        public static void RemoveClientPlatformSession(int clientId, log4net.ILog log = null)
+        public static void RemoveClientPlatformSession(int clientId, ILog log = null)
         {
             var key = string.Format("{0}_{1}", Constants.CacheItems.ClientSessions, clientId);
             var resp = MemcachedCache.Remove(key);
@@ -3536,6 +3535,7 @@ namespace IqSoft.CP.BLL.Caching
                     ReusingMaxCountInPeriod = x.ReusingMaxCountInPeriod,
                     TranslationId = x.TranslationId ?? 0,
                     Color = x.Color,
+                    WageringSource = x.WageringSource,
                     TriggerGroups = x.TriggerGroups.Select(y => new TriggerGroupInfo
                     {
                         Id = y.Id,
@@ -3636,7 +3636,12 @@ namespace IqSoft.CP.BLL.Caching
                     DayOfWeek = x.DayOfWeek,
                     UpToAmount = x.UpToAmount,
                     ConsiderBonusBets = x.ConsiderBonusBets,
-                    PaymentSystemIds = x.BonusPaymentSystemSettings.Select(y => y.PaymentSystemId).ToList(),
+                    PaymentSystems = new BllSetting
+                    {
+                        Type = x.BonusPaymentSystemSettings.Any() ?
+                               x.BonusPaymentSystemSettings.FirstOrDefault().Type : (int)BonusSettingConditionTypes.InSet,
+                        Ids =  x.BonusPaymentSystemSettings.Select(y => y.PaymentSystemId).ToList()
+                    },
                     ProductSettings = x.TriggerProductSettings.Select(y => new TriggerProductInfo
                     {
                         Id = y.Id,

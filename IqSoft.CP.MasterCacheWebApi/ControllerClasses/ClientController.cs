@@ -172,7 +172,7 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                 case "DisableClientAccount":
                     return DisableClientAccount(JsonConvert.DeserializeObject<ApiExclusionInput>(request.RequestData), session, log);
                 case "SelectSessionAccount":
-                    return SelectSessionAccount(Convert.ToInt64(request.RequestData), session, log);
+                    return SelectSessionAccount(JsonConvert.DeserializeObject<AccountModel>(request.RequestData), session, log);
                 case "AddCharacterToClient":
                     return AddCharacterToClient(request.ClientId, Convert.ToInt32(request.RequestData), session, log);
                 case "GetCharacterCurrentState":
@@ -1533,13 +1533,13 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
             }
         }
 
-        private static ApiResponseBase SelectSessionAccount(long accountId, SessionIdentity session, ILog log)
+        private static ApiResponseBase SelectSessionAccount(AccountModel account, SessionIdentity session, ILog log)
         {
             using (var clientBl = new ClientBll(session, log))
             {
-                clientBl.SelectSessionAccount(accountId);
+                var acc = clientBl.SelectSessionAccount(account.Id, account.CurrencyId);
                 Helpers.Helpers.InvokeMessage("RemoveClient", session.Id);
-                return new ApiResponseBase();
+                return new ApiResponseBase { ResponseObject = acc.ToAccountModel() };
             }
         }
 
@@ -1565,12 +1565,12 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
 
         private static ApiResponseBase GetCharacterCurrentState(int clientId, int partnerId, SessionIdentity session, ILog log)
         {
-            var client = CacheManager.GetClientById(clientId) ?? throw BaseBll.CreateException(session.LanguageId, Constants.Errors.ClientNotFound);
+            var client = CacheManager.GetClientById(clientId);
             if (client.CharacterId == null)
                 throw BaseBll.CreateException(session.LanguageId, Constants.Errors.CharacterNotFound);
-            var balances = CacheManager.GetClientCurrentBalance(clientId).Balances;
-            var balance = balances.Select(x => x.TypeId).Contains((int)AccountTypes.ClientCompBalance)
-                                      ? balances.FirstOrDefault(x => x.TypeId == (int)AccountTypes.ClientCompBalance).Balance : 0;
+
+            var compBalance = CacheManager.GetClientCurrentBalance(clientId).Balances
+                             .FirstOrDefault(x => x.TypeId == (int)AccountTypes.ClientCompBalance)?.Balance ?? 0;
             var characters = CacheManager.GetCharacters(partnerId, session.LanguageId);
             var currentCharacter = characters.FirstOrDefault(x => x.Id == client.CharacterId);
             var parent = characters.FirstOrDefault(x => x.Id == currentCharacter.ParentId);
@@ -1578,7 +1578,7 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
             {
                 Parent = parent?.MapToApiCharacter(),
                 Previous = currentCharacter?.MapToApiCharacter(),
-                Current = balance,
+                Current = compBalance,
                 Next = characters.FirstOrDefault(x => x.ParentId == parent.Id && x.Order == currentCharacter.Order + 1)?.MapToApiCharacter()
             };
             return new ApiResponseBase()
@@ -1717,11 +1717,15 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                                     }
                                     else
                                     {
-                                        var cryptoAddress = PaymentHelpers.GetClientPaymentAddress(item.PaymentSystemId, session.Id, input.CurrencyId, session, WebApiApplication.DbLogger);
+                                        var cryptoAddress = PaymentHelpers.GetClientPaymentAddress(item.PaymentSystemId, input.ClientId, ps.CurrencyId, paymentSystemBl.Identity, WebApiApplication.DbLogger);
                                         item.Address = cryptoAddress.Address;
                                         item.DestinationTag = cryptoAddress.DestinationTag;
                                         if (!string.IsNullOrEmpty(item.Address))
-                                            clientBl.SaveClientSetting(session.Id, settingName, string.Format("{0}|{1}", item.Address, item.DestinationTag), null, null);
+                                        {
+                                            var paymentSystem = CacheManager.GetPaymentSystemById(input.PaymentSystemId ?? 0);
+                                            if (paymentSystem != null && !paymentSystem.Name.StartsWith(Constants.PaymentSystems.NodaPay))
+                                                clientBl.SaveClientSetting(input.ClientId, settingName, string.Format("{0}|{1}", item.Address, item.DestinationTag), null, null);
+                                        }
                                     }
                                 }
 
@@ -1786,6 +1790,8 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                         stats.CreationTime = client.CreationTime.GetGMTDateFromUTC(session.TimeZone);
                         stats.TotalBetAmount = Math.Round(BaseBll.ConvertCurrency(client.CurrencyId, 
                             string.IsNullOrEmpty(input.CurrencyId) ? Constants.DefaultCurrencyId : input.CurrencyId, stats.TotalBetAmount), 4);
+                        stats.SportBetAmount = Math.Round(BaseBll.ConvertCurrency(client.CurrencyId,
+                            string.IsNullOrEmpty(input.CurrencyId) ? Constants.DefaultCurrencyId : input.CurrencyId, stats.SportBetAmount), 4);
                         return new ApiResponseBase
                         {
                             ResponseObject = stats

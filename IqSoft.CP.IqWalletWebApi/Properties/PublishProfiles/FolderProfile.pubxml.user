@@ -6,12 +6,12 @@ by editing this MSBuild file. In order to learn more about this please visit htt
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <_PublishTargetUrl>C:\inetpub\wwwroot\CP\IqWallet</_PublishTargetUrl>
-    <History>True|2024-09-04T12:21:20.1749681Z||;True|2024-08-14T17:27:41.9306004+04:00||;True|2024-08-01T14:22:54.6576438+04:00||;True|2024-04-08T13:15:15.4911721+04:00||;True|2024-02-12T20:54:03.1578783+04:00||;True|2024-01-23T19:31:52.2641463+04:00||;True|2023-06-02T17:54:07.5835118+04:00||;True|2023-03-30T20:30:56.6495255+04:00||;True|2022-08-18T14:05:15.7396849+04:00||;True|2022-07-26T15:03:13.1971477+04:00||;True|2022-07-18T17:45:44.4812503+04:00||;True|2022-06-03T15:27:14.8125884+04:00||;True|2022-05-10T14:21:47.5299534+04:00||;True|2022-03-22T13:48:07.1014340+04:00||;True|2022-01-24T17:43:38.7886219+04:00||;True|2021-11-24T21:34:19.7612363+04:00||;True|2021-11-15T18:11:13.3185416+04:00||;True|2021-10-28T16:18:05.3789608+04:00||;True|2021-06-30T15:31:15.7961282+04:00||;</History>
+    <History>True|2024-10-23T13:07:11.5427205Z||;True|2024-09-04T16:21:20.1749681+04:00||;True|2024-08-14T17:27:41.9306004+04:00||;True|2024-08-01T14:22:54.6576438+04:00||;True|2024-04-08T13:15:15.4911721+04:00||;True|2024-02-12T20:54:03.1578783+04:00||;True|2024-01-23T19:31:52.2641463+04:00||;True|2023-06-02T17:54:07.5835118+04:00||;True|2023-03-30T20:30:56.6495255+04:00||;True|2022-08-18T14:05:15.7396849+04:00||;True|2022-07-26T15:03:13.1971477+04:00||;True|2022-07-18T17:45:44.4812503+04:00||;True|2022-06-03T15:27:14.8125884+04:00||;True|2022-05-10T14:21:47.5299534+04:00||;True|2022-03-22T13:48:07.1014340+04:00||;True|2022-01-24T17:43:38.7886219+04:00||;True|2021-11-24T21:34:19.7612363+04:00||;True|2021-11-15T18:11:13.3185416+04:00||;True|2021-10-28T16:18:05.3789608+04:00||;True|2021-06-30T15:31:15.7961282+04:00||;</History>
     <LastFailureDetails />
   </PropertyGroup>
   <ItemGroup>
     <File Include="bin/de/PdfSharp.resources.dll">
-      <publishTime>06/09/2024 16:38:58</publishTime>
+      <publishTime>09/17/2024 17:18:50</publishTime>
     </File>
     <File Include="bin/EntityFramework.dll">
       <publishTime>06/09/2024 16:38:23</publishTime>
@@ -28,47 +28,59 @@ by editing this MSBuild file. In order to learn more about this please visit htt
     <File Include="bin/Enyim.Caching.dll">
       <publishTime>08/22/2016 01:13:00</publishTime>
     </File>
+    <File Include="bin/HtmlRenderer.dll">
+      <publishTime>10/23/2024 16:31:43</publishTime>
+    </File>
+    <File Include="bin/HtmlRenderer.pdb">
+      <publishTime>10/23/2024 16:31:43</publishTime>
+    </File>
+    <File Include="bin/HtmlRenderer.PdfSharp.dll">
+      <publishTime>09/17/2024 17:18:50</publishTime>
+    </File>
+    <File Include="bin/HtmlRenderer.PdfSharp.pdb">
+      <publishTime>09/17/2024 17:18:50</publishTime>
+    </File>
     <File Include="bin/IqSoft.CP.BLL.dll">
-      <publishTime>09/04/2024 16:12:21</publishTime>
+      <publishTime>10/23/2024 17:03:54</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.BLL.dll.config">
       <publishTime>06/09/2024 16:37:08</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.BLL.pdb">
-      <publishTime>09/04/2024 16:12:21</publishTime>
+      <publishTime>10/23/2024 17:03:54</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Common.dll">
-      <publishTime>09/04/2024 16:12:08</publishTime>
+      <publishTime>10/23/2024 17:03:47</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Common.dll.config">
       <publishTime>06/09/2024 16:37:09</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.Common.pdb">
-      <publishTime>09/04/2024 16:12:08</publishTime>
+      <publishTime>10/23/2024 17:03:47</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DAL.dll">
-      <publishTime>09/04/2024 16:12:15</publishTime>
+      <publishTime>10/23/2024 17:03:49</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DAL.dll.config">
-      <publishTime>08/14/2024 16:31:54</publishTime>
+      <publishTime>10/16/2024 19:26:17</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DAL.pdb">
-      <publishTime>09/04/2024 16:12:15</publishTime>
+      <publishTime>10/23/2024 17:03:49</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DataWarehouse.dll">
-      <publishTime>09/04/2024 16:12:08</publishTime>
+      <publishTime>10/23/2024 17:03:47</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DataWarehouse.dll.config">
-      <publishTime>06/09/2024 16:37:34</publishTime>
+      <publishTime>10/23/2024 16:31:42</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.DataWarehouse.pdb">
-      <publishTime>09/04/2024 16:12:08</publishTime>
+      <publishTime>10/23/2024 17:03:47</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.IqWalletWebApi.dll">
-      <publishTime>09/04/2024 16:12:22</publishTime>
+      <publishTime>10/23/2024 17:07:10</publishTime>
     </File>
     <File Include="bin/IqSoft.CP.IqWalletWebApi.pdb">
-      <publishTime>09/04/2024 16:12:22</publishTime>
+      <publishTime>10/23/2024 17:07:10</publishTime>
     </File>
     <File Include="bin/LinqKit.Core.dll">
       <publishTime>06/09/2024 16:38:29</publishTime>
@@ -158,7 +170,7 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>02/24/2020 14:05:38</publishTime>
     </File>
     <File Include="bin/PdfSharp.dll">
-      <publishTime>06/09/2024 16:38:58</publishTime>
+      <publishTime>09/17/2024 17:18:50</publishTime>
     </File>
     <File Include="bin/Renci.SshNet.dll">
       <publishTime>06/09/2024 16:38:59</publishTime>
@@ -500,7 +512,7 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>06/09/2024 16:37:51</publishTime>
     </File>
     <File Include="Web.config">
-      <publishTime>09/04/2024 16:21:19</publishTime>
+      <publishTime>10/23/2024 17:07:11</publishTime>
     </File>
   </ItemGroup>
 </Project>

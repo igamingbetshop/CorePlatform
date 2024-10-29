@@ -374,9 +374,6 @@
     <Compile Include="fnAgentTransaction.cs">
       <DependentUpon>IqSoftCP.tt</DependentUpon>
     </Compile>
-    <Compile Include="fnAgentTurnoverProfit.cs">
-      <DependentUpon>IqSoftCP.tt</DependentUpon>
-    </Compile>
     <Compile Include="fnAnnouncement.cs">
       <DependentUpon>IqSoftCP.tt</DependentUpon>
     </Compile>

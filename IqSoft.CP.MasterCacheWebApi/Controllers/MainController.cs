@@ -47,7 +47,7 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
         [HttpPost]
         public ApiResponseBase OpenGame(OpenGameInput input)
         {
-			WebApiApplication.DbLogger.Error(JsonConvert.SerializeObject(input));
+			WebApiApplication.DbLogger.Info(JsonConvert.SerializeObject(input));
 			var response = new ApiResponseBase();
             string authResponse = String.Empty;
             try
@@ -1242,8 +1242,11 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                                         item.Address = cryptoAddress.Address;
                                         item.DestinationTag = cryptoAddress.DestinationTag;
                                         if (!string.IsNullOrEmpty(item.Address))
-                                            clientBl.SaveClientSetting(input.ClientId, settingName, string.Format("{0}|{1}", item.Address, item.DestinationTag), null, null);
-
+                                        {
+                                            var paymentSystem = CacheManager.GetPaymentSystemById(input.PaymentSystemId ?? 0);
+                                            if (paymentSystem != null && !paymentSystem.Name.StartsWith(Constants.PaymentSystems.NodaPay))
+                                                clientBl.SaveClientSetting(input.ClientId, settingName, string.Format("{0}|{1}", item.Address, item.DestinationTag), null, null);
+                                        }
                                     }
                                 }
                                 /*var segment = segments.Where(x => x.PaymentSystemId == item.PaymentSystemId && x.CurrencyId == item.CurrencyId).OrderBy(x => x.Priority).FirstOrDefault();
@@ -2420,8 +2423,13 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                             clientSession);
                     }
                 }
-                var currentTime1 = DateTime.UtcNow;
-                response.ResponseObject = CreateUrl(input, product, provider, clientSession, productSession?.ProductToken);
+                var url = CreateUrl(input, product, provider, clientSession, productSession?.ProductToken); ;
+                response.ResponseObject = url;
+                if (string.IsNullOrEmpty(url) || !url.StartsWith("http"))
+                {
+                    response.ResponseCode = Constants.Errors.GeneralException;
+                    response.Description = url;
+                }
             }
             catch (FaultException<BllFnErrorType> ex)
             {
@@ -3259,7 +3267,18 @@ namespace IqSoft.CP.MasterCacheWebApi.Controllers
                 {
                     return new ApiResponseBase
                     {
-                        ResponseObject = bonusService.GetJackpots(request.PartnerId).Select(x => new { x.Name, x.Amount }).ToList()
+                        ResponseObject = bonusService.GetJackpots(request.PartnerId)
+                        .Select(x => new
+                        {
+                            Games = x.JackpotSettings.Select(y =>
+                            {
+                                var p = CacheManager.GetProductById(y.ProductId);
+                                return new { y.Id, p.Name, Image = request.IsForMobile ? p.MobileImageUrl : p.WebImageUrl };
+                            }).ToList(),
+                            x.Name,
+                            x.Amount,
+                            x.FinishTime
+                        }).ToList()
                     };
                 }
             }

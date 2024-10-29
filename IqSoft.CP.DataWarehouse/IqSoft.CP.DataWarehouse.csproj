@@ -117,6 +117,7 @@
     <Compile Include="Filters\FilterReportByClientSession.cs" />
     <Compile Include="Filters\FilterReportByPartner.cs" />
     <Compile Include="Filters\FilterReportByProvider.cs" />
+    <Compile Include="Filters\FilterUserCorrection.cs" />
     <Compile Include="Filters\FilterWebSiteBet.cs" />
     <Compile Include="fnAffiliateClient.cs">
       <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
@@ -184,6 +185,9 @@
     <Compile Include="fnReportByProvider.cs">
       <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
     </Compile>
+    <Compile Include="fnReportByUserCorrection.cs">
+      <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
+    </Compile>
     <Compile Include="GameProvider.cs">
       <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
     </Compile>
@@ -238,6 +242,7 @@
     <Compile Include="PartialClasses\fnInternetGame.cs" />
     <Compile Include="PartialClasses\fnReportByPartner.cs" />
     <Compile Include="PartialClasses\fnReportByProvider.cs" />
+    <Compile Include="PartialClasses\fnReportByUserCorrection.cs" />
     <Compile Include="Partner.cs">
       <DependentUpon>IqSoftDataWarehouse.tt</DependentUpon>
     </Compile>

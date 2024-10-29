@@ -1085,22 +1085,6 @@
         </ComplexTypeMapping>
       </ResultMapping>
     </FunctionImportMapping>
-    <FunctionImportMapping FunctionImportName="fn_AgentTurnoverProfit" FunctionName="IqSoftCorePlatformModel.Store.fn_AgentTurnoverProfit">
-      <ResultMapping>
-        <ComplexTypeMapping TypeName="IqSoftCorePlatformModel.fnAgentTurnoverProfit">
-          <ScalarProperty Name="RecieverAgentId" ColumnName="RecieverAgentId" />
-          <ScalarProperty Name="RecieverAgentPath" ColumnName="RecieverAgentPath" />
-          <ScalarProperty Name="AgentId" ColumnName="AgentId" />
-          <ScalarProperty Name="ProductId" ColumnName="ProductId" />
-          <ScalarProperty Name="ProductGroupId" ColumnName="ProductGroupId" />
-          <ScalarProperty Name="ProductGroupName" ColumnName="ProductGroupName" />
-          <ScalarProperty Name="SelectionsCount" ColumnName="SelectionsCount" />
-          <ScalarProperty Name="TotalBetAmount" ColumnName="TotalBetAmount" />
-          <ScalarProperty Name="TotalWinAmount" ColumnName="TotalWinAmount" />
-          <ScalarProperty Name="TurnoverPercent" ColumnName="TurnoverPercent" />
-        </ComplexTypeMapping>
-      </ResultMapping>
-    </FunctionImportMapping>
     <FunctionImportMapping FunctionImportName="fn_BetShopReconing" FunctionName="IqSoftCorePlatformModel.Store.fn_BetShopReconing">
       <ResultMapping>
         <ComplexTypeMapping TypeName="IqSoftCorePlatformModel.fnBetShopReconing">
@@ -2122,6 +2106,7 @@
     <EntitySetMapping Name="Bonus">
       <EntityTypeMapping TypeName="IqSoftCorePlatformModel.Bonu">
         <MappingFragment StoreEntitySet="Bonus">
+          <ScalarProperty Name="WageringSource" ColumnName="WageringSource" />
           <ScalarProperty Name="Color" ColumnName="Color" />
           <ScalarProperty Name="ReusingMaxCountInPeriod" ColumnName="ReusingMaxCountInPeriod" />
           <ScalarProperty Name="DayOfWeek" ColumnName="DayOfWeek" />
@@ -3233,43 +3218,6 @@
         </ComplexTypeMapping>
       </ResultMapping>
     </FunctionImportMapping>
-    <FunctionImportMapping FunctionImportName="fn_Product" FunctionName="IqSoftCorePlatformModel.Store.fn_Product">
-      <ResultMapping>
-        <ComplexTypeMapping TypeName="IqSoftCorePlatformModel.fnProduct">
-          <ScalarProperty Name="Id" ColumnName="Id" />
-          <ScalarProperty Name="TranslationId" ColumnName="TranslationId" />
-          <ScalarProperty Name="GameProviderId" ColumnName="GameProviderId" />
-          <ScalarProperty Name="PaymentSystemId" ColumnName="PaymentSystemId" />
-          <ScalarProperty Name="Level" ColumnName="Level" />
-          <ScalarProperty Name="NickName" ColumnName="NickName" />
-          <ScalarProperty Name="ParentId" ColumnName="ParentId" />
-          <ScalarProperty Name="ExternalId" ColumnName="ExternalId" />
-          <ScalarProperty Name="State" ColumnName="State" />
-          <ScalarProperty Name="IsForDesktop" ColumnName="IsForDesktop" />
-          <ScalarProperty Name="IsForMobile" ColumnName="IsForMobile" />
-          <ScalarProperty Name="HasDemo" ColumnName="HasDemo" />
-          <ScalarProperty Name="SubproviderId" ColumnName="SubproviderId" />
-          <ScalarProperty Name="WebImageUrl" ColumnName="WebImageUrl" />
-          <ScalarProperty Name="MobileImageUrl" ColumnName="MobileImageUrl" />
-          <ScalarProperty Name="BackgroundImageUrl" ColumnName="BackgroundImageUrl" />
-          <ScalarProperty Name="FreeSpinSupport" ColumnName="FreeSpinSupport" />
-          <ScalarProperty Name="Jackpot" ColumnName="Jackpot" />
-          <ScalarProperty Name="CategoryId" ColumnName="CategoryId" />
-          <ScalarProperty Name="RTP" ColumnName="RTP" />
-          <ScalarProperty Name="Lines" ColumnName="Lines" />
-          <ScalarProperty Name="BetValues" ColumnName="BetValues" />
-          <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
-          <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
-          <ScalarProperty Name="Volatility" ColumnName="Volatility" />
-          <ScalarProperty Name="HasImages" ColumnName="HasImages" />
-          <ScalarProperty Name="Path" ColumnName="Path" />
-          <ScalarProperty Name="Name" ColumnName="Name" />
-          <ScalarProperty Name="GameProviderName" ColumnName="GameProviderName" />
-          <ScalarProperty Name="SubproviderName" ColumnName="SubproviderName" />
-          <ScalarProperty Name="IsProviderActive" ColumnName="IsProviderActive" />
-        </ComplexTypeMapping>
-      </ResultMapping>
-    </FunctionImportMapping>
     <EntitySetMapping Name="ClientBonus">
       <EntityTypeMapping TypeName="IqSoftCorePlatformModel.ClientBonu">
         <MappingFragment StoreEntitySet="ClientBonus">
@@ -3521,70 +3469,6 @@
         </MappingFragment>
       </EntityTypeMapping>
     </EntitySetMapping>
-    <FunctionImportMapping FunctionImportName="fn_Client" FunctionName="IqSoftCorePlatformModel.Store.fn_Client">
-      <ResultMapping>
-        <ComplexTypeMapping TypeName="IqSoftCorePlatformModel.fnClient">
-          <ScalarProperty Name="Id" ColumnName="Id" />
-          <ScalarProperty Name="Email" ColumnName="Email" />
-          <ScalarProperty Name="IsEmailVerified" ColumnName="IsEmailVerified" />
-          <ScalarProperty Name="CurrencyId" ColumnName="CurrencyId" />
-          <ScalarProperty Name="UserName" ColumnName="UserName" />
-          <ScalarProperty Name="NickName" ColumnName="NickName" />
-          <ScalarProperty Name="PasswordHash" ColumnName="PasswordHash" />
-          <ScalarProperty Name="Salt" ColumnName="Salt" />
-          <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
-          <ScalarProperty Name="Gender" ColumnName="Gender" />
-          <ScalarProperty Name="BirthDate" ColumnName="BirthDate" />
-          <ScalarProperty Name="Age" ColumnName="Age" />
-          <ScalarProperty Name="SendMail" ColumnName="SendMail" />
-          <ScalarProperty Name="SendSms" ColumnName="SendSms" />
-          <ScalarProperty Name="CallToPhone" ColumnName="CallToPhone" />
-          <ScalarProperty Name="SendPromotions" ColumnName="SendPromotions" />
-          <ScalarProperty Name="State" ColumnName="State" />
-          <ScalarProperty Name="FirstName" ColumnName="FirstName" />
-          <ScalarProperty Name="LastName" ColumnName="LastName" />
-          <ScalarProperty Name="RegionIsoCode" ColumnName="RegionIsoCode" />
-          <ScalarProperty Name="RegionId" ColumnName="RegionId" />
-          <ScalarProperty Name="CountryId" ColumnName="CountryId" />
-          <ScalarProperty Name="Info" ColumnName="Info" />
-          <ScalarProperty Name="ZipCode" ColumnName="ZipCode" />
-          <ScalarProperty Name="RegistrationIp" ColumnName="RegistrationIp" />
-          <ScalarProperty Name="DocumentNumber" ColumnName="DocumentNumber" />
-          <ScalarProperty Name="DocumentIssuedBy" ColumnName="DocumentIssuedBy" />
-          <ScalarProperty Name="IsDocumentVerified" ColumnName="IsDocumentVerified" />
-          <ScalarProperty Name="Address" ColumnName="Address" />
-          <ScalarProperty Name="MobileNumber" ColumnName="MobileNumber" />
-          <ScalarProperty Name="PhoneNumber" ColumnName="PhoneNumber" />
-          <ScalarProperty Name="IsMobileNumberVerified" ColumnName="IsMobileNumberVerified" />
-          <ScalarProperty Name="HasNote" ColumnName="HasNote" />
-          <ScalarProperty Name="LanguageId" ColumnName="LanguageId" />
-          <ScalarProperty Name="City" ColumnName="City" />
-          <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
-          <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
-          <ScalarProperty Name="FirstDepositDate" ColumnName="FirstDepositDate" />
-          <ScalarProperty Name="LastDepositDate" ColumnName="LastDepositDate" />
-          <ScalarProperty Name="LastDepositAmount" ColumnName="LastDepositAmount" />
-          <ScalarProperty Name="CategoryId" ColumnName="CategoryId" />
-          <ScalarProperty Name="DocumentType" ColumnName="DocumentType" />
-          <ScalarProperty Name="AffiliatePlatformId" ColumnName="AffiliatePlatformId" />
-          <ScalarProperty Name="AffiliateId" ColumnName="AffiliateId" />
-          <ScalarProperty Name="AffiliateReferralId" ColumnName="AffiliateReferralId" />
-          <ScalarProperty Name="LastSessionDate" ColumnName="LastSessionDate" />
-          <ScalarProperty Name="LastSessionId" ColumnName="LastSessionId" />
-          <ScalarProperty Name="SecondName" ColumnName="SecondName" />
-          <ScalarProperty Name="SecondSurname" ColumnName="SecondSurname" />
-          <ScalarProperty Name="UnderMonitoringTypes" ColumnName="UnderMonitoringTypes" />
-          <ScalarProperty Name="Duplicated" ColumnName="Duplicated" />
-          <ScalarProperty Name="BonusBalance" ColumnName="BonusBalance" />
-          <ScalarProperty Name="RealBalance" ColumnName="RealBalance" />
-          <ScalarProperty Name="GGR" ColumnName="GGR" />
-          <ScalarProperty Name="NETGaming" ColumnName="NETGaming" />
-          <ScalarProperty Name="UserPath" ColumnName="UserPath" />
-          <ScalarProperty Name="UserId" ColumnName="UserId" />
-          <ScalarProperty Name="Title" ColumnName="Title" />
-        </ComplexTypeMapping>
-      </ResultMapping>
-    </FunctionImportMapping>
     <FunctionImportMapping FunctionImportName="fn_Bonus" FunctionName="IqSoftCorePlatformModel.Store.fn_Bonus">
       <ResultMapping>
         <ComplexTypeMapping TypeName="IqSoftCorePlatformModel.fnBonus">
@@ -3966,5 +3850,109 @@
         </MappingFragment>
       </EntityTypeMapping>
     </EntitySetMapping>
+    <FunctionImportMapping FunctionImportName="fn_Product" FunctionName="IqSoftCorePlatformModel.Store.fn_Product">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="IqSoftCorePlatformModel.fnProduct">
+          <ScalarProperty Name="Id" ColumnName="Id" />
+          <ScalarProperty Name="TranslationId" ColumnName="TranslationId" />
+          <ScalarProperty Name="GameProviderId" ColumnName="GameProviderId" />
+          <ScalarProperty Name="PaymentSystemId" ColumnName="PaymentSystemId" />
+          <ScalarProperty Name="Level" ColumnName="Level" />
+          <ScalarProperty Name="NickName" ColumnName="NickName" />
+          <ScalarProperty Name="ParentId" ColumnName="ParentId" />
+          <ScalarProperty Name="ExternalId" ColumnName="ExternalId" />
+          <ScalarProperty Name="State" ColumnName="State" />
+          <ScalarProperty Name="IsForDesktop" ColumnName="IsForDesktop" />
+          <ScalarProperty Name="IsForMobile" ColumnName="IsForMobile" />
+          <ScalarProperty Name="HasDemo" ColumnName="HasDemo" />
+          <ScalarProperty Name="SubproviderId" ColumnName="SubproviderId" />
+          <ScalarProperty Name="WebImageUrl" ColumnName="WebImageUrl" />
+          <ScalarProperty Name="MobileImageUrl" ColumnName="MobileImageUrl" />
+          <ScalarProperty Name="BackgroundImageUrl" ColumnName="BackgroundImageUrl" />
+          <ScalarProperty Name="FreeSpinSupport" ColumnName="FreeSpinSupport" />
+          <ScalarProperty Name="Jackpot" ColumnName="Jackpot" />
+          <ScalarProperty Name="CategoryId" ColumnName="CategoryId" />
+          <ScalarProperty Name="RTP" ColumnName="RTP" />
+          <ScalarProperty Name="Lines" ColumnName="Lines" />
+          <ScalarProperty Name="BetValues" ColumnName="BetValues" />
+          <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
+          <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
+          <ScalarProperty Name="Volatility" ColumnName="Volatility" />
+          <ScalarProperty Name="HasImages" ColumnName="HasImages" />
+          <ScalarProperty Name="Path" ColumnName="Path" />
+          <ScalarProperty Name="Name" ColumnName="Name" />
+          <ScalarProperty Name="GameProviderName" ColumnName="GameProviderName" />
+          <ScalarProperty Name="SubproviderName" ColumnName="SubproviderName" />
+          <ScalarProperty Name="IsProviderActive" ColumnName="IsProviderActive" />
+          <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="fn_Client" FunctionName="IqSoftCorePlatformModel.Store.fn_Client">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="IqSoftCorePlatformModel.fnClient">
+          <ScalarProperty Name="Id" ColumnName="Id" />
+          <ScalarProperty Name="Email" ColumnName="Email" />
+          <ScalarProperty Name="IsEmailVerified" ColumnName="IsEmailVerified" />
+          <ScalarProperty Name="CurrencyId" ColumnName="CurrencyId" />
+          <ScalarProperty Name="UserName" ColumnName="UserName" />
+          <ScalarProperty Name="NickName" ColumnName="NickName" />
+          <ScalarProperty Name="PasswordHash" ColumnName="PasswordHash" />
+          <ScalarProperty Name="Salt" ColumnName="Salt" />
+          <ScalarProperty Name="PartnerId" ColumnName="PartnerId" />
+          <ScalarProperty Name="Gender" ColumnName="Gender" />
+          <ScalarProperty Name="BirthDate" ColumnName="BirthDate" />
+          <ScalarProperty Name="Age" ColumnName="Age" />
+          <ScalarProperty Name="SendMail" ColumnName="SendMail" />
+          <ScalarProperty Name="SendSms" ColumnName="SendSms" />
+          <ScalarProperty Name="CallToPhone" ColumnName="CallToPhone" />
+          <ScalarProperty Name="SendPromotions" ColumnName="SendPromotions" />
+          <ScalarProperty Name="State" ColumnName="State" />
+          <ScalarProperty Name="FirstName" ColumnName="FirstName" />
+          <ScalarProperty Name="LastName" ColumnName="LastName" />
+          <ScalarProperty Name="RegionIsoCode" ColumnName="RegionIsoCode" />
+          <ScalarProperty Name="RegionId" ColumnName="RegionId" />
+          <ScalarProperty Name="CountryId" ColumnName="CountryId" />
+          <ScalarProperty Name="Info" ColumnName="Info" />
+          <ScalarProperty Name="ZipCode" ColumnName="ZipCode" />
+          <ScalarProperty Name="RegistrationIp" ColumnName="RegistrationIp" />
+          <ScalarProperty Name="DocumentNumber" ColumnName="DocumentNumber" />
+          <ScalarProperty Name="DocumentIssuedBy" ColumnName="DocumentIssuedBy" />
+          <ScalarProperty Name="IsDocumentVerified" ColumnName="IsDocumentVerified" />
+          <ScalarProperty Name="Address" ColumnName="Address" />
+          <ScalarProperty Name="MobileNumber" ColumnName="MobileNumber" />
+          <ScalarProperty Name="PhoneNumber" ColumnName="PhoneNumber" />
+          <ScalarProperty Name="IsMobileNumberVerified" ColumnName="IsMobileNumberVerified" />
+          <ScalarProperty Name="HasNote" ColumnName="HasNote" />
+          <ScalarProperty Name="LanguageId" ColumnName="LanguageId" />
+          <ScalarProperty Name="City" ColumnName="City" />
+          <ScalarProperty Name="CreationTime" ColumnName="CreationTime" />
+          <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
+          <ScalarProperty Name="FirstDepositDate" ColumnName="FirstDepositDate" />
+          <ScalarProperty Name="LastDepositDate" ColumnName="LastDepositDate" />
+          <ScalarProperty Name="LastDepositAmount" ColumnName="LastDepositAmount" />
+          <ScalarProperty Name="CategoryId" ColumnName="CategoryId" />
+          <ScalarProperty Name="DocumentType" ColumnName="DocumentType" />
+          <ScalarProperty Name="AffiliatePlatformId" ColumnName="AffiliatePlatformId" />
+          <ScalarProperty Name="AffiliateId" ColumnName="AffiliateId" />
+          <ScalarProperty Name="AffiliateReferralId" ColumnName="AffiliateReferralId" />
+          <ScalarProperty Name="LastSessionDate" ColumnName="LastSessionDate" />
+          <ScalarProperty Name="LastSessionId" ColumnName="LastSessionId" />
+          <ScalarProperty Name="SecondName" ColumnName="SecondName" />
+          <ScalarProperty Name="SecondSurname" ColumnName="SecondSurname" />
+          <ScalarProperty Name="UnderMonitoringTypes" ColumnName="UnderMonitoringTypes" />
+          <ScalarProperty Name="Duplicated" ColumnName="Duplicated" />
+          <ScalarProperty Name="BonusBalance" ColumnName="BonusBalance" />
+          <ScalarProperty Name="RealBalance" ColumnName="RealBalance" />
+          <ScalarProperty Name="GGR" ColumnName="GGR" />
+          <ScalarProperty Name="NETGaming" ColumnName="NETGaming" />
+          <ScalarProperty Name="UserPath" ColumnName="UserPath" />
+          <ScalarProperty Name="UserId" ColumnName="UserId" />
+          <ScalarProperty Name="Title" ColumnName="Title" />
+          <ScalarProperty Name="CharacterId" ColumnName="CharacterId" />
+          <ScalarProperty Name="CharacterLevel" ColumnName="CharacterLevel" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
   </EntityContainerMapping>
 </Mapping>

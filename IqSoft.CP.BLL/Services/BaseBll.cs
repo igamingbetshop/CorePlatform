@@ -777,15 +777,16 @@ namespace IqSoft.CP.BLL.Services
             using (var db = CreateEntities())
             {
                 var accounts = db.Accounts.Where(x => x.ObjectId == objectId && x.ObjectTypeId == objectTypeId &&
-                                                   x.AccountType.Kind != (int)AccountTypeKinds.Booked &&
-                                                   x.TypeId != (int)AccountTypes.ClientCoinBalance &&
-                                                   x.TypeId != (int)AccountTypes.ClientCompBalance).ToList();
+                                                      x.AccountType.Kind != (int)AccountTypeKinds.Booked &&
+                                                      x.TypeId != (int)AccountTypes.ClientCoinBalance &&
+                                                      x.TypeId != (int)AccountTypes.ClientCompBalance).ToList();
+                var availableBalanceCurrency = !accounts.Any() ? string.Empty : accounts.First().CurrencyId; // change by input
                 return new ObjectBalance
                 {
                     ObjectId = objectId,
                     ObjectTypeId = objectTypeId,
-                    AvailableBalance = Math.Floor(accounts.Sum(x => x.Balance) * 100) / 100,
-                    CurrencyId = accounts.FirstOrDefault() == null ? string.Empty : accounts.First().CurrencyId,
+                    AvailableBalance = Math.Floor(accounts.Sum(x => ConvertCurrency(x.CurrencyId, availableBalanceCurrency, x.Balance)) * 100) / 100,
+                    CurrencyId = availableBalanceCurrency,
                     Balances = accounts.Select(x => new ObjectAccount
                     {
                         Id = x.Id,

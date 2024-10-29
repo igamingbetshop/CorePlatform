@@ -592,6 +592,23 @@ namespace IqSoft.CP.AdminWebApi.Helpers
             };
         }
 
+        public static DataWarehouse.Filters.FilterUserCorrection MapToFilterReportByUserCorrection(this Filters.Reporting.ApiFilterUserCorrection filter, double timeZone)
+        {
+            return new DataWarehouse.Filters.FilterUserCorrection
+            {
+                PartnerId = filter.PartnerId,
+                FromDate = filter.FromDate.GetUTCDateFromGMT(timeZone),
+                ToDate = filter.ToDate.GetUTCDateFromGMT(timeZone),
+                PartnerIds = filter.PartnerIds == null ? new FiltersOperation() : filter.PartnerIds.MapToFiltersOperation(timeZone),
+                UserIds = filter.UserIds == null ? new FiltersOperation() : filter.UserIds.MapToFiltersOperation(timeZone),
+                UserNames = filter.UserNames == null ? new FiltersOperation() : filter.UserNames.MapToFiltersOperation(timeZone),
+                TotalDebits = filter.TotalDebits == null ? new FiltersOperation() : filter.TotalDebits.MapToFiltersOperation(timeZone),
+                TotalCredits = filter.TotalCredits == null ? new FiltersOperation() : filter.TotalCredits.MapToFiltersOperation(timeZone),
+                Balances = filter.Balances == null ? new FiltersOperation() : filter.Balances.MapToFiltersOperation(timeZone)
+            };
+        }
+
+
         public static FilterReportByProduct MapToFilterReportByProduct(this ApiFilterReportByProduct filter, double timeZone)
         {
             return new FilterReportByProduct
@@ -1048,9 +1065,9 @@ namespace IqSoft.CP.AdminWebApi.Helpers
             };
         }
 
-        public static FilterUserCorrection MapToFilterUserCorrection(this ApiFilterUserCorrection filter, double timeZone)
+        public static DAL.Filters.FilterUserCorrection MapToFilterUserCorrection(this Filters.ApiFilterUserCorrection filter, double timeZone)
         {
-            return new FilterUserCorrection
+            return new DAL.Filters.FilterUserCorrection
             {
                 UserId = filter.UserId,
                 TakeCount = filter.TakeCount,
@@ -1200,6 +1217,7 @@ namespace IqSoft.CP.AdminWebApi.Helpers
                 AffiliatePlatformIds = filter.AffiliatePlatformIds == null ? new FiltersOperation() : filter.AffiliatePlatformIds.MapToFiltersOperation(timeZone),
                 AffiliateIds = filter.AffiliateIds == null ? new FiltersOperation() : filter.AffiliateIds.MapToFiltersOperation(timeZone),
                 AffiliateReferralIds = filter.AffiliateReferralIds == null ? new FiltersOperation() : filter.AffiliateReferralIds.MapToFiltersOperation(timeZone),
+                CharacterLevels = filter.CharacterLevels == null ? new FiltersOperation() : filter.CharacterLevels.MapToFiltersOperation(timeZone),
                 UserIds = filter.UserIds == null ? new FiltersOperation() : filter.UserIds.MapToFiltersOperation(timeZone),
                 LastDepositDates = filter.LastDepositDates == null ? new FiltersOperation() : filter.LastDepositDates.MapToFiltersOperation(timeZone),
                 LastUpdateTimes = filter.LastUpdateTimes == null ? new FiltersOperation() : filter.LastUpdateTimes.MapToFiltersOperation(timeZone),
@@ -1534,12 +1552,6 @@ namespace IqSoft.CP.AdminWebApi.Helpers
             };
         }
 
-        public static List<FilterRole> MapToFilterFilterRoles(this IEnumerable<ApiFilterRole> filterRoles)
-        {
-            return filterRoles.Select(MapToFilterFilterRole).ToList();
-        }
-
-
         #endregion
 
         #region FilterProducts
@@ -1696,11 +1708,8 @@ namespace IqSoft.CP.AdminWebApi.Helpers
 
         public static FilterDashboard MapToFilterDashboard(this ApiFilterDashboard filter, double timeZone)
         {
-            var fromDate = filter.FromDate.GetUTCDateFromGMT(timeZone) ?? DateTime.UtcNow;
-            var toDate = filter.ToDate.GetUTCDateFromGMT(timeZone) ?? DateTime.UtcNow;
-
-            var fromDay = fromDate;//No need to consider the timezone
-            var toDay = toDate;
+            var fromDay = filter.FromDate ?? DateTime.UtcNow;//No need to consider the timezone
+            var toDay = filter.ToDate ?? DateTime.UtcNow;
             return new FilterDashboard
             {
                 PartnerId = filter.PartnerId,

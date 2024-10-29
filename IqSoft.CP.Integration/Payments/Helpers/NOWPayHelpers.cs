@@ -37,7 +37,18 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             { Constants.PaymentSystems.NowPayUSDTBSC, "USDTBSC" },
             { Constants.PaymentSystems.NowPayUSDTSOL, "USDTSOL" },
             { Constants.PaymentSystems.NowPayUSDTPolygon, "USDTMATIC" },
-            { Constants.PaymentSystems.NowPayUSDCPolygon, "USDCMATIC" }
+            { Constants.PaymentSystems.NowPayBUSDBSC, "BUSDBSC" },
+            { Constants.PaymentSystems.NowPayBUSDBNB, "BUSDBNB" },
+            { Constants.PaymentSystems.NowPayBUSD, "BUSD" },
+            { Constants.PaymentSystems.NowPayPYUSD, "PYUSD" },
+            { Constants.PaymentSystems.NowPayUSDP, "USDP" },
+            { Constants.PaymentSystems.NowPayXNO, "XNO" },
+            { Constants.PaymentSystems.NowPayXMR, "XMR" },
+            { Constants.PaymentSystems.NowPayDASH, "DASH" },
+            { Constants.PaymentSystems.NowPayVET, "VET" },
+            { Constants.PaymentSystems.NowPayUNI, "UNI" },
+            { Constants.PaymentSystems.NowPayDGB, "DGB" },
+            { Constants.PaymentSystems.NowPayTRX, "TRX" },
         };
 
         public static string CallNOWPayApi(PaymentRequest input, SessionIdentity session, ILog log)

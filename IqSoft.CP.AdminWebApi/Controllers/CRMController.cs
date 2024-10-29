@@ -473,7 +473,7 @@ namespace IqSoft.CP.AdminWebApi.Controllers
                     ResponseObject = new
                     {
                         products.Count,
-                        Entities = products.Entities.Select(x => x.MapTofnProductModel(identity.TimeZone)).ToList()
+                        Entities = products.Entities.Select(x => x.MapTofnProductModel(identity.TimeZone, productBl.HideAggregatorInfo())).ToList()
                     }
                 };
             }

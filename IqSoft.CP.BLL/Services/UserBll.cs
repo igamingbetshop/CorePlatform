@@ -29,7 +29,6 @@ using User = IqSoft.CP.DAL.User;
 using Client = IqSoft.CP.DAL.Client;
 using Document = IqSoft.CP.DAL.Document;
 using AgentCommission = IqSoft.CP.DAL.AgentCommission;
-using System.Security.Principal;
 
 namespace IqSoft.CP.BLL.Services
 {
@@ -963,7 +962,7 @@ namespace IqSoft.CP.BLL.Services
             Db.Users.Where(x => x.Id == userId).UpdateFromQuery(x => new User { ImageData = imageData });
         }
 
-        public User EditUser(User user, bool checkPermission, AgentEmployeePermissionModel permission = null)
+        public User EditUser(User user, bool checkPermission,  ClientBll clientBll, DocumentBll documentBll, AgentEmployeePermissionModel permission = null)
         {
             if (checkPermission && user.Id != Identity.Id)
             {
@@ -976,10 +975,12 @@ namespace IqSoft.CP.BLL.Services
                 if (!checkResult.HaveAccessForAllObjects && checkResult.AccessibleObjects.All(x => x != user.Id))
                     throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
             }
+            if (!Enum.IsDefined(typeof(UserStates), user.State))
+                throw CreateException(Identity.LanguageId, Constants.Errors.WrongInputParameters);
             var currentTime = GetServerDate();
             var dbUser = Db.Users.FirstOrDefault(x => x.Id == user.Id) ??
                 throw CreateException(LanguageId, Constants.Errors.UserNotFound);
-           // VerifyUserFields(user);
+            // VerifyUserFields(user);
             if (dbUser.Type == (int)UserTypes.CompanyAgent || dbUser.Type == (int)UserTypes.AgentEmployee)
             {
                 if (dbUser.CurrencyId != user.CurrencyId)
@@ -988,6 +989,8 @@ namespace IqSoft.CP.BLL.Services
                     throw CreateException(LanguageId, Constants.Errors.WrongPartnerId);
                 if (dbUser.UserName != user.UserName)
                     throw CreateException(LanguageId, Constants.Errors.InvalidUserName);
+                if (dbUser.State != user.State)
+                    UpdateDownlineStates(dbUser.Id, user.State, documentBll, clientBll, out _);
             }
             var oldValue = JsonConvert.SerializeObject(dbUser.ToUserInfo());
             user.PasswordHash = dbUser.PasswordHash;
@@ -1056,7 +1059,7 @@ namespace IqSoft.CP.BLL.Services
             {
                 foreach (var uc in user.UserConfigurations)
                 {
-                    if(uc.Name == UserConfigurations.CorrectonMaxAmount)
+                    if (uc.Name == UserConfigurations.CorrectonMaxAmount)
                     {
                         if (Identity.Id == dbUser.Id) continue;
                         try
@@ -1068,7 +1071,7 @@ namespace IqSoft.CP.BLL.Services
                             Log.Error(ex);
                         }
                     }
-                    else if(uc.Name == UserConfigurations.DepositSubscription ||
+                    else if (uc.Name == UserConfigurations.DepositSubscription ||
                             uc.Name == UserConfigurations.WithdrawSubscription ||
                             uc.Name == UserConfigurations.RegistrationSubscription ||
                             uc.Name == UserConfigurations.BonusSubscription ||
@@ -1135,7 +1138,6 @@ namespace IqSoft.CP.BLL.Services
                     });
             }
             Db.SaveChanges();
-
             return dbUser;
         }
 

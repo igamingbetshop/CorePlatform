@@ -424,6 +424,7 @@
     <Property Name="DayOfWeek" Type="int" />
     <Property Name="ReusingMaxCountInPeriod" Type="int" />
     <Property Name="Color" Type="varchar" MaxLength="50" />
+    <Property Name="WageringSource" Type="int" />
   </EntityType>
   <EntityType Name="BonusCountrySettings">
     <Key>
@@ -6177,26 +6178,6 @@
       </CollectionType>
     </ReturnType>
   </Function>
-  <Function Name="fn_AgentTurnoverProfit" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
-    <Parameter Name="FromDate" Type="bigint" Mode="In" />
-    <Parameter Name="ToDate" Type="bigint" Mode="In" />
-    <ReturnType>
-      <CollectionType>
-        <RowType>
-          <Property Name="RecieverAgentId" Type="int" Nullable="false" />
-          <Property Name="RecieverAgentPath" Type="varchar" MaxLength="50" />
-          <Property Name="AgentId" Type="int" Nullable="false" />
-          <Property Name="ProductId" Type="int" Nullable="false" />
-          <Property Name="ProductGroupId" Type="int" />
-          <Property Name="ProductGroupName" Type="varchar" MaxLength="50" />
-          <Property Name="SelectionsCount" Type="int" />
-          <Property Name="TotalBetAmount" Type="decimal" Precision="38" Scale="4" />
-          <Property Name="TotalWinAmount" Type="decimal" Precision="38" Scale="4" />
-          <Property Name="TurnoverPercent" Type="varchar(max)" Nullable="false" />
-        </RowType>
-      </CollectionType>
-    </ReturnType>
-  </Function>
   <Function Name="fn_Announcement" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
     <Parameter Name="LanguageId" Type="char" Mode="In" />
     <ReturnType>
@@ -6476,6 +6457,8 @@
           <Property Name="UserPath" Type="varchar" MaxLength="50" />
           <Property Name="UserId" Type="int" />
           <Property Name="Title" Type="int" />
+          <Property Name="CharacterId" Type="int" />
+          <Property Name="CharacterLevel" Type="int" />
         </RowType>
       </CollectionType>
     </ReturnType>
@@ -7187,6 +7170,7 @@
   </Function>
   <Function Name="fn_Product" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
     <Parameter Name="LanguageId" Type="char" Mode="In" />
+    <Parameter Name="PartnerId" Type="int" Mode="In" />
     <ReturnType>
       <CollectionType>
         <RowType>
@@ -7221,6 +7205,7 @@
           <Property Name="GameProviderName" Type="varchar" MaxLength="50" />
           <Property Name="SubproviderName" Type="varchar" MaxLength="50" />
           <Property Name="IsProviderActive" Type="bit" />
+          <Property Name="PartnerId" Type="int" />
         </RowType>
       </CollectionType>
     </ReturnType>

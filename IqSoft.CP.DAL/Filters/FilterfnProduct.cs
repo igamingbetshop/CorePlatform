@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using IqSoft.CP.Common.Models;
 
@@ -17,6 +18,7 @@ namespace IqSoft.CP.DAL.Filters
         public bool? FreeSpinSupport { get; set; }
         public bool? IsProviderActive { get; set; }
         public string Path { get; set; }
+        public List<int> GroupIds { get; set; }
 
         public FiltersOperation Ids { get; set; }
         public FiltersOperation Names { get; set; }
@@ -52,7 +54,13 @@ namespace IqSoft.CP.DAL.Filters
                 objects = objects.Where(x => x.GameProviderId != null && (x.Name.Contains(Pattern) || x.NickName.Contains(Pattern)));
             if (!string.IsNullOrEmpty(Path))
                 objects = objects.Where(x => x.Path.Contains(Path));
-
+            if (PartnerId.HasValue)
+            {
+                if(GroupIds != null && GroupIds.Any())
+                    objects = objects.Where(x => x.PartnerId != null || (x.GameProviderId == null && GroupIds.Contains(x.Id)));
+                else
+                    objects = objects.Where(x => x.PartnerId != null || x.GameProviderId == null);
+            }
             FilterByValue(ref objects, Ids, "Id");
             FilterByValue(ref objects, Names, "Name");
             FilterByValue(ref objects, States, "State");
@@ -64,6 +72,7 @@ namespace IqSoft.CP.DAL.Filters
             FilterByValue(ref objects, Jackpots, "Jackpot");
             FilterByValue(ref objects, RTPs, "RTP");
             FilterByValue(ref objects, HasDemo, "HasDemo");
+
             return base.FilteredObjects(objects, orderBy);
         }
 

@@ -10,7 +10,6 @@ using IqSoft.CP.Common.Models.WebSiteModels;
 using IqSoft.CP.Common.Models.WebSiteModels.Products;
 using System.Collections.Generic;
 using IqSoft.CP.DAL.Models.Cache;
-using Newtonsoft.Json;
 
 namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
 {

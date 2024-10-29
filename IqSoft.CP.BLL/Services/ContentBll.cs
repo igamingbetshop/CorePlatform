@@ -2045,6 +2045,23 @@ namespace IqSoft.CP.BLL.Services
                 UploadFile(text, "/betshopwebsite/" + partner.Name.ToLower() + "/assets/css/betshop.css", ftpInput);
             }
 
+            var applicationStyles = Db.WebSiteMenuItems.Where(x => x.WebSiteMenu.PartnerId == partnerId &&
+            x.WebSiteMenu.Type == Constants.WebSiteConfiguration.Styles &&
+            x.WebSiteMenu.DeviceType == (int)DeviceTypes.Application).Select(x => new
+            {
+                x.Title,
+                x.Type,
+                x.StyleType,
+                Items = x.WebSiteSubMenuItems.Select(y => new
+                {
+                    y.Title,
+                    y.Type
+                }).ToList()
+            }).ToList();
+            
+            UploadFile(JsonConvert.SerializeObject(applicationStyles.ToDictionary(x => x.Title, x => x.Items.
+                ToDictionary(y => (string.IsNullOrEmpty(x.Type) ? string.Empty : (x.Type + "-" + x.StyleType + "-")) + y.Title, y => y.Type))), 
+                "/coreplatform/website/" + partner.Name.ToLower() + "/assets/css/application.css", ftpInput);
             UploadFile(string.Format("window.VERSION = {0};", new Random().Next(1, 1000)), "/coreplatform/website/" + partner.Name.ToLower() + "/assets/js/version.js", ftpInput);
 
             var fonts = Db.WebSiteSubMenuItems.Where(x => x.WebSiteMenuItem.WebSiteMenu.PartnerId == partnerId &&
@@ -2637,6 +2654,8 @@ namespace IqSoft.CP.BLL.Services
                     path += "fonts/" + imageName;
                 else if (menuItemName.ToLower() == Constants.WebSiteConfiguration.Root)
                     path += "root/" + imageName;
+                else if (menuItemName.ToLower() == Constants.WebSiteConfiguration.Html.ToLower())
+                    path += "html/" + imageName;
                 else
                     path += "images/";
 
@@ -2666,6 +2685,7 @@ namespace IqSoft.CP.BLL.Services
                     path += ("mobile-right-sidebar/" + imageName);
                 else if (menuType == Constants.WebSiteConfiguration.MobileHeaderPanel)
                     path += ("mobile_header_panel/" + imageName);
+
 
                 byte[] bytes = Convert.FromBase64String(image);
                 UploadFtpImage(bytes, ftpModel.Value, path);
@@ -3238,7 +3258,8 @@ namespace IqSoft.CP.BLL.Services
                             }
                         }
                         broadcastKey.Add(string.Format("{0}_{1}_{2}", Constants.CacheItems.Products, product.Id, translationEntry.LanguageId), 0);
-                        broadcastKey.Add(string.Format("{0}_{1}_{2}_{3}", Constants.CacheItems.Products, product.GameProviderId, product.ExternalId, translationEntry.LanguageId), 0);
+                        var eId = string.IsNullOrEmpty(product.ExternalId) ? string.Empty : product.ExternalId.Replace(" ", string.Empty);
+                        broadcastKey.Add(string.Format("{0}_{1}_{2}_{3}", Constants.CacheItems.Products, product.GameProviderId, eId, translationEntry.LanguageId), 0);
                         break;
                     case (int)ObjectTypes.Promotion:
                     case (int)ObjectTypes.PromotionContent:

@@ -50,6 +50,7 @@ namespace IqSoft.CP.AdminWebApi.Filters
         public ApiFiltersOperation AffiliatePlatformIds { get; set; }
         public ApiFiltersOperation AffiliateIds { get; set; }
         public ApiFiltersOperation AffiliateReferralIds { get; set; }
+        public ApiFiltersOperation CharacterLevels { get; set; }
 
         public ApiFiltersOperation UserIds { get; set; }
         public ApiFiltersOperation LastDepositDates { get; set; }

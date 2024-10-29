@@ -211,7 +211,6 @@
     <Property Name="GGR" Type="decimal" Precision="18" Scale="4" Nullable="false" />
     <Property Name="Profit" Type="decimal" Precision="18" Scale="4" Nullable="false" />
     <Property Name="Type" Type="int" Nullable="false" />
-    <Property Name="ProductGroupId" Type="int" Nullable="false" />
     <Property Name="CreationTime" Type="datetime2" Precision="3" Nullable="false" />
     <Property Name="CalculationStartingTime" Type="datetime2" Precision="3" Nullable="false" />
     <Property Name="CreationDate" Type="bigint" Nullable="false" />
@@ -424,6 +423,7 @@
     <Property Name="Regularity" Type="int" />
     <Property Name="DayOfWeek" Type="int" />
     <Property Name="ReusingMaxCountInPeriod" Type="int" />
+    <Property Name="Color" Type="varchar" MaxLength="50" />
   </EntityType>
   <EntityType Name="BonusCountrySettings">
     <Key>
@@ -898,11 +898,11 @@
     <Property Name="Id" Type="varchar" MaxLength="5" Nullable="false" />
     <Property Name="CurrentRate" Type="decimal" Precision="18" Scale="12" Nullable="false" />
     <Property Name="Symbol" Type="nvarchar" MaxLength="5" Nullable="false" />
-    <Property Name="SessionId" Type="bigint" Nullable="false" />
     <Property Name="CreationTime" Type="datetime2" Precision="3" Nullable="false" />
     <Property Name="LastUpdateTime" Type="datetime2" Precision="3" Nullable="false" />
     <Property Name="Code" Type="nchar" MaxLength="3" />
     <Property Name="Name" Type="nvarchar" MaxLength="50" Nullable="false" />
+    <Property Name="Type" Type="int" Nullable="false" />
   </EntityType>
   <EntityType Name="CurrencyRate">
     <Key>
@@ -912,7 +912,7 @@
     <Property Name="CurrencyId" Type="varchar" MaxLength="5" Nullable="false" />
     <Property Name="RateBefore" Type="decimal" Precision="18" Scale="12" Nullable="false" />
     <Property Name="RateAfter" Type="decimal" Precision="18" Scale="12" Nullable="false" />
-    <Property Name="SessionId" Type="bigint" Nullable="false" />
+    <Property Name="SessionId" Type="bigint" />
     <Property Name="CreationTime" Type="datetime2" Precision="3" Nullable="false" />
     <Property Name="LastUpdateTime" Type="datetime2" Precision="3" Nullable="false" />
   </EntityType>
@@ -1021,7 +1021,7 @@
     <Key>
       <PropertyRef Name="Id" />
     </Key>
-    <Property Name="Id" Type="int" Nullable="false" />
+    <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
     <Property Name="Name" Type="varchar" MaxLength="200" Nullable="false" />
     <Property Name="PartnerId" Type="int" />
     <Property Name="Type" Type="int" Nullable="false" />
@@ -1036,7 +1036,7 @@
     <Key>
       <PropertyRef Name="Id" />
     </Key>
-    <Property Name="Id" Type="int" Nullable="false" />
+    <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
     <Property Name="ProductId" Type="int" Nullable="false" />
     <Property Name="JackpotId" Type="int" Nullable="false" />
     <Property Name="Percent" Type="decimal" Precision="18" Scale="4" Nullable="false" />
@@ -1593,7 +1593,7 @@
     <Key>
       <PropertyRef Name="Id" />
     </Key>
-    <Property Name="Id" Type="int" Nullable="false" />
+    <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
     <Property Name="TranslationId" Type="bigint" Nullable="false" />
     <Property Name="GameProviderId" Type="int" />
     <Property Name="PaymentSystemId" Type="int" />
@@ -1685,6 +1685,7 @@
     <Property Name="ParentId" Type="int" />
     <Property Name="StyleType" Type="varchar" MaxLength="500" />
     <Property Name="DeviceType" Type="int" />
+    <Property Name="Visibility" Type="varchar" MaxLength="50" />
   </EntityType>
   <EntityType Name="PromotionLanguageSetting">
     <Key>
@@ -1776,6 +1777,7 @@
     <Property Name="LastName" Type="varchar" MaxLength="500" />
     <Property Name="Region" Type="varchar" MaxLength="500" />
     <Property Name="AffiliateId" Type="varchar" MaxLength="500" />
+    <Property Name="AgentId" Type="varchar" MaxLength="500" />
     <Property Name="MobileCode" Type="varchar" MaxLength="500" />
     <Property Name="SessionPeriod" Type="varchar" MaxLength="500" />
     <Property Name="SignUpPeriod" Type="varchar" MaxLength="500" />
@@ -1929,7 +1931,7 @@
     <Property Name="Type" Type="int" Nullable="false" />
     <Property Name="StartTime" Type="datetime2" Precision="3" Nullable="false" />
     <Property Name="FinishTime" Type="datetime2" Precision="3" Nullable="false" />
-    <Property Name="Percent" Type="int" Nullable="false" />
+    <Property Name="Percent" Type="int" />
     <Property Name="BonusSettingCodes" Type="nvarchar" MaxLength="500" />
     <Property Name="PartnerId" Type="int" Nullable="false" />
     <Property Name="CreationTime" Type="datetime2" Precision="3" Nullable="false" />
@@ -1987,6 +1989,7 @@
     <Property Name="UserId" Type="int" Nullable="false" />
     <Property Name="CreatedBy" Type="int" />
     <Property Name="Name" Type="varchar" MaxLength="100" Nullable="false" />
+    <Property Name="BooleanValue" Type="bit" />
     <Property Name="NumericValue" Type="decimal" Precision="18" Scale="4" />
     <Property Name="StringValue" Type="nvarchar" MaxLength="250" />
     <Property Name="CreationTime" Type="datetime2" Precision="3" Nullable="false" />
@@ -2002,6 +2005,19 @@
     <Property Name="RequestMethod" Type="varchar" MaxLength="20" Nullable="false" />
     <Property Name="Page" Type="varchar" MaxLength="255" Nullable="false" />
     <Property Name="Info" Type="nvarchar(max)" />
+    <Property Name="CreationTime" Type="datetime2" Precision="3" Nullable="false" />
+  </EntityType>
+  <EntityType Name="UserNotification">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="UserId" Type="int" Nullable="false" />
+    <Property Name="TypeId" Type="int" Nullable="false" />
+    <Property Name="ClientId" Type="int" />
+    <Property Name="PaymentRequestId" Type="bigint" />
+    <Property Name="BonusId" Type="int" />
+    <Property Name="Status" Type="int" Nullable="false" />
     <Property Name="CreationTime" Type="datetime2" Precision="3" Nullable="false" />
   </EntityType>
   <EntityType Name="UserRole">
@@ -2409,18 +2425,6 @@
       </Principal>
       <Dependent Role="AgentProfit">
         <PropertyRef Name="ClientId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-  <Association Name="FK_AgentProfit_Product">
-    <End Role="Product" Type="Self.Product" Multiplicity="1" />
-    <End Role="AgentProfit" Type="Self.AgentProfit" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="Product">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="AgentProfit">
-        <PropertyRef Name="ProductGroupId" />
       </Dependent>
     </ReferentialConstraint>
   </Association>
@@ -3852,20 +3856,8 @@
       </Dependent>
     </ReferentialConstraint>
   </Association>
-  <Association Name="FK_Currency_UserSession">
-    <End Role="UserSession" Type="Self.UserSession" Multiplicity="1" />
-    <End Role="Currency" Type="Self.Currency" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="UserSession">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="Currency">
-        <PropertyRef Name="SessionId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
   <Association Name="FK_CurrencyRate_UserSession">
-    <End Role="UserSession" Type="Self.UserSession" Multiplicity="1" />
+    <End Role="UserSession" Type="Self.UserSession" Multiplicity="0..1" />
     <End Role="CurrencyRate" Type="Self.CurrencyRate" Multiplicity="*" />
     <ReferentialConstraint>
       <Principal Role="UserSession">
@@ -5712,6 +5704,54 @@
       </Dependent>
     </ReferentialConstraint>
   </Association>
+  <Association Name="FK_UserNotification_Bonus">
+    <End Role="Bonus" Type="Self.Bonus" Multiplicity="0..1" />
+    <End Role="UserNotification" Type="Self.UserNotification" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Bonus">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="UserNotification">
+        <PropertyRef Name="BonusId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_UserNotification_Client">
+    <End Role="Client" Type="Self.Client" Multiplicity="0..1" />
+    <End Role="UserNotification" Type="Self.UserNotification" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Client">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="UserNotification">
+        <PropertyRef Name="ClientId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_UserNotification_PaymentRequest">
+    <End Role="PaymentRequest" Type="Self.PaymentRequest" Multiplicity="0..1" />
+    <End Role="UserNotification" Type="Self.UserNotification" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="PaymentRequest">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="UserNotification">
+        <PropertyRef Name="PaymentRequestId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_UserNotification_User">
+    <End Role="User" Type="Self.User" Multiplicity="1" />
+    <End Role="UserNotification" Type="Self.UserNotification" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="User">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="UserNotification">
+        <PropertyRef Name="UserId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
   <Association Name="FK_UserRole_Role">
     <End Role="Role" Type="Self.Role" Multiplicity="1" />
     <End Role="UserRole" Type="Self.UserRole" Multiplicity="*" />
@@ -6017,6 +6057,24 @@
       </CollectionType>
     </ReturnType>
   </Function>
+  <Function Name="fn_AffiliateMessage" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+    <ReturnType>
+      <CollectionType>
+        <RowType>
+          <Property Name="PartnerId" Type="int" Nullable="false" />
+          <Property Name="MessageId" Type="bigint" Nullable="false" />
+          <Property Name="Id" Type="int" />
+          <Property Name="UserName" Type="varchar" MaxLength="50" />
+          <Property Name="MobileOrEmail" Type="nvarchar" MaxLength="50" />
+          <Property Name="Subject" Type="nvarchar" MaxLength="200" />
+          <Property Name="Message" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="MessageType" Type="int" Nullable="false" />
+          <Property Name="Status" Type="int" />
+          <Property Name="CreationTime" Type="datetime2" Precision="3" Nullable="false" />
+        </RowType>
+      </CollectionType>
+    </ReturnType>
+  </Function>
   <Function Name="fn_Agent" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
     <Parameter Name="AgentId" Type="int" Mode="In" />
     <ReturnType>
@@ -6051,6 +6109,24 @@
           <Property Name="ClientCount" Type="int" />
           <Property Name="DirectClientCount" Type="int" />
           <Property Name="Balance" Type="decimal" Precision="18" Scale="4" />
+        </RowType>
+      </CollectionType>
+    </ReturnType>
+  </Function>
+  <Function Name="fn_AgentMessage" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+    <ReturnType>
+      <CollectionType>
+        <RowType>
+          <Property Name="PartnerId" Type="int" Nullable="false" />
+          <Property Name="MessageId" Type="bigint" Nullable="false" />
+          <Property Name="Id" Type="int" />
+          <Property Name="UserName" Type="varchar" MaxLength="50" />
+          <Property Name="MobileOrEmail" Type="nvarchar" MaxLength="50" />
+          <Property Name="Subject" Type="nvarchar" MaxLength="200" />
+          <Property Name="Message" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="MessageType" Type="int" Nullable="false" />
+          <Property Name="Status" Type="int" />
+          <Property Name="CreationTime" Type="datetime2" Precision="3" Nullable="false" />
         </RowType>
       </CollectionType>
     </ReturnType>
@@ -6533,34 +6609,19 @@
     </ReturnType>
   </Function>
   <Function Name="fn_ClientMessage" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
-    <Parameter Name="ObjectTypeId" Type="int" Mode="In" />
     <ReturnType>
       <CollectionType>
         <RowType>
-          <Property Name="PartnerId" Type="int" />
-          <Property Name="MessageId" Type="bigint" />
+          <Property Name="PartnerId" Type="int" Nullable="false" />
+          <Property Name="MessageId" Type="bigint" Nullable="false" />
           <Property Name="Id" Type="int" />
           <Property Name="UserName" Type="varchar" MaxLength="50" />
           <Property Name="MobileOrEmail" Type="nvarchar" MaxLength="50" />
           <Property Name="Subject" Type="nvarchar" MaxLength="200" />
-          <Property Name="Message" Type="nvarchar(max)" />
-          <Property Name="MessageType" Type="int" />
+          <Property Name="Message" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="MessageType" Type="int" Nullable="false" />
           <Property Name="Status" Type="int" />
-          <Property Name="CreationTime" Type="datetime2" Precision="3" />
-        </RowType>
-      </CollectionType>
-    </ReturnType>
-  </Function>
-  <Function Name="fn_ClientProductCommission" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
-    <Parameter Name="ProductId" Type="int" Mode="In" />
-    <Parameter Name="ClientId" Type="int" Mode="In" />
-    <ReturnType>
-      <CollectionType>
-        <RowType>
-          <Property Name="Percent" Type="decimal" Precision="5" Scale="2" />
-          <Property Name="TurnoverPercent" Type="varchar(max)" />
-          <Property Name="ClientId" Type="int" />
-          <Property Name="AgentId" Type="int" />
+          <Property Name="CreationTime" Type="datetime2" Precision="3" Nullable="false" />
         </RowType>
       </CollectionType>
     </ReturnType>
@@ -6948,6 +7009,24 @@
       </CollectionType>
     </ReturnType>
   </Function>
+  <Function Name="fn_PartnerMessage" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+    <ReturnType>
+      <CollectionType>
+        <RowType>
+          <Property Name="PartnerId" Type="int" Nullable="false" />
+          <Property Name="MessageId" Type="bigint" Nullable="false" />
+          <Property Name="Id" Type="int" />
+          <Property Name="Name" Type="varchar" MaxLength="50" />
+          <Property Name="MobileOrEmail" Type="nvarchar" MaxLength="50" />
+          <Property Name="Subject" Type="nvarchar" MaxLength="200" />
+          <Property Name="Message" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="MessageType" Type="int" Nullable="false" />
+          <Property Name="Status" Type="int" />
+          <Property Name="CreationTime" Type="datetime2" Precision="3" Nullable="false" />
+        </RowType>
+      </CollectionType>
+    </ReturnType>
+  </Function>
   <Function Name="fn_PartnerPaymentSetting" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
     <Parameter Name="LanguageId" Type="char" Mode="In" />
     <ReturnType>
@@ -7172,17 +7251,6 @@
       </CollectionType>
     </ReturnType>
   </Function>
-  <Function Name="fn_ProductGroup" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
-    <Parameter Name="productId" Type="int" Mode="In" />
-    <ReturnType>
-      <CollectionType>
-        <RowType>
-          <Property Name="Id" Type="int" />
-          <Property Name="NickName" Type="varchar" MaxLength="50" />
-        </RowType>
-      </CollectionType>
-    </ReturnType>
-  </Function>
   <Function Name="fn_Promotion" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
     <Parameter Name="languageId" Type="char" Mode="In" />
     <Parameter Name="withContent" Type="bit" Mode="In" />
@@ -7203,6 +7271,7 @@
           <Property Name="ParentId" Type="int" />
           <Property Name="StyleType" Type="varchar" MaxLength="500" />
           <Property Name="DeviceType" Type="int" />
+          <Property Name="Visibility" Type="varchar" MaxLength="50" />
           <Property Name="Title" Type="nvarchar(max)" Nullable="false" />
           <Property Name="Description" Type="nvarchar(max)" Nullable="false" />
           <Property Name="Content" Type="nvarchar(max)" />
@@ -7945,6 +8014,7 @@
     <EntitySet Name="User" EntityType="Self.User" Schema="dbo" store:Type="Tables" />
     <EntitySet Name="UserConfiguration" EntityType="Self.UserConfiguration" Schema="dbo" store:Type="Tables" />
     <EntitySet Name="UserLog" EntityType="Self.UserLog" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="UserNotification" EntityType="Self.UserNotification" Schema="dbo" store:Type="Tables" />
     <EntitySet Name="UserRole" EntityType="Self.UserRole" Schema="dbo" store:Type="Tables" />
     <EntitySet Name="UserSession" EntityType="Self.UserSession" Schema="dbo" store:Type="Tables" />
     <EntitySet Name="UserSetting" EntityType="Self.UserSetting" Schema="dbo" store:Type="Tables" />
@@ -8054,10 +8124,6 @@
     </AssociationSet>
     <AssociationSet Name="FK_AgentProfit_Client" Association="Self.FK_AgentProfit_Client">
       <End Role="Client" EntitySet="Client" />
-      <End Role="AgentProfit" EntitySet="AgentProfit" />
-    </AssociationSet>
-    <AssociationSet Name="FK_AgentProfit_Product" Association="Self.FK_AgentProfit_Product">
-      <End Role="Product" EntitySet="Product" />
       <End Role="AgentProfit" EntitySet="AgentProfit" />
     </AssociationSet>
     <AssociationSet Name="FK_AgentProfit_Product1" Association="Self.FK_AgentProfit_Product1">
@@ -8535,10 +8601,6 @@
     <AssociationSet Name="FK_CRMSetting_Partner" Association="Self.FK_CRMSetting_Partner">
       <End Role="Partner" EntitySet="Partner" />
       <End Role="CRMSetting" EntitySet="CRMSetting" />
-    </AssociationSet>
-    <AssociationSet Name="FK_Currency_UserSession" Association="Self.FK_Currency_UserSession">
-      <End Role="UserSession" EntitySet="UserSession" />
-      <End Role="Currency" EntitySet="Currency" />
     </AssociationSet>
     <AssociationSet Name="FK_CurrencyRate_UserSession" Association="Self.FK_CurrencyRate_UserSession">
       <End Role="UserSession" EntitySet="UserSession" />
@@ -9155,6 +9217,22 @@
     <AssociationSet Name="FK_UserLog_User" Association="Self.FK_UserLog_User">
       <End Role="User" EntitySet="User" />
       <End Role="UserLog" EntitySet="UserLog" />
+    </AssociationSet>
+    <AssociationSet Name="FK_UserNotification_Bonus" Association="Self.FK_UserNotification_Bonus">
+      <End Role="Bonus" EntitySet="Bonus" />
+      <End Role="UserNotification" EntitySet="UserNotification" />
+    </AssociationSet>
+    <AssociationSet Name="FK_UserNotification_Client" Association="Self.FK_UserNotification_Client">
+      <End Role="Client" EntitySet="Client" />
+      <End Role="UserNotification" EntitySet="UserNotification" />
+    </AssociationSet>
+    <AssociationSet Name="FK_UserNotification_PaymentRequest" Association="Self.FK_UserNotification_PaymentRequest">
+      <End Role="PaymentRequest" EntitySet="PaymentRequest" />
+      <End Role="UserNotification" EntitySet="UserNotification" />
+    </AssociationSet>
+    <AssociationSet Name="FK_UserNotification_User" Association="Self.FK_UserNotification_User">
+      <End Role="User" EntitySet="User" />
+      <End Role="UserNotification" EntitySet="UserNotification" />
     </AssociationSet>
     <AssociationSet Name="FK_UserRole_Role" Association="Self.FK_UserRole_Role">
       <End Role="Role" EntitySet="Role" />

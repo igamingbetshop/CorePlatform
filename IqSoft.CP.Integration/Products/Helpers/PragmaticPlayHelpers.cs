@@ -20,8 +20,12 @@ namespace IqSoft.CP.Integration.Products.Helpers
         private static readonly BllGameProvider Provider = CacheManager.GetGameProviderByName(Constants.GameProviders.PragmaticPlay);
         private static readonly List<string> NotSupportedCurrencies = new List<string>
         {
-            Constants.Currencies.USDT
+            Constants.Currencies.USDT,
+            Constants.Currencies.USDC,
+            Constants.Currencies.PYUSD,
+            Constants.Currencies.BUSD
         };
+
         public static string GetSessionUrlOld(int partnerId, BllProduct product, string token, bool isForMobile, bool isForDemo, SessionIdentity session)
         {
             var casinoPageUrl = CacheManager.GetPartnerSettingByKey(partnerId, Constants.PartnerKeys.CasinoPageUrl).StringValue;

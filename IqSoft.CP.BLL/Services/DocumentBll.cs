@@ -397,7 +397,8 @@ namespace IqSoft.CP.BLL.Services
             fromBonusBalance = false;
             bonusAmount = 0;
 
-            bool willBalanceChange = (operationItem.ObjectTypeId != (int)ObjectTypes.Partner && operationItem.ObjectTypeId != (int)ObjectTypes.PartnerProduct);
+            bool willBalanceChange = (operationItem.ObjectTypeId != (int)ObjectTypes.Partner && 
+                operationItem.ObjectTypeId != (int)ObjectTypes.PartnerProduct);
 
             if (operationItem.AccountId.HasValue || operationItem.AccountTypeId.HasValue)
             {
@@ -458,11 +459,13 @@ namespace IqSoft.CP.BLL.Services
 
                 var accountsInfo = CacheManager.GetAccountsInfo(operationItem.ObjectTypeId, operationItem.ObjectId,
                     operationItem.CurrencyId);
-                var accountsWithSpecificCurrency = (from t in orderedAccountTypes
-                                                    select accountsInfo.FirstOrDefault(x => x.TypeId == t)
-                    into info
-                                                    where info != null
-                                                    select info.Id).ToList();
+                var accountsWithSpecificCurrency = new List<long>();
+                foreach(var t in orderedAccountTypes)
+                {
+                    var accIds = accountsInfo.Where(x => x.TypeId == t).Select(x => x.Id).ToList();
+                    if (accIds.Any())
+                        accountsWithSpecificCurrency.AddRange(accIds);
+                }
 
                 if (willBalanceChange)
                 {
@@ -615,7 +618,7 @@ namespace IqSoft.CP.BLL.Services
             if (accountId > 0)
                 return accountId;
 
-            var dbDate = GetServerDate();
+            var currentTime = DateTime.UtcNow;
             var account = new Account
             {
                 ObjectId = objectId,
@@ -624,8 +627,8 @@ namespace IqSoft.CP.BLL.Services
                 Balance = 0,
                 CurrencyId = currency,
                 SessionId = SessionId,
-                CreationTime = dbDate,
-                LastUpdateTime = dbDate
+                CreationTime = currentTime,
+                LastUpdateTime = currentTime
             };
             Db.Accounts.Add(account);
             Db.SaveChanges();
@@ -1243,7 +1246,7 @@ namespace IqSoft.CP.BLL.Services
         public fnClientBonus CollectBonus(int clientBonusId)
         {
             var bonus = Db.ClientBonus.Include(x => x.Bonu).Where(x => x.Id == clientBonusId).FirstOrDefault();
-            if (bonus == null || bonus.Bonu.Type != (int)BonusTypes.CashBackBonus)
+            if (bonus == null || (bonus.Bonu.Type != (int)BonusTypes.GGRCashBack && bonus.Bonu.Type != (int)BonusTypes.TurnoverCashBack))
                 throw CreateException(Identity.LanguageId, Constants.Errors.BonusNotFound);
             if (bonus.Status != (int)ClientBonusStatuses.NotAwarded || bonus.ValidUntil == null || bonus.ValidUntil.Value < DateTime.UtcNow)
                 throw CreateException(Identity.LanguageId, Constants.Errors.NotAllowed);

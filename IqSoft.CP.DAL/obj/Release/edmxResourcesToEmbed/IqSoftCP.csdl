@@ -284,10 +284,6 @@
       <Parameter Name="ToDate" Mode="In" Type="Int64" />
       <Parameter Name="AgentId" Mode="In" Type="Int32" />
     </FunctionImport>
-    <FunctionImport Name="fn_AgentTurnoverProfit" IsComposable="true" ReturnType="Collection(IqSoftCorePlatformModel.fnAgentTurnoverProfit)">
-      <Parameter Name="FromDate" Mode="In" Type="Int64" />
-      <Parameter Name="ToDate" Mode="In" Type="Int64" />
-    </FunctionImport>
     <FunctionImport Name="fn_BetShopReconing" IsComposable="true" ReturnType="Collection(IqSoftCorePlatformModel.fnBetShopReconing)" />
     <FunctionImport Name="fn_CashDeskTransaction" IsComposable="true" ReturnType="Collection(IqSoftCorePlatformModel.fnCashDeskTransaction)">
       <Parameter Name="languageId" Mode="In" Type="String" />
@@ -1258,9 +1254,6 @@
       <End Role="Affiliate" EntitySet="Affiliates" />
     </AssociationSet>
     <FunctionImport Name="fn_Affiliate" IsComposable="true" ReturnType="Collection(IqSoftCorePlatformModel.fnAffiliate)" />
-    <FunctionImport Name="fn_Product" IsComposable="true" ReturnType="Collection(IqSoftCorePlatformModel.fnProduct)">
-      <Parameter Name="LanguageId" Mode="In" Type="String" />
-    </FunctionImport>
     <EntitySet Name="ClientBonus" EntityType="IqSoftCorePlatformModel.ClientBonu" />
     <AssociationSet Name="FK_ClientBonus_Bonus" Association="IqSoftCorePlatformModel.FK_ClientBonus_Bonus">
       <End Role="Bonu" EntitySet="Bonus" />
@@ -1339,7 +1332,6 @@
       <End Role="PartnerPaymentSetting" EntitySet="PartnerPaymentSettings" />
       <End Role="PartnerPaymentSegmentSetting" EntitySet="PartnerPaymentSegmentSettings" />
     </AssociationSet>
-    <FunctionImport Name="fn_Client" IsComposable="true" ReturnType="Collection(IqSoftCorePlatformModel.fnClient)" />
     <FunctionImport Name="fn_Bonus" IsComposable="true" ReturnType="Collection(IqSoftCorePlatformModel.fnBonus)">
       <Parameter Name="languageId" Mode="In" Type="String" />
     </FunctionImport>
@@ -1667,6 +1659,11 @@
       <End Role="User" EntitySet="Users" />
       <End Role="UserConfiguration" EntitySet="UserConfigurations" />
     </AssociationSet>
+    <FunctionImport Name="fn_Product" IsComposable="true" ReturnType="Collection(IqSoftCorePlatformModel.fnProduct)">
+      <Parameter Name="LanguageId" Mode="In" Type="String" />
+      <Parameter Name="PartnerId" Mode="In" Type="Int32" />
+    </FunctionImport>
+    <FunctionImport Name="fn_Client" IsComposable="true" ReturnType="Collection(IqSoftCorePlatformModel.fnClient)" />
   </EntityContainer>
   <ComplexType Name="spObjectChangeHistory">
     <Property Type="Int64" Name="Id" Nullable="false" />
@@ -3298,18 +3295,6 @@
     <Property Type="DateTime" Name="LastUpdateTime" Nullable="false" Precision="23" />
     <Property Type="Int64" Name="Date" Nullable="true" />
   </ComplexType>
-  <ComplexType Name="fnAgentTurnoverProfit">
-    <Property Type="Int32" Name="RecieverAgentId" Nullable="false" />
-    <Property Type="String" Name="RecieverAgentPath" Nullable="true" MaxLength="50" />
-    <Property Type="Int32" Name="AgentId" Nullable="false" />
-    <Property Type="Int32" Name="ProductId" Nullable="false" />
-    <Property Type="Int32" Name="ProductGroupId" Nullable="true" />
-    <Property Type="String" Name="ProductGroupName" Nullable="true" MaxLength="50" />
-    <Property Type="Int32" Name="SelectionsCount" Nullable="true" />
-    <Property Type="Decimal" Name="TotalBetAmount" Nullable="true" Precision="38" Scale="4" />
-    <Property Type="Decimal" Name="TotalWinAmount" Nullable="true" Precision="38" Scale="4" />
-    <Property Type="String" Name="TurnoverPercent" Nullable="false" />
-  </ComplexType>
   <ComplexType Name="fnBetShopReconing">
     <Property Type="Int64" Name="Id" Nullable="false" />
     <Property Type="Int32" Name="BetShopId" Nullable="false" />
@@ -4860,6 +4845,7 @@
     <NavigationProperty Name="BonusProducts" Relationship="IqSoftCorePlatformModel.FK_BonusProduct_Bonus" FromRole="Bonu" ToRole="BonusProduct" />
     <NavigationProperty Name="UserNotifications" Relationship="IqSoftCorePlatformModel.FK_UserNotification_Bonus" FromRole="Bonu" ToRole="UserNotification" />
     <Property Name="Color" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+    <Property Name="WageringSource" Type="Int32" />
   </EntityType>
   <Association Name="FK_Bonus_AccountType">
     <End Type="IqSoftCorePlatformModel.AccountType" Role="AccountType" Multiplicity="0..1" />
@@ -7737,39 +7723,6 @@
     <Property Type="String" Name="CommunicationTypeValue" Nullable="false" MaxLength="50" />
     <Property Type="Int32" Name="ClientId" Nullable="true" />
   </ComplexType>
-  <ComplexType Name="fnProduct">
-    <Property Type="Int32" Name="Id" Nullable="false" />
-    <Property Type="Int64" Name="TranslationId" Nullable="false" />
-    <Property Type="Int32" Name="GameProviderId" Nullable="true" />
-    <Property Type="Int32" Name="PaymentSystemId" Nullable="true" />
-    <Property Type="Int32" Name="Level" Nullable="false" />
-    <Property Type="String" Name="NickName" Nullable="false" MaxLength="50" />
-    <Property Type="Int32" Name="ParentId" Nullable="true" />
-    <Property Type="String" Name="ExternalId" Nullable="true" MaxLength="100" />
-    <Property Type="Int32" Name="State" Nullable="false" />
-    <Property Type="Boolean" Name="IsForDesktop" Nullable="false" />
-    <Property Type="Boolean" Name="IsForMobile" Nullable="false" />
-    <Property Type="Boolean" Name="HasDemo" Nullable="false" />
-    <Property Type="Int32" Name="SubproviderId" Nullable="true" />
-    <Property Type="String" Name="WebImageUrl" Nullable="true" MaxLength="250" />
-    <Property Type="String" Name="MobileImageUrl" Nullable="true" MaxLength="250" />
-    <Property Type="String" Name="BackgroundImageUrl" Nullable="true" MaxLength="250" />
-    <Property Type="Boolean" Name="FreeSpinSupport" Nullable="true" />
-    <Property Type="String" Name="Jackpot" Nullable="true" MaxLength="250" />
-    <Property Type="Int32" Name="CategoryId" Nullable="true" />
-    <Property Type="Decimal" Name="RTP" Nullable="true" Precision="5" Scale="2" />
-    <Property Type="String" Name="Lines" Nullable="true" MaxLength="500" />
-    <Property Type="String" Name="BetValues" Nullable="true" />
-    <Property Type="DateTime" Name="CreationTime" Nullable="false" Precision="23" />
-    <Property Type="DateTime" Name="LastUpdateTime" Nullable="false" Precision="23" />
-    <Property Type="String" Name="Volatility" Nullable="true" MaxLength="500" />
-    <Property Type="Boolean" Name="HasImages" Nullable="true" />
-    <Property Type="String" Name="Path" Nullable="true" />
-    <Property Type="String" Name="Name" Nullable="false" />
-    <Property Type="String" Name="GameProviderName" Nullable="true" MaxLength="50" />
-    <Property Type="String" Name="SubproviderName" Nullable="true" MaxLength="50" />
-    <Property Type="Boolean" Name="IsProviderActive" Nullable="true" />
-  </ComplexType>
   <EntityType Name="ClientBonu">
     <Key>
       <PropertyRef Name="Id" />
@@ -8195,66 +8148,6 @@
       </Dependent>
     </ReferentialConstraint>
   </Association>
-  <ComplexType Name="fnClient">
-    <Property Type="Int32" Name="Id" Nullable="false" />
-    <Property Type="String" Name="Email" Nullable="false" MaxLength="50" />
-    <Property Type="Boolean" Name="IsEmailVerified" Nullable="false" />
-    <Property Type="String" Name="CurrencyId" Nullable="false" MaxLength="5" />
-    <Property Type="String" Name="UserName" Nullable="false" MaxLength="50" />
-    <Property Type="String" Name="NickName" Nullable="true" MaxLength="250" />
-    <Property Type="String" Name="PasswordHash" Nullable="false" MaxLength="150" />
-    <Property Type="Int32" Name="Salt" Nullable="false" />
-    <Property Type="Int32" Name="PartnerId" Nullable="false" />
-    <Property Type="Int32" Name="Gender" Nullable="true" />
-    <Property Type="DateTime" Name="BirthDate" Nullable="false" Precision="10" />
-    <Property Type="Int32" Name="Age" Nullable="false" />
-    <Property Type="Boolean" Name="SendMail" Nullable="false" />
-    <Property Type="Boolean" Name="SendSms" Nullable="false" />
-    <Property Type="Boolean" Name="CallToPhone" Nullable="false" />
-    <Property Type="Boolean" Name="SendPromotions" Nullable="false" />
-    <Property Type="Int32" Name="State" Nullable="false" />
-    <Property Type="String" Name="FirstName" Nullable="true" MaxLength="255" />
-    <Property Type="String" Name="LastName" Nullable="true" MaxLength="255" />
-    <Property Type="String" Name="RegionIsoCode" Nullable="true" MaxLength="50" />
-    <Property Type="Int32" Name="RegionId" Nullable="false" />
-    <Property Type="Int32" Name="CountryId" Nullable="true" />
-    <Property Type="String" Name="Info" Nullable="true" MaxLength="500" />
-    <Property Type="String" Name="ZipCode" Nullable="true" MaxLength="10" />
-    <Property Type="String" Name="RegistrationIp" Nullable="true" MaxLength="50" />
-    <Property Type="String" Name="DocumentNumber" Nullable="true" MaxLength="50" />
-    <Property Type="String" Name="DocumentIssuedBy" Nullable="true" MaxLength="50" />
-    <Property Type="Boolean" Name="IsDocumentVerified" Nullable="false" />
-    <Property Type="String" Name="Address" Nullable="true" MaxLength="255" />
-    <Property Type="String" Name="MobileNumber" Nullable="true" MaxLength="50" />
-    <Property Type="String" Name="PhoneNumber" Nullable="true" MaxLength="50" />
-    <Property Type="Boolean" Name="IsMobileNumberVerified" Nullable="false" />
-    <Property Type="Boolean" Name="HasNote" Nullable="false" />
-    <Property Type="String" Name="LanguageId" Nullable="true" MaxLength="2" />
-    <Property Type="String" Name="City" Nullable="true" MaxLength="100" />
-    <Property Type="DateTime" Name="CreationTime" Nullable="false" Precision="23" />
-    <Property Type="DateTime" Name="LastUpdateTime" Nullable="false" Precision="23" />
-    <Property Type="DateTime" Name="FirstDepositDate" Nullable="true" Precision="23" />
-    <Property Type="DateTime" Name="LastDepositDate" Nullable="true" Precision="23" />
-    <Property Type="Decimal" Name="LastDepositAmount" Nullable="true" Precision="18" Scale="4" />
-    <Property Type="Int32" Name="CategoryId" Nullable="false" />
-    <Property Type="Int32" Name="DocumentType" Nullable="true" />
-    <Property Type="Int32" Name="AffiliatePlatformId" Nullable="true" />
-    <Property Type="String" Name="AffiliateId" Nullable="true" MaxLength="50" />
-    <Property Type="String" Name="AffiliateReferralId" Nullable="true" MaxLength="50" />
-    <Property Type="DateTime" Name="LastSessionDate" Nullable="true" Precision="23" />
-    <Property Type="Int64" Name="LastSessionId" Nullable="true" />
-    <Property Type="String" Name="SecondName" Nullable="true" MaxLength="255" />
-    <Property Type="String" Name="SecondSurname" Nullable="true" MaxLength="255" />
-    <Property Type="String" Name="UnderMonitoringTypes" Nullable="true" MaxLength="250" />
-    <Property Type="String" Name="Duplicated" Nullable="false" MaxLength="5" />
-    <Property Type="Decimal" Name="BonusBalance" Nullable="true" Precision="38" Scale="4" />
-    <Property Type="Decimal" Name="RealBalance" Nullable="true" Precision="38" Scale="4" />
-    <Property Type="Int32" Name="GGR" Nullable="false" />
-    <Property Type="Int32" Name="NETGaming" Nullable="false" />
-    <Property Type="String" Name="UserPath" Nullable="true" MaxLength="50" />
-    <Property Type="Int32" Name="UserId" Nullable="true" />
-    <Property Type="Int32" Name="Title" Nullable="true" />
-  </ComplexType>
   <ComplexType Name="fnBonus">
     <Property Type="Int32" Name="Id" Nullable="false" />
     <Property Type="String" Name="NickName" Nullable="false" MaxLength="255" />
@@ -9595,4 +9488,100 @@
       </Dependent>
     </ReferentialConstraint>
   </Association>
+  <ComplexType Name="fnProduct">
+    <Property Type="Int32" Name="Id" Nullable="false" />
+    <Property Type="Int64" Name="TranslationId" Nullable="false" />
+    <Property Type="Int32" Name="GameProviderId" Nullable="true" />
+    <Property Type="Int32" Name="PaymentSystemId" Nullable="true" />
+    <Property Type="Int32" Name="Level" Nullable="false" />
+    <Property Type="String" Name="NickName" Nullable="false" MaxLength="50" />
+    <Property Type="Int32" Name="ParentId" Nullable="true" />
+    <Property Type="String" Name="ExternalId" Nullable="true" MaxLength="100" />
+    <Property Type="Int32" Name="State" Nullable="false" />
+    <Property Type="Boolean" Name="IsForDesktop" Nullable="false" />
+    <Property Type="Boolean" Name="IsForMobile" Nullable="false" />
+    <Property Type="Boolean" Name="HasDemo" Nullable="false" />
+    <Property Type="Int32" Name="SubproviderId" Nullable="true" />
+    <Property Type="String" Name="WebImageUrl" Nullable="true" MaxLength="250" />
+    <Property Type="String" Name="MobileImageUrl" Nullable="true" MaxLength="250" />
+    <Property Type="String" Name="BackgroundImageUrl" Nullable="true" MaxLength="250" />
+    <Property Type="Boolean" Name="FreeSpinSupport" Nullable="true" />
+    <Property Type="String" Name="Jackpot" Nullable="true" MaxLength="250" />
+    <Property Type="Int32" Name="CategoryId" Nullable="true" />
+    <Property Type="Decimal" Name="RTP" Nullable="true" Precision="5" Scale="2" />
+    <Property Type="String" Name="Lines" Nullable="true" MaxLength="500" />
+    <Property Type="String" Name="BetValues" Nullable="false" MaxLength="1" />
+    <Property Type="DateTime" Name="CreationTime" Nullable="false" Precision="23" />
+    <Property Type="DateTime" Name="LastUpdateTime" Nullable="false" Precision="23" />
+    <Property Type="String" Name="Volatility" Nullable="true" MaxLength="500" />
+    <Property Type="Boolean" Name="HasImages" Nullable="true" />
+    <Property Type="String" Name="Path" Nullable="true" />
+    <Property Type="String" Name="Name" Nullable="false" />
+    <Property Type="String" Name="GameProviderName" Nullable="true" MaxLength="50" />
+    <Property Type="String" Name="SubproviderName" Nullable="true" MaxLength="50" />
+    <Property Type="Boolean" Name="IsProviderActive" Nullable="true" />
+    <Property Type="Int32" Name="PartnerId" Nullable="true" />
+  </ComplexType>
+  <ComplexType Name="fnClient">
+    <Property Type="Int32" Name="Id" Nullable="false" />
+    <Property Type="String" Name="Email" Nullable="false" MaxLength="50" />
+    <Property Type="Boolean" Name="IsEmailVerified" Nullable="false" />
+    <Property Type="String" Name="CurrencyId" Nullable="false" MaxLength="5" />
+    <Property Type="String" Name="UserName" Nullable="false" MaxLength="50" />
+    <Property Type="String" Name="NickName" Nullable="true" MaxLength="250" />
+    <Property Type="String" Name="PasswordHash" Nullable="false" MaxLength="150" />
+    <Property Type="Int32" Name="Salt" Nullable="false" />
+    <Property Type="Int32" Name="PartnerId" Nullable="false" />
+    <Property Type="Int32" Name="Gender" Nullable="true" />
+    <Property Type="DateTime" Name="BirthDate" Nullable="false" Precision="10" />
+    <Property Type="Int32" Name="Age" Nullable="false" />
+    <Property Type="Boolean" Name="SendMail" Nullable="false" />
+    <Property Type="Boolean" Name="SendSms" Nullable="false" />
+    <Property Type="Boolean" Name="CallToPhone" Nullable="false" />
+    <Property Type="Boolean" Name="SendPromotions" Nullable="false" />
+    <Property Type="Int32" Name="State" Nullable="false" />
+    <Property Type="String" Name="FirstName" Nullable="true" MaxLength="255" />
+    <Property Type="String" Name="LastName" Nullable="true" MaxLength="255" />
+    <Property Type="String" Name="RegionIsoCode" Nullable="true" MaxLength="50" />
+    <Property Type="Int32" Name="RegionId" Nullable="false" />
+    <Property Type="Int32" Name="CountryId" Nullable="true" />
+    <Property Type="String" Name="Info" Nullable="true" MaxLength="500" />
+    <Property Type="String" Name="ZipCode" Nullable="true" MaxLength="10" />
+    <Property Type="String" Name="RegistrationIp" Nullable="true" MaxLength="50" />
+    <Property Type="String" Name="DocumentNumber" Nullable="true" MaxLength="50" />
+    <Property Type="String" Name="DocumentIssuedBy" Nullable="true" MaxLength="50" />
+    <Property Type="Boolean" Name="IsDocumentVerified" Nullable="false" />
+    <Property Type="String" Name="Address" Nullable="true" MaxLength="255" />
+    <Property Type="String" Name="MobileNumber" Nullable="true" MaxLength="50" />
+    <Property Type="String" Name="PhoneNumber" Nullable="true" MaxLength="50" />
+    <Property Type="Boolean" Name="IsMobileNumberVerified" Nullable="false" />
+    <Property Type="Boolean" Name="HasNote" Nullable="false" />
+    <Property Type="String" Name="LanguageId" Nullable="true" MaxLength="2" />
+    <Property Type="String" Name="City" Nullable="true" MaxLength="100" />
+    <Property Type="DateTime" Name="CreationTime" Nullable="false" Precision="23" />
+    <Property Type="DateTime" Name="LastUpdateTime" Nullable="false" Precision="23" />
+    <Property Type="DateTime" Name="FirstDepositDate" Nullable="true" Precision="23" />
+    <Property Type="DateTime" Name="LastDepositDate" Nullable="true" Precision="23" />
+    <Property Type="Decimal" Name="LastDepositAmount" Nullable="true" Precision="18" Scale="4" />
+    <Property Type="Int32" Name="CategoryId" Nullable="false" />
+    <Property Type="Int32" Name="DocumentType" Nullable="true" />
+    <Property Type="Int32" Name="AffiliatePlatformId" Nullable="true" />
+    <Property Type="String" Name="AffiliateId" Nullable="true" MaxLength="50" />
+    <Property Type="String" Name="AffiliateReferralId" Nullable="true" MaxLength="50" />
+    <Property Type="DateTime" Name="LastSessionDate" Nullable="true" Precision="23" />
+    <Property Type="Int64" Name="LastSessionId" Nullable="true" />
+    <Property Type="String" Name="SecondName" Nullable="true" MaxLength="255" />
+    <Property Type="String" Name="SecondSurname" Nullable="true" MaxLength="255" />
+    <Property Type="String" Name="UnderMonitoringTypes" Nullable="true" MaxLength="250" />
+    <Property Type="String" Name="Duplicated" Nullable="false" MaxLength="5" />
+    <Property Type="Decimal" Name="BonusBalance" Nullable="true" Precision="38" Scale="4" />
+    <Property Type="Decimal" Name="RealBalance" Nullable="true" Precision="38" Scale="4" />
+    <Property Type="Int32" Name="GGR" Nullable="false" />
+    <Property Type="Int32" Name="NETGaming" Nullable="false" />
+    <Property Type="String" Name="UserPath" Nullable="true" MaxLength="50" />
+    <Property Type="Int32" Name="UserId" Nullable="true" />
+    <Property Type="Int32" Name="Title" Nullable="true" />
+    <Property Type="Int32" Name="CharacterId" Nullable="true" />
+    <Property Type="Int32" Name="CharacterLevel" Nullable="true" />
+  </ComplexType>
 </Schema>

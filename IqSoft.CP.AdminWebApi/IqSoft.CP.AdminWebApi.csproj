@@ -385,6 +385,7 @@
     <Compile Include="Filters\Reporting\ApiFilterReportByPopupStatistics.cs" />
     <Compile Include="Filters\Reporting\ApiFilterReportByUserSession.cs" />
     <Compile Include="Filters\Reporting\ApiFilterReportByUserTransaction.cs" />
+    <Compile Include="Filters\Reporting\ApiFilterUserCorrection.cs" />
     <Compile Include="Helpers\FilterMappers.cs" />
     <Compile Include="Helpers\Helpers.cs" />
     <Compile Include="Helpers\ProductMappers.cs" />
@@ -434,6 +435,7 @@
     <Compile Include="Models\ProductModels\ApiProductCategory.cs" />
     <Compile Include="Filters\PaymentRequests\ApiFilterReportByPaymentSystem.cs" />
     <Compile Include="Models\ReportModels\ApiDocument.cs" />
+    <Compile Include="Models\ReportModels\ApiCorrectionsReportByUser.cs" />
     <Compile Include="Models\ReportModels\ApiReportByBonus.cs" />
     <Compile Include="Models\ReportModels\ApiReportByObjectChangeHistory.cs" />
     <Compile Include="Models\ReportModels\ApiReportByPartner.cs" />

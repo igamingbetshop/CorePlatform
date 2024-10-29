@@ -89,7 +89,9 @@ namespace IqSoft.CP.BLL.Services
                         throw CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongInputParameters);
                     bonus.TurnoverCount = 1;
                 }
-                else if (bonus.Type == (int)BonusTypes.CashBackBonus && (!bonus.AutoApproveMaxAmount.HasValue || bonus.Period < 24) )
+                else if (bonus.Type == (int)BonusTypes.GGRCashBack && (!bonus.AutoApproveMaxAmount.HasValue || bonus.Period < 24) )
+                    throw CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongInputParameters);
+                else if (bonus.Type == (int)BonusTypes.TurnoverCashBack && (!bonus.AutoApproveMaxAmount.HasValue || bonus.Period < 1))
                     throw CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongInputParameters);
                 else if ((bonus.Type == (int)BonusTypes.AggregatedFreeSpin &&
                     Db.Bonus.FirstOrDefault(x => x.Type == (int)BonusTypes.AggregatedFreeSpin &&
@@ -113,7 +115,7 @@ namespace IqSoft.CP.BLL.Services
                 Db.Bonus.Add(bonus);
                 Db.SaveChanges();
 
-                if (bonus.Type == (int)BonusTypes.AffiliateBonus || bonus.Type == (int)BonusTypes.CashBackBonus)
+                if (bonus.Type == (int)BonusTypes.AffiliateBonus || bonus.Type == (int)BonusTypes.GGRCashBack || bonus.Type == (int)BonusTypes.TurnoverCashBack)
                     Db.BonusProducts.Add(new BonusProduct { BonusId = bonus.Id, ProductId = Constants.PlatformProductId, Percent = percent ?? 0 });
                 else if (bonus.Type == (int)BonusTypes.CampaignCash || bonus.Type == (int)BonusTypes.CampaignWagerCasino)
                     Db.BonusProducts.Add(new BonusProduct { BonusId = bonus.Id, ProductId = Constants.PlatformProductId, Percent = 100 });
@@ -451,7 +453,8 @@ namespace IqSoft.CP.BLL.Services
             {
                 if (((dbBonus.Type == (int)BonusTypes.CampaignWagerCasino || dbBonus.Type == (int)BonusTypes.CampaignWagerSport) &&
                 (!bon.ValidForAwarding.HasValue || bon.ValidForAwarding <= 0 || !bon.ValidForSpending.HasValue || bon.ValidForSpending <= 0)) ||
-                 (dbBonus.Type == (int)BonusTypes.CashBackBonus && (!bon.AutoApproveMaxAmount.HasValue || bon.Period < 24)) ||
+                 (dbBonus.Type == (int)BonusTypes.GGRCashBack && (!bon.AutoApproveMaxAmount.HasValue || bon.Period < 24)) ||
+                 (dbBonus.Type == (int)BonusTypes.TurnoverCashBack && (!bon.AutoApproveMaxAmount.HasValue || bon.Period < 1)) ||
                  (dbBonus.Type == (int)BonusTypes.CampaignFreeSpin && (!bon.ValidForSpending.HasValue || bon.ValidForSpending <= 0)))
                     throw CreateException(Constants.DefaultLanguageId, Constants.Errors.WrongInputParameters);
                 if (string.IsNullOrEmpty(bon.Name))
@@ -487,6 +490,7 @@ namespace IqSoft.CP.BLL.Services
                 dbBonus.DayOfWeek = bon.DayOfWeek;
                 dbBonus.ReusingMaxCountInPeriod = bon.ReusingMaxCountInPeriod;
                 dbBonus.Color = bon.Color;
+                dbBonus.WageringSource = bon.WageringSource;
                 if (bon.BonusLanguageSettings == null || !bon.BonusLanguageSettings.Any())
                     Db.BonusLanguageSettings.Where(x => x.BonusId == dbBonus.Id).DeleteFromQuery();
                 else
@@ -1357,7 +1361,7 @@ namespace IqSoft.CP.BLL.Services
             var bonuses = Db.Bonus.Include(x => x.AmountCurrencySettings).Where(x => x.Status == (int)BonusStatuses.Active && 
                 x.StartTime < currentTime && x.FinishTime > currentTime &&
                 DbFunctions.AddHours(x.LastExecutionTime, x.Period) < currentTime &&
-                x.Type == (int)BonusTypes.CashBackBonus &&
+                (x.Type == (int)BonusTypes.GGRCashBack || x.Type == (int)BonusTypes.TurnoverCashBack) &&
                 (!x.MaxGranted.HasValue || x.TotalGranted < x.MaxGranted) &&
                 (!x.MaxReceiversCount.HasValue || x.TotalReceiversCount < x.MaxReceiversCount)).GroupBy(x => x.PartnerId).ToList();
             var partnerIds = bonuses.Select(x => x.Key).ToList();
@@ -1424,7 +1428,7 @@ namespace IqSoft.CP.BLL.Services
                                 var bonusLanguages = bonus.BonusLanguageSettings.Select(x => x.LanguageId).ToList();
 
                                 var betQuery = (from b in bets
-                                                group b by new { b.ClientId, b.CurrencyId, b.CountryId, b.LanguageId}
+                                                group b by new { b.ClientId, b.CurrencyId, b.CountryId, b.LanguageId }
                                                    into y
                                                 select
                                                     new
@@ -1433,12 +1437,19 @@ namespace IqSoft.CP.BLL.Services
                                                         y.Key.CurrencyId,
                                                         y.Key.CountryId,
                                                         y.Key.LanguageId,
-                                                        Amount = y.Sum(x => x.Amount * x.Percent) / 100
-                                                    }).Where(x => x.Amount > 0);
-                                List<int> clients = null;
+                                                        GGRShare = y.Sum(x => x.GGRAmount * x.Percent) / 100,
+                                                        TurnoverShare = y.Sum(x => x.BetAmount * x.Percent) / 100
+                                                    });
+
+                                if(bonus.Type == (int)BonusTypes.GGRCashBack)
+                                    betQuery = betQuery.Where(x => x.GGRShare > 0);
+                                else
+                                    betQuery = betQuery.Where(x => x.TurnoverShare > 0);
+
                                 if (bonusCurrencies.Any())
                                     betQuery = betQuery.Where(x => bonusCurrencies.Contains(x.CurrencyId));
-                                   
+
+                                List<int> clients = null;
                                 if (bonusSegments.Any())
                                 {
                                     clients = Db.ClientClassifications.Where(x => x.SegmentId.HasValue && bonusSegments.Contains(x.SegmentId.Value) &&
@@ -1464,11 +1475,13 @@ namespace IqSoft.CP.BLL.Services
 
                                     foreach (var bonusAmount in bonusAmountByCurrency)
                                     {
-                                        var finalAmount = bonusAmount.Amount;
-                                        var bw = bonusWins.FirstOrDefault(x => x.ClientId == bonusAmount.ClientId);
-                                        if (bw != null)
-                                            finalAmount -= bw.WinAmount;
-
+                                        var finalAmount = bonus.Type == (int)BonusTypes.GGRCashBack ? bonusAmount.GGRShare : bonusAmount.TurnoverShare;
+                                        if (bonus.Type == (int)BonusTypes.GGRCashBack)
+                                        {
+                                            var bw = bonusWins.FirstOrDefault(x => x.ClientId == bonusAmount.ClientId);
+                                            if (bw != null)
+                                                finalAmount -= bw.WinAmount;
+                                        }
                                         if (finalAmount < minAmount)
                                             continue;
                                         var amount = Math.Min(maxAmount, finalAmount);
@@ -1511,10 +1524,12 @@ namespace IqSoft.CP.BLL.Services
                     {
                         var currentTime = DateTime.UtcNow;
                         var dbClientBonuses = Db.ClientBonus.Include(x => x.Bonu).Include(x => x.Client).Include(x => x.Client.Partner)
-                                                               .Where(x => x.Bonu.Type == (int)BonusTypes.CashBackBonus &&
+                                                               .Where(x => (x.Bonu.Type == (int)BonusTypes.GGRCashBack ||
+                                                               x.Bonu.Type == (int)BonusTypes.TurnoverCashBack) &&
                                                                            x.Status == (int)ClientBonusStatuses.Active).Take(100).ToList();
-                        var dbExpiredBonuses = Db.ClientBonus.Where(x => x.Bonu.Type == (int)BonusTypes.CashBackBonus &&
-                                                   x.Status == (int)ClientBonusStatuses.NotAwarded && x.ValidUntil != null && 
+                        var dbExpiredBonuses = Db.ClientBonus.Where(x => (x.Bonu.Type == (int)BonusTypes.GGRCashBack ||
+                                                                        x.Bonu.Type == (int)BonusTypes.TurnoverCashBack) &&
+                                                   x.Status == (int)ClientBonusStatuses.NotAwarded && x.ValidUntil != null &&
                                                    x.ValidUntil < currentTime).UpdateFromQuery(x => new ClientBonu
                                                    {
                                                        Status = (int)ClientBonusStatuses.Expired
@@ -2239,7 +2254,7 @@ namespace IqSoft.CP.BLL.Services
 
         public List<Jackpot> GetJackpots(int partnerId)
         {
-            return Db.Jackpots.Where(x => (!x.PartnerId.HasValue || x.PartnerId == partnerId) && !x.WinnerId.HasValue).ToList();
+            return Db.Jackpots.Include(x=>x.JackpotSettings).Where(x => (!x.PartnerId.HasValue || x.PartnerId == partnerId) && !x.WinnerId.HasValue).ToList();
         }
 
         public List<BonusWinnerInfo> GetBonusWinnersInfo(int bonusId, string languageId)

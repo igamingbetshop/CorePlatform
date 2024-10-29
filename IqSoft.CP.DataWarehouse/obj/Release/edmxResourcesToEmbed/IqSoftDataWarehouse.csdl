@@ -129,15 +129,6 @@
       <End Role="DuplicatedClientHistory" EntitySet="DuplicatedClientHistories" />
     </AssociationSet>
     <EntitySet Name="Opt_Document_Considered" EntityType="DataWarehouseModel.Opt_Document_Considered" />
-    <FunctionImport Name="fn_ClientBets" IsComposable="true" ReturnType="Collection(DataWarehouseModel.fnClientBets)">
-      <Parameter Name="FromDate" Mode="In" Type="Int64" />
-      <Parameter Name="ToDate" Mode="In" Type="Int64" />
-    </FunctionImport>
-    <EntitySet Name="Gtd_Client_Info" EntityType="DataWarehouseModel.Gtd_Client_Info" />
-    <FunctionImport Name="fn_ClientReport" IsComposable="true" ReturnType="Collection(DataWarehouseModel.fnClientReport)">
-      <Parameter Name="FromDate" Mode="In" Type="Int64" />
-      <Parameter Name="ToDate" Mode="In" Type="Int64" />
-    </FunctionImport>
     <FunctionImport Name="fn_DuplicateClient" IsComposable="true" ReturnType="Collection(DataWarehouseModel.fnDuplicateClient)">
       <Parameter Name="ClientId" Mode="In" Type="Int32" />
     </FunctionImport>
@@ -160,6 +151,23 @@
     <FunctionImport Name="sp_InsertDocuments">
       <Parameter Name="minDate" Mode="In" Type="DateTime" />
       <Parameter Name="existings" Mode="In" Type="String" />
+    </FunctionImport>
+    <EntitySet Name="Gtd_Client_Info" EntityType="DataWarehouseModel.Gtd_Client_Info" />
+    <FunctionImport Name="fn_ClientBets" IsComposable="true" ReturnType="Collection(DataWarehouseModel.fnClientBets)">
+      <Parameter Name="FromDate" Mode="In" Type="Int64" />
+      <Parameter Name="ToDate" Mode="In" Type="Int64" />
+    </FunctionImport>
+    <FunctionImport Name="fn_ClientReport" IsComposable="true" ReturnType="Collection(DataWarehouseModel.fnClientReport)">
+      <Parameter Name="FromDate" Mode="In" Type="Int64" />
+      <Parameter Name="ToDate" Mode="In" Type="Int64" />
+      <Parameter Name="CurrencyId" Mode="In" Type="String" />
+    </FunctionImport>
+    <FunctionImport Name="fn_ReportByUserCorrection" IsComposable="true" ReturnType="Collection(DataWarehouseModel.fnReportByUserCorrection)">
+      <Parameter Name="UserType" Mode="In" Type="Int32" />
+      <Parameter Name="CurrencyId" Mode="In" Type="String" />
+      <Parameter Name="FromDate" Mode="In" Type="Int64" />
+      <Parameter Name="ToDate" Mode="In" Type="Int64" />
+      <Parameter Name="ParentId" Mode="In" Type="Int32" />
     </FunctionImport>
   </EntityContainer>
   <EntityType Name="Product">
@@ -890,71 +898,6 @@
     <Property Name="DocumentId" Type="Int64" Nullable="false" />
     <Property Name="Date" Type="Int64" Nullable="false" />
   </EntityType>
-  <ComplexType Name="fnClientBets">
-    <Property Type="Int32" Name="ClientId" Nullable="true" />
-    <Property Type="Decimal" Name="BetAmount" Nullable="true" Precision="38" Scale="4" />
-    <Property Type="Decimal" Name="BonusBetAmount" Nullable="true" Precision="38" Scale="4" />
-    <Property Type="Int32" Name="TotalBetsCount" Nullable="true" />
-    <Property Type="Int32" Name="SportBetsCount" Nullable="true" />
-    <Property Type="Decimal" Name="WinAmount" Nullable="true" Precision="38" Scale="4" />
-    <Property Type="Decimal" Name="BonusWinAmount" Nullable="true" Precision="38" Scale="4" />
-    <Property Type="Int32" Name="WinCount" Nullable="true" />
-  </ComplexType>
-  <EntityType Name="Gtd_Client_Info">
-    <Key>
-      <PropertyRef Name="Id" />
-    </Key>
-    <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-    <Property Name="Date" Type="Int64" Nullable="false" />
-    <Property Name="ClientId" Type="Int32" Nullable="false" />
-    <Property Name="TotalDepositAmount" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
-    <Property Name="TotalDepositCount" Type="Int32" Nullable="false" />
-    <Property Name="TotalWithdrawalAmount" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
-    <Property Name="TotalWithdrawalCount" Type="Int32" Nullable="false" />
-    <Property Name="TotalBetAmount" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
-    <Property Name="TotalBetCount" Type="Int32" Nullable="false" />
-    <Property Name="SportBetCount" Type="Int32" Nullable="false" />
-    <Property Name="TotalWinAmount" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
-    <Property Name="TotalWinCount" Type="Int32" Nullable="false" />
-    <Property Name="GGR" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
-    <Property Name="TotalDebitCorrectionAmount" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
-    <Property Name="TotalDebitCorrectionCount" Type="Int32" Nullable="false" />
-    <Property Name="TotalCreditCorrectionAmount" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
-    <Property Name="TotalCreditCorrectionCount" Type="Int32" Nullable="false" />
-    <Property Name="ComplementaryBalance" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
-    <Property Name="TotalBonusAmount" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
-    <Property Name="NGR" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
-  </EntityType>
-  <ComplexType Name="fnClientReport">
-    <Property Type="Int32" Name="ClientId" Nullable="false" />
-    <Property Type="String" Name="UserName" Nullable="false" MaxLength="50" />
-    <Property Type="Int32" Name="PartnerId" Nullable="false" />
-    <Property Type="String" Name="CurrencyId" Nullable="false" MaxLength="5" />
-    <Property Type="Decimal" Name="CurrentRate" Nullable="false" Precision="18" Scale="12" />
-    <Property Type="String" Name="FirstName" Nullable="true" MaxLength="255" />
-    <Property Type="String" Name="LastName" Nullable="true" MaxLength="255" />
-    <Property Type="String" Name="Email" Nullable="false" MaxLength="50" />
-    <Property Type="Int32" Name="AffiliatePlatformId" Nullable="true" />
-    <Property Type="String" Name="AffiliateId" Nullable="true" MaxLength="50" />
-    <Property Type="String" Name="AffiliateReferralId" Nullable="true" MaxLength="50" />
-    <Property Type="Decimal" Name="TotalWithdrawalAmount" Nullable="true" Precision="38" Scale="4" />
-    <Property Type="Int32" Name="WithdrawalsCount" Nullable="true" />
-    <Property Type="Decimal" Name="TotalDepositAmount" Nullable="true" Precision="38" Scale="4" />
-    <Property Type="Int32" Name="DepositsCount" Nullable="true" />
-    <Property Type="Decimal" Name="TotalBetAmount" Nullable="true" Precision="38" Scale="4" />
-    <Property Type="Int32" Name="TotalBetsCount" Nullable="true" />
-    <Property Type="Int32" Name="SportBetsCount" Nullable="true" />
-    <Property Type="Decimal" Name="TotalWinAmount" Nullable="true" Precision="38" Scale="4" />
-    <Property Type="Int32" Name="WinsCount" Nullable="true" />
-    <Property Type="Decimal" Name="GGR" Nullable="true" Precision="38" Scale="4" />
-    <Property Type="Decimal" Name="NGR" Nullable="true" Precision="38" Scale="4" />
-    <Property Type="Decimal" Name="TotalDebitCorrection" Nullable="true" Precision="38" Scale="4" />
-    <Property Type="Int32" Name="DebitCorrectionsCount" Nullable="true" />
-    <Property Type="Decimal" Name="TotalCreditCorrection" Nullable="true" Precision="38" Scale="4" />
-    <Property Type="Int32" Name="CreditCorrectionsCount" Nullable="true" />
-    <Property Type="Decimal" Name="TotalBonusAmount" Nullable="true" Precision="38" Scale="4" />
-    <Property Type="Decimal" Name="ComplementaryBalance" Nullable="true" Precision="18" Scale="4" />
-  </ComplexType>
   <ComplexType Name="fnDuplicateClient">
     <Property Type="Int32" Name="DuplicatedClientId" Nullable="false" />
     <Property Type="String" Name="DuplicatedData" Nullable="false" MaxLength="500" />
@@ -1030,5 +973,81 @@
     <Property Type="Decimal" Name="TotalProfit" Nullable="true" Precision="38" Scale="6" />
     <Property Type="Decimal" Name="TotalBetAmount" Nullable="true" Precision="38" Scale="4" />
     <Property Type="Decimal" Name="TotalWinAmount" Nullable="true" Precision="38" Scale="4" />
+  </ComplexType>
+  <EntityType Name="Gtd_Client_Info">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+    <Property Name="Date" Type="Int64" Nullable="false" />
+    <Property Name="ClientId" Type="Int32" Nullable="false" />
+    <Property Name="TotalDepositAmount" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
+    <Property Name="TotalDepositCount" Type="Int32" Nullable="false" />
+    <Property Name="TotalWithdrawalAmount" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
+    <Property Name="TotalWithdrawalCount" Type="Int32" Nullable="false" />
+    <Property Name="TotalBetAmount" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
+    <Property Name="TotalBetCount" Type="Int32" Nullable="false" />
+    <Property Name="SportBetAmount" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
+    <Property Name="SportBetCount" Type="Int32" Nullable="false" />
+    <Property Name="TotalWinAmount" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
+    <Property Name="TotalWinCount" Type="Int32" Nullable="false" />
+    <Property Name="SportWinCount" Type="Int32" Nullable="false" />
+    <Property Name="GGR" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
+    <Property Name="TotalDebitCorrectionAmount" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
+    <Property Name="TotalDebitCorrectionCount" Type="Int32" Nullable="false" />
+    <Property Name="TotalCreditCorrectionAmount" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
+    <Property Name="TotalCreditCorrectionCount" Type="Int32" Nullable="false" />
+    <Property Name="ComplementaryBalance" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
+    <Property Name="TotalBonusAmount" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
+    <Property Name="NGR" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
+  </EntityType>
+  <ComplexType Name="fnClientBets">
+    <Property Type="Int32" Name="ClientId" Nullable="true" />
+    <Property Type="Decimal" Name="BetAmount" Nullable="true" Precision="38" Scale="4" />
+    <Property Type="Decimal" Name="BonusBetAmount" Nullable="true" Precision="38" Scale="4" />
+    <Property Type="Int32" Name="TotalBetsCount" Nullable="true" />
+    <Property Type="Decimal" Name="SportBetAmount" Nullable="true" Precision="38" Scale="4" />
+    <Property Type="Int32" Name="SportBetsCount" Nullable="true" />
+    <Property Type="Decimal" Name="WinAmount" Nullable="true" Precision="38" Scale="4" />
+    <Property Type="Decimal" Name="BonusWinAmount" Nullable="true" Precision="38" Scale="4" />
+    <Property Type="Int32" Name="WinCount" Nullable="true" />
+    <Property Type="Int32" Name="SportWinCount" Nullable="true" />
+  </ComplexType>
+  <ComplexType Name="fnClientReport">
+    <Property Type="Int32" Name="PartnerId" Nullable="false" />
+    <Property Type="Int32" Name="ClientId" Nullable="false" />
+    <Property Type="String" Name="UserName" Nullable="false" MaxLength="50" />
+    <Property Type="String" Name="FirstName" Nullable="true" MaxLength="255" />
+    <Property Type="String" Name="LastName" Nullable="true" MaxLength="255" />
+    <Property Type="String" Name="Email" Nullable="false" MaxLength="50" />
+    <Property Type="String" Name="CurrencyId" Nullable="false" MaxLength="5" />
+    <Property Type="Int32" Name="AffiliatePlatformId" Nullable="true" />
+    <Property Type="String" Name="AffiliateId" Nullable="true" MaxLength="50" />
+    <Property Type="String" Name="AffiliateReferralId" Nullable="true" MaxLength="50" />
+    <Property Type="Decimal" Name="TotalWithdrawalAmount" Nullable="true" Precision="38" Scale="6" />
+    <Property Type="Int32" Name="WithdrawalsCount" Nullable="true" />
+    <Property Type="Decimal" Name="TotalDepositAmount" Nullable="true" Precision="38" Scale="6" />
+    <Property Type="Int32" Name="DepositsCount" Nullable="true" />
+    <Property Type="Decimal" Name="TotalBetAmount" Nullable="true" Precision="38" Scale="6" />
+    <Property Type="Int32" Name="TotalBetsCount" Nullable="true" />
+    <Property Type="Int32" Name="SportBetsCount" Nullable="true" />
+    <Property Type="Decimal" Name="TotalWinAmount" Nullable="true" Precision="38" Scale="6" />
+    <Property Type="Int32" Name="WinsCount" Nullable="true" />
+    <Property Type="Decimal" Name="GGR" Nullable="true" Precision="38" Scale="6" />
+    <Property Type="Decimal" Name="NGR" Nullable="true" Precision="38" Scale="6" />
+    <Property Type="Decimal" Name="TotalDebitCorrection" Nullable="true" Precision="38" Scale="6" />
+    <Property Type="Int32" Name="DebitCorrectionsCount" Nullable="true" />
+    <Property Type="Decimal" Name="TotalCreditCorrection" Nullable="true" Precision="38" Scale="6" />
+    <Property Type="Int32" Name="CreditCorrectionsCount" Nullable="true" />
+    <Property Type="Decimal" Name="TotalBonusAmount" Nullable="true" Precision="38" Scale="6" />
+    <Property Type="Decimal" Name="ComplementaryBalance" Nullable="true" Precision="18" Scale="4" />
+  </ComplexType>
+  <ComplexType Name="fnReportByUserCorrection">
+    <Property Type="Int32" Name="UserId" Nullable="false" />
+    <Property Type="String" Name="UserName" Nullable="false" MaxLength="50" />
+    <Property Type="Int32" Name="PartnerId" Nullable="false" />
+    <Property Type="Decimal" Name="TotalDebit" Nullable="true" Precision="38" Scale="6" />
+    <Property Type="Decimal" Name="TotalCredit" Nullable="true" Precision="38" Scale="6" />
+    <Property Type="Decimal" Name="Balance" Nullable="true" Precision="38" Scale="6" />
   </ComplexType>
 </Schema>

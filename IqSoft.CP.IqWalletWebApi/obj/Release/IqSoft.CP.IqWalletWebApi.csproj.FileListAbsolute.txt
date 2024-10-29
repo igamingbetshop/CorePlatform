@@ -97,6 +97,8 @@ D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.IqWalletWebApi\obj\Releas
 D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.IqWalletWebApi\obj\Release\IqSoft.CP.IqWalletWebApi.pdb
 D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.IqWalletWebApi\bin\HtmlRenderer.PdfSharp.dll
 D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.IqWalletWebApi\bin\HtmlRenderer.PdfSharp.pdb
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.IqWalletWebApi\bin\HtmlRenderer.dll
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.IqWalletWebApi\bin\HtmlRenderer.pdb
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.IqWalletWebApi\bin\IqSoft.CP.IqWalletWebApi.dll.config
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.IqWalletWebApi\bin\IqSoft.CP.IqWalletWebApi.dll
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.IqWalletWebApi\bin\IqSoft.CP.IqWalletWebApi.pdb
@@ -142,6 +144,7 @@ D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.IqWalletWebApi\bin\
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.IqWalletWebApi\bin\PdfSharp.dll
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.IqWalletWebApi\bin\Z.EntityFramework.Extensions.dll
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.IqWalletWebApi\bin\HtmlRenderer.PdfSharp.dll
+D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.IqWalletWebApi\bin\HtmlRenderer.dll
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.IqWalletWebApi\bin\LinqKit.Core.dll
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.IqWalletWebApi\bin\LinqKit.dll
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.IqWalletWebApi\bin\IqSoft.CP.BLL.pdb
@@ -188,6 +191,7 @@ D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.IqWalletWebApi\bin\
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.IqWalletWebApi\bin\PdfSharp.xml
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.IqWalletWebApi\bin\Z.EntityFramework.Extensions.xml
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.IqWalletWebApi\bin\HtmlRenderer.PdfSharp.pdb
+D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.IqWalletWebApi\bin\HtmlRenderer.pdb
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.IqWalletWebApi\bin\LinqKit.Core.xml
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.IqWalletWebApi\bin\LinqKit.xml
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.IqWalletWebApi\bin\de\PdfSharp.resources.dll

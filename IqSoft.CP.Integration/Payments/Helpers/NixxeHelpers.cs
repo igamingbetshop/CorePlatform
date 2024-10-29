@@ -68,7 +68,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                         {
                             country = session.Country,
                             number = client.MobileNumber.Replace(client.PhoneNumber, string.Empty),
-                            prefix = client.PhoneNumber
+                            prefix = client.PhoneNumber.Replace("+", string.Empty)
                         }
                     }
                 }

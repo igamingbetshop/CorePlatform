@@ -38,6 +38,8 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
             {
                 case "GetReportByAgents":
                     return GetReportByAgents(JsonConvert.DeserializeObject<ApiFilterfnAgent>(request.RequestData), identity, log);
+                case "GetReportByBets":
+                    return GetReportByBets(JsonConvert.DeserializeObject<ApiFilterInternetBet>(request.RequestData), identity, log);
                 case "GetTransactions":
                     return GetTransactions(JsonConvert.DeserializeObject<ApiFilterfnAgentTransaction>(request.RequestData), identity, log);
                 case "GetDownlineClients":
@@ -71,6 +73,35 @@ namespace IqSoft.CP.MasterCacheWebApi.ControllerClasses
                         Entities = result.Entities.Select(x => x.ToApiAgentReportItem(identity.TimeZone)).ToList()
                     }
                 };
+            }
+        }
+
+        private static ApiResponseBase GetReportByBets(ApiFilterInternetBet input, SessionIdentity identity, ILog log)
+        {
+            using (var reportBl = new ReportBll(identity, log))
+            {
+                var client = CacheManager.GetClientById(input.ClientId);
+                if (client == null || client.Id == 0 || client.UserId != identity.Id)
+                    return new ApiResponseBase();
+                var filter = input.MaptToFilterWebSiteBet();
+                filter.ToDate = filter.ToDate.AddHours(1);
+                var bets = reportBl.GetBetsForWebSite(filter);
+                var apibets = bets.Entities.Select(x => x.MapToBetModel(identity.TimeZone, identity.LanguageId)).ToList();
+                var response = new ApiResponseBase
+                {
+                    ResponseObject = new
+                    {
+                        Bets = apibets,
+                        bets.TotalWinAmount,
+                        bets.TotalBetAmount,
+                        TotalProfit = bets.TotalGGR,
+                        bets.TotalPlayersCount,
+                        bets.TotalProvidersCount,
+                        bets.TotalPossibleWinAmount,
+                        bets.TotalProductsCount
+                    }
+                };
+                return response;
             }
         }
 

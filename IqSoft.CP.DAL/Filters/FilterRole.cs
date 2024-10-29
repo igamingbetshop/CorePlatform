@@ -24,8 +24,7 @@ namespace IqSoft.CP.DAL.Filters
             if (!string.IsNullOrWhiteSpace(Name))
                 objects = objects.Where(x => x.Name.Contains(Name));
             if (PermissionIds != null && PermissionIds.Count != 0)
-                objects =
-                    objects.Where(x => PermissionIds.All(z => x.RolePermissions.Any(y => y.PermissionId == z)));
+                objects = objects.Where(x => PermissionIds.All(z => x.RolePermissions.Any(y => y.PermissionId == z)));
             if(PartnerId != null)
                 objects = objects.Where(x => x.PartnerId == null || x.PartnerId == PartnerId.Value);
 

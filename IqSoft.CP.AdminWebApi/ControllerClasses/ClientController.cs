@@ -1466,6 +1466,7 @@ namespace IqSoft.CP.AdminWebApi.ControllerClasses
         {
             using (var clientBl = new ClientBll(identity, log))
             {
+                clientBl.AddClientJobTrigger(clientId, (int)JobTriggerTypes.ReconsiderSegments);
                 return new ApiResponseBase ();
             }
         }

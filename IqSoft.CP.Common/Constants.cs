@@ -69,6 +69,7 @@ namespace IqSoft.CP.Common
             public const string FooterMenu = "FooterMenu";
             public const string Root = "root";
             public const string Fonts = "Fonts";
+            public const string Html = "Html";
 
             public const string MobileCentralMenu = "MobileCentralMenu";
             public const string MobileFooterMenu = "MobileFooterMenu";
@@ -685,6 +686,11 @@ namespace IqSoft.CP.Common
             public const string LiberSaveSepaEU = "LiberSaveSepaEU";
             public const string WebPaysCreditCard = "WebPaysCreditCard";
             public const string WebPaysAPMs= "WebPaysAPMs";
+            public const string SpayzBankCard= "SpayzBankCard";
+            public const string SpayzOpenBanking= "SpayzOpenBanking";
+            public const string CashBullsPix = "CashBullsPix";
+            public const string CashBullsBlik = "CashBullsBlik";
+            public const string CashBullsOpenBanking = "CashBullsOpenBanking";
 
             public const string MoneyPayVisaMaster = "MoneyPayVisaMaster";
             public const string MoneyPayAmericanExpress = "MoneyPayAmericanExpress";
@@ -707,6 +713,18 @@ namespace IqSoft.CP.Common
             public const string NowPayADA = "NowPayADA";
             public const string NowPaySHIB = "NowPaySHIB";
             public const string NowPaySOL = "NowPaySOL";
+            public const string NowPayBUSDBSC = "NowPayBUSDBSC";
+            public const string NowPayBUSDBNB = "NowPayBUSDBNB";
+            public const string NowPayBUSD = "NowPayBUSD";
+            public const string NowPayPYUSD = "NowPayPYUSD";
+            public const string NowPayUSDP = "NowPayUSDP";
+            public const string NowPayXNO = "NowPayXNO";
+            public const string NowPayXMR = "NowPayXMR";
+            public const string NowPayVET = "NowPayVET";
+            public const string NowPayUNI = "NowPayUNI";
+            public const string NowPayTRX = "NowPayTRX";
+            public const string NowPayDGB = "NowPayDGB";
+            public const string NowPayDASH = "NowPayDASH";
             public const string Pix = "Pix";
             public const string Azulpay = "Azulpay";
             public const string Transact365 = "Transact365";
@@ -880,6 +898,7 @@ namespace IqSoft.CP.Common
             public const string AleaPartners = "AleaPartners";
             public const string BetMakers = "BetMakers";
             public const string RelaxGaming = "RelaxGaming";
+            public const string Pixmove = "Pixmove";
 
             public const string NetEnt = "NetEnt";
             public const string RedTiger = "RedTiger";
@@ -1115,7 +1134,7 @@ namespace IqSoft.CP.Common
             public const string USDT = "USDT";
             public const string USDC = "USDC";
             public const string PYUSD = "PYUSD";
-            public const string BUSD = "BUSD ";
+            public const string BUSD = "BUSD";
             public const string USDTTRC20 = "USDTTRC20";
             public const string USDTERC20 = "USDTERC20";
         }
@@ -1179,6 +1198,7 @@ namespace IqSoft.CP.Common
             public const string EditPartnerBank = "EditPartnerBank";
             public const string ViewGameProvider = "ViewGameProvider";
             public const string EditGameProvider = "EditGameProvider";
+            public const string ViewAggregators = "ViewAggregators";
             public const string MakeBetFromBetShop = "MakeBetFromBetShop";
             public const string RollBackBetShopOperationsFromProduct = "RollBackBetShopOperationsFromProduct";// RollBack BetShop Operations From Product
             public const string PayWinFromBetShop = "PayWinFromBetShop";// Pay Win From BetShop
@@ -1936,13 +1956,16 @@ namespace IqSoft.CP.Common
             public const string AleaPartnersInstance = "AleaPartnersInstance";
 
             public const string BetMakersApiKey = "BetMakersApiKey";
+
             public const string RelaxGamingPartnerId = "RelaxGamingPartnerId";
             public const string RelaxGamingPartnerName = "RelaxGamingPartnerName";
             public const string RelaxGamingApiUrl = "RelaxGamingApiUrl";
             public const string RelaxGamingApiUsername = "RelaxGamingApiUsername";
             public const string RelaxGamingApiPassword = "RelaxGamingApiPassword";
 
-            public const string JackpotGamingApiToken = "JackpotGamingApiToken";
+            public const string PixmoveApiKey = "PixmoveApiKey";
+            public const string PixmovePartnerId = "PixmovePartnerId";
+
 
             public const string IqSoftApiUrl = "IqSoftApiUrl";
             public const string IqSoftFreeSpinApiUrl = "IqSoftFreeSpinApiUrl";
@@ -1990,6 +2013,8 @@ namespace IqSoft.CP.Common
             public const string LuckyStreakTokenUrl = "LuckyStreakTokenUrl";
             public const string LuckyStreakGetGamesUrl = "LuckyStreakGetGamesUrl";
             public const string LuckyStreakHmacKey = "LuckyStreakHmacKey";
+
+            public const string JackpotGamingApiToken = "JackpotGamingApiToken";
 
             public const string SmarticoLabelKey = "SmarticoLabelKey";
             public const string SmarticoBrandKey = "SmarticoBrandKey";
@@ -2138,6 +2163,9 @@ namespace IqSoft.CP.Common
             public const string LiberSaveApiUrl = "LiberSaveApiUrl";
             public const string ExternalCashierApiUrl = "ExternalCashierApiUrl";
             public const string ExternalCashierRedirectUrl = "ExternalCashierRedirectUrl";
+            public const string SpayzApiUrl = "SpayzApiUrl";
+            public const string SpayzPublicKey = "SpayzPublicKey";
+            public const string CashBullsApiUrl = "CashBullsApiUrl";
 
             public const string LuckyPayWithdrawUrl = "LuckyPayWithdrawUrl";
             public const string LuckyPayDepositUrl = "LuckyPayDepositUrl";

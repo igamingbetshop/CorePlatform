@@ -167,6 +167,8 @@ D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.AdminWebApi\obj\Release\I
 D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.AdminWebApi\obj\Release\IqSoft.CP.AdminWebApi.pdb
 D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.AdminWebApi\bin\HtmlRenderer.PdfSharp.dll
 D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.AdminWebApi\bin\HtmlRenderer.PdfSharp.pdb
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.AdminWebApi\bin\HtmlRenderer.dll
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.AdminWebApi\bin\HtmlRenderer.pdb
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.AdminWebApi\bin\IqSoft.CP.AdminWebApi.dll.config
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.AdminWebApi\bin\IqSoft.CP.AdminWebApi.dll
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.AdminWebApi\bin\IqSoft.CP.AdminWebApi.pdb
@@ -233,6 +235,7 @@ D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.AdminWebApi\bin\Ren
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.AdminWebApi\bin\PdfSharp.dll
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.AdminWebApi\bin\Z.EntityFramework.Extensions.dll
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.AdminWebApi\bin\HtmlRenderer.PdfSharp.dll
+D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.AdminWebApi\bin\HtmlRenderer.dll
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.AdminWebApi\bin\LinqKit.Core.dll
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.AdminWebApi\bin\LinqKit.dll
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.AdminWebApi\bin\GraphQL.dll
@@ -316,6 +319,7 @@ D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.AdminWebApi\bin\Ren
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.AdminWebApi\bin\PdfSharp.xml
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.AdminWebApi\bin\Z.EntityFramework.Extensions.xml
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.AdminWebApi\bin\HtmlRenderer.PdfSharp.pdb
+D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.AdminWebApi\bin\HtmlRenderer.pdb
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.AdminWebApi\bin\LinqKit.Core.xml
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.AdminWebApi\bin\LinqKit.xml
 D:\Projects\BetzMarkBranch\BetzMark.GamingPlatform\IqSoft.CP.AdminWebApi\bin\GraphQL.xml

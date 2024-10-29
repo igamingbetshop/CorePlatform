@@ -1059,7 +1059,7 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                     throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.ClientNotFound);
                 var clientBonus = clientBl.GetClientBonusById(apiBonusInput.ClientBonusId) ??
                     throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.BonusNotFound);
-                var clientTrigger = clientBl.ChangeClientBonusTriggerManually(apiBonusInput.ClientId, apiBonusInput.TriggerId, apiBonusInput.BonusId,
+                var clientTrigger = clientBl.ChangeClientBonusTriggerManually(apiBonusInput.ClientId, apiBonusInput.TriggerId , apiBonusInput.BonusId,
                                                                               apiBonusInput.ReuseNumber ?? 1, apiBonusInput.SourceAmount, apiBonusInput.Status);
                 return new ApiResponseBase
                 {

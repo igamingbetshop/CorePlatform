@@ -328,9 +328,11 @@
     <Property Name="TotalWithdrawalCount" Type="int" Nullable="false" />
     <Property Name="TotalBetAmount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
     <Property Name="TotalBetCount" Type="int" Nullable="false" />
+    <Property Name="SportBetAmount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
     <Property Name="SportBetCount" Type="int" Nullable="false" />
     <Property Name="TotalWinAmount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
     <Property Name="TotalWinCount" Type="int" Nullable="false" />
+    <Property Name="SportWinCount" Type="int" Nullable="false" />
     <Property Name="GGR" Type="decimal" Precision="18" Scale="4" Nullable="false" />
     <Property Name="TotalDebitCorrectionAmount" Type="decimal" Precision="18" Scale="4" Nullable="false" />
     <Property Name="TotalDebitCorrectionCount" Type="int" Nullable="false" />
@@ -733,10 +735,12 @@
           <Property Name="BetAmount" Type="decimal" Precision="38" Scale="4" />
           <Property Name="BonusBetAmount" Type="decimal" Precision="38" Scale="4" />
           <Property Name="TotalBetsCount" Type="int" />
+          <Property Name="SportBetAmount" Type="decimal" Precision="38" Scale="4" />
           <Property Name="SportBetsCount" Type="int" />
           <Property Name="WinAmount" Type="decimal" Precision="38" Scale="4" />
           <Property Name="BonusWinAmount" Type="decimal" Precision="38" Scale="4" />
           <Property Name="WinCount" Type="int" />
+          <Property Name="SportWinCount" Type="int" />
         </RowType>
       </CollectionType>
     </ReturnType>
@@ -744,36 +748,36 @@
   <Function Name="fn_ClientReport" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
     <Parameter Name="FromDate" Type="bigint" Mode="In" />
     <Parameter Name="ToDate" Type="bigint" Mode="In" />
+    <Parameter Name="CurrencyId" Type="varchar" Mode="In" />
     <ReturnType>
       <CollectionType>
         <RowType>
+          <Property Name="PartnerId" Type="int" Nullable="false" />
           <Property Name="ClientId" Type="int" Nullable="false" />
           <Property Name="UserName" Type="varchar" MaxLength="50" Nullable="false" />
-          <Property Name="PartnerId" Type="int" Nullable="false" />
-          <Property Name="CurrencyId" Type="varchar" MaxLength="5" Nullable="false" />
-          <Property Name="CurrentRate" Type="decimal" Precision="18" Scale="12" Nullable="false" />
           <Property Name="FirstName" Type="nvarchar" MaxLength="255" />
           <Property Name="LastName" Type="nvarchar" MaxLength="255" />
           <Property Name="Email" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="CurrencyId" Type="varchar" MaxLength="5" Nullable="false" />
           <Property Name="AffiliatePlatformId" Type="int" />
           <Property Name="AffiliateId" Type="varchar" MaxLength="50" />
           <Property Name="AffiliateReferralId" Type="varchar" MaxLength="50" />
-          <Property Name="TotalWithdrawalAmount" Type="decimal" Precision="38" Scale="4" />
+          <Property Name="TotalWithdrawalAmount" Type="decimal" Precision="38" Scale="6" />
           <Property Name="WithdrawalsCount" Type="int" />
-          <Property Name="TotalDepositAmount" Type="decimal" Precision="38" Scale="4" />
+          <Property Name="TotalDepositAmount" Type="decimal" Precision="38" Scale="6" />
           <Property Name="DepositsCount" Type="int" />
-          <Property Name="TotalBetAmount" Type="decimal" Precision="38" Scale="4" />
+          <Property Name="TotalBetAmount" Type="decimal" Precision="38" Scale="6" />
           <Property Name="TotalBetsCount" Type="int" />
           <Property Name="SportBetsCount" Type="int" />
-          <Property Name="TotalWinAmount" Type="decimal" Precision="38" Scale="4" />
+          <Property Name="TotalWinAmount" Type="decimal" Precision="38" Scale="6" />
           <Property Name="WinsCount" Type="int" />
-          <Property Name="GGR" Type="decimal" Precision="38" Scale="4" />
-          <Property Name="NGR" Type="decimal" Precision="38" Scale="4" />
-          <Property Name="TotalDebitCorrection" Type="decimal" Precision="38" Scale="4" />
+          <Property Name="GGR" Type="decimal" Precision="38" Scale="6" />
+          <Property Name="NGR" Type="decimal" Precision="38" Scale="6" />
+          <Property Name="TotalDebitCorrection" Type="decimal" Precision="38" Scale="6" />
           <Property Name="DebitCorrectionsCount" Type="int" />
-          <Property Name="TotalCreditCorrection" Type="decimal" Precision="38" Scale="4" />
+          <Property Name="TotalCreditCorrection" Type="decimal" Precision="38" Scale="6" />
           <Property Name="CreditCorrectionsCount" Type="int" />
-          <Property Name="TotalBonusAmount" Type="decimal" Precision="38" Scale="4" />
+          <Property Name="TotalBonusAmount" Type="decimal" Precision="38" Scale="6" />
           <Property Name="ComplementaryBalance" Type="decimal" Precision="18" Scale="4" />
         </RowType>
       </CollectionType>
@@ -1083,6 +1087,25 @@
           <Property Name="ClientId" Type="int" />
           <Property Name="AffiliateReferralId" Type="int" />
           <Property Name="AffiliateId" Type="varchar" MaxLength="50" />
+        </RowType>
+      </CollectionType>
+    </ReturnType>
+  </Function>
+  <Function Name="fn_ReportByUserCorrection" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+    <Parameter Name="UserType" Type="int" Mode="In" />
+    <Parameter Name="CurrencyId" Type="char" Mode="In" />
+    <Parameter Name="FromDate" Type="bigint" Mode="In" />
+    <Parameter Name="ToDate" Type="bigint" Mode="In" />
+    <Parameter Name="ParentId" Type="int" Mode="In" />
+    <ReturnType>
+      <CollectionType>
+        <RowType>
+          <Property Name="UserId" Type="int" Nullable="false" />
+          <Property Name="UserName" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="PartnerId" Type="int" Nullable="false" />
+          <Property Name="TotalDebit" Type="decimal" Precision="38" Scale="6" />
+          <Property Name="TotalCredit" Type="decimal" Precision="38" Scale="6" />
+          <Property Name="Balance" Type="numeric" Precision="38" Scale="6" />
         </RowType>
       </CollectionType>
     </ReturnType>

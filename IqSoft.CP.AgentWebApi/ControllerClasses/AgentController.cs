@@ -89,15 +89,6 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                 case "CheckSecurityCode":
                     return CheckSecurityCode(JsonConvert.DeserializeObject<string>(request.RequestData), identity, log);
 
-                //case "GetRoles":
-                //    return PermissionController.GetRoles(JsonConvert.DeserializeObject<ApiFilterRole>(request.RequestData), identity, log);
-                //case "SaveUserRoles":
-                //    return SaveUserRoles(JsonConvert.DeserializeObject<SaveUserRoleModel>(request.RequestData),
-                //        identity, log);
-                //case "GetRolePermissions":
-                //    return PermissionController.GetRolePermissions(
-                //        JsonConvert.DeserializeObject<ApiRolePermissionModel>(request.RequestData), identity, log);
-
                 case "GetAnnouncements":
                     return GetAnnouncements(JsonConvert.DeserializeObject<ApiFilterAnnouncement>(request.RequestData), identity, log);
                 case "SaveAnnouncement":
@@ -161,7 +152,7 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                 return new ApiResponseBase();
             }
         }
-      
+
         private static ApiResponseBase DisableTwoFactor(ApiQRCodeInput input, SessionIdentity identity, ILog log)
         {
             using (var userBl = new UserBll(identity, log))
@@ -300,7 +291,7 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
         {
             var resp = new ApiResponseBase { ResponseObject = new List<object>() };
             var agent = CacheManager.GetUserById(agentId);
-            if(agent == null || agent.Id == 0 || string.IsNullOrEmpty(agent.Path))
+            if (agent == null || agent.Id == 0 || string.IsNullOrEmpty(agent.Path))
                 throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.WrongAgentLevel);
             var path = agent.Path.Split('/').ToList();
             var data = new List<object>();
@@ -367,13 +358,13 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                     userBl.CheckPermission(Constants.Permissions.CreateUser);
                     user = CacheManager.GetUserById(user.ParentId.Value);
                 }
-                if ((parentUserSettings != null && parentUserSettings.Id > 0 && !parentUserSettings.AllowDoubleCommission) 
+                if ((parentUserSettings != null && parentUserSettings.Id > 0 && !parentUserSettings.AllowDoubleCommission)
                     || !request.AllowDoubleCommission.HasValue)
                     request.AllowDoubleCommission = false;
-                if ((parentUserSettings != null && parentUserSettings.Id > 0 && !parentUserSettings.AllowOutright) 
+                if ((parentUserSettings != null && parentUserSettings.Id > 0 && !parentUserSettings.AllowOutright)
                     || !request.AllowOutright.HasValue)
                     request.AllowOutright = false;
-                var parentLimits = parentUserSettings == null || parentUserSettings.Id == 0 ? new List<CountLimit>() : 
+                var parentLimits = parentUserSettings == null || parentUserSettings.Id == 0 ? new List<CountLimit>() :
                     JsonConvert.DeserializeObject<List<CountLimit>>(parentUserSettings.CountLimits);
                 if (request.CountLimits != null && isNew && request.CountLimits.Any(x => parentLimits.FirstOrDefault(y => y.Level == x.Level)?.Count < x.Count))
                     throw BaseBll.CreateException(languageId, Constants.Errors.MaxLimitExceeded);
@@ -423,7 +414,7 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                     var resultList = new List<UserModel>();
                     if (!request.Level.HasValue)
                         request.Level = ++user.Level;
-                    if(!Enum.IsDefined(typeof(AgentLevels), request.Level) || request.Level == (int)AgentLevels.Member)
+                    if (!Enum.IsDefined(typeof(AgentLevels), request.Level) || request.Level == (int)AgentLevels.Member)
                         throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.WrongInputParameters);
 
                     var input = request.MapToUser();
@@ -448,7 +439,7 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                     }
                     if (input.Type != (int)UserTypes.AgentEmployee)
                         input.Type = (int)UserTypes.DownlineAgent;
-                    if(request.LevelLimits != null)
+                    if (request.LevelLimits != null)
                     {
                         for (int i = 1; i < request.LevelLimits.Count; i++)
                         {
@@ -471,9 +462,9 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                     var commissionSettings = string.Empty;
                     if (request.CommissionPlan != null)
                     {
-                        if(request.CommissionPlan.PositionTaking != null)
+                        if (request.CommissionPlan.PositionTaking != null)
                         {
-                            foreach(var pt in request.CommissionPlan.PositionTaking)
+                            foreach (var pt in request.CommissionPlan.PositionTaking)
                             {
                                 if (pt.MarketTypes != null)
                                 {
@@ -629,7 +620,7 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                             CountLimits = JsonConvert.SerializeObject(request.CountLimits)
                         };
                         userBl.SaveUserSettings(userSettings, out List<int> cIds);
-                        var commissionSettings = userBl.GetAgentCommissionPlan(cloningUser.PartnerId, cloningUser.Id, null, 
+                        var commissionSettings = userBl.GetAgentCommissionPlan(cloningUser.PartnerId, cloningUser.Id, null,
                             Constants.PlatformProductId, false).FirstOrDefault().TurnoverPercent;
                         var commissionPlan = new AgentCommission
                         {
@@ -721,114 +712,111 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
         {
             ApiResponseBase response;
             using (var userBl = new UserBll(identity, log))
+            using (var clientBl = new ClientBll(userBl))
+            using (var documentBl = new DocumentBll(userBl))
+            using (var transactionScope = CommonFunctions.CreateTransactionScope())
             {
-                using (var documentBl = new DocumentBll(userBl))
+                var user = CacheManager.GetUserById(identity.Id);
+                var subAgent = CacheManager.GetUserById(userModel.Id);
+                if (subAgent == null)
+                    throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.UserNotFound);
+                if (!subAgent.Path.Contains("/" + user.Id + "/"))
+                    throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.NotAllowed);
+                var userSetting = CacheManager.GetUserSetting(subAgent.Id);
+                userModel.PartnerId = user.PartnerId;
+                userModel.Level = subAgent.Level;
+                userModel.State = subAgent.State;
+                userModel.CurrencyId = subAgent.CurrencyId;
+
+                if (user.Type == (int)UserTypes.AgentEmployee)
                 {
-                    using (var transactionScope = CommonFunctions.CreateTransactionScope())
+                    userBl.CheckPermission(Constants.Permissions.CreateUser);
+                    user = CacheManager.GetUserById(user.ParentId.Value);
+                }
+                bool isAsian = false;
+                var partnerSetting = CacheManager.GetPartnerSettingByKey(user.PartnerId, Constants.PartnerKeys.IsUserNameGeneratable);
+                if (partnerSetting != null && partnerSetting.NumericValue.HasValue && partnerSetting.NumericValue != 0)
+                {
+                    isAsian = true;
+                    userBl.CheckSecurityCode(securityCode);
+                }
+                CheckInputData(userModel, user, userBl, identity.LanguageId, isAsian, false);
+                var input = userModel.MapToUser();
+
+                var userSettings = new UserSetting
+                {
+                    AllowAutoPT = userModel.AllowAutoPT,
+                    CalculationPeriod = userModel.CalculationPeriod != null && userModel.CalculationPeriod.Count != 0 ? JsonConvert.SerializeObject(userModel.CalculationPeriod) : "[2]",
+                    AllowOutright = userModel.AllowOutright ?? false,
+                    AllowDoubleCommission = userModel.AllowDoubleCommission ?? false,
+                    LevelLimits = userModel.LevelLimits != null ? JsonConvert.SerializeObject(userModel.LevelLimits) : "[]",
+                    CountLimits = userModel.CountLimits != null ? JsonConvert.SerializeObject(userModel.CountLimits) : "[]",
+                    AgentMaxCredit = userModel.MaxCredit
+                };
+                var parentBalance = userBl.GetUserBalance(user.Id);
+                var childBalance = userBl.GetUserBalance(subAgent.Id);
+
+                var userTransferInput = new TransferInput
+                {
+                    FromUserId = user.Id,
+                    UserId = input.Id,
+                    Amount = userModel.MaxCredit.Value - userSetting.AgentMaxCredit.Value,
+                    CurrencyId = user.CurrencyId
+                };
+                if (user.Type != (int)UserTypes.AdminUser && userTransferInput.Amount > parentBalance.Balance)
+                    throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.LowBalance);
+
+                userBl.EditUser(input, false, clientBl, documentBl);
+                userSettings.UserId = input.Id;
+                userBl.SaveUserSettings(userSettings, out List<int> cIds);
+                var ps = CacheManager.GetPartnerSettingByKey(user.PartnerId, Constants.PartnerKeys.IsUserNameGeneratable);
+                if (partnerSetting != null && partnerSetting.NumericValue.HasValue && partnerSetting.NumericValue == 1)
+                {
+
+                    if (userModel.CommissionPlan != null && userModel.CommissionPlan.PositionTaking != null)
                     {
-                        var user = CacheManager.GetUserById(identity.Id);
-                        var subAgent = CacheManager.GetUserById(userModel.Id);
-                        if (subAgent == null)
-                            throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.UserNotFound);
-                        if (!subAgent.Path.Contains("/" + user.Id + "/"))
-                            throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.NotAllowed);
-                        var userSetting = CacheManager.GetUserSetting(subAgent.Id);
-                        userModel.PartnerId = user.PartnerId;
-                        userModel.Level = subAgent.Level;
-                        userModel.State = subAgent.State;
-                        userModel.CurrencyId = subAgent.CurrencyId;
-
-                        if (user.Type == (int)UserTypes.AgentEmployee)
+                        foreach (var pt in userModel.CommissionPlan.PositionTaking)
                         {
-                            userBl.CheckPermission(Constants.Permissions.CreateUser);
-                            user = CacheManager.GetUserById(user.ParentId.Value);
-                        }
-                        bool isAsian = false;
-                        var partnerSetting = CacheManager.GetPartnerSettingByKey(user.PartnerId, Constants.PartnerKeys.IsUserNameGeneratable);
-                        if (partnerSetting != null && partnerSetting.NumericValue.HasValue && partnerSetting.NumericValue != 0)
-                        {
-                            isAsian = true;
-                            userBl.CheckSecurityCode(securityCode);
-                        }
-                        CheckInputData(userModel, user, userBl, identity.LanguageId, isAsian, false);
-                        var input = userModel.MapToUser();
-
-                        var userSettings = new UserSetting
-                        {
-                            AllowAutoPT = userModel.AllowAutoPT,
-                            CalculationPeriod = userModel.CalculationPeriod != null && userModel.CalculationPeriod.Count != 0 ? JsonConvert.SerializeObject(userModel.CalculationPeriod) : "[2]",
-                            AllowOutright = userModel.AllowOutright ?? false,
-                            AllowDoubleCommission = userModel.AllowDoubleCommission ?? false,
-                            LevelLimits = userModel.LevelLimits != null ? JsonConvert.SerializeObject(userModel.LevelLimits) : "[]",
-                            CountLimits = userModel.CountLimits != null ? JsonConvert.SerializeObject(userModel.CountLimits) : "[]",
-                            AgentMaxCredit = userModel.MaxCredit
-                        };
-                        var parentBalance = userBl.GetUserBalance(user.Id);
-                        var childBalance = userBl.GetUserBalance(subAgent.Id);
-
-                        var userTransferInput = new TransferInput
-                        {
-                            FromUserId = user.Id,
-                            UserId = input.Id,
-                            Amount = userModel.MaxCredit.Value - userSetting.AgentMaxCredit.Value,
-                            CurrencyId = user.CurrencyId
-                        };
-                        if (user.Type != (int)UserTypes.AdminUser && userTransferInput.Amount > parentBalance.Balance)
-                            throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.LowBalance);
-
-                        userBl.EditUser(input, false);
-                        userSettings.UserId = input.Id;
-                        userBl.SaveUserSettings(userSettings, out List<int> cIds);
-                        var ps = CacheManager.GetPartnerSettingByKey(user.PartnerId, Constants.PartnerKeys.IsUserNameGeneratable);
-                        if (partnerSetting != null && partnerSetting.NumericValue.HasValue && partnerSetting.NumericValue == 1)
-                        {
-
-                            if (userModel.CommissionPlan != null && userModel.CommissionPlan.PositionTaking != null)
+                            if (pt.MarketTypes != null)
                             {
-                                foreach (var pt in userModel.CommissionPlan.PositionTaking)
+                                foreach (var mt in pt.MarketTypes)
                                 {
-                                    if (pt.MarketTypes != null)
-                                    {
-                                        foreach (var mt in pt.MarketTypes)
-                                        {
-                                            mt.AgentPercent = mt.OwnerPercent;
-                                            mt.OwnerPercent = 0;
-                                        }
-                                    }
+                                    mt.AgentPercent = mt.OwnerPercent;
+                                    mt.OwnerPercent = 0;
                                 }
                             }
-                            var commissionSettings = userModel.CommissionPlan == null ? string.Empty : JsonConvert.SerializeObject(userModel.CommissionPlan);
-
-                            var commissionPlan = new AgentCommission
-                            {
-                                AgentId = input.Id,
-                                ProductId = Constants.PlatformProductId,
-                                TurnoverPercent = commissionSettings
-                            };
-                            userBl.UpdateAgentCommission(commissionPlan);
                         }
-                        if (userTransferInput.Amount > 0)
-                            userBl.CreateDebitOnUser(userTransferInput, documentBl);
-                        else if (userTransferInput.Amount < 0)
-                        {
-                            userTransferInput.Amount = Math.Abs(userTransferInput.Amount);
-                            if (userTransferInput.Amount > childBalance.Balance)
-                                throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.LowBalance);
-
-                            userBl.CreateCreditOnUser(userTransferInput, documentBl);
-                        }
-                        var commission = userBl.GetAgentCommissions(new List<int> { subAgent.Id });
-                        var res = userBl.GetfnAgent(subAgent.Id);
-                        res.ParentId = subAgent.ParentId;
-                        response = new ApiResponseBase
-                        {
-                            ResponseObject = res.MapToUserModel(identity.TimeZone, commission, user.Id, log)
-                        };
-                        transactionScope.Complete();
                     }
-                    return response;
+                    var commissionSettings = userModel.CommissionPlan == null ? string.Empty : JsonConvert.SerializeObject(userModel.CommissionPlan);
+
+                    var commissionPlan = new AgentCommission
+                    {
+                        AgentId = input.Id,
+                        ProductId = Constants.PlatformProductId,
+                        TurnoverPercent = commissionSettings
+                    };
+                    userBl.UpdateAgentCommission(commissionPlan);
                 }
+                if (userTransferInput.Amount > 0)
+                    userBl.CreateDebitOnUser(userTransferInput, documentBl);
+                else if (userTransferInput.Amount < 0)
+                {
+                    userTransferInput.Amount = Math.Abs(userTransferInput.Amount);
+                    if (userTransferInput.Amount > childBalance.Balance)
+                        throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.LowBalance);
+
+                    userBl.CreateCreditOnUser(userTransferInput, documentBl);
+                }
+                var commission = userBl.GetAgentCommissions(new List<int> { subAgent.Id });
+                var res = userBl.GetfnAgent(subAgent.Id);
+                res.ParentId = subAgent.ParentId;
+                response = new ApiResponseBase
+                {
+                    ResponseObject = res.MapToUserModel(identity.TimeZone, commission, user.Id, log)
+                };
+                transactionScope.Complete();
             }
+            return response;
         }
 
         public static ApiResponseBase GetAgents(ApiAgentInput input, SessionIdentity identity, ILog log)
@@ -968,6 +956,9 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
         public static ApiResponseBase SaveSubAccount(UserModel request, SessionIdentity identity, ILog log)
         {
             using (var userBl = new UserBll(identity, log))
+            using (var clientBl = new ClientBll(userBl))
+            using (var documentBl = new DocumentBll(userBl))
+            using (var transactionScope = CommonFunctions.CreateTransactionScope())
             {
                 var user = CacheManager.GetUserById(identity.Id);
                 var userState = CacheManager.GetUserSetting(user.Id)?.ParentState;
@@ -1005,13 +996,14 @@ namespace IqSoft.CP.AgentWebApi.ControllerClasses
                 if (!Enum.IsDefined(typeof(AgentEmployeePermissions), agentSubAccount.MemberInformationPermission))
                     throw BaseBll.CreateException(identity.LanguageId, Constants.Errors.WrongInputParameters);
                 var res = input.Id == 0 ? userBl.AddUser(input, false, agentSubAccount) :
-                                                      userBl.EditUser(input, false, agentSubAccount);
+                                                      userBl.EditUser(input, false,clientBl, documentBl, agentSubAccount);
                 agentSubAccount.Id = res.Id;
                 agentSubAccount.Username = res.UserName;
                 agentSubAccount.Nickname = res.NickName;
                 agentSubAccount.FirstName = res.FirstName;
                 agentSubAccount.LastName = res.LastName;
                 agentSubAccount.CreationTime = res.CreationTime.GetGMTDateFromUTC(identity.TimeZone);
+                transactionScope.Complete();
                 return new ApiResponseBase
                 {
                     ResponseObject = agentSubAccount

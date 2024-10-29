@@ -71,6 +71,18 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 case Constants.PaymentSystems.NowPayUSDTSOL:
                 case Constants.PaymentSystems.NowPayUSDTPolygon:
                 case Constants.PaymentSystems.NowPayUSDCPolygon:
+                case Constants.PaymentSystems.NowPayBUSDBSC:
+                case Constants.PaymentSystems.NowPayBUSDBNB:
+                case Constants.PaymentSystems.NowPayBUSD:
+                case Constants.PaymentSystems.NowPayPYUSD:
+                case Constants.PaymentSystems.NowPayUSDP:
+                case Constants.PaymentSystems.NowPayXNO:
+                case Constants.PaymentSystems.NowPayXMR:
+                case Constants.PaymentSystems.NowPayVET:
+                case Constants.PaymentSystems.NowPayUNI:
+                case Constants.PaymentSystems.NowPayTRX:
+                case Constants.PaymentSystems.NowPayDGB:
+                case Constants.PaymentSystems.NowPayDASH:
                     return NOWPayHelpers.CreateNowPayChannel(clientId, currency, paymentSystemId, sessionIdentity, log);
                 default:
                     break;
@@ -178,7 +190,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 case Constants.PaymentSystems.PraxisBancontactLunu:
                 case Constants.PaymentSystems.PraxisCreditCardLunu:
                 case Constants.PaymentSystems.PraxisInterac:
-                    initializeUrl = PraxisHelpers.CallPraxisApi(paymentRequest, session, log);
+                    initializeUrl = PraxisHelpers.CallPraxisApi(paymentRequest, cashierPageUrl, session, log);
                     break;
                 case Constants.PaymentSystems.FinalPaySkrill:
                 case Constants.PaymentSystems.FinalPayCrypto:
@@ -569,7 +581,6 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 case Constants.PaymentSystems.XcoinsPayCrypto:
                     response = XcoinsPayHelpers.CreatePayoutRequest(paymentRequest, session, log);
                     break;
-
                 case Constants.PaymentSystems.NOWPay:
                     response = NOWPayHelpers.CreatePayoutRequest(paymentRequest, session, log);
                     break;
@@ -618,6 +629,11 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 case Constants.PaymentSystems.Nixxe:
                     response = NixxeHelpers.ApprovePayoutRequest(paymentRequest, session, log);
                     break;
+                case Constants.PaymentSystems.CashBullsPix:
+                case Constants.PaymentSystems.CashBullsOpenBanking:
+                    response = CashBullsHelpers.CreatePayoutRequest(paymentRequest, session, log, out userIds);
+                    break;
+
                 case Constants.PaymentSystems.BRPay:
                     response = BRPayHelpers.PayoutRequest(paymentRequest, session, log);
                     break;
@@ -999,7 +1015,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                     break;
                 case Constants.PaymentSystems.Praxis:
                 case Constants.PaymentSystems.PraxisFiat:
-                    paymentResponse.Url = PraxisHelpers.CallPraxisApi(paymentRequest, session, log);
+                    paymentResponse.Url = PraxisHelpers.CallPraxisApi(paymentRequest, cashierPageUrl, session, log);
                     break;
                 case Constants.PaymentSystems.PraxisProcessingCC:
                 case Constants.PaymentSystems.PraxisLivitPay:
@@ -1245,11 +1261,20 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 case Constants.PaymentSystems.LiberSaveMonzoGB:
                 case Constants.PaymentSystems.LiberSavePayPalGB:
                 case Constants.PaymentSystems.LiberSaveSepaEU:
-                    paymentResponse.Url = LiberSaveHelpers.CallLiberSaveApi(paymentRequest, session, cashierPageUrl);
+                    paymentResponse.Url = LiberSaveHelpers.CallLiberSaveApi(paymentRequest, session, cashierPageUrl, log);
                     break;
                 case Constants.PaymentSystems.WebPaysCreditCard:
                 case Constants.PaymentSystems.WebPaysAPMs:
                     paymentResponse.Url = WebPaysHelpers.CallWebPaysApi(paymentRequest, cashierPageUrl, session, log);
+                    break;
+                case Constants.PaymentSystems.SpayzBankCard:
+                case Constants.PaymentSystems.SpayzOpenBanking:
+                    paymentResponse.Url = SpayzHelpers.CallSpayzApi(paymentRequest, cashierPageUrl, session, log);
+                    break;
+                case Constants.PaymentSystems.CashBullsBlik:
+                case Constants.PaymentSystems.CashBullsPix:
+                case Constants.PaymentSystems.CashBullsOpenBanking:
+                    paymentResponse.Url = CashBullsHelpers.CallCashBullsApi(paymentRequest, cashierPageUrl, session, log);
                     break;
 
                 case Constants.PaymentSystems.MoneyPayVisaMaster:

@@ -4,6 +4,7 @@ using IqSoft.CP.DAL;
 using IqSoft.CP.DAL.Filters;
 using IqSoft.CP.DAL.Models;
 using IqSoft.CP.Common.Models;
+using IqSoft.CP.BLL.Services;
 
 namespace IqSoft.CP.BLL.Interfaces
 {
@@ -23,7 +24,7 @@ namespace IqSoft.CP.BLL.Interfaces
 
         User AddUser(User user, bool chechPermission = true, AgentEmployeePermissionModel permission = null);
 
-		User EditUser(User user, bool checkPermission, AgentEmployeePermissionModel permission = null);
+		User EditUser(User user, bool checkPermission, ClientBll clientBll, DocumentBll documentBll, AgentEmployeePermissionModel permission = null);
 
 		User GetUserById(int id);
 

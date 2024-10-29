@@ -71,5 +71,7 @@ namespace IqSoft.CP.DAL
         public string UserPath { get; set; }
         public Nullable<int> UserId { get; set; }
         public Nullable<int> Title { get; set; }
+        public Nullable<int> CharacterId { get; set; }
+        public Nullable<int> CharacterLevel { get; set; }
     }
 }

@@ -166,7 +166,7 @@ namespace IqSoft.CP.ProductGateway.Controllers
                 // BaseBll.CheckIp(WhitelistedIps);
                 var bodyStream = new StreamReader(HttpContext.Current.Request.InputStream);
                 WebApiApplication.DbLogger.Debug($" InputString: {bodyStream.ReadToEnd()}");
-                var clientSession = ClientBll.GetClientProductSession(input.Token, Constants.DefaultLanguageId);
+                var clientSession = ClientBll.GetClientProductSession(input.Token, Constants.DefaultLanguageId, checkExpiration: input.TransactionType != "deposit");
                 var client = CacheManager.GetClientById(clientSession.Id);
                 var product = CacheManager.GetProductById(clientSession.ProductId);
                 if (product.GameProviderId != ProviderId ||  product.ExternalId != input.GameId)

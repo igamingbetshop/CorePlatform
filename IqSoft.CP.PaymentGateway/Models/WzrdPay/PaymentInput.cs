@@ -72,7 +72,7 @@ namespace IqSoft.CP.PaymentGateway.Models.WzrdPay
         public bool TestMode { get; set; }
 
         [JsonProperty(PropertyName = "fee")]
-        public int Fee { get; set; }
+        public double Fee { get; set; }
 
         [JsonProperty(PropertyName = "deposit")]
         public decimal Deposit { get; set; }

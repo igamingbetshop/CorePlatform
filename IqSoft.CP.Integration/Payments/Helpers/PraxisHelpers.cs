@@ -18,7 +18,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
 {
     public static class PraxisHelpers
     {
-        public static string CallPraxisApi(PaymentRequest input, SessionIdentity session, ILog log)
+        public static string CallPraxisApi(PaymentRequest input, string cashierPageUrl, SessionIdentity session, ILog log)
         {
             var client = CacheManager.GetClientById(input.ClientId.Value);
             if (string.IsNullOrEmpty(client.FirstName))
@@ -38,7 +38,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
             var url = string.Format("{0}cashier/cashier",
                                     CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.PraxisApiUrl).StringValue);
             var applicationKey = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.PraxisApplicationKey)?.StringValue;
-            var returnUrl = string.Format("https://{0}/user/1/deposit?get=1", session.Domain);
+            cashierPageUrl = $"{cashierPageUrl}?get=1";
             var paymentGatewayUrl = CacheManager.GetPartnerSettingByKey(client.PartnerId, Constants.PartnerKeys.PaymentGateway).StringValue;
 
             var paymentRequestInput = new
@@ -52,7 +52,7 @@ namespace IqSoft.CP.Integration.Payments.Helpers
                 locale = CommonHelpers.LanguageISOCodes[session.LanguageId],
                 notification_url = string.Format("{0}/api/Praxis/{1}", paymentGatewayUrl,
                                                  input.Type == (int)PaymentRequestTypes.Deposit ? "ApiRequest" : "Authentication"),
-                return_url = returnUrl,
+                return_url = cashierPageUrl,
                 order_id = input.Id.ToString(),
                 version = "1.3",
                 timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),

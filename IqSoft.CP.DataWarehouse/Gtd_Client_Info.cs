@@ -23,9 +23,11 @@ namespace IqSoft.CP.DataWarehouse
         public int TotalWithdrawalCount { get; set; }
         public decimal TotalBetAmount { get; set; }
         public int TotalBetCount { get; set; }
+        public decimal SportBetAmount { get; set; }
         public int SportBetCount { get; set; }
         public decimal TotalWinAmount { get; set; }
         public int TotalWinCount { get; set; }
+        public int SportWinCount { get; set; }
         public decimal GGR { get; set; }
         public decimal TotalDebitCorrectionAmount { get; set; }
         public int TotalDebitCorrectionCount { get; set; }

@@ -227,3 +227,5 @@ D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.Integration\obj\Debug\IqS
 D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.Integration\obj\Debug\IqSoft.C.BD34A871.Up2Date
 D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.Integration\obj\Debug\IqSoft.CP.Integration.dll
 D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.Integration\obj\Debug\IqSoft.CP.Integration.pdb
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.Integration\bin\Debug\HtmlRenderer.PdfSharp.dll
+D:\Projects\IqSoftBranch\IqSoft.CorePlatform\IqSoft.CP.Integration\bin\Debug\HtmlRenderer.PdfSharp.pdb

@@ -804,9 +804,9 @@ namespace IqSoft.CP.AgentWebApi.Helpers
             };
         }
 
-        public static FilterUserCorrection MapToFilterCorrection(this ApiFilterUserCorrection filter)
+        public static DAL.Filters.FilterUserCorrection MapToFilterCorrection(this ApiFilterUserCorrection filter)
         {
-            return new FilterUserCorrection
+            return new DAL.Filters.FilterUserCorrection
             {
                 UserId = filter.UserId,
                 TakeCount = filter.TakeCount,
@@ -1393,6 +1393,31 @@ namespace IqSoft.CP.AgentWebApi.Helpers
                 Id = input.Id,
                 Ip = input.Ip,
                 StartTime = input.StartTime.GetGMTDateFromUTC(timeZone)
+            };
+        }
+        public static ApiCorrectionsReportByUser MapToApiCorrectionsReportByUser(this fnReportByUserCorrection input)
+        {
+            return new ApiCorrectionsReportByUser
+            {
+                UserId = input.UserId,
+                UserName = input.UserName,
+                TotalDebit = input.TotalDebit ?? 0,
+                TotalCredit = input.TotalCredit ?? 0,
+                TotalCost = (input.TotalCredit ?? 0) - (input.TotalDebit ?? 0),
+                CurrentBalance = input.Balance ?? 0
+            };
+        }
+        public static DataWarehouse.Filters.FilterUserCorrection MapToFilterUserCorrection(this ApiFilterReportByUserCorrection filter)
+        {
+            return new DataWarehouse.Filters.FilterUserCorrection
+            {
+                FromDate = filter.FromDate,
+                ToDate = filter.ToDate,
+                UserIds = filter.UserIds == null ? new FiltersOperation() : filter.UserIds.MapToFiltersOperation(),
+                UserNames = filter.UserNames == null ? new FiltersOperation() : filter.UserNames.MapToFiltersOperation(),
+                TotalDebits = filter.TotalDebits == null ? new FiltersOperation() : filter.TotalDebits.MapToFiltersOperation(),
+                TotalCredits = filter.TotalCredits == null ? new FiltersOperation() : filter.TotalCredits.MapToFiltersOperation(),
+                Balances = filter.Balances == null ? new FiltersOperation() : filter.Balances.MapToFiltersOperation()
             };
         }
 

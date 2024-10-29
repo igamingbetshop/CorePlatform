@@ -20,6 +20,8 @@ using Product = IqSoft.CP.DAL.Product;
 using System.Threading.Tasks;
 using IqSoft.CP.Common.Models;
 using IqSoft.CP.Common.Models.AdminModels;
+using System.ServiceModel;
+using IqSoft.CP.Common.Models.CacheModels;
 
 namespace IqSoft.CP.BLL.Services
 {
@@ -322,7 +324,7 @@ namespace IqSoft.CP.BLL.Services
             }
 
             var langId = languageId ?? LanguageId;
-            var product = Db.fn_Product(langId).FirstOrDefault(x => x.Id == id);
+            var product = Db.fn_Product(langId, 0).FirstOrDefault(x => x.Id == id);
             product.ProductCountrySettings = Db.ProductCountrySettings.Where(x => x.ProductId == id).ToList();
             product.BetValues = Db.Products.First(x => x.Id == id).BetValues;
             return product;
@@ -367,10 +369,11 @@ namespace IqSoft.CP.BLL.Services
                 orderBy = products => products.OrderByDescending(x => x.Id);
             }
             var languageId = String.IsNullOrEmpty(LanguageId) ? Constants.DefaultLanguageId : LanguageId;
+
             return new PagedModel<fnProduct>
             {
-                Entities = filter.FilterObjects(Db.fn_Product(languageId), orderBy).ToList(),
-                Count = filter.SelectedObjectsCount(Db.fn_Product(languageId))
+                Entities = filter.FilterObjects(Db.fn_Product(languageId, filter.PartnerId), orderBy).ToList(),
+                Count = filter.SelectedObjectsCount(Db.fn_Product(languageId, filter.PartnerId))
             };
         }
 
@@ -417,7 +420,7 @@ namespace IqSoft.CP.BLL.Services
             filter.IsProviderActive = true;
             var languageId = string.IsNullOrEmpty(LanguageId) ? Constants.DefaultLanguageId : LanguageId;
 
-            var res = from p in Db.fn_Product(languageId).Where(x => x.GameProviderId != null)
+            var res = from p in Db.fn_Product(languageId, 0).Where(x => x.GameProviderId != null)
                       join pps in Db.PartnerProductSettings.Where(x => x.PartnerId == partnerId)
                       on p.Id equals pps.ProductId into pp
                       from x in pp.DefaultIfEmpty()
@@ -704,8 +707,21 @@ namespace IqSoft.CP.BLL.Services
             return GetfnPartnerProductSettings(new FilterfnPartnerProductSetting { PartnerId = toPartnerId }, true);
         }
 
-        public List<GameProvider> GetGameProviders(FilterGameProvider filter, bool checkPermission = true)
+        public bool HideAggregatorInfo()
         {
+            try
+            {
+                CheckPermission(Constants.Permissions.ViewAggregators);
+            }
+            catch (FaultException<BllFnErrorType> fex)
+            {
+                if (fex.Detail.Id == Constants.Errors.DontHavePermission)
+                    return true;
+            }
+            return false;
+        }
+        public List<GameProvider> GetGameProviders(FilterGameProvider filter, bool checkPermission = true)
+        {           
             if (checkPermission)
             {
                 var checkP = GetPermissionsToObject(new CheckPermissionInput
@@ -723,6 +739,7 @@ namespace IqSoft.CP.BLL.Services
                         Filter = x => checkP.AccessibleObjects.Contains(x.ObjectId)
                     }
                 };
+                filter.HideAggregatorInfo = HideAggregatorInfo();
             }
             if (filter.ParentId.HasValue)
                 return filter.FilterObjects(Db.Products.Where(x => x.ParentId == filter.ParentId && x.SubproviderId.HasValue)
@@ -902,7 +919,7 @@ namespace IqSoft.CP.BLL.Services
             filter.TakeCount = 0;
             filter.SkipCount = 0;
 
-            return filter.FilterObjects(Db.fn_Product(LanguageId)).ToList();
+            return filter.FilterObjects(Db.fn_Product(LanguageId, 0)).ToList();
         }
 
         #endregion

@@ -8,11 +8,9 @@ using System.Web.Http;
 using IqSoft.CP.BLL.Caching;
 using IqSoft.CP.Common;
 using IqSoft.CP.Common.Models.Enums;
-using IqSoft.CP.ProductGateway.Controllers;
 using log4net;
 using log4net.Config;
 using Microsoft.AspNet.SignalR.Client;
-using Newtonsoft.Json;
 
 namespace IqSoft.CP.ProductGateway
 {

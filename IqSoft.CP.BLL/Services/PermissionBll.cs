@@ -13,6 +13,7 @@ using IqSoft.CP.DAL.Filters;
 using IqSoft.CP.DAL.Models;
 using IqSoft.CP.DAL.Models.User;
 using log4net;
+using Newtonsoft.Json;
 
 namespace IqSoft.CP.BLL.Services
 {
@@ -101,10 +102,22 @@ namespace IqSoft.CP.BLL.Services
             throw CreateException(LanguageId, Constants.Errors.DontHavePermission);
         }
 
-        public List<Role> GetRoles(FilterRole filter)
+        public List<Role> GetRoles(int partnerId)
         {
-            CreateFilterWithPermissions(filter);
-            return filter.FilterObjects(Db.Roles).ToList();
+            var roles = Db.Roles.Where(x => x.PartnerId == partnerId || x.PartnerId == null).ToList();
+            Log.Info("GetRoles_" + JsonConvert.SerializeObject(roles.Where(x => x.RolePermissions != null).SelectMany(x => x.RolePermissions.Select(y => y.Id)).ToList() ?? new List<int>()));
+
+            var checkP = GetPermissionsToObject(new CheckPermissionInput
+            {
+                Permission = Constants.Permissions.ViewRole,
+                ObjectTypeId = (int)ObjectTypes.Role
+            });
+
+            if (!checkP.HaveAccessForAllObjects)
+                roles = roles.Where(x => checkP.AccessibleObjects.Contains(x.ObjectId)).ToList();
+
+            Log.Info("GetRoles1_" + JsonConvert.SerializeObject(roles.Where(x => x.RolePermissions != null).SelectMany(x => x.RolePermissions.Select(y => y.Id)).ToList() ?? new List<int>()));
+            return roles;
         }
 
         public PagedModel<Role> GetRolesPagedModel(FilterRole filter)

@@ -12,8 +12,8 @@ namespace IqSoft.CP.BLL.Interfaces
         Role GetRoleById(int id);
 
 		Role GetRoleByName(string name);
-			
-		List<Role> GetRoles(FilterRole filter);
+
+        List<Role> GetRoles(int partnerId);
 
         PagedModel<Role> GetRolesPagedModel(FilterRole filter);
 

@@ -101,7 +101,7 @@ namespace IqSoft.CP.PaymentGateway.Controllers
                         date_of_birth = client.BirthDate.ToString("yyyy-MM-dd"),
                         description = "Deposit",
                         currency = Constants.Currencies.USADollar,
-                        amount = request.Amount,
+                        amount = amount ,
                         ResourcesUrl = input.RedirectUrl,
                         custom_return_url = input.RedirectUrl,
                         tax = 0,

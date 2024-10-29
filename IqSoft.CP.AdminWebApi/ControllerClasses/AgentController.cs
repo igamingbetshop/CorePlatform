@@ -1,5 +1,4 @@
-﻿using IqSoft.CP.AdminWebApi.Filters;
-using IqSoft.CP.AdminWebApi.Helpers;
+﻿using IqSoft.CP.AdminWebApi.Helpers;
 using IqSoft.CP.AdminWebApi.Models.CommonModels;
 using IqSoft.CP.BLL.Caching;
 using IqSoft.CP.BLL.Services;
@@ -7,8 +6,6 @@ using IqSoft.CP.Common;
 using IqSoft.CP.DAL.Models;
 using log4net;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using IqSoft.CP.Common.Models.Filters;
 

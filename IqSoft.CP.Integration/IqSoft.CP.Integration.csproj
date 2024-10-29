@@ -326,6 +326,7 @@
     <Compile Include="Payments\Helpers\CapitalHelpers.cs" />
     <Compile Include="Payments\Helpers\CardToCardHelpers.cs" />
     <Compile Include="Payments\Helpers\CartipalHelpers.cs" />
+    <Compile Include="Payments\Helpers\CashBullsHelpers.cs" />
     <Compile Include="Payments\Helpers\CashLibHelpers.cs" />
     <Compile Include="Payments\Helpers\ChapaHelpers.cs" />
     <Compile Include="Payments\Helpers\ChangellyHelpers.cs" />
@@ -402,6 +403,7 @@
     <Compile Include="Payments\Helpers\QuikiPayHelpers.cs" />
     <Compile Include="Payments\Helpers\RunpayHelpers.cs" />
     <Compile Include="Payments\Helpers\SantimaPayHelpers.cs" />
+    <Compile Include="Payments\Helpers\SpayzHelpers.cs" />
     <Compile Include="Payments\Helpers\StripeHelpers.cs" />
     <Compile Include="Payments\Helpers\TelebirrHelpers.cs" />
     <Compile Include="Payments\Helpers\TotalProcessingHelpers.cs" />
@@ -438,6 +440,7 @@
     <Compile Include="Payments\Models\CardToCard\PayoutRequestOutput.cs" />
     <Compile Include="Payments\Models\Cartipal\PaymentOutput.cs" />
     <Compile Include="Payments\Models\Cartipal\PayoutOutput.cs" />
+    <Compile Include="Payments\Models\CashBulls\PaymentOutput.cs" />
     <Compile Include="Payments\Models\CashLib\VoucherOutput.cs" />
     <Compile Include="Payments\Models\Changelly\PaymentOutput.cs" />
     <Compile Include="Payments\Models\Chapa\BaseOutput.cs" />
@@ -628,6 +631,7 @@
     <Compile Include="Payments\Models\SantimaPay\PayoutOutput.cs" />
     <Compile Include="Payments\Models\SantimaPay\PaymentOutput.cs" />
     <Compile Include="Payments\Models\FreedomPay\PaymentOutput.cs" />
+    <Compile Include="Payments\Models\Spayz\PaymentOutput.cs" />
     <Compile Include="Payments\Models\Stripe\PaymentLinkInput.cs" />
     <Compile Include="Payments\Models\Stripe\PaymentLinkOutput.cs" />
     <Compile Include="Payments\Models\Stripe\ProductOutput.cs" />
@@ -763,6 +767,7 @@
     <Compile Include="Products\Helpers\MancalaHelpers.cs" />
     <Compile Include="Products\Helpers\NucleusHelpers.cs" />
     <Compile Include="Products\Helpers\OutcomeBetHelpers.cs" />
+    <Compile Include="Products\Helpers\PixmoveHelpers.cs" />
     <Compile Include="Products\Helpers\PlaynGoHelpers.cs" />
     <Compile Include="Products\Helpers\PragmaticPlayHelpers.cs" />
     <Compile Include="Products\Helpers\RelaxGamingHelpers.cs" />
@@ -868,6 +873,8 @@
     <Compile Include="Products\Models\OutcomeBet\GameSession.cs" />
     <Compile Include="Products\Models\OutcomeBet\RequestBase.cs" />
     <Compile Include="Products\Models\OutcomeBet\ResponseBase.cs" />
+    <Compile Include="Products\Models\Pixmove\GameLaunchOutput.cs" />
+    <Compile Include="Products\Models\Pixmove\GameOutput.cs" />
     <Compile Include="Products\Models\PlaynGo\GameItem.cs" />
     <Compile Include="Products\Models\PragmaticPlay\BaseOutput.cs" />
     <Compile Include="Products\Models\PragmaticPlay\GamesOutput.cs" />
